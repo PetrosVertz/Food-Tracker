@@ -1,6 +1,6 @@
 {
-  "name": "Food Tracker",
-  "short_name": "Food",
+  "name": "Tracker",
+  "short_name": "Tracker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

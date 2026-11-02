@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Food Tracker</title>
+<title>Tracker</title>
 <meta name="theme-color" content="#0f1113">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Food Tracker">
+<meta name="apple-mobile-web-app-title" content="Tracker">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -19,15 +19,33 @@
   --p:#5ab0ff; --c:#ffb547; --f:#ff6b8b; --danger:#ff5c5c; --r:14px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);
-  font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 body{padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
 button{font-family:inherit}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px}
-header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 8px}
-h1{font-size:22px;margin:0;letter-spacing:-.3px} h1 span{color:var(--accent)}
-.iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;width:42px;height:42px;font-size:19px;cursor:pointer}
-.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;margin:8px 0 10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0 8px}
+header .left{display:flex;align-items:center;gap:8px;min-width:0}
+h1{font-size:22px;margin:0;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} h1 span{color:var(--accent)}
+.iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;width:42px;height:42px;font-size:19px;cursor:pointer;flex:0 0 42px}
+.page.hide{display:none}
+/* home */
+.hello{color:var(--muted);margin:2px 0 18px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:150px;padding:16px;border-radius:20px;border:1px solid var(--line);background:var(--panel);color:var(--text);text-align:left;cursor:pointer}
+.tile:active{transform:scale(.98)}
+.tile .e{font-size:36px;line-height:1}
+.tile b{display:block;font-size:17px}
+.tile small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.tile.big{grid-column:1/-1;min-height:120px;flex-direction:row;align-items:center;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tile.big small{color:#3c4a12}
+.tile.big .e{font-size:44px}
+.tile.soon{opacity:.55}
+.tile .badge{position:absolute;top:12px;right:12px;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--muted)}
+/* tabs + list */
+.tabs{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin:6px 0 10px}
+.tabs button{flex:1;border:0;border-radius:9px;padding:10px 6px;background:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--text);color:var(--bg)}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;margin:4px 0 10px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
@@ -48,16 +66,18 @@ h1{font-size:22px;margin:0;letter-spacing:-.3px} h1 span{color:var(--accent)}
 .macros{display:flex;gap:12px;margin-top:6px;font-size:14px}
 .m b{font-weight:700} .m.p b{color:var(--p)} .m.c b{color:var(--c)} .m.f b{color:var(--f)}
 .chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.chip.raw{color:var(--c);border-color:#5a4520} .chip.cooked{color:var(--p);border-color:#1f4060}
-.empty{text-align:center;color:var(--muted);padding:50px 20px;border:1px dashed var(--line);border-radius:var(--r)}
+.chip.raw{color:var(--c);border-color:#5a4520} .chip.cooked{color:var(--p);border-color:#1f4060} .chip.ok{color:var(--accent);border-color:#4a5a1a}
+.empty{text-align:center;color:var(--muted);padding:44px 20px;border:1px dashed var(--line);border-radius:var(--r)}
 .empty b{color:var(--text);display:block;font-size:17px;margin-bottom:6px}
-.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:16px 28px;font-size:17px;font-weight:700;box-shadow:0 8px 30px rgba(198,244,50,.25);cursor:pointer;z-index:5}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:16px 28px;font-size:17px;font-weight:700;box-shadow:0 8px 30px rgba(198,244,50,.25);cursor:pointer;z-index:5;white-space:nowrap}
+/* sheets */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:10;align-items:flex-end;justify-content:center}
 .overlay.open{display:flex}
 .sheet{background:var(--panel);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sheet.tall{height:92vh}
 @media(min-width:700px){.overlay{align-items:center}.sheet{border-radius:20px;border:1px solid var(--line)}}
 .sheet h2{margin:0 0 4px;font-size:19px}
-.sheet h3{margin:16px 0 6px;font-size:15px}
+.sheet h3{margin:18px 0 6px;font-size:15px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
 .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;font-size:15px}
 .opt .ic{font-size:24px;width:32px;text-align:center} .opt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
@@ -67,8 +87,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 input:disabled{opacity:.4}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:0 8px}
-.seg{display:flex;gap:6px}
-.seg button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:14px;cursor:pointer}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:14px;cursor:pointer;min-width:0}
 .seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .hint{font-size:12px;color:var(--muted);margin-top:6px} .hint.warn{color:var(--c)} .hint.click{cursor:pointer;text-decoration:underline dotted}
 .typebtn{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font-size:15px}
@@ -85,7 +105,7 @@ input:disabled{opacity:.4}
 .preview{font-size:13px;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--panel2);border-radius:10px;display:none}
 .preview.show{display:block} .preview b{color:var(--text)}
 .actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
-.btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer}
+.btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.small{flex:0 0 auto;padding:11px 14px}
 .btn.danger{color:var(--danger)}
@@ -106,7 +126,38 @@ input:disabled{opacity:.4}
 .cam .torch.on{background:var(--accent);color:var(--accent-ink)}
 .status{margin:10px 0;padding:10px 12px;border-radius:10px;background:var(--panel2);font-size:14px;display:none}
 .status.show{display:block} .status.err{color:var(--danger)}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;display:flex;gap:14px;align-items:center;white-space:nowrap}
+/* cook */
+.irow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ipick{flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;cursor:pointer}
+.ipick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipick.unset{border-color:var(--c);color:var(--c)}
+.ipick small{display:block;color:var(--muted);font-size:11px}
+.igr{flex:0 0 92px;position:relative}
+.igr input{padding-right:26px;text-align:right}
+.igr i{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-style:normal;font-size:13px}
+.irm{flex:0 0 auto;background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:6px}
+.totals{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel2);font-size:14px;margin-top:4px}
+.totals b{font-weight:700}
+.recipe{background:var(--panel2);border-radius:var(--r);padding:12px 14px;margin-top:8px}
+.recipe ol{margin:6px 0 0;padding-left:20px} .recipe li{margin:6px 0}
+.recipe ul{margin:6px 0 0;padding-left:18px;color:var(--muted)} .recipe ul li{margin:3px 0}
+.rmeta{color:var(--muted);font-size:13px}
+.sres{display:flex;flex-direction:column;gap:6px}
+.sgroup{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 4px}
+.sitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer}
+.sitem .e{font-size:24px;width:30px;text-align:center}
+.sitem .t{flex:1;min-width:0} .sitem .t b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sitem small{color:var(--muted);font-size:12px}
+.check{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;color:var(--muted);text-transform:none;letter-spacing:0}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.bignum{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;text-align:center}
+.statrow div{background:var(--panel2);border-radius:12px;padding:10px 4px}
+.statrow b{display:block;font-size:17px} .statrow small{color:var(--muted);font-size:11px}
+/* language */
+.langpick{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.langpick button{padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:12px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99999;display:flex;gap:14px;align-items:center;white-space:nowrap}
 .toast.show{opacity:1;pointer-events:auto}
 .toast button{background:none;border:0;color:#3d6b00;font-weight:800;font-size:14px;cursor:pointer;padding:0}
 .src{font-size:11px;color:var(--muted);margin-top:8px}
@@ -116,335 +167,723 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<!-- ============ HOME ============ -->
+<section class="page wrap" id="pgHome">
   <header>
-    <h1>Food <span>Tracker</span></h1>
-    <button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button>
+    <div class="left"><h1>Tracker</h1></div>
+    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
-  <input class="search" id="search" type="search" placeholder="Search food, brand or category…" autocomplete="off">
-  <div class="chips" id="catChips"></div>
-  <div class="bar"><span id="count"></span><button class="linkbtn" id="sortBtn"></button></div>
-  <div class="list" id="list"></div>
-</div>
+  <p class="hello" data-t="homeHello"></p>
+  <div class="tiles">
+    <button class="tile big" id="tScan"><span class="e">▥</span><span><b data-t="tScan"></b><small data-t="tScanSub"></small></span></button>
+    <button class="tile" id="tFoods"><span class="e">🗂️</span><span><b data-t="tFoods"></b><small id="tFoodsSub"></small></span></button>
+    <button class="tile" id="tMeals"><span class="e">🍲</span><span><b data-t="tMeals"></b><small id="tMealsSub"></small></span></button>
+    <button class="tile soon" id="tFridge"><span class="badge" data-t="soon"></span><span class="e">🧊</span><span><b data-t="tFridge"></b><small data-t="tFridgeSub"></small></span></button>
+    <button class="tile soon" id="tGroc"><span class="badge" data-t="soon"></span><span class="e">🛒</span><span><b data-t="tGroc"></b><small data-t="tGrocSub"></small></span></button>
+  </div>
+</section>
 
-<button class="fab" id="addBtn">＋ Add food</button>
+<!-- ============ MY FOODS ============ -->
+<section class="page wrap hide" id="pgFoods">
+  <header>
+    <div class="left"><button class="iconbtn" id="backBtn" aria-label="Back">‹</button><h1 data-t="myFoods"></h1></div>
+    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
+  </header>
+  <div class="tabs" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button></div>
+  <div id="storeView">
+    <input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off">
+    <div class="chips" id="catChips"></div>
+    <div class="bar"><span id="count"></span><button class="linkbtn" id="sortBtn"></button></div>
+    <div class="list" id="list"></div>
+  </div>
+  <div id="mealsView" class="hide">
+    <input class="search" id="mSearch" type="search" data-tp="searchMeals" autocomplete="off">
+    <div class="bar"><span id="mCount"></span></div>
+    <div class="list" id="mList"></div>
+  </div>
+</section>
 
-<!-- Add method -->
-<div class="overlay" id="ovAdd"><div class="sheet">
-  <h2>Add food</h2>
-  <p class="sub">Barcode is fastest. If the product isn't found, snap the label.</p>
-  <button class="opt" id="optScan"><span class="ic">▥</span><span>Scan barcode<small>Live camera, looks it up on Open Food Facts</small></span></button>
-  <button class="opt" id="optPhoto"><span class="ic">📷</span><span>Photo of nutrition label<small>Read by Gemini (free key in settings)</small></span></button>
-  <button class="opt" id="optManual"><span class="ic">✎</span><span>Type it in<small>Copy the numbers off the label</small></span></button>
-  <input type="file" id="photoInput" accept="image/*" capture="environment" class="hide">
-  <div class="status" id="addStatus"></div>
-  <div class="actions"><button class="btn" data-close>Cancel</button></div>
+<button class="fab hide" id="fab"></button>
+
+<!-- ============ LANGUAGE (first launch) ============ -->
+<div class="overlay" id="ovLang"><div class="sheet">
+  <h2>Choose your language · Διάλεξε γλώσσα</h2>
+  <p class="sub">You can change it later in settings. · Μπορείς να την αλλάξεις αργότερα στις ρυθμίσεις.</p>
+  <div class="langpick">
+    <button data-lang="en"><span style="font-size:26px">🇬🇧</span> English</button>
+    <button data-lang="el"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button>
+  </div>
 </div></div>
 
-<!-- Scanner -->
+<!-- ============ ADD FOOD ============ -->
+<div class="overlay" id="ovAdd"><div class="sheet">
+  <h2 data-t="addFood"></h2>
+  <p class="sub" data-t="addSub"></p>
+  <button class="opt" id="optScan"><span class="ic">▥</span><span data-th="optScan"></span></button>
+  <button class="opt" id="optPhoto"><span class="ic">📷</span><span data-th="optPhoto"></span></button>
+  <button class="opt" id="optManual"><span class="ic">✎</span><span data-th="optManual"></span></button>
+  <input type="file" id="photoInput" accept="image/*" capture="environment" class="hide">
+  <div class="status" id="addStatus"></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+</div></div>
+
+<!-- ============ SCANNER ============ -->
 <div class="overlay" id="ovScan"><div class="sheet">
-  <h2>Scan barcode</h2>
-  <p class="sub">Hold the phone 15–20 cm away with the barcode inside the box.</p>
-  <div class="cam" id="cam">
+  <h2 data-t="scanTitle"></h2>
+  <p class="sub" data-t="scanSub"></p>
+  <div class="cam">
     <video id="video" playsinline muted autoplay></video>
     <div class="frame"></div><div class="line"></div>
-    <button class="torch hide" id="torchBtn">🔦 Light</button>
+    <button class="torch hide" id="torchBtn" data-t="light"></button>
   </div>
   <div class="status" id="scanStatus"></div>
   <div class="actions" style="margin-top:10px">
-    <button class="btn" id="scanPhotoBtn">📷 Scan from a photo instead</button>
+    <button class="btn" id="scanPhotoBtn" data-t="scanPhoto"></button>
   </div>
   <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
-  <label for="manualCode">Or type every number under the barcode</label>
+  <label for="manualCode" data-t="typeCode"></label>
   <div class="row" style="gap:8px">
-    <input id="manualCode" inputmode="numeric" placeholder="e.g. 5201054017265" autocomplete="off">
-    <button class="btn primary small" id="lookupBtn">Look up</button>
+    <input id="manualCode" inputmode="numeric" placeholder="5201054017265" autocomplete="off">
+    <button class="btn primary small" id="lookupBtn" data-t="lookUp"></button>
   </div>
-  <div class="actions"><button class="btn" id="scanCancel">Cancel</button></div>
+  <div class="actions">
+    <button class="btn small" id="scanLabel" data-t="noBarcodeLabel"></button>
+    <button class="btn small" id="scanManual" data-t="typeIt"></button>
+    <button class="btn" id="scanCancel" data-t="close"></button>
+  </div>
 </div></div>
 
-<!-- Food form -->
+<!-- ============ FOOD FORM ============ -->
 <div class="overlay" id="ovForm"><div class="sheet">
-  <h2 id="formTitle">New food</h2>
-  <p class="sub" id="formSub">Check the numbers against the label, then save.</p>
-
-  <label>Food type</label>
+  <h2 id="formTitle"></h2>
+  <p class="sub" id="formSub"></p>
+  <label data-t="foodType"></label>
   <button class="typebtn" id="typeBtn"></button>
-
-  <label for="fBrand">Brand</label>
+  <label for="fBrand" data-t="brand"></label>
   <div class="brandrow">
-    <input id="fBrand" placeholder="e.g. Μεβγάλ" autocomplete="off" list="brandList">
-    <button class="toggle" id="noBrandBtn">No brand</button>
+    <input id="fBrand" data-tp="brandPh" autocomplete="off" list="brandList">
+    <button class="toggle" id="noBrandBtn" data-t="noBrand"></button>
   </div>
   <datalist id="brandList"></datalist>
-
-  <label for="fName">Product</label>
-  <input id="fName" placeholder="e.g. Γιαούρτι στραγγιστό 2%" autocomplete="off">
-
-  <label>Label values are for the food when it's…</label>
-  <div class="seg" id="fState">
-    <button data-v="uncooked">Uncooked</button><button data-v="cooked">Cooked</button><button data-v="ready">Ready to eat</button>
-  </div>
-  <div class="hint">Rice, pasta, oats and raw meat labels are almost always uncooked values.</div>
-
-  <label>Measured in</label>
-  <div class="seg" id="fUnit"><button data-v="g">grams (g)</button><button data-v="ml">millilitres (ml)</button></div>
-
-  <label id="per100">Per 100 g</label>
+  <label for="fName" data-t="product"></label>
+  <input id="fName" data-tp="productPh" autocomplete="off">
+  <label data-t="labelFor"></label>
+  <div class="seg" id="fState"><button data-v="uncooked" data-t="uncooked"></button><button data-v="cooked" data-t="cooked"></button><button data-v="ready" data-t="ready"></button></div>
+  <div class="hint" data-t="stateHint"></div>
+  <label data-t="measuredIn"></label>
+  <div class="seg" id="fUnit"><button data-v="g" data-t="grams"></button><button data-v="ml" data-t="millilitres"></button></div>
+  <label id="per100"></label>
   <div class="grid4">
     <div><label for="fKcal">kcal</label><input id="fKcal" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fP">Protein</label><input id="fP" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fC">Carbs</label><input id="fC" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fF">Fat</label><input id="fF" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fP" data-t="protein"></label><input id="fP" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fC" data-t="carbs"></label><input id="fC" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fF" data-t="fat"></label><input id="fF" type="number" inputmode="decimal" step="any" min="0"></div>
   </div>
   <div class="grid4">
-    <div><label for="fFib">Fibre</label><input id="fFib" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSug">Sugar</label><input id="fSug" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSat">Sat. fat</label><input id="fSat" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSalt">Salt</label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fFib" data-t="fibre"></label><input id="fFib" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fSug" data-t="sugar"></label><input id="fSug" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fSat" data-t="satFat"></label><input id="fSat" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="fSalt" data-t="salt"></label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div>
   </div>
   <div class="hint" id="kcalCheck"></div>
-
-  <label for="packIn">Pack sizes you buy</label>
+  <label for="packIn" data-t="packSizes"></label>
   <div class="brandrow">
-    <input id="packIn" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 1000">
+    <input id="packIn" type="number" inputmode="decimal" step="any" min="0" placeholder="1000">
     <span id="packUnit" style="color:var(--muted)">g</span>
-    <button class="btn small" id="packAdd">Add</button>
+    <button class="btn small" id="packAdd" data-t="add"></button>
   </div>
   <div class="packs" id="packList"></div>
-  <div class="hint">Add every size you buy (e.g. 1000 and 1500 ml milk). Tap ★ on the one you usually get; the grocery list will use it later.</div>
-  <div class="preview" id="packPreview"></div>
-
-  <div class="grid">
-    <div><label for="fServ">Serving (optional)</label><input id="fServ" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 30"></div>
-    <div><label for="fCode">Barcode</label><input id="fCode" inputmode="numeric" autocomplete="off"></div>
+  <div class="hint" data-t="packHint"></div>
+  <label data-t="comesAs"></label>
+  <div class="seg" id="fPieces"><button data-v="none" data-t="whole"></button><button data-v="slice" data-t="slices"></button><button data-v="piece" data-t="pieces"></button></div>
+  <div id="pieceBox" class="hide">
+    <div class="grid">
+      <div><label for="fPiece" id="pieceLbl"></label><input id="fPiece" type="number" inputmode="decimal" step="any" min="0" data-tp="weighOnePh"></div>
+      <div><label for="fCount" id="countLbl"></label><input id="fCount" type="number" inputmode="numeric" step="1" min="1" data-tp="countPh"></div>
+    </div>
+    <div class="hint" id="pieceHint"></div>
   </div>
-  <label for="fNotes">Notes</label>
-  <textarea id="fNotes" rows="2" placeholder="e.g. 'only at Lidl', 'get the 1 kg pack'"></textarea>
+  <label data-t="showOnList"></label>
+  <div class="seg" id="fDisplay"><button data-v="auto" data-t="auto"></button><button data-v="piece"></button><button data-v="pack" data-t="perPack"></button><button data-v="100"></button></div>
+  <div class="hint" id="displayHint"></div>
+  <div class="preview" id="packPreview"></div>
+  <label for="fCode" data-t="barcode"></label>
+  <input id="fCode" inputmode="numeric" autocomplete="off">
+  <label for="fNotes" data-t="notes"></label>
+  <textarea id="fNotes" rows="2" data-tp="notesPh"></textarea>
   <div class="src" id="fSource"></div>
   <div class="actions">
-    <button class="btn small danger hide" id="delBtn">Delete</button>
-    <button class="btn small hide" id="dupBtn">Duplicate</button>
-    <button class="btn" data-close>Cancel</button>
-    <button class="btn primary" id="saveBtn">Save</button>
+    <button class="btn small danger hide" id="delBtn" data-t="delete"></button>
+    <button class="btn small hide" id="dupBtn" data-t="duplicate"></button>
+    <button class="btn" data-close data-t="cancel"></button>
+    <button class="btn primary" id="saveBtn" data-t="save"></button>
   </div>
 </div></div>
 
-<!-- Type picker -->
+<!-- ============ TYPE PICKER ============ -->
 <div class="overlay" id="ovType"><div class="sheet">
-  <h2>Food type</h2>
-  <p class="sub">Pick a category, then the closest match.</p>
+  <h2 data-t="foodType"></h2>
+  <p class="sub" data-t="pickTypeSub"></p>
   <div id="typePicker"></div>
-  <div class="actions"><button class="btn" data-close>Cancel</button></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
 
-<!-- Missing info before save -->
+<!-- ============ MISSING BRAND / TYPE ============ -->
 <div class="overlay" id="ovMissing"><div class="sheet">
-  <h2>Almost there</h2>
-  <p class="sub">Fill in what's missing, then save.</p>
+  <h2 data-t="almost"></h2>
+  <p class="sub" data-t="almostSub"></p>
   <div id="mBrandSec">
-    <h3>Brand</h3>
-    <div class="seg" id="mBrandSeg"><button data-v="add">Add brand</button><button data-v="none">No brand</button></div>
-    <input id="mBrand" class="hide" style="margin-top:10px" placeholder="Brand name" autocomplete="off" list="brandList">
+    <h3 data-t="brand"></h3>
+    <div class="seg" id="mBrandSeg"><button data-v="add" data-t="addBrand"></button><button data-v="none" data-t="noBrand"></button></div>
+    <input id="mBrand" class="hide" style="margin-top:10px" data-tp="brandName" autocomplete="off" list="brandList">
   </div>
   <div id="mTypeSec">
-    <h3>Food type</h3>
+    <h3 data-t="foodType"></h3>
     <div id="mTypePicker"></div>
   </div>
   <div class="actions">
-    <button class="btn" data-close>Back</button>
-    <button class="btn primary" id="mSave" disabled>Save</button>
+    <button class="btn" data-close data-t="back"></button>
+    <button class="btn primary" id="mSave" disabled data-t="save"></button>
   </div>
 </div></div>
 
-<!-- Settings -->
+<!-- ============ PIECE WEIGHT ============ -->
+<div class="overlay" id="ovPiece"><div class="sheet">
+  <h2 id="pcTitle"></h2>
+  <p class="sub" id="pcSub"></p>
+  <div class="seg" id="pcSeg"><button data-v="weigh" data-t="weighOne"></button><button data-v="count" data-t="countThem"></button></div>
+  <div id="pcWeigh"><label for="pcG" id="pcGl"></label><input id="pcG" type="number" inputmode="decimal" step="any" min="0" placeholder="20"></div>
+  <div id="pcCount" class="hide">
+    <div class="grid">
+      <div><label for="pcN" id="pcNl"></label><input id="pcN" type="number" inputmode="numeric" step="1" min="1" placeholder="10"></div>
+      <div><label for="pcPack" id="pcPackl"></label><input id="pcPack" type="number" inputmode="decimal" step="any" min="0" placeholder="200"></div>
+    </div>
+  </div>
+  <div class="preview" id="pcRes"></div>
+  <button class="linkbtn" id="pcNone" style="margin-top:10px"></button>
+  <div class="actions">
+    <button class="btn" id="pcSkip" data-t="skip"></button>
+    <button class="btn primary" id="pcSave" disabled data-t="save"></button>
+  </div>
+</div></div>
+
+<!-- ============ COOK A MEAL ============ -->
+<div class="overlay" id="ovCook"><div class="sheet tall">
+  <h2 id="cookTitle"></h2>
+  <label for="cName" data-t="mealName"></label>
+  <input id="cName" data-tp="mealNamePh" autocomplete="off">
+  <div id="recipeBox">
+    <div class="actions" style="margin-top:10px"><button class="btn" id="suggestBtn" data-t="suggestRecipe"></button></div>
+    <div class="hint" id="suggestHint"></div>
+  </div>
+  <div id="recipeShow" class="hide"></div>
+
+  <h3 data-t="ingredients"></h3>
+  <div class="hint" style="margin:-2px 0 10px" data-t="ingHint"></div>
+  <div id="iRows"></div>
+  <button class="btn" id="addIng" style="width:100%" data-t="addIngredient"></button>
+  <div class="totals" id="cTotals"></div>
+
+  <h3 data-t="finishedWeight"></h3>
+  <div class="hint" style="margin:-2px 0 6px" data-t="finishedHint"></div>
+  <div class="grid">
+    <div><label for="cPotFull" data-t="potFull"></label><input id="cPotFull" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div><label for="cPotEmpty" data-t="potEmpty"></label><input id="cPotEmpty" type="number" inputmode="decimal" step="any" min="0"></div>
+  </div>
+  <label for="cCooked" data-t="orFoodOnly"></label>
+  <input id="cCooked" type="number" inputmode="decimal" step="any" min="0">
+  <div class="preview show" id="cResult"></div>
+  <div class="actions">
+    <button class="btn small danger hide" id="cDelete" data-t="delete"></button>
+    <button class="btn" data-close data-t="cancel"></button>
+    <button class="btn primary" id="cSave" data-t="saveMeal"></button>
+  </div>
+</div></div>
+
+<!-- ============ INGREDIENT SEARCH ============ -->
+<div class="overlay" id="ovIng"><div class="sheet tall">
+  <h2 data-t="chooseIngredient"></h2>
+  <input class="search" id="iSearch" type="search" data-tp="ingSearchPh" autocomplete="off">
+  <div id="iResults" class="sres"></div>
+  <div class="status" id="iStatus"></div>
+  <label class="check hide" id="iSaveWrap"><input type="checkbox" id="iSaveMy" checked><span data-t="alsoSave"></span></label>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+</div></div>
+
+<!-- ============ RECIPE SUGGESTION ============ -->
+<div class="overlay" id="ovRecipe"><div class="sheet tall">
+  <h2 data-t="recipeIdea"></h2>
+  <p class="sub" data-t="recipeIdeaSub"></p>
+  <div id="rBody"></div>
+  <div class="actions">
+    <button class="btn" id="rNo" data-t="noThanks"></button>
+    <button class="btn primary" id="rYes" data-t="useRecipe"></button>
+  </div>
+</div></div>
+
+<!-- ============ MEAL DETAIL ============ -->
+<div class="overlay" id="ovMeal"><div class="sheet tall">
+  <div class="row"><h2 id="mdName"></h2><span class="chip" id="mdWhen"></span></div>
+  <div class="rmeta" id="mdMeta"></div>
+  <div class="statrow" id="mdStats"></div>
+  <h3 data-t="onMyPlate"></h3>
+  <div class="brandrow"><input id="mdPlate" type="number" inputmode="decimal" step="any" min="0" placeholder="350"><span style="color:var(--muted)">g</span></div>
+  <div class="preview" id="mdPlateRes"></div>
+  <h3 data-t="ingredients"></h3>
+  <div id="mdIngs" class="recipe"></div>
+  <div id="mdRecipe"></div>
+  <div class="actions">
+    <button class="btn" id="mdCookAgain" data-t="cookAgain"></button>
+    <button class="btn" id="mdEdit" data-t="edit"></button>
+  </div>
+  <div class="actions" style="margin-top:10px"><button class="btn" data-close data-t="close"></button></div>
+</div></div>
+
+<!-- ============ SETTINGS ============ -->
 <div class="overlay" id="ovSettings"><div class="sheet">
-  <h2>Settings</h2>
-  <p class="sub">Everything is stored on this device only.</p>
-  <label for="sKey">Gemini API key (for label photos)</label>
-  <input id="sKey" type="password" placeholder="Paste key from Google AI Studio" autocomplete="off">
-  <div class="hint">Free from aistudio.google.com → Get API key. It stays in this browser, never in your GitHub files.</div>
-  <label for="sModel">Gemini model</label>
+  <h2 data-t="settings"></h2>
+  <p class="sub" data-t="settingsSub"></p>
+  <label data-t="language"></label>
+  <div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div>
+  <label for="sKey" data-t="geminiKey"></label>
+  <input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off">
+  <div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button></div>
+  <div class="hint" data-t="getKeyHint"></div>
+  <label for="sModel" data-t="geminiModel"></label>
   <input id="sModel" autocomplete="off">
-  <div class="actions"><button class="btn primary" id="saveSettings">Save settings</button></div>
+  <div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div>
   <hr>
-  <h2>Your data</h2>
-  <p class="sub">Copy for Claude, or move your database between phone and PC.</p>
-  <div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude">Copy for Claude</button></div>
+  <h2 data-t="yourData"></h2>
+  <p class="sub" data-t="yourDataSub"></p>
+  <div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div>
   <div class="actions" style="margin-top:10px">
-    <button class="btn" id="exportJson">Download backup</button>
-    <button class="btn" id="importBtn">Import backup</button>
+    <button class="btn" id="exportJson" data-t="download"></button>
+    <button class="btn" id="importBtn" data-t="import"></button>
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
-  <div class="actions"><button class="btn" data-close>Close</button></div>
-  <div class="ver">Food Tracker v1.1</div>
+  <div class="actions"><button class="btn" data-close data-t="close"></button></div>
+  <div class="ver">Tracker v1.3</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 (() => {
-const VERSION = '1.1';
-const KEY = 'ft.foods.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
+const VERSION = '1.3';
+const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 const DEFAULT_MODEL = 'gemini-flash-latest';
+const KEY_URL = 'https://aistudio.google.com/apikey';
 const $ = id => document.getElementById(id);
 
-// ================= categories =================
-// [subId, label, emoji, keywords (Greek + English, no accents), options]
-// options: s = strong match (beats ingredient words, e.g. "juice" beats "orange"), ml = measured in ml
+// ======================= text in both languages =======================
+const S = {
+ homeHello:['What are we doing today?','Τι κάνουμε σήμερα;'],
+ tScan:['Food tracker','Food tracker'], tScanSub:['Scan a barcode to add a food','Σκάναρε barcode για να προσθέσεις τρόφιμο'],
+ tFoods:['My foods','Τα τρόφιμά μου'], tMeals:['Home-cooked','Σπιτικά φαγητά'],
+ tFridge:['Fridge','Ψυγείο'], tFridgeSub:['What you have at home','Τι έχεις στο σπίτι'],
+ tGroc:['Groceries','Ψώνια'], tGrocSub:['Your shopping list','Η λίστα για ψώνια'], soon:['soon','σύντομα'],
+ nFoods:['{n} foods','{n} τρόφιμα'], nFood:['1 food','1 τρόφιμο'], nMeals:['{n} meals','{n} φαγητά'], nMeal:['1 meal','1 φαγητό'],
+ myFoods:['My foods','Τα τρόφιμά μου'], tabStore:['Store-bought','Από το μαγαζί'], tabMeals:['Home-cooked','Σπιτικά'],
+ searchFoods:['Search food, brand or category…','Αναζήτηση τροφίμου, μάρκας ή κατηγορίας…'], searchMeals:['Search your meals…','Αναζήτηση φαγητών…'],
+ addFoodFab:['＋ Add food','＋ Προσθήκη'], cookFab:['🍳 Cook a meal','🍳 Μαγείρεψε'],
+ addFood:['Add food','Προσθήκη τροφίμου'], addSub:['Barcode is fastest. If the product isn’t found, snap the label.','Το barcode είναι το πιο γρήγορο. Αν δεν βρεθεί, φωτογράφισε την ετικέτα.'],
+ optScan:['Scan barcode<small>Live camera, looks it up on Open Food Facts</small>','Σάρωση barcode<small>Ζωντανή κάμερα, αναζήτηση στο Open Food Facts</small>'],
+ optPhoto:['Photo of nutrition label<small>Read by Gemini (free key in settings)</small>','Φωτογραφία διατροφικής ετικέτας<small>Τη διαβάζει το Gemini (δωρεάν κλειδί στις ρυθμίσεις)</small>'],
+ optManual:['Type it in<small>Copy the numbers off the label</small>','Πληκτρολόγηση<small>Αντέγραψε τους αριθμούς από την ετικέτα</small>'],
+ cancel:['Cancel','Άκυρο'], close:['Close','Κλείσιμο'], back:['Back','Πίσω'], save:['Save','Αποθήκευση'], skip:['Skip','Παράλειψη'], add:['Add','Προσθήκη'],
+ delete:['Delete','Διαγραφή'], duplicate:['Duplicate','Αντίγραφο'], edit:['Edit','Επεξεργασία'],
+ scanTitle:['Scan barcode','Σάρωση barcode'], scanSub:['Hold the phone 15–20 cm away with the barcode inside the box.','Κράτα το κινητό 15–20 εκ. μακριά, με το barcode μέσα στο πλαίσιο.'],
+ light:['🔦 Light','🔦 Φως'], scanPhoto:['📷 Scan from a photo instead','📷 Σάρωση από φωτογραφία'],
+ typeCode:['Or type every number under the barcode','Ή γράψε όλους τους αριθμούς κάτω από το barcode'], lookUp:['Look up','Αναζήτηση'],
+ noBarcodeLabel:['📷 Label photo','📷 Φωτό ετικέτας'], typeIt:['✎ Type it in','✎ Πληκτρολόγηση'],
+ startingCam:['Starting camera…','Άνοιγμα κάμερας…'], lookingUp:['Looking up {c}…','Αναζήτηση {c}…'],
+ camBlocked:['Camera permission was blocked. Allow it in your browser settings, or use a photo / type the number.','Η κάμερα μπλοκαρίστηκε. Επίτρεψέ την στις ρυθμίσεις του browser ή χρησιμοποίησε φωτογραφία / γράψε τον αριθμό.'],
+ camHttps:['The camera only works on your https:// link. Type the number below instead.','Η κάμερα δουλεύει μόνο στο https:// link. Γράψε τον αριθμό από κάτω.'],
+ camFail:['Couldn’t start the live scanner. Use “Scan from a photo” or type the number.','Δεν ξεκίνησε η σάρωση. Δοκίμασε «Σάρωση από φωτογραφία» ή γράψε τον αριθμό.'],
+ readingPhoto:['Reading the barcode from the photo…','Διαβάζω το barcode από τη φωτογραφία…'],
+ noCodeInPhoto:['No barcode found in that photo. Get closer and keep it sharp, or type the number.','Δεν βρέθηκε barcode. Πλησίασε και κράτα τη φωτογραφία καθαρή, ή γράψε τον αριθμό.'],
+ photoFail:['Couldn’t read that photo. Type the number below instead.','Δεν διαβάστηκε η φωτογραφία. Γράψε τον αριθμό από κάτω.'],
+ typeCodeFirst:['Type the numbers under the barcode first','Γράψε πρώτα τους αριθμούς του barcode'], codeShort:['Barcodes have 8 or 13 digits, keep going','Τα barcode έχουν 8 ή 13 ψηφία, συνέχισε'],
+ codeInvalid:['That number doesn’t look like a valid barcode (a digit may be off). Look it up anyway?','Ο αριθμός δεν μοιάζει με σωστό barcode (ίσως λάθος ψηφίο). Αναζήτηση έτσι κι αλλιώς;'],
+ alreadyHave:['Already in your foods','Υπάρχει ήδη στα τρόφιμά σου'],
+ notInOFF:['not in Open Food Facts','δεν υπάρχει στο Open Food Facts'], noMacros:['found, but with no macros','βρέθηκε, αλλά χωρίς μακροθρεπτικά'], lookupFail:['lookup failed (no internet?)','η αναζήτηση απέτυχε (χωρίς ίντερνετ;)'],
+ notFoundMsg:['Barcode {c}: {why}. Snap the nutrition label or type it in, and the barcode will be saved with it.','Barcode {c}: {why}. Φωτογράφισε την ετικέτα ή πληκτρολόγησέ το, και το barcode θα αποθηκευτεί μαζί.'],
+ needKey:['Add your free Gemini key in Settings (⚙︎) first, or type the label in.','Βάλε πρώτα το δωρεάν κλειδί Gemini στις Ρυθμίσεις (⚙︎), ή πληκτρολόγησε την ετικέτα.'],
+ readingLabel:['Reading the label…','Διαβάζω την ετικέτα…'], labelFail:['Couldn’t read it: {e}. Try a sharper, straight-on photo, or type it in.','Δεν διαβάστηκε: {e}. Δοκίμασε πιο καθαρή φωτογραφία ή πληκτρολόγησέ το.'],
+ newFood:['New food','Νέο τρόφιμο'], editFood:['Edit food','Επεξεργασία τροφίμου'],
+ checkLabel:['Check the numbers against the label, then save.','Έλεγξε τους αριθμούς με την ετικέτα και αποθήκευσε.'], changeAny:['Change anything, then save.','Άλλαξε ό,τι θέλεις και αποθήκευσε.'],
+ copyOf:['Copy of an existing food: change the flavour or size, then save.','Αντίγραφο τροφίμου: άλλαξε γεύση ή μέγεθος και αποθήκευσε.'],
+ foodType:['Food type','Είδος τροφίμου'], brand:['Brand','Μάρκα'], brandPh:['e.g. Μεβγάλ','π.χ. Μεβγάλ'], noBrand:['No brand','Χωρίς μάρκα'],
+ product:['Product','Προϊόν'], productPh:['e.g. Greek yogurt 2%','π.χ. Γιαούρτι στραγγιστό 2%'],
+ labelFor:['Label values are for the food when it’s…','Οι τιμές της ετικέτας είναι για το τρόφιμο…'],
+ uncooked:['Uncooked','Ωμό'], cooked:['Cooked','Μαγειρεμένο'], ready:['Ready to eat','Έτοιμο'],
+ stateHint:['Rice, pasta, oats and raw meat labels are almost always uncooked values.','Σε ρύζι, ζυμαρικά, βρώμη και ωμό κρέας, οι τιμές είναι σχεδόν πάντα για ωμό.'],
+ measuredIn:['Measured in','Μετριέται σε'], grams:['grams (g)','γραμμάρια (g)'], millilitres:['millilitres (ml)','ml'],
+ per100:['Per 100 {u}','Ανά 100 {u}'], protein:['Protein','Πρωτ.'], carbs:['Carbs','Υδατ.'], fat:['Fat','Λιπαρά'],
+ fibre:['Fibre','Φυτ. ίνες'], sugar:['Sugar','Σάκχαρα'], satFat:['Sat. fat','Κορεσμ.'], salt:['Salt','Αλάτι'],
+ packSizes:['Pack sizes you buy','Μεγέθη συσκευασίας που αγοράζεις'],
+ packHint:['Add every size you buy (e.g. 1000 and 1500 ml milk). Tap ★ on the one you usually get.','Πρόσθεσε κάθε μέγεθος που παίρνεις (π.χ. 1000 και 1500 ml γάλα). Πάτα ★ σε αυτό που παίρνεις συνήθως.'],
+ comesAs:['Comes as','Έρχεται σε'], whole:['Whole / loose','Ολόκληρο / χύμα'], slices:['Slices','Φέτες'], pieces:['Pieces','Τεμάχια'],
+ slice:['slice','φέτα'], piece:['piece','τεμάχιο'], slicesW:['slices','φέτες'], piecesW:['pieces','τεμάχια'],
+ oneWeighs:['One {w} weighs ({u})','Μία {w} ζυγίζει ({u})'], orCount:['Or: {ws} in the pack','Ή: {ws} στη συσκευασία'],
+ weighOnePh:['weigh one','ζύγισε μία'], countPh:['count them','μέτρησέ τες'],
+ everyCounts:['Every {w} counts as {s}.','Κάθε {w} μετράει {s}.'], usingEst:['Using the database estimate ({s}) until you weigh one.','Χρησιμοποιώ την εκτίμηση της βάσης ({s}) μέχρι να ζυγίσεις.'],
+ weighOrCount:['Weigh one {w}, or count them and it divides the pack for you.','Ζύγισε μία {w}, ή μέτρησέ τες και διαιρείται η συσκευασία.'],
+ addPackFirst:['Add the pack size above first, then it can divide.','Πρόσθεσε πρώτα το μέγεθος συσκευασίας για να γίνει η διαίρεση.'],
+ showOnList:['Show on the main list','Εμφάνιση στη λίστα'], auto:['Auto','Αυτόματο'], perPack:['Per pack','Ανά συσκευασία'], perW:['Per {w}','Ανά {w}'],
+ autoPicks:['Auto picks {x}','Το αυτόματο δείχνει {x}'], showing:['Showing {x}','Εμφανίζεται {x}'],
+ becausePieces:[' because it comes in {ws}.',' επειδή έρχεται σε {ws}.'], becauseSmall:[' because the pack is {n} {u} or less.',' επειδή η συσκευασία είναι έως {n} {u}.'], becauseBig:[' for big packs and loose food.',' για μεγάλες συσκευασίες και χύμα.'],
+ perWLabel:['per {w}','ανά {w}'], perPackLabel:['per pack','ανά συσκευασία'], per100Label:['per 100 {u}','ανά 100 {u}'],
+ onePiece:['1 {w}','1 {w}'], wholePack:['Whole pack','Όλη η συσκευασία'],
+ barcode:['Barcode','Barcode'], notes:['Notes','Σημειώσεις'], notesPh:['e.g. ‘only at Lidl’','π.χ. «μόνο στα Lidl»'],
+ filledFrom:['Filled from {s}. Double-check before saving.','Συμπληρώθηκε από {s}. Έλεγξέ το πριν την αποθήκευση.'], lastUpdated:['Last updated {d}','Τελευταία αλλαγή {d}'],
+ theLabelPhoto:['the label photo','τη φωτογραφία ετικέτας'],
+ guessed:['Guessed from the name, tap to change','Μαντεύτηκε από το όνομα, πάτα για αλλαγή'], tapChange:['Tap to change','Πάτα για αλλαγή'],
+ chooseType:['Choose food type','Διάλεξε είδος'], chooseTypeSub:['Dairy, meat, vegetables…','Γαλακτοκομικά, κρέας, λαχανικά…'],
+ pickTypeSub:['Pick a category, then the closest match.','Διάλεξε κατηγορία και μετά το πιο κοντινό.'], allCats:['← All categories','← Όλες οι κατηγορίες'], general:['General','Γενικά'],
+ noKcal:['No kcal? Macros add up to ~{n}. Tap to use that.','Χωρίς θερμίδες; Τα μακρο βγάζουν ~{n}. Πάτα για να το χρησιμοποιήσεις.'],
+ kcalWarn:['Heads up: macros add up to ~{n} kcal but the label says {k}. Worth a second look.','Προσοχή: τα μακρο βγάζουν ~{n} kcal αλλά η ετικέτα γράφει {k}. Ξανακοίτα το.'],
+ kcalOk:['Macros check out (~{n} kcal).','Τα μακρο ταιριάζουν (~{n} kcal).'],
+ needName:['Give the product a name','Δώσε όνομα στο προϊόν'], needMacros:['Protein, carbs and fat are needed','Χρειάζονται πρωτεΐνη, υδατάνθρακες και λιπαρά'], numbersOff:['Some numbers look off','Κάποιοι αριθμοί δεν φαίνονται σωστοί'],
+ typePack:['Type a pack size first','Γράψε πρώτα μέγεθος συσκευασίας'],
+ almost:['Almost there','Σχεδόν έτοιμο'], almostSub:['Fill in what’s missing, then save.','Συμπλήρωσε ό,τι λείπει και αποθήκευσε.'], addBrand:['Add brand','Προσθήκη μάρκας'], brandName:['Brand name','Όνομα μάρκας'],
+ pieceQ:['How much does one {w} weigh?','Πόσο ζυγίζει μία {w};'],
+ pieceSub:['Optional. Weigh one {w}, or count them and it divides the pack, for a 100% accurate number. ','Προαιρετικό. Ζύγισε μία {w}, ή μέτρησέ τες για να διαιρεθεί η συσκευασία, για 100% ακρίβεια. '],
+ pieceSkipEst:['Skip to use the database estimate ({s} per {w}).','Πάτα Παράλειψη για την εκτίμηση της βάσης ({s} ανά {w}).'], pieceSkipLater:['Skip to save without it and add it later.','Πάτα Παράλειψη για να το προσθέσεις αργότερα.'],
+ weighOne:['⚖️ Weigh one','⚖️ Ζύγισε μία'], countThem:['🔢 Count them','🔢 Μέτρησέ τες'], inPack:['{Ws} in the pack','{Ws} στη συσκευασία'], wholePackU:['Whole pack ({u})','Όλη η συσκευασία ({u})'],
+ notInPieces:['It doesn’t come in {ws}','Δεν έρχεται σε {ws}'], eachIs:['{a} ÷ {n} = <b>{s} each</b>','{a} ÷ {n} = <b>{s} η καθεμία</b>'],
+ sameCode:['This barcode is already saved as “{n}”. Save another one anyway?','Αυτό το barcode υπάρχει ήδη ως «{n}». Αποθήκευση ξανά;'],
+ sameName:['You already have “{n}”. Save a second one anyway?','Έχεις ήδη «{n}». Αποθήκευση δεύτερου;'],
+ saved:['Saved {i}','Αποθηκεύτηκε {i}'], updated:['Updated','Ενημερώθηκε'], deleted:['Deleted {n}','Διαγράφηκε: {n}'], undo:['Undo','Αναίρεση'], scanNext:['Scan next','Επόμενο'],
+ noFoods:['<b>No foods yet</b>Tap “Add food” and scan your first barcode.','<b>Δεν έχεις τρόφιμα ακόμα</b>Πάτα «Προσθήκη» και σκάναρε το πρώτο barcode.'],
+ nothingMatches:['Nothing matches “{q}”.','Τίποτα για «{q}».'], nothingHere:['Nothing here.','Τίποτα εδώ.'],
+ all:['All','Όλα'], noType:['❔ No type','❔ Χωρίς είδος'], sortRecent:['Sort: <b>Recent</b>','Ταξινόμηση: <b>Πρόσφατα</b>'], sortAZ:['Sort: <b>A–Z</b>','Ταξινόμηση: <b>Α–Ω</b>'],
+ // cook
+ cookMeal:['Cook a meal','Μαγείρεψε'], editMeal:['Edit meal','Επεξεργασία φαγητού'], cookAgainT:['Cook again','Ξανά μαγείρεμα'],
+ mealName:['What are you making?','Τι μαγειρεύεις;'], mealNamePh:['e.g. Bolognese, chicken in the pan','π.χ. Μπολονέζ, κοτόπουλο στο τηγάνι'],
+ suggestRecipe:['✨ Suggest a recipe','✨ Πρότεινε συνταγή'], suggestHint:['Optional. Gets a full recipe with steps and fills in the ingredients.','Προαιρετικό. Φέρνει συνταγή με βήματα και συμπληρώνει τα υλικά.'],
+ suggestNeedName:['Type what you’re making first','Γράψε πρώτα τι μαγειρεύεις'], thinking:['Writing a recipe…','Γράφω συνταγή…'],
+ recipeFail:['Couldn’t get a recipe: {e}','Δεν βγήκε συνταγή: {e}'],
+ ingredients:['Ingredients','Υλικά'], ingHint:['Weigh each one as it goes into the pot: raw meat, dry pasta and rice.','Ζύγισε κάθε υλικό όπως μπαίνει στην κατσαρόλα: ωμό κρέας, ξερά ζυμαρικά και ρύζι.'],
+ addIngredient:['＋ Add ingredient','＋ Προσθήκη υλικού'], chooseFood:['Choose food…','Διάλεξε τρόφιμο…'], from:['from {s}','από {s}'],
+ rawTotal:['Raw total','Σύνολο ωμών'], finishedWeight:['Weigh the finished food','Ζύγισε το έτοιμο φαγητό'],
+ finishedHint:['Cooking changes the weight (water boils off, pasta soaks it up), so this is what makes the numbers right.','Το μαγείρεμα αλλάζει το βάρος (εξατμίζεται νερό, τα ζυμαρικά το απορροφούν), γι’ αυτό αυτό κάνει τους αριθμούς σωστούς.'],
+ potFull:['Pot + food (g)','Κατσαρόλα + φαγητό (g)'], potEmpty:['Empty pot (g)','Άδεια κατσαρόλα (g)'], orFoodOnly:['Or just the food (g)','Ή μόνο το φαγητό (g)'],
+ resultPer100:['<b>Per 100 g cooked: {k} kcal</b> · P {p} · C {c} · F {f}','<b>Ανά 100 g μαγειρεμένο: {k} kcal</b> · P {p} · C {c} · F {f}'],
+ noWeightYet:['Weigh the finished food for exact numbers. If you skip it, the raw total ({s}) is used, which can be off by a lot.','Ζύγισε το έτοιμο φαγητό για ακριβείς αριθμούς. Αν το παραλείψεις, χρησιμοποιείται το σύνολο των ωμών ({s}), που μπορεί να απέχει πολύ.'],
+ foodWeight:['Finished food: {s}','Έτοιμο φαγητό: {s}'],
+ saveMeal:['Save meal','Αποθήκευση'], needMealName:['Give the meal a name','Δώσε όνομα στο φαγητό'], needIng:['Add at least one ingredient','Πρόσθεσε τουλάχιστον ένα υλικό'],
+ unsetIng:['Choose a food for every ingredient (orange ones)','Διάλεξε τρόφιμο για κάθε υλικό (τα πορτοκαλί)'], needGrams:['Some ingredients have no amount','Κάποια υλικά δεν έχουν ποσότητα'],
+ potNegative:['The empty pot weighs more than the full one, check the numbers','Η άδεια κατσαρόλα ζυγίζει περισσότερο από τη γεμάτη, έλεγξε τους αριθμούς'],
+ noWeightConfirm:['You didn’t weigh the finished food, so the numbers use the raw total and may be off. Save anyway?','Δεν ζύγισες το έτοιμο φαγητό, οπότε οι αριθμοί βγαίνουν από τα ωμά και ίσως απέχουν. Αποθήκευση;'],
+ mealSaved:['Saved {n}','Αποθηκεύτηκε: {n}'], deleteMeal:['Delete “{n}”?','Διαγραφή «{n}»;'],
+ noMeals:['<b>No meals yet</b>Tap “Cook a meal” the next time you cook.','<b>Δεν έχεις φαγητά ακόμα</b>Πάτα «Μαγείρεψε» την επόμενη φορά που μαγειρεύεις.'],
+ recipeBadge:['📖 recipe','📖 συνταγή'], per100cooked:['per 100 g cooked','ανά 100 g μαγειρεμένο'],
+ chooseIngredient:['Choose ingredient','Διάλεξε υλικό'], ingSearchPh:['Type a food, e.g. minced beef','Γράψε τρόφιμο, π.χ. κιμάς'],
+ grpMine:['My foods','Τα τρόφιμά μου'], grpStd:['Standard foods','Βασικά τρόφιμα'], grpOnline:['Online · Open Food Facts','Online · Open Food Facts'],
+ searching:['Searching online…','Αναζήτηση online…'], searchOnline:['🔎 Search online for “{q}”','🔎 Αναζήτηση online για «{q}»'],
+ onlineNone:['Nothing found online either. Add it as a new food from My foods.','Δεν βρέθηκε ούτε online. Πρόσθεσέ το ως νέο τρόφιμο από τα Τρόφιμά μου.'],
+ onlineFail:['Online search failed (no internet?)','Η online αναζήτηση απέτυχε (χωρίς ίντερνετ;)'], typeToSearch:['Start typing to search.','Ξεκίνα να γράφεις για αναζήτηση.'],
+ alsoSave:['Also save it to My foods for next time','Αποθήκευση και στα Τρόφιμά μου για την επόμενη φορά'], stdValues:['standard values','βασικές τιμές'],
+ recipeIdea:['Recipe idea','Πρόταση συνταγής'], recipeIdeaSub:['Use it and it’s saved with this meal, with the ingredients filled in. Say no and the meal just keeps its ingredients.','Αν τη χρησιμοποιήσεις αποθηκεύεται με το φαγητό και συμπληρώνονται τα υλικά. Αλλιώς το φαγητό κρατάει μόνο τα υλικά του.'],
+ noThanks:['No thanks','Όχι, ευχαριστώ'], useRecipe:['Use this recipe','Χρήση συνταγής'],
+ serves:['Serves {n}','Μερίδες: {n}'], minutes:['{n} min','{n} λεπτά'], steps:['Steps','Βήματα'], recipeT:['Recipe','Συνταγή'],
+ noRecipe:['No recipe saved for this meal.','Δεν υπάρχει αποθηκευμένη συνταγή.'], addRecipeLater:['✨ Suggest a recipe','✨ Πρότεινε συνταγή'],
+ onMyPlate:['On my plate','Στο πιάτο μου'], cookAgain:['🍳 Cook again','🍳 Ξανά μαγείρεμα'],
+ mealMeta:['Cooked {d} · batch {s}','Μαγειρεύτηκε {d} · σύνολο {s}'], estimated:['≈ not weighed','≈ χωρίς ζύγισμα'],
+ timesCooked:['cooked {n}×','μαγειρεύτηκε {n}×'],
+ // settings
+ settings:['Settings','Ρυθμίσεις'], settingsSub:['Everything is stored on this device only.','Όλα αποθηκεύονται μόνο σε αυτή τη συσκευή.'], language:['Language','Γλώσσα'],
+ geminiKey:['Gemini API key (label photos and recipes)','Κλειδί Gemini API (ετικέτες και συνταγές)'], geminiKeyPh:['Paste your key here','Επικόλλησε το κλειδί εδώ'],
+ getKey:['🔑 Get API key','🔑 Πάρε κλειδί API'],
+ getKeyHint:['Opens Google AI Studio. Sign in, tap “Create API key”, copy it and paste it above. Free, with a daily limit. It stays on this phone only.','Ανοίγει το Google AI Studio. Σύνδεση, «Create API key», αντιγραφή και επικόλληση από πάνω. Δωρεάν, με ημερήσιο όριο. Μένει μόνο σε αυτό το κινητό.'],
+ geminiModel:['Gemini model','Μοντέλο Gemini'], saveSettings:['Save settings','Αποθήκευση ρυθμίσεων'], settingsSaved:['Settings saved','Οι ρυθμίσεις αποθηκεύτηκαν'],
+ yourData:['Your data','Τα δεδομένα σου'], yourDataSub:['Copy for Claude, or move everything between phone and PC.','Αντιγραφή για το Claude, ή μεταφορά όλων μεταξύ κινητού και υπολογιστή.'],
+ copyClaude:['Copy for Claude','Αντιγραφή για Claude'], download:['Download backup','Λήψη αντιγράφου'], import:['Import backup','Εισαγωγή αντιγράφου'],
+ copied:['Copied, paste it to Claude','Αντιγράφηκε, επικόλλησέ το στο Claude'], nothingCopy:['Nothing to copy yet','Τίποτα για αντιγραφή ακόμα'],
+ imported:['Imported: {a} new, {u} updated','Εισαγωγή: {a} νέα, {u} ενημερωμένα'], badBackup:['That file isn’t a Tracker backup','Αυτό δεν είναι αντίγραφο του Tracker'],
+ saveFail:['Could not save on this device','Δεν έγινε αποθήκευση στη συσκευή'], lightNA:['Light not available','Δεν υπάρχει φως'],
+ comingSoon:['Coming in a later version','Έρχεται σε επόμενη έκδοση'],
+};
+let lang = 'en';
+function t(k, v){ const e = S[k]; let s = e ? (e[lang === 'el' ? 1 : 0] ?? e[0]) : k; if(v) for(const [a,b] of Object.entries(v)) s = s.split(`{${a}}`).join(b); return s; }
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
+  document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = t(el.dataset.th));
+  document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp));
+  setSeg('#sLang', lang);
+}
+
+// ======================= categories =======================
+// [subId, English, Greek, emoji, keywords (no accents), options]  s = strong match, ml = measured in ml
 const CATS = [
- ['dairy','Dairy','🥛',[
-  ['milk','Milk','🥛','γαλα,milk,lait',{ml:1}],
-  ['chocmilk','Chocolate milk','🍫','σοκολατουχο,chocolate milk,κακαο,cacao drink',{ml:1,s:1}],
-  ['yogurt','Yogurt','🥣','γιαουρτ,yogurt,yoghurt,skyr,στραγγιστο'],
-  ['cheese','Cheese','🧀','τυρ,φετα,feta,cheese,γκουντα,gouda,κασερι,ημισκληρο,μοτσαρελα,mozzarella,γραβιερα,cottage,κοτατζ,ανθοτυρο,μυζηθρα,παρμεζαν,parmesan,cheddar,τσενταρ,ricotta,edam,emmental,κεφαλοτυρ,κρεμα τυριου,philadelphia'],
-  ['butter','Butter','🧈','βουτυρο,butter,μαργαριν,margarine'],
-  ['cream','Cream','🍦','κρεμα γαλακτος,cream,ανθογαλο,σαντιγι'],
+ ['dairy','Dairy','Γαλακτοκομικά','🥛',[
+  ['milk','Milk','Γάλα','🥛','γαλα,milk,lait',{ml:1}],
+  ['chocmilk','Chocolate milk','Σοκολατούχο γάλα','🍫','σοκολατουχο,chocolate milk,κακαο,cacao drink',{ml:1,s:1}],
+  ['yogurt','Yogurt','Γιαούρτι','🥣','γιαουρτ,yogurt,yoghurt,skyr,στραγγιστο'],
+  ['cheese','Cheese','Τυρί','🧀','τυρ,φετα,feta,cheese,γκουντα,gouda,κασερι,ημισκληρο,μοτσαρελα,mozzarella,γραβιερα,cottage,κοτατζ,ανθοτυρο,μυζηθρα,παρμεζαν,parmesan,cheddar,τσενταρ,ricotta,edam,emmental,κεφαλοτυρ,κρεμα τυριου,philadelphia'],
+  ['butter','Butter','Βούτυρο','🧈','βουτυρο,butter,μαργαριν,margarine'],
+  ['cream','Cream','Κρέμα γάλακτος','🍦','κρεμα γαλακτοσ,cream,ανθογαλο,σαντιγι'],
  ]],
- ['eggs','Eggs','🥚',[
-  ['egg','Eggs','🥚','αυγ,egg,ασπραδ,egg white'],
+ ['eggs','Eggs','Αυγά','🥚',[ ['egg','Eggs','Αυγά','🥚','αυγ,egg,ασπραδ,egg white'] ]],
+ ['meat','Meat','Κρέας','🥩',[
+  ['chicken','Chicken','Κοτόπουλο','🍗','κοτοπουλ,chicken,στηθοσ,μπουτι,φτερουγ'],
+  ['turkey','Turkey','Γαλοπούλα','🦃','γαλοπουλ,turkey'],
+  ['beef','Beef','Μοσχάρι','🥩','μοσχαρ,beef,steak,μπριζολ,ριμπαι,ribeye'],
+  ['pork','Pork','Χοιρινό','🐖','χοιριν,pork,σπαλα,λαιμοσ'],
+  ['mince','Mince','Κιμάς','🍔','κιμα,mince,minced,burger,μπιφτεκ'],
+  ['coldcuts','Cold cuts','Αλλαντικά','🥓','ζαμπον,ham,μπεικον,bacon,παριζα,σαλαμι,salami,προσουτο,prosciutto,παστουρμα,αλλαντικ,γαλοπουλα καπνιστη'],
+  ['sausage','Sausage','Λουκάνικα','🌭','λουκανικ,sausage,hot dog,frankfurter'],
+  ['lamb','Lamb & goat','Αρνί & κατσίκι','🍖','αρνι,lamb,κατσικ,goat'],
  ]],
- ['meat','Meat','🥩',[
-  ['chicken','Chicken','🍗','κοτοπουλ,chicken,στηθος,μπουτι,φτερουγ'],
-  ['turkey','Turkey','🦃','γαλοπουλ,turkey'],
-  ['beef','Beef','🥩','μοσχαρ,beef,steak,μπριζολ,ριμπαι,ribeye'],
-  ['pork','Pork','🐖','χοιριν,pork,σπαλα'],
-  ['mince','Mince','🍔','κιμα,mince,minced,burger,μπιφτεκ'],
-  ['coldcuts','Cold cuts','🥓','ζαμπον,ham,μπεικον,bacon,παριζα,σαλαμι,salami,προσουτο,prosciutto,παστουρμα,αλλαντικ,γαλοπουλα καπνιστη'],
-  ['sausage','Sausage','🌭','λουκανικ,sausage,hot dog,frankfurter'],
-  ['lamb','Lamb & goat','🍖','αρνι,lamb,κατσικ,goat'],
+ ['fish','Fish & seafood','Ψάρια & θαλασσινά','🐟',[
+  ['tuna','Tuna','Τόνος','🥫','τονο,tuna'], ['salmon','Salmon','Σολομός','🍣','σολομ,salmon'],
+  ['shrimp','Shrimp','Γαρίδες','🦐','γαριδ,shrimp,prawn'], ['octopus','Octopus','Χταπόδι','🐙','χταποδ,octopus'],
+  ['squid','Squid','Καλαμάρι','🦑','καλαμαρ,squid,σουπι'],
+  ['fishgen','Fish','Ψάρι','🐟','ψαρ,fish,βακαλα,μπακαλιαρ,cod,τσιπουρ,λαβρακ,sea bass,σαρδελ,sardine,γαυρ,σκουμπρ,mackerel,γλωσσα,πανγκασιουσ,pangasius'],
  ]],
- ['fish','Fish & seafood','🐟',[
-  ['tuna','Tuna','🥫','τονο,tuna'],
-  ['salmon','Salmon','🍣','σολομ,salmon'],
-  ['shrimp','Shrimp','🦐','γαριδ,shrimp,prawn'],
-  ['octopus','Octopus','🐙','χταποδ,octopus'],
-  ['squid','Squid','🦑','καλαμαρ,squid,σουπι'],
-  ['fishgen','Fish','🐟','ψαρ,fish,βακαλα,cod,τσιπουρ,λαβρακ,σαρδελ,sardine,γαυρ,σκουμπρ,mackerel,γλωσσα,πανγκασιους,pangasius'],
+ ['rice','Rice','Ρύζι','🍚',[ ['rice','Rice','Ρύζι','🍚','ρυζι,rice,basmati,μπασματι,jasmine,καρολινα,νυχακι,γλασσε,parboiled,risotto'] ]],
+ ['pasta','Pasta','Ζυμαρικά','🍝',[
+  ['pasta','Pasta','Ζυμαρικά','🍝','μακαρον,ζυμαρικ,pasta,spaghetti,σπαγγετ,πεννε,penne,κριθαρακ,orzo,χυλοπιτ,fusilli,βιδακ,ταλιατελ,tagliatelle,λαζανι,lasagn'],
+  ['noodles','Noodles','Νουντλς','🍜','noodle,νουντλ,ramen'],
  ]],
- ['rice','Rice','🍚',[
-  ['rice','Rice','🍚','ρυζι,rice,basmati,jasmine,καρολινα,νυχακι,γλασσε,parboiled,risotto'],
+ ['bread','Bread & grains','Ψωμί & δημητριακά','🍞',[
+  ['bread','Bread','Ψωμί','🍞','ψωμ,bread,τοστ,toast,φρυγανι,παξιμαδ,baguette,μπαγκετ,ψωμακ,bun'],
+  ['wrap','Wraps & pitta','Τορτίγιες & πίτες','🫓','tortilla,τορτιγ,wrap,αραβικη,pitta,pita bread,πιτεσ για σουβλακι,πιτα για σουβλακι'],
+  ['oats','Oats','Βρώμη','🥣','βρωμη,oat,porridge'],
+  ['cereal','Cereal','Δημητριακά','🥣','δημητριακ,cereal,corn flakes,κορν φλεικσ,granola,γκρανολα,μουσλι,muesli'],
+  ['flour','Flour','Αλεύρι','🌾','αλευρ,flour,σιμιγδαλ,semolina'],
+  ['crackers','Crackers & rice cakes','Κράκερ & ρυζογκοφρέτες','🍘','κρακερ,cracker,κριτσιν,ρυζογκοφρετ,rice cake,rice cakes,ρυζοκρακερ'],
  ]],
- ['pasta','Pasta','🍝',[
-  ['pasta','Pasta','🍝','μακαρον,ζυμαρικ,pasta,spaghetti,σπαγγετ,πεννε,penne,κριθαρακ,orzo,χυλοπιτ,fusilli,βιδακ,ταλιατελ,tagliatelle,λαζανι,lasagn'],
-  ['noodles','Noodles','🍜','noodle,νουντλ,ramen'],
+ ['veg','Vegetables','Λαχανικά','🧺',[
+  ['carrot','Carrot','Καρότο','🥕','καροτ,carrot'], ['tomato','Tomato','Ντομάτα','🍅','ντοματ,tomato,τοματ,πελτε,passata,πασατα'],
+  ['potato','Potato','Πατάτα','🥔','πατατ,potato'], ['sweetpotato','Sweet potato','Γλυκοπατάτα','🍠','γλυκοπατατ,sweet potato'],
+  ['cucumber','Cucumber & courgette','Αγγούρι & κολοκυθάκι','🥒','αγγουρ,cucumber,κολοκυθακ,zucchini,courgette'],
+  ['onion','Onion','Κρεμμύδι','🧅','κρεμμυδ,onion,πρασ,leek'], ['garlic','Garlic','Σκόρδο','🧄','σκορδ,garlic'],
+  ['pepper','Pepper','Πιπεριά','🫑','πιπεριεσ,πιπερια φλωρινησ,πιπερια κοκκινη,πιπερια πρασινη,bell pepper,peppers,red pepper,green pepper'],
+  ['broccoli','Broccoli & cauliflower','Μπρόκολο & κουνουπίδι','🥦','μπροκολ,broccoli,κουνουπιδ,cauliflower'],
+  ['leafy','Leafy greens','Φυλλώδη','🥬','μαρουλ,λαχαν,σπανακ,spinach,lettuce,ροκα,rocket,salad,σαλατα,cabbage,kale,μαιντανο,parsley,σελινο,celery'],
+  ['corn','Sweetcorn','Καλαμπόκι','🌽','καλαμποκ,sweetcorn,corn'], ['mushroom','Mushrooms','Μανιτάρια','🍄','μανιταρ,mushroom'],
+  ['eggplant','Aubergine','Μελιτζάνα','🍆','μελιτζαν,aubergine,eggplant'],
+  ['peas','Peas & green beans','Αρακάς & φασολάκια','🫛','αρακα,peas,φασολακ,green beans'], ['avocado','Avocado','Αβοκάντο','🥑','αβοκαντο,avocado'],
  ]],
- ['bread','Bread & grains','🍞',[
-  ['bread','Bread','🍞','ψωμ,bread,τοστ,toast,φρυγανι,παξιμαδ,baguette,μπαγκετ,ψωμακ,bun'],
-  ['wrap','Wraps & pitta','🫓','tortilla,τορτιγ,wrap,αραβικη,pitta,πιτες για σουβλακι'],
-  ['oats','Oats','🥣','βρωμη,oat,porridge'],
-  ['cereal','Cereal','🥣','δημητριακ,cereal,corn flakes,κορν φλεικς,granola,γκρανολα,μουσλι,muesli'],
-  ['flour','Flour','🌾','αλευρ,flour,σιμιγδαλ,semolina'],
-  ['crackers','Crackers & rice cakes','🍘','κρακερ,cracker,κριτσιν,ρυζογκοφρετ,rice cake,rice cakes,ρυζοκρακερ'],
+ ['fruit','Fruit','Φρούτα','🍎',[
+  ['apple','Apple','Μήλο','🍎','μηλο,μηλα,apple'], ['banana','Banana','Μπανάνα','🍌','μπανανα,banana'],
+  ['orange','Orange','Πορτοκάλι','🍊','πορτοκαλ,orange,μανταριν,mandarin'], ['lemon','Lemon','Λεμόνι','🍋','λεμον,lemon,lime'],
+  ['grapes','Grapes','Σταφύλι','🍇','σταφυλ,grape'], ['strawberry','Strawberries','Φράουλες','🍓','φραουλ,strawberr'],
+  ['watermelon','Watermelon & melon','Καρπούζι & πεπόνι','🍉','καρπουζ,watermelon,πεπον,melon'],
+  ['peach','Peach','Ροδάκινο','🍑','ροδακιν,peach,νεκταριν,nectarine,βερικοκ,apricot'], ['pear','Pear','Αχλάδι','🍐','αχλαδ,pear'],
+  ['kiwi','Kiwi','Ακτινίδιο','🥝','ακτινιδ,kiwi'], ['cherries','Cherries','Κεράσια','🍒','κερασ,cherr,βυσσιν'],
+  ['pineapple','Pineapple','Ανανάς','🍍','ανανα,pineapple'], ['mango','Mango','Μάνγκο','🥭','μανγκο,mango'],
+  ['berries','Blueberries','Μύρτιλα','🫐','μυρτιλ,blueberr,berries,βατομουρ'],
+  ['dried','Dried fruit','Αποξηραμένα','🍇','σταφιδ,raisin,χουρμα,dates,αποξηραμεν,dried'],
  ]],
- ['veg','Vegetables','🧺',[
-  ['carrot','Carrot','🥕','καροτ,carrot'],
-  ['tomato','Tomato','🍅','ντοματ,tomato,τοματ'],
-  ['potato','Potato','🥔','πατατ,potato'],
-  ['sweetpotato','Sweet potato','🍠','γλυκοπατατ,sweet potato'],
-  ['cucumber','Cucumber & courgette','🥒','αγγουρ,cucumber,κολοκυθακ,zucchini,courgette'],
-  ['onion','Onion','🧅','κρεμμυδ,onion'],
-  ['garlic','Garlic','🧄','σκορδ,garlic'],
-  ['pepper','Pepper','🫑','πιπεριες,πιπερια φλωρινης,bell pepper,peppers'],
-  ['broccoli','Broccoli & cauliflower','🥦','μπροκολ,broccoli,κουνουπιδ,cauliflower'],
-  ['leafy','Leafy greens','🥬','μαρουλ,λαχαν,σπανακ,spinach,lettuce,ρoκα,ροκα,rocket,salad,σαλατα,cabbage,kale'],
-  ['corn','Sweetcorn','🌽','καλαμποκ,sweetcorn,corn'],
-  ['mushroom','Mushrooms','🍄','μανιταρ,mushroom'],
-  ['eggplant','Aubergine','🍆','μελιτζαν,aubergine,eggplant'],
-  ['peas','Peas & green beans','🫛','αρακα,peas,φασολακ,green beans'],
-  ['avocado','Avocado','🥑','αβοκαντο,avocado'],
+ ['legumes','Legumes','Όσπρια','🫘',[
+  ['beans','Beans','Φασόλια','🫘','φασολ,beans,γιγαντεσ'], ['lentils','Lentils','Φακές','🫘','φακεσ,lentil'],
+  ['chickpeas','Chickpeas','Ρεβύθια','🫘','ρεβυθ,chickpea,hummus,χουμουσ'], ['fava','Fava','Φάβα','🫘','φαβα,fava,split pea'],
  ]],
- ['fruit','Fruit','🍎',[
-  ['apple','Apple','🍎','μηλο,μηλα,apple'],
-  ['banana','Banana','🍌','μπανανα,banana'],
-  ['orange','Orange','🍊','πορτοκαλ,orange,μανταριν,mandarin'],
-  ['lemon','Lemon','🍋','λεμον,lemon,lime'],
-  ['grapes','Grapes','🍇','σταφυλ,grape'],
-  ['strawberry','Strawberries','🍓','φραουλ,strawberr'],
-  ['watermelon','Watermelon & melon','🍉','καρπουζ,watermelon,πεπον,melon'],
-  ['peach','Peach','🍑','ροδακιν,peach,νεκταριν,nectarine,βερικοκ,apricot'],
-  ['pear','Pear','🍐','αχλαδ,pear'],
-  ['kiwi','Kiwi','🥝','ακτινιδ,kiwi'],
-  ['cherries','Cherries','🍒','κερασ,cherr,βυσσιν'],
-  ['pineapple','Pineapple','🍍','ανανα,pineapple'],
-  ['mango','Mango','🥭','μανγκο,mango'],
-  ['berries','Blueberries','🫐','μυρτιλ,blueberr,berries,βατομουρ'],
-  ['dried','Dried fruit','🍇','σταφιδ,raisin,χουρμα,dates,αποξηραμεν,dried'],
+ ['nuts','Nuts & seeds','Ξηροί καρποί & σπόροι','🥜',[
+  ['pb','Peanut butter','Φυστικοβούτυρο','🥜','φυστικοβουτυρο,φιστικοβουτυρο,peanut butter,βουτυρο φυστικιου,βουτυρο αραπικου',{s:1}],
+  ['peanuts','Peanuts','Φιστίκια','🥜','φιστικ,φυστικ,peanut,αραπικ'], ['almonds','Almonds','Αμύγδαλα','🌰','αμυγδαλ,almond'],
+  ['walnuts','Walnuts & other nuts','Καρύδια & άλλοι','🌰','καρυδ,walnut,κασιου,cashew,φουντουκ,hazelnut,pistachio,ξηροι καρποι,nuts'],
+  ['seeds','Seeds & tahini','Σπόροι & ταχίνι','🌻','σουσαμ,ταχινι,tahini,chia,λιναρο,flax,ηλιοσπορ,sunflower seed,κολοκυθοσπορ'],
  ]],
- ['legumes','Legumes','🫘',[
-  ['beans','Beans','🫘','φασολ,beans,γιγαντες'],
-  ['lentils','Lentils','🫘','φακες,lentil'],
-  ['chickpeas','Chickpeas','🫘','ρεβυθ,chickpea,hummus,χουμους'],
-  ['fava','Fava','🫘','φαβα,fava'],
+ ['oils','Oils, sauces & spreads','Λάδια, σάλτσες & αλείμματα','🫒',[
+  ['oliveoil','Olive oil','Ελαιόλαδο','🫒','ελαιολαδ,olive oil,παρθενο',{s:1}],
+  ['oil','Other oil','Άλλο λάδι','🫗','λαδι,oil,ηλιελαιο,sunflower oil'],
+  ['honey','Honey','Μέλι','🍯','μελι,honey'], ['jam','Jam','Μαρμελάδα','🫙','μαρμελαδ,jam,κομποστα'],
+  ['sauce','Sauces','Σάλτσες','🥫','σαλτσ,sauce,κετσαπ,ketchup,μαγιονεζ,mayo,μουσταρδ,mustard,ντρεσινγκ,dressing,σογιασ,soy'],
+  ['spread','Sweet spreads','Γλυκά αλείμματα','🍫','nutella,πραλιν,merenda,μερεντα,spread',{s:1}],
+  ['sugar','Sugar','Ζάχαρη','🍬','ζαχαρη,sugar'],
+  ['seasoning','Salt & spices','Αλάτι & μπαχαρικά','🧂','αλατι,salt,πιπερι,black pepper,ριγανη,oregano,μπαχαρ,spice,κανελα,cinnamon,παπρικα,paprika,κυμινο,cumin'],
  ]],
- ['nuts','Nuts & seeds','🥜',[
-  ['pb','Peanut butter','🥜','φυστικοβουτυρο,φιστικοβουτυρο,peanut butter,βουτυρο φυστικιου,βουτυρο αραπικου',{s:1}],
-  ['peanuts','Peanuts','🥜','φιστικ,φυστικ,peanut,αραπικ'],
-  ['almonds','Almonds','🌰','αμυγδαλ,almond'],
-  ['walnuts','Walnuts & other nuts','🌰','καρυδ,walnut,κασιου,cashew,φουντουκ,hazelnut,pistachio,ξηροι καρποι,nuts'],
-  ['seeds','Seeds & tahini','🌻','σουσαμ,ταχινι,tahini,chia,λιναρο,flax,ηλιοσπορ,sunflower seed,κολοκυθοσπορ'],
+ ['snacks','Sweets & snacks','Γλυκά & σνακ','🍫',[
+  ['chocolate','Chocolate','Σοκολάτα','🍫','σοκολατ,chocolate'], ['biscuits','Biscuits','Μπισκότα','🍪','μπισκοτ,biscuit,cookie,πτι μπερ'],
+  ['crisps','Crisps','Πατατάκια','🍟','πατατακ,chips,crisps,γαριδακ,ποπ κορν,popcorn',{s:1}], ['icecream','Ice cream','Παγωτό','🍨','παγωτ,ice cream',{s:1}],
+  ['cake','Cakes & pastries','Κέικ & αρτοσκευάσματα','🥐','κεικ,cake,κρουασαν,croissant,τουρτα,donut,ντονατ,muffin,μαφιν'],
+  ['candy','Sweets','Καραμέλες','🍬','καραμελ,candy,gummy,ζελεδακ,λουκουμ'],
  ]],
- ['oils','Oils, sauces & spreads','🫒',[
-  ['oliveoil','Olive oil','🫒','ελαιολαδ,olive oil,παρθενο',{ml:1,s:1}],
-  ['oil','Other oil','🫗','λαδι,oil,ηλιελαιο',{ml:1}],
-  ['honey','Honey','🍯','μελι,honey'],
-  ['jam','Jam','🫙','μαρμελαδ,jam,κομποστα'],
-  ['sauce','Sauces','🥫','σαλτσ,sauce,κετσαπ,ketchup,μαγιονεζ,mayo,μουσταρδ,mustard,πελτε,passata,ντρεσινγκ,dressing'],
-  ['spread','Sweet spreads','🍫','nutella,πραλιν,merenda,μερεντα,spread',{s:1}],
+ ['drinks','Drinks','Ροφήματα','🥤',[
+  ['juice','Juice','Χυμός','🧃','χυμο,juice,smoothie',{ml:1,s:1}],
+  ['soda','Soft drinks','Αναψυκτικά','🥤','αναψυκτ,cola,coca,pepsi,sprite,fanta,λεμοναδ,πορτοκαλαδ,σοδα,soda,ενεργειακ,energy drink,monster,red bull',{ml:1,s:1}],
+  ['coffee','Coffee & tea','Καφές & τσάι','☕','καφε,coffee,espresso,τσαι,tea,freddo,φρεντο,frappe,φραπε',{ml:1,s:1}],
+  ['water','Water','Νερό','💧','νερο,water',{ml:1}],
+  ['alcohol','Alcohol','Αλκοόλ','🍺','μπυρα,beer,κρασι,wine,vodka,βοτκα,ουζο,τσιπουρο',{ml:1,s:1}],
  ]],
- ['snacks','Sweets & snacks','🍫',[
-  ['chocolate','Chocolate','🍫','σοκολατ,chocolate'],
-  ['biscuits','Biscuits','🍪','μπισκοτ,biscuit,cookie,γεμιστα,πτι μπερ'],
-  ['crisps','Crisps','🍟','πατατακ,chips,crisps,γαριδακ,ποπ κορν,popcorn',{s:1}],
-  ['icecream','Ice cream','🍨','παγωτ,ice cream',{s:1}],
-  ['cake','Cakes & pastries','🥐','κεικ,cake,κρουασαν,croissant,τουρτα,πασ,donut,ντονατ,muffin,μαφιν'],
-  ['candy','Sweets','🍬','καραμελ,candy,gummy,ζελεδακ,λουκουμ'],
+ ['supps','Supplements','Συμπληρώματα','💪',[
+  ['whey','Protein powder','Πρωτεΐνη σε σκόνη','💪','whey,πρωτειν,protein powder,isolate,casein,καζειν',{s:1}],
+  ['bar','Protein bar','Μπάρα πρωτεΐνης','🍫','protein bar,μπαρα πρωτεινησ',{s:1}],
+  ['creatine','Creatine & other','Κρεατίνη & άλλα','💊','creatine,κρεατιν,omega,ωμεγα,βιταμιν,vitamin,magnesium,μαγνησι,electrolyte'],
  ]],
- ['drinks','Drinks','🥤',[
-  ['juice','Juice','🧃','χυμο,juice,smoothie',{ml:1,s:1}],
-  ['soda','Soft drinks','🥤','αναψυκτ,cola,coca,pepsi,sprite,fanta,λεμοναδ,πορτοκαλαδ,σοδα,soda,ενεργειακ,energy drink,monster,red bull',{ml:1,s:1}],
-  ['coffee','Coffee & tea','☕','καφε,coffee,espresso,τσαι,tea,freddo,φρεντο,frappe,φραπε',{ml:1,s:1}],
-  ['water','Water','💧','νερο,water',{ml:1}],
-  ['alcohol','Alcohol','🍺','μπυρα,beer,κρασι,wine,vodka,βοτκα,ουζο,τσιπουρο',{ml:1,s:1}],
+ ['ready','Ready meals','Έτοιμα φαγητά','🍱',[
+  ['pizza','Pizza','Πίτσα','🍕','πιτσα,pizza',{s:1}], ['souvlaki','Souvlaki & gyros','Σουβλάκι & γύρος','🥙','σουβλακ,souvlaki,γυρο,gyros,kebab,κεμπαπ',{s:1}],
+  ['pie','Pies','Πίτες','🥧','τυροπιτ,σπανακοπιτ,κουλουρ,pie,μπουγατσ',{s:1}], ['sandwich','Sandwiches','Σάντουιτς','🥪','σαντουιτσ,sandwich,club',{s:1}],
+  ['meal','Ready meal','Έτοιμο φαγητό','🍱','ετοιμο φαγητο,ready meal,μουσακα,παστιτσιο,γεμιστα'],
  ]],
- ['supps','Supplements','💪',[
-  ['whey','Protein powder','💪','whey,πρωτεϊν,πρωτειν,protein powder,isolate,casein,καζεϊν',{s:1}],
-  ['bar','Protein bar','🍫','protein bar,μπαρα πρωτεϊνης,μπαρα πρωτεινης',{s:1}],
-  ['creatine','Creatine & other','💊','creatine,κρεατιν,omega,ωμεγα,βιταμιν,vitamin,magnesium,μαγνησι,electrolyte'],
- ]],
- ['ready','Ready meals','🍱',[
-  ['pizza','Pizza','🍕','πιτσα,pizza',{s:1}],
-  ['souvlaki','Souvlaki & gyros','🥙','σουβλακ,souvlaki,γυρο,gyros,kebab,κεμπαπ',{s:1}],
-  ['pie','Pies','🥧','τυροπιτ,σπανακοπιτ,κουλουρ,πιτα,pie,μπουγατσ',{s:1}],
-  ['sandwich','Sandwiches','🥪','σαντουιτς,sandwich,club',{s:1}],
-  ['meal','Ready meal','🍱','ετοιμο φαγητο,ready meal,μουσακα,παστιτσιο,γεμιστα'],
- ]],
- ['other','Other','📦',[]],
-].map(([id,label,icon,subs]) => ({ id,label,icon,
-  subs:[{id:'general',label:'General',icon,kw:[],opt:{}}, ...subs.map(([sid,sl,si,kw,opt]) => ({ id:sid,label:sl,icon:si,kw:kw.split(',').map(norm).filter(Boolean),opt:opt||{} }))]
+ ['other','Other','Άλλο','📦',[]],
+].map(([id,en,el,icon,subs]) => ({ id, en, el, icon,
+  subs:[{ id:'general', en:'General', el:'Γενικά', icon, kw:[], opt:{} }, ...subs.map(([sid,sen,sel,si,kw,opt]) => ({ id:sid, en:sen, el:sel, icon:si, kw:kw.split(',').map(norm).filter(Boolean), opt:opt||{} }))]
 }));
 const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+const L = o => o ? (lang === 'el' ? o.el : o.en) : '';
 function subOf(cat, sub){ const c = CAT[cat]; return c ? (c.subs.find(s => s.id === sub) || c.subs[0]) : null; }
 function iconOf(f){ const s = subOf(f.cat, f.sub); return s ? s.icon : null; }
-function typeLabel(cat, sub){ const c = CAT[cat]; if(!c) return ''; const s = subOf(cat, sub); return s.id === 'general' ? c.label : `${c.label} · ${s.label}`; }
+function typeLabel(cat, sub){ const c = CAT[cat]; if(!c) return ''; const s = subOf(cat, sub); return s.id === 'general' ? L(c) : `${L(c)} · ${L(s)}`; }
 
 function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ς/g,'σ').replace(/\s+/g,' ').trim(); }
-// Pick the best keyword hit; longer keywords win, "strong" subs (juice, crisps…) beat ingredient words
 function guessType(text){
-  const t = norm(text); if(!t) return null;
+  const tx = norm(text); if(!tx) return null;
   let best = null, score = 0;
   for(const c of CATS) for(const s of c.subs) for(const k of s.kw){
-    if(t.includes(norm(k))){ const sc = norm(k).length + (s.opt.s ? 20 : 0); if(sc > score){ score = sc; best = { cat:c.id, sub:s.id }; } }
+    if(tx.includes(k)){ const sc = k.length + (s.opt.s ? 20 : 0); if(sc > score){ score = sc; best = { cat:c.id, sub:s.id }; } }
   }
   return best;
 }
 function guessState(name){
-  return /ρυζι|rice|pasta|μακαρον|ζυμαρικ|spaghetti|σπαγγετ|πεννε|κριθαρακ|χυλοπιτ|oat|βρωμη|φακεσ|lentil|ρεβυθ|φασολια|quinoa|κινοα|κοτοπουλ|chicken|κιμα|mince|μοσχαρ|beef|χοιριν|pork|γαλοπουλ φιλετο|σολομ|salmon|ψαρι|γαριδ|αλευρ|flour/.test(norm(name)) && !/βραστ|ψητ|καπνιστ|μαγειρεμεν|cooked|grilled|smoked|ζαμπον|ham|κονσερβ/.test(norm(name)) ? 'uncooked' : 'ready';
+  const n = norm(name);
+  return /ρυζι|rice|pasta|μακαρον|ζυμαρικ|spaghetti|σπαγγετ|πεννε|κριθαρακ|χυλοπιτ|oat|βρωμη|φακεσ|lentil|ρεβυθ|φασολια|quinoa|κινοα|κοτοπουλ|chicken|κιμα|mince|μοσχαρ|beef|χοιριν|pork|σολομ|salmon|ψαρι|γαριδ|αλευρ|flour/.test(n)
+    && !/βραστ|ψητ|καπνιστ|μαγειρεμεν|cooked|grilled|smoked|ζαμπον|ham|κονσερβ/.test(n) ? 'uncooked' : 'ready';
+}
+function guessPieces(cat, sub, name){
+  const n = norm(name);
+  if(sub === 'bread') return /αλευρ|flour|τριμμα/.test(n) ? 'none' : 'slice';
+  if(['wrap','crackers','biscuits','egg','bar','sausage','cake'].includes(sub)) return 'piece';
+  if(['cheese','coldcuts'].includes(sub) && /φετεσ|σε φετ|slice|τοστ|toast/.test(n)) return 'slice';
+  return 'none';
 }
 
-// ================= storage =================
+// ======================= standard foods (approx. values per 100 g/ml) =======================
+// [id, English, Greek, extra search words, cat, sub, unit, state, kcal, P, C, F, pieces, pieceWeight]
+const GEN_RAW = [
+ ['beef_mince5','Beef mince, 5% fat (lean)','Κιμάς μοσχαρίσιος 5% λιπαρά (άπαχος)','minced beef lean','meat','mince','g','uncooked',137,21.4,0,5],
+ ['beef_mince10','Beef mince, 10% fat','Κιμάς μοσχαρίσιος 10% λιπαρά','minced beef','meat','mince','g','uncooked',176,20,0,10],
+ ['beef_mince15','Beef mince, 15% fat (regular)','Κιμάς μοσχαρίσιος 15% λιπαρά (κανονικός)','minced beef regular','meat','mince','g','uncooked',215,18.6,0,15],
+ ['beef_mince20','Beef mince, 20% fat','Κιμάς μοσχαρίσιος 20% λιπαρά','minced beef fatty','meat','mince','g','uncooked',254,17.2,0,20],
+ ['mixed_mince','Mixed mince, beef & pork','Κιμάς μικτός μοσχαροχοιρινός','minced meat','meat','mince','g','uncooked',230,17.5,0,17.5],
+ ['pork_mince','Pork mince','Κιμάς χοιρινός','minced pork','meat','mince','g','uncooked',263,16.9,0,21.2],
+ ['chicken_mince','Chicken mince','Κιμάς κοτόπουλο','minced chicken','meat','mince','g','uncooked',143,17.4,0,8.1],
+ ['chicken_breast','Chicken breast, skinless','Κοτόπουλο στήθος φιλέτο','chicken fillet','meat','chicken','g','uncooked',120,22.5,0,2.6],
+ ['chicken_thigh','Chicken thigh, skinless boneless','Κοτόπουλο μπούτι χωρίς πέτσα','chicken leg','meat','chicken','g','uncooked',121,19.7,0,4.1],
+ ['chicken_skin','Chicken with skin','Κοτόπουλο με πέτσα','whole chicken','meat','chicken','g','uncooked',215,18.6,0,15.1],
+ ['turkey_breast','Turkey breast','Γαλοπούλα στήθος','','meat','turkey','g','uncooked',114,23.7,0,1.5],
+ ['beef_steak','Beef steak, lean','Μοσχάρι μπριζόλα άπαχη','beef sirloin','meat','beef','g','uncooked',150,22,0,7],
+ ['beef_stew','Beef for stewing','Μοσχάρι για κοκκινιστό','beef chuck σπάλα','meat','beef','g','uncooked',158,20,0,8.5],
+ ['pork_chop','Pork chop / loin','Χοιρινή μπριζόλα / φιλέτο','pork loin','meat','pork','g','uncooked',172,20.5,0,9.5],
+ ['pork_neck','Pork neck','Χοιρινός λαιμός','souvlaki pork','meat','pork','g','uncooked',213,17,0,16],
+ ['lamb','Lamb','Αρνί','','meat','lamb','g','uncooked',282,16.6,0,23.4],
+ ['bacon','Bacon','Μπέικον','','meat','coldcuts','g','uncooked',417,12.6,1.3,39.7],
+ ['turkey_slices','Smoked turkey slices','Γαλοπούλα καπνιστή σε φέτες','turkey ham','meat','coldcuts','g','ready',104,18,2.5,2.3,'slice',15],
+ ['salmon','Salmon fillet','Σολομός φιλέτο','','fish','salmon','g','uncooked',208,20.4,0,13.4],
+ ['cod','Cod','Μπακαλιάρος','','fish','fishgen','g','uncooked',82,17.8,0,0.7],
+ ['seabass','Sea bass','Λαβράκι','','fish','fishgen','g','uncooked',97,18.4,0,2],
+ ['tuna_water','Tuna in water, drained','Τόνος σε νερό (στραγγισμένος)','canned tuna','fish','tuna','g','ready',116,25.5,0,0.8],
+ ['tuna_oil','Tuna in oil, drained','Τόνος σε λάδι (στραγγισμένος)','canned tuna','fish','tuna','g','ready',198,29,0,8.2],
+ ['shrimp','Shrimp','Γαρίδες','prawns','fish','shrimp','g','uncooked',85,20.1,0,0.5],
+ ['octopus','Octopus','Χταπόδι','','fish','octopus','g','uncooked',82,14.9,2.2,1],
+ ['squid','Squid','Καλαμάρι','','fish','squid','g','uncooked',92,15.6,3.1,1.4],
+ ['egg','Egg, whole','Αυγό','eggs','eggs','egg','g','ready',143,12.6,0.7,9.5,'piece',50],
+ ['egg_white','Egg white','Ασπράδι αυγού','','eggs','egg','g','ready',52,10.9,0.7,0.2],
+ ['rice_white','White rice, uncooked','Ρύζι λευκό (ωμό)','rice γλασσέ καρολίνα','rice','rice','g','uncooked',360,6.6,79.3,0.6],
+ ['rice_basmati','Basmati rice, uncooked','Ρύζι μπασμάτι (ωμό)','rice','rice','rice','g','uncooked',356,8,78,0.9],
+ ['rice_brown','Brown rice, uncooked','Ρύζι καστανό (ωμό)','rice wholegrain','rice','rice','g','uncooked',370,7.9,77.2,2.9],
+ ['rice_cooked','White rice, cooked','Ρύζι λευκό (βρασμένο)','rice','rice','rice','g','cooked',130,2.7,28.2,0.3],
+ ['pasta','Pasta, dry','Ζυμαρικά (ωμά)','spaghetti penne μακαρόνια','pasta','pasta','g','uncooked',371,13,74.7,1.5],
+ ['pasta_ww','Wholewheat pasta, dry','Ζυμαρικά ολικής άλεσης (ωμά)','spaghetti μακαρόνια','pasta','pasta','g','uncooked',352,14.6,67,2.5],
+ ['pasta_cooked','Pasta, cooked','Ζυμαρικά (βρασμένα)','spaghetti μακαρόνια','pasta','pasta','g','cooked',158,5.8,30.9,0.9],
+ ['orzo','Orzo, dry','Κριθαράκι (ωμό)','kritharaki','pasta','pasta','g','uncooked',360,12.5,73,1.5],
+ ['oats','Rolled oats','Βρώμη','porridge','bread','oats','g','ready',379,13.2,67.7,6.5],
+ ['flour','Wheat flour','Αλεύρι για όλες τις χρήσεις','','bread','flour','g','ready',364,10.3,76.3,1],
+ ['bread_white','White bread','Ψωμί λευκό','','bread','bread','g','ready',266,8.9,49,3.3,'slice',30],
+ ['bread_ww','Wholemeal bread','Ψωμί ολικής άλεσης','','bread','bread','g','ready',252,12.4,42.7,3.5,'slice',30],
+ ['pita','Pita bread for souvlaki','Πίτα για σουβλάκι','pitta','bread','wrap','g','ready',290,8,50,6,'piece',90],
+ ['ricecake','Rice cakes','Ρυζογκοφρέτες','','bread','crackers','g','ready',387,8,81.5,2.8,'piece',8],
+ ['potato','Potato','Πατάτα','potatoes','veg','potato','g','ready',77,2,17.5,0.1],
+ ['sweetpotato','Sweet potato','Γλυκοπατάτα','','veg','sweetpotato','g','ready',86,1.6,20.1,0.1],
+ ['onion','Onion','Κρεμμύδι','','veg','onion','g','ready',40,1.1,9.3,0.1],
+ ['leek','Leek','Πράσο','','veg','onion','g','ready',61,1.5,14.2,0.3],
+ ['garlic','Garlic','Σκόρδο','','veg','garlic','g','ready',149,6.4,33,0.5],
+ ['tomato','Tomato','Ντομάτα','tomatoes','veg','tomato','g','ready',18,0.9,3.9,0.2],
+ ['tomato_can','Chopped tomatoes, canned','Ντομάτα ψιλοκομμένη (κονσέρβα)','tinned tomatoes','veg','tomato','g','ready',22,1.2,3.5,0.2],
+ ['passata','Passata','Πασάτα / χυμός ντομάτας','tomato sauce','veg','tomato','g','ready',29,1.3,5.4,0.2],
+ ['tomato_paste','Tomato paste','Πελτές ντομάτας','','veg','tomato','g','ready',82,4.3,18.9,0.5],
+ ['carrot','Carrot','Καρότο','carrots','veg','carrot','g','ready',41,0.9,9.6,0.2],
+ ['cucumber','Cucumber','Αγγούρι','','veg','cucumber','g','ready',15,0.7,3.6,0.1],
+ ['zucchini','Courgette','Κολοκυθάκι','zucchini','veg','cucumber','g','ready',17,1.2,3.1,0.3],
+ ['pepper_red','Red pepper','Πιπεριά κόκκινη','bell pepper','veg','pepper','g','ready',31,1,6,0.3],
+ ['pepper_green','Green pepper','Πιπεριά πράσινη','bell pepper','veg','pepper','g','ready',20,0.9,4.6,0.2],
+ ['broccoli','Broccoli','Μπρόκολο','','veg','broccoli','g','ready',34,2.8,6.6,0.4],
+ ['cauliflower','Cauliflower','Κουνουπίδι','','veg','broccoli','g','ready',25,1.9,5,0.3],
+ ['spinach','Spinach','Σπανάκι','','veg','leafy','g','ready',23,2.9,3.6,0.4],
+ ['lettuce','Lettuce','Μαρούλι','salad','veg','leafy','g','ready',15,1.4,2.9,0.2],
+ ['cabbage','Cabbage','Λάχανο','','veg','leafy','g','ready',25,1.3,5.8,0.1],
+ ['parsley','Parsley','Μαϊντανός','','veg','leafy','g','ready',36,3,6.3,0.8],
+ ['celery','Celery','Σέλινο','','veg','leafy','g','ready',14,0.7,3,0.2],
+ ['mushroom','Mushrooms','Μανιτάρια','','veg','mushroom','g','ready',22,3.1,3.3,0.3],
+ ['eggplant','Aubergine','Μελιτζάνα','eggplant','veg','eggplant','g','ready',25,1,5.9,0.2],
+ ['green_beans','Green beans','Φασολάκια','','veg','peas','g','ready',31,1.8,7,0.2],
+ ['peas','Peas, frozen','Αρακάς (κατεψυγμένος)','','veg','peas','g','ready',77,5.2,13.6,0.4],
+ ['corn','Sweetcorn','Καλαμπόκι','corn','veg','corn','g','ready',86,3.3,18.7,1.4],
+ ['avocado','Avocado','Αβοκάντο','','veg','avocado','g','ready',160,2,8.5,14.7],
+ ['lemon_juice','Lemon juice','Χυμός λεμονιού','','fruit','lemon','ml','ready',22,0.4,6.9,0.2],
+ ['apple','Apple','Μήλο','','fruit','apple','g','ready',52,0.3,13.8,0.2,'piece',180],
+ ['banana','Banana, peeled','Μπανάνα (καθαρισμένη)','','fruit','banana','g','ready',89,1.1,22.8,0.3,'piece',120],
+ ['orange','Orange, peeled','Πορτοκάλι (καθαρισμένο)','','fruit','orange','g','ready',47,0.9,11.8,0.1,'piece',150],
+ ['strawberry','Strawberries','Φράουλες','','fruit','strawberry','g','ready',32,0.7,7.7,0.3],
+ ['grapes','Grapes','Σταφύλι','','fruit','grapes','g','ready',69,0.7,18.1,0.2],
+ ['watermelon','Watermelon','Καρπούζι','','fruit','watermelon','g','ready',30,0.6,7.6,0.2],
+ ['blueberries','Blueberries','Μύρτιλα','','fruit','berries','g','ready',57,0.7,14.5,0.3],
+ ['dates','Dates','Χουρμάδες','','fruit','dried','g','ready',282,2.5,75,0.4],
+ ['raisins','Raisins','Σταφίδες','','fruit','dried','g','ready',299,3.1,79,0.5],
+ ['lentils','Lentils, dry','Φακές (ξερές)','','legumes','lentils','g','uncooked',352,24.6,63.4,1.1],
+ ['chickpeas','Chickpeas, dry','Ρεβύθια (ξερά)','','legumes','chickpeas','g','uncooked',378,20.5,62.9,6],
+ ['chickpeas_can','Chickpeas, canned and drained','Ρεβύθια κονσέρβα (στραγγισμένα)','','legumes','chickpeas','g','ready',139,7,22.5,2.6],
+ ['beans','White beans, dry','Φασόλια (ξερά)','','legumes','beans','g','uncooked',333,23.4,60.3,0.8],
+ ['fava','Fava (split peas), dry','Φάβα (ξερή)','','legumes','fava','g','uncooked',352,23.8,61,1.2],
+ ['milk_whole','Whole milk 3.5%','Γάλα πλήρες 3,5%','','dairy','milk','ml','ready',64,3.3,4.8,3.6],
+ ['milk_semi','Semi-skimmed milk 1.5%','Γάλα ελαφρύ 1,5%','','dairy','milk','ml','ready',47,3.4,4.9,1.5],
+ ['milk_skim','Skimmed milk 0%','Γάλα άπαχο 0%','','dairy','milk','ml','ready',35,3.4,5,0.1],
+ ['yog2','Greek strained yogurt 2%','Γιαούρτι στραγγιστό 2%','','dairy','yogurt','g','ready',73,9.9,3.6,2],
+ ['yog0','Greek strained yogurt 0%','Γιαούρτι στραγγιστό 0%','','dairy','yogurt','g','ready',57,10.3,4,0],
+ ['yog10','Greek strained yogurt 10%','Γιαούρτι στραγγιστό 10%','','dairy','yogurt','g','ready',133,6.4,3.5,10],
+ ['feta','Feta','Φέτα','','dairy','cheese','g','ready',264,14.2,4.1,21.3],
+ ['graviera','Graviera / kefalograviera','Γραβιέρα / κεφαλογραβιέρα','','dairy','cheese','g','ready',394,25,0.5,32],
+ ['gouda','Gouda, sliced','Γκούντα σε φέτες','','dairy','cheese','g','ready',356,24.9,2.2,27.4,'slice',20],
+ ['mozzarella','Mozzarella','Μοτσαρέλα','','dairy','cheese','g','ready',300,22.2,2.2,22.4],
+ ['parmesan','Parmesan','Παρμεζάνα','','dairy','cheese','g','ready',392,35.8,3.2,25.8],
+ ['cottage','Cottage cheese','Τυρί κότατζ','','dairy','cheese','g','ready',98,11.1,3.4,4.3],
+ ['butter','Butter','Βούτυρο','','dairy','butter','g','ready',717,0.9,0.1,81.1],
+ ['cream','Cooking cream 35%','Κρέμα γάλακτος 35%','','dairy','cream','g','ready',340,2.1,2.8,36],
+ ['olive_oil','Olive oil','Ελαιόλαδο','oil λάδι','oils','oliveoil','g','ready',884,0,0,100],
+ ['sun_oil','Sunflower oil','Ηλιέλαιο','oil λάδι','oils','oil','g','ready',884,0,0,100],
+ ['honey','Honey','Μέλι','','oils','honey','g','ready',304,0.3,82.4,0],
+ ['sugar','Sugar','Ζάχαρη','','oils','sugar','g','ready',387,0,100,0],
+ ['salt','Salt','Αλάτι','','oils','seasoning','g','ready',0,0,0,0],
+ ['black_pepper','Black pepper','Πιπέρι','','oils','seasoning','g','ready',251,10.4,64,3.3],
+ ['oregano','Oregano, dried','Ρίγανη','','oils','seasoning','g','ready',265,9,69,4.3],
+ ['ketchup','Ketchup','Κέτσαπ','','oils','sauce','g','ready',101,1,26,0.1],
+ ['mayo','Mayonnaise','Μαγιονέζα','','oils','sauce','g','ready',680,1,0.6,75],
+ ['mustard','Mustard','Μουστάρδα','','oils','sauce','g','ready',66,4.4,5.8,4],
+ ['soy','Soy sauce','Σάλτσα σόγιας','','oils','sauce','ml','ready',53,8.1,4.9,0.6],
+ ['wine','Wine','Κρασί','red white','drinks','alcohol','ml','ready',85,0.1,2.6,0],
+ ['pb','Peanut butter','Φυστικοβούτυρο','','nuts','pb','g','ready',588,25,20,50],
+ ['peanuts','Peanuts','Φιστίκια','','nuts','peanuts','g','ready',567,25.8,16.1,49.2],
+ ['almonds','Almonds','Αμύγδαλα','','nuts','almonds','g','ready',579,21.2,21.6,49.9],
+ ['walnuts','Walnuts','Καρύδια','','nuts','walnuts','g','ready',654,15.2,13.7,65.2],
+ ['tahini','Tahini','Ταχίνι','','nuts','seeds','g','ready',595,17,21.2,53.8],
+ ['whey','Whey protein (typical)','Πρωτεΐνη ορού γάλακτος (τυπική)','protein powder','supps','whey','g','ready',390,78,7,6],
+ ['dark_choc','Dark chocolate 70%','Μαύρη σοκολάτα 70%','','snacks','chocolate','g','ready',598,7.8,45.9,42.6],
+];
+const GEN = GEN_RAW.map(([id,en,el,alias,cat,sub,unit,state,kcal,protein,carbs,fat,pieces,piece]) => ({
+  gid:id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, pieces: pieces || 'none', piece: piece || null,
+  hay: norm(`${en} ${el} ${alias} ${subOf(cat,sub).en} ${subOf(cat,sub).el} ${(subOf(cat,sub).kw||[]).join(' ')}`)
+}));
+const GENBY = Object.fromEntries(GEN.map(g => [g.gid, g]));
+
+// ======================= storage =======================
 function load(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }
-function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ toast('Could not save on this device'); return false; } }
+function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ toast(t('saveFail')); return false; } }
 function migrate(f){
   const clean = Object.fromEntries(Object.entries(f || {}).filter(([,v]) => v !== undefined && v !== null));
   const out = Object.assign({ unit:'g', packs:[], usualPack:null, noBrand:false, cat:null, sub:null, state:'ready' }, clean);
@@ -452,68 +891,126 @@ function migrate(f){
   if(!['uncooked','cooked','ready'].includes(out.state)) out.state = 'ready';
   out.packs = Array.isArray(out.packs) ? out.packs.map(Number).filter(n => n > 0) : [];
   out.noBrand = !!out.noBrand;
+  if(!['none','slice','piece'].includes(out.pieces)) out.pieces = guessPieces(out.cat, out.sub, out.name);
+  if(!['auto','piece','pack','100'].includes(out.display)) out.display = 'auto';
+  out.pieceSkipped = !!out.pieceSkipped;
   return out;
 }
 let foods = load(KEY, []).map(migrate);
+let meals = load(MKEY, []);
 let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, load(SKEY, {}));
-let ui = Object.assign({ sort:'recent', cat:'all' }, load(UKEY, {}));
+let ui = Object.assign({ sort:'recent', cat:'all', lang:null }, load(UKEY, {}));
+lang = ui.lang || 'en';
 const saveFoods = () => store(KEY, foods);
+const saveMeals = () => store(MKEY, meals);
 const saveUI = () => store(UKEY, ui);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+// a food saved from the standard list shows its name in whichever language you use
+const foodName = f => (f.gid && GENBY[f.gid]) ? L(GENBY[f.gid]) : f.name;
 
-// ================= helpers =================
+// ======================= helpers =======================
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const r1 = n => Math.round(n*10)/10;
 const fmt = n => (n === null || n === undefined || n === '' || isNaN(n)) ? '–' : String(r1(n));
-const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `${n} ml`) : (n >= 1000 ? `${r1(n/1000)} kg` : `${n} g`);
+const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `${r1(n)} ml`) : (n >= 1000 ? `${r1(n/1000)} kg` : `${r1(n)} g`);
+const fmtDate = iso => { try{ return new Date(iso).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day:'numeric', month:'short' }); }catch(e){ return ''; } };
+const W = p => t(p === 'slice' ? 'slice' : 'piece'), WS = p => t(p === 'slice' ? 'slicesW' : 'piecesW');
 let toastTimer;
 function toast(msg, actLabel, act){
   $('toastMsg').textContent = msg; const b = $('toastAct');
-  if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { act(); $('toast').classList.remove('show'); }; }
+  if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { $('toast').classList.remove('show'); act(); }; }
   else { b.classList.add('hide'); b.onclick = null; }
   $('toast').classList.add('show'); clearTimeout(toastTimer);
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 5000 : 2200);
 }
-function open(id){ $(id).classList.add('open'); }
+let zTop = 10;
+function open(id){ const el = $(id); el.style.zIndex = ++zTop; el.classList.add('open'); }
 function close(id){ $(id).classList.remove('open'); if(id === 'ovScan') stopScan(); }
 document.querySelectorAll('.overlay').forEach(ov => {
-  ov.addEventListener('click', e => { if(e.target === ov) close(ov.id); });
+  ov.addEventListener('click', e => { if(e.target === ov && ov.id !== 'ovLang') close(ov.id); });
   ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close(ov.id)));
 });
 function status(el, msg, err){ el.textContent = msg; el.classList.toggle('show', !!msg); el.classList.toggle('err', !!err); }
-const STATE_LABEL = { uncooked:'uncooked', cooked:'cooked', ready:'ready to eat' };
+function setSeg(sel, v){ document.querySelectorAll(`${sel} button`).forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+const STATE_KEY = { uncooked:'uncooked', cooked:'cooked', ready:'ready' };
 
-// ================= list =================
+// ======================= pages =======================
+const SMALL_PACK = 350;
+function portion(f){
+  const pw = f.pieces && f.pieces !== 'none' ? (f.piece || f.serving || null) : null;
+  const pack = f.usualPack || null;
+  let mode = f.display || 'auto';
+  if(mode === 'auto') mode = pw ? 'piece' : (pack && pack <= SMALL_PACK ? 'pack' : '100');
+  if(mode === 'piece' && !pw) mode = pack ? 'pack' : '100';
+  if(mode === 'pack' && !pack) mode = '100';
+  if(mode === 'piece') return { mode, amt: pw, label: t('perWLabel', { w: W(f.pieces) }), size: `${f.piece ? '' : '≈'}${fmtSize(pw, f.unit)}` };
+  if(mode === 'pack') return { mode, amt: pack, label: t('perPackLabel'), size: fmtSize(pack, f.unit) };
+  return { mode, amt: 100, label: t('per100Label', { u: f.unit }), size: '' };
+}
+function route(){
+  const h = location.hash.replace('#','');
+  const page = h === 'foods' || h === 'meals' ? 'foods' : 'home';
+  $('pgHome').classList.toggle('hide', page !== 'home');
+  $('pgFoods').classList.toggle('hide', page !== 'foods');
+  const tab = h === 'meals' ? 'meals' : 'store';
+  setSeg('#foodTabs', tab);
+  $('storeView').classList.toggle('hide', tab !== 'store');
+  $('mealsView').classList.toggle('hide', tab !== 'meals');
+  const fab = $('fab');
+  fab.classList.toggle('hide', page !== 'foods');
+  fab.textContent = tab === 'meals' ? t('cookFab') : t('addFoodFab');
+  fab.dataset.action = tab;
+  renderAll();
+  window.scrollTo(0, 0);
+}
+function go(h){ if(location.hash === '#' + h) route(); else location.hash = h; }
+window.addEventListener('hashchange', route);
+$('backBtn').addEventListener('click', () => go('home'));
+$('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : 'foods')), route(); });
+$('tScan').addEventListener('click', () => startScan());
+$('tFoods').addEventListener('click', () => go('foods'));
+$('tMeals').addEventListener('click', () => go('meals'));
+$('tFridge').addEventListener('click', () => toast(t('comingSoon')));
+$('tGroc').addEventListener('click', () => toast(t('comingSoon')));
+$('fab').addEventListener('click', () => { if($('fab').dataset.action === 'meals') openCook(null, 'new'); else { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); } });
+document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
+
+function renderAll(){ renderHome(); render(); renderMeals(); }
+function renderHome(){
+  $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
+  $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
+}
+
+// ======================= store-bought list =======================
+function foodHay(f){ const s = subOf(f.cat, f.sub); return norm(`${foodName(f)} ${f.name} ${f.brand} ${f.barcode||''} ${typeLabel(f.cat,f.sub)} ${s ? s.en + ' ' + s.el + ' ' + s.kw.join(' ') : ''} ${f.gid && GENBY[f.gid] ? GENBY[f.gid].hay : ''}`); }
 function render(){
   const q = norm($('search').value);
-  // category chips (only categories you actually have)
   const counts = {}; foods.forEach(f => { const k = f.cat || 'none'; counts[k] = (counts[k]||0) + 1; });
   if(ui.cat !== 'all' && !counts[ui.cat]) ui.cat = 'all';
-  const chips = [`<button class="fchip ${ui.cat==='all'?'on':''}" data-c="all">All ${foods.length||''}</button>`]
-    .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${c.icon} ${esc(c.label)} ${counts[c.id]}</button>`))
-    .concat(counts.none ? [`<button class="fchip ${ui.cat==='none'?'on':''}" data-c="none">❔ No type ${counts.none}</button>`] : []);
+  const chips = [`<button class="fchip ${ui.cat==='all'?'on':''}" data-c="all">${t('all')} ${foods.length||''}</button>`]
+    .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${c.icon} ${esc(L(c))} ${counts[c.id]}</button>`))
+    .concat(counts.none ? [`<button class="fchip ${ui.cat==='none'?'on':''}" data-c="none">${t('noType')} ${counts.none}</button>`] : []);
   $('catChips').innerHTML = foods.length ? chips.join('') : '';
-  $('sortBtn').innerHTML = foods.length ? `Sort: <b>${ui.sort === 'recent' ? 'Recent' : 'A–Z'}</b>` : '';
-
+  $('sortBtn').innerHTML = foods.length ? t(ui.sort === 'recent' ? 'sortRecent' : 'sortAZ') : '';
+  const tokens = q.split(' ').filter(Boolean);
   const items = foods
     .filter(f => ui.cat === 'all' || (f.cat || 'none') === ui.cat)
-    .filter(f => !q || norm(`${f.brand} ${f.name} ${f.barcode||''} ${typeLabel(f.cat,f.sub)}`).includes(q))
-    .sort(ui.sort === 'recent'
-      ? (a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'')
-      : (a,b) => norm(a.name).localeCompare(norm(b.name)) || norm(a.brand).localeCompare(norm(b.brand)));
-  $('count').textContent = foods.length ? `${items.length} food${items.length===1?'':'s'}` : '';
-  if(!foods.length){ $('list').innerHTML = `<div class="empty"><b>No foods yet</b>Tap “Add food” and scan your first barcode.</div>`; return; }
-  if(!items.length){ $('list').innerHTML = `<div class="empty">Nothing matches${q ? ` “${esc($('search').value)}”` : ''}.</div>`; return; }
+    .filter(f => !tokens.length || (h => tokens.every(tk => h.includes(tk)))(foodHay(f)))
+    .sort(ui.sort === 'recent' ? (a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'') : (a,b) => norm(foodName(a)).localeCompare(norm(foodName(b))) || norm(a.brand).localeCompare(norm(b.brand)));
+  $('count').textContent = foods.length ? (items.length === 1 ? t('nFood') : t('nFoods', { n: items.length })) : '';
+  if(!foods.length){ $('list').innerHTML = `<div class="empty">${t('noFoods')}</div>`; return; }
+  if(!items.length){ $('list').innerHTML = `<div class="empty">${q ? t('nothingMatches', { q: esc($('search').value) }) : t('nothingHere')}</div>`; return; }
   $('list').innerHTML = items.map(f => {
-    const ic = iconOf(f);
+    const ic = iconOf(f), pt = portion(f), x = pt.amt / 100;
+    const sc = v => (v === null || v === undefined || isNaN(v)) ? null : v * x;
     return `<div class="card" data-id="${f.id}">
       <div class="ficon ${ic?'':'none'}">${ic || '❔'}</div>
       <div class="body">
-        <div class="row"><div class="brand">${esc(f.noBrand ? 'No brand' : (f.brand || '—'))}</div><div class="kcal">${fmt(f.kcal)} <small>kcal</small></div></div>
-        <div class="name">${esc(f.name)}</div>
+        <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div></div>
+        <div class="name">${esc(foodName(f))}</div>
         <div class="row" style="margin-top:2px">
-          <div class="macros"><span class="m p">P <b>${fmt(f.protein)}</b></span><span class="m c">C <b>${fmt(f.carbs)}</b></span><span class="m f">F <b>${fmt(f.fat)}</b></span></div>
-          <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${STATE_LABEL[f.state]||''} · 100 ${f.unit}</span>
+          <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span></div>
+          <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
         </div>
       </div></div>`;
   }).join('');
@@ -521,21 +1018,18 @@ function render(){
 $('search').addEventListener('input', render);
 $('catChips').addEventListener('click', e => { const b = e.target.closest('.fchip'); if(!b) return; ui.cat = b.dataset.c; saveUI(); render(); });
 $('sortBtn').addEventListener('click', () => { ui.sort = ui.sort === 'recent' ? 'az' : 'recent'; saveUI(); render(); });
-$('list').addEventListener('click', e => {
-  const card = e.target.closest('.card'); if(!card) return;
-  const f = foods.find(x => x.id === card.dataset.id); if(f) openForm(f, null, 'edit');
-});
+$('list').addEventListener('click', e => { const card = e.target.closest('.card'); if(!card) return; const f = foods.find(x => x.id === card.dataset.id); if(f) openForm(f, null, 'edit'); });
 
-// ================= type picker (shared) =================
+// ======================= type picker =======================
 function mountPicker(el, current, onPick){
   let showCat = current && current.cat ? current.cat : null;
   const draw = () => {
     if(!showCat){
-      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${esc(c.label)}</button>`).join('')}</div>`;
+      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${esc(L(c))}</button>`).join('')}</div>`;
     } else {
       const c = CAT[showCat];
-      el.innerHTML = `<button class="pback" data-back>← All categories</button><div class="pgrid">${c.subs.map(s =>
-        `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}"><span class="e">${s.icon}</span>${s.id==='general' ? `General ${esc(c.label.toLowerCase())}` : esc(s.label)}</button>`).join('')}</div>`;
+      el.innerHTML = `<button class="pback" data-back>${t('allCats')}</button><div class="pgrid">${c.subs.map(s =>
+        `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}"><span class="e">${s.icon}</span>${s.id==='general' ? `${t('general')} · ${esc(L(c))}` : esc(L(s))}</button>`).join('')}</div>`;
     }
   };
   el.onclick = e => {
@@ -546,24 +1040,50 @@ function mountPicker(el, current, onPick){
   draw();
 }
 
-// ================= form =================
-const F = { editingId:null, state:'ready', unit:'g', stateTouched:false, unitTouched:false, typeTouched:false, cat:null, sub:null, noBrand:false, packs:[], usual:null, source:'' };
-const NUM = { kcal:'fKcal', protein:'fP', carbs:'fC', fat:'fF', fiber:'fFib', sugar:'fSug', satFat:'fSat', salt:'fSalt', serving:'fServ' };
-
-function setSeg(sel, v){ document.querySelectorAll(`${sel} button`).forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+// ======================= food form =======================
+const F = { editingId:null, state:'ready', unit:'g', stateTouched:false, unitTouched:false, typeTouched:false, piecesTouched:false, cat:null, sub:null, noBrand:false, packs:[], usual:null, source:'', pieces:'none', display:'auto', serving:null, pieceSkipped:false, gid:null, fromScan:false, onSaved:null };
+const NUM = { kcal:'fKcal', protein:'fP', carbs:'fC', fat:'fF', fiber:'fFib', sugar:'fSug', satFat:'fSat', salt:'fSalt' };
+function num(id){ const v = $(id).value.trim().replace(',', '.'); return v === '' ? null : Number(v); }
 function setState(v){ F.state = v; setSeg('#fState', v); }
-function setUnit(v){ F.unit = v; setSeg('#fUnit', v); $('per100').textContent = `Per 100 ${v}`; $('packUnit').textContent = v; $('fServ').placeholder = v === 'ml' ? 'e.g. 250' : 'e.g. 30'; drawPacks(); }
+function setUnit(v){ F.unit = v; setSeg('#fUnit', v); $('per100').textContent = t('per100', { u: v }); $('packUnit').textContent = v;
+  document.querySelector('#fDisplay [data-v="100"]').textContent = t('per100', { u: v }); setPieces(F.pieces); drawPacks(); }
+function setPieces(v){
+  F.pieces = v; setSeg('#fPieces', v);
+  $('pieceBox').classList.toggle('hide', v === 'none');
+  $('pieceLbl').textContent = t('oneWeighs', { w: W(v), u: F.unit });
+  $('countLbl').textContent = t('orCount', { ws: WS(v) });
+  const pb = document.querySelector('#fDisplay [data-v="piece"]');
+  pb.textContent = t('perW', { w: W(v) }); pb.classList.toggle('hide', v === 'none');
+  if(v === 'none' && F.display === 'piece') setDisplay('auto');
+  pieceHint(); updatePreview();
+}
+function setDisplay(v){ F.display = v; setSeg('#fDisplay', v); updatePreview(); }
+function pieceHint(){
+  const pw = num('fPiece'), el = $('pieceHint');
+  if(pw) el.textContent = t('everyCounts', { w: W(F.pieces), s: fmtSize(pw, F.unit) });
+  else if(F.serving) el.textContent = t('usingEst', { s: fmtSize(F.serving, F.unit) });
+  else el.textContent = t('weighOrCount', { w: W(F.pieces) });
+}
 document.querySelectorAll('#fState button').forEach(b => b.addEventListener('click', () => { F.stateTouched = true; setState(b.dataset.v); }));
 document.querySelectorAll('#fUnit button').forEach(b => b.addEventListener('click', () => { F.unitTouched = true; setUnit(b.dataset.v); }));
-
+document.querySelectorAll('#fPieces button').forEach(b => b.addEventListener('click', () => { F.piecesTouched = true; F.pieceSkipped = false; setPieces(b.dataset.v); }));
+document.querySelectorAll('#fDisplay button').forEach(b => b.addEventListener('click', () => setDisplay(b.dataset.v)));
+$('fPiece').addEventListener('input', () => { $('fCount').value = ''; pieceHint(); updatePreview(); });
+$('fCount').addEventListener('input', () => {
+  const n = num('fCount');
+  if(n > 0 && F.usual) $('fPiece').value = r1(F.usual / n);
+  else if(n > 0){ $('pieceHint').textContent = t('addPackFirst'); return; }
+  pieceHint(); updatePreview();
+});
 function setType(cat, sub, guessed){
   F.cat = cat; F.sub = sub;
   const s = subOf(cat, sub);
   $('typeBtn').classList.toggle('missing', !cat);
   $('typeBtn').innerHTML = cat
-    ? `<span class="big">${s.icon}</span><span>${esc(typeLabel(cat, sub))}<small>${guessed ? 'Guessed from the name, tap to change' : 'Tap to change'}</small></span>`
-    : `<span class="big">❔</span><span>Choose food type<small>Dairy, meat, vegetables…</small></span>`;
+    ? `<span class="big">${s.icon}</span><span>${esc(typeLabel(cat, sub))}<small>${guessed ? t('guessed') : t('tapChange')}</small></span>`
+    : `<span class="big">❔</span><span>${t('chooseType')}<small>${t('chooseTypeSub')}</small></span>`;
   if(cat && !F.unitTouched && !F.editingId && s.opt.ml) setUnit('ml');
+  if(cat && !F.piecesTouched) setPieces(guessPieces(cat, sub, $('fName').value));
 }
 $('typeBtn').addEventListener('click', () => {
   mountPicker($('typePicker'), F.cat ? { cat:F.cat, sub:F.sub } : null, v => { F.typeTouched = true; setType(v.cat, v.sub, false); close('ovType'); });
@@ -571,26 +1091,26 @@ $('typeBtn').addEventListener('click', () => {
 });
 function setNoBrand(on){ F.noBrand = on; $('noBrandBtn').classList.toggle('on', on); $('fBrand').disabled = on; if(on) $('fBrand').value = ''; }
 $('noBrandBtn').addEventListener('click', () => { setNoBrand(!F.noBrand); if(!F.noBrand) $('fBrand').focus(); });
-
 $('fName').addEventListener('input', () => {
+  F.gid = null;
   if(F.editingId) return;
   const v = $('fName').value;
   if(!F.stateTouched) setState(guessState(v));
   if(!F.typeTouched){ const g = guessType(v); if(g) setType(g.cat, g.sub, true); }
+  if(!F.piecesTouched && F.cat) setPieces(guessPieces(F.cat, F.sub, v));
 });
-
-// packs
 function drawPacks(){
   F.packs.sort((a,b) => a-b);
   $('packList').innerHTML = F.packs.map(p => `<span class="pack ${F.usual===p?'usual':''}">${fmtSize(p, F.unit)}
-     <button class="star" data-star="${p}" aria-label="Usual pack">${F.usual===p?'★':'☆'}</button><button data-rm="${p}" aria-label="Remove">✕</button></span>`).join('');
+     <button class="star" data-star="${p}">${F.usual===p?'★':'☆'}</button><button data-rm="${p}">✕</button></span>`).join('');
   updatePreview();
 }
 function addPack(){
-  const v = num('packIn'); if(!v || v <= 0){ toast('Type a pack size first'); return; }
+  const v = num('packIn'); if(!v || v <= 0){ toast(t('typePack')); return; }
   if(!F.packs.includes(v)) F.packs.push(v);
   if(F.usual === null) F.usual = v;
   $('packIn').value = ''; drawPacks();
+  if(num('fCount')) $('fCount').dispatchEvent(new Event('input'));
 }
 $('packAdd').addEventListener('click', addPack);
 $('packIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); addPack(); } });
@@ -600,28 +1120,41 @@ $('packList').addEventListener('click', e => {
   if(r){ const v = Number(r.dataset.rm); F.packs = F.packs.filter(p => p !== v); if(F.usual === v) F.usual = F.packs[0] ?? null; drawPacks(); }
 });
 function updatePreview(){
+  const pt = portion({ pieces:F.pieces, piece:num('fPiece'), serving:F.serving, usualPack:F.usual, display:F.display, unit:F.unit });
+  const auto = F.display === 'auto', x = `${pt.label}${pt.size ? ' (' + pt.size + ')' : ''}`;
+  $('displayHint').textContent = auto
+    ? t('autoPicks', { x }) + (pt.mode === 'piece' ? t('becausePieces', { ws: WS(F.pieces) }) : pt.mode === 'pack' ? t('becauseSmall', { n: SMALL_PACK, u: F.unit }) : t('becauseBig'))
+    : t('showing', { x }) + '.';
   const p = num('fP'), c = num('fC'), f = num('fF'); let k = num('fKcal');
   const el = $('packPreview');
   if(p===null || c===null || f===null){ el.classList.remove('show'); return; }
   if(k===null) k = p*4 + c*4 + f*9;
-  const line = (amt, label) => { const x = amt/100; return `${label}: <b>${Math.round(k*x)} kcal</b> · P ${r1(p*x)} · C ${r1(c*x)} · F ${r1(f*x)}`; };
+  const line = (amt, label) => { const m = amt/100; return `${label}: <b>${Math.round(k*m)} kcal</b> · P ${r1(p*m)} · C ${r1(c*m)} · F ${r1(f*m)}`; };
   const parts = [];
-  const sv = num('fServ'); if(sv) parts.push(line(sv, `Serving ${fmtSize(sv, F.unit)}`));
-  if(F.usual) parts.push(line(F.usual, `Whole pack ${fmtSize(F.usual, F.unit)}`));
+  const pw = F.pieces !== 'none' ? (num('fPiece') || F.serving) : null;
+  if(pw) parts.push(line(pw, `${t('onePiece', { w: W(F.pieces) })} (${num('fPiece') ? '' : '≈'}${fmtSize(pw, F.unit)})`));
+  if(F.usual) parts.push(line(F.usual, `${t('wholePack')} (${fmtSize(F.usual, F.unit)})`));
   el.innerHTML = parts.join('<br>'); el.classList.toggle('show', parts.length > 0);
 }
-
-function openForm(data, sourceNote, mode){
+function openForm(data, sourceNote, mode, opts){
+  opts = opts || {};
   data = migrate(data || {});
   F.editingId = mode === 'edit' ? data.id : null;
+  F.fromScan = !!opts.fromScan; F.onSaved = opts.onSaved || null;
   F.stateTouched = mode === 'edit';
-  F.unitTouched = mode === 'edit' || !!data.unitFromLabel;
-  F.typeTouched = !!data.cat && mode === 'edit';
+  F.unitTouched = mode === 'edit' || !!data.unitFromLabel || !!data.gid;
+  F.typeTouched = !!data.cat && (mode === 'edit' || !!data.gid);
+  F.piecesTouched = mode === 'edit' || !!data.gid;
   F.source = data.source || (sourceNote ? sourceNote : 'manual');
+  F.gid = data.gid || null;
   F.packs = [...data.packs]; F.usual = data.usualPack ?? (F.packs[0] ?? null);
-  $('formTitle').textContent = mode === 'edit' ? 'Edit food' : 'New food';
-  $('formSub').textContent = mode === 'edit' ? 'Change anything, then save.' : 'Check the numbers against the label, then save.';
-  $('fBrand').value = data.brand || ''; $('fName').value = data.name || '';
+  F.serving = data.serving > 0 ? Number(data.serving) : null;
+  F.pieceSkipped = !!data.pieceSkipped;
+  F.pieces = data.pieces; F.display = data.display;
+  $('fPiece').value = data.piece > 0 ? data.piece : ''; $('fCount').value = '';
+  $('formTitle').textContent = mode === 'edit' ? t('editFood') : t('newFood');
+  $('formSub').textContent = mode === 'edit' ? t('changeAny') : t('checkLabel');
+  $('fBrand').value = data.brand || ''; $('fName').value = data.gid ? foodName(data) : (data.name || '');
   $('fCode').value = data.barcode || ''; $('fNotes').value = data.notes || ''; $('packIn').value = '';
   for(const [k,id] of Object.entries(NUM)) $(id).value = (data[k] ?? '') === '' ? '' : data[k];
   setNoBrand(!!data.noBrand);
@@ -629,43 +1162,41 @@ function openForm(data, sourceNote, mode){
   setState(mode === 'edit' || data.state !== 'ready' ? data.state : guessState(data.name || ''));
   if(data.cat) setType(data.cat, data.sub || 'general', false);
   else { const g = guessType(`${data.name||''} ${data.hint||''}`); g ? setType(g.cat, g.sub, true) : setType(null, null); }
-  $('fSource').textContent = sourceNote ? `Filled from ${sourceNote}. Double-check before saving.` : (mode==='edit' && data.updatedAt ? `Last updated ${new Date(data.updatedAt).toLocaleDateString('en-GB')}` : '');
+  if(F.piecesTouched) setPieces(data.pieces); else if(!F.cat) setPieces('none');
+  setDisplay(data.display || 'auto');
+  $('fSource').textContent = sourceNote ? t('filledFrom', { s: sourceNote }) : (mode==='edit' && data.updatedAt ? t('lastUpdated', { d: fmtDate(data.updatedAt) }) : '');
   $('delBtn').classList.toggle('hide', mode !== 'edit');
   $('dupBtn').classList.toggle('hide', mode !== 'edit');
-  // brand suggestions from what you've already saved
   $('brandList').innerHTML = [...new Set(foods.map(f => f.brand).filter(Boolean))].sort().map(b => `<option value="${esc(b)}">`).join('');
   checkKcal(); drawPacks();
   open('ovForm');
   if(mode !== 'edit' && !data.name) setTimeout(() => $('fName').focus(), 150);
 }
-function num(id){ const v = $(id).value.trim().replace(',', '.'); return v === '' ? null : Number(v); }
 function checkKcal(){
   const k = num('fKcal'), p = num('fP'), c = num('fC'), f = num('fF'), el = $('kcalCheck');
   el.onclick = null; el.classList.remove('warn','click');
   if(p===null || c===null || f===null){ el.textContent=''; updatePreview(); return; }
   const est = p*4 + c*4 + f*9;
-  if(k === null){ el.textContent = `No kcal? Macros add up to ~${Math.round(est)}. Tap to use that.`; el.classList.add('click'); el.onclick = () => { $('fKcal').value = Math.round(est); checkKcal(); }; }
-  else if(Math.abs(k - est) / Math.max(k,1) > 0.15 && Math.abs(k-est) > 20){ el.textContent = `Heads up: macros add up to ~${Math.round(est)} kcal but the label says ${k}. Worth a second look.`; el.classList.add('warn'); }
-  else el.textContent = `Macros check out (~${Math.round(est)} kcal).`;
+  if(k === null){ el.textContent = t('noKcal', { n: Math.round(est) }); el.classList.add('click'); el.onclick = () => { $('fKcal').value = Math.round(est); checkKcal(); }; }
+  else if(Math.abs(k - est) / Math.max(k,1) > 0.15 && Math.abs(k-est) > 20){ el.textContent = t('kcalWarn', { n: Math.round(est), k }); el.classList.add('warn'); }
+  else el.textContent = t('kcalOk', { n: Math.round(est) });
   updatePreview();
 }
 ['fKcal','fP','fC','fF'].forEach(id => $(id).addEventListener('input', checkKcal));
-$('fServ').addEventListener('input', updatePreview);
-
-// ---- save: validate numbers, then ask for brand/type only if missing ----
 function readForm(){
   const vals = {}; for(const [k,id] of Object.entries(NUM)) vals[k] = num(id);
   return { name: $('fName').value.trim(), brand: F.noBrand ? '' : $('fBrand').value.trim(), vals };
 }
-$('saveBtn').addEventListener('click', () => {
+function trySave(){
   const { name, brand, vals } = readForm();
-  if(!name){ toast('Give the product a name'); $('fName').focus(); return; }
-  if(vals.protein===null || vals.carbs===null || vals.fat===null){ toast('Protein, carbs and fat are needed'); return; }
-  if(Object.values(vals).some(v => v !== null && (isNaN(v) || v < 0))){ toast('Some numbers look off'); return; }
-  const needBrand = !brand && !F.noBrand, needType = !F.cat;
-  if(needBrand || needType) return askMissing(needBrand, needType);
+  if(!name){ toast(t('needName')); $('fName').focus(); return; }
+  if(vals.protein===null || vals.carbs===null || vals.fat===null){ toast(t('needMacros')); return; }
+  if(Object.values(vals).some(v => v !== null && (isNaN(v) || v < 0))){ toast(t('numbersOff')); return; }
+  if((!brand && !F.noBrand) || !F.cat) return askMissing(!brand && !F.noBrand, !F.cat);
+  if(F.pieces !== 'none' && !num('fPiece') && !F.pieceSkipped) return askPiece();
   commit();
-});
+}
+$('saveBtn').addEventListener('click', trySave);
 
 let M = { brandMode:null, cat:null, sub:null, needBrand:false, needType:false };
 function askMissing(needBrand, needType){
@@ -673,7 +1204,7 @@ function askMissing(needBrand, needType){
   $('mBrandSec').classList.toggle('hide', !needBrand);
   $('mTypeSec').classList.toggle('hide', !needType);
   setSeg('#mBrandSeg', ''); $('mBrand').value = ''; $('mBrand').classList.add('hide');
-  if(needType){ const g = guessType($('fName').value); mountPicker($('mTypePicker'), g, v => { M.cat = v.cat; M.sub = v.sub; checkMissing(); }); }
+  if(needType) mountPicker($('mTypePicker'), guessType($('fName').value), v => { M.cat = v.cat; M.sub = v.sub; checkMissing(); });
   checkMissing(); open('ovMissing');
 }
 document.querySelectorAll('#mBrandSeg button').forEach(b => b.addEventListener('click', () => {
@@ -686,14 +1217,48 @@ $('mBrand').addEventListener('input', checkMissing);
 $('mBrand').addEventListener('keydown', e => { if(e.key === 'Enter' && !$('mSave').disabled) $('mSave').click(); });
 function checkMissing(){
   const brandOk = !M.needBrand || M.brandMode === 'none' || (M.brandMode === 'add' && $('mBrand').value.trim());
-  const typeOk = !M.needType || !!M.cat;
-  $('mSave').disabled = !(brandOk && typeOk);
+  $('mSave').disabled = !(brandOk && (!M.needType || !!M.cat));
 }
 $('mSave').addEventListener('click', () => {
   if(M.needBrand){ if(M.brandMode === 'none') setNoBrand(true); else { setNoBrand(false); $('fBrand').value = $('mBrand').value.trim(); } }
-  if(M.needType) setType(M.cat, M.sub, false);
-  close('ovMissing'); commit();
+  if(M.needType){ F.typeTouched = true; setType(M.cat, M.sub, false); }
+  close('ovMissing'); trySave();
 });
+
+let PC = { mode:'weigh' };
+function askPiece(){
+  const w = W(F.pieces), ws = WS(F.pieces), u = F.unit;
+  $('pcTitle').textContent = t('pieceQ', { w });
+  $('pcSub').textContent = t('pieceSub', { w }) + (F.serving ? t('pieceSkipEst', { s: fmtSize(F.serving, u), w }) : t('pieceSkipLater'));
+  $('pcGl').textContent = t('oneWeighs', { w, u });
+  $('pcNl').textContent = t('inPack', { Ws: ws[0].toUpperCase() + ws.slice(1) });
+  $('pcPackl').textContent = t('wholePackU', { u });
+  $('pcNone').textContent = t('notInPieces', { ws });
+  $('pcG').value = ''; $('pcN').value = ''; $('pcPack').value = F.usual || '';
+  setPcMode('weigh'); open('ovPiece'); setTimeout(() => $('pcG').focus(), 120);
+}
+function setPcMode(m){ PC.mode = m; setSeg('#pcSeg', m); $('pcWeigh').classList.toggle('hide', m !== 'weigh'); $('pcCount').classList.toggle('hide', m !== 'count'); pcCheck(); }
+function pcValue(){ if(PC.mode === 'weigh') return num('pcG') > 0 ? num('pcG') : null; const n = num('pcN'), p = num('pcPack'); return n > 0 && p > 0 ? r1(p / n) : null; }
+function pcCheck(){
+  const v = pcValue(), el = $('pcRes');
+  $('pcSave').disabled = !v;
+  if(v){
+    const k = num('fKcal') ?? (num('fP')*4 + num('fC')*4 + num('fF')*9), m = v/100;
+    el.innerHTML = (PC.mode === 'count' ? t('eachIs', { a: fmtSize(num('pcPack'), F.unit), n: num('pcN'), s: fmtSize(v, F.unit) }) + '<br>' : '') +
+      `${t('onePiece', { w: W(F.pieces) })}: <b>${Math.round(k*m)} kcal</b> · P ${r1(num('fP')*m)} · C ${r1(num('fC')*m)} · F ${r1(num('fF')*m)}`;
+    el.classList.add('show');
+  } else el.classList.remove('show');
+}
+document.querySelectorAll('#pcSeg button').forEach(b => b.addEventListener('click', () => { setPcMode(b.dataset.v); setTimeout(() => $(b.dataset.v === 'weigh' ? 'pcG' : 'pcN').focus(), 50); }));
+['pcG','pcN','pcPack'].forEach(id => { $(id).addEventListener('input', pcCheck); $(id).addEventListener('keydown', e => { if(e.key === 'Enter' && !$('pcSave').disabled) $('pcSave').click(); }); });
+$('pcSave').addEventListener('click', () => {
+  const v = pcValue(); if(!v) return;
+  if(PC.mode === 'count'){ const p = num('pcPack'); if(!F.packs.includes(p)) F.packs.push(p); F.usual = p; drawPacks(); }
+  $('fPiece').value = v; F.pieceSkipped = false; pieceHint(); updatePreview();
+  close('ovPiece'); trySave();
+});
+$('pcSkip').addEventListener('click', () => { F.pieceSkipped = true; close('ovPiece'); trySave(); });
+$('pcNone').addEventListener('click', () => { F.piecesTouched = true; setPieces('none'); close('ovPiece'); trySave(); });
 
 function commit(){
   const { name, brand, vals } = readForm();
@@ -701,36 +1266,44 @@ function commit(){
   const code = $('fCode').value.replace(/\D/g,'');
   const others = foods.filter(f => f.id !== F.editingId);
   const sameCode = code && others.find(f => f.barcode === code);
-  if(sameCode && !confirm(`This barcode is already saved as "${sameCode.name}". Save another one anyway?`)) return;
-  const sameName = !sameCode && others.find(f => norm(f.name) === norm(name) && norm(f.brand) === norm(brand));
-  if(sameName && !confirm(`You already have "${brand ? brand + ' ' : ''}${name}". Save a second one anyway?`)) return;
+  if(sameCode && !confirm(t('sameCode', { n: foodName(sameCode) }))) return;
+  const sameName = !sameCode && others.find(f => norm(foodName(f)) === norm(name) && norm(f.brand) === norm(brand));
+  if(sameName && !confirm(t('sameName', { n: (brand ? brand + ' ' : '') + name }))) return;
   const now = new Date().toISOString();
-  const rec = { brand, noBrand: F.noBrand, name, barcode: code || null, cat: F.cat, sub: F.sub || 'general', state: F.state, unit: F.unit,
-    packs: [...F.packs], usualPack: F.usual, notes: $('fNotes').value.trim(), source: F.source, ...vals, updatedAt: now };
-  const wasEdit = !!F.editingId;
-  if(wasEdit){ const i = foods.findIndex(f => f.id === F.editingId); foods[i] = { ...foods[i], ...rec }; }
-  else foods.push({ id: uid(), createdAt: now, ...rec });
-  if(saveFoods()){ close('ovForm'); if(ui.cat !== 'all' && ui.cat !== F.cat) ui.cat = 'all'; render(); toast(wasEdit ? 'Updated' : `Saved ${iconOf(rec) || ''}`); }
+  const rec = { brand, noBrand: F.noBrand, name, gid: F.gid, barcode: code || null, cat: F.cat, sub: F.sub || 'general', state: F.state, unit: F.unit,
+    packs: [...F.packs], usualPack: F.usual, pieces: F.pieces, piece: F.pieces !== 'none' ? num('fPiece') : null,
+    pieceSkipped: F.pieceSkipped, display: F.display, serving: F.serving,
+    notes: $('fNotes').value.trim(), source: F.source, ...vals, updatedAt: now };
+  const wasEdit = !!F.editingId; let saved;
+  if(wasEdit){ const i = foods.findIndex(f => f.id === F.editingId); foods[i] = saved = { ...foods[i], ...rec }; }
+  else foods.push(saved = { id: uid(), createdAt: now, ...rec });
+  if(!saveFoods()) return;
+  close('ovForm'); if(ui.cat !== 'all' && ui.cat !== F.cat) ui.cat = 'all'; renderAll();
+  if(F.onSaved){ const cb = F.onSaved; F.onSaved = null; cb(saved); return; }
+  if(wasEdit) toast(t('updated'));
+  else if(F.fromScan) toast(t('saved', { i: iconOf(rec) || '' }), t('scanNext'), () => startScan());
+  else toast(t('saved', { i: iconOf(rec) || '' }));
 }
 $('delBtn').addEventListener('click', () => {
   const i = foods.findIndex(x => x.id === F.editingId); if(i === -1) return;
-  const [gone] = foods.splice(i, 1); saveFoods(); close('ovForm'); render();
-  toast(`Deleted ${gone.name}`, 'Undo', () => { foods.splice(i, 0, gone); saveFoods(); render(); });
+  const [gone] = foods.splice(i, 1); saveFoods(); close('ovForm'); renderAll();
+  toast(t('deleted', { n: foodName(gone) }), t('undo'), () => { foods.splice(i, 0, gone); saveFoods(); renderAll(); });
 });
 $('dupBtn').addEventListener('click', () => {
   const f = foods.find(x => x.id === F.editingId); if(!f) return;
   close('ovForm');
   setTimeout(() => { openForm({ ...f, id:null, barcode:null, createdAt:null, updatedAt:null, source:'manual' }, null, 'new');
-    $('formSub').textContent = 'Copy of an existing food: change the flavour or size, then save.'; F.typeTouched = true; F.stateTouched = true; F.unitTouched = true; }, 60);
+    $('formSub').textContent = t('copyOf'); F.typeTouched = F.stateTouched = F.unitTouched = F.piecesTouched = true; }, 60);
 });
 
-// ================= add flow =================
+// ======================= add flow =======================
 let pendingBarcode = null;
-$('addBtn').addEventListener('click', () => { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); });
 $('optManual').addEventListener('click', () => { close('ovAdd'); const code = pendingBarcode; pendingBarcode = null; openForm({ barcode: code }, null, 'new'); });
+$('optScan').addEventListener('click', () => { close('ovAdd'); startScan(); });
+$('scanManual').addEventListener('click', () => { close('ovScan'); openForm({}, null, 'new'); });
+$('scanLabel').addEventListener('click', () => { close('ovScan'); pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); $('optPhoto').click(); });
 
-// ================= barcode scanner =================
-// Uses the phone's built-in detector when it has one (Android Chrome), otherwise ZXing compiled to WebAssembly (iPhone, desktop).
+// ======================= barcode scanner =======================
 const FORMATS = ['ean_13','ean_8','upc_a','upc_e','code_128'];
 let detector = null, detectorP = null, stream = null, scanLoop = null, scanOn = false, torchOn = false;
 function getDetector(){
@@ -753,13 +1326,13 @@ function validGTIN(c){
   return (10 - sum % 10) % 10 === check;
 }
 async function startScan(){
-  close('ovAdd'); open('ovScan'); status($('scanStatus'), 'Starting camera…'); $('manualCode').value = '';
+  open('ovScan'); status($('scanStatus'), t('startingCam')); $('manualCode').value = '';
   $('torchBtn').classList.add('hide'); torchOn = false;
-  if(!navigator.mediaDevices?.getUserMedia){ status($('scanStatus'), 'This browser can’t use the camera here. Use “Scan from a photo” or type the number.', true); return; }
+  if(!navigator.mediaDevices?.getUserMedia){ status($('scanStatus'), t('camFail'), true); return; }
   try{
     const [det, s] = await Promise.all([ getDetector(),
       navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 }, height:{ ideal:1080 } } }) ]);
-    if(!$('ovScan').classList.contains('open')){ s.getTracks().forEach(t => t.stop()); return; }
+    if(!$('ovScan').classList.contains('open')){ s.getTracks().forEach(tr => tr.stop()); return; }
     stream = s; const v = $('video'); v.srcObject = s; await v.play().catch(()=>{});
     const track = s.getVideoTracks()[0], caps = track.getCapabilities ? track.getCapabilities() : {};
     try{ if(caps.focusMode && caps.focusMode.includes('continuous')) await track.applyConstraints({ advanced:[{ focusMode:'continuous' }] }); }catch(e){}
@@ -772,7 +1345,6 @@ async function startScan(){
         if(v.readyState >= 2){
           const res = await det.detect(v);
           const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
-          // need the same code twice in a row, so a half-read barcode never slips through
           if(hit){ if(hit === last){ scanOn = false; navigator.vibrate?.(60); stopScan(); lookup(hit); return; } last = hit; }
         }
       }catch(e){}
@@ -780,38 +1352,30 @@ async function startScan(){
     };
     tick();
   }catch(e){
-    const msg = e && e.name === 'NotAllowedError' ? 'Camera permission was blocked. Allow it in your browser settings, or use a photo / type the number.'
-      : location.protocol !== 'https:' ? 'The camera only works on your https:// GitHub Pages link. Type the number below instead.'
-      : 'Couldn’t start the live scanner. Use “Scan from a photo” or type the number.';
-    status($('scanStatus'), msg, true);
+    status($('scanStatus'), e && e.name === 'NotAllowedError' ? t('camBlocked') : location.protocol !== 'https:' ? t('camHttps') : t('camFail'), true);
   }
 }
-function stopScan(){
-  scanOn = false; clearTimeout(scanLoop);
-  if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
-  const v = $('video'); if(v) v.srcObject = null;
-}
-$('optScan').addEventListener('click', startScan);
+function stopScan(){ scanOn = false; clearTimeout(scanLoop); if(stream){ stream.getTracks().forEach(tr => tr.stop()); stream = null; } const v = $('video'); if(v) v.srcObject = null; }
 $('scanCancel').addEventListener('click', () => close('ovScan'));
 $('torchBtn').addEventListener('click', async () => {
-  const t = stream && stream.getVideoTracks()[0]; if(!t) return;
-  try{ torchOn = !torchOn; await t.applyConstraints({ advanced:[{ torch: torchOn }] }); $('torchBtn').classList.toggle('on', torchOn); }catch(e){ toast('Light not available'); }
+  const tr = stream && stream.getVideoTracks()[0]; if(!tr) return;
+  try{ torchOn = !torchOn; await tr.applyConstraints({ advanced:[{ torch: torchOn }] }); $('torchBtn').classList.toggle('on', torchOn); }catch(e){ toast(t('lightNA')); }
 });
 $('scanPhotoBtn').addEventListener('click', () => { $('barcodePhoto').value = ''; $('barcodePhoto').click(); });
 $('barcodePhoto').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
-  status($('scanStatus'), 'Reading the barcode from the photo…');
+  status($('scanStatus'), t('readingPhoto'));
   try{
     const det = await getDetector(); const bmp = await createImageBitmap(file);
-    const res = await det.detect(bmp); const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
-    if(hit){ stopScan(); lookup(hit); } else status($('scanStatus'), 'No barcode found in that photo. Get closer and keep it sharp, or type the number.', true);
-  }catch(err){ status($('scanStatus'), 'Couldn’t read that photo. Type the number below instead.', true); }
+    const hit = (await det.detect(bmp)).map(r => r.rawValue).find(c => validGTIN(c));
+    if(hit){ stopScan(); lookup(hit); } else status($('scanStatus'), t('noCodeInPhoto'), true);
+  }catch(err){ status($('scanStatus'), t('photoFail'), true); }
 });
 $('lookupBtn').addEventListener('click', () => {
   const c = $('manualCode').value.replace(/\D/g,'');
-  if(!c){ toast('Type the numbers under the barcode first'); $('manualCode').focus(); return; }
-  if(c.length < 8){ toast('Barcodes have 8 or 13 digits, keep going'); return; }
-  if(!validGTIN(c) && !confirm('That number doesn’t look like a valid barcode (a digit may be off). Look it up anyway?')) return;
+  if(!c){ toast(t('typeCodeFirst')); $('manualCode').focus(); return; }
+  if(c.length < 8){ toast(t('codeShort')); return; }
+  if(!validGTIN(c) && !confirm(t('codeInvalid'))) return;
   stopScan(); lookup(c);
 });
 $('manualCode').addEventListener('keydown', e => { if(e.key === 'Enter') $('lookupBtn').click(); });
@@ -825,64 +1389,69 @@ function parseQty(p){
   }
   return (u === 'g' || u === 'ml') ? { size: Math.round(n), unit: u } : null;
 }
+const OFF_FIELDS = 'code,product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity,quantity,product_quantity,product_quantity_unit,categories_tags';
+function offToFood(p, code){
+  const n = p.nutriments || {};
+  const g = k => { const v = n[k + '_100g']; return (v === undefined || v === '' || v === null) ? null : r1(Number(v)); };
+  let kcal = g('energy-kcal'); if(kcal === null && n['energy_100g'] != null) kcal = Math.round(Number(n['energy_100g']) / 4.184);
+  const q = parseQty(p);
+  return {
+    barcode: code || p.code || null, brand: (p.brands || '').split(',')[0].trim(),
+    name: (lang === 'el' ? p.product_name_el : p.product_name_en) || p.product_name || p.product_name_el || p.product_name_en || p.generic_name || '',
+    hint: (p.categories_tags || []).slice(-3).map(x => x.replace(/^\w\w:/,'').replace(/-/g,' ')).join(' '),
+    kcal, protein: g('proteins'), carbs: g('carbohydrates'), fat: g('fat'),
+    fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'),
+    serving: p.serving_quantity ? Number(p.serving_quantity) : null,
+    unit: q ? q.unit : undefined, unitFromLabel: !!q, packs: q ? [q.size] : [], usualPack: q ? q.size : null, source: 'openfoodfacts'
+  };
+}
 async function lookup(code){
-  open('ovScan'); status($('scanStatus'), `Looking up ${code}…`);
+  open('ovScan'); status($('scanStatus'), t('lookingUp', { c: code }));
   const existing = foods.find(f => f.barcode === code);
-  if(existing){ close('ovScan'); toast('Already in your database'); openForm(existing, null, 'edit'); return; }
+  if(existing){ close('ovScan'); toast(t('alreadyHave')); openForm(existing, null, 'edit'); return; }
   try{
-    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity,quantity,product_quantity,product_quantity_unit,categories_tags`);
+    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${OFF_FIELDS}`);
     const j = await r.json();
-    if(j.status !== 1 || !j.product) return notFound(code, 'not in Open Food Facts');
-    const p = j.product, n = p.nutriments || {};
-    const g = k => { const v = n[k + '_100g']; return (v === undefined || v === '' || v === null) ? null : r1(Number(v)); };
-    let kcal = g('energy-kcal'); if(kcal === null && n['energy_100g'] != null) kcal = Math.round(Number(n['energy_100g']) / 4.184);
-    const q = parseQty(p);
-    const data = {
-      barcode: code, brand: (p.brands || '').split(',')[0].trim(),
-      name: p.product_name_el || p.product_name || p.product_name_en || p.generic_name || '',
-      hint: (p.categories_tags || []).slice(-3).map(t => t.replace(/^\w\w:/,'').replace(/-/g,' ')).join(' '),
-      kcal, protein: g('proteins'), carbs: g('carbohydrates'), fat: g('fat'),
-      fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'),
-      serving: p.serving_quantity ? Number(p.serving_quantity) : null,
-      unit: q ? q.unit : undefined, unitFromLabel: !!q, packs: q ? [q.size] : [], usualPack: q ? q.size : null,
-      source: 'openfoodfacts'
-    };
-    if(data.protein === null && data.carbs === null && data.fat === null) return notFound(code, 'found, but with no macros');
-    close('ovScan'); openForm(data, 'Open Food Facts', 'new');
-  }catch(e){ notFound(code, 'lookup failed (no internet?)'); }
+    if(j.status !== 1 || !j.product) return notFound(code, t('notInOFF'));
+    const data = offToFood(j.product, code);
+    if(data.protein === null && data.carbs === null && data.fat === null) return notFound(code, t('noMacros'));
+    close('ovScan'); openForm(data, 'Open Food Facts', 'new', { fromScan: true });
+  }catch(e){ notFound(code, t('lookupFail')); }
 }
 function notFound(code, why){
   close('ovScan'); open('ovAdd'); pendingBarcode = code;
-  status($('addStatus'), `Barcode ${code}: ${why}. Snap the nutrition label or type it in, and the barcode will be saved with it.`, true);
+  status($('addStatus'), t('notFoundMsg', { c: code, why }), true);
 }
 
-// ================= label photo → Gemini =================
+// ======================= Gemini (label photos + recipes) =======================
+async function gemini(prompt, imageB64){
+  const parts = [{ text: prompt }]; if(imageB64) parts.push({ inline_data:{ mime_type:'image/jpeg', data:imageB64 } });
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(settings.model || DEFAULT_MODEL)}:generateContent`, {
+    method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
+    body: JSON.stringify({ contents:[{ parts }], generationConfig:{ responseMimeType:'application/json', temperature: imageB64 ? 0 : 0.6 } })
+  });
+  const j = await r.json();
+  if(!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
+  const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  return JSON.parse(txt.replace(/^```(json)?|```$/g,'').trim());
+}
 $('optPhoto').addEventListener('click', () => {
-  if(!settings.geminiKey){ status($('addStatus'), 'Add your free Gemini key in Settings (⚙︎) first, or type the label in.', true); return; }
+  if(!settings.geminiKey){ status($('addStatus'), t('needKey'), true); return; }
   $('photoInput').value = ''; $('photoInput').click();
 });
 $('photoInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
-  status($('addStatus'), 'Reading the label…');
+  status($('addStatus'), t('readingLabel'));
   try{
-    const b64 = await shrink(file);
-    const prompt = `You read food nutrition labels (often Greek). Return ONLY JSON:
+    const d = await gemini(`You read food nutrition labels (often Greek). Return ONLY JSON:
 {"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
-Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(settings.model || DEFAULT_MODEL)}:generateContent`, {
-      method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
-      body: JSON.stringify({ contents:[{ parts:[{ text: prompt }, { inline_data:{ mime_type:'image/jpeg', data:b64 } }] }], generationConfig:{ responseMimeType:'application/json', temperature:0 } })
-    });
-    const j = await r.json();
-    if(!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
-    const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-    const d = JSON.parse(txt.replace(/^```(json)?|```$/g,'').trim());
+Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, await shrink(file));
     if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; }
     if(d.unit === 'g' || d.unit === 'ml') d.unitFromLabel = true; else delete d.unit;
     if(pendingBarcode) d.barcode = pendingBarcode;
     d.source = 'label photo'; pendingBarcode = null;
-    close('ovAdd'); openForm(d, 'the label photo', 'new');
-  }catch(err){ status($('addStatus'), `Couldn’t read it: ${err.message}. Try a sharper, straight-on photo, or type it in.`, true); }
+    close('ovAdd'); openForm(d, t('theLabelPhoto'), 'new');
+  }catch(err){ status($('addStatus'), t('labelFail', { e: err.message }), true); }
 });
 function shrink(file){
   return new Promise((res, rej) => {
@@ -890,61 +1459,326 @@ function shrink(file){
     img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas');
       c.width = Math.round(img.width*s); c.height = Math.round(img.height*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85).split(',')[1]); };
-    img.onerror = () => rej(new Error('could not open the photo')); img.src = url;
+    img.onerror = () => rej(new Error('photo')); img.src = url;
   });
 }
 
-// ================= settings + data =================
-$('openSettings').addEventListener('click', () => { $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; open('ovSettings'); });
-$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(store(SKEY, settings)) toast('Settings saved'); });
+// ======================= ingredient search =======================
+// Order: your own foods → the standard list (works in Greek and English) → Open Food Facts online
+function scoreHay(hay, name, tokens, q){
+  if(!tokens.every(tk => hay.includes(tk))) return 0;
+  const n = norm(name); let s = 10;
+  if(n.startsWith(q)) s += 6; else if(n.includes(q)) s += 3;
+  if(tokens.every(tk => n.includes(tk))) s += 4;
+  return s - Math.min(n.length, 60) / 30;
+}
+function searchLocal(text){
+  const q = norm(text), tokens = q.split(' ').filter(Boolean);
+  if(!tokens.length) return { mine: [], std: [] };
+  const mine = foods.map(f => ({ f, s: scoreHay(foodHay(f), foodName(f), tokens, q) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.f);
+  const have = new Set(foods.map(f => f.gid).filter(Boolean));
+  const std = GEN.filter(g => !have.has(g.gid)).map(g => ({ g, s: scoreHay(g.hay, L(g), tokens, q) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.g);
+  return { mine, std };
+}
+async function searchOnline(text){
+  const base = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1&page_size=15&fields=${OFF_FIELDS}`;
+  let j = await (await fetch(base + '&countries_tags_en=greece')).json();
+  if(!j.products || !j.products.length) j = await (await fetch(base)).json();
+  return (j.products || []).map(p => offToFood(p, p.code)).filter(d => d.protein !== null && d.carbs !== null && d.fat !== null && d.name).slice(0, 10);
+}
+let ING = { cb:null, online:[], onlineQ:'', timer:null };
+function openIngSearch(prefill, cb){
+  ING = { cb, online:[], onlineQ:'', timer:null };
+  $('iSearch').value = prefill || ''; status($('iStatus'), ''); $('iSaveMy').checked = true;
+  drawIngResults(); open('ovIng'); setTimeout(() => $('iSearch').focus(), 120);
+}
+function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="e">${icon}</span><span class="t"><b>${esc(title)}</b><small>${subline}</small></span></button>`; }
+const macroLine = f => `${Math.round(f.kcal ?? 0)} kcal · P ${fmt(f.protein)} · C ${fmt(f.carbs)} · F ${fmt(f.fat)} / 100 ${f.unit || 'g'}`;
+let lastLocal = { mine:[], std:[] };
+function drawIngResults(){
+  const text = $('iSearch').value.trim();
+  if(!text){ $('iResults').innerHTML = `<div class="hint">${t('typeToSearch')}</div>`; $('iSaveWrap').classList.add('hide'); return; }
+  lastLocal = searchLocal(text);
+  let h = '';
+  if(lastLocal.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + lastLocal.mine.map((f,i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand ? '' : esc(f.brand) + ' · '}${macroLine(f)}`)).join('');
+  if(lastLocal.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + lastLocal.std.map((g,i) => itemHtml('s', i, subOf(g.cat,g.sub).icon, L(g), `${macroLine(g)} · ${t('stdValues')}`)).join('');
+  if(ING.online.length && ING.onlineQ === text) h += `<div class="sgroup">${t('grpOnline')}</div>` + ING.online.map((d,i) => itemHtml('o', i, (guessType(d.name + ' ' + d.hint) ? subOf(guessType(d.name + ' ' + d.hint).cat, guessType(d.name + ' ' + d.hint).sub).icon : '🌐'), d.name, `${esc(d.brand || '')}${d.brand ? ' · ' : ''}${macroLine(d)}`)).join('');
+  else h += `<button class="btn" id="iOnline" style="width:100%;margin-top:12px">${t('searchOnline', { q: esc(text) })}</button>`;
+  $('iResults').innerHTML = h;
+  $('iSaveWrap').classList.toggle('hide', !(lastLocal.std.length || ING.online.length));
+}
+$('iSearch').addEventListener('input', () => {
+  status($('iStatus'), ''); drawIngResults();
+  clearTimeout(ING.timer);
+  const text = $('iSearch').value.trim();
+  const local = searchLocal(text);
+  if(text.length >= 3 && local.mine.length + local.std.length < 2) ING.timer = setTimeout(() => runOnline(text), 700);
+});
+async function runOnline(text){
+  status($('iStatus'), t('searching'));
+  try{ const res = await searchOnline(text); if($('iSearch').value.trim() !== text) return;
+    ING.online = res; ING.onlineQ = text; status($('iStatus'), res.length ? '' : t('onlineNone'), !res.length); drawIngResults(); }
+  catch(e){ status($('iStatus'), t('onlineFail'), true); }
+}
+$('iResults').addEventListener('click', e => {
+  if(e.target.closest('#iOnline')){ runOnline($('iSearch').value.trim()); return; }
+  const b = e.target.closest('.sitem'); if(!b) return;
+  const i = Number(b.dataset.i), k = b.dataset.k, saveIt = $('iSaveMy').checked;
+  if(k === 'm') return pickIng(foods_ref(lastLocal.mine[i]));
+  if(k === 's'){ const g = lastLocal.std[i]; return pickIng(saveIt ? foods_ref(saveGeneric(g)) : gen_ref(g)); }
+  if(k === 'o'){
+    const d = ING.online[i];
+    if(saveIt){ close('ovIng'); openForm(d, 'Open Food Facts', 'new', { onSaved: f => { ING.cb && ING.cb(foods_ref(f)); } }); return; }
+    return pickIng(off_ref(d));
+  }
+});
+function pickIng(ref){ close('ovIng'); ING.cb && ING.cb(ref); }
+const foods_ref = f => ({ type:'my', id:f.id, name:foodName(f), unit:f.unit, icon:iconOf(f), per:{ kcal:f.kcal, protein:f.protein, carbs:f.carbs, fat:f.fat } });
+const gen_ref = g => ({ type:'gen', id:g.gid, name:L(g), unit:g.unit, icon:subOf(g.cat,g.sub).icon, per:{ kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat } });
+const off_ref = d => ({ type:'off', id:d.barcode, name:d.name, unit:d.unit || 'g', icon:'🌐', per:{ kcal:d.kcal ?? Math.round(d.protein*4 + d.carbs*4 + d.fat*9), protein:d.protein, carbs:d.carbs, fat:d.fat } });
+function saveGeneric(g){
+  const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
+  const now = new Date().toISOString();
+  const f = migrate({ id: uid(), gid: g.gid, name: L(g), brand:'', noBrand:true, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
+    kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, pieces:g.pieces, piece:g.piece, pieceSkipped: !g.piece && g.pieces !== 'none',
+    source:'standard', createdAt: now, updatedAt: now });
+  foods.push(f); saveFoods(); renderAll(); return f;
+}
+
+// ======================= cook a meal =======================
+let D = null;   // the meal being cooked
+function openCook(meal, mode){
+  D = { id: mode === 'edit' ? meal.id : (mode === 'again' ? meal.id : null), mode, recipe: meal && meal.recipe ? meal.recipe : null,
+        rows: meal ? meal.ingredients.map(r => ({ ...r, key: uid(), grams: mode === 'again' ? r.grams : r.grams })) : [], timesCooked: meal ? (meal.timesCooked || 1) : 0 };
+  $('cookTitle').textContent = mode === 'edit' ? t('editMeal') : mode === 'again' ? t('cookAgainT') : t('cookMeal');
+  $('cName').value = meal ? meal.name : '';
+  $('cPotFull').value = ''; $('cPotEmpty').value = ''; $('cCooked').value = mode === 'edit' && meal && !meal.cookedEstimated ? meal.cookedWeight : '';
+  $('cDelete').classList.toggle('hide', mode !== 'edit');
+  if(!D.rows.length) D.rows.push(newRow());
+  drawRecipeBox(); drawRows(); open('ovCook');
+  if(!meal) setTimeout(() => $('cName').focus(), 150);
+}
+const newRow = () => ({ key: uid(), ref: null, grams: null, wanted: '' });
+function drawRecipeBox(){
+  $('suggestHint').textContent = t('suggestHint');
+  $('recipeBox').classList.toggle('hide', !!D.recipe);
+  $('recipeShow').classList.toggle('hide', !D.recipe);
+  if(D.recipe) $('recipeShow').innerHTML = recipeHtml(D.recipe, true) + `<button class="linkbtn" id="dropRecipe">✕ ${t('noThanks')}</button>`;
+}
+$('recipeShow').addEventListener('click', e => { if(e.target.closest('#dropRecipe')){ D.recipe = null; drawRecipeBox(); } });
+function recipeHtml(r, compact){
+  return `<div class="recipe"><b>📖 ${esc(r.title || t('recipeT'))}</b>
+    <div class="rmeta">${[r.servings ? t('serves', { n: r.servings }) : '', r.minutes ? t('minutes', { n: r.minutes }) : ''].filter(Boolean).join(' · ')}</div>
+    ${compact ? '' : `<ul>${(r.ingredients || []).map(i => `<li>${esc(i.name)} — ${r1(i.grams)} g${i.note ? ` (${esc(i.note)})` : ''}</li>`).join('')}</ul>`}
+    <div class="sgroup">${t('steps')}</div><ol>${(r.steps || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`;
+}
+function drawRows(){
+  $('iRows').innerHTML = D.rows.map(r => `<div class="irow" data-key="${r.key}">
+      <button class="ipick ${r.ref ? '' : 'unset'}" data-pick>${r.ref ? `<span style="font-size:20px">${r.ref.icon || '🍽️'}</span><span>${esc(r.ref.name)}</span>` : `<span>${esc(r.wanted || t('chooseFood'))}</span>`}</button>
+      <div class="igr"><input type="number" inputmode="decimal" step="any" min="0" value="${r.grams ?? ''}" data-g placeholder="0"><i>${r.ref && r.ref.unit === 'ml' ? 'ml' : 'g'}</i></div>
+      <button class="irm" data-rm aria-label="Remove">✕</button></div>`).join('');
+  calcMeal();
+}
+$('iRows').addEventListener('click', e => {
+  const row = e.target.closest('.irow'); if(!row) return;
+  const r = D.rows.find(x => x.key === row.dataset.key);
+  if(e.target.closest('[data-rm]')){ D.rows = D.rows.filter(x => x !== r); if(!D.rows.length) D.rows.push(newRow()); drawRows(); return; }
+  if(e.target.closest('[data-pick]')) openIngSearch(r.wanted || '', ref => { r.ref = ref; drawRows(); const inp = document.querySelector(`.irow[data-key="${r.key}"] [data-g]`); if(inp && !r.grams) inp.focus(); });
+});
+$('iRows').addEventListener('input', e => {
+  if(!e.target.matches('[data-g]')) return;
+  const r = D.rows.find(x => x.key === e.target.closest('.irow').dataset.key);
+  const v = e.target.value.trim().replace(',', '.'); r.grams = v === '' ? null : Number(v); calcMeal();
+});
+$('addIng').addEventListener('click', () => {
+  const r = newRow(); D.rows.push(r); drawRows();
+  openIngSearch('', ref => { r.ref = ref; drawRows(); const inp = document.querySelector(`.irow[data-key="${r.key}"] [data-g]`); if(inp) inp.focus(); });
+});
+['cPotFull','cPotEmpty','cCooked'].forEach(id => $(id).addEventListener('input', () => { if(id !== 'cCooked'){ const w = num('cPotFull') - (num('cPotEmpty') || 0); if(num('cPotFull') && num('cPotEmpty') !== null) $('cCooked').value = w > 0 ? r1(w) : ''; } calcMeal(); }));
+function mealTotals(rows){
+  const tot = { kcal:0, protein:0, carbs:0, fat:0, raw:0 };
+  rows.forEach(r => { if(!r.ref || !(r.grams > 0)) return; const m = r.grams / 100;
+    tot.kcal += (r.ref.per.kcal || 0) * m; tot.protein += (r.ref.per.protein || 0) * m; tot.carbs += (r.ref.per.carbs || 0) * m; tot.fat += (r.ref.per.fat || 0) * m; tot.raw += r.grams; });
+  return tot;
+}
+function calcMeal(){
+  const tot = mealTotals(D.rows);
+  $('cTotals').innerHTML = `<span>${t('rawTotal')}: <b>${fmtSize(tot.raw, 'g')}</b></span><span><b>${Math.round(tot.kcal)}</b> kcal · P ${Math.round(tot.protein)} · C ${Math.round(tot.carbs)} · F ${Math.round(tot.fat)}</span>`;
+  const w = num('cCooked'), el = $('cResult');
+  if(!tot.raw){ el.innerHTML = ''; el.classList.remove('show'); return; }
+  el.classList.add('show');
+  const base = w > 0 ? w : tot.raw, m = 100 / base;
+  el.innerHTML = (w > 0 ? t('foodWeight', { s: fmtSize(w, 'g') }) + '<br>' : `<span style="color:var(--c)">${t('noWeightYet', { s: fmtSize(tot.raw, 'g') })}</span><br>`) +
+    t('resultPer100', { k: Math.round(tot.kcal*m), p: r1(tot.protein*m), c: r1(tot.carbs*m), f: r1(tot.fat*m) });
+}
+$('cSave').addEventListener('click', () => {
+  const name = $('cName').value.trim();
+  if(!name){ toast(t('needMealName')); $('cName').focus(); return; }
+  const rows = D.rows.filter(r => r.ref || r.grams);
+  if(!rows.length){ toast(t('needIng')); return; }
+  if(rows.some(r => !r.ref)){ toast(t('unsetIng')); return; }
+  if(rows.some(r => !(r.grams > 0))){ toast(t('needGrams')); return; }
+  if(num('cPotFull') && num('cPotEmpty') !== null && num('cPotFull') <= num('cPotEmpty')){ toast(t('potNegative')); return; }
+  const tot = mealTotals(rows), w = num('cCooked');
+  if(!(w > 0) && !confirm(t('noWeightConfirm'))) return;
+  const cooked = w > 0 ? w : tot.raw, m = 100 / cooked, now = new Date().toISOString();
+  const rec = { name, ingredients: rows.map(({ key, wanted, ...r }) => r), rawWeight: tot.raw, cookedWeight: cooked, cookedEstimated: !(w > 0),
+    kcal: Math.round(tot.kcal*m), protein: r1(tot.protein*m), carbs: r1(tot.carbs*m), fat: r1(tot.fat*m),
+    total: { kcal: Math.round(tot.kcal), protein: r1(tot.protein), carbs: r1(tot.carbs), fat: r1(tot.fat) },
+    recipe: D.recipe, updatedAt: now };
+  if(D.id){ const i = meals.findIndex(x => x.id === D.id);
+    meals[i] = { ...meals[i], ...rec, cookedAt: D.mode === 'again' ? now : meals[i].cookedAt, timesCooked: D.mode === 'again' ? (meals[i].timesCooked || 1) + 1 : (meals[i].timesCooked || 1) }; }
+  else meals.push({ id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, ...rec });
+  if(!saveMeals()) return;
+  close('ovCook'); go('meals'); toast(t('mealSaved', { n: name }));
+});
+$('cDelete').addEventListener('click', () => {
+  const i = meals.findIndex(x => x.id === D.id); if(i === -1) return;
+  if(!confirm(t('deleteMeal', { n: meals[i].name }))) return;
+  const [gone] = meals.splice(i, 1); saveMeals(); close('ovCook'); renderAll();
+  toast(t('deleted', { n: gone.name }), t('undo'), () => { meals.splice(i, 0, gone); saveMeals(); renderAll(); });
+});
+
+// ---- recipe suggestion ----
+let pendingRecipe = null;
+$('suggestBtn').addEventListener('click', async () => {
+  const name = $('cName').value.trim();
+  if(!name){ toast(t('suggestNeedName')); $('cName').focus(); return; }
+  if(!settings.geminiKey){ $('suggestHint').textContent = t('needKey'); $('suggestHint').classList.add('warn'); return; }
+  $('suggestHint').classList.remove('warn');
+  const btn = $('suggestBtn'); btn.disabled = true; btn.textContent = t('thinking');
+  try{
+    const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
+    const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros.
+Dish: "${name}". Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
+Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
+Rules: amounts in grams for the whole batch (liquids: 1 ml = 1 g), weighed raw as they go in (dry pasta and rice, raw meat). Include cooking oil explicitly. 3–10 ingredients, 4–10 short clear steps. name_en is a plain generic English food name (e.g. "chicken breast", "olive oil", "onion", "beef mince").
+Foods the user already has (prefer them when they fit): ${have || 'none listed'}`);
+    if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
+    pendingRecipe = r;
+    $('rBody').innerHTML = recipeHtml(r, false);
+    open('ovRecipe');
+  }catch(err){ $('suggestHint').textContent = t('recipeFail', { e: err.message }); $('suggestHint').classList.add('warn'); }
+  finally{ btn.disabled = false; btn.textContent = t('suggestRecipe'); }
+});
+$('rNo').addEventListener('click', () => { pendingRecipe = null; close('ovRecipe'); });
+$('rYes').addEventListener('click', () => {
+  const r = pendingRecipe; if(!r) return;
+  D.recipe = { title: r.title, servings: r.servings, minutes: r.minutes, steps: r.steps, ingredients: (r.ingredients || []).map(i => ({ name: i.name, grams: i.grams, note: i.note || null })) };
+  // fill the ingredient rows: match each one to your foods first, then the standard list
+  D.rows = D.rows.filter(x => x.ref || x.grams);
+  (r.ingredients || []).forEach(i => {
+    let ref = null;
+    for(const q of [i.name, i.name_en]){ if(!q) continue; const s = searchLocal(q); if(s.mine.length){ ref = foods_ref(s.mine[0]); break; } if(s.std.length){ ref = gen_ref(s.std[0]); break; } }
+    D.rows.push({ key: uid(), ref, grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, wanted: i.name });
+  });
+  if(!D.rows.length) D.rows.push(newRow());
+  pendingRecipe = null; close('ovRecipe'); drawRecipeBox(); drawRows();
+});
+
+// ======================= meals list + detail =======================
+function mealIcon(m){ const g = guessType(m.name); return g ? subOf(g.cat, g.sub).icon : '🍲'; }
+function renderMeals(){
+  const q = norm($('mSearch').value), tokens = q.split(' ').filter(Boolean);
+  const items = meals.filter(m => !tokens.length || tokens.every(tk => norm(m.name + ' ' + m.ingredients.map(i => i.name).join(' ')).includes(tk)))
+    .sort((a,b) => (b.cookedAt||'').localeCompare(a.cookedAt||''));
+  $('mCount').textContent = meals.length ? (items.length === 1 ? t('nMeal') : t('nMeals', { n: items.length })) : '';
+  if(!meals.length){ $('mList').innerHTML = `<div class="empty">${t('noMeals')}</div>`; return; }
+  if(!items.length){ $('mList').innerHTML = `<div class="empty">${t('nothingMatches', { q: esc($('mSearch').value) })}</div>`; return; }
+  $('mList').innerHTML = items.map(m => `<div class="card" data-mid="${m.id}">
+      <div class="ficon">${mealIcon(m)}</div>
+      <div class="body">
+        <div class="row"><div class="brand">${fmtDate(m.cookedAt)}${m.timesCooked > 1 ? ' · ' + t('timesCooked', { n: m.timesCooked }) : ''}</div><div class="kcal">${m.kcal} <small>kcal</small></div></div>
+        <div class="name">${esc(m.name)}</div>
+        <div class="row" style="margin-top:2px">
+          <div class="macros"><span class="m p">P <b>${fmt(m.protein)}</b></span><span class="m c">C <b>${fmt(m.carbs)}</b></span><span class="m f">F <b>${fmt(m.fat)}</b></span></div>
+          <span class="chip ${m.recipe ? 'ok' : ''}">${m.recipe ? t('recipeBadge') + ' · ' : ''}${m.cookedEstimated ? '≈ ' : ''}${t('per100cooked')}</span>
+        </div>
+      </div></div>`).join('');
+}
+$('mSearch').addEventListener('input', renderMeals);
+$('mList').addEventListener('click', e => { const c = e.target.closest('[data-mid]'); if(c) openMeal(c.dataset.mid); });
+let openMealId = null;
+function openMeal(id){
+  const m = meals.find(x => x.id === id); if(!m) return; openMealId = id;
+  $('mdName').textContent = `${mealIcon(m)} ${m.name}`;
+  $('mdWhen').textContent = m.cookedEstimated ? t('estimated') : t('per100cooked');
+  $('mdMeta').textContent = t('mealMeta', { d: fmtDate(m.cookedAt), s: fmtSize(m.cookedWeight, 'g') }) + (m.timesCooked > 1 ? ' · ' + t('timesCooked', { n: m.timesCooked }) : '');
+  $('mdStats').innerHTML = `<div><b>${m.kcal}</b><small>kcal</small></div><div><b style="color:var(--p)">${fmt(m.protein)}</b><small>${t('protein')}</small></div><div><b style="color:var(--c)">${fmt(m.carbs)}</b><small>${t('carbs')}</small></div><div><b style="color:var(--f)">${fmt(m.fat)}</b><small>${t('fat')}</small></div>`;
+  $('mdPlate').value = ''; $('mdPlateRes').classList.remove('show');
+  $('mdIngs').innerHTML = `<ul style="color:var(--text)">${m.ingredients.map(i => `<li>${i.ref.icon || ''} ${esc(i.ref.name)} — ${fmtSize(i.grams, i.ref.unit)}</li>`).join('')}</ul>`;
+  $('mdRecipe').innerHTML = m.recipe ? `<h3>${t('recipeT')}</h3>` + recipeHtml(m.recipe, true) : `<p class="hint">${t('noRecipe')}</p>`;
+  open('ovMeal');
+}
+$('mdPlate').addEventListener('input', () => {
+  const m = meals.find(x => x.id === openMealId), g = num('mdPlate'), el = $('mdPlateRes');
+  if(!m || !(g > 0)){ el.classList.remove('show'); return; }
+  const x = g / 100; el.innerHTML = `${fmtSize(g, 'g')}: <b>${Math.round(m.kcal*x)} kcal</b> · P ${r1(m.protein*x)} · C ${r1(m.carbs*x)} · F ${r1(m.fat*x)}`; el.classList.add('show');
+});
+$('mdCookAgain').addEventListener('click', () => { const m = meals.find(x => x.id === openMealId); close('ovMeal'); if(m) setTimeout(() => openCook(m, 'again'), 60); });
+$('mdEdit').addEventListener('click', () => { const m = meals.find(x => x.id === openMealId); close('ovMeal'); if(m) setTimeout(() => openCook(m, 'edit'), 60); });
+
+// ======================= settings + data =======================
+function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; setSeg('#sLang', lang); open('ovSettings'); }
+$('getKey').addEventListener('click', () => window.open(KEY_URL, '_blank', 'noopener'));
+$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(store(SKEY, settings)) toast(t('settingsSaved')); });
+function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
+document.querySelectorAll('#sLang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.v)));
+document.querySelectorAll('#ovLang [data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang); close('ovLang'); }));
+
 function claudeText(){
+  const out = [`My Tracker data. Store-bought foods: ${foods.length}. Home-cooked meals: ${meals.length}. Macros are per 100 g or 100 ml as marked; [uncooked] = raw/dry weight, [cooked] = cooked weight. Exported ${new Date().toLocaleDateString('en-GB')}.`];
   const byCat = {};
-  foods.forEach(f => { const k = f.cat ? typeLabel(f.cat,'general') : 'No type'; (byCat[k] = byCat[k] || []).push(f); });
-  const out = [`My food database (${foods.length} foods). Macros are per 100 g or 100 ml as marked; [uncooked] = raw/dry weight, [cooked] = cooked weight. Exported ${new Date().toLocaleDateString('en-GB')}.`];
+  foods.forEach(f => { const k = f.cat ? CAT[f.cat].en : 'No type'; (byCat[k] = byCat[k] || []).push(f); });
   for(const [cat, list] of Object.entries(byCat).sort()){
     out.push(`\n${cat}:`);
     list.sort((a,b) => norm(a.name).localeCompare(norm(b.name))).forEach(f => out.push(
-      `- ${f.noBrand ? '' : (f.brand ? f.brand + ' ' : '')}${f.name}${f.sub && f.sub !== 'general' ? ` (${subOf(f.cat,f.sub).label.toLowerCase()})` : ''} [${STATE_LABEL[f.state]||f.state}], per 100 ${f.unit}: ${fmt(f.kcal)} kcal, P ${fmt(f.protein)} / C ${fmt(f.carbs)} / F ${fmt(f.fat)}` +
+      `- ${f.noBrand ? '' : (f.brand ? f.brand + ' ' : '')}${f.gid && GENBY[f.gid] ? GENBY[f.gid].en : f.name}${f.sub && f.sub !== 'general' ? ` (${subOf(f.cat,f.sub).en.toLowerCase()})` : ''} [${f.state === 'ready' ? 'ready to eat' : f.state}], per 100 ${f.unit}: ${fmt(f.kcal)} kcal, P ${fmt(f.protein)} / C ${fmt(f.carbs)} / F ${fmt(f.fat)}` +
       (f.fiber!=null?`, fibre ${fmt(f.fiber)}`:'') + (f.sugar!=null?`, sugar ${fmt(f.sugar)}`:'') +
       (f.packs.length ? `; packs ${f.packs.map(p => fmtSize(p, f.unit)).join(', ')}${f.usualPack ? ` (usually ${fmtSize(f.usualPack, f.unit)})` : ''}` : '') +
-      (f.serving ? `; serving ${fmtSize(f.serving, f.unit)}` : '') + (f.notes ? ` — ${f.notes}` : '')));
+      (f.pieces !== 'none' && (f.piece || f.serving) ? `; 1 ${f.pieces} = ${f.piece ? '' : '~'}${fmtSize(r1(f.piece || f.serving), f.unit)}${f.piece ? ' (weighed)' : ' (database estimate)'}` : '') +
+      (f.notes ? ` — ${f.notes}` : '')));
+  }
+  if(meals.length){
+    out.push('\nHome-cooked meals (per 100 g cooked):');
+    meals.forEach(m => out.push(`- ${m.name}: ${m.kcal} kcal, P ${fmt(m.protein)} / C ${fmt(m.carbs)} / F ${fmt(m.fat)}; batch ${fmtSize(m.cookedWeight,'g')}${m.cookedEstimated ? ' (not weighed, raw total used)' : ''}; ingredients: ${m.ingredients.map(i => `${i.ref.name} ${fmtSize(i.grams, i.ref.unit)}`).join(', ')}${m.recipe ? '; has recipe' : ''}`));
   }
   return out.join('\n');
 }
 $('copyClaude').addEventListener('click', async () => {
-  if(!foods.length){ toast('Nothing to copy yet'); return; }
-  const t = claudeText();
-  try{ await navigator.clipboard.writeText(t); toast('Copied, paste it to Claude'); }
-  catch(e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copied'); }
+  if(!foods.length && !meals.length){ toast(t('nothingCopy')); return; }
+  const txt = claudeText();
+  try{ await navigator.clipboard.writeText(txt); toast(t('copied')); }
+  catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(t('copied')); }
 });
 $('exportJson').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ app:'food-tracker', version:VERSION, exportedAt:new Date().toISOString(), foods }, null, 2)], { type:'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `food-tracker-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  const blob = new Blob([JSON.stringify({ app:'tracker', version:VERSION, exportedAt:new Date().toISOString(), foods, meals }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `tracker-${new Date().toISOString().slice(0,10)}.json`; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 $('importBtn').addEventListener('click', () => { $('importInput').value=''; $('importInput').click(); });
 $('importInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
   try{
-    const data = JSON.parse(await file.text()); const incoming = Array.isArray(data) ? data : data.foods;
-    if(!Array.isArray(incoming)) throw new Error();
+    const data = JSON.parse(await file.text());
+    const inFoods = Array.isArray(data) ? data : data.foods, inMeals = Array.isArray(data.meals) ? data.meals : [];
+    if(!Array.isArray(inFoods)) throw new Error();
     let added = 0, updated = 0;
-    for(const raw of incoming){
-      if(!raw || !raw.name) continue; const f = migrate(raw);
-      const i = foods.findIndex(x => x.id === f.id);
-      if(i === -1){ foods.push({ ...f, id: f.id || uid() }); added++; }
-      else if((f.updatedAt||'') > (foods[i].updatedAt||'')){ foods[i] = f; updated++; }
-    }
-    saveFoods(); render(); toast(`Imported: ${added} new, ${updated} updated`);
-  }catch(err){ toast('That file isn’t a Food Tracker backup'); }
+    const merge = (arr, incoming, fix) => { for(const raw of incoming){ if(!raw || !raw.name) continue; const f = fix(raw);
+      const i = arr.findIndex(x => x.id === f.id);
+      if(i === -1){ arr.push({ ...f, id: f.id || uid() }); added++; } else if((f.updatedAt||'') > (arr[i].updatedAt||'')){ arr[i] = f; updated++; } } };
+    merge(foods, inFoods, migrate); merge(meals, inMeals, m => m);
+    saveFoods(); saveMeals(); renderAll(); toast(t('imported', { a: added, u: updated }));
+  }catch(err){ toast(t('badBackup')); }
 });
 
-// ================= go =================
-render();
+// ======================= go =======================
+applyLang();
+route();
+if(!ui.lang) open('ovLang');
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
-// warm up the scanner engine in the background so the first scan opens fast
 if(location.protocol === 'https:') setTimeout(() => getDetector().catch(()=>{}), 2500);
-window.__ft = { guessType, guessState, validGTIN, parseQty, claudeText };
+window.__ft = { guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN };
 })();
 </script>
 </body>
