@@ -12,84 +12,107 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root{
   --bg:#0f1113; --panel:#171a1d; --panel2:#1f2327; --line:#2a2f34;
   --text:#eef1f3; --muted:#8b949c; --accent:#c6f432; --accent-ink:#0f1113;
-  --p:#5ab0ff; --c:#ffb547; --f:#ff6b8b; --danger:#ff5c5c;
-  --r:14px;
+  --p:#5ab0ff; --c:#ffb547; --f:#ff6b8b; --danger:#ff5c5c; --r:14px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);
   font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-body{padding:env(safe-area-inset-top) 0 calc(90px + env(safe-area-inset-bottom))}
+body{padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
+button{font-family:inherit}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px}
 header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 8px}
-h1{font-size:22px;margin:0;letter-spacing:-.3px}
-h1 span{color:var(--accent)}
-.iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;
-  width:42px;height:42px;font-size:19px;cursor:pointer}
-.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
-  background:var(--panel);color:var(--text);font-size:16px;margin:8px 0 6px}
-.count{color:var(--muted);font-size:13px;margin:4px 2px 10px}
+h1{font-size:22px;margin:0;letter-spacing:-.3px} h1 span{color:var(--accent)}
+.iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;width:42px;height:42px;font-size:19px;cursor:pointer}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;margin:8px 0 10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.fchip{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
+.fchip.on{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:600}
+.bar{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin:10px 2px}
+.linkbtn{background:none;border:0;color:var(--muted);font-size:13px;cursor:pointer;padding:4px}
+.linkbtn b{color:var(--text)}
 .list{display:flex;flex-direction:column;gap:10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer}
+.card{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer}
 .card:active{background:var(--panel2)}
+.ficon{font-size:30px;width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;background:var(--panel2);border-radius:12px}
+.ficon.none{font-size:20px;color:var(--muted)}
+.body{flex:1;min-width:0}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.brand{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
-.name{font-weight:600;font-size:16px;margin-top:1px}
-.kcal{font-weight:700;font-size:17px;white-space:nowrap}
-.kcal small{color:var(--muted);font-weight:400;font-size:12px}
-.macros{display:flex;gap:14px;margin-top:8px;font-size:14px}
-.m b{font-weight:700}
-.m.p b{color:var(--p)} .m.c b{color:var(--c)} .m.f b{color:var(--f)}
+.brand{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name{font-weight:600;font-size:16px;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
+.kcal{font-weight:700;font-size:17px;white-space:nowrap} .kcal small{color:var(--muted);font-weight:400;font-size:12px}
+.macros{display:flex;gap:12px;margin-top:6px;font-size:14px}
+.m b{font-weight:700} .m.p b{color:var(--p)} .m.c b{color:var(--c)} .m.f b{color:var(--f)}
 .chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .chip.raw{color:var(--c);border-color:#5a4520} .chip.cooked{color:var(--p);border-color:#1f4060}
 .empty{text-align:center;color:var(--muted);padding:50px 20px;border:1px dashed var(--line);border-radius:var(--r)}
 .empty b{color:var(--text);display:block;font-size:17px;margin-bottom:6px}
-.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));
-  background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:16px 28px;
-  font-size:17px;font-weight:700;box-shadow:0 8px 30px rgba(198,244,50,.25);cursor:pointer;z-index:5}
-/* sheets */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:16px 28px;font-size:17px;font-weight:700;box-shadow:0 8px 30px rgba(198,244,50,.25);cursor:pointer;z-index:5}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:10;align-items:flex-end;justify-content:center}
 .overlay.open{display:flex}
-.sheet{background:var(--panel);width:100%;max-width:640px;max-height:92vh;overflow:auto;
-  border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sheet{background:var(--panel);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
 @media(min-width:700px){.overlay{align-items:center}.sheet{border-radius:20px;border:1px solid var(--line)}}
 .sheet h2{margin:0 0 4px;font-size:19px}
+.sheet h3{margin:16px 0 6px;font-size:15px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
-.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel2);
-  border:1px solid var(--line);color:var(--text);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;font-size:15px}
-.opt .ic{font-size:24px;width:32px;text-align:center}
-.opt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.5px}
-input,select,textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
-  background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;font-size:15px}
+.opt .ic{font-size:24px;width:32px;text-align:center} .opt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+input:disabled{opacity:.4}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:0 8px}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:14px;cursor:pointer}
 .seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
-.hint{font-size:12px;color:var(--muted);margin-top:6px}
-.hint.warn{color:var(--c)}
-.actions{display:flex;gap:10px;margin-top:18px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px} .hint.warn{color:var(--c)} .hint.click{cursor:pointer;text-decoration:underline dotted}
+.typebtn{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font-size:15px}
+.typebtn .big{font-size:28px} .typebtn small{display:block;color:var(--muted);font-size:12px}
+.typebtn.missing{border-color:var(--c)}
+.brandrow{display:flex;gap:8px;align-items:center}
+.toggle{flex:0 0 auto;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:13px;cursor:pointer;white-space:nowrap}
+.toggle.on{background:var(--text);color:var(--bg);font-weight:600}
+.packs{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.pack{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 10px;font-size:14px;background:var(--bg)}
+.pack.usual{border-color:var(--accent)}
+.pack button{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px;border-radius:999px}
+.pack.usual .star{color:var(--accent)}
+.preview{font-size:13px;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--panel2);border-radius:10px;display:none}
+.preview.show{display:block} .preview b{color:var(--text)}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 .btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn.danger{color:var(--danger);flex:0 0 auto;padding:13px 16px}
-.btn:disabled{opacity:.5}
-#reader{width:100%;border-radius:var(--r);overflow:hidden;background:#000;min-height:240px}
+.btn.small{flex:0 0 auto;padding:11px 14px}
+.btn.danger{color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:default}
+/* picker */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.pitem{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;font-size:12px;text-align:center}
+.pitem .e{font-size:28px;line-height:1}
+.pitem.on{border-color:var(--accent);background:#1d2410}
+.pback{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 0 10px}
+/* scanner */
+.cam{position:relative;width:100%;aspect-ratio:4/3;border-radius:var(--r);overflow:hidden;background:#000}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .frame{position:absolute;left:10%;right:10%;top:32%;bottom:32%;border:2px solid var(--accent);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.cam .line{position:absolute;left:12%;right:12%;top:50%;height:2px;background:rgba(198,244,50,.8);animation:sweep 1.6s ease-in-out infinite}
+@keyframes sweep{0%,100%{transform:translateY(-28px)}50%{transform:translateY(28px)}}
+.cam .torch{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
+.cam .torch.on{background:var(--accent);color:var(--accent-ink)}
 .status{margin:10px 0;padding:10px 12px;border-radius:10px;background:var(--panel2);font-size:14px;display:none}
-.status.show{display:block}
-.status.err{color:var(--danger)}
-.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);
-  background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;
-  opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
-.toast.show{opacity:1}
-.src{font-size:11px;color:var(--muted);margin-top:6px}
+.status.show{display:block} .status.err{color:var(--danger)}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;display:flex;gap:14px;align-items:center;white-space:nowrap}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{background:none;border:0;color:#3d6b00;font-weight:800;font-size:14px;cursor:pointer;padding:0}
+.src{font-size:11px;color:var(--muted);margin-top:8px}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 .hide{display:none!important}
+.ver{color:var(--muted);font-size:12px;text-align:center;margin-top:14px}
 </style>
 </head>
 <body>
@@ -98,8 +121,9 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
     <h1>Food <span>Tracker</span></h1>
     <button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button>
   </header>
-  <input class="search" id="search" type="search" placeholder="Search brand or food…" autocomplete="off">
-  <div class="count" id="count"></div>
+  <input class="search" id="search" type="search" placeholder="Search food, brand or category…" autocomplete="off">
+  <div class="chips" id="catChips"></div>
+  <div class="bar"><span id="count"></span><button class="linkbtn" id="sortBtn"></button></div>
   <div class="list" id="list"></div>
 </div>
 
@@ -109,8 +133,8 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <div class="overlay" id="ovAdd"><div class="sheet">
   <h2>Add food</h2>
   <p class="sub">Barcode is fastest. If the product isn't found, snap the label.</p>
-  <button class="opt" id="optScan"><span class="ic">▥</span><span>Scan barcode<small>Looks it up on Open Food Facts</small></span></button>
-  <button class="opt" id="optPhoto"><span class="ic">📷</span><span>Photo of nutrition label<small>Read by Gemini (needs your free key in settings)</small></span></button>
+  <button class="opt" id="optScan"><span class="ic">▥</span><span>Scan barcode<small>Live camera, looks it up on Open Food Facts</small></span></button>
+  <button class="opt" id="optPhoto"><span class="ic">📷</span><span>Photo of nutrition label<small>Read by Gemini (free key in settings)</small></span></button>
   <button class="opt" id="optManual"><span class="ic">✎</span><span>Type it in<small>Copy the numbers off the label</small></span></button>
   <input type="file" id="photoInput" accept="image/*" capture="environment" class="hide">
   <div class="status" id="addStatus"></div>
@@ -120,14 +144,22 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <!-- Scanner -->
 <div class="overlay" id="ovScan"><div class="sheet">
   <h2>Scan barcode</h2>
-  <p class="sub">Point the camera at the barcode and hold steady.</p>
-  <div id="reader"></div>
-  <label for="manualCode">Or type the barcode number</label>
-  <div class="row" style="gap:8px">
-    <input id="manualCode" inputmode="numeric" placeholder="e.g. 5201054017265">
-    <button class="btn primary" id="lookupBtn" style="flex:0 0 auto">Look up</button>
+  <p class="sub">Hold the phone 15–20 cm away with the barcode inside the box.</p>
+  <div class="cam" id="cam">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="frame"></div><div class="line"></div>
+    <button class="torch hide" id="torchBtn">🔦 Light</button>
   </div>
   <div class="status" id="scanStatus"></div>
+  <div class="actions" style="margin-top:10px">
+    <button class="btn" id="scanPhotoBtn">📷 Scan from a photo instead</button>
+  </div>
+  <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
+  <label for="manualCode">Or type every number under the barcode</label>
+  <div class="row" style="gap:8px">
+    <input id="manualCode" inputmode="numeric" placeholder="e.g. 5201054017265" autocomplete="off">
+    <button class="btn primary small" id="lookupBtn">Look up</button>
+  </div>
   <div class="actions"><button class="btn" id="scanCancel">Cancel</button></div>
 </div></div>
 
@@ -135,18 +167,30 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <div class="overlay" id="ovForm"><div class="sheet">
   <h2 id="formTitle">New food</h2>
   <p class="sub" id="formSub">Check the numbers against the label, then save.</p>
-  <div class="grid">
-    <div><label for="fBrand">Brand</label><input id="fBrand" placeholder="e.g. Μεβγάλ" autocomplete="off"></div>
-    <div><label for="fName">Product</label><input id="fName" placeholder="e.g. Greek yogurt 2%" autocomplete="off"></div>
+
+  <label>Food type</label>
+  <button class="typebtn" id="typeBtn"></button>
+
+  <label for="fBrand">Brand</label>
+  <div class="brandrow">
+    <input id="fBrand" placeholder="e.g. Μεβγάλ" autocomplete="off" list="brandList">
+    <button class="toggle" id="noBrandBtn">No brand</button>
   </div>
-  <label>Macros are for 100 g of the food when it's…</label>
+  <datalist id="brandList"></datalist>
+
+  <label for="fName">Product</label>
+  <input id="fName" placeholder="e.g. Γιαούρτι στραγγιστό 2%" autocomplete="off">
+
+  <label>Label values are for the food when it's…</label>
   <div class="seg" id="fState">
-    <button data-v="uncooked">Uncooked</button>
-    <button data-v="cooked">Cooked</button>
-    <button data-v="ready">Ready to eat</button>
+    <button data-v="uncooked">Uncooked</button><button data-v="cooked">Cooked</button><button data-v="ready">Ready to eat</button>
   </div>
   <div class="hint">Rice, pasta, oats and raw meat labels are almost always uncooked values.</div>
-  <label>Per 100 g</label>
+
+  <label>Measured in</label>
+  <div class="seg" id="fUnit"><button data-v="g">grams (g)</button><button data-v="ml">millilitres (ml)</button></div>
+
+  <label id="per100">Per 100 g</label>
   <div class="grid4">
     <div><label for="fKcal">kcal</label><input id="fKcal" type="number" inputmode="decimal" step="any" min="0"></div>
     <div><label for="fP">Protein</label><input id="fP" type="number" inputmode="decimal" step="any" min="0"></div>
@@ -160,17 +204,56 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
     <div><label for="fSalt">Salt</label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div>
   </div>
   <div class="hint" id="kcalCheck"></div>
+
+  <label for="packIn">Pack sizes you buy</label>
+  <div class="brandrow">
+    <input id="packIn" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 1000">
+    <span id="packUnit" style="color:var(--muted)">g</span>
+    <button class="btn small" id="packAdd">Add</button>
+  </div>
+  <div class="packs" id="packList"></div>
+  <div class="hint">Add every size you buy (e.g. 1000 and 1500 ml milk). Tap ★ on the one you usually get; the grocery list will use it later.</div>
+  <div class="preview" id="packPreview"></div>
+
   <div class="grid">
-    <div><label for="fServ">Serving (g, optional)</label><input id="fServ" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 30"></div>
+    <div><label for="fServ">Serving (optional)</label><input id="fServ" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 30"></div>
     <div><label for="fCode">Barcode</label><input id="fCode" inputmode="numeric" autocomplete="off"></div>
   </div>
   <label for="fNotes">Notes</label>
-  <textarea id="fNotes" rows="2" placeholder="Anything useful, e.g. 'buy the 1kg pack'"></textarea>
+  <textarea id="fNotes" rows="2" placeholder="e.g. 'only at Lidl', 'get the 1 kg pack'"></textarea>
   <div class="src" id="fSource"></div>
   <div class="actions">
-    <button class="btn danger hide" id="delBtn">Delete</button>
+    <button class="btn small danger hide" id="delBtn">Delete</button>
+    <button class="btn small hide" id="dupBtn">Duplicate</button>
     <button class="btn" data-close>Cancel</button>
     <button class="btn primary" id="saveBtn">Save</button>
+  </div>
+</div></div>
+
+<!-- Type picker -->
+<div class="overlay" id="ovType"><div class="sheet">
+  <h2>Food type</h2>
+  <p class="sub">Pick a category, then the closest match.</p>
+  <div id="typePicker"></div>
+  <div class="actions"><button class="btn" data-close>Cancel</button></div>
+</div></div>
+
+<!-- Missing info before save -->
+<div class="overlay" id="ovMissing"><div class="sheet">
+  <h2>Almost there</h2>
+  <p class="sub">Fill in what's missing, then save.</p>
+  <div id="mBrandSec">
+    <h3>Brand</h3>
+    <div class="seg" id="mBrandSeg"><button data-v="add">Add brand</button><button data-v="none">No brand</button></div>
+    <input id="mBrand" class="hide" style="margin-top:10px" placeholder="Brand name" autocomplete="off" list="brandList">
+  </div>
+  <div id="mTypeSec">
+    <h3>Food type</h3>
+    <div id="mTypePicker"></div>
+  </div>
+  <div class="actions">
+    <button class="btn" data-close>Back</button>
+    <button class="btn primary" id="mSave" disabled>Save</button>
   </div>
 </div></div>
 
@@ -183,212 +266,597 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
   <div class="hint">Free from aistudio.google.com → Get API key. It stays in this browser, never in your GitHub files.</div>
   <label for="sModel">Gemini model</label>
   <input id="sModel" autocomplete="off">
-  <div class="hint">Leave as is unless Google renames things.</div>
   <div class="actions"><button class="btn primary" id="saveSettings">Save settings</button></div>
   <hr>
   <h2>Your data</h2>
   <p class="sub">Copy for Claude, or move your database between phone and PC.</p>
-  <div class="actions" style="margin-top:0">
-    <button class="btn primary" id="copyClaude">Copy for Claude</button>
-  </div>
+  <div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude">Copy for Claude</button></div>
   <div class="actions" style="margin-top:10px">
     <button class="btn" id="exportJson">Download backup</button>
     <button class="btn" id="importBtn">Import backup</button>
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn" data-close>Close</button></div>
+  <div class="ver">Food Tracker v1.1</div>
 </div></div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 (() => {
-const KEY = 'ft.foods.v1', SKEY = 'ft.settings.v1';
+const VERSION = '1.1';
+const KEY = 'ft.foods.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 const DEFAULT_MODEL = 'gemini-flash-latest';
 const $ = id => document.getElementById(id);
 
-// ---------- storage ----------
+// ================= categories =================
+// [subId, label, emoji, keywords (Greek + English, no accents), options]
+// options: s = strong match (beats ingredient words, e.g. "juice" beats "orange"), ml = measured in ml
+const CATS = [
+ ['dairy','Dairy','🥛',[
+  ['milk','Milk','🥛','γαλα,milk,lait',{ml:1}],
+  ['chocmilk','Chocolate milk','🍫','σοκολατουχο,chocolate milk,κακαο,cacao drink',{ml:1,s:1}],
+  ['yogurt','Yogurt','🥣','γιαουρτ,yogurt,yoghurt,skyr,στραγγιστο'],
+  ['cheese','Cheese','🧀','τυρ,φετα,feta,cheese,γκουντα,gouda,κασερι,ημισκληρο,μοτσαρελα,mozzarella,γραβιερα,cottage,κοτατζ,ανθοτυρο,μυζηθρα,παρμεζαν,parmesan,cheddar,τσενταρ,ricotta,edam,emmental,κεφαλοτυρ,κρεμα τυριου,philadelphia'],
+  ['butter','Butter','🧈','βουτυρο,butter,μαργαριν,margarine'],
+  ['cream','Cream','🍦','κρεμα γαλακτος,cream,ανθογαλο,σαντιγι'],
+ ]],
+ ['eggs','Eggs','🥚',[
+  ['egg','Eggs','🥚','αυγ,egg,ασπραδ,egg white'],
+ ]],
+ ['meat','Meat','🥩',[
+  ['chicken','Chicken','🍗','κοτοπουλ,chicken,στηθος,μπουτι,φτερουγ'],
+  ['turkey','Turkey','🦃','γαλοπουλ,turkey'],
+  ['beef','Beef','🥩','μοσχαρ,beef,steak,μπριζολ,ριμπαι,ribeye'],
+  ['pork','Pork','🐖','χοιριν,pork,σπαλα'],
+  ['mince','Mince','🍔','κιμα,mince,minced,burger,μπιφτεκ'],
+  ['coldcuts','Cold cuts','🥓','ζαμπον,ham,μπεικον,bacon,παριζα,σαλαμι,salami,προσουτο,prosciutto,παστουρμα,αλλαντικ,γαλοπουλα καπνιστη'],
+  ['sausage','Sausage','🌭','λουκανικ,sausage,hot dog,frankfurter'],
+  ['lamb','Lamb & goat','🍖','αρνι,lamb,κατσικ,goat'],
+ ]],
+ ['fish','Fish & seafood','🐟',[
+  ['tuna','Tuna','🥫','τονο,tuna'],
+  ['salmon','Salmon','🍣','σολομ,salmon'],
+  ['shrimp','Shrimp','🦐','γαριδ,shrimp,prawn'],
+  ['octopus','Octopus','🐙','χταποδ,octopus'],
+  ['squid','Squid','🦑','καλαμαρ,squid,σουπι'],
+  ['fishgen','Fish','🐟','ψαρ,fish,βακαλα,cod,τσιπουρ,λαβρακ,σαρδελ,sardine,γαυρ,σκουμπρ,mackerel,γλωσσα,πανγκασιους,pangasius'],
+ ]],
+ ['rice','Rice','🍚',[
+  ['rice','Rice','🍚','ρυζι,rice,basmati,jasmine,καρολινα,νυχακι,γλασσε,parboiled,risotto'],
+ ]],
+ ['pasta','Pasta','🍝',[
+  ['pasta','Pasta','🍝','μακαρον,ζυμαρικ,pasta,spaghetti,σπαγγετ,πεννε,penne,κριθαρακ,orzo,χυλοπιτ,fusilli,βιδακ,ταλιατελ,tagliatelle,λαζανι,lasagn'],
+  ['noodles','Noodles','🍜','noodle,νουντλ,ramen'],
+ ]],
+ ['bread','Bread & grains','🍞',[
+  ['bread','Bread','🍞','ψωμ,bread,τοστ,toast,φρυγανι,παξιμαδ,baguette,μπαγκετ,ψωμακ,bun'],
+  ['wrap','Wraps & pitta','🫓','tortilla,τορτιγ,wrap,αραβικη,pitta,πιτες για σουβλακι'],
+  ['oats','Oats','🥣','βρωμη,oat,porridge'],
+  ['cereal','Cereal','🥣','δημητριακ,cereal,corn flakes,κορν φλεικς,granola,γκρανολα,μουσλι,muesli'],
+  ['flour','Flour','🌾','αλευρ,flour,σιμιγδαλ,semolina'],
+  ['crackers','Crackers & rice cakes','🍘','κρακερ,cracker,κριτσιν,ρυζογκοφρετ,rice cake,rice cakes,ρυζοκρακερ'],
+ ]],
+ ['veg','Vegetables','🧺',[
+  ['carrot','Carrot','🥕','καροτ,carrot'],
+  ['tomato','Tomato','🍅','ντοματ,tomato,τοματ'],
+  ['potato','Potato','🥔','πατατ,potato'],
+  ['sweetpotato','Sweet potato','🍠','γλυκοπατατ,sweet potato'],
+  ['cucumber','Cucumber & courgette','🥒','αγγουρ,cucumber,κολοκυθακ,zucchini,courgette'],
+  ['onion','Onion','🧅','κρεμμυδ,onion'],
+  ['garlic','Garlic','🧄','σκορδ,garlic'],
+  ['pepper','Pepper','🫑','πιπεριες,πιπερια φλωρινης,bell pepper,peppers'],
+  ['broccoli','Broccoli & cauliflower','🥦','μπροκολ,broccoli,κουνουπιδ,cauliflower'],
+  ['leafy','Leafy greens','🥬','μαρουλ,λαχαν,σπανακ,spinach,lettuce,ρoκα,ροκα,rocket,salad,σαλατα,cabbage,kale'],
+  ['corn','Sweetcorn','🌽','καλαμποκ,sweetcorn,corn'],
+  ['mushroom','Mushrooms','🍄','μανιταρ,mushroom'],
+  ['eggplant','Aubergine','🍆','μελιτζαν,aubergine,eggplant'],
+  ['peas','Peas & green beans','🫛','αρακα,peas,φασολακ,green beans'],
+  ['avocado','Avocado','🥑','αβοκαντο,avocado'],
+ ]],
+ ['fruit','Fruit','🍎',[
+  ['apple','Apple','🍎','μηλο,μηλα,apple'],
+  ['banana','Banana','🍌','μπανανα,banana'],
+  ['orange','Orange','🍊','πορτοκαλ,orange,μανταριν,mandarin'],
+  ['lemon','Lemon','🍋','λεμον,lemon,lime'],
+  ['grapes','Grapes','🍇','σταφυλ,grape'],
+  ['strawberry','Strawberries','🍓','φραουλ,strawberr'],
+  ['watermelon','Watermelon & melon','🍉','καρπουζ,watermelon,πεπον,melon'],
+  ['peach','Peach','🍑','ροδακιν,peach,νεκταριν,nectarine,βερικοκ,apricot'],
+  ['pear','Pear','🍐','αχλαδ,pear'],
+  ['kiwi','Kiwi','🥝','ακτινιδ,kiwi'],
+  ['cherries','Cherries','🍒','κερασ,cherr,βυσσιν'],
+  ['pineapple','Pineapple','🍍','ανανα,pineapple'],
+  ['mango','Mango','🥭','μανγκο,mango'],
+  ['berries','Blueberries','🫐','μυρτιλ,blueberr,berries,βατομουρ'],
+  ['dried','Dried fruit','🍇','σταφιδ,raisin,χουρμα,dates,αποξηραμεν,dried'],
+ ]],
+ ['legumes','Legumes','🫘',[
+  ['beans','Beans','🫘','φασολ,beans,γιγαντες'],
+  ['lentils','Lentils','🫘','φακες,lentil'],
+  ['chickpeas','Chickpeas','🫘','ρεβυθ,chickpea,hummus,χουμους'],
+  ['fava','Fava','🫘','φαβα,fava'],
+ ]],
+ ['nuts','Nuts & seeds','🥜',[
+  ['pb','Peanut butter','🥜','φυστικοβουτυρο,φιστικοβουτυρο,peanut butter,βουτυρο φυστικιου,βουτυρο αραπικου',{s:1}],
+  ['peanuts','Peanuts','🥜','φιστικ,φυστικ,peanut,αραπικ'],
+  ['almonds','Almonds','🌰','αμυγδαλ,almond'],
+  ['walnuts','Walnuts & other nuts','🌰','καρυδ,walnut,κασιου,cashew,φουντουκ,hazelnut,pistachio,ξηροι καρποι,nuts'],
+  ['seeds','Seeds & tahini','🌻','σουσαμ,ταχινι,tahini,chia,λιναρο,flax,ηλιοσπορ,sunflower seed,κολοκυθοσπορ'],
+ ]],
+ ['oils','Oils, sauces & spreads','🫒',[
+  ['oliveoil','Olive oil','🫒','ελαιολαδ,olive oil,παρθενο',{ml:1,s:1}],
+  ['oil','Other oil','🫗','λαδι,oil,ηλιελαιο',{ml:1}],
+  ['honey','Honey','🍯','μελι,honey'],
+  ['jam','Jam','🫙','μαρμελαδ,jam,κομποστα'],
+  ['sauce','Sauces','🥫','σαλτσ,sauce,κετσαπ,ketchup,μαγιονεζ,mayo,μουσταρδ,mustard,πελτε,passata,ντρεσινγκ,dressing'],
+  ['spread','Sweet spreads','🍫','nutella,πραλιν,merenda,μερεντα,spread',{s:1}],
+ ]],
+ ['snacks','Sweets & snacks','🍫',[
+  ['chocolate','Chocolate','🍫','σοκολατ,chocolate'],
+  ['biscuits','Biscuits','🍪','μπισκοτ,biscuit,cookie,γεμιστα,πτι μπερ'],
+  ['crisps','Crisps','🍟','πατατακ,chips,crisps,γαριδακ,ποπ κορν,popcorn',{s:1}],
+  ['icecream','Ice cream','🍨','παγωτ,ice cream',{s:1}],
+  ['cake','Cakes & pastries','🥐','κεικ,cake,κρουασαν,croissant,τουρτα,πασ,donut,ντονατ,muffin,μαφιν'],
+  ['candy','Sweets','🍬','καραμελ,candy,gummy,ζελεδακ,λουκουμ'],
+ ]],
+ ['drinks','Drinks','🥤',[
+  ['juice','Juice','🧃','χυμο,juice,smoothie',{ml:1,s:1}],
+  ['soda','Soft drinks','🥤','αναψυκτ,cola,coca,pepsi,sprite,fanta,λεμοναδ,πορτοκαλαδ,σοδα,soda,ενεργειακ,energy drink,monster,red bull',{ml:1,s:1}],
+  ['coffee','Coffee & tea','☕','καφε,coffee,espresso,τσαι,tea,freddo,φρεντο,frappe,φραπε',{ml:1,s:1}],
+  ['water','Water','💧','νερο,water',{ml:1}],
+  ['alcohol','Alcohol','🍺','μπυρα,beer,κρασι,wine,vodka,βοτκα,ουζο,τσιπουρο',{ml:1,s:1}],
+ ]],
+ ['supps','Supplements','💪',[
+  ['whey','Protein powder','💪','whey,πρωτεϊν,πρωτειν,protein powder,isolate,casein,καζεϊν',{s:1}],
+  ['bar','Protein bar','🍫','protein bar,μπαρα πρωτεϊνης,μπαρα πρωτεινης',{s:1}],
+  ['creatine','Creatine & other','💊','creatine,κρεατιν,omega,ωμεγα,βιταμιν,vitamin,magnesium,μαγνησι,electrolyte'],
+ ]],
+ ['ready','Ready meals','🍱',[
+  ['pizza','Pizza','🍕','πιτσα,pizza',{s:1}],
+  ['souvlaki','Souvlaki & gyros','🥙','σουβλακ,souvlaki,γυρο,gyros,kebab,κεμπαπ',{s:1}],
+  ['pie','Pies','🥧','τυροπιτ,σπανακοπιτ,κουλουρ,πιτα,pie,μπουγατσ',{s:1}],
+  ['sandwich','Sandwiches','🥪','σαντουιτς,sandwich,club',{s:1}],
+  ['meal','Ready meal','🍱','ετοιμο φαγητο,ready meal,μουσακα,παστιτσιο,γεμιστα'],
+ ]],
+ ['other','Other','📦',[]],
+].map(([id,label,icon,subs]) => ({ id,label,icon,
+  subs:[{id:'general',label:'General',icon,kw:[],opt:{}}, ...subs.map(([sid,sl,si,kw,opt]) => ({ id:sid,label:sl,icon:si,kw:kw.split(',').map(norm).filter(Boolean),opt:opt||{} }))]
+}));
+const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+function subOf(cat, sub){ const c = CAT[cat]; return c ? (c.subs.find(s => s.id === sub) || c.subs[0]) : null; }
+function iconOf(f){ const s = subOf(f.cat, f.sub); return s ? s.icon : null; }
+function typeLabel(cat, sub){ const c = CAT[cat]; if(!c) return ''; const s = subOf(cat, sub); return s.id === 'general' ? c.label : `${c.label} · ${s.label}`; }
+
+function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ς/g,'σ').replace(/\s+/g,' ').trim(); }
+// Pick the best keyword hit; longer keywords win, "strong" subs (juice, crisps…) beat ingredient words
+function guessType(text){
+  const t = norm(text); if(!t) return null;
+  let best = null, score = 0;
+  for(const c of CATS) for(const s of c.subs) for(const k of s.kw){
+    if(t.includes(norm(k))){ const sc = norm(k).length + (s.opt.s ? 20 : 0); if(sc > score){ score = sc; best = { cat:c.id, sub:s.id }; } }
+  }
+  return best;
+}
+function guessState(name){
+  return /ρυζι|rice|pasta|μακαρον|ζυμαρικ|spaghetti|σπαγγετ|πεννε|κριθαρακ|χυλοπιτ|oat|βρωμη|φακεσ|lentil|ρεβυθ|φασολια|quinoa|κινοα|κοτοπουλ|chicken|κιμα|mince|μοσχαρ|beef|χοιριν|pork|γαλοπουλ φιλετο|σολομ|salmon|ψαρι|γαριδ|αλευρ|flour/.test(norm(name)) && !/βραστ|ψητ|καπνιστ|μαγειρεμεν|cooked|grilled|smoked|ζαμπον|ham|κονσερβ/.test(norm(name)) ? 'uncooked' : 'ready';
+}
+
+// ================= storage =================
 function load(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }
 function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ toast('Could not save on this device'); return false; } }
-let foods = load(KEY, []);
+function migrate(f){
+  const clean = Object.fromEntries(Object.entries(f || {}).filter(([,v]) => v !== undefined && v !== null));
+  const out = Object.assign({ unit:'g', packs:[], usualPack:null, noBrand:false, cat:null, sub:null, state:'ready' }, clean);
+  if(!['g','ml'].includes(out.unit)) out.unit = 'g';
+  if(!['uncooked','cooked','ready'].includes(out.state)) out.state = 'ready';
+  out.packs = Array.isArray(out.packs) ? out.packs.map(Number).filter(n => n > 0) : [];
+  out.noBrand = !!out.noBrand;
+  return out;
+}
+let foods = load(KEY, []).map(migrate);
 let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, load(SKEY, {}));
+let ui = Object.assign({ sort:'recent', cat:'all' }, load(UKEY, {}));
 const saveFoods = () => store(KEY, foods);
+const saveUI = () => store(UKEY, ui);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-// ---------- ui helpers ----------
+// ================= helpers =================
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = n => (n === null || n === undefined || n === '' || isNaN(n)) ? '–' : (Math.round(n*10)/10).toString();
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+const r1 = n => Math.round(n*10)/10;
+const fmt = n => (n === null || n === undefined || n === '' || isNaN(n)) ? '–' : String(r1(n));
+const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `${n} ml`) : (n >= 1000 ? `${r1(n/1000)} kg` : `${n} g`);
+let toastTimer;
+function toast(msg, actLabel, act){
+  $('toastMsg').textContent = msg; const b = $('toastAct');
+  if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { act(); $('toast').classList.remove('show'); }; }
+  else { b.classList.add('hide'); b.onclick = null; }
+  $('toast').classList.add('show'); clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 5000 : 2200);
+}
 function open(id){ $(id).classList.add('open'); }
-function close(id){ $(id).classList.remove('open'); }
+function close(id){ $(id).classList.remove('open'); if(id === 'ovScan') stopScan(); }
 document.querySelectorAll('.overlay').forEach(ov => {
-  ov.addEventListener('click', e => { if(e.target === ov && ov.id !== 'ovScan') close(ov.id); });
+  ov.addEventListener('click', e => { if(e.target === ov) close(ov.id); });
   ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close(ov.id)));
 });
 function status(el, msg, err){ el.textContent = msg; el.classList.toggle('show', !!msg); el.classList.toggle('err', !!err); }
 const STATE_LABEL = { uncooked:'uncooked', cooked:'cooked', ready:'ready to eat' };
 
-// ---------- list ----------
+// ================= list =================
 function render(){
-  const q = $('search').value.trim().toLowerCase();
+  const q = norm($('search').value);
+  // category chips (only categories you actually have)
+  const counts = {}; foods.forEach(f => { const k = f.cat || 'none'; counts[k] = (counts[k]||0) + 1; });
+  if(ui.cat !== 'all' && !counts[ui.cat]) ui.cat = 'all';
+  const chips = [`<button class="fchip ${ui.cat==='all'?'on':''}" data-c="all">All ${foods.length||''}</button>`]
+    .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${c.icon} ${esc(c.label)} ${counts[c.id]}</button>`))
+    .concat(counts.none ? [`<button class="fchip ${ui.cat==='none'?'on':''}" data-c="none">❔ No type ${counts.none}</button>`] : []);
+  $('catChips').innerHTML = foods.length ? chips.join('') : '';
+  $('sortBtn').innerHTML = foods.length ? `Sort: <b>${ui.sort === 'recent' ? 'Recent' : 'A–Z'}</b>` : '';
+
   const items = foods
-    .filter(f => !q || `${f.brand} ${f.name} ${f.barcode||''}`.toLowerCase().includes(q))
-    .sort((a,b) => (a.brand||'').localeCompare(b.brand||'') || (a.name||'').localeCompare(b.name||''));
-  $('count').textContent = foods.length ? `${items.length} of ${foods.length} foods` : '';
-  if(!foods.length){
-    $('list').innerHTML = `<div class="empty"><b>No foods yet</b>Tap “Add food” and scan your first barcode.</div>`;
-    return;
-  }
-  if(!items.length){ $('list').innerHTML = `<div class="empty">Nothing matches “${esc(q)}”.</div>`; return; }
-  $('list').innerHTML = items.map(f => `
-    <div class="card" data-id="${f.id}">
-      <div class="row">
-        <div><div class="brand">${esc(f.brand || 'No brand')}</div><div class="name">${esc(f.name)}</div></div>
-        <div class="kcal">${fmt(f.kcal)} <small>kcal</small></div>
-      </div>
-      <div class="row" style="margin-top:2px">
-        <div class="macros">
-          <span class="m p">P <b>${fmt(f.protein)}</b></span>
-          <span class="m c">C <b>${fmt(f.carbs)}</b></span>
-          <span class="m f">F <b>${fmt(f.fat)}</b></span>
+    .filter(f => ui.cat === 'all' || (f.cat || 'none') === ui.cat)
+    .filter(f => !q || norm(`${f.brand} ${f.name} ${f.barcode||''} ${typeLabel(f.cat,f.sub)}`).includes(q))
+    .sort(ui.sort === 'recent'
+      ? (a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'')
+      : (a,b) => norm(a.name).localeCompare(norm(b.name)) || norm(a.brand).localeCompare(norm(b.brand)));
+  $('count').textContent = foods.length ? `${items.length} food${items.length===1?'':'s'}` : '';
+  if(!foods.length){ $('list').innerHTML = `<div class="empty"><b>No foods yet</b>Tap “Add food” and scan your first barcode.</div>`; return; }
+  if(!items.length){ $('list').innerHTML = `<div class="empty">Nothing matches${q ? ` “${esc($('search').value)}”` : ''}.</div>`; return; }
+  $('list').innerHTML = items.map(f => {
+    const ic = iconOf(f);
+    return `<div class="card" data-id="${f.id}">
+      <div class="ficon ${ic?'':'none'}">${ic || '❔'}</div>
+      <div class="body">
+        <div class="row"><div class="brand">${esc(f.noBrand ? 'No brand' : (f.brand || '—'))}</div><div class="kcal">${fmt(f.kcal)} <small>kcal</small></div></div>
+        <div class="name">${esc(f.name)}</div>
+        <div class="row" style="margin-top:2px">
+          <div class="macros"><span class="m p">P <b>${fmt(f.protein)}</b></span><span class="m c">C <b>${fmt(f.carbs)}</b></span><span class="m f">F <b>${fmt(f.fat)}</b></span></div>
+          <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${STATE_LABEL[f.state]||''} · 100 ${f.unit}</span>
         </div>
-        <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${STATE_LABEL[f.state]||''} · 100 g</span>
-      </div>
-    </div>`).join('');
+      </div></div>`;
+  }).join('');
 }
 $('search').addEventListener('input', render);
+$('catChips').addEventListener('click', e => { const b = e.target.closest('.fchip'); if(!b) return; ui.cat = b.dataset.c; saveUI(); render(); });
+$('sortBtn').addEventListener('click', () => { ui.sort = ui.sort === 'recent' ? 'az' : 'recent'; saveUI(); render(); });
 $('list').addEventListener('click', e => {
   const card = e.target.closest('.card'); if(!card) return;
   const f = foods.find(x => x.id === card.dataset.id); if(f) openForm(f, null, 'edit');
 });
 
-// ---------- form ----------
-let editingId = null, formState = 'ready', formSource = '';
+// ================= type picker (shared) =================
+function mountPicker(el, current, onPick){
+  let showCat = current && current.cat ? current.cat : null;
+  const draw = () => {
+    if(!showCat){
+      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${esc(c.label)}</button>`).join('')}</div>`;
+    } else {
+      const c = CAT[showCat];
+      el.innerHTML = `<button class="pback" data-back>← All categories</button><div class="pgrid">${c.subs.map(s =>
+        `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}"><span class="e">${s.icon}</span>${s.id==='general' ? `General ${esc(c.label.toLowerCase())}` : esc(s.label)}</button>`).join('')}</div>`;
+    }
+  };
+  el.onclick = e => {
+    if(e.target.closest('[data-back]')){ showCat = null; draw(); return; }
+    const ci = e.target.closest('[data-c]'); if(ci){ showCat = ci.dataset.c; if(CAT[showCat].subs.length === 1){ current = { cat:showCat, sub:'general' }; onPick(current); } draw(); return; }
+    const si = e.target.closest('[data-s]'); if(si){ current = { cat:showCat, sub:si.dataset.s }; draw(); onPick(current); }
+  };
+  draw();
+}
+
+// ================= form =================
+const F = { editingId:null, state:'ready', unit:'g', stateTouched:false, unitTouched:false, typeTouched:false, cat:null, sub:null, noBrand:false, packs:[], usual:null, source:'' };
 const NUM = { kcal:'fKcal', protein:'fP', carbs:'fC', fat:'fF', fiber:'fFib', sugar:'fSug', satFat:'fSat', salt:'fSalt', serving:'fServ' };
-let stateTouched = false;
-$('fName').addEventListener('input', () => { if(!editingId && !stateTouched) setState(guessState($('fName').value)); });
-function setState(v){ formState = v; document.querySelectorAll('#fState button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
-document.querySelectorAll('#fState button').forEach(b => b.addEventListener('click', () => { stateTouched = true; setState(b.dataset.v); }));
+
+function setSeg(sel, v){ document.querySelectorAll(`${sel} button`).forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+function setState(v){ F.state = v; setSeg('#fState', v); }
+function setUnit(v){ F.unit = v; setSeg('#fUnit', v); $('per100').textContent = `Per 100 ${v}`; $('packUnit').textContent = v; $('fServ').placeholder = v === 'ml' ? 'e.g. 250' : 'e.g. 30'; drawPacks(); }
+document.querySelectorAll('#fState button').forEach(b => b.addEventListener('click', () => { F.stateTouched = true; setState(b.dataset.v); }));
+document.querySelectorAll('#fUnit button').forEach(b => b.addEventListener('click', () => { F.unitTouched = true; setUnit(b.dataset.v); }));
+
+function setType(cat, sub, guessed){
+  F.cat = cat; F.sub = sub;
+  const s = subOf(cat, sub);
+  $('typeBtn').classList.toggle('missing', !cat);
+  $('typeBtn').innerHTML = cat
+    ? `<span class="big">${s.icon}</span><span>${esc(typeLabel(cat, sub))}<small>${guessed ? 'Guessed from the name, tap to change' : 'Tap to change'}</small></span>`
+    : `<span class="big">❔</span><span>Choose food type<small>Dairy, meat, vegetables…</small></span>`;
+  if(cat && !F.unitTouched && !F.editingId && s.opt.ml) setUnit('ml');
+}
+$('typeBtn').addEventListener('click', () => {
+  mountPicker($('typePicker'), F.cat ? { cat:F.cat, sub:F.sub } : null, v => { F.typeTouched = true; setType(v.cat, v.sub, false); close('ovType'); });
+  open('ovType');
+});
+function setNoBrand(on){ F.noBrand = on; $('noBrandBtn').classList.toggle('on', on); $('fBrand').disabled = on; if(on) $('fBrand').value = ''; }
+$('noBrandBtn').addEventListener('click', () => { setNoBrand(!F.noBrand); if(!F.noBrand) $('fBrand').focus(); });
+
+$('fName').addEventListener('input', () => {
+  if(F.editingId) return;
+  const v = $('fName').value;
+  if(!F.stateTouched) setState(guessState(v));
+  if(!F.typeTouched){ const g = guessType(v); if(g) setType(g.cat, g.sub, true); }
+});
+
+// packs
+function drawPacks(){
+  F.packs.sort((a,b) => a-b);
+  $('packList').innerHTML = F.packs.map(p => `<span class="pack ${F.usual===p?'usual':''}">${fmtSize(p, F.unit)}
+     <button class="star" data-star="${p}" aria-label="Usual pack">${F.usual===p?'★':'☆'}</button><button data-rm="${p}" aria-label="Remove">✕</button></span>`).join('');
+  updatePreview();
+}
+function addPack(){
+  const v = num('packIn'); if(!v || v <= 0){ toast('Type a pack size first'); return; }
+  if(!F.packs.includes(v)) F.packs.push(v);
+  if(F.usual === null) F.usual = v;
+  $('packIn').value = ''; drawPacks();
+}
+$('packAdd').addEventListener('click', addPack);
+$('packIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); addPack(); } });
+$('packList').addEventListener('click', e => {
+  const s = e.target.closest('[data-star]'), r = e.target.closest('[data-rm]');
+  if(s){ F.usual = Number(s.dataset.star); drawPacks(); }
+  if(r){ const v = Number(r.dataset.rm); F.packs = F.packs.filter(p => p !== v); if(F.usual === v) F.usual = F.packs[0] ?? null; drawPacks(); }
+});
+function updatePreview(){
+  const p = num('fP'), c = num('fC'), f = num('fF'); let k = num('fKcal');
+  const el = $('packPreview');
+  if(p===null || c===null || f===null){ el.classList.remove('show'); return; }
+  if(k===null) k = p*4 + c*4 + f*9;
+  const line = (amt, label) => { const x = amt/100; return `${label}: <b>${Math.round(k*x)} kcal</b> · P ${r1(p*x)} · C ${r1(c*x)} · F ${r1(f*x)}`; };
+  const parts = [];
+  const sv = num('fServ'); if(sv) parts.push(line(sv, `Serving ${fmtSize(sv, F.unit)}`));
+  if(F.usual) parts.push(line(F.usual, `Whole pack ${fmtSize(F.usual, F.unit)}`));
+  el.innerHTML = parts.join('<br>'); el.classList.toggle('show', parts.length > 0);
+}
 
 function openForm(data, sourceNote, mode){
-  data = data || {};
-  editingId = mode === 'edit' ? data.id : null;
+  data = migrate(data || {});
+  F.editingId = mode === 'edit' ? data.id : null;
+  F.stateTouched = mode === 'edit';
+  F.unitTouched = mode === 'edit' || !!data.unitFromLabel;
+  F.typeTouched = !!data.cat && mode === 'edit';
+  F.source = data.source || (sourceNote ? sourceNote : 'manual');
+  F.packs = [...data.packs]; F.usual = data.usualPack ?? (F.packs[0] ?? null);
   $('formTitle').textContent = mode === 'edit' ? 'Edit food' : 'New food';
   $('formSub').textContent = mode === 'edit' ? 'Change anything, then save.' : 'Check the numbers against the label, then save.';
   $('fBrand').value = data.brand || ''; $('fName').value = data.name || '';
-  $('fCode').value = data.barcode || ''; $('fNotes').value = data.notes || '';
+  $('fCode').value = data.barcode || ''; $('fNotes').value = data.notes || ''; $('packIn').value = '';
   for(const [k,id] of Object.entries(NUM)) $(id).value = (data[k] ?? '') === '' ? '' : data[k];
-  stateTouched = !!data.state;
-  setState(data.state || guessState(`${data.name||''}`));
-  formSource = data.source || sourceNote || 'manual';
-  $('fSource').textContent = sourceNote ? `Filled from ${sourceNote}. Double-check before saving.` : (mode==='edit' && data.updatedAt ? `Last updated ${new Date(data.updatedAt).toLocaleDateString()}` : '');
+  setNoBrand(!!data.noBrand);
+  setUnit(data.unit || 'g');
+  setState(mode === 'edit' || data.state !== 'ready' ? data.state : guessState(data.name || ''));
+  if(data.cat) setType(data.cat, data.sub || 'general', false);
+  else { const g = guessType(`${data.name||''} ${data.hint||''}`); g ? setType(g.cat, g.sub, true) : setType(null, null); }
+  $('fSource').textContent = sourceNote ? `Filled from ${sourceNote}. Double-check before saving.` : (mode==='edit' && data.updatedAt ? `Last updated ${new Date(data.updatedAt).toLocaleDateString('en-GB')}` : '');
   $('delBtn').classList.toggle('hide', mode !== 'edit');
-  checkKcal();
+  $('dupBtn').classList.toggle('hide', mode !== 'edit');
+  // brand suggestions from what you've already saved
+  $('brandList').innerHTML = [...new Set(foods.map(f => f.brand).filter(Boolean))].sort().map(b => `<option value="${esc(b)}">`).join('');
+  checkKcal(); drawPacks();
   open('ovForm');
-  if(mode !== 'edit' && !data.brand) setTimeout(() => $('fBrand').focus(), 150);
-}
-function guessState(name){
-  const n = name.toLowerCase();
-  if(/ρύζι|rice|pasta|μακαρόν|ζυμαρικ|spaghetti|σπαγγέτ|oat|βρώμη|φακές|lentil|quinoa|κινόα|κοτόπουλο|chicken breast|κιμάς|mince/.test(n)) return 'uncooked';
-  return 'ready';
+  if(mode !== 'edit' && !data.name) setTimeout(() => $('fName').focus(), 150);
 }
 function num(id){ const v = $(id).value.trim().replace(',', '.'); return v === '' ? null : Number(v); }
 function checkKcal(){
   const k = num('fKcal'), p = num('fP'), c = num('fC'), f = num('fF'), el = $('kcalCheck');
-  if(p===null || c===null || f===null){ el.textContent=''; el.classList.remove('warn'); return; }
+  el.onclick = null; el.classList.remove('warn','click');
+  if(p===null || c===null || f===null){ el.textContent=''; updatePreview(); return; }
   const est = p*4 + c*4 + f*9;
-  if(k === null){ el.textContent = `Estimated from macros: ~${Math.round(est)} kcal. Tap here to use it.`; el.classList.remove('warn'); el.onclick = () => { $('fKcal').value = Math.round(est); checkKcal(); }; return; }
-  el.onclick = null;
-  const off = Math.abs(k - est) / Math.max(k, 1);
-  if(off > 0.15 && Math.abs(k-est) > 20){ el.textContent = `Heads up: macros add up to ~${Math.round(est)} kcal but kcal says ${k}. Worth checking the label (fibre or alcohol can explain small gaps).`; el.classList.add('warn'); }
-  else { el.textContent = `Macros check out (~${Math.round(est)} kcal).`; el.classList.remove('warn'); }
+  if(k === null){ el.textContent = `No kcal? Macros add up to ~${Math.round(est)}. Tap to use that.`; el.classList.add('click'); el.onclick = () => { $('fKcal').value = Math.round(est); checkKcal(); }; }
+  else if(Math.abs(k - est) / Math.max(k,1) > 0.15 && Math.abs(k-est) > 20){ el.textContent = `Heads up: macros add up to ~${Math.round(est)} kcal but the label says ${k}. Worth a second look.`; el.classList.add('warn'); }
+  else el.textContent = `Macros check out (~${Math.round(est)} kcal).`;
+  updatePreview();
 }
 ['fKcal','fP','fC','fF'].forEach(id => $(id).addEventListener('input', checkKcal));
+$('fServ').addEventListener('input', updatePreview);
 
-$('saveBtn').addEventListener('click', () => {
-  const name = $('fName').value.trim(), brand = $('fBrand').value.trim();
-  if(!name){ toast('Give the product a name'); $('fName').focus(); return; }
+// ---- save: validate numbers, then ask for brand/type only if missing ----
+function readForm(){
   const vals = {}; for(const [k,id] of Object.entries(NUM)) vals[k] = num(id);
+  return { name: $('fName').value.trim(), brand: F.noBrand ? '' : $('fBrand').value.trim(), vals };
+}
+$('saveBtn').addEventListener('click', () => {
+  const { name, brand, vals } = readForm();
+  if(!name){ toast('Give the product a name'); $('fName').focus(); return; }
   if(vals.protein===null || vals.carbs===null || vals.fat===null){ toast('Protein, carbs and fat are needed'); return; }
-  if(Object.values(vals).some(v => v !== null && (isNaN(v) || v < 0))){ toast('Numbers look off, check them'); return; }
+  if(Object.values(vals).some(v => v !== null && (isNaN(v) || v < 0))){ toast('Some numbers look off'); return; }
+  const needBrand = !brand && !F.noBrand, needType = !F.cat;
+  if(needBrand || needType) return askMissing(needBrand, needType);
+  commit();
+});
+
+let M = { brandMode:null, cat:null, sub:null, needBrand:false, needType:false };
+function askMissing(needBrand, needType){
+  M = { brandMode:null, cat:null, sub:null, needBrand, needType };
+  $('mBrandSec').classList.toggle('hide', !needBrand);
+  $('mTypeSec').classList.toggle('hide', !needType);
+  setSeg('#mBrandSeg', ''); $('mBrand').value = ''; $('mBrand').classList.add('hide');
+  if(needType){ const g = guessType($('fName').value); mountPicker($('mTypePicker'), g, v => { M.cat = v.cat; M.sub = v.sub; checkMissing(); }); }
+  checkMissing(); open('ovMissing');
+}
+document.querySelectorAll('#mBrandSeg button').forEach(b => b.addEventListener('click', () => {
+  M.brandMode = b.dataset.v; setSeg('#mBrandSeg', M.brandMode);
+  $('mBrand').classList.toggle('hide', M.brandMode !== 'add');
+  if(M.brandMode === 'add') setTimeout(() => $('mBrand').focus(), 50);
+  checkMissing();
+}));
+$('mBrand').addEventListener('input', checkMissing);
+$('mBrand').addEventListener('keydown', e => { if(e.key === 'Enter' && !$('mSave').disabled) $('mSave').click(); });
+function checkMissing(){
+  const brandOk = !M.needBrand || M.brandMode === 'none' || (M.brandMode === 'add' && $('mBrand').value.trim());
+  const typeOk = !M.needType || !!M.cat;
+  $('mSave').disabled = !(brandOk && typeOk);
+}
+$('mSave').addEventListener('click', () => {
+  if(M.needBrand){ if(M.brandMode === 'none') setNoBrand(true); else { setNoBrand(false); $('fBrand').value = $('mBrand').value.trim(); } }
+  if(M.needType) setType(M.cat, M.sub, false);
+  close('ovMissing'); commit();
+});
+
+function commit(){
+  const { name, brand, vals } = readForm();
   if(vals.kcal === null) vals.kcal = Math.round(vals.protein*4 + vals.carbs*4 + vals.fat*9);
-  const code = $('fCode').value.trim();
-  const dup = foods.find(f => f.id !== editingId && code && f.barcode === code);
-  if(dup && !confirm(`You already have this barcode saved as "${dup.brand} ${dup.name}". Save another copy anyway?`)) return;
+  const code = $('fCode').value.replace(/\D/g,'');
+  const others = foods.filter(f => f.id !== F.editingId);
+  const sameCode = code && others.find(f => f.barcode === code);
+  if(sameCode && !confirm(`This barcode is already saved as "${sameCode.name}". Save another one anyway?`)) return;
+  const sameName = !sameCode && others.find(f => norm(f.name) === norm(name) && norm(f.brand) === norm(brand));
+  if(sameName && !confirm(`You already have "${brand ? brand + ' ' : ''}${name}". Save a second one anyway?`)) return;
   const now = new Date().toISOString();
-  const rec = { brand, name, barcode: code || null, state: formState, notes: $('fNotes').value.trim(), source: formSource, ...vals, updatedAt: now };
-  if(editingId){ const i = foods.findIndex(f => f.id === editingId); foods[i] = { ...foods[i], ...rec }; }
+  const rec = { brand, noBrand: F.noBrand, name, barcode: code || null, cat: F.cat, sub: F.sub || 'general', state: F.state, unit: F.unit,
+    packs: [...F.packs], usualPack: F.usual, notes: $('fNotes').value.trim(), source: F.source, ...vals, updatedAt: now };
+  const wasEdit = !!F.editingId;
+  if(wasEdit){ const i = foods.findIndex(f => f.id === F.editingId); foods[i] = { ...foods[i], ...rec }; }
   else foods.push({ id: uid(), createdAt: now, ...rec });
-  if(saveFoods()){ close('ovForm'); render(); toast(editingId ? 'Updated' : 'Saved'); }
-});
+  if(saveFoods()){ close('ovForm'); if(ui.cat !== 'all' && ui.cat !== F.cat) ui.cat = 'all'; render(); toast(wasEdit ? 'Updated' : `Saved ${iconOf(rec) || ''}`); }
+}
 $('delBtn').addEventListener('click', () => {
-  const f = foods.find(x => x.id === editingId);
-  if(f && confirm(`Delete "${f.brand} ${f.name}"?`)){ foods = foods.filter(x => x.id !== editingId); saveFoods(); close('ovForm'); render(); toast('Deleted'); }
+  const i = foods.findIndex(x => x.id === F.editingId); if(i === -1) return;
+  const [gone] = foods.splice(i, 1); saveFoods(); close('ovForm'); render();
+  toast(`Deleted ${gone.name}`, 'Undo', () => { foods.splice(i, 0, gone); saveFoods(); render(); });
+});
+$('dupBtn').addEventListener('click', () => {
+  const f = foods.find(x => x.id === F.editingId); if(!f) return;
+  close('ovForm');
+  setTimeout(() => { openForm({ ...f, id:null, barcode:null, createdAt:null, updatedAt:null, source:'manual' }, null, 'new');
+    $('formSub').textContent = 'Copy of an existing food: change the flavour or size, then save.'; F.typeTouched = true; F.stateTouched = true; F.unitTouched = true; }, 60);
 });
 
-// ---------- add flow ----------
-$('addBtn').addEventListener('click', () => { status($('addStatus'), ''); open('ovAdd'); });
-$('optManual').addEventListener('click', () => { close('ovAdd'); openForm({}, null, 'new'); });
+// ================= add flow =================
+let pendingBarcode = null;
+$('addBtn').addEventListener('click', () => { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); });
+$('optManual').addEventListener('click', () => { close('ovAdd'); const code = pendingBarcode; pendingBarcode = null; openForm({ barcode: code }, null, 'new'); });
 
-// ---------- barcode ----------
-let scanner = null, scanning = false;
+// ================= barcode scanner =================
+// Uses the phone's built-in detector when it has one (Android Chrome), otherwise ZXing compiled to WebAssembly (iPhone, desktop).
+const FORMATS = ['ean_13','ean_8','upc_a','upc_e','code_128'];
+let detector = null, detectorP = null, stream = null, scanLoop = null, scanOn = false, torchOn = false;
+function getDetector(){
+  if(detector) return Promise.resolve(detector);
+  if(detectorP) return detectorP;
+  detectorP = (async () => {
+    if('BarcodeDetector' in window){
+      try{ const sup = await window.BarcodeDetector.getSupportedFormats();
+        if(sup.includes('ean_13')) return detector = new window.BarcodeDetector({ formats: FORMATS.filter(f => sup.includes(f)) }); }catch(e){}
+    }
+    const m = await import('https://fastly.jsdelivr.net/npm/barcode-detector@3/dist/es/ponyfill.min.js');
+    return detector = new m.BarcodeDetector({ formats: FORMATS });
+  })().catch(e => { detectorP = null; throw e; });
+  return detectorP;
+}
+function validGTIN(c){
+  if(!/^\d{8}$|^\d{12,14}$/.test(c)) return /^\d{6,}$/.test(c);
+  const d = c.split('').map(Number), check = d.pop();
+  const sum = d.reverse().reduce((s, n, i) => s + n * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - sum % 10) % 10 === check;
+}
 async function startScan(){
-  close('ovAdd'); open('ovScan'); status($('scanStatus'), ''); $('manualCode').value = '';
-  if(typeof Html5Qrcode === 'undefined'){ status($('scanStatus'), 'Scanner failed to load. Type the number below instead.', true); return; }
+  close('ovAdd'); open('ovScan'); status($('scanStatus'), 'Starting camera…'); $('manualCode').value = '';
+  $('torchBtn').classList.add('hide'); torchOn = false;
+  if(!navigator.mediaDevices?.getUserMedia){ status($('scanStatus'), 'This browser can’t use the camera here. Use “Scan from a photo” or type the number.', true); return; }
   try{
-    const F = Html5QrcodeSupportedFormats;
-    scanner = new Html5Qrcode('reader', { formatsToSupport:[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128], verbose:false,
-      experimentalFeatures:{ useBarCodeDetectorIfSupported:true } });
-    scanning = true;
-    await scanner.start({ facingMode:'environment' }, { fps:12, qrbox:(w,h)=>({ width:Math.min(w*0.85,320), height:Math.min(h*0.5,150) }) },
-      code => { if(scanning){ scanning = false; navigator.vibrate?.(60); stopScan().then(() => lookup(code)); } }, () => {});
+    const [det, s] = await Promise.all([ getDetector(),
+      navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 }, height:{ ideal:1080 } } }) ]);
+    if(!$('ovScan').classList.contains('open')){ s.getTracks().forEach(t => t.stop()); return; }
+    stream = s; const v = $('video'); v.srcObject = s; await v.play().catch(()=>{});
+    const track = s.getVideoTracks()[0], caps = track.getCapabilities ? track.getCapabilities() : {};
+    try{ if(caps.focusMode && caps.focusMode.includes('continuous')) await track.applyConstraints({ advanced:[{ focusMode:'continuous' }] }); }catch(e){}
+    if(caps.torch) $('torchBtn').classList.remove('hide');
+    status($('scanStatus'), '');
+    scanOn = true; let last = null;
+    const tick = async () => {
+      if(!scanOn) return;
+      try{
+        if(v.readyState >= 2){
+          const res = await det.detect(v);
+          const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
+          // need the same code twice in a row, so a half-read barcode never slips through
+          if(hit){ if(hit === last){ scanOn = false; navigator.vibrate?.(60); stopScan(); lookup(hit); return; } last = hit; }
+        }
+      }catch(e){}
+      scanLoop = setTimeout(tick, 90);
+    };
+    tick();
   }catch(e){
-    scanning = false;
-    status($('scanStatus'), location.protocol !== 'https:' && location.hostname !== 'localhost'
-      ? 'The camera only works over https (your GitHub Pages link). Type the number below instead.'
-      : 'Couldn’t open the camera. Allow camera access, or type the number below.', true);
+    const msg = e && e.name === 'NotAllowedError' ? 'Camera permission was blocked. Allow it in your browser settings, or use a photo / type the number.'
+      : location.protocol !== 'https:' ? 'The camera only works on your https:// GitHub Pages link. Type the number below instead.'
+      : 'Couldn’t start the live scanner. Use “Scan from a photo” or type the number.';
+    status($('scanStatus'), msg, true);
   }
 }
-async function stopScan(){ scanning = false; if(scanner){ try{ await scanner.stop(); }catch(e){} try{ scanner.clear(); }catch(e){} scanner = null; } }
+function stopScan(){
+  scanOn = false; clearTimeout(scanLoop);
+  if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  const v = $('video'); if(v) v.srcObject = null;
+}
 $('optScan').addEventListener('click', startScan);
-$('scanCancel').addEventListener('click', async () => { await stopScan(); close('ovScan'); });
-$('lookupBtn').addEventListener('click', async () => {
-  const c = $('manualCode').value.replace(/\D/g,''); if(c.length < 6){ toast('That barcode looks too short'); return; }
-  await stopScan(); lookup(c);
+$('scanCancel').addEventListener('click', () => close('ovScan'));
+$('torchBtn').addEventListener('click', async () => {
+  const t = stream && stream.getVideoTracks()[0]; if(!t) return;
+  try{ torchOn = !torchOn; await t.applyConstraints({ advanced:[{ torch: torchOn }] }); $('torchBtn').classList.toggle('on', torchOn); }catch(e){ toast('Light not available'); }
 });
+$('scanPhotoBtn').addEventListener('click', () => { $('barcodePhoto').value = ''; $('barcodePhoto').click(); });
+$('barcodePhoto').addEventListener('change', async e => {
+  const file = e.target.files[0]; if(!file) return;
+  status($('scanStatus'), 'Reading the barcode from the photo…');
+  try{
+    const det = await getDetector(); const bmp = await createImageBitmap(file);
+    const res = await det.detect(bmp); const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
+    if(hit){ stopScan(); lookup(hit); } else status($('scanStatus'), 'No barcode found in that photo. Get closer and keep it sharp, or type the number.', true);
+  }catch(err){ status($('scanStatus'), 'Couldn’t read that photo. Type the number below instead.', true); }
+});
+$('lookupBtn').addEventListener('click', () => {
+  const c = $('manualCode').value.replace(/\D/g,'');
+  if(!c){ toast('Type the numbers under the barcode first'); $('manualCode').focus(); return; }
+  if(c.length < 8){ toast('Barcodes have 8 or 13 digits, keep going'); return; }
+  if(!validGTIN(c) && !confirm('That number doesn’t look like a valid barcode (a digit may be off). Look it up anyway?')) return;
+  stopScan(); lookup(c);
+});
+$('manualCode').addEventListener('keydown', e => { if(e.key === 'Enter') $('lookupBtn').click(); });
 
+function parseQty(p){
+  let n = Number(p.product_quantity), u = String(p.product_quantity_unit || '').toLowerCase();
+  if(!(n > 0)){
+    const m = String(p.quantity || '').toLowerCase().replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(kg|g|gr|l|lt|ml|cl)\b/);
+    if(!m) return null; n = Number(m[1]); u = m[2];
+    if(u === 'kg'){ n *= 1000; u = 'g'; } if(u === 'l' || u === 'lt'){ n *= 1000; u = 'ml'; } if(u === 'cl'){ n *= 10; u = 'ml'; } if(u === 'gr') u = 'g';
+  }
+  return (u === 'g' || u === 'ml') ? { size: Math.round(n), unit: u } : null;
+}
 async function lookup(code){
   open('ovScan'); status($('scanStatus'), `Looking up ${code}…`);
   const existing = foods.find(f => f.barcode === code);
   if(existing){ close('ovScan'); toast('Already in your database'); openForm(existing, null, 'edit'); return; }
   try{
-    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity`);
+    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity,quantity,product_quantity,product_quantity_unit,categories_tags`);
     const j = await r.json();
-    if(j.status !== 1 || !j.product){ return notFound(code, 'not in Open Food Facts'); }
+    if(j.status !== 1 || !j.product) return notFound(code, 'not in Open Food Facts');
     const p = j.product, n = p.nutriments || {};
-    const g = k => { const v = n[k + '_100g']; return (v === undefined || v === '' || v === null) ? null : Math.round(Number(v)*10)/10; };
-    let kcal = g('energy-kcal');
-    if(kcal === null && n['energy_100g'] != null) kcal = Math.round(Number(n['energy_100g']) / 4.184);
+    const g = k => { const v = n[k + '_100g']; return (v === undefined || v === '' || v === null) ? null : r1(Number(v)); };
+    let kcal = g('energy-kcal'); if(kcal === null && n['energy_100g'] != null) kcal = Math.round(Number(n['energy_100g']) / 4.184);
+    const q = parseQty(p);
     const data = {
-      barcode: code,
-      brand: (p.brands || '').split(',')[0].trim(),
+      barcode: code, brand: (p.brands || '').split(',')[0].trim(),
       name: p.product_name_el || p.product_name || p.product_name_en || p.generic_name || '',
+      hint: (p.categories_tags || []).slice(-3).map(t => t.replace(/^\w\w:/,'').replace(/-/g,' ')).join(' '),
       kcal, protein: g('proteins'), carbs: g('carbohydrates'), fat: g('fat'),
       fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'),
-      serving: p.serving_quantity ? Number(p.serving_quantity) : null, source: 'openfoodfacts'
+      serving: p.serving_quantity ? Number(p.serving_quantity) : null,
+      unit: q ? q.unit : undefined, unitFromLabel: !!q, packs: q ? [q.size] : [], usualPack: q ? q.size : null,
+      source: 'openfoodfacts'
     };
     if(data.protein === null && data.carbs === null && data.fat === null) return notFound(code, 'found, but with no macros');
     close('ovScan'); openForm(data, 'Open Food Facts', 'new');
   }catch(e){ notFound(code, 'lookup failed (no internet?)'); }
 }
 function notFound(code, why){
-  close('ovScan'); open('ovAdd');
-  pendingBarcode = code;
-  status($('addStatus'), `Barcode ${code}: ${why}. Snap the nutrition label instead, or type it in.`, true);
+  close('ovScan'); open('ovAdd'); pendingBarcode = code;
+  status($('addStatus'), `Barcode ${code}: ${why}. Snap the nutrition label or type it in, and the barcode will be saved with it.`, true);
 }
 
-// ---------- label photo → Gemini ----------
-let pendingBarcode = null;
+// ================= label photo → Gemini =================
 $('optPhoto').addEventListener('click', () => {
   if(!settings.geminiKey){ status($('addStatus'), 'Add your free Gemini key in Settings (⚙︎) first, or type the label in.', true); return; }
   $('photoInput').value = ''; $('photoInput').click();
@@ -398,55 +866,50 @@ $('photoInput').addEventListener('change', async e => {
   status($('addStatus'), 'Reading the label…');
   try{
     const b64 = await shrink(file);
-    const prompt = `You read food nutrition labels (often Greek). Return ONLY JSON, no prose:
-{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"serving":number|null,"state":"uncooked"|"cooked"|"ready"}
-Rules: values per 100 g (or 100 ml) column, never per serving. kcal not kJ. "carbs" is total carbohydrate (Υδατάνθρακες), "sugar" is "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 g using the serving size. state is "uncooked" for dry rice/pasta/oats/raw meat labels, else "ready". Use null for anything you cannot read.`;
+    const prompt = `You read food nutrition labels (often Greek). Return ONLY JSON:
+{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
+Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`;
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(settings.model || DEFAULT_MODEL)}:generateContent`, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
-      body: JSON.stringify({ contents:[{ parts:[ { text: prompt }, { inline_data:{ mime_type:'image/jpeg', data:b64 } } ] }],
-        generationConfig:{ responseMimeType:'application/json', temperature:0 } })
+      method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
+      body: JSON.stringify({ contents:[{ parts:[{ text: prompt }, { inline_data:{ mime_type:'image/jpeg', data:b64 } }] }], generationConfig:{ responseMimeType:'application/json', temperature:0 } })
     });
     const j = await r.json();
     if(!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
     const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
     const d = JSON.parse(txt.replace(/^```(json)?|```$/g,'').trim());
+    if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; }
+    if(d.unit === 'g' || d.unit === 'ml') d.unitFromLabel = true; else delete d.unit;
     if(pendingBarcode) d.barcode = pendingBarcode;
-    d.source = 'label photo';
-    pendingBarcode = null;
+    d.source = 'label photo'; pendingBarcode = null;
     close('ovAdd'); openForm(d, 'the label photo', 'new');
-  }catch(err){
-    status($('addStatus'), `Couldn’t read it: ${err.message}. Try a sharper, straight-on photo, or type it in.`, true);
-  }
+  }catch(err){ status($('addStatus'), `Couldn’t read it: ${err.message}. Try a sharper, straight-on photo, or type it in.`, true); }
 });
 function shrink(file){
   return new Promise((res, rej) => {
     const img = new Image(), url = URL.createObjectURL(file);
-    img.onload = () => {
-      const max = 1600, s = Math.min(1, max / Math.max(img.width, img.height));
-      const c = document.createElement('canvas'); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-      res(c.toDataURL('image/jpeg', 0.85).split(',')[1]);
-    };
-    img.onerror = () => rej(new Error('could not open the photo'));
-    img.src = url;
+    img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas');
+      c.width = Math.round(img.width*s); c.height = Math.round(img.height*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85).split(',')[1]); };
+    img.onerror = () => rej(new Error('could not open the photo')); img.src = url;
   });
 }
-// carry a not-found barcode into a manual entry too
-$('optManual').addEventListener('click', () => { if(pendingBarcode){ $('fCode').value = pendingBarcode; pendingBarcode = null; } });
 
-// ---------- settings + data ----------
+// ================= settings + data =================
 $('openSettings').addEventListener('click', () => { $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; open('ovSettings'); });
-$('saveSettings').addEventListener('click', () => {
-  settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL;
-  if(store(SKEY, settings)) toast('Settings saved');
-});
+$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(store(SKEY, settings)) toast('Settings saved'); });
 function claudeText(){
-  const lines = foods.slice().sort((a,b)=>(a.brand||'').localeCompare(b.brand||'')).map(f =>
-    `- ${f.brand ? f.brand + ' ' : ''}${f.name} [${STATE_LABEL[f.state]||f.state}]: ${fmt(f.kcal)} kcal, P ${fmt(f.protein)} / C ${fmt(f.carbs)} / F ${fmt(f.fat)}` +
-    (f.fiber!=null?`, fibre ${fmt(f.fiber)}`:'') + (f.sugar!=null?`, sugar ${fmt(f.sugar)}`:'') +
-    (f.serving?` (serving ${fmt(f.serving)} g)`:'') + (f.notes?` — ${f.notes}`:''));
-  return `My food database (${foods.length} foods, macros per 100 g; [uncooked] = raw/dry weight, [cooked] = cooked weight). Exported ${new Date().toLocaleDateString('en-GB')}:\n` + lines.join('\n');
+  const byCat = {};
+  foods.forEach(f => { const k = f.cat ? typeLabel(f.cat,'general') : 'No type'; (byCat[k] = byCat[k] || []).push(f); });
+  const out = [`My food database (${foods.length} foods). Macros are per 100 g or 100 ml as marked; [uncooked] = raw/dry weight, [cooked] = cooked weight. Exported ${new Date().toLocaleDateString('en-GB')}.`];
+  for(const [cat, list] of Object.entries(byCat).sort()){
+    out.push(`\n${cat}:`);
+    list.sort((a,b) => norm(a.name).localeCompare(norm(b.name))).forEach(f => out.push(
+      `- ${f.noBrand ? '' : (f.brand ? f.brand + ' ' : '')}${f.name}${f.sub && f.sub !== 'general' ? ` (${subOf(f.cat,f.sub).label.toLowerCase()})` : ''} [${STATE_LABEL[f.state]||f.state}], per 100 ${f.unit}: ${fmt(f.kcal)} kcal, P ${fmt(f.protein)} / C ${fmt(f.carbs)} / F ${fmt(f.fat)}` +
+      (f.fiber!=null?`, fibre ${fmt(f.fiber)}`:'') + (f.sugar!=null?`, sugar ${fmt(f.sugar)}`:'') +
+      (f.packs.length ? `; packs ${f.packs.map(p => fmtSize(p, f.unit)).join(', ')}${f.usualPack ? ` (usually ${fmtSize(f.usualPack, f.unit)})` : ''}` : '') +
+      (f.serving ? `; serving ${fmtSize(f.serving, f.unit)}` : '') + (f.notes ? ` — ${f.notes}` : '')));
+  }
+  return out.join('\n');
 }
 $('copyClaude').addEventListener('click', async () => {
   if(!foods.length){ toast('Nothing to copy yet'); return; }
@@ -455,31 +918,33 @@ $('copyClaude').addEventListener('click', async () => {
   catch(e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copied'); }
 });
 $('exportJson').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ app:'food-tracker', version:1, exportedAt:new Date().toISOString(), foods }, null, 2)], { type:'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `food-tracker-${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  const blob = new Blob([JSON.stringify({ app:'food-tracker', version:VERSION, exportedAt:new Date().toISOString(), foods }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `food-tracker-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 $('importBtn').addEventListener('click', () => { $('importInput').value=''; $('importInput').click(); });
 $('importInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
   try{
-    const data = JSON.parse(await file.text());
-    const incoming = Array.isArray(data) ? data : data.foods;
+    const data = JSON.parse(await file.text()); const incoming = Array.isArray(data) ? data : data.foods;
     if(!Array.isArray(incoming)) throw new Error();
     let added = 0, updated = 0;
-    for(const f of incoming){
-      if(!f || !f.name) continue;
+    for(const raw of incoming){
+      if(!raw || !raw.name) continue; const f = migrate(raw);
       const i = foods.findIndex(x => x.id === f.id);
-      if(i === -1){ foods.push({ id: f.id || uid(), ...f }); added++; }
+      if(i === -1){ foods.push({ ...f, id: f.id || uid() }); added++; }
       else if((f.updatedAt||'') > (foods[i].updatedAt||'')){ foods[i] = f; updated++; }
     }
     saveFoods(); render(); toast(`Imported: ${added} new, ${updated} updated`);
   }catch(err){ toast('That file isn’t a Food Tracker backup'); }
 });
 
-// ---------- go ----------
+// ================= go =================
 render();
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+// warm up the scanner engine in the background so the first scan opens fast
+if(location.protocol === 'https:') setTimeout(() => getDetector().catch(()=>{}), 2500);
+window.__ft = { guessType, guessState, validGTIN, parseQty, claudeText };
 })();
 </script>
 </body>
