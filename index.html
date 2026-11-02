@@ -164,6 +164,25 @@ input:disabled{opacity:.4}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 .hide{display:none!important}
 .ver{color:var(--muted);font-size:12px;text-align:center;margin-top:14px}
+/* v1.4 */
+:root{ --orange:#ff8a2a; --ok:#59d38c; }
+.btn.back{width:100%;flex:1 1 100%;background:var(--orange);border-color:var(--orange);color:#1c0e00;font-size:17px;padding:16px}
+.backpill{background:var(--orange);border:0;color:#1c0e00;font-weight:700;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer}
+.sheethead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+.sheethead h2{margin:0}
+.tile.wide{grid-column:1/-1;min-height:96px;flex-direction:row;align-items:center;justify-content:flex-start}
+.tile.wide .e{font-size:34px}
+textarea.big{min-height:180px;font-size:15px;line-height:1.45}
+.parsed li.miss{color:var(--c)}
+.slots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.slot{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:999px;padding:6px 10px;font-size:13px;cursor:pointer}
+.slot.taken{background:#123622;border-color:var(--ok);color:var(--ok);font-weight:600}
+.tchips{display:flex;flex-wrap:wrap;gap:6px}
+.tchips button{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
+.tchips button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.progress{height:8px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:4px 0 12px}
+.progress i{display:block;height:100%;background:var(--ok);border-radius:999px;transition:width .3s}
+.tag{font-size:11px;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -179,6 +198,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
     <button class="tile big" id="tScan"><span class="e">▥</span><span><b data-t="tScan"></b><small data-t="tScanSub"></small></span></button>
     <button class="tile" id="tFoods"><span class="e">🗂️</span><span><b data-t="tFoods"></b><small id="tFoodsSub"></small></span></button>
     <button class="tile" id="tMeals"><span class="e">🍲</span><span><b data-t="tMeals"></b><small id="tMealsSub"></small></span></button>
+    <button class="tile wide" id="tSupps"><span class="e">💊</span><span><b data-t="tSupps"></b><small id="tSuppsSub"></small></span></button>
     <button class="tile soon" id="tFridge"><span class="badge" data-t="soon"></span><span class="e">🧊</span><span><b data-t="tFridge"></b><small data-t="tFridgeSub"></small></span></button>
     <button class="tile soon" id="tGroc"><span class="badge" data-t="soon"></span><span class="e">🛒</span><span><b data-t="tGroc"></b><small data-t="tGrocSub"></small></span></button>
   </div>
@@ -202,6 +222,17 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
     <div class="bar"><span id="mCount"></span></div>
     <div class="list" id="mList"></div>
   </div>
+</section>
+
+<!-- ============ MY SUPPLEMENTS ============ -->
+<section class="page wrap hide" id="pgSupps">
+  <header>
+    <div class="left"><button class="iconbtn" id="backBtn2" aria-label="Back">‹</button><h1 data-t="tSupps"></h1></div>
+    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
+  </header>
+  <div class="bar" style="margin-top:4px"><span id="sToday"></span><span id="sTodayN"></span></div>
+  <div class="progress"><i id="sProg" style="width:0"></i></div>
+  <div class="list" id="sList"></div>
 </section>
 
 <button class="fab hide" id="fab"></button>
@@ -374,7 +405,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
   <label for="cName" data-t="mealName"></label>
   <input id="cName" data-tp="mealNamePh" autocomplete="off">
   <div id="recipeBox">
-    <div class="actions" style="margin-top:10px"><button class="btn" id="suggestBtn" data-t="suggestRecipe"></button></div>
+    <div class="actions" style="margin-top:10px"><button class="btn" id="suggestBtn" data-t="suggestRecipe"></button><button class="btn" id="ownBtn" data-t="ownRecipe"></button></div>
     <div class="hint" id="suggestHint"></div>
   </div>
   <div id="recipeShow" class="hide"></div>
@@ -422,6 +453,50 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
   </div>
 </div></div>
 
+<!-- ============ OWN RECIPE ============ -->
+<div class="overlay" id="ovOwn"><div class="sheet tall">
+  <h2 data-t="ownRecipeT"></h2>
+  <p class="sub" data-t="ownRecipeSub"></p>
+  <textarea id="ownText" class="big" data-tp="ownPh"></textarea>
+  <div class="actions" style="margin-top:10px"><button class="btn" id="ownRead" data-t="readRecipe"></button></div>
+  <div id="ownOut"></div>
+  <div class="actions">
+    <button class="btn" data-close data-t="cancel"></button>
+    <button class="btn primary" id="ownUse" disabled data-t="useRecipe"></button>
+  </div>
+</div></div>
+
+<!-- ============ SUPPLEMENT FORM ============ -->
+<div class="overlay" id="ovSupp"><div class="sheet tall">
+  <h2 id="supTitle"></h2>
+  <div id="supQuick">
+    <p class="sub" data-t="supQuickSub"></p>
+    <div class="tchips" id="supQuickList"></div>
+  </div>
+  <label for="supName" data-t="supName"></label>
+  <input id="supName" data-tp="supNamePh" autocomplete="off">
+  <label data-t="supDose"></label>
+  <div class="brandrow">
+    <input id="supDose" type="number" inputmode="decimal" step="any" min="0" style="flex:1">
+    <select id="supUnit" style="flex:1"></select>
+  </div>
+  <div class="hint" data-t="supDoseHint"></div>
+  <label data-t="supWhen"></label>
+  <div class="tchips" id="supTimes"></div>
+  <label data-t="supOften"></label>
+  <div class="seg" id="supOften"><button data-v="daily" data-t="oftenDaily"></button><button data-v="training" data-t="oftenTraining"></button><button data-v="asneeded" data-t="oftenNeeded"></button></div>
+  <label for="supFood" data-t="supLink"></label>
+  <select id="supFood"></select>
+  <div class="hint" id="supLinkHint"></div>
+  <label for="supNotes" data-t="notes"></label>
+  <textarea id="supNotes" rows="2" data-tp="supNotesPh"></textarea>
+  <div class="actions">
+    <button class="btn small danger hide" id="supDel" data-t="delete"></button>
+    <button class="btn" data-close data-t="cancel"></button>
+    <button class="btn primary" id="supSave" data-t="save"></button>
+  </div>
+</div></div>
+
 <!-- ============ MEAL DETAIL ============ -->
 <div class="overlay" id="ovMeal"><div class="sheet tall">
   <div class="row"><h2 id="mdName"></h2><span class="chip" id="mdWhen"></span></div>
@@ -442,7 +517,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 
 <!-- ============ SETTINGS ============ -->
 <div class="overlay" id="ovSettings"><div class="sheet">
-  <h2 data-t="settings"></h2>
+  <div class="sheethead"><h2 data-t="settings"></h2><button class="backpill" data-close data-t="backArrow"></button></div>
   <p class="sub" data-t="settingsSub"></p>
   <label data-t="language"></label>
   <div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div>
@@ -462,15 +537,15 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
     <button class="btn" id="importBtn" data-t="import"></button>
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
-  <div class="actions"><button class="btn" data-close data-t="close"></button></div>
-  <div class="ver">Tracker v1.3</div>
+  <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
+  <div class="ver">Tracker v1.4</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 (() => {
-const VERSION = '1.3';
+const VERSION = '1.4';
 const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 const DEFAULT_MODEL = 'gemini-flash-latest';
 const KEY_URL = 'https://aistudio.google.com/apikey';
@@ -605,6 +680,37 @@ const S = {
  imported:['Imported: {a} new, {u} updated','Εισαγωγή: {a} νέα, {u} ενημερωμένα'], badBackup:['That file isn’t a Tracker backup','Αυτό δεν είναι αντίγραφο του Tracker'],
  saveFail:['Could not save on this device','Δεν έγινε αποθήκευση στη συσκευή'], lightNA:['Light not available','Δεν υπάρχει φως'],
  comingSoon:['Coming in a later version','Έρχεται σε επόμενη έκδοση'],
+ // v1.4
+ backArrow:['← Back','← Πίσω'],
+ tryingModel:['Trying model {i} of {n}…','Δοκιμή μοντέλου {i} από {n}…'], cancelRec:['✕ Cancel · model {i} of {n}','✕ Ακύρωση · μοντέλο {i} από {n}'],
+ cancelled:['Cancelled','Ακυρώθηκε'], timedOut:['took too long','άργησε πολύ'],
+ allBusy:['Every Gemini model is busy or out of free uses right now ({e}). Try again later, or use “Add my own recipe”.','Όλα τα μοντέλα Gemini είναι απασχολημένα ή τελείωσαν οι δωρεάν χρήσεις ({e}). Δοκίμασε αργότερα ή χρησιμοποίησε «Δική μου συνταγή».'],
+ keyBad:['Google rejected the key: {e}. Check it in settings.','Η Google απέρριψε το κλειδί: {e}. Έλεγξέ το στις ρυθμίσεις.'],
+ ownRecipe:['📝 Add my own recipe','📝 Δική μου συνταγή'], ownRecipeT:['Add my own recipe','Δική μου συνταγή'],
+ ownRecipeSub:['Type it or paste it from anywhere (Claude, ChatGPT, a website). Amounts like “500 g mince” or “2 tbsp olive oil” are read automatically, no AI needed.','Γράψε ή επικόλλησέ τη από οπουδήποτε (Claude, ChatGPT, κάποιο site). Ποσότητες όπως «500 γρ. κιμάς» ή «2 κ.σ. ελαιόλαδο» διαβάζονται αυτόματα, χωρίς AI.'],
+ ownPh:['Chicken in the pan\n\nIngredients\n600 g chicken breast\n1 onion\n2 tbsp olive oil\n\nSteps\n1. Cut the chicken into strips…','Κοτόπουλο στο τηγάνι\n\nΥλικά\n600 γρ. κοτόπουλο στήθος\n1 κρεμμύδι\n2 κ.σ. ελαιόλαδο\n\nΕκτέλεση\n1. Κόψε το κοτόπουλο σε λωρίδες…'],
+ readRecipe:['Read recipe','Ανάγνωση συνταγής'], foundIng:['{n} ingredients','{n} υλικά'], foundSteps:['{n} steps','{n} βήματα'],
+ noAmount:['no amount, add it after','χωρίς ποσότητα, βάλ’ τη μετά'], willPick:['you’ll pick the food','θα διαλέξεις τρόφιμο'],
+ nothingFound:['Couldn’t find any ingredients or steps. Put each ingredient on its own line.','Δεν βρέθηκαν υλικά ή βήματα. Βάλε κάθε υλικό σε δική του γραμμή.'],
+ ownTag:['your recipe','δική σου συνταγή'],
+ // supplements
+ tSupps:['My supplements','Τα συμπληρώματά μου'], nSupps:['{n} supplements','{n} συμπληρώματα'], nSupp:['1 supplement','1 συμπλήρωμα'],
+ addSuppFab:['＋ Add supplement','＋ Προσθήκη'], addSupp:['Add supplement','Νέο συμπλήρωμα'], editSupp:['Edit supplement','Επεξεργασία'],
+ supQuickSub:['Pick a common one or type your own below.','Διάλεξε ένα συνηθισμένο ή γράψε το δικό σου από κάτω.'],
+ supName:['Name','Όνομα'], supNamePh:['e.g. Magnesium bisglycinate','π.χ. Μαγνήσιο δισγλυκινικό'],
+ supDose:['Dose each time','Δόση κάθε φορά'], supDoseHint:['Use the dose on your label or what your doctor told you.','Βάλε τη δόση της ετικέτας ή αυτή που σου είπε ο γιατρός.'],
+ supWhen:['When do you take it?','Πότε το παίρνεις;'], supOften:['How often','Πόσο συχνά'],
+ oftenDaily:['Every day','Κάθε μέρα'], oftenTraining:['Training days','Μέρες προπόνησης'], oftenNeeded:['When needed','Όταν χρειάζεται'],
+ supLink:['Linked food (for macros)','Σύνδεση με τρόφιμο (για μακρο)'], supLinkNone:['— None —','— Κανένα —'],
+ supLinkHint:['Link whey or anything with calories so its macros count later.','Σύνδεσε την πρωτεΐνη ή ό,τι έχει θερμίδες, για να μετράνε τα μακρο αργότερα.'],
+ supNotesPh:['e.g. take with food','π.χ. με φαγητό'],
+ supNeedName:['Give it a name','Δώσε όνομα'], supNeedDose:['Add the dose','Βάλε τη δόση'], supNeedTime:['Pick when you take it','Διάλεξε πότε το παίρνεις'],
+ todayLabel:['Today','Σήμερα'], todayTaken:['{a} of {b} taken','{a} από {b}'], allTaken:['All done today 💪','Όλα έτοιμα για σήμερα 💪'],
+ noSupps:['<b>No supplements yet</b>Tap “Add supplement” to list what you take.','<b>Δεν έχεις συμπληρώματα ακόμα</b>Πάτα «Προσθήκη» για να βάλεις ό,τι παίρνεις.'],
+ tagTraining:['training days','μέρες προπόνησης'], tagNeeded:['when needed','όταν χρειάζεται'],
+ slot_morning:['Morning','Πρωί'], slot_breakfast:['With breakfast','Με το πρωινό'], slot_pre:['Pre-workout','Πριν την προπόνηση'], slot_post:['Post-workout','Μετά την προπόνηση'],
+ slot_lunch:['With lunch','Με το μεσημεριανό'], slot_dinner:['With dinner','Με το βραδινό'], slot_bed:['Before bed','Πριν τον ύπνο'], slot_any:['Any time','Οποτεδήποτε'],
+ u_mg:['mg','mg'], u_g:['g','g'], u_mcg:['mcg','mcg'], u_IU:['IU','IU'], u_ml:['ml','ml'], u_caps:['capsules','κάψουλες'], u_tabs:['tablets','ταμπλέτες'], u_scoops:['scoops','μεζούρες'], u_drops:['drops','σταγόνες'],
 };
 let lang = 'en';
 function t(k, v){ const e = S[k]; let s = e ? (e[lang === 'el' ? 1 : 0] ?? e[0]) : k; if(v) for(const [a,b] of Object.entries(v)) s = s.split(`{${a}}`).join(b); return s; }
@@ -898,6 +1004,10 @@ function migrate(f){
 }
 let foods = load(KEY, []).map(migrate);
 let meals = load(MKEY, []);
+const SUKEY = 'ft.supps.v1', LOGKEY = 'ft.supplog.v1';
+let supps = load(SUKEY, []);
+let suppLog = load(LOGKEY, {});
+const saveSupps = () => store(SUKEY, supps);
 let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, load(SKEY, {}));
 let ui = Object.assign({ sort:'recent', cat:'all', lang:null }, load(UKEY, {}));
 lang = ui.lang || 'en';
@@ -949,36 +1059,41 @@ function portion(f){
 }
 function route(){
   const h = location.hash.replace('#','');
-  const page = h === 'foods' || h === 'meals' ? 'foods' : 'home';
+  const page = h === 'foods' || h === 'meals' ? 'foods' : h === 'supps' ? 'supps' : 'home';
   $('pgHome').classList.toggle('hide', page !== 'home');
   $('pgFoods').classList.toggle('hide', page !== 'foods');
+  $('pgSupps').classList.toggle('hide', page !== 'supps');
   const tab = h === 'meals' ? 'meals' : 'store';
   setSeg('#foodTabs', tab);
   $('storeView').classList.toggle('hide', tab !== 'store');
   $('mealsView').classList.toggle('hide', tab !== 'meals');
   const fab = $('fab');
-  fab.classList.toggle('hide', page !== 'foods');
-  fab.textContent = tab === 'meals' ? t('cookFab') : t('addFoodFab');
-  fab.dataset.action = tab;
+  fab.classList.toggle('hide', page === 'home');
+  fab.textContent = page === 'supps' ? t('addSuppFab') : tab === 'meals' ? t('cookFab') : t('addFoodFab');
+  fab.dataset.action = page === 'supps' ? 'supps' : tab;
   renderAll();
   window.scrollTo(0, 0);
 }
 function go(h){ if(location.hash === '#' + h) route(); else location.hash = h; }
 window.addEventListener('hashchange', route);
 $('backBtn').addEventListener('click', () => go('home'));
+$('backBtn2').addEventListener('click', () => go('home'));
+$('tSupps').addEventListener('click', () => go('supps'));
 $('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : 'foods')), route(); });
 $('tScan').addEventListener('click', () => startScan());
 $('tFoods').addEventListener('click', () => go('foods'));
 $('tMeals').addEventListener('click', () => go('meals'));
 $('tFridge').addEventListener('click', () => toast(t('comingSoon')));
 $('tGroc').addEventListener('click', () => toast(t('comingSoon')));
-$('fab').addEventListener('click', () => { if($('fab').dataset.action === 'meals') openCook(null, 'new'); else { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); } });
+$('fab').addEventListener('click', () => { const a = $('fab').dataset.action; if(a === 'supps') openSupp(null); else if(a === 'meals') openCook(null, 'new'); else { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); } });
 document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 
-function renderAll(){ renderHome(); render(); renderMeals(); }
+function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); }
 function renderHome(){
   $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
   $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
+  const tp = todayProgress();
+  $('tSuppsSub').textContent = !supps.length ? t('nSupps', { n: 0 }) : (supps.length === 1 ? t('nSupp') : t('nSupps', { n: supps.length })) + (tp.total ? ` · ${t('todayLabel')}: ${t('todayTaken', { a: tp.done, b: tp.total })}` : '');
 }
 
 // ======================= store-bought list =======================
@@ -1424,16 +1539,62 @@ function notFound(code, why){
 }
 
 // ======================= Gemini (label photos + recipes) =======================
-async function gemini(prompt, imageB64){
+// Free Gemini models get overloaded, so we try every model your key can use, each for at most 30 s, until one answers.
+const MLKEY = 'ft.models.v1', GEMINI_TIMEOUT = 30000, GAPI = 'https://generativelanguage.googleapis.com/v1beta/models';
+function fetchT(url, opts, ms, outer){
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), ms);
+  const onOuter = () => ctl.abort();
+  if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', onOuter); }
+  return fetch(url, { ...opts, signal: ctl.signal }).finally(() => { clearTimeout(timer); if(outer) outer.removeEventListener('abort', onOuter); });
+}
+function sortModels(names){
+  const ver = n => { const m = n.match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
+  const tier = n => /latest/.test(n) ? 0 : /preview|exp/.test(n) ? 2 : 1;
+  const kind = n => /flash-lite/.test(n) ? 1 : /flash/.test(n) ? 0 : /pro/.test(n) ? 3 : 2;
+  return names.sort((a,b) => tier(a) - tier(b) || ver(b) - ver(a) || kind(a) - kind(b));
+}
+async function listModels(){
+  const tag = settings.geminiKey.slice(-6), c = load(MLKEY, null);
+  if(c && c.tag === tag && Date.now() - c.at < 864e5 && c.list && c.list.length) return c.list;
+  try{
+    const r = await fetchT(`${GAPI}?pageSize=200`, { headers:{ 'x-goog-api-key': settings.geminiKey } }, 10000);
+    if(!r.ok) return [];
+    const j = await r.json();
+    const list = sortModels((j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map(m => m.name.replace(/^models\//, ''))
+      .filter(n => /^gemini/.test(n) && !/(embed|image|tts|audio|live|aqa|robotics|computer|learnlm)/.test(n)));
+    store(MLKEY, { at: Date.now(), tag, list });
+    return list;
+  }catch(e){ return []; }
+}
+async function gemini(prompt, imageB64, onTry, outer){
   const parts = [{ text: prompt }]; if(imageB64) parts.push({ inline_data:{ mime_type:'image/jpeg', data:imageB64 } });
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(settings.model || DEFAULT_MODEL)}:generateContent`, {
-    method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
-    body: JSON.stringify({ contents:[{ parts }], generationConfig:{ responseMimeType:'application/json', temperature: imageB64 ? 0 : 0.6 } })
-  });
-  const j = await r.json();
-  if(!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
-  const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-  return JSON.parse(txt.replace(/^```(json)?|```$/g,'').trim());
+  const chain = [...new Set([settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...(await listModels())])].slice(0, 10);
+  let lastErr = null;
+  for(let i = 0; i < chain.length; i++){
+    if(outer && outer.aborted) throw Object.assign(new Error(t('cancelled')), { cancelled: true });
+    if(onTry) onTry(i + 1, chain.length, chain[i]);
+    try{
+      const r = await fetchT(`${GAPI}/${encodeURIComponent(chain[i])}:generateContent`, {
+        method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
+        body: JSON.stringify({ contents:[{ parts }], generationConfig:{ responseMimeType:'application/json', temperature: imageB64 ? 0 : 0.6 } })
+      }, GEMINI_TIMEOUT, outer);
+      let j = null; try{ j = await r.json(); }catch(e){}
+      if(!r.ok){
+        const msg = (j && j.error && j.error.message) || `HTTP ${r.status}`;
+        // a bad key won't work on any model, so stop right away; everything else → next model
+        if(r.status === 401 || /api key not valid|api_key_invalid|denied access/i.test(msg)) throw Object.assign(new Error(t('keyBad', { e: msg.replace(/\.\s*$/, '') })), { fatal: true });
+        lastErr = new Error(msg.length > 90 ? msg.slice(0, 90) + '…' : msg); continue;
+      }
+      const txt = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+      try{ return JSON.parse(txt.replace(/^\s*```(json)?|```\s*$/g, '').trim()); }catch(e){ lastErr = new Error('unreadable answer'); continue; }
+    }catch(e){
+      if(e.fatal) throw e;
+      if(outer && outer.aborted) throw Object.assign(new Error(t('cancelled')), { cancelled: true });
+      lastErr = e && e.name === 'AbortError' ? new Error(t('timedOut')) : e;
+    }
+  }
+  throw new Error(t('allBusy', { e: lastErr ? lastErr.message : '?' }));
 }
 $('optPhoto').addEventListener('click', () => {
   if(!settings.geminiKey){ status($('addStatus'), t('needKey'), true); return; }
@@ -1442,10 +1603,12 @@ $('optPhoto').addEventListener('click', () => {
 $('photoInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
   status($('addStatus'), t('readingLabel'));
+  const onTry = (i, n) => status($('addStatus'), t('readingLabel') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : ''));
   try{
+    const img = await shrink(file);
     const d = await gemini(`You read food nutrition labels (often Greek). Return ONLY JSON:
 {"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
-Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, await shrink(file));
+Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, img, onTry);
     if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; }
     if(d.unit === 'g' || d.unit === 'ml') d.unitFromLabel = true; else delete d.unit;
     if(pendingBarcode) d.barcode = pendingBarcode;
@@ -1465,19 +1628,25 @@ function shrink(file){
 
 // ======================= ingredient search =======================
 // Order: your own foods → the standard list (works in Greek and English) → Open Food Facts online
-function scoreHay(hay, name, tokens, q){
+// names are checked in both Greek and English, so "κοτόπουλο στήθος" and "chicken breast" land on the same food
+function scoreHay(hay, names, tokens, q){
   if(!tokens.every(tk => hay.includes(tk))) return 0;
-  const n = norm(name); let s = 10;
-  if(n.startsWith(q)) s += 6; else if(n.includes(q)) s += 3;
-  if(tokens.every(tk => n.includes(tk))) s += 4;
-  return s - Math.min(n.length, 60) / 30;
+  let best = 0;
+  for(const nm of names){ if(!nm) continue; const n = norm(nm); let s = 10;
+    if(n.startsWith(q)) s += 6; else if(n.includes(q)) s += 3;
+    if(tokens.every(tk => n.includes(tk))) s += 4;
+    best = Math.max(best, s - Math.min(n.length, 60) / 30); }
+  return best;
 }
-function searchLocal(text){
+function searchLocal(text, raw){
   const q = norm(text), tokens = q.split(' ').filter(Boolean);
   if(!tokens.length) return { mine: [], std: [] };
-  const mine = foods.map(f => ({ f, s: scoreHay(foodHay(f), foodName(f), tokens, q) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.f);
+  const names = f => [foodName(f), f.name, f.gid && GENBY[f.gid] ? GENBY[f.gid].en : '', f.gid && GENBY[f.gid] ? GENBY[f.gid].el : ''];
+  const mine = foods.map(f => ({ f, s: scoreHay(foodHay(f), names(f), tokens, q) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.f);
   const have = new Set(foods.map(f => f.gid).filter(Boolean));
-  const std = GEN.filter(g => !have.has(g.gid)).map(g => ({ g, s: scoreHay(g.hay, L(g), tokens, q) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.g);
+  // in recipes you weigh things raw, so cooked versions drop down the list
+  const std = GEN.filter(g => !have.has(g.gid)).map(g => ({ g, s: scoreHay(g.hay, [g.en, g.el], tokens, q) - (raw && g.state === 'cooked' ? 6 : 0) }))
+    .filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 8).map(x => x.g);
   return { mine, std };
 }
 async function searchOnline(text){
@@ -1568,8 +1737,8 @@ function drawRecipeBox(){
 $('recipeShow').addEventListener('click', e => { if(e.target.closest('#dropRecipe')){ D.recipe = null; drawRecipeBox(); } });
 function recipeHtml(r, compact){
   return `<div class="recipe"><b>📖 ${esc(r.title || t('recipeT'))}</b>
-    <div class="rmeta">${[r.servings ? t('serves', { n: r.servings }) : '', r.minutes ? t('minutes', { n: r.minutes }) : ''].filter(Boolean).join(' · ')}</div>
-    ${compact ? '' : `<ul>${(r.ingredients || []).map(i => `<li>${esc(i.name)} — ${r1(i.grams)} g${i.note ? ` (${esc(i.note)})` : ''}</li>`).join('')}</ul>`}
+    <div class="rmeta">${[r.own ? t('ownTag') : '', r.servings ? t('serves', { n: r.servings }) : '', r.minutes ? t('minutes', { n: r.minutes }) : ''].filter(Boolean).join(' · ')}</div>
+    ${compact ? '' : `<ul>${(r.ingredients || []).map(i => `<li>${esc(i.name)}${Number(i.grams) > 0 ? ` — ${r1(Number(i.grams))} g` : ''}${i.note ? ` (${esc(i.note)})` : ''}</li>`).join('')}</ul>`}
     <div class="sgroup">${t('steps')}</div><ol>${(r.steps || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`;
 }
 function drawRows(){
@@ -1640,41 +1809,120 @@ $('cDelete').addEventListener('click', () => {
 });
 
 // ---- recipe suggestion ----
-let pendingRecipe = null;
+let pendingRecipe = null, recCtl = null;
 $('suggestBtn').addEventListener('click', async () => {
+  if(recCtl){ recCtl.abort(); return; }   // second tap = cancel
   const name = $('cName').value.trim();
   if(!name){ toast(t('suggestNeedName')); $('cName').focus(); return; }
   if(!settings.geminiKey){ $('suggestHint').textContent = t('needKey'); $('suggestHint').classList.add('warn'); return; }
-  $('suggestHint').classList.remove('warn');
-  const btn = $('suggestBtn'); btn.disabled = true; btn.textContent = t('thinking');
+  $('suggestHint').classList.remove('warn'); $('suggestHint').textContent = t('suggestHint');
+  const btn = $('suggestBtn'); btn.textContent = t('thinking'); recCtl = new AbortController(); const ctl = recCtl;
+  const onTry = (i, n) => { if(recCtl === ctl) btn.textContent = t('cancelRec', { i, n }); };
   try{
     const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
     const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros.
 Dish: "${name}". Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
 Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
 Rules: amounts in grams for the whole batch (liquids: 1 ml = 1 g), weighed raw as they go in (dry pasta and rice, raw meat). Include cooking oil explicitly. 3–10 ingredients, 4–10 short clear steps. name_en is a plain generic English food name (e.g. "chicken breast", "olive oil", "onion", "beef mince").
-Foods the user already has (prefer them when they fit): ${have || 'none listed'}`);
+Foods the user already has (prefer them when they fit): ${have || 'none listed'}`, null, onTry, ctl.signal);
     if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
     pendingRecipe = r;
     $('rBody').innerHTML = recipeHtml(r, false);
     open('ovRecipe');
-  }catch(err){ $('suggestHint').textContent = t('recipeFail', { e: err.message }); $('suggestHint').classList.add('warn'); }
-  finally{ btn.disabled = false; btn.textContent = t('suggestRecipe'); }
+  }catch(err){ if(!err.cancelled){ $('suggestHint').textContent = t('recipeFail', { e: err.message }); $('suggestHint').classList.add('warn'); } }
+  finally{ recCtl = null; btn.textContent = t('suggestRecipe'); }
 });
 $('rNo').addEventListener('click', () => { pendingRecipe = null; close('ovRecipe'); });
-$('rYes').addEventListener('click', () => {
-  const r = pendingRecipe; if(!r) return;
-  D.recipe = { title: r.title, servings: r.servings, minutes: r.minutes, steps: r.steps, ingredients: (r.ingredients || []).map(i => ({ name: i.name, grams: i.grams, note: i.note || null })) };
-  // fill the ingredient rows: match each one to your foods first, then the standard list
+$('rYes').addEventListener('click', () => { if(pendingRecipe){ applyRecipe(pendingRecipe, false); pendingRecipe = null; } close('ovRecipe'); });
+
+// match a recipe ingredient to your foods first, then the standard list
+function matchIng(names){
+  const tryQ = q => { const s = searchLocal(q, true); return s.mine.length ? foods_ref(s.mine[0]) : s.std.length ? gen_ref(s.std[0]) : null; };
+  for(const q of names){ if(!q) continue; const r = tryQ(q); if(r) return r; }
+  // nothing for the full name ("κρεμμύδι ξερό")? try its main words on their own ("κρεμμύδι")
+  for(const q of names){ if(!q) continue;
+    for(const w of norm(q).split(' ').filter(w => w.length >= 4).sort((a,b) => b.length - a.length)){ const r = tryQ(w); if(r) return r; } }
+  return null;
+}
+function applyRecipe(r, own){
+  D.recipe = { title: r.title || $('cName').value.trim(), servings: r.servings || null, minutes: r.minutes || null, steps: r.steps || [], own: !!own,
+    ingredients: (r.ingredients || []).map(i => ({ name: i.name, grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, note: i.note || null })) };
   D.rows = D.rows.filter(x => x.ref || x.grams);
-  (r.ingredients || []).forEach(i => {
-    let ref = null;
-    for(const q of [i.name, i.name_en]){ if(!q) continue; const s = searchLocal(q); if(s.mine.length){ ref = foods_ref(s.mine[0]); break; } if(s.std.length){ ref = gen_ref(s.std[0]); break; } }
-    D.rows.push({ key: uid(), ref, grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, wanted: i.name });
-  });
+  (r.ingredients || []).forEach(i => D.rows.push({ key: uid(), ref: matchIng([i.name, i.name_en]), grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, wanted: i.name }));
   if(!D.rows.length) D.rows.push(newRow());
-  pendingRecipe = null; close('ovRecipe'); drawRecipeBox(); drawRows();
-});
+  if(!$('cName').value.trim() && r.title) $('cName').value = r.title;
+  drawRecipeBox(); drawRows();
+}
+
+// ---- "Add my own recipe": reads ingredients + amounts out of plain text, no AI ----
+const FRAC = { '½':' 1/2', '¼':' 1/4', '¾':' 3/4', '⅓':' 1/3', '⅔':' 2/3', '⅛':' 1/8' };
+const nk = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/ς/g,'σ');   // same length as the input, so positions line up
+const R_UNITS = [
+  ['kg|kgs|κιλο|κιλα|κιλ', 1000], ['g|gr|grs|gram|grams|γρ|γρμ|γραμμαρια|γραμμαριο|γραμ', 1], ['ml|μλ', 1],
+  ['l|lt|ltr|litre|litres|liter|liters|λιτρο|λιτρα|λιτ', 1000],
+  ['tbsp|tbs|tablespoons?|κσ|κ\\.\\s?σ\\.?|κουταλιεσ της σουπασ|κουταλια της σουπασ', 15],
+  ['tsp|teaspoons?|κγ|κ\\.\\s?γ\\.?|κουταλακια|κουταλακι|κουταλιεσ του γλυκου|κουταλια του γλυκου', 5],
+  ['cups?|φλιτζανια|φλιτζανι|κουπεσ|κουπα', 240], ['pinch|pinches|πρεζα|πρεζεσ', 0.5], ['cloves?|σκελιδεσ|σκελιδα|σκελιδια', 5],
+];
+const R_NUM = '(\\d+(?:[.,]\\d+)?(?:\\s+\\d+\\/\\d+)?|\\d+\\/\\d+)';
+const R_AMT = new RegExp(`${R_NUM}\\s*(${R_UNITS.map(u => u[0]).join('|')})(?![a-zα-ω])\\.?`);
+const COUNT_W = [['κρεμμυδ|onion',150],['σκορδ|garlic',40],['αυγ|egg',50],['ντοματ|tomato',120],['καροτ|carrot',70],['γλυκοπατατ|sweet potato',200],['πατατ|potato',170],
+  ['πιπερια|pepper',150],['κολοκυθακ|zucchini|courgette',200],['λεμον|lemon',100],['στηθ|breast',200],['μπανανα|banana',120],['μηλ|apple',180],['αγγουρ|cucumber',300],['μελιτζαν|aubergine|eggplant',300],['πορτοκαλ|orange',150]];
+function parseNum(s){ s = s.replace(',', '.').trim(); const parts = s.split(/\s+/); let v = 0;
+  for(const p of parts){ if(p.includes('/')){ const [a,b] = p.split('/').map(Number); if(b) v += a / b; } else v += Number(p) || 0; } return v; }
+function cleanName(s){
+  return s.replace(/\([^)]*\)/g, ' ').replace(/^[\s\-–—:,.*•·x×]+|[\s\-–—:,.*•·]+$/g, '').replace(/^(of|από|απο)\s+/i, '').replace(/\s{2,}/g, ' ').trim();
+}
+function parseIngLine(line){
+  let src = line; for(const [k,v] of Object.entries(FRAC)) src = src.split(k).join(v);
+  const low = nk(src), m = low.match(R_AMT);
+  if(m){
+    const val = parseNum(m[1]); const u = R_UNITS.find(x => new RegExp(`^(?:${x[0]})$`).test(m[2]));
+    let name = cleanName(src.slice(0, m.index) + ' ' + src.slice(m.index + m[0].length));
+    let f = u ? u[1] : 1; if(f === 15 && /λαδ|oil|ελαιολαδ/.test(nk(name))) f = 13.5;
+    return { name, grams: val > 0 ? r1(val * f) : null };
+  }
+  const c = low.match(/^\s*(\d+(?:[.,]\d+)?|\d+\/\d+|\d+\s+\d+\/\d+)\s+(?=\S)/);
+  if(c){
+    const n = parseNum(c[1]), name = cleanName(src.slice(c[0].length)), nn = nk(name);
+    const w = COUNT_W.find(([k]) => new RegExp(k).test(nn)); const g = GEN.find(x => x.piece && (nk(x.en).includes(nn) || nn.includes(nk(x.el).split(' ')[0])));
+    return { name, grams: w ? r1(n * w[1]) : g ? r1(n * g.piece) : null, count: n };
+  }
+  return null;
+}
+function parseRecipe(text){
+  const H_ING = /^(ingredients?|υλικα|τα υλικα|συστατικα)\s*:?$/, H_STEP = /^(steps?|method|instructions?|directions?|preparation|how to make( it)?|οδηγιεσ|εκτελεση|βηματα|παρασκευη|διαδικασια|τροποσ παρασκευησ|μεθοδοσ)\s*:?$/;
+  const lines = text.split(/\r?\n/).map(s => s.replace(/^[#>*\s]+/, '').replace(/\*\*/g, '').trim()).filter(Boolean);
+  const out = { title: '', ingredients: [], steps: [] }; let mode = null;
+  lines.forEach((raw, idx) => {
+    const key = nk(raw).replace(/[:.]$/, '').trim();
+    if(H_ING.test(key)){ mode = 'ing'; return; }
+    if(H_STEP.test(key)){ mode = 'steps'; return; }
+    const numbered = /^\d+\s*[.)]\s+/.test(raw) && !/^\d+[.,]\d/.test(raw);
+    const body = raw.replace(/^[-–•·]\s*/, '').replace(/^\d+\s*[.)]\s+(?=\D)/, '').trim();
+    const amt = mode === 'steps' ? null : parseIngLine(body);
+    if(idx === 0 && !amt && mode === null && lines.length > 1 && body.length < 70 && !/[.!]$/.test(body)){ out.title = body; return; }
+    if(mode === 'steps' || (mode === null && ((!amt && (numbered || body.length > 45 || /[.!]$/.test(body))) || (amt && body.length > 60)))){ out.steps.push(body); return; }
+    if(amt) out.ingredients.push(amt);
+    else out.ingredients.push({ name: cleanName(body), grams: null });
+  });
+  out.ingredients = out.ingredients.filter(i => i.name);
+  return out;
+}
+let OWN = null;
+$('ownBtn').addEventListener('click', () => { OWN = null; $('ownText').value = ''; $('ownOut').innerHTML = ''; $('ownUse').disabled = true; open('ovOwn'); setTimeout(() => $('ownText').focus(), 120); });
+function readOwn(){
+  OWN = parseRecipe($('ownText').value);
+  if(!OWN.ingredients.length && !OWN.steps.length){ $('ownOut').innerHTML = `<div class="status show err">${t('nothingFound')}</div>`; $('ownUse').disabled = true; return; }
+  const items = OWN.ingredients.map(i => { const ref = matchIng([i.name]);
+    return `<li class="${ref && i.grams ? '' : 'miss'}">${ref ? ref.icon + ' ' : ''}${esc(i.name)} — ${i.grams ? fmtSize(i.grams, 'g') : t('noAmount')}${ref ? ` → <b>${esc(ref.name)}</b>` : ` · ${t('willPick')}`}</li>`; }).join('');
+  $('ownOut').innerHTML = `<div class="recipe parsed">${OWN.title ? `<b>📖 ${esc(OWN.title)}</b>` : ''}
+    <div class="sgroup">${t('foundIng', { n: OWN.ingredients.length })}</div><ul style="color:var(--text)">${items}</ul>
+    <div class="sgroup">${t('foundSteps', { n: OWN.steps.length })}</div><ol>${OWN.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`;
+  $('ownUse').disabled = false;
+}
+$('ownRead').addEventListener('click', readOwn);
+$('ownUse').addEventListener('click', () => { if(!OWN) readOwn(); if(OWN && (OWN.ingredients.length || OWN.steps.length)){ applyRecipe(OWN, true); close('ovOwn'); } });
 
 // ======================= meals list + detail =======================
 function mealIcon(m){ const g = guessType(m.name); return g ? subOf(g.cat, g.sub).icon : '🍲'; }
@@ -1718,6 +1966,110 @@ $('mdPlate').addEventListener('input', () => {
 $('mdCookAgain').addEventListener('click', () => { const m = meals.find(x => x.id === openMealId); close('ovMeal'); if(m) setTimeout(() => openCook(m, 'again'), 60); });
 $('mdEdit').addEventListener('click', () => { const m = meals.find(x => x.id === openMealId); close('ovMeal'); if(m) setTimeout(() => openCook(m, 'edit'), 60); });
 
+// ======================= my supplements =======================
+const SLOTS = ['morning','breakfast','pre','post','lunch','dinner','bed','any'];
+const SUNITS = ['mg','g','mcg','IU','ml','caps','tabs','scoops','drops'];
+// [id, English, Greek, dose, unit, times, icon]  — typical label doses, always editable
+const QUICK = [
+  ['creatine','Creatine','Κρεατίνη',5,'g',['any'],'💪'], ['whey','Whey protein','Πρωτεΐνη whey',30,'g',['post'],'🥛'],
+  ['magnesium','Magnesium','Μαγνήσιο',300,'mg',['bed'],'🌙'], ['melatonin','Melatonin','Μελατονίνη',1,'mg',['bed'],'😴'],
+  ['vitd','Vitamin D3','Βιταμίνη D3',2000,'IU',['breakfast'],'☀️'], ['omega3','Omega-3','Ωμέγα-3',1,'caps',['dinner'],'🐟'],
+  ['zinc','Zinc','Ψευδάργυρος',15,'mg',['dinner'],'🔩'], ['multi','Multivitamin','Πολυβιταμίνη',1,'tabs',['breakfast'],'💊'],
+  ['caffeine','Caffeine','Καφεΐνη',200,'mg',['pre'],'⚡'], ['electrolytes','Electrolytes','Ηλεκτρολύτες',1,'scoops',['pre'],'💧'],
+  ['vitc','Vitamin C','Βιταμίνη C',500,'mg',['breakfast'],'🍊'], ['ashwa','Ashwagandha','Ασβαγκάντα',600,'mg',['bed'],'🌿'],
+].map(([id,en,el,dose,unit,times,icon]) => ({ id, en, el, dose, unit, times, icon }));
+const QBY = Object.fromEntries(QUICK.map(q => [q.id, q]));
+const todayKey = () => new Date().toLocaleDateString('en-CA');
+const suppName = s => (s.qid && QBY[s.qid] && s.name === QBY[s.qid].en) || (s.qid && QBY[s.qid] && s.name === QBY[s.qid].el) ? L(QBY[s.qid]) : s.name;
+const suppIcon = s => s.icon || (s.qid && QBY[s.qid] ? QBY[s.qid].icon : '💊');
+const unitLabel = u => t('u_' + u);
+function todayProgress(){
+  const day = suppLog[todayKey()] || {}; let total = 0, done = 0;
+  supps.filter(s => s.often === 'daily').forEach(s => s.times.forEach(sl => { total++; if(day[`${s.id}|${sl}`]) done++; }));
+  return { total, done };
+}
+function doseMacros(s){
+  const f = s.foodId && foods.find(x => x.id === s.foodId);
+  if(!f || !(s.dose > 0) || !['g','ml','scoops'].includes(s.unit)) return '';
+  const grams = s.unit === 'scoops' ? (f.serving || 30) * s.dose : s.dose, x = grams / 100;
+  return ` · ${Math.round((f.kcal || 0) * x)} kcal · P ${r1((f.protein || 0) * x)}`;
+}
+function renderSupps(){
+  const tp = todayProgress();
+  $('sToday').textContent = `${t('todayLabel')} · ${new Date().toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday:'long', day:'numeric', month:'short' })}`;
+  $('sTodayN').textContent = tp.total ? (tp.done === tp.total ? t('allTaken') : t('todayTaken', { a: tp.done, b: tp.total })) : '';
+  $('sProg').style.width = tp.total ? `${Math.round(tp.done / tp.total * 100)}%` : '0';
+  if(!supps.length){ $('sList').innerHTML = `<div class="empty">${t('noSupps')}</div>`; return; }
+  const day = suppLog[todayKey()] || {};
+  const order = s => Math.min(...s.times.map(x => SLOTS.indexOf(x)));
+  $('sList').innerHTML = supps.slice().sort((a,b) => order(a) - order(b)).map(s => `<div class="card" data-sid="${s.id}">
+      <div class="ficon">${suppIcon(s)}</div>
+      <div class="body">
+        <div class="row"><div class="name">${esc(suppName(s))}</div>${s.often !== 'daily' ? `<span class="tag">${t(s.often === 'training' ? 'tagTraining' : 'tagNeeded')}</span>` : ''}</div>
+        <div class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}${doseMacros(s)}${s.notes ? ' · ' + esc(s.notes) : ''}</div>
+        <div class="slots">${s.times.map(sl => `<button class="slot ${day[`${s.id}|${sl}`] ? 'taken' : ''}" data-slot="${sl}">${day[`${s.id}|${sl}`] ? '✓ ' : ''}${t('slot_' + sl)}</button>`).join('')}</div>
+      </div></div>`).join('');
+}
+$('sList').addEventListener('click', e => {
+  const card = e.target.closest('[data-sid]'); if(!card) return;
+  const slot = e.target.closest('[data-slot]');
+  if(slot){
+    const k = todayKey(), key = `${card.dataset.sid}|${slot.dataset.slot}`;
+    suppLog[k] = suppLog[k] || {}; if(suppLog[k][key]) delete suppLog[k][key]; else { suppLog[k][key] = true; navigator.vibrate?.(30); }
+    // keep two months of history
+    const keep = Object.keys(suppLog).sort().slice(-60); suppLog = Object.fromEntries(keep.map(d => [d, suppLog[d]]));
+    store(LOGKEY, suppLog); renderSupps(); renderHome(); return;
+  }
+  const s = supps.find(x => x.id === card.dataset.sid); if(s) openSupp(s);
+});
+let SU = { id:null, qid:null, times:[], often:'daily', icon:null };
+function openSupp(s){
+  SU = { id: s ? s.id : null, qid: s ? s.qid || null : null, times: s ? [...s.times] : [], often: s ? s.often : 'daily', icon: s ? s.icon || null : null };
+  $('supTitle').textContent = s ? t('editSupp') : t('addSupp');
+  $('supQuick').classList.toggle('hide', !!s);
+  const have = new Set(supps.map(x => x.qid).filter(Boolean));
+  $('supQuickList').innerHTML = QUICK.filter(q => !have.has(q.id)).map(q => `<button data-q="${q.id}">${q.icon} ${esc(L(q))}</button>`).join('');
+  $('supName').value = s ? suppName(s) : ''; $('supDose').value = s ? s.dose : ''; $('supNotes').value = s ? s.notes || '' : '';
+  $('supUnit').innerHTML = SUNITS.map(u => `<option value="${u}">${esc(unitLabel(u))}</option>`).join(''); $('supUnit').value = s ? s.unit : 'mg';
+  const opts = foods.slice().sort((a,b) => (b.cat === 'supps') - (a.cat === 'supps') || norm(foodName(a)).localeCompare(norm(foodName(b))));
+  $('supFood').innerHTML = `<option value="">${t('supLinkNone')}</option>` + opts.map(f => `<option value="${f.id}">${iconOf(f) || ''} ${esc(foodName(f))}${f.brand ? ' · ' + esc(f.brand) : ''}</option>`).join('');
+  $('supFood').value = s && s.foodId ? s.foodId : '';
+  $('supLinkHint').textContent = t('supLinkHint');
+  drawSupTimes(); setSeg('#supOften', SU.often);
+  $('supDel').classList.toggle('hide', !s);
+  open('ovSupp');
+}
+function drawSupTimes(){ $('supTimes').innerHTML = SLOTS.map(sl => `<button data-t2="${sl}" class="${SU.times.includes(sl) ? 'on' : ''}">${t('slot_' + sl)}</button>`).join(''); }
+$('supTimes').addEventListener('click', e => { const b = e.target.closest('[data-t2]'); if(!b) return; const v = b.dataset.t2;
+  SU.times = SU.times.includes(v) ? SU.times.filter(x => x !== v) : [...SU.times, v]; drawSupTimes(); });
+document.querySelectorAll('#supOften button').forEach(b => b.addEventListener('click', () => { SU.often = b.dataset.v; setSeg('#supOften', SU.often); }));
+$('supQuickList').addEventListener('click', e => {
+  const b = e.target.closest('[data-q]'); if(!b) return; const q = QBY[b.dataset.q];
+  SU.qid = q.id; SU.icon = q.icon; SU.times = [...q.times];
+  $('supName').value = L(q); $('supDose').value = q.dose; $('supUnit').value = q.unit; drawSupTimes();
+  if(q.id === 'whey'){ const w = foods.find(f => f.sub === 'whey'); if(w) $('supFood').value = w.id; }
+  $('supQuickList').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+$('supName').addEventListener('input', () => { const n = norm($('supName').value); const q = QUICK.find(x => norm(x.en) === n || norm(x.el) === n); SU.qid = q ? q.id : null; SU.icon = q ? q.icon : null; });
+$('supSave').addEventListener('click', () => {
+  const name = $('supName').value.trim(), dose = num('supDose');
+  if(!name){ toast(t('supNeedName')); $('supName').focus(); return; }
+  if(!(dose > 0)){ toast(t('supNeedDose')); $('supDose').focus(); return; }
+  if(!SU.times.length){ toast(t('supNeedTime')); return; }
+  const now = new Date().toISOString();
+  const rec = { name, qid: SU.qid, icon: SU.icon, dose, unit: $('supUnit').value, times: SLOTS.filter(x => SU.times.includes(x)), often: SU.often,
+    foodId: $('supFood').value || null, notes: $('supNotes').value.trim(), updatedAt: now };
+  if(SU.id){ const i = supps.findIndex(x => x.id === SU.id); supps[i] = { ...supps[i], ...rec }; }
+  else supps.push({ id: uid(), createdAt: now, ...rec });
+  if(!saveSupps()) return;
+  close('ovSupp'); renderAll(); toast(SU.id ? t('updated') : t('saved', { i: rec.icon || '💊' }));
+});
+$('supDel').addEventListener('click', () => {
+  const i = supps.findIndex(x => x.id === SU.id); if(i === -1) return;
+  const [gone] = supps.splice(i, 1); saveSupps(); close('ovSupp'); renderAll();
+  toast(t('deleted', { n: suppName(gone) }), t('undo'), () => { supps.splice(i, 0, gone); saveSupps(); renderAll(); });
+});
+
 // ======================= settings + data =======================
 function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; setSeg('#sLang', lang); open('ovSettings'); }
 $('getKey').addEventListener('click', () => window.open(KEY_URL, '_blank', 'noopener'));
@@ -1743,16 +2095,20 @@ function claudeText(){
     out.push('\nHome-cooked meals (per 100 g cooked):');
     meals.forEach(m => out.push(`- ${m.name}: ${m.kcal} kcal, P ${fmt(m.protein)} / C ${fmt(m.carbs)} / F ${fmt(m.fat)}; batch ${fmtSize(m.cookedWeight,'g')}${m.cookedEstimated ? ' (not weighed, raw total used)' : ''}; ingredients: ${m.ingredients.map(i => `${i.ref.name} ${fmtSize(i.grams, i.ref.unit)}`).join(', ')}${m.recipe ? '; has recipe' : ''}`));
   }
+  if(supps.length){
+    out.push('\nMy supplement routine:');
+    supps.forEach(s => out.push(`- ${s.qid && QBY[s.qid] ? QBY[s.qid].en : s.name}: ${fmt(s.dose)} ${S['u_' + s.unit][0]}, ${s.times.map(x => S['slot_' + x][0].toLowerCase()).join(' + ')}, ${s.often === 'daily' ? 'every day' : s.often === 'training' ? 'training days' : 'when needed'}${s.notes ? ' — ' + s.notes : ''}`));
+  }
   return out.join('\n');
 }
 $('copyClaude').addEventListener('click', async () => {
-  if(!foods.length && !meals.length){ toast(t('nothingCopy')); return; }
+  if(!foods.length && !meals.length && !supps.length){ toast(t('nothingCopy')); return; }
   const txt = claudeText();
   try{ await navigator.clipboard.writeText(txt); toast(t('copied')); }
   catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(t('copied')); }
 });
 $('exportJson').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ app:'tracker', version:VERSION, exportedAt:new Date().toISOString(), foods, meals }, null, 2)], { type:'application/json' });
+  const blob = new Blob([JSON.stringify({ app:'tracker', version:VERSION, exportedAt:new Date().toISOString(), foods, meals, supps, suppLog }, null, 2)], { type:'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `tracker-${new Date().toISOString().slice(0,10)}.json`; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
@@ -1767,8 +2123,9 @@ $('importInput').addEventListener('change', async e => {
     const merge = (arr, incoming, fix) => { for(const raw of incoming){ if(!raw || !raw.name) continue; const f = fix(raw);
       const i = arr.findIndex(x => x.id === f.id);
       if(i === -1){ arr.push({ ...f, id: f.id || uid() }); added++; } else if((f.updatedAt||'') > (arr[i].updatedAt||'')){ arr[i] = f; updated++; } } };
-    merge(foods, inFoods, migrate); merge(meals, inMeals, m => m);
-    saveFoods(); saveMeals(); renderAll(); toast(t('imported', { a: added, u: updated }));
+    merge(foods, inFoods, migrate); merge(meals, inMeals, m => m); merge(supps, Array.isArray(data.supps) ? data.supps : [], s => s);
+    if(data.suppLog && typeof data.suppLog === 'object') for(const [d, v] of Object.entries(data.suppLog)) suppLog[d] = { ...(suppLog[d] || {}), ...v };
+    saveFoods(); saveMeals(); saveSupps(); store(LOGKEY, suppLog); renderAll(); toast(t('imported', { a: added, u: updated }));
   }catch(err){ toast(t('badBackup')); }
 });
 
@@ -1778,7 +2135,7 @@ route();
 if(!ui.lang) open('ovLang');
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(location.protocol === 'https:') setTimeout(() => getDetector().catch(()=>{}), 2500);
-window.__ft = { guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN };
+window.__ft = { guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, sortModels };
 })();
 </script>
 </body>
