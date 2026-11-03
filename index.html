@@ -359,11 +359,130 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
 .planmeal ul{margin:6px 0 0;padding-left:18px;font-size:14px} .planmeal li{margin:3px 0}
 .planmeal .row b{font-size:15px}
 .src-f{color:var(--ok);font-size:11px} .src-e{color:var(--orange);font-size:11px}
+/* 0.5.4 · frosted glass */
+:root{ --bg:rgba(6,8,10,.42); --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.1); --line:rgba(255,255,255,.11); --raw:#8fd3ff; --cooked:#9be89b; --glass:rgba(22,25,29,.62); --r:18px; }
+html{background:#07090b}
+html,body{background:#07090b}
+body::before{content:"";position:fixed;inset:-25%;z-index:-1;pointer-events:none;
+  background:radial-gradient(38% 30% at 18% 12%,rgba(198,244,50,.16),transparent 70%),radial-gradient(35% 28% at 88% 28%,rgba(90,176,255,.18),transparent 70%),
+  radial-gradient(40% 32% at 25% 78%,rgba(179,136,255,.15),transparent 70%),radial-gradient(34% 26% at 85% 88%,rgba(255,138,42,.13),transparent 70%),#07090b}
+.tile,.card,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.bkcard,.bubble{background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.18)}
+.tile,.macrocard,.bubble,.remind,.minirec{-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%)}
+.tile.big{background:linear-gradient(160deg,#d4ff4a,#a9d81f);border-color:transparent}
+.iconbtn{background:rgba(255,255,255,.08);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.sheet{background:var(--glass);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.overlay{background:rgba(0,0,0,.42)}
+input,select,textarea,.search{background:rgba(0,0,0,.28);border-color:var(--line)}
+.sitem{background:rgba(255,255,255,.05);border-color:var(--line)}
+.btn{background:rgba(255,255,255,.09);border-color:var(--line)}
+.btn.primary{box-shadow:0 6px 20px rgba(198,244,50,.18)}
+.tabbar{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));padding:6px;border-radius:26px;border:1px solid rgba(255,255,255,.14);background:rgba(28,31,36,.55);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 30px rgba(0,0,0,.4);max-width:520px;margin:0 auto}
+.tabbar button{border-radius:20px;padding:7px 0}
+.tabbar button.on{background:rgba(198,244,50,.16);color:var(--accent)}
+.tabbar.hide{display:none}
+.fab{bottom:calc(92px + env(safe-area-inset-bottom))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.page.slideL{animation:slL .28s ease-out} .page.slideR{animation:slR .28s ease-out}
+@keyframes slL{from{opacity:.3;transform:translateX(40px)}to{opacity:1;transform:none}} @keyframes slR{from{opacity:.3;transform:translateX(-40px)}to{opacity:1;transform:none}}
+/* launcher */
+#pgLaunch header{padding-top:28px}
+.page:not(#pgLaunch){padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+#pgLaunch h1{font-size:30px}
+.bubbles{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.bubble{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;align-items:center;text-align:left;color:var(--text);padding:22px 20px;border-radius:30px;cursor:pointer;min-height:118px;overflow:hidden}
+.bubble .bi{grid-row:1/3;font-size:46px;width:70px;height:70px;display:flex;align-items:center;justify-content:center;border-radius:24px;background:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.bubble b{font-size:22px;letter-spacing:-.3px;align-self:end} .bubble small{color:var(--muted);font-size:14px;align-self:start}
+.bubble .mbar{position:absolute;left:20px;right:20px;bottom:12px;height:4px}
+.bubble:active{transform:scale(.98)}
+.b-food{border-color:rgba(198,244,50,.25)} .b-today{border-color:rgba(90,176,255,.28)} .b-gym{border-color:rgba(255,138,42,.28)}
+.b-food::after,.b-today::after,.b-gym::after{content:"";position:absolute;inset:auto -30% -60% auto;width:70%;height:120%;border-radius:50%;filter:blur(30px);opacity:.35;pointer-events:none}
+.b-food::after{background:#c6f432} .b-today::after{background:#5ab0ff} .b-gym::after{background:#ff8a2a}
+.bkcard{display:block;width:100%;text-align:left;margin-top:14px;padding:14px 16px;border-radius:20px;color:var(--text);cursor:pointer}
+.bkcard b{display:block} .bkcard small{color:var(--muted)}
+/* setup */
+.sudots{display:flex;gap:6px;justify-content:center;margin:2px 0 14px} .sudots i{width:26px;height:4px;border-radius:4px;background:rgba(255,255,255,.15)} .sudots i.on{background:var(--accent)}
+.langpick button.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.daychips button{min-width:44px}
+/* raw / cooked tags */
+.sttag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:6px;margin-right:4px;vertical-align:1px;background:rgba(255,255,255,.12);color:var(--text)}
+.sttag.raw{background:rgba(143,211,255,.2);color:var(--raw);border:1px solid rgba(143,211,255,.45)}
+.sttag.cooked{background:rgba(155,232,155,.18);color:var(--cooked);border:1px solid rgba(155,232,155,.45)}
+/* log search */
+.searchrow{display:flex;gap:8px;align-items:center} .searchrow .search{flex:1;margin:4px 0 10px} .searchrow .scanin{flex:0 0 46px;height:46px;margin-bottom:6px;font-size:20px}
+.srow{display:flex;gap:6px;align-items:stretch} .srow .sitem{flex:1;min-width:0}
+.qlog{flex:0 0 48px;border-radius:12px;border:1px solid rgba(198,244,50,.35);background:rgba(198,244,50,.12);color:var(--accent);font-size:22px;font-weight:700;cursor:pointer}
+.qabtn{width:100%;margin-top:12px;border-style:dashed}
+#amFridgeWrap input{display:none} #amFridgeWrap span{color:var(--muted);font-size:13px}
+/* today reminder */
+#gymBox{display:none!important}
+.remind{display:flex;gap:10px;align-items:flex-start;border-radius:18px;padding:10px 12px;margin:8px 0 10px;animation:remIn .45s cubic-bezier(.2,.8,.2,1);border-color:rgba(255,138,42,.3)}
+.remind .rmtxt{flex:1;font-size:14px;line-height:1.45} .remind .rmrec{color:#ffcf9e;font-size:13px;cursor:pointer;margin-top:2px}
+.remind .rmbtns{display:flex;gap:4px} .remind .rmbtns .linkbtn{padding:2px 6px;font-size:15px}
+@keyframes remIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.dblocks{font-size:inherit;color:inherit}
+/* shopping review */
+.opt span small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:2px}
+.shoprow{display:grid;grid-template-columns:34px 1fr auto 40px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.shoprow.off{opacity:.45}
+.shoprow .box{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--accent);font-weight:800;cursor:pointer}
+.shoprow:not(.off) .box{background:rgba(198,244,50,.16);border-color:rgba(198,244,50,.5)}
+.shoprow .sname{min-width:0;cursor:pointer} .shoprow .sname b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .shoprow .sname small{color:var(--muted);font-size:12px}
+.sqty{display:flex;align-items:center;gap:3px} .sqty input{width:38px;padding:6px 4px;text-align:center;font-size:14px} .sqty input[data-ssize]{width:56px} .sqty small,.sqty span{color:var(--muted);font-size:12px}
+.sloc{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:18px;cursor:pointer}
+/* gym: steppers */
+.sethead,.setrow{grid-template-columns:34px 1fr 1fr 44px!important;gap:6px}
+.snum{height:40px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-weight:800;font-size:15px;cursor:pointer;padding:0}
+.t-W .snum{color:var(--c);border-color:rgba(255,181,71,.4)} .t-D .snum{color:var(--p);border-color:rgba(90,176,255,.4)} .t-F .snum{color:var(--danger);border-color:rgba(255,92,92,.4)}
+.stepper{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(0,0,0,.25);height:40px}
+.stepper button{flex:0 0 32px;border:0;background:rgba(255,255,255,.07);color:var(--text);font-size:19px;font-weight:700;cursor:pointer;padding:0}
+.stepper button:active{background:rgba(198,244,50,.25)}
+.stepper input,.setrow .stepper input{flex:1;min-width:0;width:100%;border:0;border-radius:0;background:none;text-align:center;font-size:17px;font-weight:700;padding:0 2px}
+.stepper b{flex:1;display:flex;align-items:center;justify-content:center;font-size:17px}
+.setrow.done .stepper{border-color:#2a5a3a;background:rgba(89,211,140,.08)}
+.sok{height:40px;border-radius:12px}
+.exbtns .formb,.tpb .formb{border-color:rgba(90,176,255,.45)!important;color:var(--p)!important}
+.gother{display:block;margin:6px auto 0;color:var(--muted)}
+/* template editor */
+.tpcard{border-radius:16px;padding:10px 12px;margin-bottom:10px}
+.tph{display:flex;gap:10px;align-items:center} .tph .ttl{flex:1;min-width:0} .tph .ttl b{display:block} .tph .ttl small{color:var(--muted);font-size:12px}
+.tpb{display:flex;gap:6px} .tpb button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);cursor:pointer;font-size:14px}
+.tpsteps{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:10px;align-items:end}
+.tps small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.restchip{height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--p);padding:0 10px;font-weight:600;cursor:pointer;white-space:nowrap}
+#tpTypeShow{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:15px}
+/* form demo */
+.demoimg{position:relative;width:100%;aspect-ratio:3/2;border-radius:16px;overflow:hidden;background:#fff}
+.demoimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .25s}
+.demoimg img.on{opacity:1}
+.demosteps li{font-size:14px;margin-bottom:6px}
+.formwide{width:100%;margin-bottom:12px;border-color:rgba(90,176,255,.45);color:var(--p)}
+/* smooth slider */
+input[type=range]{-webkit-appearance:none;appearance:none;height:30px;background:none;border:0;padding:0}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#59d38c,#ffb547,#ff5c5c)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+/* weigh-in */
+.wibox{margin-top:14px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.wibox h3{margin:0 0 8px}
+
 </style>
 </head>
 <body>
 
 <!-- ============ HOME ============ -->
+<!-- ============ LAUNCHER ============ -->
+<section class="page wrap hide" id="pgLaunch">
+  <header>
+    <div class="left"><h1 id="lHello"></h1></div>
+    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
+  </header>
+  <p class="hello" data-t="launchSub"></p>
+  <div class="bubbles">
+    <button class="bubble b-food" data-tab="food"><span class="bi">🥗</span><b data-t="tabFood"></b><small id="lbFood"></small></button>
+    <button class="bubble b-today" data-tab="today"><span class="bi">📅</span><b data-t="tabToday"></b><small id="lbToday"></small><span class="mbar"><i id="lBar"></i></span></button>
+    <button class="bubble b-gym" data-tab="gym"><span class="bi">🏋️</span><b data-t="tabGym"></b><small id="lbGym"></small></button>
+  </div>
+  <div id="lBackup"></div>
+</section>
+
 <section class="page wrap" id="pgHome">
   <header>
     <div class="left"><h1 data-t="tabFood"></h1></div>
@@ -381,6 +500,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
     <button class="tile wide" id="tSupps"><span class="e">💊</span><span><b data-t="tSupps"></b><small id="tSuppsSub"></small></span></button>
   </div>
   <div id="homeAlerts" style="margin-top:12px"></div>
+  <div id="homeBackup"></div>
   <div style="height:20px"></div>
 </section>
 
@@ -497,6 +617,38 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
 
 <button class="fab hide" id="fab"></button>
 <nav class="tabbar" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
+
+<!-- ============ 0.5.4 SHEETS ============ -->
+<div class="overlay" id="ovSetup"><div class="sheet tall" id="suBody"></div></div>
+<div class="overlay" id="ovQuick"><div class="sheet">
+  <h2 data-t="qaT"></h2><p class="sub" data-t="qaSub"></p>
+  <label for="qaName" data-t="qaName"></label><input id="qaName" autocomplete="off">
+  <div class="grid"><div><label for="qaK">kcal</label><input id="qaK" type="number" inputmode="numeric"></div><div><label for="qaP" data-t="protein"></label><input id="qaP" type="number" inputmode="decimal" placeholder="g"></div></div>
+  <details class="guide"><summary data-t="qaMore"></summary><div class="grid"><div><label for="qaC" data-t="carbs"></label><input id="qaC" type="number" inputmode="decimal" placeholder="g"></div><div><label for="qaF" data-t="fat"></label><input id="qaF" type="number" inputmode="decimal" placeholder="g"></div></div></details>
+  <div class="actions"><button class="btn small danger hide" id="qaDel" data-t="delete"></button><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="qaSave" data-t="save"></button></div>
+</div></div>
+<div class="overlay" id="ovShop"><div class="sheet">
+  <h2 data-t="shopT"></h2><p class="sub" data-t="shopSub"></p>
+  <div id="shopOpts">
+    <button class="opt" data-shop="photo"><span><b data-t="shopPhoto"></b><small data-t="shopPhotoSub"></small></span></button>
+    <button class="opt" data-shop="receipt"><span><b data-t="shopReceipt"></b><small data-t="shopReceiptSub"></small></span></button>
+    <button class="opt" data-shop="scan"><span><b data-t="shopScan"></b><small data-t="shopScanSub"></small></span></button>
+    <button class="opt" data-shop="search"><span><b data-t="shopSearch"></b><small data-t="shopSearchSub"></small></span></button>
+  </div>
+  <input type="file" id="shopFile" accept="image/*" class="hide">
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+</div></div>
+<div class="overlay" id="ovShopRev"><div class="sheet tall">
+  <h2 data-t="shopReview"></h2><p class="sub" data-t="shopReviewSub"></p>
+  <div class="status" id="shopStatus"></div>
+  <div id="shopList"></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="shopAddBtn"></button></div>
+</div></div>
+<div class="overlay" id="ovDemo"><div class="sheet tall">
+  <h2 id="dmTitle"></h2>
+  <div id="dmBody"></div>
+  <div class="actions"><button class="btn hide" id="dmNext" data-t="formNext"></button><button class="btn" data-close data-t="close"></button></div>
+</div></div>
 
 <!-- ============ LANGUAGE (first launch) ============ -->
 <div class="overlay" id="ovLang"><div class="sheet">
@@ -848,6 +1000,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <label for="tpName" data-t="workoutName"></label>
   <input id="tpName" autocomplete="off">
   <label data-t="workoutType"></label>
+  <div id="tpTypeShow"></div>
   <div class="seg wrapseg" id="tpType"><button data-v="upper" data-t="wUpper"></button><button data-v="lower" data-t="wLower"></button><button data-v="full" data-t="wFull"></button><button data-v="push" data-t="wPush"></button><button data-v="pull" data-t="wPull"></button><button data-v="legs" data-t="wLegs"></button><button data-v="cardio" data-t="wCardio"></button><button data-v="chest" data-t="wChest"></button><button data-v="back" data-t="wBack"></button><button data-v="shoulders" data-t="wShoulders"></button><button data-v="arms" data-t="wArms"></button><button data-v="core" data-t="wCore"></button><button data-v="glutes" data-t="wGlutes"></button></div>
   <h3 data-t="exercises"></h3>
   <div id="tpList"></div>
@@ -947,6 +1100,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <div class="seg" id="tgGoal"><button data-v="bulk" data-t="gBulk"></button><button data-v="recomp" data-t="gRecomp"></button><button data-v="cut" data-t="gCut"></button></div>
   <div class="brandrow" style="margin-top:10px"><label for="tgBw" style="margin:0;flex:1" data-t="bodyweight"></label><input id="tgBw" type="number" inputmode="decimal" step="any" style="flex:0 0 100px"><span style="color:var(--muted)">kg</span><button class="btn small" id="tgCalc" data-t="calcStart"></button></div>
   <div class="hint" data-t="calcHint"></div>
+  <div class="wibox"><h3 data-t="wiT"></h3><div class="brandrow"><input id="wiIn" type="number" inputmode="decimal" step="any" style="flex:1"><span style="color:var(--muted)">kg</span><button class="btn small" id="wiSave" data-t="wiSave"></button></div><div id="wiOut"></div></div>
   <h3 data-t="gymDayTargets"></h3>
   <div class="grid4">
     <div><label>kcal</label><input id="tgGk" type="number" inputmode="numeric"></div><div><label data-t="protein"></label><input id="tgGp" type="number" inputmode="numeric"></div>
@@ -993,6 +1147,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <p class="sub" data-t="settingsSub"></p>
   <label data-t="language"></label>
   <div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div>
+  <button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button>
   <label for="sKey" data-t="geminiKey"></label>
   <input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off">
   <div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div>
@@ -1012,14 +1167,14 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Food Tracky · Gym Buddy · v0.5.3</div>
+  <div class="ver">Food Track · Gym Buddy · v0.5.4</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 (() => {
-const VERSION = '0.5.3';
+const VERSION = '0.5.4';
 const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 const DEFAULT_MODEL = 'gemini-flash-latest';
 const KEY_URL = 'https://aistudio.google.com/apikey';
@@ -1631,7 +1786,7 @@ $('fab').addEventListener('click', () => { const a = $('fab').dataset.action; if
 document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 
 function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec(); }
-function renderHome(){
+function renderHome_0(){
   $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
   $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
   const tp = todayProgress();
@@ -2219,7 +2374,7 @@ function openIngSearch(prefill, cb, opts){
   drawIngResults(); open('ovIng'); setTimeout(() => $('iSearch').focus(), 120);
 }
 function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="e">${icon}</span><span class="t"><b>${esc(title)}</b><small>${subline}</small></span></button>`; }
-const macroLine = f => `${Math.round(f.kcal ?? 0)} kcal · P ${fmt(f.protein)} · C ${fmt(f.carbs)} · F ${fmt(f.fat)} / 100 ${f.unit || 'g'}`;
+const macroLine = f => `${stTag(f.state)}${Math.round(f.kcal ?? 0)} kcal · P ${fmt(f.protein)} · C ${fmt(f.carbs)} · F ${fmt(f.fat)} / 100 ${f.unit || 'g'}`;
 let lastLocal = { mine:[], std:[] };
 function drawIngResults(){
   const text = $('iSearch').value.trim();
@@ -2824,7 +2979,7 @@ function infoOfEntry(e){
   if(e.kind === 'meal'){ const m = meals.find(x => x.id === e.refId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null } : null; }
   const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
 }
-function openAmt(o){
+function openAmt_0(o){
   AM = o;
   const info = o.mode === 'use' ? itemInfo(o.item) : o.mode === 'editlog' ? (infoOfEntry(o.entry) || { name: o.entry.name, icon: o.entry.icon, unit: o.entry.unit, per: { kcal: o.entry.kcal / o.entry.amt * 100, protein: o.entry.p / o.entry.amt * 100, carbs: o.entry.c / o.entry.amt * 100, fat: o.entry.f / o.entry.amt * 100 } }) : o.info;
   if(!info) return; AM.info = info;
@@ -3066,7 +3221,7 @@ function carbWindows(d){
     { k: 'other', a: null, b: null, c: C * (1 - split[0] - split[1]), tip: t('tipSpread') },
   ];
 }
-function renderToday(){
+function renderToday_0(){
   const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   const diff = daysUntil(d);
   $('dLabel').textContent = (diff === 0 ? t('todayD') + ' · ' : diff === -1 ? t('yesterdayD') + ' · ' : diff === 1 ? t('tomorrowD') + ' · ' : '') +
@@ -3145,7 +3300,7 @@ $('lResults').addEventListener('click', e => {
 $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); });
 
 // ---------- targets ----------
-function openTargets(){
+function openTargets_0(){
   const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
   setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = tg.bw || ''; $('tgFib').value = tg.fib || '';
   [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
@@ -3669,7 +3824,7 @@ function renderGymPlan(){
   const tk = todayKey(), twd = new Date(tk + 'T12:00:00').getDay();
   $('gPlanV').innerHTML = `<p class="hint" style="margin:10px 0">${t('planHint')}</p>` + [1, 2, 3, 4, 5, 6, 0].map(wd => { const p = gymPlan[wd] || {};
     return `<div class="dayrow ${wd === twd ? 'today' : ''}" data-wd="${wd}"><b>${WD()[wd]}</b>
-      <select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>🏋️ ${esc(x.name)}</option>`).join('')}</select>
+      <select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>🏋️ ${esc(x.name)}</option>`).join('')}</select>
       <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>`; }).join('');
 }
 $('gPlanV').addEventListener('change', e => {
@@ -3917,7 +4072,7 @@ function bodyMapSVG(mode, region, colors){
 }
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
-function openExInfo(id, addCb){
+function openExInfo_0(id, addCb){
   const x = exById(id), mus = Object.entries(x.mu).sort((a, b) => b[1] - a[1]), L_ = lang === 'el' ? 1 : 0;
   const cues = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[id] ? [SPECIFIC[id][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
   const h = exHistory(id), bestW = h.length ? Math.max(...h.flatMap(s => s.sets.map(z => +z.w))) : null, bestV = h.length ? Math.max(...h.map(s => exVol(id, s.sets.map(z => ({ ...z, done: true }))))) : null;
@@ -4307,7 +4462,7 @@ function groupReadiness(atTs){
   const out = {};
   Object.entries(GROUPS).forEach(([g]) => { if(g === 'cardio' || g === 'other') return;
     const hs = Object.keys(HEADS).filter(h => HEADS[h][2] === g); let r = Math.min(...hs.map(h => 1 - (f[h] || 0)));
-    if(applySore && sore[g] !== undefined){ const lv = sore[g]; r = lv === 4 ? Math.min(r, .2) : lv === 3 ? Math.min(r, .45) : lv === 2 ? Math.min(r, .7) : lv === 0 ? Math.max(r, .9) : r; }
+    if(applySore && sore[g] !== undefined){ const lv = Math.round(sore[g]); r = lv === 4 ? Math.min(r, .2) : lv === 3 ? Math.min(r, .45) : lv === 2 ? Math.min(r, .7) : lv === 0 ? Math.max(r, .9) : r; }
     out[g] = r; });
   return out;
 }
@@ -4339,7 +4494,7 @@ function renderRecovery(){
     `<div class="bodymap" style="margin-top:10px">${bodyMapSVG('rec', null, colors)}</div>
     <div class="legend"><span><i style="background:${REC_COL.ok}"></i>${t('recReady')}</span><span><i style="background:${REC_COL.mid}"></i>${t('recMid')}</span><span><i style="background:${REC_COL.low}"></i>${t('recLow')}</span></div>
     <p class="hint">${t('recHint')}</p>` +
-    (notReady.length ? notReady.map(([g, r]) => `<div class="prog" data-sore="${g}" style="cursor:pointer"><div><b>${esc(ML(g))}</b><small>${t('recIn', { h: hoursUntilReady(g) })}${sore[g] !== undefined ? ' · ' + SORE[sore[g]] : ''}</small></div><span class="mbar"><i style="width:${Math.round(r * 100)}%;background:${REC_COL[recState(r)]}"></i></span><span class="pct" style="color:${REC_COL[recState(r)]}">${Math.round(r * 100)}%</span></div>`).join('')
+    (notReady.length ? notReady.map(([g, r]) => `<div class="prog" data-sore="${g}" style="cursor:pointer"><div><b>${esc(ML(g))}</b><small>${t('recIn', { h: hoursUntilReady(g) })}${sore[g] !== undefined ? ' · ' + SORE[Math.round(sore[g])] : ''}</small></div><span class="mbar"><i style="width:${Math.round(r * 100)}%;background:${REC_COL[recState(r)]}"></i></span><span class="pct" style="color:${REC_COL[recState(r)]}">${Math.round(r * 100)}%</span></div>`).join('')
       : `<div class="alert green" style="cursor:default">${t('recAllReady')}</div>`) +
     `<div class="actions"><button class="btn" id="soreAny">${t('howSore')}</button></div>`;
 }
@@ -4401,56 +4556,56 @@ const ANAT_HEAD_GROUP = { chest_upper:'chest', chest_mid:'chest', chest_lower:'c
   quads:'quads', hamstrings:'hamstrings', glutes:'glutes', abductors:'glutes', adductors:'adductors', calves:'calves' };
 // left half only (x < 100); the right half is mirrored
 const ANAT_SKIN = [
-  'M100 74 L80 76 C66 78 56 84 50 96 C46 108 48 122 52 132 C50 150 54 170 62 188 C66 198 72 206 76 212 L100 216 Z',
-  'M56 96 C48 104 44 120 44 136 C42 152 40 172 40 190 C38 208 38 224 40 236 C42 246 48 250 54 246 C58 234 60 216 62 200 C66 180 68 160 68 140 C68 120 66 104 56 96 Z',
-  'M76 206 C66 230 62 262 64 296 C64 314 68 330 70 346 C70 370 72 394 76 410 L92 412 C93 396 94 372 94 350 C95 330 96 312 96 298 C97 276 98 252 99 230 L100 216 Z' ];
-const ANAT_SKIN_ELL = [[46, 254, 8, 13], [83, 417, 11, 6]];
+  'M100 74 L76.6 76 C59.4 78 45.3 84 37.2 96 C30.2 108 33.2 122 41.4 132 C42.4 150 52.9 170 65.4 188 C66.4 198 72 206 75.2 212 L100 216 Z',
+  'M44.8 96 C33.8 104 26.3 120 29.3 136 C30.7 152 33.6 172 37.4 190 C32.9 208 27.7 224 27.8 236 C31.3 246 40.6 250 50.3 246 C54.6 234 60.3 216 64.4 200 C66.9 180 66.3 160 65.2 140 C63.4 120 58.4 104 44.8 96 Z',
+  'M76 206 C61.6 230 56.3 262 58.6 296 C61 314 66.1 330 65.8 346 C66.4 370 70.5 394 75.6 410 L91.9 412 C92.7 396 93.3 372 93 350 C94.7 330 95.6 312 95.4 298 C96.5 276 97.7 252 98.9 230 L100 216 Z' ];
+const ANAT_SKIN_ELL = [[37.9, 254, 9.7, 13], [83, 417, 11.6, 6]];
 const ANAT = {
   f: [
-    ['traps', 'M100 66 C94 68 86 72 76 78 C82 80 88 80 94 78 C97 76 99 74 100 72 Z'],
-    ['delt_side', 'M74 80 C62 82 52 90 50 104 C50 114 52 122 56 128 C58 116 62 104 68 94 C70 88 72 84 74 80 Z'],
-    ['delt_front', 'M76 80 C70 86 64 98 60 112 C58 120 58 126 58 130 C64 128 70 120 74 110 C78 100 82 90 86 84 C83 81 80 80 76 80 Z'],
-    ['chest_upper', 'M100 80 C94 80 88 81 86 84 C82 90 78 98 76 106 C84 102 92 100 100 100 Z'],
-    ['chest_mid', 'M100 100 C92 100 84 102 76 106 C74 114 74 120 76 126 C84 128 92 128 100 126 Z'],
-    ['chest_lower', 'M100 126 C92 128 84 128 76 126 C78 132 84 138 92 140 C96 140 99 139 100 138 Z'],
-    ['triceps', 'M56 128 C51 136 48 150 48 164 C49 172 51 176 55 178 C54 166 54 150 58 134 Z'],
-    ['biceps', 'M60 130 C56 138 54 150 54 162 C54 172 57 178 62 178 C66 170 68 158 68 146 C68 138 66 132 62 128 Z'],
-    ['forearms', 'M54 180 C48 190 44 206 43 222 C43 232 46 238 50 240 C54 228 58 212 62 198 C64 190 64 184 62 180 Z'],
-    ['lats', 'M76 128 C72 136 70 146 71 156 C74 154 78 150 80 146 C80 140 80 134 79 130 Z'],
-    ['obliques', 'M79 132 C80 142 80 152 76 160 C74 170 74 182 78 192 C82 198 86 202 88 204 L88 144 C86 138 83 134 79 132 Z'],
-    ['abs', 'M88.5 143 Q88.5 141 90.5 141 L99 141 L99 156 L88.5 156 Z'],
-    ['abs', 'M88.5 158 L99 158 L99 173 L88.5 173 Z'],
-    ['abs', 'M88.5 175 L99 175 L99 189 L88.5 189 Z'],
-    ['abs', 'M88.5 191 L99 191 L99 214 C95 214 91 208 88.5 200 Z'],
-    ['abductors', 'M76 196 C70 204 67 214 66 224 C70 220 74 214 78 208 C80 204 81 200 80 196 Z'],
-    ['quads', 'M66 226 C62 246 60 268 62 292 C64 304 68 314 72 318 C72 296 74 270 78 246 C79 236 78 228 74 220 Z'],
-    ['quads', 'M80 208 C76 228 76 256 78 282 C80 296 84 304 88 306 C91 288 92 262 90 236 C89 222 86 212 80 208 Z'],
-    ['quads', 'M88 276 C84 288 84 302 88 312 C92 316 96 312 97 304 C97 294 94 284 88 276 Z'],
-    ['adductors', 'M90 214 C88 226 90 242 93 256 C95 264 97 270 98 272 L99 222 C97 218 94 215 90 214 Z'],
-    ['calves', 'M71 330 C66 348 66 372 69 396 C71 402 76 404 79 400 C81 378 81 354 80 334 Z'],
-    ['calves', 'M85 326 C81 342 81 362 84 382 C87 388 93 388 95 382 C97 362 96 342 93 328 Z'],
+    ['traps', 'M100 66 C93.5 68 84.2 72 71.3 78 C78.1 80 85.4 80 92.8 78 C96.5 76 98.9 74 100 72 Z'],
+    ['delt_side', 'M68.4 80 C52.9 82 40.1 90 36.6 104 C35.7 114 39.9 122 47.2 128 C49.5 116 53.3 104 59.9 94 C62.6 88 65.2 84 68.4 80 Z'],
+    ['delt_front', 'M70.8 80 C62.7 86 54.7 98 52.2 112 C49.8 120 50.3 126 50.8 130 C60.4 128 64.4 120 67.8 110 C72.3 100 77.5 90 82.6 84 C79.1 81 75.7 80 70.8 80 Z'],
+    ['chest_upper', 'M100 80 C92.7 80 85.3 81 82.6 84 C77.5 90 72.3 98 70.1 106 C79.9 102 89.9 100 100 100 Z'],
+    ['chest_mid', 'M100 100 C89.9 100 79.9 102 70.1 106 C68 114 68.4 120 71.1 126 C80.8 128 90.4 128 100 126 Z'],
+    ['chest_lower', 'M100 126 C90.4 128 80.8 128 71.1 126 C74 132 81.4 138 90.8 140 C95.4 140 98.8 139 100 138 Z'],
+    ['triceps', 'M47.2 128 C40.5 136 39.3 150 42.9 164 C46.3 172 50 176 56 178 C52.1 166 48.6 150 51.5 134 Z'],
+    ['biceps', 'M54.1 130 C49 138 48.6 150 51.2 162 C53.4 172 58.8 178 64.7 178 C66.2 170 66.2 158 65.5 146 C65 138 63 132 57.1 128 Z'],
+    ['forearms', 'M55.1 180 C48.1 190 41.8 206 35.9 222 C33.1 232 37.4 238 43.8 240 C51.1 228 59.7 212 64.6 198 C66.2 190 66.5 184 64.9 180 Z'],
+    ['lats', 'M71.2 128 C67.3 136 66.2 146 68.4 156 C71.5 154 75.5 150 77.4 146 C77 140 76.5 134 75 130 Z'],
+    ['obliques', 'M75.1 132 C77.1 142 77.9 152 74.3 160 C73.1 170 74.4 182 78.5 192 C82.2 198 86.1 202 88 204 L86.4 144 C83.8 138 80 134 75.1 132 Z'],
+    ['abs', 'M86.9 143 Q86.8 141 89.1 141 L98.9 141 L98.9 156 L87.5 156 Z'],
+    ['abs', 'M87.6 158 L98.9 158 L99 173 L88.3 173 Z'],
+    ['abs', 'M88.3 175 L99 175 L99 189 L88.8 189 Z'],
+    ['abs', 'M88.8 191 L99 191 L99 214 C94.8 214 90.9 208 88.6 200 Z'],
+    ['abductors', 'M76.4 196 C70.1 204 65.6 214 62.7 224 C67.8 220 72.9 214 77.8 208 C80.1 204 81.2 200 80.3 196 Z'],
+    ['quads', 'M62.4 226 C56.3 246 54 268 56.3 292 C59.7 304 65.3 314 70.1 318 C67.8 296 70.1 270 74.7 246 C75.8 236 75.4 228 72 220 Z'],
+    ['quads', 'M79.8 208 C73.2 228 72.4 256 74.7 282 C77 296 82.1 304 86.6 306 C89.7 288 90.8 262 88.5 236 C88.1 222 85.5 212 79.8 208 Z'],
+    ['quads', 'M86.2 276 C81.6 288 82 302 86.9 312 C91.4 316 95.6 312 96.6 304 C96.5 294 93.1 284 86.2 276 Z'],
+    ['adductors', 'M89.6 214 C86.7 226 88.5 242 92 256 C94.2 264 96.5 270 97.7 272 L98.9 222 C96.8 218 93.7 215 89.6 214 Z'],
+    ['calves', 'M69.3 330 C60.9 348 62.1 372 67.4 396 C70 402 75.3 404 78.2 400 C79.2 378 77.9 354 78.4 334 Z'],
+    ['calves', 'M84.4 326 C78.7 342 78.3 362 82.6 382 C86.1 388 92.5 388 94.6 382 C96.6 362 95.5 342 92.7 328 Z'],
   ],
   b: [
-    ['upper_back', 'M93 104 C88 96 82 90 76 92 C72 100 70 110 72 120 C80 124 88 126 96 128 Z'],
-    ['traps', 'M100 60 C94 64 86 70 74 78 C80 84 88 92 93 104 C96 112 99 120 100 124 Z'],
-    ['delt_rear', 'M74 80 C62 82 52 90 50 104 C51 114 54 122 58 126 C60 114 64 102 72 94 C76 90 80 86 84 84 C81 81 78 80 74 80 Z'],
-    ['lats', 'M72 122 C70 136 70 152 74 168 C78 180 86 188 94 192 L97 164 C97 152 97 140 96 130 C88 128 80 126 72 122 Z'],
-    ['lower_back', 'M94 172 C92 182 92 194 94 204 L100 207 L100 142 C98 152 96 162 94 172 Z'],
-    ['triceps', 'M58 126 C52 134 49 148 50 162 C51 172 55 178 60 178 C64 166 66 152 66 140 C65 132 62 128 58 126 Z'],
-    ['forearms', 'M54 180 C48 190 44 206 43 222 C43 232 46 238 50 240 C54 228 58 212 62 198 C64 190 64 184 62 180 Z'],
-    ['abductors', 'M78 196 C72 202 70 210 72 218 C78 214 86 208 92 204 C88 199 84 196 78 196 Z'],
-    ['glutes', 'M72 216 C68 230 70 248 78 258 C86 264 96 262 100 256 L100 208 C94 208 84 210 72 216 Z'],
-    ['hamstrings', 'M70 262 C66 282 66 304 70 322 C74 328 78 326 80 318 C81 300 81 282 79 266 Z'],
-    ['hamstrings', 'M81 264 C81 284 83 304 86 320 C90 326 94 324 96 316 C96 298 95 280 93 266 Z'],
-    ['calves', 'M74 332 C70 346 70 362 74 376 C78 382 84 382 86 376 C86 362 86 346 84 334 Z'],
-    ['calves', 'M86 332 C86 348 86 364 88 378 C92 384 96 382 98 376 C99 362 98 346 94 334 Z'],
-    ['calves', 'M76 380 C76 390 80 400 86 406 C90 408 94 404 96 396 C96 390 95 384 93 380 Z'],
+    ['upper_back', 'M91.2 104 C84.9 96 77.5 90 70 92 C64.7 100 63.5 110 65.9 120 C75.8 124 85.5 126 95.2 128 Z'],
+    ['traps', 'M100 60 C93.7 64 84.6 70 68.9 78 C75.2 84 85 92 91.2 104 C95.1 112 98.8 120 100 124 Z'],
+    ['delt_rear', 'M68.4 80 C52.9 82 40.1 90 36.6 104 C37.4 114 43.3 122 50.3 126 C52.7 114 55.3 102 64.9 94 C70 90 75.1 86 80.1 84 C76.7 81 73.2 80 68.4 80 Z'],
+    ['lats', 'M66 122 C65.8 136 66.9 152 72.9 168 C78.1 180 86.4 188 94.1 192 L96.8 164 C96.7 152 96.5 140 95.2 130 C85.6 128 75.9 126 66 122 Z'],
+    ['lower_back', 'M93.8 172 C92.1 182 92.1 194 94 204 L100 207 L100 142 C97.8 152 95.7 162 93.8 172 Z'],
+    ['triceps', 'M50.3 126 C41.8 134 40.4 148 45.3 162 C49.1 172 56 178 62.9 178 C64.8 166 64.9 152 63.8 140 C62 132 57.1 128 50.3 126 Z'],
+    ['forearms', 'M55.1 180 C48.1 190 41.8 206 35.9 222 C33.1 232 37.4 238 43.8 240 C51.1 228 59.7 212 64.6 198 C66.2 190 66.5 184 64.9 180 Z'],
+    ['abductors', 'M78.3 196 C72.2 202 69.4 210 70.2 218 C77.1 214 85.8 208 92 204 C88.1 199 84.2 196 78.3 196 Z'],
+    ['glutes', 'M70.5 216 C63.9 230 65.5 248 74.7 258 C83.9 264 95.4 262 100 256 L100 208 C93.9 208 83.7 210 70.5 216 Z'],
+    ['hamstrings', 'M65.5 262 C60.9 282 61.9 304 68.4 322 C72.7 328 77.1 326 78.6 318 C78.4 300 78.2 282 75.8 266 Z'],
+    ['hamstrings', 'M78.2 264 C78.2 284 80.9 304 85.1 320 C89.6 326 93.7 324 95.7 316 C95.4 298 94.2 280 92 266 Z'],
+    ['calves', 'M72.2 332 C65.8 346 65.7 362 71.3 376 C76.1 382 82.6 382 84.6 376 C84 362 84 346 82.7 334 Z'],
+    ['calves', 'M85 332 C83.9 348 84.1 364 86.8 378 C91.4 384 95.7 382 97.8 376 C98.9 362 97.7 346 93.5 334 Z'],
+    ['calves', 'M73.8 380 C74.4 390 79.2 400 85.7 406 C89.8 408 93.8 404 95.8 396 C95.7 390 94.6 384 92.4 380 Z'],
   ],
 };
 // muscle-fibre detail lines, purely decorative
 const ANAT_FIBRES = {
-  f: 'M98 88 C92 89 86 92 82 98 M98 110 C90 110 83 112 78 116 M97 120 C90 121 83 121 78 122 M68 88 C66 96 64 104 62 112 M84 222 C82 244 82 266 84 290 M70 240 C68 258 68 276 70 296 M60 140 C59 150 59 160 60 170',
-  b: 'M90 140 C86 150 84 160 84 172 M80 132 C78 144 78 156 80 168 M88 220 C82 228 78 238 78 248 M72 274 C71 290 71 306 73 318 M88 274 C88 290 89 304 91 316 M62 98 C60 104 58 112 57 120',
+  f: 'M97.5 88 C90 89 82.5 92 77.4 98 M97.5 110 C87.6 110 79 112 73 116 M96.3 120 C87.8 121 79.3 121 73.3 122 M60.1 88 C57.3 96 56 104 55.5 112 M82.6 222 C79.3 244 79.3 266 81.6 290 M65.5 240 C63.2 258 63.2 276 65.5 296 M55.8 140 C56.2 150 58.2 160 61.5 170',
+  b: 'M88.5 140 C84.4 150 82.8 160 83.6 172 M76.3 132 C75 144 76.1 156 79.2 168 M87.1 220 C79.9 228 74.7 238 74.7 248 M67.8 274 C66.7 290 67.7 306 71.1 318 M86.2 274 C86.2 290 87.7 304 90.3 316 M52.2 98 C50.5 104 49 112 48.1 120',
 };
 function anatomySVG(o){
   o = o || {};
@@ -4465,12 +4620,12 @@ function anatomySVG(o){
     `<path d="${ANAT_FIBRES[side]}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
   const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${d}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
   const fig = (side, ox, label) => `<g transform="translate(${ox} 0)">
-      <g style="pointer-events:none"><ellipse cx="100" cy="36" rx="21" ry="26" fill="#2b3036" stroke="#1a1d21"/><path d="M88 56 L112 56 L116 76 L84 76 Z" fill="#2b3036"/></g>
+      <g style="pointer-events:none"><ellipse cx="100" cy="36" rx="21" ry="26" fill="#2b3036" stroke="#1a1d21"/><path d="M86 54 L114 54 L121 77 L79 77 Z" fill="#2b3036"/></g>
       ${skin}<g transform="translate(200 0) scale(-1 1)">${skin}</g>
       ${half(side)}<g transform="translate(200 0) scale(-1 1)">${half(side)}</g>
       ${o.labels === false ? '' : `<text x="100" y="438" text-anchor="middle" fill="#8b949c" font-size="13" font-family="system-ui">${label}</text>`}</g>`;
   return `<svg viewBox="0 0 420 446" width="100%" style="max-width:${o.max || 380}px;display:block;margin:0 auto" aria-hidden="true">
-    <defs><radialGradient id="${idp}shade" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient></defs>
+    <defs><radialGradient id="${idp}shade" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient></defs>
     ${fig('f', 0, o.front || 'Front')}${fig('b', 220, o.back || 'Back')}</svg>`;
 }
 
@@ -4737,7 +4892,7 @@ document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.paren
 $('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(!b) return; const tab = b.dataset.tab, h = location.hash.slice(1);
   if(tabOf(h) === tab && h !== TAB_ROOT[tab]) go(TAB_ROOT[tab]); else if(tabOf(h) !== tab) go(ui['lastIn_' + tab] && tab !== 'today' ? ui['lastIn_' + tab] : TAB_ROOT[tab]); else window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-function route(){
+function route_053(){
   const h = location.hash.replace('#','');
   const page = h === 'foods' || h === 'meals' ? 'foods' : h.startsWith('gym') ? 'gym' : ['supps','today','fridge','groc'].includes(h) ? h : 'home';
   [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym']].forEach(([id, p]) => $(id).classList.toggle('hide', page !== p));
@@ -4757,7 +4912,7 @@ function route(){
 
 // ---------- Gym Buddy hub ----------
 const GSEC = { 'gym-week': 'plan', 'gym-lib': 'tpl', 'gym-prog': 'prog', 'gym-rec': 'rec' };
-function renderGym(){
+function renderGym_053(){
   const h = location.hash.slice(1), sec = GSEC[h] || null;
   $('gHub').classList.toggle('hide', !!sec); $('gSecTitle').classList.toggle('hide', !sec);
   $('gBackBtn').classList.toggle('hide', !sec);
@@ -4789,7 +4944,7 @@ function renderGymPlan(){
   $('gPlanV').innerHTML = `<p class="hint" style="margin:10px 0">${t('weekHint')}</p>` + [1, 2, 3, 4, 5, 6, 0].map((wd, i) => { const p = gymPlan[wd] || {}, date = addDays(monday, i), done = sessions.some(s => s.date === date);
     return `<div class="daycard ${wd === twd ? 'today' : ''}" data-wd="${wd}">
       <div class="dch"><b>${WD()[wd]}</b><small>${fmtDate(date)}</small>${done ? `<span class="chip ok">✓ ${t('trained')}</span>` : ''}</div>
-      <div class="dcrow"><span class="dcl">🏋️</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${WT_ICON[x.type] || '🏋️'} ${esc(x.name)}</option>`).join('')}</select>
+      <div class="dcrow"><span class="dcl">🏋️</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${WT_ICON[x.type] || '🏋️'} ${esc(x.name)}</option>`).join('')}</select>
         <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>
       ${p.work ? `<div class="dcrow"><span class="dcl">💼</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm>✕</button></div>`
         : `<button class="linkbtn" data-wadd>${t('addWork')}</button>`}</div>`; }).join('');
@@ -4823,7 +4978,7 @@ function renderTpls(){
       <button class="usebtn" data-go-tp>▶</button></div>`; }).join('')}</div>` : `<div class="empty" style="margin-top:10px">${t('libEmpty')}</div>`) +
     `<div class="actions"><button class="btn primary" id="tpNew">${t('newWorkoutBtn')}</button></div>`;
 }
-function openTpl(x, type){
+function openTpl_053(x, type){
   if(!x && !type) return openWType();
   TP = x ? JSON.parse(JSON.stringify(x)) : { id: null, name: typeLabel_(type), type, exercises: [] };
   $('tpTitle').textContent = x ? t('editWorkout') : t('newWorkout'); $('tpName').value = TP.name; setSeg('#tpType', TP.type);
@@ -4910,6 +5065,777 @@ $('pkBody').addEventListener('click', e => {
   const hd = e.target.closest('[data-head]'); if(hd){ PK.eq = null; }
 }, true);
 
+// ---------- 0.5.4: more standard foods (per 100 g / ml; carbs without fibre, like EU labels) ----------
+// [id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fibre g, sodium mg, potassium mg, pieces, piece g]
+const GEN_MORE = [
+ ['chicken_drum','Chicken drumstick, with skin','Κοτόπουλο κοπανάκι με πέτσα','drumstick κοπανακι chicken leg','meat','chicken','g','uncooked',161,18.1,0,9.2,0,90,220],
+ ['chicken_wing','Chicken wings','Φτερούγες κοτόπουλου','wings φτερουγακια','meat','chicken','g','uncooked',191,17.5,0,12.8,0,80,180],
+ ['chicken_leg','Chicken leg, whole, with skin','Κοτόπουλο μπούτι ολόκληρο με πέτσα','chicken leg quarter μπουτακι','meat','chicken','g','uncooked',214,16.4,0,16,0,80,190],
+ ['chicken_whole','Whole chicken, with skin','Κοτόπουλο ολόκληρο','whole chicken','meat','chicken','g','uncooked',215,18.6,0,15.1,0,70,190],
+ ['chicken_liver','Chicken liver','Συκωτάκια κοτόπουλου','liver','meat','chicken','g','uncooked',119,16.9,0.7,4.8,0,71,230],
+ ['chicken_nuggets','Chicken nuggets','Κοτομπουκιές','nuggets','meat','chicken','g','ready',296,15,16,19,1,600,250],
+ ['chicken_souvlaki','Chicken souvlaki (skewer)','Σουβλάκι κοτόπουλο (καλαμάκι)','kalamaki skewer','meat','chicken','g','cooked',180,26,1,8,0,450,280,'piece',90],
+ ['chicken_gyros','Chicken gyros','Γύρος κοτόπουλο','gyro','meat','chicken','g','cooked',210,22,3,12,0,700,280],
+ ['pork_gyros','Pork gyros','Γύρος χοιρινός','gyro','meat','pork','g','cooked',260,20,2,19,0,750,300],
+ ['pork_souvlaki','Pork souvlaki (skewer)','Σουβλάκι χοιρινό (καλαμάκι)','kalamaki skewer','meat','pork','g','cooked',230,25,1,14,0,450,330,'piece',90],
+ ['pork_tenderloin','Pork tenderloin','Χοιρινό φιλέτο','pork fillet','meat','pork','g','uncooked',120,21,0,3.5,0,52,400],
+ ['pork_belly','Pork belly','Χοιρινή πανσέτα','pancetta','meat','pork','g','uncooked',518,9.3,0,53,0,32,185],
+ ['ham','Ham, sliced','Ζαμπόν','','meat','coldcuts','g','ready',120,18,2,4,0,1100,280,'slice',20],
+ ['chicken_slices','Chicken breast slices (deli)','Φιλέτο κοτόπουλο (αλλαντικό)','deli','meat','coldcuts','g','ready',100,18,2,1.5,0,900,300,'slice',20],
+ ['salami','Salami','Σαλάμι αέρος','','meat','coldcuts','g','ready',407,22,2,34,0,1800,340],
+ ['prosciutto','Prosciutto','Προσούτο','','meat','coldcuts','g','ready',250,26,0,16,0,2300,250],
+ ['turkey_mince','Turkey mince','Κιμάς γαλοπούλας','minced turkey','meat','mince','g','uncooked',150,19.7,0,7.7,0,58,240],
+ ['beef_burger','Beef burger patty','Μπιφτέκι μοσχαρίσιο','burger','meat','beef','g','uncooked',230,17,3,17,0,300,270],
+ ['beef_ribeye','Ribeye steak','Μπριζόλα rib eye','steak','meat','beef','g','uncooked',250,18,0,19.5,0,54,280],
+ ['beef_liver','Beef liver','Συκώτι μοσχαρίσιο','liver','meat','beef','g','uncooked',135,20.4,3.9,3.6,0,69,313],
+ ['lamb_chops','Lamb chops','Παϊδάκια αρνίσια','lamb','meat','lamb','g','uncooked',282,16.4,0,23.4,0,63,240],
+ ['goat','Goat meat','Κατσικίσιο κρέας','','meat','lamb','g','uncooked',109,20.6,0,2.3,0,82,385],
+ ['keftedes','Meatballs (keftedes), fried','Κεφτέδες τηγανητοί','meatballs','meat','beef','g','cooked',260,16,10,17,1,500,300],
+ ['loukaniko','Greek sausage (loukaniko)','Λουκάνικο χωριάτικο','sausage','meat','sausage','g','uncooked',300,14,2,26,0,900,250],
+ ['frankfurter','Frankfurter','Λουκάνικο φρανκφούρτης','hot dog','meat','sausage','g','ready',290,11,3,26,0,1000,170],
+ ['tsipoura','Sea bream','Τσιπούρα','fish','fish','fishgen','g','uncooked',115,19.5,0,4,0,70,350],
+ ['sardines','Sardines, fresh','Σαρδέλες φρέσκες','fish','fish','fishgen','g','uncooked',135,19,0,6.5,0,100,380],
+ ['sardines_can','Sardines in olive oil, canned','Σαρδέλες κονσέρβα σε λάδι','','fish','fishgen','g','ready',208,24.6,0,11.5,0,500,400],
+ ['anchovy','Anchovies, fresh (gavros)','Γαύρος','fish','fish','fishgen','g','uncooked',131,20.4,0,4.8,0,104,383],
+ ['mackerel','Mackerel','Σκουμπρί','fish','fish','fishgen','g','uncooked',205,18.6,0,13.9,0,90,314],
+ ['trout','Trout','Πέστροφα','fish','fish','fishgen','g','uncooked',141,19.9,0,6.2,0,52,481],
+ ['hake','Hake','Μερλούκιος','fish','fish','fishgen','g','uncooked',86,18,0,1.3,0,90,300],
+ ['smoked_salmon','Smoked salmon','Καπνιστός σολομός','','fish','fishgen','g','ready',117,18.3,0,4.3,0,1800,175],
+ ['fish_fingers','Fish fingers','Ψαροκροκέτες (fish fingers)','','fish','fishgen','g','ready',220,12,20,10,1,400,250],
+ ['mussels','Mussels','Μύδια','','fish','shrimp','g','uncooked',86,11.9,3.7,2.2,0,286,320],
+ ['calamari_fried','Fried calamari','Καλαμαράκια τηγανητά','squid','fish','squid','g','cooked',175,18,8,7.5,0,300,250],
+ ['crab_sticks','Crab sticks (surimi)','Καβουροπόδαρα (surimi)','','fish','fishgen','g','ready',95,7.6,15,0.5,0,840,90],
+ ['tuna_steak','Tuna steak, fresh','Τόνος φρέσκος','','fish','tuna','g','uncooked',109,24.4,0,0.5,0,45,441],
+ ['boiled_egg','Egg, boiled','Αυγό βραστό','','eggs','egg','g','cooked',155,12.6,1.1,10.6,0,124,126,'piece',50],
+ ['fried_egg','Egg, fried','Αυγό τηγανητό','','eggs','egg','g','cooked',196,13.6,0.8,15,0,207,152,'piece',46],
+ ['omelette','Omelette, plain','Ομελέτα','','eggs','egg','g','cooked',154,11,0.6,12,0,155,120],
+ ['yog_plain','Plain yogurt 3.5%','Γιαούρτι αγελάδος 3.5%','','dairy','yogurt','g','ready',61,3.5,4.7,3.3,0,46,155],
+ ['yog_sheep','Sheep yogurt','Πρόβειο γιαούρτι','','dairy','yogurt','g','ready',106,6,5,7,0,44,140],
+ ['skyr','Skyr','Skyr','','dairy','yogurt','g','ready',63,11,4,0.2,0,40,150],
+ ['yog_fruit','Fruit yogurt','Γιαούρτι με φρούτα','','dairy','yogurt','g','ready',95,3.5,15,2,0.3,50,150],
+ ['protein_pudding','High-protein pudding','Πουτίγκα πρωτεΐνης','','dairy','yogurt','g','ready',75,10,6,1.5,0,60,200],
+ ['kefir','Kefir','Κεφίρ','','dairy','milk','ml','ready',55,3.4,4.5,2,0,40,150],
+ ['chocmilk','Chocolate milk','Σοκολατούχο γάλα','','dairy','chocmilk','ml','ready',80,3.3,11,2.5,0.5,60,170],
+ ['milk_lf','Lactose-free milk 1.5%','Γάλα χωρίς λακτόζη 1.5%','','dairy','milk','ml','ready',47,3.4,4.8,1.5,0,45,150],
+ ['oat_milk','Oat drink','Ρόφημα βρώμης','oat milk','dairy','milk','ml','ready',46,0.5,6.7,1.5,0.8,40,40],
+ ['almond_milk','Almond drink, unsweetened','Ρόφημα αμυγδάλου χωρίς ζάχαρη','almond milk','dairy','milk','ml','ready',13,0.4,0.3,1.1,0.2,70,50],
+ ['kasseri','Kasseri','Κασέρι','cheese','dairy','cheese','g','ready',375,25,1,30,0,1000,90],
+ ['halloumi','Halloumi','Χαλούμι','cheese','dairy','cheese','g','ready',321,21,2.2,25,0,1200,120],
+ ['anthotyro','Anthotyro','Ανθότυρο','cheese','dairy','cheese','g','ready',170,10,4,13,0,250,100],
+ ['mizithra','Mizithra, fresh','Μυζήθρα','cheese','dairy','cheese','g','ready',230,12,3,19,0,400,100],
+ ['kefalotyri','Kefalotyri','Κεφαλοτύρι','cheese','dairy','cheese','g','ready',390,26,1,31,0,1500,90],
+ ['ricotta','Ricotta','Ρικότα','cheese','dairy','cheese','g','ready',174,11.3,3,13,0,84,105],
+ ['cheddar','Cheddar','Τσένταρ','cheese','dairy','cheese','g','ready',403,24.9,1.3,33,0,653,76],
+ ['edam','Edam','Ένταμ','cheese','dairy','cheese','g','ready',357,25,1.4,27.8,0,965,188],
+ ['light_cheese','Light cheese slices','Τυρί light σε φέτες','cheese','dairy','cheese','g','ready',260,30,1,15,0,1100,100,'slice',20],
+ ['cream_cheese','Cream cheese','Τυρί κρέμα (τύπου Philadelphia)','cheese','dairy','cheese','g','ready',342,6,4,34,0,321,138],
+ ['margarine','Margarine spread','Μαργαρίνη','','dairy','butter','g','ready',530,0.2,0.7,59,0,700,30],
+ ['bulgur','Bulgur, dry','Πλιγούρι','','rice','general','g','uncooked',342,12.3,63,1.3,12.5,17,410],
+ ['quinoa','Quinoa, dry','Κινόα','','rice','general','g','uncooked',368,14.1,57,6.1,7,5,563],
+ ['couscous','Couscous, dry','Κουσκούς','','rice','general','g','uncooked',376,12.8,72,0.6,5,10,166],
+ ['rice_parboiled','Parboiled rice (Carolina), uncooked','Ρύζι καρολίνα / κίτρινο','','rice','general','g','uncooked',360,7.5,79,1,1.7,5,120],
+ ['rice_jasmine','Jasmine rice, uncooked','Ρύζι γιασεμί','','rice','general','g','uncooked',360,7,79,0.6,1,5,100],
+ ['trahanas','Trahanas, dry','Τραχανάς','','pasta','pasta','g','uncooked',360,12,68,4,4,600,300],
+ ['hilopites','Hilopites (egg pasta), dry','Χυλοπίτες','','pasta','pasta','g','uncooked',375,14,68,5,3,20,200],
+ ['noodles','Egg noodles, dry','Νουντλς','','pasta','noodles','g','uncooked',384,14.2,71,4.4,3.3,21,233],
+ ['bread_toast','Toast bread, white','Ψωμί τοστ λευκό','','bread','bread','g','ready',265,8,48,3.5,2.5,480,120,'slice',25],
+ ['bread_toast_ww','Toast bread, wholemeal','Ψωμί τοστ ολικής','','bread','bread','g','ready',250,10,42,4,6,450,230,'slice',25],
+ ['bread_rye','Rye bread','Ψωμί σίκαλης','','bread','bread','g','ready',259,8.5,45,3.3,5.8,603,166,'slice',30],
+ ['bagel','Bagel','Μπέιγκελ','','bread','bread','g','ready',257,10,48,1.6,2.1,450,165,'piece',90],
+ ['tortilla','Tortilla wrap','Τορτίγια','wrap','bread','wrap','g','ready',310,8,51,8,3,600,150,'piece',60],
+ ['koulouri','Koulouri (sesame bread ring)','Κουλούρι Θεσσαλονίκης','','bread','bread','g','ready',330,10,58,6,3,450,150,'piece',90],
+ ['paximadi','Barley rusk (paximadi)','Παξιμάδι κριθαρένιο','rusk','bread','crackers','g','ready',340,10,60,2,9,400,250],
+ ['crackers','Crackers','Κράκερ','','bread','crackers','g','ready',430,9,70,12,3,800,150],
+ ['breadsticks','Breadsticks','Κριτσίνια','','bread','crackers','g','ready',410,12,68,9,3,700,150],
+ ['cornflakes','Corn flakes','Κορν φλέικς','cereal','bread','cereal','g','ready',357,7.5,81,0.4,3,729,168],
+ ['muesli','Muesli','Μούσλι','cereal','bread','cereal','g','ready',370,10,56,6,8,30,400],
+ ['granola','Granola','Γκρανόλα','cereal','bread','cereal','g','ready',450,10,56,18,6,50,400],
+ ['tiropita','Cheese pie (tiropita)','Τυρόπιτα','pie','ready','pie','g','ready',330,10,26,21,1,700,120,'piece',150],
+ ['spanakopita','Spinach pie (spanakopita)','Σπανακόπιτα','pie','ready','pie','g','ready',260,8,22,16,2,600,250,'piece',150],
+ ['bougatsa','Bougatsa with cream','Μπουγάτσα με κρέμα','','ready','pie','g','ready',260,6,30,13,1,200,120],
+ ['pizza','Pizza margherita','Πίτσα μαργαρίτα','','ready','pizza','g','ready',250,11,31,9,2,600,180,'slice',110],
+ ['pita_gyros','Pita gyros, pork (whole wrap)','Πίτα γύρος χοιρινό','souvlaki wrap','ready','meal','g','ready',230,10,22,11,2,600,250,'piece',320],
+ ['pita_souvlaki','Pita souvlaki, chicken (whole wrap)','Πίτα σουβλάκι κοτόπουλο','souvlaki wrap','ready','meal','g','ready',210,12,22,8,2,550,250,'piece',300],
+ ['moussaka','Moussaka','Μουσακάς','','ready','meal','g','ready',150,7,9,10,2,350,280],
+ ['pastitsio','Pastitsio','Παστίτσιο','','ready','meal','g','ready',190,9,15,10,1,350,180],
+ ['gemista','Gemista (stuffed vegetables)','Γεμιστά','','ready','meal','g','ready',120,2,15,6,2,250,250],
+ ['fasolada','Bean soup (fasolada)','Φασολάδα','','ready','meal','g','ready',110,5,13,4,5,300,330],
+ ['fakes','Lentil soup (fakes)','Φακές σούπα','','ready','meal','g','ready',110,6,14,3.5,5,300,300],
+ ['briam','Briam (baked vegetables)','Μπριάμ','','ready','meal','g','ready',100,2,8,7,3,250,350],
+ ['horiatiki','Greek salad (horiatiki)','Χωριάτικη σαλάτα','salad','ready','meal','g','ready',125,3,4,11,1.5,350,250],
+ ['tzatziki','Tzatziki','Τζατζίκι','','ready','meal','g','ready',110,4,4,8.5,0.5,300,180],
+ ['giouvetsi','Giouvetsi (beef with orzo)','Γιουβέτσι','','ready','meal','g','ready',170,10,16,7,1,350,250],
+ ['kokkinisto','Beef in tomato sauce (kokkinisto)','Μοσχάρι κοκκινιστό','','ready','meal','g','ready',160,16,4,9,1,350,350],
+ ['gigantes','Gigantes beans, baked','Γίγαντες πλακί','','ready','meal','g','ready',140,5,14,7,5,350,350],
+ ['chicken_rice','Chicken with rice','Κοτόπουλο με ρύζι','','ready','meal','g','ready',150,12,16,4,0.5,300,200],
+ ['bolognese','Spaghetti bolognese','Μακαρονάδα με κιμά','','ready','meal','g','ready',160,8,20,5,1.5,300,220],
+ ['carbonara','Spaghetti carbonara','Καρμπονάρα','','ready','meal','g','ready',220,8,22,11,1,400,150],
+ ['burger','Burger (bun + patty)','Χάμπουργκερ','','ready','meal','g','ready',260,13,25,12,1.5,500,230,'piece',200],
+ ['club_sandwich','Club sandwich','Κλαμπ σάντουιτς','','ready','meal','g','ready',240,11,20,13,2,550,200],
+ ['toast_hc','Toast, ham & cheese','Τοστ ζαμπόν τυρί','','ready','meal','g','ready',280,14,28,12,1.5,800,150,'piece',120],
+ ['fries','French fries','Πατάτες τηγανητές','chips','veg','potato','g','ready',312,3.4,37,15,3.8,210,579],
+ ['baked_potato','Baked potato','Πατάτα ψητή','','veg','potato','g','cooked',93,2.5,19,0.1,2.2,10,535],
+ ['mashed','Mashed potatoes','Πουρές πατάτας','','veg','potato','g','cooked',106,1.9,14,4.2,1.5,300,300],
+ ['cherry_tomato','Cherry tomatoes','Ντοματίνια','','veg','general','g','ready',18,0.9,2.7,0.2,1.2,5,237],
+ ['beetroot','Beetroot, boiled','Παντζάρι βραστό','','veg','general','g','cooked',44,1.7,8,0.2,2,77,305],
+ ['okra','Okra','Μπάμιες','','veg','general','g','uncooked',33,1.9,4.3,0.2,3.2,7,299],
+ ['artichoke','Artichoke','Αγκινάρα','','veg','general','g','uncooked',47,3.3,5.1,0.2,5.4,94,370],
+ ['asparagus','Asparagus','Σπαράγγια','','veg','general','g','uncooked',20,2.2,1.9,0.1,2.1,2,202],
+ ['brussels','Brussels sprouts','Λαχανάκια Βρυξελλών','','veg','general','g','uncooked',43,3.4,5.2,0.3,3.8,25,389],
+ ['rocket','Rocket (arugula)','Ρόκα','','veg','leafy','g','ready',25,2.6,2.1,0.7,1.6,27,369],
+ ['horta','Boiled greens (horta)','Χόρτα βραστά','vlita','veg','leafy','g','cooked',30,2.5,3,0.4,3,50,300],
+ ['spring_onion','Spring onion','Φρέσκο κρεμμυδάκι','','veg','onion','g','ready',32,1.8,4.7,0.2,2.6,16,276],
+ ['dill','Dill','Άνηθος','','veg','leafy','g','ready',43,3.5,5.5,1.1,2.1,61,738],
+ ['mixed_veg','Mixed vegetables, frozen','Ανάμεικτα λαχανικά κατεψυγμένα','','veg','general','g','uncooked',65,2.9,9.5,0.5,4,40,200],
+ ['olives','Olives, Kalamata','Ελιές Καλαμών','','veg','general','g','ready',230,1.6,6,22,3.3,1556,42],
+ ['pumpkin','Pumpkin','Κολοκύθα','','veg','general','g','uncooked',26,1,5.3,0.1,0.5,1,340],
+ ['pear','Pear','Αχλάδι','','fruit','general','g','ready',57,0.4,12.2,0.1,3.1,1,116,'piece',180],
+ ['peach','Peach','Ροδάκινο','','fruit','peach','g','ready',39,0.9,8,0.3,1.5,0,190,'piece',150],
+ ['apricot','Apricot','Βερίκοκο','','fruit','peach','g','ready',48,1.4,9.1,0.4,2,1,259,'piece',35],
+ ['cherries','Cherries','Κεράσια','','fruit','berries','g','ready',63,1.1,14,0.2,2.1,0,222],
+ ['kiwi','Kiwi','Ακτινίδιο','','fruit','kiwi','g','ready',61,1.1,12,0.5,3,3,312,'piece',75],
+ ['mandarin','Mandarin','Μανταρίνι','','fruit','orange','g','ready',53,0.8,11.5,0.3,1.8,2,166,'piece',80],
+ ['mango','Mango','Μάνγκο','','fruit','general','g','ready',60,0.8,13.4,0.4,1.6,1,168],
+ ['pineapple','Pineapple','Ανανάς','','fruit','pineapple','g','ready',50,0.5,11.8,0.1,1.4,1,109],
+ ['melon','Melon','Πεπόνι','','fruit','watermelon','g','ready',34,0.8,7.9,0.2,0.9,16,267],
+ ['figs','Figs, fresh','Σύκα','','fruit','general','g','ready',74,0.8,16.3,0.3,2.9,1,232],
+ ['pomegranate','Pomegranate','Ρόδι','','fruit','general','g','ready',83,1.7,14.7,1.2,4,3,236],
+ ['raspberries','Raspberries','Σμέουρα','','fruit','berries','g','ready',52,1.2,5.4,0.7,6.5,1,151],
+ ['plum','Plum','Δαμάσκηνο','','fruit','general','g','ready',46,0.7,10,0.3,1.4,0,157,'piece',65],
+ ['lemon','Lemon','Λεμόνι','','fruit','orange','g','ready',29,1.1,6.5,0.3,2.8,2,138],
+ ['dried_figs','Dried figs','Ξερά σύκα','','fruit','dried','g','ready',249,3.3,54,0.9,9.8,10,680],
+ ['prunes','Prunes','Δαμάσκηνα ξερά','','fruit','dried','g','ready',240,2.2,57,0.4,7.1,2,732],
+ ['dried_apricot','Dried apricots','Ξερά βερίκοκα','','fruit','dried','g','ready',241,3.4,55,0.5,7.3,10,1162],
+ ['black_beans','Black beans, dry','Μαύρα φασόλια','','legumes','beans','g','uncooked',341,21.6,47,1.4,15.5,5,1483],
+ ['kidney_can','Red kidney beans, canned, drained','Κόκκινα φασόλια κονσέρβα','','legumes','beans','g','ready',110,7.5,14,0.5,6,250,350],
+ ['lentils_can','Lentils, canned, drained','Φακές κονσέρβα','','legumes','general','g','ready',90,6.5,12,0.4,4,200,300],
+ ['edamame','Edamame','Ένταμάμε (σόγια)','soy','legumes','general','g','ready',121,11.9,5,5.2,5.2,6,436],
+ ['tofu','Tofu, firm','Τόφου','','legumes','general','g','ready',144,17.3,1.6,8.7,2.3,14,237],
+ ['hummus','Hummus','Χούμους','','legumes','chickpeas','g','ready',166,7.9,8.4,9.6,6,379,228],
+ ['cashews','Cashews','Κάσιους','','nuts','general','g','ready',553,18.2,27,43.9,3.3,12,660],
+ ['pistachios','Pistachios','Φιστίκια Αιγίνης','','nuts','general','g','ready',560,20.2,18,45.3,10.6,1,1025],
+ ['hazelnuts','Hazelnuts','Φουντούκια','','nuts','general','g','ready',628,15,7,60.8,9.7,0,680],
+ ['mixed_nuts','Mixed nuts','Ανάμεικτοι ξηροί καρποί','','nuts','general','g','ready',607,20,16,54,7,5,600],
+ ['sunflower_seeds','Sunflower seeds','Ηλιόσποροι','','nuts','seeds','g','ready',584,20.8,11.4,51.5,8.6,9,645],
+ ['pumpkin_seeds','Pumpkin seeds','Κολοκυθόσποροι (πασατέμπος)','','nuts','seeds','g','ready',559,30.2,4.7,49,6,7,809],
+ ['chia','Chia seeds','Σπόροι chia','','nuts','seeds','g','ready',486,16.5,8,30.7,34.4,16,407],
+ ['flax','Flaxseed','Λιναρόσπορος','','nuts','seeds','g','ready',534,18.3,1.6,42.2,27.3,30,813],
+ ['almond_butter','Almond butter','Βούτυρο αμυγδάλου','','nuts','pb','g','ready',614,21,9,55.5,10.3,7,748],
+ ['nutella','Hazelnut chocolate spread','Πραλίνα φουντουκιού (τύπου Nutella)','nutella merenda','oils','spread','g','ready',539,6.3,57.5,30.9,3.4,41,407],
+ ['jam','Jam','Μαρμελάδα','','oils','spread','g','ready',250,0.4,60,0.1,1,30,77],
+ ['tomato_sauce','Tomato pasta sauce','Σάλτσα ζυμαρικών','','oils','sauce','g','ready',50,1.5,8,1.5,1.8,450,350],
+ ['pesto','Pesto','Πέστο','','oils','sauce','g','ready',450,5,6,45,2,900,150],
+ ['bbq_sauce','BBQ sauce','Σάλτσα BBQ','','oils','sauce','g','ready',172,0.8,40,0.6,0.9,1027,232],
+ ['balsamic','Balsamic vinegar','Βαλσάμικο ξίδι','','oils','sauce','ml','ready',88,0.5,17,0,0,23,112],
+ ['vinegar','Vinegar','Ξίδι','','oils','sauce','ml','ready',18,0,0,0,0,2,2],
+ ['coconut_oil','Coconut oil','Λάδι καρύδας','','oils','oil','g','ready',892,0,0,99,0,0,0],
+ ['cocoa','Cocoa powder, unsweetened','Κακάο σκόνη','','snacks','chocolate','g','ready',228,19.6,13,13.7,37,21,1524],
+ ['milk_choc','Milk chocolate','Σοκολάτα γάλακτος','','snacks','chocolate','g','ready',535,7.7,59,29.7,3.4,79,372],
+ ['crisps','Potato crisps','Πατατάκια','chips','snacks','crisps','g','ready',536,7,49,34.6,4.4,525,1275],
+ ['popcorn','Popcorn','Ποπ κορν','','snacks','crisps','g','ready',387,13,48,4.5,14.5,8,329],
+ ['digestive','Digestive biscuits','Μπισκότα digestive','cookies','snacks','cake','g','ready',480,7,62,21,4,600,200],
+ ['cookies_choc','Chocolate chip cookies','Μπισκότα με κομμάτια σοκολάτας','','snacks','cake','g','ready',490,5.5,62,23,2,350,200],
+ ['croissant','Croissant','Κρουασάν','','snacks','cake','g','ready',406,8.2,43,21,2.6,467,118,'piece',60],
+ ['croissant_choc','Chocolate croissant (packaged)','Κρουασάν σοκολάτα (συσκευασμένο)','7days','snacks','cake','g','ready',420,7,48,21,2,300,150,'piece',70],
+ ['loukoumades','Loukoumades with honey','Λουκουμάδες με μέλι','','snacks','cake','g','ready',330,4,49,13,1,150,80],
+ ['baklava','Baklava','Μπακλαβάς','','snacks','cake','g','ready',428,6.7,35,29,2.5,250,200],
+ ['galaktoboureko','Galaktoboureko','Γαλακτομπούρεκο','','snacks','cake','g','ready',230,4.5,32,9,0.5,150,140],
+ ['ice_cream','Ice cream, vanilla','Παγωτό βανίλια','','snacks','candy','g','ready',207,3.5,23,11,0.7,80,199],
+ ['gummies','Gummy candy','Ζελεδάκια','','snacks','candy','g','ready',330,6,77,0.2,0,40,5],
+ ['halva','Halva (tahini)','Χαλβάς','','snacks','candy','g','ready',469,12.5,56,21.5,4.5,195,250],
+ ['protein_bar','Protein bar (typical)','Μπάρα πρωτεΐνης (τυπική)','','supps','bar','g','ready',360,33,30,11,7,250,250,'piece',60],
+ ['cereal_bar','Cereal bar','Μπάρα δημητριακών','','supps','bar','g','ready',400,6,61,13,4,150,200,'piece',25],
+ ['casein','Casein protein','Καζεΐνη','protein powder','supps','whey','g','ready',360,78,8,1.5,0,250,300],
+ ['vegan_protein','Vegan protein powder','Φυτική πρωτεΐνη','protein powder','supps','whey','g','ready',380,75,8,6,5,600,300],
+ ['protein_shake','Protein shake, ready to drink','Ρόφημα πρωτεΐνης έτοιμο','','supps','whey','ml','ready',60,8,4,1,0,60,150],
+ ['freddo','Freddo espresso, no sugar','Freddo espresso σκέτος','coffee καφες','drinks','coffee','ml','ready',2,0.1,0,0,0,2,50],
+ ['freddo_capp','Freddo cappuccino, no sugar','Freddo cappuccino σκέτος','coffee καφες','drinks','coffee','ml','ready',25,1.3,1.9,1.3,0,15,60],
+ ['frappe','Frappé, medium sweet, with milk','Φραπές μέτριος με γάλα','coffee καφες','drinks','coffee','ml','ready',40,0.8,7,1,0,15,80],
+ ['cola','Cola','Κόκα κόλα','coke','drinks','soda','ml','ready',42,0,10.6,0,0,4,2],
+ ['cola_zero','Cola zero','Κόκα κόλα zero','coke','drinks','soda','ml','ready',0.3,0,0,0,0,11,2],
+ ['oj','Orange juice','Χυμός πορτοκάλι','','drinks','juice','ml','ready',45,0.7,10.4,0.2,0.2,1,200],
+ ['beer','Beer','Μπίρα','','drinks','alcohol','ml','ready',43,0.5,3.6,0,0,4,27],
+ ['tsipouro','Tsipouro / ouzo','Τσίπουρο / ούζο','','drinks','alcohol','ml','ready',220,0,0,0,0,0,0],
+ ['energy_drink','Energy drink','Ενεργειακό ποτό','','drinks','soda','ml','ready',45,0,11,0,0,80,10],
+ ['iced_tea','Iced tea','Παγωμένο τσάι (ice tea)','','drinks','soda','ml','ready',30,0,7.5,0,0,10,15],
+];
+GEN_MORE.forEach(([id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fib, na, k, pieces, piece]) => {
+  if(GENBY[id]) return;
+  const so = subOf(cat, sub) || {}; const g = { gid: id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fiber: fib, salt: r1(na * 2.5 / 1000 * 100) / 100, potassium: k,
+    pieces: pieces || 'none', piece: piece || null, hay: norm(`${en} ${el} ${alias} ${so.en || ''} ${so.el || ''} ${(so.kw || []).join(' ')}`) };
+  GEN.push(g); GENBY[id] = g;
+});
+// rough popularity: the plain, everyday version comes first ("chicken" → breast, not mince)
+const POP = ['chicken_breast','chicken_breast_c','egg','rice_white','rice_cooked','banana','oats','milk_semi','yog2','pasta','pasta_cooked','potato','beef_mince10','tuna_water','salmon','olive_oil','bread_ww',
+  'apple','feta','whey','pb','almonds','chicken_thigh','turkey_slices','cottage','honey','tomato','cucumber','broccoli','bread_white','pita','chicken_souvlaki','freddo','koulouri','beef_steak','yog0',
+  'milk_whole','orange','strawberry','avocado','walnuts','spinach','lettuce','onion','carrot','sweetpotato','lentils','chickpeas','boiled_egg','bread_toast','ham','gouda','mozzarella','dark_choc','pita_gyros',
+  'pita_souvlaki','horiatiki','turkey_breast','pork_chop','cod','shrimp','tsipoura','sardines','skyr','kefir','protein_bar','quinoa','bulgur','beef_mince5','chicken_drum','chicken_wing','chicken_gyros','pork_gyros'];
+const POPI = Object.fromEntries(POP.map((g, i) => [g, i]));
+const popBonus = gid => gid in POPI ? 7 * (1 - POPI[gid] / POP.length) + 1 : 0;
+
+// ======================= 0.5.4 =======================
+Object.assign(S, {
+  tabFood:['Food Track','Food Track'], useBtn:['Take out','Βγάλε'], fridgeFab:['＋ Add shopping','＋ Πρόσθεσε ψώνια'],
+  hiMorning:['Good morning','Καλημέρα'], hiDay:['Hey','Γεια'], hiEvening:['Good evening','Καλησπέρα'], launchSub:['What are we doing?','Τι κάνουμε;'],
+  lFoodSub:['{n} foods · {f} in the fridge','{n} τρόφιμα · {f} στο ψυγείο'], lTodaySub:['{a} / {b} kcal','{a} / {b} kcal'], lTodayNo:['{a} kcal so far','{a} kcal μέχρι τώρα'],
+  lGymPlan:['{n} today · {t}','{n} σήμερα · {t}'], lGymRest:['Rest day 😴','Μέρα ξεκούρασης 😴'], lGymNone:['Nothing planned today','Τίποτα για σήμερα'], lGymDone:['Trained today ✓','Προπόνηση σήμερα ✓'],
+  suWelcome:['Welcome 👋','Καλώς ήρθες 👋'], suWelcomeSub:['A quick setup, only once. You can change everything later.','Γρήγορο στήσιμο, μόνο μία φορά. Όλα αλλάζουν αργότερα.'],
+  suNext:['Next','Επόμενο'], suBack:['Back','Πίσω'], suSkip:['Skip','Παράλειψη'], suFinish:['Let\'s go','Πάμε'],
+  suAbout:['About you','Για σένα'], suWeight:['Body weight','Βάρος σώματος'], suGoal:['Goal','Στόχος'],
+  suWeek:['Your week','Η εβδομάδα σου'], suGymDays:['Which days do you train?','Ποιες μέρες γυμνάζεσαι;'], suGymTime:['Usual gym time','Συνήθης ώρα γυμναστηρίου'],
+  suWorkQ:['Do you work?','Δουλεύεις;'], suWorkDays:['Work days','Μέρες δουλειάς'], suFrom:['From','Από'], suTo:['To','Έως'],
+  suAi:['AI helper (optional)','Βοηθός AI (προαιρετικό)'], suAiSub:['A free Gemini key unlocks label photos, shopping photos, recipe ideas and Plan my day. Everything else works without it.','Ένα δωρεάν κλειδί Gemini ξεκλειδώνει φωτογραφίες ετικετών και ψωνιών, ιδέες συνταγών και το Πλάνο ημέρας. Όλα τα άλλα δουλεύουν χωρίς αυτό.'],
+  suDone:['All set','Έτοιμο'], suDoneSub:['Gym days: {g} kcal · rest days: {r} kcal · protein {p} g. Change them anytime with 🎯 in Today.','Μέρες γυμναστικής: {g} kcal · ξεκούρασης: {r} kcal · πρωτεΐνη {p} g. Αλλάζουν όποτε θες από το 🎯 στο Σήμερα.'],
+  suNeedW:['Add your weight first','Βάλε πρώτα το βάρος σου'], suAgain:['↺ Run the first setup again','↺ Ξανά το αρχικό στήσιμο'],
+  remGym:['🏋️ {n} today at {t}','🏋️ {n} σήμερα στις {t}'], remGymNoT:['🏋️ {n} today','🏋️ {n} σήμερα'], remSetT:['set a time','βάλε ώρα'], remWork:['💼 Work {a}–{b}','💼 Δουλειά {a}–{b}'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
+  qaBtn:['⚡ Quick add (eating out)','⚡ Γρήγορη καταγραφή (έξω)'], qaT:['Quick add','Γρήγορη καταγραφή'], qaSub:['Don\'t know the exact food? Put rough numbers.','Δεν ξέρεις ακριβώς το φαγητό; Βάλε περίπου νούμερα.'],
+  qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaMore:['Carbs and fat (optional)','Υδατάνθρακες και λίπος (προαιρετικά)'], qaNeed:['Add the calories','Βάλε τις θερμίδες'], qaTag:['⚡ quick add','⚡ γρήγορη καταγραφή'],
+  usuals:['Your usuals','Τα συνηθισμένα σου'], lastAmt:['last: {a}','τελευταία: {a}'], quickLogged:['Logged {a} {n}','Καταγράφηκε {a} {n}'], grpOnline2:['🌐 Online','🌐 Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
+  rawTag:['RAW','ΩΜΟ'], cookedTag:['COOKED','ΜΑΓΕΙΡ.'], fromFridge:['🧊 Also comes out of your fridge (you have {s})','🧊 Βγαίνει και από το ψυγείο (έχεις {s})'], takeOutT:['Take out: {n}','Βγάλε: {n}'], takeOutSub:['For cooking, or it went off. Eating gets logged in Today.','Για μαγείρεμα ή αν χάλασε. Ό,τι τρως καταγράφεται στο Σήμερα.'],
+  shopT:['Add shopping','Πρόσθεσε ψώνια'], shopSub:['Everything goes into the fridge. Pick the quickest way.','Όλα μπαίνουν στο ψυγείο. Διάλεξε τον πιο γρήγορο τρόπο.'],
+  shopPhoto:['📸 Photo of the shopping','📸 Φωτογραφία των ψωνιών'], shopPhotoSub:['Lay it all on the table, one photo','Άπλωσέ τα στο τραπέζι, μία φωτογραφία'],
+  shopReceipt:['🧾 Photo of the receipt','🧾 Φωτογραφία της απόδειξης'], shopReceiptSub:['Most accurate for amounts','Πιο ακριβές για ποσότητες'],
+  shopScan:['▥ Scan barcodes','▥ Σάρωση barcode'], shopScanSub:['One by one, exact products','Ένα ένα, ακριβή προϊόντα'], shopSearch:['🔍 Search and add','🔍 Αναζήτηση και προσθήκη'], shopSearchSub:['Type a food','Γράψε ένα τρόφιμο'],
+  shopReview:['Check before adding','Έλεγχος πριν την προσθήκη'], shopReviewSub:['Untick anything wrong. Tap a name to change it.','Ξετσέκαρε ό,τι είναι λάθος. Πάτα ένα όνομα για αλλαγή.'],
+  shopAdd:['Add {n} to fridge','Πρόσθεσε {n} στο ψυγείο'], shopAdded:['Added {n} items to the fridge','Μπήκαν {n} προϊόντα στο ψυγείο'], shopReading:['Reading the photo…','Διαβάζω τη φωτογραφία…'],
+  shopNone:['Couldn\'t find any food in the photo.','Δεν βρήκα φαγητά στη φωτογραφία.'], shopFail:['Couldn\'t read it: {e}','Δεν διαβάστηκε: {e}'], shopPick:['tap to pick a food','πάτα για να διαλέξεις'], shopNew:['new','νέο'],
+  scanNextQ:['Added. Scan the next one?','Μπήκε. Σάρωση του επόμενου;'], scanNext:['Scan next','Επόμενο'], needKeyFirst:['This needs a free Gemini key (settings).','Χρειάζεται δωρεάν κλειδί Gemini (ρυθμίσεις).'],
+  formBtn:['▶ Form','▶ Τεχνική'], formT:['Correct form','Σωστή τεχνική'], formNext:['Not this one ›','Δεν είναι αυτό ›'], formLoading:['Loading the demo…','Φορτώνει η επίδειξη…'],
+  formFail:['Couldn\'t load the demo (needs internet).','Δεν φόρτωσε η επίδειξη (θέλει ίντερνετ).'], formCredit:['Photos: free-exercise-db (public domain). Steps in English.','Φωτογραφίες: free-exercise-db (ελεύθερες). Βήματα στα αγγλικά.'], formNone:['No demo found for this one.','Δεν βρέθηκε επίδειξη γι\' αυτό.'],
+  setsL:['Sets','Σετ'], repsL:['Reps','Επαναλήψεις'], restL:['Rest','Διάλειμμα'], typeChange:['change','αλλαγή'], otherWorkout:['or pick another workout','ή διάλεξε άλλη προπόνηση'], tapNum:['Tap the set number for warm-up / drop / failure','Πάτα τον αριθμό του σετ για ζέσταμα / drop / αποτυχία'],
+  wiT:['⚖️ Weigh-in','⚖️ Ζύγισμα'], wiSave:['Save','Αποθήκευση'], wiSaved:['Weight saved','Το βάρος αποθηκεύτηκε'], wiRate:['{r} kg/week over the last {d} days','{r} kg/εβδομάδα τις τελευταίες {d} μέρες'],
+  wiNeed:['Weigh in a few times a week (same time, morning). The trend shows after a week.','Ζυγίσου μερικές φορές την εβδομάδα (ίδια ώρα, πρωί). Η τάση φαίνεται μετά από μια εβδομάδα.'],
+  wiOk:['On track 👍','Είσαι στον στόχο 👍'], wiSlowBulk:['Gaining slower than a lean bulk (+0.25–0.5% a week).','Παίρνεις πιο αργά από ένα καθαρό bulk (+0,25–0,5% την εβδομάδα).'], wiFastBulk:['Gaining faster than a lean bulk, so some of it is fat.','Παίρνεις πιο γρήγορα από ένα καθαρό bulk, άρα ένα μέρος είναι λίπος.'],
+  wiSlowCut:['Losing slower than planned (−0.5–1% a week).','Χάνεις πιο αργά από το πλάνο (−0,5–1% την εβδομάδα).'], wiFastCut:['Losing fast, so you might lose muscle too.','Χάνεις γρήγορα, μπορεί να χάνεις και μυ.'], wiRecomp:['A recomp should keep weight about the same.','Στο recomp το βάρος μένει περίπου ίδιο.'],
+  wiApply:['Apply {d} kcal','Εφάρμοσε {d} kcal'], wiApplied:['Targets changed by {d} kcal','Οι στόχοι άλλαξαν κατά {d} kcal'],
+  bkT:['💾 Back up your data (1 tap)','💾 Αντίγραφο των δεδομένων (1 πάτημα)'], bkSub:['Last backup: {d}. Save it to iCloud Drive / Files.','Τελευταίο: {d}. Αποθήκευσέ το στο iCloud Drive / Αρχεία.'], bkNever:['never','ποτέ'], bkDone:['Backup saved','Το αντίγραφο αποθηκεύτηκε'],
+  potOther:['Weigh it in the pot instead ›','Ζύγισε με την κατσαρόλα ›'], cookedW:['Cooked food weight (g)','Βάρος μαγειρεμένου φαγητού (g)'],
+});
+
+// ---------- tags: raw (light blue) / cooked (light green) ----------
+function stTag(state){ return state === 'uncooked' ? `<span class="sttag raw">${t('rawTag')}</span>` : state === 'cooked' ? `<span class="sttag cooked">${t('cookedTag')}</span>` : ''; }
+
+// ---------- smarter search: popularity, your own habits, up to 50 results ----------
+function useCounts(){
+  const c = {}; Object.keys(dayLog).sort().slice(-90).forEach(d => (dayLog[d] || []).forEach(e => { if(e.refId) c[e.refId] = (c[e.refId] || 0) + 1; }));
+  foods.forEach(f => { if(f.gid && c[f.id]) c['g:' + f.gid] = c[f.id]; }); return c;
+}
+function searchLocal(text, raw, opts){
+  const q = norm(text), tokens = q.split(' ').filter(Boolean); opts = opts || {};
+  if(!tokens.length) return { mine: [], std: [] };
+  const uc = useCounts(), habit = n => n ? Math.min(8, 3 + n / 2) : 0;
+  const names = f => [foodName(f), f.name, f.gid && GENBY[f.gid] ? GENBY[f.gid].en : '', f.gid && GENBY[f.gid] ? GENBY[f.gid].el : ''];
+  const cookBias = st => raw ? (st === 'cooked' ? -6 : 0) : opts.log ? (st === 'cooked' ? 1.5 : 0) : 0;
+  const mine = foods.map(f => { const s = scoreHay(foodHay(f), names(f), tokens, q); return { f, s: s > 0 ? s + habit(uc[f.id]) + (f.gid ? popBonus(f.gid) : 0) + cookBias(f.state) : 0 }; })
+    .filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, opts.mineMax || 20).map(x => x.f);
+  const have = new Set(foods.map(f => f.gid).filter(Boolean));
+  const std = GEN.filter(g => !have.has(g.gid)).map(g => { const s = scoreHay(g.hay, [g.en, g.el], tokens, q); return { g, s: s > 0 ? s + popBonus(g.gid) + cookBias(g.state) : 0 }; })
+    .filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, opts.stdMax || 50).map(x => x.g);
+  return { mine, std };
+}
+// online: Open Food Facts (packaged foods) + USDA FoodData Central (plain foods)
+async function searchUSDA(text){
+  const key = settings.usdaKey || 'DEMO_KEY';
+  const r = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${key}&query=${encodeURIComponent(text)}&pageSize=25&dataType=Foundation,SR%20Legacy`);
+  if(!r.ok) throw new Error('USDA ' + r.status); const j = await r.json();
+  const nv = (f, ids) => { for(const n of f.foodNutrients || []){ if(ids.includes(n.nutrientId) || ids.includes(+n.nutrientNumber)) return n.value; } return null; };
+  return (j.foods || []).map(f => { let kcal = nv(f, [1008, 208]); if(kcal == null){ const kj = nv(f, [1062]); if(kj != null) kcal = Math.round(kj / 4.184); }
+    const carbs = nv(f, [1005, 205]), fib = nv(f, [1079, 291]);
+    const nm = f.description.replace(/\s+/g, ' ');
+    return { name: nm.charAt(0) + nm.slice(1).toLowerCase(), brand: '', noBrand: true, kcal: kcal != null ? Math.round(kcal) : null, protein: nv(f, [1003, 203]), carbs: carbs != null ? r1(Math.max(0, carbs - (fib || 0))) : null, fat: nv(f, [1004, 204]),
+      fiber: fib, salt: nv(f, [1093, 307]) != null ? r1(nv(f, [1093, 307]) * 2.5 / 1000 * 100) / 100 : null, potassium: nv(f, [1092, 306]), unit: 'g', packs: [], usualPack: null,
+      state: /\braw\b/i.test(nm) ? 'uncooked' : /cooked|boiled|roasted|grilled|baked|fried|steamed|braised/i.test(nm) ? 'cooked' : 'ready', source: 'USDA', fdc: f.fdcId }; })
+    .filter(d => d.protein != null && d.carbs != null && d.fat != null);
+}
+async function searchOnlineAll(text){
+  const [a, b] = await Promise.allSettled([searchOnline(text), searchUSDA(text)]);
+  const off = a.status === 'fulfilled' ? a.value.map(d => ({ ...d, source: 'openfoodfacts' })) : [], us = b.status === 'fulfilled' ? b.value : [];
+  if(a.status === 'rejected' && b.status === 'rejected') throw new Error('offline');
+  const out = [], seen = new Set(); [us.slice(0, 15), off].flat().forEach(d => { const k = norm(d.name + (d.brand || '')); if(!seen.has(k)){ seen.add(k); out.push(d); } });
+  return out.slice(0, 40);
+}
+function saveOnlineFood(d){
+  if(d.barcode){ const ex = foods.find(f => f.barcode === d.barcode); if(ex) return ex; }
+  const now = new Date().toISOString(), g = guessType(d.name + ' ' + (d.hint || ''));
+  const f = migrate({ id: uid(), name: d.name, brand: d.brand || '', noBrand: !d.brand, barcode: d.barcode || null, cat: g ? g.cat : 'other', sub: g ? g.sub : 'general', unit: d.unit || 'g', state: d.state || 'ready',
+    kcal: d.kcal ?? Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9), protein: d.protein, carbs: d.carbs, fat: d.fat, fiber: d.fiber ?? null, salt: d.salt ?? null, potassium: d.potassium ?? null,
+    packs: d.packs || [], usualPack: d.usualPack || null, pieces: 'none', serving: d.serving || null, source: d.source || 'online', createdAt: now, updatedAt: now });
+  foods.push(f); saveFoods(); return f;
+}
+
+// ---------- logging: your usuals first, last amounts remembered, one-tap re-log, barcode in the bar ----------
+const fInfo_ = f => ({ name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces });
+function lastEntryOf(refId){ const ds = Object.keys(dayLog).sort().reverse(); for(const d of ds){ const l = dayLog[d] || []; for(let i = l.length - 1; i >= 0; i--) if(l[i].refId === refId) return l[i]; } return null; }
+function usuals(){
+  const now = Date.now(), m = {};
+  Object.keys(dayLog).sort().slice(-60).forEach(d => { const age = (now - new Date(d + 'T12:00:00')) / 864e5; (dayLog[d] || []).forEach(e => { if(!e.refId || e.kind === 'quick') return;
+    const k = e.kind + e.refId; const x = m[k] || (m[k] = { e, n: 0, sc: 0 }); x.n++; x.sc += 1 + Math.max(0, 14 - age) / 7; x.e = e; }); });
+  return Object.values(m).filter(x => infoOfEntry(x.e)).sort((a, b) => b.sc - a.sc).slice(0, 12).map(x => x.e);
+}
+let LOGON = { q: '', res: [], busy: false, timer: null };
+function drawLog(){
+  const q = $('lSearch').value.trim(), tokens = norm(q).split(' ').filter(Boolean);
+  const ml = m => `${m.kcal} kcal · P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)} / 100 g`;
+  let h = '';
+  if(!q){
+    LS.recent = usuals();
+    if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
+    else h = `<div class="hint">${t('typeToSearch')}</div>`;
+  } else {
+    LS.meals = meals.filter(m => tokens.every(tk => norm(m.name).includes(tk))).slice(0, 10);
+    const s = searchLocal(q, false, { log: true }); LS.mine = s.mine; LS.std = s.std;
+    if(LS.meals.length) h += `<div class="sgroup">${t('tabMeals')}</div>` + LS.meals.map((m, i) => itemHtml('ml', i, mealIcon(m), m.name, ml(m))).join('');
+    if(LS.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + LS.mine.map((f, i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand || !f.brand ? '' : esc(f.brand) + ' · '}${macroLine(f)}${stockOf(f.id) ? ' · 🧊' : ''}`)).join('');
+    if(LS.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + LS.std.map((g, i) => itemHtml('s', i, subOf(g.cat, g.sub).icon, L(g), macroLine(g))).join('');
+    if(LOGON.q === q && LOGON.res.length) h += `<div class="sgroup">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => itemHtml('o', i, d.source === 'USDA' ? '🇺🇸' : '🌐', d.name, `${d.brand ? esc(d.brand) + ' · ' : ''}${macroLine(d)}`)).join('');
+    else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
+    else if(q.length >= 2) h += `<button class="btn" id="lOnline" style="width:100%;margin-top:8px">🌐 ${t('onlineMore')}</button>`;
+    if(!LS.meals.length && !LS.mine.length && !LS.std.length && !LOGON.busy && !(LOGON.q === q && LOGON.res.length)) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
+  }
+  h += `<button class="btn qabtn" id="lQuick">${t('qaBtn')}</button>`;
+  $('lResults').innerHTML = h;
+}
+async function runLogOnline(q){
+  LOGON = { q, res: [], busy: true, timer: null }; drawLog();
+  try{ const res = await searchOnlineAll(q); if($('lSearch').value.trim() !== q) return; LOGON = { q, res, busy: false }; }
+  catch(e){ LOGON = { q, res: [], busy: false }; toast(t('onlineFail')); }
+  drawLog();
+}
+$('lSearch').addEventListener('input', () => { clearTimeout(LOGON.timer); const q = $('lSearch').value.trim(); if(LOGON.q !== q){ LOGON.res = []; LOGON.busy = false; }
+  if(q.length >= 3) LOGON.timer = setTimeout(() => { if($('lSearch').value.trim() === q) runLogOnline(q); }, 900); });
+$('lResults').addEventListener('click', e => {
+  if(e.target.closest('#lOnline')){ e.stopImmediatePropagation(); runLogOnline($('lSearch').value.trim()); return; }
+  if(e.target.closest('#lQuick')){ e.stopImmediatePropagation(); close('ovLog'); openQuick(); return; }
+  const ql = e.target.closest('[data-ql]');
+  if(ql){ e.stopImmediatePropagation(); const en = LS.recent[+ql.dataset.ql], info = infoOfEntry(en); if(!info) return;
+    logEntry(curDay, info, en.amt, daysUntil(curDay) === 0 ? nowHM() : '13:00'); const r = info.food ? takeFromFridge({ foodId: info.food.id }, en.amt) : info.meal ? takeFromFridge({ mealId: info.meal.id }, en.amt) : null;
+    const list = dayLog[curDay], added = list[list.length - 1]; close('ovLog'); renderAll();
+    toast(t('quickLogged', { a: fmtSize(en.amt, en.unit), n: info.name }), t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); saveLog(); renderAll(); }); return; }
+  const b = e.target.closest('.sitem'); if(b && b.dataset.k === 'o'){ e.stopImmediatePropagation(); const f = saveOnlineFood(LOGON.res[+b.dataset.i]); close('ovLog'); openAmt({ mode: 'log', info: fInfo_(f) }); }
+}, true);
+(() => { const s = $('lSearch'), w = document.createElement('div'); w.className = 'searchrow'; s.before(w); w.appendChild(s);
+  const b = document.createElement('button'); b.className = 'iconbtn scanin'; b.id = 'lScanIn'; b.type = 'button'; b.setAttribute('aria-label', 'Scan'); b.textContent = '▥'; w.appendChild(b);
+  b.addEventListener('click', () => { close('ovLog'); startScan('log'); }); $('lScan').classList.add('hide'); })();
+
+// amount sheet: remember last amount, fridge comes off by itself, fridge "use" is take-out only
+function openAmt(o){
+  openAmt_0(o); if(!AM || !AM.info) return; const info = AM.info;
+  if(o.mode === 'log'){
+    const ref = info.meal ? info.meal.id : info.food ? info.food.id : null, last = ref && lastEntryOf(ref);
+    if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amRes(); }
+    const stock = info.meal ? mealStock(info.meal.id) : info.food ? stockOf(info.food.id) : 0;
+    $('amFridgeTxt').textContent = t('fromFridge', { s: fmtAmt(stock, info) }); $('amFridge').checked = true;
+    $('amTitle').innerHTML = `${info.icon} ${esc(info.name)} ${stTag((info.food || {}).state)}`;
+  }
+  if(o.mode === 'use'){ $('amLog').checked = false; $('amLogWrap').classList.add('hide'); $('amTimeRow').classList.add('hide');
+    $('amTitle').textContent = t('takeOutT', { n: info.name }); $('amSub').textContent = t('takeOutSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }); }
+}
+// editing a log entry keeps fibre / sodium / potassium right too
+$('amSave').addEventListener('click', () => {
+  if(!AM || AM.mode !== 'editlog') return; const e = (dayLog[AM.date] || []).find(x => x.id === AM.entry.id); if(!e || !AM.info.food && !AM.info.meal) return;
+  const m = macrosFor(AM.info.per, e.amt); Object.assign(e, m); saveLog();
+});
+
+// ---------- quick add ----------
+let QA = null;
+function openQuick(entry){
+  QA = entry || null; ['qaName', 'qaK', 'qaP', 'qaC', 'qaF'].forEach(id => $(id).value = '');
+  if(entry){ $('qaName').value = entry.name === t('qaDef') ? '' : entry.name; $('qaK').value = entry.kcal; $('qaP').value = entry.p || ''; $('qaC').value = entry.c || ''; $('qaF').value = entry.f || ''; }
+  $('qaDel').classList.toggle('hide', !entry); open('ovQuick'); setTimeout(() => $(entry ? 'qaK' : 'qaName').focus(), 120);
+}
+function saveQuick(){
+  const k = num('qaK'); if(!(k > 0)){ toast(t('qaNeed')); $('qaK').focus(); return; }
+  const rec = { name: $('qaName').value.trim() || t('qaDef'), kcal: Math.round(k), p: r1(num('qaP') || 0), c: r1(num('qaC') || 0), f: r1(num('qaF') || 0) };
+  if(QA){ Object.assign(QA, rec); } else (dayLog[curDay] = dayLog[curDay] || []).push({ id: uid(), time: daysUntil(curDay) === 0 ? nowHM() : '13:00', kind: 'quick', refId: null, icon: '⚡', amt: 1, unit: 'g', fib: 0, na: 0, k: 0, ...rec });
+  saveLog(); close('ovQuick'); renderAll(); toast(QA ? t('updated') : t('logged', { n: rec.name }));
+}
+function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.indexOf(QA); if(i > -1){ l.splice(i, 1); saveLog(); } close('ovQuick'); renderAll(); }
+
+// ---------- Today: just gym or rest; a small reminder instead of time + type fields ----------
+function renderToday(){
+  renderToday_0(); try{ renderTodayRec(); }catch(e){}
+  (dayLog[curDay] || []).filter(e => e.kind === 'quick').forEach(e => { const c = document.querySelector(`#dLog [data-eid="${e.id}"] .name small`); if(c) c.textContent = '· ' + t('qaTag'); });
+}
+$('dLog').addEventListener('click', e => { const c = e.target.closest('[data-eid]'); if(!c) return; const en = (dayLog[curDay] || []).find(x => x.id === c.dataset.eid);
+  if(en && en.kind === 'quick'){ e.stopImmediatePropagation(); openQuick(en); } }, true);
+document.querySelectorAll('#dType button').forEach(b => b.addEventListener('click', ev => {
+  if(b.dataset.v !== 'gym') return; ev.stopImmediatePropagation(); const di = dayInfo(curDay);
+  setDay({ type: 'gym', work: di.work || 'upper', time: di.time || ui.gymTime || '18:00' });
+}, true));
+function renderTodayRec(){
+  const el = $('dRec'); if(el) el.innerHTML = '';
+  const isToday = daysUntil(curDay) === 0, wb = workFor(curDay), di = dayInfo(curDay), pl = planFor(curDay);
+  const tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl), nm = tp ? tp.name : t('gymAny'), lines = [];
+  if(di.type === 'gym'){ const tm = (pl && pl.type === 'gym' && pl.time) || (days[curDay] && days[curDay].time) || '';
+    lines.push(tm ? `<b>${t('remGym', { n: esc(nm), t: tm })}</b>` : `<b>${t('remGymNoT', { n: esc(nm) })}</b> <button class="linkbtn" data-goweek>${t('remSetT')}</button>`); }
+  if(wb) lines.push(t('remWork', { a: wb.from, b: wb.to }));
+  const ws = isToday ? recoveryWarnings() : [];
+  const hidden = ui.remHide === curDay;
+  $('dBlocks').innerHTML = (lines.length || ws.length) && !hidden ? `<div class="remind"><div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec>🔋 ${w}</div>`).join('')}</div>
+    <div class="rmbtns"><button class="linkbtn" data-goweek aria-label="Edit">✎</button><button class="linkbtn" data-rmx aria-label="Hide">✕</button></div></div>` : '';
+}
+$('dBlocks').addEventListener('click', e => { if(e.target.closest('[data-rmx]')){ ui.remHide = curDay; saveUI(); renderTodayRec(); } if(e.target.closest('[data-gorec]')) go('gym-rec'); });
+function renderHome17(){}   // recovery reminders live only in Today now
+
+// ---------- launcher, tab swipes ----------
+const TABS3 = ['food', 'today', 'gym'];
+function renderLaunch(){
+  const hr = new Date().getHours(); $('lHello').textContent = t(hr < 12 ? 'hiMorning' : hr < 18 ? 'hiDay' : 'hiEvening') + ' 👋';
+  const tk = todayKey(), tg = targetFor(tk), tot = dayTotals(tk), pl = planFor(tk), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
+  $('lbFood').textContent = t('lFoodSub', { n: foods.length, f: liveItems().length });
+  $('lbToday').textContent = tg ? t('lTodaySub', { a: Math.round(tot.kcal).toLocaleString(), b: tg.k.toLocaleString() }) : t('lTodayNo', { a: Math.round(tot.kcal) });
+  $('lbGym').textContent = sessions.some(s => s.date === tk) ? t('lGymDone') : pl && pl.type === 'gym' ? t('lGymPlan', { n: tp ? tp.name : t('gymAny'), t: pl.time || '' }) : pl && pl.type === 'rest' ? t('lGymRest') : t('lGymNone');
+  $('lBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0'; renderBackupCard($('lBackup'));
+}
+function launchTo(tab, btn){
+  const target = () => { if(tab === 'today') curDay = todayKey(); go(TAB_ROOT[tab]); };
+  const bubbles = [...document.querySelectorAll('#pgLaunch .bubble')], bar = $('tabbar');
+  if(!btn || matchMedia('(prefers-reduced-motion: reduce)').matches || !bubbles[0].animate){ target(); return; }
+  bar.classList.remove('hide'); bar.style.opacity = '0';
+  const tabs = TABS3.map(k => bar.querySelector(`[data-tab="${k}"]`));
+  const anims = bubbles.map((b, i) => { const r = b.getBoundingClientRect(), tr = tabs[i].getBoundingClientRect();
+    const dx = tr.left + tr.width / 2 - (r.left + r.width / 2), dy = tr.top + tr.height / 2 - (r.top + r.height / 2), s = Math.min(tr.width / r.width, tr.height / r.height);
+    return b.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: b === btn ? 1 : .5 }], { duration: 430, easing: 'cubic-bezier(.55,0,.2,1)', fill: 'forwards', delay: b === btn ? 0 : 40 }); });
+  bar.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260, fill: 'forwards' });
+  setTimeout(() => { bar.style.opacity = ''; bar.getAnimations().forEach(a => a.cancel()); target(); anims.forEach(a => a.cancel()); }, 470);
+}
+function switchTab(dir){
+  const h = location.hash.slice(1); if(h === 'start') return; const i = TABS3.indexOf(tabOf(h)), j = i + dir; if(j < 0 || j > 2) return;
+  const tab = TABS3[j]; if(tab === 'today') curDay = todayKey();
+  go(ui['lastIn_' + tab] && tab !== 'today' && ui['lastIn_' + tab] !== 'start' ? ui['lastIn_' + tab] : TAB_ROOT[tab]);
+  requestAnimationFrame(() => { const pg = document.querySelector('section.page:not(.hide)'); if(pg){ pg.classList.remove('slideL', 'slideR'); void pg.offsetWidth; pg.classList.add(dir > 0 ? 'slideL' : 'slideR'); } });
+}
+(() => {
+  let sx = null, sy = 0, st = 0;
+  const skip = el => el.closest('.chips,.tchips,.hscroll,input,select,textarea,.overlay,.seg,.daycard,svg,.mbar,.bubbles');
+  document.addEventListener('touchstart', e => { const t0 = e.touches[0]; if(e.touches.length > 1 || t0.clientX < 30 || t0.clientX > innerWidth - 30 || skip(e.target) || document.querySelector('.overlay.open')){ sx = null; return; }
+    sx = t0.clientX; sy = t0.clientY; st = Date.now(); }, { passive: true });
+  document.addEventListener('touchend', e => { if(sx === null) return; const t1 = e.changedTouches[0], dx = t1.clientX - sx, dy = Math.abs(t1.clientY - sy); sx = null;
+    if(Math.abs(dx) < 70 || dy > 45 || Date.now() - st > 600) return; switchTab(dx < 0 ? 1 : -1); }, { passive: true });
+})();
+function route(){
+  const h = location.hash.slice(1), L_ = h === 'start';
+  $('pgLaunch').classList.toggle('hide', !L_); $('tabbar').classList.toggle('hide', L_);
+  if(L_){ ['pgHome','pgFoods','pgSupps','pgToday','pgFridge','pgGroc','pgGym'].forEach(id => $(id).classList.add('hide')); $('fab').classList.add('hide'); renderLaunch(); window.scrollTo(0, 0); return; }
+  route_053();
+}
+
+// ---------- first-time setup ----------
+let SUP = { step: 0 };
+const WD1 = () => [1, 2, 3, 4, 5, 6, 0];
+function openSetup(){
+  const tg = targets || {}; const gymDays = Object.entries(gymPlan).filter(([, p]) => p && p.tpl && p.tpl !== 'rest').map(([wd]) => +wd);
+  const workDays = Object.entries(gymPlan).filter(([, p]) => p && p.work).map(([wd]) => +wd), w0 = workDays.length ? gymPlan[workDays[0]].work : { from: '09:00', to: '17:00' };
+  SUP = { step: 0, lang: lang, bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: ui.gymTime || '18:00',
+    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '' };
+  drawSetup(); open('ovSetup');
+}
+function drawSetup(){
+  const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
+  let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
+  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>`;
+  if(s === 1) h += `<h2>${t('suAbout')}</h2><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
+    <label>${t('suGoal')}</label><div class="seg" id="suGoal">${['bulk', 'recomp', 'cut'].map(g => `<button data-v="${g}" class="${SUP.goal === g ? 'on' : ''}">${t({ bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[g])}</button>`).join('')}</div>`;
+  if(s === 2) h += `<h2>${t('suWeek')}</h2><label>${t('suGymDays')}</label>${dayChips(SUP.gym, 'sugym')}
+    <div class="brandrow" style="margin-top:12px"><label for="suTime" style="margin:0;flex:1">${t('suGymTime')}</label><input id="suTime" type="time" value="${SUP.time}" style="flex:0 0 130px"></div>
+    <label class="check" style="margin-top:14px"><input type="checkbox" id="suWork" ${SUP.work ? 'checked' : ''}><span>${t('suWorkQ')}</span></label>
+    <div id="suWorkBox" class="${SUP.work ? '' : 'hide'}"><label>${t('suWorkDays')}</label>${dayChips(SUP.workDays, 'suwd')}
+      <div class="grid" style="margin-top:8px"><div><label for="suFrom">${t('suFrom')}</label><input id="suFrom" type="time" value="${SUP.from}"></div><div><label for="suTo">${t('suTo')}</label><input id="suTo" type="time" value="${SUP.to}"></div></div></div>`;
+  if(s === 3) h += `<h2>${t('suAi')}</h2><p class="sub">${t('suAiSub')}</p><input id="suKey" type="password" autocomplete="off" value="${esc(SUP.key)}" placeholder="AIza…"><div class="actions" style="margin-top:8px"><button class="btn" id="suGetKey">${t('getKey')}</button></div>`;
+  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="font-size:54px;text-align:center;margin:10px 0">✅</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
+  h += `<div class="actions">${s > 0 ? `<button class="btn" data-sunav="-1">${t('suBack')}</button>` : `<button class="btn" data-suskip>${t('suSkip')}</button>`}${s === 3 ? `<button class="btn" data-sunav="1" data-skipkey>${t('suSkip')}</button>` : ''}<button class="btn primary" data-sunav="${s === 4 ? 'done' : 1}">${s === 4 ? t('suFinish') : t('suNext')}</button></div>`;
+  $('suBody').innerHTML = h;
+}
+function readSetup(){ const v = id => $(id) ? $(id).value : null;
+  if($('suBw')) SUP.bw = num('suBw') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); }
+function calcTargets(bw, goal){
+  const kg = { bulk: 36, recomp: 33, cut: 28 }[goal], prot = Math.round(bw * (goal === 'cut' ? 2.2 : 2) / 5) * 5;
+  const mk = (k, fatPerKg) => { const f = Math.round(bw * fatPerKg / 5) * 5, kk = Math.round(k / 50) * 50; return { k: kk, p: prot, f, c: Math.max(0, Math.round((kk - prot * 4 - f * 9) / 4 / 5) * 5) }; };
+  return { goal, bw, gym: mk(bw * kg, .9), rest: mk(bw * kg - (goal === 'cut' ? 200 : 250), 1) };
+}
+function finishSetup(){
+  const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; store(TGKEY, targets);
+  ui.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
+    if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
+    if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
+    if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
+  saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; store(SKEY, settings); }
+  ui.setupDone = true; ui.lang = lang; saveUI(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+}
+$('suBody').addEventListener('click', e => {
+  const L2 = e.target.closest('[data-sulang]'); if(L2){ lang = L2.dataset.sulang; ui.lang = lang; saveUI(); applyLang(); route(); drawSetup(); return; }
+  const g = e.target.closest('#suGoal [data-v]'); if(g){ SUP.goal = g.dataset.v; setSeg('#suGoal', SUP.goal); return; }
+  const gd = e.target.closest('[data-sugym]'); if(gd){ readSetup(); const d = +gd.dataset.sugym; SUP.gym.has(d) ? SUP.gym.delete(d) : SUP.gym.add(d); drawSetup(); return; }
+  const wd = e.target.closest('[data-suwd]'); if(wd){ readSetup(); const d = +wd.dataset.suwd; SUP.workDays.has(d) ? SUP.workDays.delete(d) : SUP.workDays.add(d); drawSetup(); return; }
+  if(e.target.closest('#suGetKey')){ const gk = $('getKey'); if(gk) gk.click(); return; }
+  if(e.target.closest('[data-suskip]')){ ui.setupDone = true; ui.lang = lang; saveUI(); close('ovSetup'); return; }
+  const nv = e.target.closest('[data-sunav]'); if(!nv) return; readSetup();
+  if(nv.dataset.skipkey !== undefined) SUP.key = settings.geminiKey || '';
+  if(nv.dataset.sunav === 'done') return finishSetup();
+  const d = +nv.dataset.sunav; if(d > 0 && SUP.step === 1 && !(SUP.bw > 30)){ toast(t('suNeedW')); $('suBw').focus(); return; }
+  SUP.step = Math.max(0, Math.min(4, SUP.step + d)); drawSetup();
+});
+$('suBody').addEventListener('change', e => { if(e.target.id === 'suWork'){ readSetup(); SUP.work = e.target.checked; drawSetup(); } });
+
+// ---------- fewer pop-ups when saving a food ----------
+function trySave(){
+  const { name, brand, vals } = readForm();
+  if(!name){ toast(t('needName')); $('fName').focus(); return; }
+  if(vals.protein === null || vals.carbs === null || vals.fat === null){ toast(t('needMacros')); return; }
+  if(Object.values(vals).some(v => v !== null && (isNaN(v) || v < 0))){ toast(t('numbersOff')); return; }
+  if(!brand && !F.noBrand) setNoBrand(true);
+  if(!F.cat){ const g = guessType(name + ' ' + (F.hint || '')); if(g) setType(g.cat, g.sub, false); else setType('other', 'general', false); }
+  if(F.pieces !== 'none' && !num('fPiece')) F.pieceSkipped = true;
+  commit();
+}
+
+// ---------- fridge = stock only; shopping in by photo, receipt or barcode ----------
+$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'fridge'){ e.stopImmediatePropagation(); open('ovShop'); } }, true);
+let SHOP = { items: [], scanLoop: false };
+$('shopOpts').addEventListener('click', e => {
+  const b = e.target.closest('[data-shop]'); if(!b) return; const k = b.dataset.shop;
+  if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
+  if(k === 'scan'){ close('ovShop'); SHOP.scanLoop = true; startScan('fridge'); return; }
+  if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
+  SHOP.kind = k; $('shopFile').value = ''; $('shopFile').click();
+});
+$('shopFile').addEventListener('change', async () => {
+  const file = $('shopFile').files[0]; if(!file) return;
+  close('ovShop'); SHOP.items = []; drawShop(); status($('shopStatus'), t('shopReading')); open('ovShopRev');
+  const base = `Return ONLY JSON: {"items":[{"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"state":"uncooked"|"ready"}]}
+packSize = net weight of ONE pack/piece in g or ml (read it if printed, otherwise a typical size, e.g. milk 1000 ml, a chicken breast tray 1000 g, one egg 60 g). Macros = typical values per 100 g/ml of that product (carbs without fibre). state "uncooked" for raw meat/fish, dry rice/pasta/oats, else "ready". Food and drinks only.`;
+  const prompt = SHOP.kind === 'receipt' ? `This is a supermarket receipt, often Greek with abbreviated product names. List every food or drink line. Expand abbreviations into a clear name. count = quantity bought; for weighed items (e.g. "0,850 KG") count = 1 and packSize = that weight in g. Skip bags, deposits, discounts and non-food. ${base}`
+    : `This photo shows groceries laid out on a table (likely a Greek supermarket). List every distinct food or drink item you can see. count = how many identical packs or pieces (eggs: count the eggs, packSize 60). ${base}`;
+  try{
+    const img = await shrink(file), d = await gemini(prompt, img);
+    const items = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el));
+    if(!items.length){ status($('shopStatus'), t('shopNone'), true); return; }
+    SHOP.items = items.map(x => { const ref = matchIng([x.name_en, x.name_el]); return { ...x, on: true, ref, count: Math.max(1, Math.round(x.count || 1)), size: x.packSize > 0 ? Math.round(x.packSize) : null, unit: x.unit === 'ml' ? 'ml' : 'g', loc: null }; });
+    status($('shopStatus'), ''); drawShop();
+  }catch(err){ status($('shopStatus'), t('shopFail', { e: err.message }), true); }
+});
+function shopFood(x){
+  if(x.ref){ if(x.ref.type === 'my') return foods.find(f => f.id === x.ref.id); if(x.ref.type === 'gen') return saveGeneric(GENBY[x.ref.id]); }
+  if(x.protein == null || x.carbs == null || x.fat == null) return null;
+  return saveOnlineFood({ name: (lang === 'el' ? x.name_el : x.name_en) || x.name_en || x.name_el, brand: x.brand || '', unit: x.unit, state: x.state, kcal: x.kcal, protein: x.protein, carbs: x.carbs, fat: x.fat, packs: x.size ? [x.size] : [], usualPack: x.size, source: 'shopping photo' });
+}
+const LOC_IC = { fridge: '🧊', freezer: '❄️', cupboard: '🗄️' };
+function drawShop(){
+  const n = SHOP.items.filter(x => x.on).length;
+  $('shopList').innerHTML = SHOP.items.map((x, i) => { const nm = x.ref ? x.ref.name : (lang === 'el' ? x.name_el : x.name_en) || x.name_en;
+    const loc = x.loc || (x.ref ? defaultLoc(x.ref.type === 'gen' ? GENBY[x.ref.id] : (foods.find(f => f.id === x.ref.id) || {})) : 'fridge');
+    const ok = x.ref || x.protein != null;
+    return `<div class="shoprow ${x.on ? '' : 'off'}" data-si="${i}"><button class="box" data-son>${x.on ? '✓' : ''}</button>
+      <div class="sname" data-sname><b>${esc(nm)}</b><small>${x.ref ? '' : ok ? `<span class="sttag">${t('shopNew')}</span> ` : `⚠️ ${t('shopPick')}`}${x.brand ? esc(x.brand) : ''}</small></div>
+      <div class="sqty"><input data-scount inputmode="numeric" value="${x.count}"><span>×</span><input data-ssize inputmode="decimal" value="${x.size || ''}" placeholder="${x.unit}"><small>${x.unit}</small></div>
+      <button class="sloc" data-sloc>${LOC_IC[loc]}</button></div>`; }).join('');
+  $('shopAddBtn').textContent = t('shopAdd', { n }); $('shopAddBtn').disabled = !n;
+}
+$('shopList').addEventListener('click', e => {
+  const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si];
+  if(e.target.closest('[data-son]')){ x.on = !x.on; drawShop(); return; }
+  if(e.target.closest('[data-sloc]')){ const cur = x.loc || 'fridge', o = ['fridge', 'freezer', 'cupboard']; x.loc = o[(o.indexOf(cur) + 1) % 3]; drawShop(); return; }
+  if(e.target.closest('[data-sname]')) openIngSearch(x.name_en || '', ref => { x.ref = ref; x.on = true; drawShop(); open('ovShopRev'); }, { force: true });
+});
+$('shopList').addEventListener('input', e => { const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si];
+  if(e.target.matches('[data-scount]')) x.count = Math.max(1, Math.round(+e.target.value || 1)); if(e.target.matches('[data-ssize]')) x.size = +e.target.value.replace(',', '.') || null; });
+$('shopAddBtn').addEventListener('click', () => {
+  let n = 0;
+  SHOP.items.filter(x => x.on).forEach(x => { const f = shopFood(x); if(!f) return; const loc = x.loc || defaultLoc(f), size = x.size || f.usualPack || (f.piece || 100);
+    for(let i = 0; i < x.count; i++) addToFridge({ foodId: f.id, qty: r1(size), packSize: r1(size), unit: f.unit, loc, exp: addDays(todayKey(), defaultDays(f, loc)), expAuto: true });
+    if(x.size && !(f.packs || []).includes(x.size)){ f.packs = [...(f.packs || []), x.size]; f.usualPack = f.usualPack || x.size; } n++; });
+  saveFoods(); close('ovShopRev'); renderAll(); toast(t('shopAdded', { n }));
+});
+$('faSave').addEventListener('click', () => { if(SHOP.scanLoop && !$('ovFAdd').classList.contains('open')) setTimeout(() => toast(t('scanNextQ'), t('scanNext'), () => startScan('fridge')), 300); });
+$('ovShop').addEventListener('click', e => { if(e.target === $('ovShop')) SHOP.scanLoop = false; });
+
+// ---------- gym: straight start on planned days ----------
+let forcePick = false;
+$('gStart').addEventListener('click', e => {
+  if(active || forcePick){ forcePick = false; return; }
+  const pl = planFor(todayKey()), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
+  if(tp){ e.stopImmediatePropagation(); startSession(tp); }
+}, true);
+(() => { const b = document.createElement('button'); b.className = 'linkbtn gother'; b.id = 'gOther'; b.textContent = t('otherWorkout'); $('gStart').after(b);
+  b.addEventListener('click', () => { forcePick = true; $('gStart').click(); }); })();
+function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;
+  if(p.tpl === 'rest') return { type: 'rest' };
+  if(p.tpl === 'gym') return { type: 'gym', work: 'upper', time: p.time || ui.gymTime || '18:00' };
+  const tp = tpls.find(x => x.id === p.tpl); return tp ? { type: 'gym', work: workKind(tp.type), time: p.time || ui.gymTime || '18:00', tpl: tp.id } : null; }
+
+// ---------- gym: big, labelled − / + steppers instead of empty boxes ----------
+const stepOf = (exId, k) => isCardio(exId) ? (k === 'w' ? .5 : 1) : k === 'r' ? 1 : ({ dumbbell: 2, kettlebell: 4, bodyweight: 2.5, band: 1 }[exById(exId).e] || 2.5);
+function cardHtml(x, i){
+  const ex = exById(x.exId), card = isCardio(x.exId), sug = suggestFor(x.exId, x.reps);
+  const doneN = x.sets.filter(s => s.done && s.type !== 'W').length, vol = Math.round(exVol(x.exId, x.sets));
+  const head = `<div class="exh">${exIcon(ex, 44)}<div class="ttl"><b data-info>${esc(exName(ex))} <span class="i">ⓘ</span></b>
+      <small>${ML(ex.h)} · ${EL(ex.e)}${card || x.ended ? '' : ` · <button class="rest" data-rest>⏱ ${fmtRest(x.rest)}</button>`}</small></div>`;
+  if(x.ended) return `<div class="exc ended" data-x="${i}">${head}<button class="mini" data-reopen>↺</button></div>
+    <div class="exsum">${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · 🏋️' : ''}${x.volPR ? ' · 📈' : ''}</div></div>`;
+  let info = '';
+  if(sug && sug.last) info += `${t('lastTime')} <b>${sug.last.sets.map(s => `${fmt(+s.w)}×${s.r}`).join(' · ')}</b><br>`;
+  if(sug && sug.cb) info += `<span class="cb">${t('comebackW', { p: sug.p, w: fmt(sug.w), r: sug.r })}</span>`;
+  else if(sug && sug.first) info += t('firstTime', { r: sug.hi });
+  else if(sug) info += `<span class="try">${t('tryNext', { w: fmt(sug.w), r: sug.r })}</span>`;
+  const hasWarm = x.sets.some(s => s.type === 'W'), wu = sug && !sug.first && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
+  let n = 0, prevVals = null;
+  const rows = x.sets.map((s, j) => {
+    if(s.type !== 'W') n++;
+    const ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && !sug.first ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
+    if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
+    const restHere = REST && REST.xi === i && REST.si === j;
+    const stp = k => `<div class="stepper"><button data-step="${k}" data-d="-1" aria-label="minus">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}"><button data-step="${k}" data-d="1" aria-label="plus">＋</button></div>`;
+    return `<div class="setrow t-${s.type} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''}" data-s="${j}">
+        <button class="snum" data-type title="${t('tapNum')}">${s.type === 'N' ? n : s.type}</button>${stp('w')}${stp('r')}
+        <button class="sok" data-ok>${s.pr === 'v' ? '📈' : s.pr ? '🏆' : '✓'}</button></div>` +
+      (restHere ? `<div class="restin ${REST.rang ? 'over' : ''}"><div class="rbtop"><b id="restTxt2"></b><span><button data-rs="-15">−15</button><button data-rs="15">+15</button><button data-rs="skip">${t('skip')}</button></span></div><span class="mbar"><i id="restProg2"></i></span></div>` : '');
+  }).join('');
+  return `<div class="exc" data-x="${i}">${head}<div class="exbtns"><button class="formb" data-demo>${t('formBtn')}</button>${card ? '' : `<button class="taken" data-swap>🚫</button>`}<button data-xrm aria-label="Remove">✕</button></div></div>
+    ${info ? `<div class="exinfo">${info}</div>` : ''}
+    ${wu.length ? `<div class="wuhint"><span>🔥 ${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
+    ${x.sets.length ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span>✓</span></div>` : ''}
+    ${rows}
+    <div class="setbtns"><button data-addset>${t('newSet')}</button><button class="endex" data-endex>${t('endEx')}</button></div></div>`;
+}
+$('sesBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-step]'); if(b){ e.stopImmediatePropagation();
+    const x = exAt(b), row = b.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s], k = b.dataset.step, inp = row.querySelector(`[data-${k}]`);
+    const hasPh = inp.placeholder && !isNaN(+inp.placeholder), st = stepOf(x.exId, k);
+    if(s[k] === '' && !hasPh){ // nothing to go on yet: start from a sensible number instead of 0
+      const e0 = exById(x.exId).e, start = k === 'r' ? (isCardio(x.exId) ? 20 : (parseInt(String(x.reps || '').split('-')[0], 10) || 8)) : isCardio(x.exId) ? 1 : ({ barbell: 20, dumbbell: 10, machine: 20, cable: 10, kettlebell: 8, bodyweight: 0, band: 0 }[e0] ?? 10);
+      s[k] = String(start); inp.value = s[k]; saveG('act'); return; }
+    const cur = s[k] !== '' ? +s[k] : (hasPh ? +inp.placeholder : 0);
+    let v = Math.max(0, r1(cur + st * +b.dataset.d)); if(s[k] === '' && inp.placeholder && !isNaN(+inp.placeholder) && +b.dataset.d > 0 && cur === +inp.placeholder) v = cur; // first tap takes the suggestion
+    s[k] = String(v); inp.value = s[k]; saveG('act'); return; }
+  const d = e.target.closest('[data-demo]'); if(d){ e.stopImmediatePropagation(); const x = exAt(d); if(x) openDemo(x.exId); }
+}, true);
+
+// workout template editor: clear rows with labelled steppers
+function drawTpl(){
+  $('tpTypeShow').innerHTML = `${WT_ICON[TP.type] || '🏋️'} <b>${typeLabel_(TP.type)}</b> <button class="linkbtn" id="tpTypeChg">${t('typeChange')}</button>`;
+  $('tpList').innerHTML = TP.exercises.map((e, i) => { const ex = exById(e.exId), card = isCardio(e.exId);
+    const reps = String(e.reps);
+    return `<div class="tpcard" data-i="${i}"><div class="tph">${exIcon(ex, 40)}<div class="ttl"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)}</small></div>
+      <div class="tpb"><button data-demo2 class="formb">▶</button>${i > 0 ? `<button data-up aria-label="Move up">↑</button>` : ''}<button data-rm aria-label="Remove">✕</button></div></div>
+      <div class="tpsteps"><div class="tps"><small>${t('setsL')}</small><div class="stepper"><button data-sd>−</button><b>${e.sets}</b><button data-su>＋</button></div></div>
+      <div class="tps"><small>${card ? t('minLbl') : t('repsL')}</small><div class="stepper"><button data-rd>−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru>＋</button></div></div>
+      ${card ? '' : `<div class="tps"><small>${t('restL')}</small><button class="restchip" data-trest>⏱ ${fmtRest(e.rest || 90)}</button></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
+}
+const bumpReps = (r, d) => { const parts = String(r).split('-').map(x => parseInt(x, 10)).filter(n => !isNaN(n)); if(!parts.length) return String(Math.max(1, 10 + d)); return parts.map(n => Math.max(1, n + d)).join('-'); };
+$('tpList').addEventListener('click', e => {
+  const r = e.target.closest('[data-i]'); if(!r) return; const x = TP.exercises[+r.dataset.i];
+  if(e.target.closest('[data-rd]')) x.reps = bumpReps(x.reps, -1); if(e.target.closest('[data-ru]')) x.reps = bumpReps(x.reps, 1);
+  if(e.target.closest('[data-trest]')){ const o = [60, 90, 120, 150, 180, 240]; x.rest = o[(o.indexOf(x.rest) + 1) % o.length] || 90; }
+  if(e.target.closest('[data-demo2]')){ e.stopImmediatePropagation(); openDemo(x.exId); }
+}, true);
+$('tpTypeShow').addEventListener('click', e => { if(e.target.closest('#tpTypeChg')) $('tpType').classList.toggle('hide'); });
+document.querySelectorAll('#tpType button').forEach(b => b.addEventListener('click', () => { $('tpType').classList.add('hide'); drawTpl(); }));
+function openTpl(x, type){ openTpl_053(x, type); if($('ovTpl').classList.contains('open')) $('tpType').classList.add('hide'); }
+
+// ---------- correct-form demos (free-exercise-db, public domain; two photos flip like a GIF) ----------
+const FEDB_URLS = ['https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/dist/exercises.json', 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json'];
+const FEDB_IMG = p => `https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/${p}`;
+let FEDB = null, DEMO = { timer: null };
+async function loadFedb(){ if(FEDB) return FEDB; let err; for(const u of FEDB_URLS){ try{ const r = await fetch(u); if(r.ok){ FEDB = await r.json(); return FEDB; } }catch(e){ err = e; } } throw err || new Error('load'); }
+const SYN = { db: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', ohp: 'overhead press', 'pull-up': 'pullup', 'pull-ups': 'pullup', 'chin-up': 'chinup', pullups: 'pullup', rdl: 'romanian deadlift', 'push-up': 'pushup', 'push-ups': 'pushup', pushups: 'pushup', 'sit-up': 'situp', flyes: 'fly', flye: 'fly', flies: 'fly', raises: 'raise', curls: 'curl', presses: 'press', rows: 'row', extensions: 'extension', 'skull': 'skullcrusher', lunges: 'lunge', squats: 'squat', dips: 'dip', 'kickbacks': 'kickback', 'pulldown': 'pulldown', 'pull-down': 'pulldown' };
+const EQ_FE = { barbell: 'barbell', dumbbell: 'dumbbell', machine: 'machine', cable: 'cable', bodyweight: 'body only', kettlebell: 'kettlebells', band: 'bands' };
+const tokz = s => norm(s).replace(/[()/,]/g, ' ').split(' ').filter(Boolean).map(w => SYN[w] || w).join(' ').split(' ').filter(w => w.length > 1 && !['the', 'with', 'and', 'on', 'to', 'of', 'grip'].includes(w));
+function demoMatches(exId){
+  const ex = exById(exId), mine = tokz(ex.en), eq = EQ_FE[ex.e];
+  return FEDB.map(d => { const th = tokz(d.name), hit = mine.filter(w => th.includes(w)).length; if(!hit) return null;
+    let s = hit * 3 - (th.length - hit) * .6 - (mine.length - hit) * 1.2; if(eq && d.equipment === eq) s += 2; if(norm(d.name) === norm(ex.en)) s += 6; return { d, s }; })
+    .filter(Boolean).sort((a, b) => b.s - a.s).slice(0, 6).map(x => x.d);
+}
+async function openDemo(exId){
+  DEMO.exId = exId; clearInterval(DEMO.timer); $('dmTitle').textContent = exName(exId); $('dmBody').innerHTML = `<p class="hint">${t('formLoading')}</p>`; $('dmNext').classList.add('hide'); open('ovDemo');
+  try{ await loadFedb(); }catch(e){ $('dmBody').innerHTML = `<p class="hint">${t('formFail')}</p>`; return; }
+  DEMO.list = demoMatches(exId); const saved = (ui.demoPick || {})[exId], si = saved ? DEMO.list.findIndex(d => d.id === saved) : -1;
+  if(saved && si === -1){ const d = FEDB.find(z => z.id === saved); if(d) DEMO.list.unshift(d); }
+  DEMO.i = Math.max(0, si); drawDemo();
+}
+function drawDemo(){
+  clearInterval(DEMO.timer); const d = DEMO.list[DEMO.i];
+  if(!d){ $('dmBody').innerHTML = `<p class="hint">${t('formNone')}</p>`; $('dmNext').classList.add('hide'); return; }
+  $('dmNext').classList.toggle('hide', DEMO.list.length < 2);
+  const imgs = (d.images || []).map(FEDB_IMG);
+  $('dmBody').innerHTML = `<div class="demoimg">${imgs.map((u, i) => `<img src="${u}" alt="" class="${i ? '' : 'on'}" loading="eager">`).join('')}</div><p class="rmeta" style="margin:8px 0 0"><b>${esc(d.name)}</b>${d.equipment ? ' · ' + esc(d.equipment) : ''}</p>
+    <ol class="steps demosteps">${(d.instructions || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol><p class="hint">${t('formCredit')}</p>`;
+  let k = 0; DEMO.timer = setInterval(() => { const im = $('dmBody').querySelectorAll('.demoimg img'); if(!im.length || !$('ovDemo').classList.contains('open')){ clearInterval(DEMO.timer); return; } k = (k + 1) % im.length; im.forEach((x, j) => x.classList.toggle('on', j === k)); }, 900);
+}
+$('dmNext').addEventListener('click', () => { if(!DEMO.list || DEMO.list.length < 2) return; DEMO.i = (DEMO.i + 1) % DEMO.list.length; ui.demoPick = { ...(ui.demoPick || {}), [DEMO.exId]: DEMO.list[DEMO.i].id }; saveUI(); drawDemo(); });
+function openExInfo(id, addCb){
+  openExInfo_0(id, addCb);
+  const b = document.createElement('button'); b.className = 'btn formwide'; b.textContent = t('formBtn') + ' · ' + t('formT'); b.addEventListener('click', () => openDemo(id)); $('eiBody').prepend(b);
+}
+
+// ---------- weigh-in inside targets ----------
+const WKEY = 'ft.weights.v1'; let weights = load(WKEY, {});
+function weightTrend(){
+  const pts = Object.entries(weights).map(([d, w]) => [new Date(d + 'T12:00:00').getTime() / 864e5, +w]).filter(p => p[1] > 0).sort((a, b) => a[0] - b[0]);
+  const now = Date.now() / 864e5, rec = pts.filter(p => now - p[0] <= 28); if(rec.length < 3) return null;
+  const span = rec[rec.length - 1][0] - rec[0][0]; if(span < 6) return null;
+  const n = rec.length, mx = rec.reduce((a, p) => a + p[0], 0) / n, my = rec.reduce((a, p) => a + p[1], 0) / n;
+  const slope = rec.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / rec.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+  return { perWeek: slope * 7, days: Math.round(span), last: rec[rec.length - 1][1], pts: rec.map(p => p[1]) };
+}
+function weighAdvice(tr){
+  const goal = (targets && targets.goal) || 'bulk', pct = tr.perWeek / tr.last * 100;
+  if(goal === 'bulk') return pct < .25 ? { msg: t('wiSlowBulk'), d: 150 } : pct > .6 ? { msg: t('wiFastBulk'), d: -150 } : { msg: t('wiOk'), d: 0 };
+  if(goal === 'cut') return pct > -.4 ? { msg: t('wiSlowCut'), d: -200 } : pct < -1.1 ? { msg: t('wiFastCut'), d: 150 } : { msg: t('wiOk'), d: 0 };
+  return Math.abs(pct) > .3 ? { msg: t('wiRecomp'), d: pct > 0 ? -100 : 100 } : { msg: t('wiOk'), d: 0 };
+}
+function drawWeigh(){
+  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] || ''; $('wiIn').placeholder = (targets && targets.bw) || '75';
+  if(!tr){ $('wiOut').innerHTML = `<p class="hint">${t('wiNeed')}</p>`; return; }
+  const a = weighAdvice(tr), sg = (tr.perWeek >= 0 ? '+' : '') + tr.perWeek.toFixed(2);
+  $('wiOut').innerHTML = `<div class="row" style="align-items:center"><span class="rmeta">${t('wiRate', { r: sg, d: tr.days })}</span>${spark(tr.pts)}</div><p class="hint" style="margin:6px 0">${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
+  const ap = $('wiApply'); if(ap) ap.onclick = () => { ['gym', 'rest'].forEach(k => { if(targets[k]){ targets[k].k = Math.round((targets[k].k + a.d) / 50) * 50; targets[k].c = Math.max(0, Math.round((targets[k].c + a.d / 4) / 5) * 5); } });
+    store(TGKEY, targets); openTargets(); renderAll(); toast(t('wiApplied', { d: (a.d > 0 ? '+' : '') + a.d })); };
+}
+$('wiSave').addEventListener('click', () => { const w = num('wiIn'); if(!(w > 30)) { $('wiIn').focus(); return; } weights[todayKey()] = w; store(WKEY, weights);
+  if(targets){ targets.bw = w; store(TGKEY, targets); } $('tgBw').value = w; drawWeigh(); toast(t('wiSaved')); });
+function openTargets(){ openTargets_0(); drawWeigh(); }
+
+// ---------- weekly backup, one tap to the share sheet (iCloud Drive / Files) ----------
+function backupBlob(){ return new Blob([JSON.stringify({ app: 'tracker', version: VERSION, exportedAt: new Date().toISOString(), foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, gym: { custom: exCustom, tpl: tpls, plan: gymPlan, sessions, comeback }, pet }, null, 2)], { type: 'application/json' }); }
+async function backupNow(){
+  const name = `tracker-${todayKey()}.json`, blob = backupBlob();
+  try{ const file = new File([blob], name, { type: 'application/json' });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], title: name }); }
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
+    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+  }catch(e){ if(e && e.name !== 'AbortError') toast(e.message || 'backup'); }
+}
+function renderBackupCard(el){
+  if(!el) return; const has = foods.length + Object.keys(dayLog).length + sessions.length > 0, last = ui.lastBackup ? new Date(ui.lastBackup) : null;
+  const due = has && (!last || (Date.now() - last) / 864e5 >= 7);
+  el.innerHTML = due ? `<button class="bkcard" data-backup><b>${t('bkT')}</b><small>${t('bkSub', { d: last ? fmtDate(last.toISOString()) : t('bkNever') })}</small></button>` : '';
+}
+document.addEventListener('click', e => { if(e.target.closest('[data-backup]')) backupNow(); });
+$('exportJson').addEventListener('click', () => { ui.lastBackup = new Date().toISOString(); saveUI(); });
+function renderHome(){ renderHome_0(); renderBackupCard($('homeBackup')); }
+
+// ---------- cooking: just weigh the food; the pot method hides behind a link ----------
+(() => { const g = $('cPotFull').closest('.grid'); if(!g) return; const lbl = document.querySelector('label[for="cCooked"]'), inp = $('cCooked');
+  lbl.setAttribute('data-t', 'cookedW'); lbl.textContent = t('cookedW'); g.before(lbl); g.before(inp);
+  const lk = document.createElement('button'); lk.type = 'button'; lk.className = 'linkbtn'; lk.id = 'potOther'; lk.setAttribute('data-t', 'potOther'); lk.textContent = t('potOther'); lk.style.margin = '6px 0';
+  g.before(lk); g.classList.add('hide'); lk.addEventListener('click', () => { g.classList.toggle('hide'); }); })();
+
+// ---------- smooth sliders ----------
+$('soRange').setAttribute('step', 'any');
+function soreLbl(){ const v = Math.round(+$('soRange').value); $('soFace').textContent = SORE[v]; $('soText').textContent = t('sore' + v); }
+
+// new sheets get the orange back button and tap-outside-to-close, like the others
+['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
+  if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.textContent = '‹'; b.addEventListener('click', goBack); sh.prepend(b); }
+  if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
+$('qaSave').addEventListener('click', saveQuick); $('qaDel').addEventListener('click', delQuick);
+document.querySelectorAll('#pgLaunch .bubble').forEach(b => b.addEventListener('click', () => launchTo(b.dataset.tab, b)));
+$('suAgainBtn').addEventListener('click', () => { close('ovSettings'); openSetup(); });
+function renderGym(){ renderGym_053(); const pl = planFor(todayKey()), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
+  $('gOther').classList.toggle('hide', !!active || !tp || $('gStart').classList.contains('hide')); }
+if(!location.hash || location.hash === '#'){ history.replaceState(null, '', '#start'); NAV = ['start']; NAVI = 0; }
+
 // ======================= settings + data =======================
 function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join(''); open('ovSettings'); }
@@ -4988,6 +5914,7 @@ $('importInput').addEventListener('change', async e => {
     if(data.days && typeof data.days === 'object') days = { ...data.days, ...days };
     if(data.plans && typeof data.plans === 'object') plans = { ...data.plans, ...plans };
     if(data.targets && !targets) targets = data.targets;
+    if(data.weights && typeof data.weights === 'object'){ weights = { ...data.weights, ...weights }; store(WKEY, weights); }
     if(data.gym){ const g = data.gym; const have = new Set(sessions.map(x => x.id)); sessions = sessions.concat((g.sessions || []).filter(x => !have.has(x.id))).sort((a, b) => a.start.localeCompare(b.start));
       const ht = new Set(tpls.map(x => x.id)); tpls = tpls.concat((g.tpl || []).filter(x => !ht.has(x.id))); const hc = new Set(exCustom.map(x => x.id)); exCustom = exCustom.concat((g.custom || []).filter(x => !hc.has(x.id)));
       if(g.plan && !Object.keys(gymPlan).length) gymPlan = g.plan; ['ses', 'tpl', 'custom', 'plan'].forEach(saveG); }
@@ -5000,10 +5927,10 @@ $('importInput').addEventListener('change', async e => {
 // ======================= go =======================
 applyLang();
 route();
-if(!ui.lang) open('ovLang');
+if(!ui.setupDone) openSetup();
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(location.protocol === 'https:') setTimeout(() => getDetector().catch(()=>{}), 2500);
-window.__ft = { goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultDays, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, sortModels };
+window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFedb, switchTab, renderLaunch, calcTargets, backupBlob, get SHOP(){ return SHOP; }, set FEDB(v){ FEDB = v; }, goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultDays, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, sortModels };
 })();
 </script>
 </body>
