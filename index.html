@@ -183,6 +183,48 @@ textarea.big{min-height:180px;font-size:15px;line-height:1.45}
 .progress{height:8px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:4px 0 12px}
 .progress i{display:block;height:100%;background:var(--ok);border-radius:999px;transition:width .3s}
 .tag{font-size:11px;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+/* 0.5.3 */
+:root{ --kc:#c6f432; --fi:#59d38c; --na:#b388ff; --kk:#4dd0e1; }
+body{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:8;display:flex;background:rgba(23,26,29,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:var(--muted);padding:6px 0;border-radius:12px;cursor:pointer}
+.tabbar span{font-size:22px;line-height:1} .tabbar b{font-size:12px;font-weight:600}
+.tabbar button.on{color:var(--accent);background:#1d2410}
+.fab{bottom:calc(84px + env(safe-area-inset-bottom))!important}
+.toast{bottom:calc(150px + env(safe-area-inset-bottom))!important}
+#pgToday [data-home]{display:none}
+#gBackBtn{background:var(--orange);color:#1c0e00;border-color:var(--orange);font-weight:800;font-size:22px}
+.sectitle{margin:4px 0 10px;font-size:20px}
+.sback{float:left;width:40px;height:40px;margin:-6px 10px 6px -2px;border-radius:12px;background:var(--orange);color:#1c0e00;border:0;font-size:26px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(255,138,42,.3)}
+.pback{background:var(--orange)!important;color:#1c0e00!important;font-weight:800;border-radius:999px;padding:8px 14px!important;margin-bottom:12px}
+.hubrow{display:grid;grid-template-columns:1fr 1.25fr;gap:12px;margin-top:12px}
+.minirec{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:10px 6px;color:var(--muted);cursor:pointer}
+.minirec small{font-size:12px}
+.hubrow .pettile{min-height:0;flex-direction:column;align-items:flex-start;gap:6px}
+.dblocks{color:var(--muted);font-size:13px;text-align:center;margin:-4px 0 10px}
+.daycard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.daycard.today{border-color:var(--accent)}
+.dch{display:flex;gap:8px;align-items:baseline;margin-bottom:6px} .dch b{font-size:15px} .dch small{color:var(--muted)} .dch .chip{margin-left:auto}
+.dcrow{display:flex;gap:6px;align-items:center;margin-top:6px} .dcrow select{flex:1} .dcrow input[type=time]{flex:0 0 104px;padding:8px} .dcl{width:22px;text-align:center}
+.wrapseg{flex-wrap:wrap} .wrapseg button{flex:1 1 30%}
+.wrapchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.bigopt{padding:18px 16px} .bigopt b{font-size:17px}
+.gbtn.wt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;border-left-width:1px} .gbtn.wt .e{font-size:30px}
+.gbtn .dots{display:flex;gap:4px;margin:6px 0 2px} .gbtn .dots i{width:10px;height:10px;border-radius:50%}
+.hchip i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hc);margin-right:6px}
+.hchip.on{background:var(--hc);border-color:var(--hc);color:#111}
+.eqchip{display:inline-flex;align-items:center;gap:5px;border-color:var(--ec)!important;color:var(--ec)}
+.eqchip.on{background:var(--ec);color:#111} .eqchip.on svg{stroke:#111}
+.eqhead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;margin:14px 0 8px}
+.extile{border-left:4px solid var(--eq)!important}
+.extile .eqb{position:absolute;top:6px;left:8px}
+.rc{flex:0 0 auto;padding:8px 9px;border-radius:9px;border:1px solid #6b3f12;background:#2a1a08;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer}
+.rc.ck{border-color:#1f4060;background:#0e1d2c;color:var(--p)}
+.ipick.vague{border-color:#6b3f12} .ipick small{display:block;font-size:11px;color:var(--orange)}
+.kcal{color:var(--kc)} .m.fi b{color:var(--fi)} .m.kc b{color:var(--kc)}
+.mrow.fi .mbar i{background:var(--fi)} .mrow:not(.p):not(.c):not(.f):not(.fi) .mbar i{background:var(--kc)}
+.elec{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);cursor:pointer}
+.macroline{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin:6px 0 10px;font-size:15px}
 /* v1.7 */
 .exc .exh{display:flex;gap:10px;align-items:center}
 .exc .ttl{flex:1;min-width:0} .exc .ttl b{display:block;font-size:16px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .exc .ttl .i{color:var(--muted);font-size:13px;font-weight:400}
@@ -324,20 +366,19 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
 <!-- ============ HOME ============ -->
 <section class="page wrap" id="pgHome">
   <header>
-    <div class="left"><h1>Tracker</h1></div>
+    <div class="left"><h1 data-t="tabFood"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
   <p class="hello" data-t="homeHello"></p>
   <div class="tiles">
     <button class="tile big" id="tScan"><span class="e">▥</span><span><b data-t="tScan"></b><small data-t="tScanSub"></small></span></button>
-    <button class="tile wide today" id="tToday"><span class="e">📅</span><span style="flex:1;min-width:0"><b data-t="tToday"></b><small id="tTodaySub"></small><span class="mbar" style="margin-top:8px"><i id="tTodayBar"></i></span></span></button>
-    <button class="tile wide" id="tGym"><span class="e">🏋️</span><span style="flex:1;min-width:0"><b data-t="tGym"></b><small id="tGymSub"></small></span><span class="badge hide" id="tGymBadge" style="position:static"></span></button>
+    <button class="tile wide today hide" id="tToday"><span class="e">📅</span><span style="flex:1;min-width:0"><b data-t="tToday"></b><small id="tTodaySub"></small><span class="mbar" style="margin-top:8px"><i id="tTodayBar"></i></span></span></button>
+    <button class="tile wide hide" id="tGym"><span class="e">🏋️</span><span style="flex:1;min-width:0"><b data-t="tGym"></b><small id="tGymSub"></small></span><span class="badge hide" id="tGymBadge" style="position:static"></span></button>
     <button class="tile" id="tFoods"><span class="e">🗂️</span><span><b data-t="tFoods"></b><small id="tFoodsSub"></small></span></button>
     <button class="tile" id="tMeals"><span class="e">🍲</span><span><b data-t="tMeals"></b><small id="tMealsSub"></small></span></button>
     <button class="tile" id="tFridge"><span class="badge hide" id="tFridgeBadge"></span><span class="e">🧊</span><span><b data-t="tFridge"></b><small id="tFridgeSub"></small></span></button>
     <button class="tile" id="tGroc"><span class="badge hide" id="tGrocBadge"></span><span class="e">🛒</span><span><b data-t="tGroc"></b><small id="tGrocSub"></small></span></button>
     <button class="tile wide" id="tSupps"><span class="e">💊</span><span><b data-t="tSupps"></b><small id="tSuppsSub"></small></span></button>
-    <button class="tile wide pettile" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
   </div>
   <div id="homeAlerts" style="margin-top:12px"></div>
   <div style="height:20px"></div>
@@ -381,6 +422,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
     <button class="iconbtn" id="targetsBtn" aria-label="Targets">🎯</button>
   </header>
   <div class="daynav"><button class="iconbtn" id="dPrev">‹</button><b id="dLabel"></b><button class="iconbtn" id="dNext">›</button></div>
+  <div id="dBlocks" class="dblocks"></div>
   <div class="seg" id="dType"><button data-v="gym" data-t="gymDay"></button><button data-v="rest" data-t="restDay"></button></div>
   <div id="gymBox" class="hide">
     <div class="seg" id="dWork" style="margin-top:8px"><button data-v="legs" data-t="wLegs"></button><button data-v="upper" data-t="wUpper"></button><button data-v="full" data-t="wFull"></button><button data-v="cardio" data-t="wCardio"></button></div>
@@ -399,12 +441,25 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
 <!-- ============ GYM ============ -->
 <section class="page wrap hide" id="pgGym">
   <header>
-    <div class="left"><button class="iconbtn" data-home aria-label="Back">‹</button><h1 data-t="tGym"></h1></div>
+    <div class="left"><button class="iconbtn hide" id="gBackBtn" aria-label="Back">‹</button><h1 data-t="tabGym"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
+  <h2 id="gSecTitle" class="sectitle hide"></h2>
   <div id="gBanner"></div>
   <button class="btn primary bigstart" id="gStart"></button>
-  <div class="tabs" id="gTabs" style="margin-top:12px"><button data-v="plan" data-t="gtPlan"></button><button data-v="tpl" data-t="gtWorkouts"></button><button data-v="prog" data-t="gtProgress"></button><button data-v="rec" data-t="gtRecovery"></button></div>
+  <div id="gHub">
+    <div class="hubrow">
+      <button class="minirec" id="gMiniRec" aria-label="Recovery"></button>
+      <button class="tile pettile" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
+    </div>
+    <div class="tiles" id="gHubTiles" style="margin-top:12px">
+      <button class="tile" data-sec="gym-week"><span class="e">🗓️</span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
+      <button class="tile" data-sec="gym-lib"><span class="e">📚</span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
+      <button class="tile" data-sec="gym-prog"><span class="e">📈</span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
+      <button class="tile" data-sec="gym-rec"><span class="e">🔋</span><span><b data-t="hubRec"></b><small data-t="hubRecSub"></small></span></button>
+    </div>
+  </div>
+  <div class="tabs hide" id="gTabs" style="margin-top:12px"><button data-v="plan" data-t="gtPlan"></button><button data-v="tpl" data-t="gtWorkouts"></button><button data-v="prog" data-t="gtProgress"></button><button data-v="rec" data-t="gtRecovery"></button></div>
   <div id="gPlanV"></div>
   <div id="gTplV" class="hide"></div>
   <div id="gProgV" class="hide"></div>
@@ -441,6 +496,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
 </section>
 
 <button class="fab hide" id="fab"></button>
+<nav class="tabbar" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
 
 <!-- ============ LANGUAGE (first launch) ============ -->
 <div class="overlay" id="ovLang"><div class="sheet">
@@ -522,6 +578,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
     <div><label for="fSat" data-t="satFat"></label><input id="fSat" type="number" inputmode="decimal" step="any" min="0"></div>
     <div><label for="fSalt" data-t="salt"></label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div>
   </div>
+  <label for="fK" data-t="potMg"></label><input id="fK" type="number" inputmode="numeric" step="any" min="0">
   <div class="hint" id="kcalCheck"></div>
   <label for="packIn" data-t="packSizes"></label>
   <div class="brandrow">
@@ -610,6 +667,12 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <div id="useUp"></div>
   <label for="cName" data-t="mealName"></label>
   <input id="cName" data-tp="mealNamePh" autocomplete="off">
+  <div id="cookStart">
+    <p class="sub" style="margin:16px 0 10px" data-t="cookHow"></p>
+    <button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button>
+    <button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
+  </div>
+  <div id="cookMain">
   <div id="recipeBox">
     <div class="actions" style="margin-top:10px"><button class="btn" id="suggestBtn" data-t="suggestRecipe"></button><button class="btn" id="ownBtn" data-t="ownRecipe"></button></div>
     <div class="hint" id="suggestHint"></div>
@@ -617,7 +680,8 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <div id="recipeShow" class="hide"></div>
 
   <h3 data-t="ingredients"></h3>
-  <div class="hint" style="margin:-2px 0 10px" data-t="ingHint"></div>
+  <div class="hint" style="margin:-2px 0 6px" data-t="ingHint"></div>
+  <button class="linkbtn" id="pasteBtn" data-t="pasteRecipe" style="margin-bottom:8px"></button>
   <div id="iRows"></div>
   <button class="btn" id="addIng" style="width:100%" data-t="addIngredient"></button>
   <div class="totals" id="cTotals"></div>
@@ -637,6 +701,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
     <button class="btn small danger hide" id="cDelete" data-t="delete"></button>
     <button class="btn" data-close data-t="cancel"></button>
     <button class="btn primary" id="cSave" data-t="saveMeal"></button>
+  </div>
   </div>
 </div></div>
 
@@ -783,7 +848,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <label for="tpName" data-t="workoutName"></label>
   <input id="tpName" autocomplete="off">
   <label data-t="workoutType"></label>
-  <div class="seg" id="tpType"><button data-v="upper" data-t="wUpper"></button><button data-v="legs" data-t="wLegs"></button><button data-v="full" data-t="wFull"></button><button data-v="cardio" data-t="wCardio"></button></div>
+  <div class="seg wrapseg" id="tpType"><button data-v="upper" data-t="wUpper"></button><button data-v="lower" data-t="wLower"></button><button data-v="full" data-t="wFull"></button><button data-v="push" data-t="wPush"></button><button data-v="pull" data-t="wPull"></button><button data-v="legs" data-t="wLegs"></button><button data-v="cardio" data-t="wCardio"></button><button data-v="chest" data-t="wChest"></button><button data-v="back" data-t="wBack"></button><button data-v="shoulders" data-t="wShoulders"></button><button data-v="arms" data-t="wArms"></button><button data-v="core" data-t="wCore"></button><button data-v="glutes" data-t="wGlutes"></button></div>
   <h3 data-t="exercises"></h3>
   <div id="tpList"></div>
   <button class="btn" id="tpAdd" style="width:100%;margin-top:8px" data-t="addExercise"></button>
@@ -893,6 +958,7 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
     <div><label data-t="carbs"></label><input id="tgRc" type="number" inputmode="numeric"></div><div><label data-t="fat"></label><input id="tgRf" type="number" inputmode="numeric"></div>
   </div>
   <div class="hint" id="tgCheck"></div>
+  <label for="tgFib" data-t="fibTarget"></label><input id="tgFib" type="number" inputmode="numeric" placeholder="30">
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="tgSave" data-t="save"></button></div>
 </div></div>
 
@@ -903,6 +969,22 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   <ol class="steps" id="scSteps"></ol>
   <label class="check"><input type="checkbox" id="scDone"><span data-t="scDoneLbl"></span></label>
   <div class="actions"><button class="btn" data-close data-t="close"></button><button class="btn primary" id="scTry" data-t="scTry"></button></div>
+</div></div>
+
+<!-- ============ SUGGEST A RECIPE ============ -->
+<div class="overlay" id="ovSuggest"><div class="sheet tall">
+  <h2 data-t="sgT"></h2>
+  <p class="sub" id="sgLeft"></p>
+  <div class="brandrow"><input id="sgIn" data-tp="sgPh" autocomplete="off"><button class="btn small" id="sgAdd" data-t="add"></button></div>
+  <div class="wrapchips" id="sgChips"></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="sgGo" data-t="sgGo"></button></div>
+</div></div>
+
+<!-- ============ WORKOUT TYPE ============ -->
+<div class="overlay" id="ovWType"><div class="sheet">
+  <h2 data-t="wType"></h2>
+  <div id="wtList" style="margin-top:12px"></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
 
 <!-- ============ SETTINGS ============ -->
@@ -930,14 +1012,14 @@ details.guide{margin-top:10px;background:var(--panel2);border-radius:12px;paddin
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Tracker v1.7</div>
+  <div class="ver">Food Tracky · Gym Buddy · v0.5.3</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 (() => {
-const VERSION = '1.7';
+const VERSION = '0.5.3';
 const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 const DEFAULT_MODEL = 'gemini-flash-latest';
 const KEY_URL = 'https://aistudio.google.com/apikey';
@@ -1538,15 +1620,13 @@ function route(){
 }
 function go(h){ if(location.hash === '#' + h) route(); else location.hash = h; }
 window.addEventListener('hashchange', route);
-$('backBtn').addEventListener('click', () => go('home'));
-$('backBtn2').addEventListener('click', () => go('home'));
+$('backBtn').addEventListener('click', () => goBack());
+$('backBtn2').addEventListener('click', () => goBack());
 $('tSupps').addEventListener('click', () => go('supps'));
 $('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : 'foods')), route(); });
 $('tScan').addEventListener('click', () => startScan());
 $('tFoods').addEventListener('click', () => go('foods'));
 $('tMeals').addEventListener('click', () => go('meals'));
-$('tFridge').addEventListener('click', () => toast(t('comingSoon')));
-$('tGroc').addEventListener('click', () => toast(t('comingSoon')));
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action; if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') openFridgeChooser(); else if(a === 'meals') openCook(null, 'new'); else { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); } });
 document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 
@@ -1587,7 +1667,7 @@ function render(){
         <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div></div>
         <div class="name">${esc(foodName(f))}</div>
         <div class="row" style="margin-top:2px">
-          <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span></div>
+          <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span>${f.fiber != null ? `<span class="m fi">Fi <b>${fmt(sc(f.fiber))}</b></span>` : ''}</div>
           <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
         </div>
       </div></div>`;
@@ -1984,7 +2064,7 @@ function offToFood(p, code){
     name: (lang === 'el' ? p.product_name_el : p.product_name_en) || p.product_name || p.product_name_el || p.product_name_en || p.generic_name || '',
     hint: (p.categories_tags || []).slice(-3).map(x => x.replace(/^\w\w:/,'').replace(/-/g,' ')).join(' '),
     kcal, protein: g('proteins'), carbs: g('carbohydrates'), fat: g('fat'),
-    fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'),
+    fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'), potassium: n['potassium_100g'] != null ? Math.round(Number(n['potassium_100g']) * 1000) : null,
     serving: p.serving_quantity ? Number(p.serving_quantity) : null,
     unit: q ? q.unit : undefined, unitFromLabel: !!q, packs: q ? [q.size] : [], usualPack: q ? q.size : null, source: 'openfoodfacts'
   };
@@ -2079,8 +2159,8 @@ $('photoInput').addEventListener('change', async e => {
   try{
     const img = await shrink(file);
     const d = await gemini(`You read food nutrition labels (often Greek). Return ONLY JSON:
-{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
-Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, img, onTry);
+{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"potassium":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
+Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. potassium in mg per 100 g if listed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, img, onTry);
     if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; }
     if(d.unit === 'g' || d.unit === 'ml') d.unitFromLabel = true; else delete d.unit;
     if(pendingBarcode) d.barcode = pendingBarcode;
@@ -2179,9 +2259,9 @@ $('iResults').addEventListener('click', e => {
   }
 });
 function pickIng(ref){ close('ovIng'); ING.cb && ING.cb(ref); }
-const foods_ref = f => ({ type:'my', id:f.id, name:foodName(f), unit:f.unit, icon:iconOf(f), per:{ kcal:f.kcal, protein:f.protein, carbs:f.carbs, fat:f.fat } });
-const gen_ref = g => ({ type:'gen', id:g.gid, name:L(g), unit:g.unit, icon:subOf(g.cat,g.sub).icon, per:{ kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat } });
-const off_ref = d => ({ type:'off', id:d.barcode, name:d.name, unit:d.unit || 'g', icon:'🌐', per:{ kcal:d.kcal ?? Math.round(d.protein*4 + d.carbs*4 + d.fat*9), protein:d.protein, carbs:d.carbs, fat:d.fat } });
+const foods_ref = f => ({ type:'my', id:f.id, name:foodName(f), unit:f.unit, icon:iconOf(f), per:{ kcal:f.kcal, protein:f.protein, carbs:f.carbs, fat:f.fat, fiber:f.fiber, salt:f.salt, potassium:f.potassium } });
+const gen_ref = g => ({ type:'gen', id:g.gid, name:L(g), unit:g.unit, icon:subOf(g.cat,g.sub).icon, per:{ kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber:g.fiber, salt:g.salt, potassium:g.potassium } });
+const off_ref = d => ({ type:'off', id:d.barcode, name:d.name, unit:d.unit || 'g', icon:'🌐', per:{ kcal:d.kcal ?? Math.round(d.protein*4 + d.carbs*4 + d.fat*9), protein:d.protein, carbs:d.carbs, fat:d.fat, fiber:d.fiber, salt:d.salt, potassium:d.potassium } });
 function saveGeneric(g){
   const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
   const now = new Date().toISOString();
@@ -2269,7 +2349,7 @@ $('cSave').addEventListener('click', () => {
   if(!(w > 0) && !confirm(t('noWeightConfirm'))) return;
   const cooked = w > 0 ? w : tot.raw, m = 100 / cooked, now = new Date().toISOString();
   const rec = { name, ingredients: rows.map(({ key, wanted, ...r }) => r), rawWeight: tot.raw, cookedWeight: cooked, cookedEstimated: !(w > 0),
-    kcal: Math.round(tot.kcal*m), protein: r1(tot.protein*m), carbs: r1(tot.carbs*m), fat: r1(tot.fat*m),
+    kcal: Math.round(tot.kcal*m), protein: r1(tot.protein*m), carbs: r1(tot.carbs*m), fat: r1(tot.fat*m), fiber: r1(tot.fib*m), salt: Math.round(tot.na*m/400*100)/100, potassium: Math.round(tot.k*m),
     total: { kcal: Math.round(tot.kcal), protein: r1(tot.protein), carbs: r1(tot.carbs), fat: r1(tot.fat) },
     recipe: D.recipe, updatedAt: now };
   if(D.id){ const i = meals.findIndex(x => x.id === D.id);
@@ -2996,7 +3076,7 @@ function renderToday(){
   const left = tg ? Math.round(tg.k - tot.kcal) : null;
   $('dTotals').innerHTML = `<div class="row"><span class="bignum">${Math.round(tot.kcal)}<small style="font-size:14px;color:var(--muted);font-weight:400"> kcal</small></span>
     <span class="${left !== null && left < 0 ? 'exp gone' : 'rmeta'}">${tg ? (left >= 0 ? t('remaining', { n: left }) : t('over', { n: -left })) : `<button class="linkbtn" data-targets><b>${t('noTargets')}</b></button>`}</span></div>` +
-    mrow('', 'kcal', tot.kcal, tg && tg.k, '') + mrow('p', t('protein'), tot.p, tg && tg.p, ' g') + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g') + mrow('f', t('fat'), tot.f, tg && tg.f, ' g');
+    mrow('', 'kcal', tot.kcal, tg && tg.k, '') + mrow('p', t('protein'), tot.p, tg && tg.p, ' g') + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g') + mrow('f', t('fat'), tot.f, tg && tg.f, ' g') + mrow('fi', t('fibre'), tot.fib || 0, fibTarget(tg), ' g') + elecHtml(tot);
   // carb timing
   const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
   const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
@@ -3007,7 +3087,7 @@ function renderToday(){
   $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card" data-eid="${e.id}"><div class="ficon">${e.icon || '🍽️'}</div><div class="body">
       <div class="row"><div class="brand">${e.time}</div><div class="kcal">${e.kcal} <small>kcal</small></div></div>
       <div class="name">${esc(e.name)} <small style="color:var(--muted);font-weight:400">· ${fmtSize(e.amt, e.unit)}</small></div>
-      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span></div></div></div>`).join('')
+      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span>${e.fib ? `<span class="m fi">Fi <b>${fmt(e.fib)}</b></span>` : ''}</div></div></div>`).join('')
     : `<div class="empty">${t('nothingLogged')}</div>`;
   $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
   renderPlan();
@@ -3067,7 +3147,7 @@ $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); }
 // ---------- targets ----------
 function openTargets(){
   const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
-  setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = tg.bw || '';
+  setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = tg.bw || ''; $('tgFib').value = tg.fib || '';
   [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
   tgCheck(); open('ovTargets');
 }
@@ -3090,7 +3170,7 @@ function tgCheck(){
 ['G', 'R'].forEach(p => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).addEventListener('input', tgCheck)));
 $('tgSave').addEventListener('click', () => {
   const rd = p => { const o = {}; ['k', 'p', 'c', 'f'].forEach(x => o[x] = num('tg' + p + x)); if(!o.k && o.p !== null && o.c !== null && o.f !== null) o.k = Math.round(o.p * 4 + o.c * 4 + o.f * 9); return o; };
-  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R') };
+  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null };
   if(!targets.rest.k) targets.rest = { ...targets.gym };
   store(TGKEY, targets); close('ovTargets'); renderAll(); toast(t('targetsSaved'));
 });
@@ -3141,7 +3221,9 @@ $('planBtn').addEventListener('click', async () => {
   try{
     const r = await gemini(`You plan a day of eating for someone who lifts weights. Write all text in ${lang === 'el' ? 'Greek' : 'English'}.
 Day: ${di.type === 'gym' ? `GYM DAY, ${di.work || 'upper'} workout at ${di.time || '18:00'}` : 'REST DAY'}. Goal: ${targets.goal}.
-Targets for the whole day: ${tg.k} kcal, protein ${tg.p} g, carbs ${tg.c} g, fat ${tg.f} g.
+Targets for the whole day: ${tg.k} kcal, protein ${tg.p} g, carbs ${tg.c} g, fat ${tg.f} g, fibre ${fibTarget(tg)} g.
+Electrolytes so far: sodium ${Math.round(tot.na || 0)} mg (guideline ~2300), potassium ${Math.round(tot.k || 0)} mg (aim ~3400): include potassium-rich foods${di.type === 'gym' ? ', and a potassium-rich carb such as a banana 30-60 min before training' : ''}.
+${workFor(curDay) ? `They are at WORK ${workFor(curDay).from}-${workFor(curDay).to}: meals in that window must be portable and simple; plan a solid meal before and after work.` : 'No work today: proper meals at home are fine.'}
 Already eaten today: ${eaten || 'nothing'} (totals ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)}, C ${Math.round(tot.c)}, F ${Math.round(tot.f)}).
 ${isToday ? `Time now: ${nowHM()}. Only plan meals from now on.` : 'Plan the whole day.'}
 In the fridge/cupboard (use these FIRST, and anything expiring soonest before everything else): ${fr || 'nothing logged'}.
@@ -3179,7 +3261,7 @@ $('homeAlerts').addEventListener('click', e => { const a = e.target.closest('[da
 $('tToday').addEventListener('click', () => { curDay = todayKey(); go('today'); });
 $('tFridge').addEventListener('click', () => go('fridge'));
 $('tGroc').addEventListener('click', () => go('groc'));
-document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => go('home')));
+document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goBack()));
 
 // ---------- key guide ----------
 const KEY_STEPS = {
@@ -3575,10 +3657,7 @@ const fmtRest = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(
 const saveG = k => store(GKEY[k], { custom: exCustom, tpl: tpls, plan: gymPlan, ses: sessions, act: active, cb: comeback, pet }[k]);
 if(!tpls){
   const mk = (name, type, ids) => ({ id: uid(), name, type, exercises: ids.map(([id, sets]) => ({ exId: id, sets, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest })) });
-  tpls = [ mk(t('wUpper'), 'upper', [['bench', 3], ['bb_row', 3], ['ohp', 3], ['lat_pulldown', 3], ['lateral_db', 3], ['bb_curl', 2], ['pushdown', 2]]),
-           mk(t('wLegs'), 'legs', [['squat', 3], ['rdl', 3], ['leg_press', 3], ['lying_curl', 3], ['leg_ext', 2], ['standing_calf', 3]]),
-           mk(t('wFull'), 'full', [['squat', 3], ['bench', 3], ['bb_row', 3], ['db_shoulder', 2], ['rdl', 2], ['cable_crunch', 2]]),
-           mk(t('wCardio'), 'cardio', [['treadmill', 1], ['bike', 1]]) ];
+  tpls = [];
   saveG('tpl');
 }
 
@@ -3597,7 +3676,7 @@ $('gPlanV').addEventListener('change', e => {
   const row = e.target.closest('[data-wd]'); if(!row) return; const wd = +row.dataset.wd; const p = gymPlan[wd] || {};
   if(e.target.matches('[data-ptpl]')){ p.tpl = e.target.value || null; if(p.tpl && p.tpl !== 'rest' && !p.time) p.time = '18:00'; }
   if(e.target.matches('[data-ptime]')) p.time = e.target.value;
-  if(p.tpl) gymPlan[wd] = p; else delete gymPlan[wd];
+  if(p.tpl || p.work) gymPlan[wd] = p; else delete gymPlan[wd];
   saveG('plan'); renderGymPlan(); renderHome(); renderToday(); toast(t('planSaved'));
 });
 
@@ -3638,7 +3717,7 @@ function startSession(tpl){
   active = { id: uid(), date: todayKey(), start: now.toISOString(), tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : t('emptyWorkout'), type: tpl ? tpl.type : 'full', prs: [],
     exercises: tpl ? tpl.exercises.map(e => ({ exId: e.exId, reps: e.reps, rest: e.rest ?? exById(e.exId).rest, sets: Array.from({ length: e.sets || 3 }, () => newSet()) })) : [] };
   saveG('act');
-  days[todayKey()] = { ...dayInfo(todayKey()), type: 'gym', work: active.type, time: fromMin(now.getHours() * 60 + now.getMinutes()) }; delete days[todayKey()].guessed; saveDays();
+  days[todayKey()] = { ...dayInfo(todayKey()), type: 'gym', work: workKind(active.type), time: fromMin(now.getHours() * 60 + now.getMinutes()) }; delete days[todayKey()].guessed; saveDays();
   close('ovStart'); renderAll(); openSession();
 }
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); }
@@ -4313,6 +4392,524 @@ function renderTodayRec(){
 }
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
 
+// ---------- anatomical body figure (front + back), drawn as real muscle shapes, mirrored left/right ----------
+const HEAD_COL = { chest_upper:'#ff8fab', chest_mid:'#ff5c8a', chest_lower:'#d63a6a', delt_front:'#ffc46b', delt_side:'#ffa53a', delt_rear:'#e07b00',
+  traps:'#8fd0ff', upper_back:'#4aa3ff', lats:'#2f7fe0', lower_back:'#2a62b8', biceps:'#c9a6ff', triceps:'#9b6dff', forearms:'#7a55d6',
+  abs:'#7be3a3', obliques:'#3fc77d', quads:'#d4f53c', hamstrings:'#4dd0e1', glutes:'#ff8a65', abductors:'#ffb199', adductors:'#f48fb1', calves:'#9ccc65', cardio:'#90a4ae' };
+const ANAT_HEAD_GROUP = { chest_upper:'chest', chest_mid:'chest', chest_lower:'chest', delt_front:'shoulders', delt_side:'shoulders', delt_rear:'shoulders',
+  traps:'back', upper_back:'back', lats:'back', lower_back:'back', biceps:'arms', triceps:'arms', forearms:'arms', abs:'core', obliques:'core',
+  quads:'quads', hamstrings:'hamstrings', glutes:'glutes', abductors:'glutes', adductors:'adductors', calves:'calves' };
+// left half only (x < 100); the right half is mirrored
+const ANAT_SKIN = [
+  'M100 74 L80 76 C66 78 56 84 50 96 C46 108 48 122 52 132 C50 150 54 170 62 188 C66 198 72 206 76 212 L100 216 Z',
+  'M56 96 C48 104 44 120 44 136 C42 152 40 172 40 190 C38 208 38 224 40 236 C42 246 48 250 54 246 C58 234 60 216 62 200 C66 180 68 160 68 140 C68 120 66 104 56 96 Z',
+  'M76 206 C66 230 62 262 64 296 C64 314 68 330 70 346 C70 370 72 394 76 410 L92 412 C93 396 94 372 94 350 C95 330 96 312 96 298 C97 276 98 252 99 230 L100 216 Z' ];
+const ANAT_SKIN_ELL = [[46, 254, 8, 13], [83, 417, 11, 6]];
+const ANAT = {
+  f: [
+    ['traps', 'M100 66 C94 68 86 72 76 78 C82 80 88 80 94 78 C97 76 99 74 100 72 Z'],
+    ['delt_side', 'M74 80 C62 82 52 90 50 104 C50 114 52 122 56 128 C58 116 62 104 68 94 C70 88 72 84 74 80 Z'],
+    ['delt_front', 'M76 80 C70 86 64 98 60 112 C58 120 58 126 58 130 C64 128 70 120 74 110 C78 100 82 90 86 84 C83 81 80 80 76 80 Z'],
+    ['chest_upper', 'M100 80 C94 80 88 81 86 84 C82 90 78 98 76 106 C84 102 92 100 100 100 Z'],
+    ['chest_mid', 'M100 100 C92 100 84 102 76 106 C74 114 74 120 76 126 C84 128 92 128 100 126 Z'],
+    ['chest_lower', 'M100 126 C92 128 84 128 76 126 C78 132 84 138 92 140 C96 140 99 139 100 138 Z'],
+    ['triceps', 'M56 128 C51 136 48 150 48 164 C49 172 51 176 55 178 C54 166 54 150 58 134 Z'],
+    ['biceps', 'M60 130 C56 138 54 150 54 162 C54 172 57 178 62 178 C66 170 68 158 68 146 C68 138 66 132 62 128 Z'],
+    ['forearms', 'M54 180 C48 190 44 206 43 222 C43 232 46 238 50 240 C54 228 58 212 62 198 C64 190 64 184 62 180 Z'],
+    ['lats', 'M76 128 C72 136 70 146 71 156 C74 154 78 150 80 146 C80 140 80 134 79 130 Z'],
+    ['obliques', 'M79 132 C80 142 80 152 76 160 C74 170 74 182 78 192 C82 198 86 202 88 204 L88 144 C86 138 83 134 79 132 Z'],
+    ['abs', 'M88.5 143 Q88.5 141 90.5 141 L99 141 L99 156 L88.5 156 Z'],
+    ['abs', 'M88.5 158 L99 158 L99 173 L88.5 173 Z'],
+    ['abs', 'M88.5 175 L99 175 L99 189 L88.5 189 Z'],
+    ['abs', 'M88.5 191 L99 191 L99 214 C95 214 91 208 88.5 200 Z'],
+    ['abductors', 'M76 196 C70 204 67 214 66 224 C70 220 74 214 78 208 C80 204 81 200 80 196 Z'],
+    ['quads', 'M66 226 C62 246 60 268 62 292 C64 304 68 314 72 318 C72 296 74 270 78 246 C79 236 78 228 74 220 Z'],
+    ['quads', 'M80 208 C76 228 76 256 78 282 C80 296 84 304 88 306 C91 288 92 262 90 236 C89 222 86 212 80 208 Z'],
+    ['quads', 'M88 276 C84 288 84 302 88 312 C92 316 96 312 97 304 C97 294 94 284 88 276 Z'],
+    ['adductors', 'M90 214 C88 226 90 242 93 256 C95 264 97 270 98 272 L99 222 C97 218 94 215 90 214 Z'],
+    ['calves', 'M71 330 C66 348 66 372 69 396 C71 402 76 404 79 400 C81 378 81 354 80 334 Z'],
+    ['calves', 'M85 326 C81 342 81 362 84 382 C87 388 93 388 95 382 C97 362 96 342 93 328 Z'],
+  ],
+  b: [
+    ['upper_back', 'M93 104 C88 96 82 90 76 92 C72 100 70 110 72 120 C80 124 88 126 96 128 Z'],
+    ['traps', 'M100 60 C94 64 86 70 74 78 C80 84 88 92 93 104 C96 112 99 120 100 124 Z'],
+    ['delt_rear', 'M74 80 C62 82 52 90 50 104 C51 114 54 122 58 126 C60 114 64 102 72 94 C76 90 80 86 84 84 C81 81 78 80 74 80 Z'],
+    ['lats', 'M72 122 C70 136 70 152 74 168 C78 180 86 188 94 192 L97 164 C97 152 97 140 96 130 C88 128 80 126 72 122 Z'],
+    ['lower_back', 'M94 172 C92 182 92 194 94 204 L100 207 L100 142 C98 152 96 162 94 172 Z'],
+    ['triceps', 'M58 126 C52 134 49 148 50 162 C51 172 55 178 60 178 C64 166 66 152 66 140 C65 132 62 128 58 126 Z'],
+    ['forearms', 'M54 180 C48 190 44 206 43 222 C43 232 46 238 50 240 C54 228 58 212 62 198 C64 190 64 184 62 180 Z'],
+    ['abductors', 'M78 196 C72 202 70 210 72 218 C78 214 86 208 92 204 C88 199 84 196 78 196 Z'],
+    ['glutes', 'M72 216 C68 230 70 248 78 258 C86 264 96 262 100 256 L100 208 C94 208 84 210 72 216 Z'],
+    ['hamstrings', 'M70 262 C66 282 66 304 70 322 C74 328 78 326 80 318 C81 300 81 282 79 266 Z'],
+    ['hamstrings', 'M81 264 C81 284 83 304 86 320 C90 326 94 324 96 316 C96 298 95 280 93 266 Z'],
+    ['calves', 'M74 332 C70 346 70 362 74 376 C78 382 84 382 86 376 C86 362 86 346 84 334 Z'],
+    ['calves', 'M86 332 C86 348 86 364 88 378 C92 384 96 382 98 376 C99 362 98 346 94 334 Z'],
+    ['calves', 'M76 380 C76 390 80 400 86 406 C90 408 94 404 96 396 C96 390 95 384 93 380 Z'],
+  ],
+};
+// muscle-fibre detail lines, purely decorative
+const ANAT_FIBRES = {
+  f: 'M98 88 C92 89 86 92 82 98 M98 110 C90 110 83 112 78 116 M97 120 C90 121 83 121 78 122 M68 88 C66 96 64 104 62 112 M84 222 C82 244 82 266 84 290 M70 240 C68 258 68 276 70 296 M60 140 C59 150 59 160 60 170',
+  b: 'M90 140 C86 150 84 160 84 172 M80 132 C78 144 78 156 80 168 M88 220 C82 228 78 238 78 248 M72 274 C71 290 71 306 73 318 M88 274 C88 290 89 304 91 316 M62 98 C60 104 58 112 57 120',
+};
+function anatomySVG(o){
+  o = o || {};
+  const mode = o.mode || 'plain', region = o.region, gcol = o.colors || {}, idp = o.idp || 'an';
+  const fill = h => { const g = ANAT_HEAD_GROUP[h];
+    if(mode === 'rec') return gcol[g] || '#3a4048';
+    if(mode === 'pick'){ const reg = o.groupRegion ? o.groupRegion(g) : null; return !region || reg === region ? HEAD_COL[h] : '#3a4048'; }
+    return HEAD_COL[h]; };
+  const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
+  const half = side => ANAT[side].map(([h, d]) => `<path d="${d}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
+      `<path d="${d}" fill="url(#${idp}shade)" style="pointer-events:none"/>`).join('') +
+    `<path d="${ANAT_FIBRES[side]}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
+  const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${d}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
+  const fig = (side, ox, label) => `<g transform="translate(${ox} 0)">
+      <g style="pointer-events:none"><ellipse cx="100" cy="36" rx="21" ry="26" fill="#2b3036" stroke="#1a1d21"/><path d="M88 56 L112 56 L116 76 L84 76 Z" fill="#2b3036"/></g>
+      ${skin}<g transform="translate(200 0) scale(-1 1)">${skin}</g>
+      ${half(side)}<g transform="translate(200 0) scale(-1 1)">${half(side)}</g>
+      ${o.labels === false ? '' : `<text x="100" y="438" text-anchor="middle" fill="#8b949c" font-size="13" font-family="system-ui">${label}</text>`}</g>`;
+  return `<svg viewBox="0 0 420 446" width="100%" style="max-width:${o.max || 380}px;display:block;margin:0 auto" aria-hidden="true">
+    <defs><radialGradient id="${idp}shade" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient></defs>
+    ${fig('f', 0, o.front || 'Front')}${fig('b', 220, o.back || 'Back')}</svg>`;
+}
+
+// =====================================================================
+// 0.5.3 — FOOD TRACKY · TODAY · GYM BUDDY
+// =====================================================================
+Object.assign(S, {
+ tabFood:['Food Tracky','Food Tracky'], tabToday:['Today','Σήμερα'], tabGym:['Gym Buddy','Gym Buddy'],
+ homeHello:['Your food, fridge and shopping.','Το φαγητό, το ψυγείο και τα ψώνια σου.'],
+ fibre:['Fibre','Φυτ. ίνες'], electrolytes:['Electrolytes','Ηλεκτρολύτες'], sodium:['Sodium','Νάτριο'], potassium:['Potassium','Κάλιο'],
+ elecHint:['% of a daily guideline (sodium 2,300 mg, potassium 3,400 mg). Tap to see milligrams.','% μιας ημερήσιας οδηγίας (νάτριο 2.300 mg, κάλιο 3.400 mg). Πάτα για milligrams.'],
+ elecHigh:['high','υψηλό'], fibTarget:['Fibre target (g/day)','Στόχος φυτικών ινών (g/μέρα)'], potMg:['Potassium (mg)','Κάλιο (mg)'],
+ raw:['Raw','Ωμό'], cookedS:['Cooked','Μαγειρ.'], tapChangeV:['tap to change','πάτα για αλλαγή'],
+ cookHow:['How do you want to cook it?','Πώς θες να το φτιάξεις;'], cookSuggest:['✨ Suggest a recipe','✨ Πρότεινέ μου συνταγή'], cookSuggestSub:['Tell it what you fancy; it fits what’s left of your day.','Πες τι σου κάνει όρεξη· ταιριάζει με ό,τι σου μένει για σήμερα.'],
+ cookOwn:['📝 My own recipe','📝 Δική μου συνταγή'], cookOwnSub:['Add the ingredients yourself, raw or cooked.','Πρόσθεσε μόνος σου τα υλικά, ωμά ή μαγειρεμένα.'],
+ pasteRecipe:['📋 Paste a recipe instead','📋 Επικόλληση συνταγής'],
+ sgT:['What are you in the mood for?','Τι σου κάνει όρεξη;'], sgPh:['Type anything, e.g. spicy, Greek, one-pan','Γράψε οτιδήποτε, π.χ. πικάντικο, ελληνικό, σε ένα τηγάνι'],
+ sgGo:['✨ Get a recipe','✨ Φέρε συνταγή'], sgLeft:['Left today: {k} kcal · P {p} · C {c} · F {f}','Σου μένουν σήμερα: {k} kcal · P {p} · C {c} · F {f}'],
+ sgNoTargets:['Set your targets in Today 🎯 and recipes will fit your remaining macros.','Βάλε στόχους στο Σήμερα 🎯 και οι συνταγές θα ταιριάζουν με τα μακρο που σου μένουν.'],
+ sgPick:['Pick at least one, or type something','Διάλεξε τουλάχιστον ένα ή γράψε κάτι'],
+ hubWeek:['Week planner','Εβδομάδα'], hubWeekSub:['Gym, work and rest days','Γυμναστήριο, δουλειά, ξεκούραση'], hubLib:['Workout Library','Βιβλιοθήκη προπονήσεων'], hubLibSub:['{n} workouts','{n} προπονήσεις'],
+ hubProg:['Progress','Πρόοδος'], hubProgSub:['Strength over time','Δύναμη στον χρόνο'], hubRec:['Recovery','Αποκατάσταση'], hubRecSub:['What’s ready to train','Τι είναι έτοιμο για προπόνηση'],
+ work:['Work','Δουλειά'], gym:['Gym','Γυμναστήριο'], addWork:['＋ Work','＋ Δουλειά'], trained:['trained','έγινε'],
+ weekHint:['Set each weekday once. Today’s food and Plan my day use your gym and work times.','Ρύθμισε κάθε μέρα μία φορά. Το φαγητό της μέρας και το πλάνο χρησιμοποιούν τις ώρες γυμναστηρίου και δουλειάς.'],
+ libEmpty:['<b>No workouts yet</b>Build templates for quick workout logging.','<b>Δεν υπάρχουν προπονήσεις</b>Φτιάξε πρότυπα για γρήγορη καταγραφή.'],
+ wType:['What kind of workout?','Τι είδους προπόνηση;'], broSplit:['Bro split','Bro split'], broSub:['One muscle group per day','Μία μυϊκή ομάδα τη μέρα'],
+ wPush:['Push','Push'], wPull:['Pull','Pull'], wLower:['Lower','Κάτω σώμα'], wChest:['Chest','Στήθος'], wBack:['Back','Πλάτη'], wShoulders:['Shoulders','Ώμοι'], wArms:['Arms','Χέρια'], wCore:['Core','Κορμός'], wGlutes:['Glutes','Γλουτοί'],
+ allEquip:['All','Όλα'], eqWhat:['Equipment','Εξοπλισμός'],
+});
+// ---------- workout types ----------
+const WTYPES = [['upper','💪','wUpper'],['lower','🦵','wLower'],['full','🏋️','wFull'],['push','🫸','wPush'],['pull','🫷','wPull'],['legs','🦵','wLegs'],['cardio','🏃','wCardio'],['bro','🧱','broSplit']];
+const BRO = [['chest','wChest'],['back','wBack'],['shoulders','wShoulders'],['arms','wArms'],['core','wCore'],['glutes','wGlutes']];
+const WT_ICON = Object.fromEntries([...WTYPES.map(w => [w[0], w[1]]), ['chest','🫁'],['back','🔙'],['shoulders','🤷'],['arms','💪'],['core','🎯'],['glutes','🍑']]);
+const workKind = ty => ['legs','lower','glutes'].includes(ty) ? 'legs' : ty === 'full' ? 'full' : ty === 'cardio' ? 'cardio' : 'upper';
+const typeLabel_ = ty => t(({ upper:'wUpper', lower:'wLower', full:'wFull', push:'wPush', pull:'wPull', legs:'wLegs', cardio:'wCardio', chest:'wChest', back:'wBack', shoulders:'wShoulders', arms:'wArms', core:'wCore', glutes:'wGlutes' })[ty] || 'wUpper');
+// which muscle heads each workout type is about (for "What next?")
+const TYPE_HEADS = {
+  push: ['chest_upper','chest_mid','chest_lower','delt_front','delt_side','triceps'], pull: ['lats','upper_back','traps','delt_rear','biceps','forearms'],
+  chest: ['chest_upper','chest_mid','chest_lower'], back: ['lats','upper_back','traps','lower_back'], shoulders: ['delt_front','delt_side','delt_rear'],
+  arms: ['biceps','triceps','forearms'], core: ['abs','obliques'], glutes: ['glutes','abductors','hamstrings'] };
+
+// ---------- accurate raw + cooked values (USDA-based, per 100 g) ----------
+// [new id, raw id it pairs with, English, Greek, kcal, protein, carbs, fat, fibre, sodium mg, potassium mg]
+const COOKED = [
+ ['chicken_breast_c','chicken_breast','Chicken breast, cooked','Κοτόπουλο στήθος (μαγειρεμένο)',165,31,0,3.6,0,74,256],
+ ['chicken_thigh_c','chicken_thigh','Chicken thigh, cooked','Κοτόπουλο μπούτι (μαγειρεμένο)',179,24.8,0,8.2,0,106,269],
+ ['turkey_breast_c','turkey_breast','Turkey breast, cooked','Γαλοπούλα στήθος (μαγειρεμένη)',147,30,0,2,0,99,249],
+ ['beef_mince5_c','beef_mince5','Beef mince 5%, cooked','Κιμάς μοσχαρίσιος 5% (μαγειρεμένος)',164,25.4,0,6.4,0,72,382],
+ ['beef_mince10_c','beef_mince10','Beef mince 10%, cooked','Κιμάς μοσχαρίσιος 10% (μαγειρεμένος)',217,26.1,0,11.8,0,76,365],
+ ['beef_mince15_c','beef_mince15','Beef mince 15%, cooked','Κιμάς μοσχαρίσιος 15% (μαγειρεμένος)',250,25.9,0,15.4,0,78,343],
+ ['beef_mince20_c','beef_mince20','Beef mince 20%, cooked','Κιμάς μοσχαρίσιος 20% (μαγειρεμένος)',272,26,0,17.8,0,79,330],
+ ['beef_steak_c','beef_steak','Beef steak, cooked','Μοσχάρι μπριζόλα (μαγειρεμένη)',217,30,0,10,0,60,370],
+ ['pork_chop_c','pork_chop','Pork chop, cooked','Χοιρινή μπριζόλα (μαγειρεμένη)',197,27.3,0,9,0,62,360],
+ ['salmon_c','salmon','Salmon, cooked','Σολομός (μαγειρεμένος)',206,22.1,0,12.4,0,61,384],
+ ['cod_c','cod','Cod, cooked','Μπακαλιάρος (μαγειρεμένος)',105,22.8,0,0.9,0,78,244],
+ ['shrimp_c','shrimp','Shrimp, cooked','Γαρίδες (μαγειρεμένες)',99,24,0.2,0.3,0,111,259],
+ ['egg_c','egg','Egg, boiled','Αυγό βραστό',155,12.6,1.1,10.6,0,124,126],
+ ['rice_basmati_c','rice_basmati','Basmati rice, cooked','Ρύζι μπασμάτι (βρασμένο)',121,3.5,25.2,0.4,0.4,1,30],
+ ['rice_brown_c','rice_brown','Brown rice, cooked','Ρύζι καστανό (βρασμένο)',123,2.7,25.6,1,1.6,4,86],
+ ['pasta_ww_c','pasta_ww','Wholewheat pasta, cooked','Ζυμαρικά ολικής (βρασμένα)',149,6,30,1.7,3.9,4,96],
+ ['potato_c','potato','Potato, boiled','Πατάτα βραστή',87,1.9,20.1,0.1,1.8,4,379],
+ ['sweetpotato_c','sweetpotato','Sweet potato, baked','Γλυκοπατάτα ψητή',90,2,20.7,0.2,3.3,36,475],
+ ['lentils_c','lentils','Lentils, boiled','Φακές βρασμένες',116,9,20.1,0.4,7.9,2,369],
+ ['chickpeas_c','chickpeas','Chickpeas, boiled','Ρεβύθια βρασμένα',164,8.9,27.4,2.6,7.6,7,291],
+ ['beans_c','beans','White beans, boiled','Φασόλια βρασμένα',139,9.7,25.1,0.4,6.3,6,561],
+ ['oats_c','oats','Oats, cooked with water','Βρώμη μαγειρεμένη με νερό',71,2.5,12,1.5,1.7,4,70],
+];
+// fibre g, sodium mg, potassium mg for the standard foods
+const EXTRA = { chicken_breast:[0,45,334], chicken_thigh:[0,95,242], chicken_skin:[0,70,189], turkey_breast:[0,55,293], beef_mince5:[0,66,343], beef_mince10:[0,66,320], beef_mince15:[0,66,300], beef_mince20:[0,66,280],
+ mixed_mince:[0,60,290], pork_mince:[0,56,287], chicken_mince:[0,60,300], beef_steak:[0,55,350], beef_stew:[0,60,320], pork_chop:[0,55,360], pork_neck:[0,60,300], lamb:[0,60,280], bacon:[0,1000,330], turkey_slices:[0,1000,300],
+ salmon:[0,59,363], cod:[0,54,413], seabass:[0,68,256], tuna_water:[0,247,237], tuna_oil:[0,354,207], shrimp:[0,119,264], octopus:[0,230,350], squid:[0,44,246], egg:[0,142,138], egg_white:[0,166,163],
+ rice_white:[1.3,5,115], rice_basmati:[1.5,2,100], rice_brown:[3.4,4,268], rice_cooked:[0.4,1,35], pasta:[3.2,6,223], pasta_ww:[9,8,215], pasta_cooked:[1.8,1,44], orzo:[3,7,160], oats:[10.1,6,429], flour:[2.7,2,107],
+ bread_white:[2.7,490,115], bread_ww:[6,450,250], pita:[2,500,120], ricecake:[4.2,29,290], potato:[2.2,6,425], sweetpotato:[3,55,337], onion:[1.7,4,146], leek:[1.8,20,180], garlic:[2.1,17,401],
+ tomato:[1.2,5,237], tomato_can:[1.9,130,190], passata:[1.5,15,300], tomato_paste:[4.1,59,1014], carrot:[2.8,69,320], cucumber:[0.5,2,147], zucchini:[1,8,261], pepper_red:[2.1,4,211], pepper_green:[1.7,3,175],
+ broccoli:[2.6,33,316], cauliflower:[2,30,299], spinach:[2.2,79,558], lettuce:[1.3,28,194], cabbage:[2.5,18,170], parsley:[3.3,56,554], celery:[1.6,80,260], mushroom:[1,5,318], eggplant:[3,2,229], green_beans:[2.7,6,211],
+ peas:[4.5,108,153], corn:[2,15,270], avocado:[6.7,7,485], lemon_juice:[0.3,1,103], apple:[2.4,1,107], banana:[2.6,1,358], orange:[2.4,0,181], strawberry:[2,1,153], grapes:[0.9,2,191], watermelon:[0.4,1,112],
+ blueberries:[2.4,1,77], dates:[8,2,656], raisins:[3.7,11,749], lentils:[10.7,6,677], chickpeas:[12.2,24,875], chickpeas_can:[7.6,240,140], beans:[15.2,16,1500], fava:[25,15,980],
+ milk_whole:[0,43,150], milk_semi:[0,44,156], milk_skim:[0,42,156], yog2:[0,36,141], yog0:[0,36,141], yog10:[0,40,130], feta:[0,1100,62], graviera:[0,600,90], gouda:[0,819,121], mozzarella:[0,627,76],
+ parmesan:[0,1600,92], cottage:[0,364,104], butter:[0,11,24], cream:[0,38,95], olive_oil:[0,2,1], sun_oil:[0,0,0], honey:[0.2,4,52], sugar:[0,1,2], salt:[0,38758,8], black_pepper:[25,20,1329], oregano:[42,25,1260],
+ ketchup:[0.3,907,281], mayo:[0,635,20], mustard:[4,1135,138], soy:[0.8,5493,435], wine:[0,5,100], pb:[6,17,649], peanuts:[8.5,18,705], almonds:[12.5,1,733], walnuts:[6.7,2,441], tahini:[9.3,115,414], whey:[0,200,500], dark_choc:[10.9,20,715] };
+const PAIR = {};
+GEN.forEach(g => { const x = EXTRA[g.gid]; if(x){ g.fiber = x[0]; g.salt = r1(x[1] * 2.5 / 1000 * 100) / 100; g.potassium = x[2]; } });
+COOKED.forEach(([id, rawId, en, el, kcal, protein, carbs, fat, fib, na, k]) => {
+  const raw = GENBY[rawId]; if(!raw) return;
+  const g = { ...raw, gid: id, en, el, alias: raw.alias, state: 'cooked', kcal, protein, carbs, fat, fiber: fib, salt: r1(na * 2.5 / 1000 * 100) / 100, potassium: k };
+  g.hay = norm(`${en} ${el} ${raw.alias} cooked μαγειρεμενο βραστο ψητο ${subOf(raw.cat, raw.sub).en} ${subOf(raw.cat, raw.sub).el}`);
+  GEN.push(g); GENBY[id] = g; PAIR[rawId] = id; PAIR[id] = rawId;
+});
+if(GENBY.rice_white && GENBY.rice_cooked){ PAIR.rice_white = 'rice_cooked'; PAIR.rice_cooked = 'rice_white'; }
+if(GENBY.pasta && GENBY.pasta_cooked){ PAIR.pasta = 'pasta_cooked'; PAIR.pasta_cooked = 'pasta'; }
+// plain words mean the obvious food ("chicken" = chicken breast, not mince)
+const DEFAULT_PICK = { chicken:'chicken_breast', κοτοπουλο:'chicken_breast', 'chicken breast':'chicken_breast', beef:'beef_steak', μοσχαρι:'beef_steak', steak:'beef_steak',
+  mince:'beef_mince10', κιμασ:'beef_mince10', 'minced beef':'beef_mince10', 'beef mince':'beef_mince10', rice:'rice_white', ρυζι:'rice_white', pasta:'pasta', ζυμαρικα:'pasta', μακαρονια:'pasta', spaghetti:'pasta',
+  potato:'potato', potatoes:'potato', πατατα:'potato', πατατεσ:'potato', egg:'egg', eggs:'egg', αυγα:'egg', αυγο:'egg', salmon:'salmon', σολομοσ:'salmon', fish:'cod', ψαρι:'cod', turkey:'turkey_breast', γαλοπουλα:'turkey_breast',
+  tuna:'tuna_water', τονοσ:'tuna_water', oil:'olive_oil', λαδι:'olive_oil', 'olive oil':'olive_oil', ελαιολαδο:'olive_oil', onion:'onion', κρεμμυδι:'onion', milk:'milk_semi', γαλα:'milk_semi', oats:'oats', βρωμη:'oats' };
+// standard foods saved before this version get fibre, salt and potassium filled in
+foods.forEach(f => { const g = f.gid && GENBY[f.gid]; if(!g) return; if(f.fiber == null && g.fiber != null) f.fiber = g.fiber; if(f.salt == null && g.salt != null) f.salt = g.salt; if(f.potassium == null && g.potassium != null) f.potassium = g.potassium; });
+if(foods.some(f => f.gid && GENBY[f.gid])) saveFoods();
+NUM.potassium = 'fK';
+
+function saveGeneric(g){
+  const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
+  const now = new Date().toISOString();
+  const f = migrate({ id: uid(), gid: g.gid, name: L(g), brand:'', noBrand:true, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
+    kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber: g.fiber ?? null, salt: g.salt ?? null, potassium: g.potassium ?? null,
+    pieces:g.pieces, piece:g.piece, pieceSkipped: !g.piece && g.pieces !== 'none', source:'standard', createdAt: now, updatedAt: now });
+  foods.push(f); saveFoods(); renderAll(); return f;
+}
+function matchIng(names){
+  for(const q of names){ if(!q) continue; const k = norm(q).replace(/[.,]/g, '').trim(); const gid = DEFAULT_PICK[k];
+    if(gid){ const mine = foods.find(f => f.gid === gid); const ref = mine ? foods_ref(mine) : gen_ref(GENBY[gid]); ref.vague = true; return ref; } }
+  const tryQ = q => { const s = searchLocal(q, true); return s.mine.length ? foods_ref(s.mine[0]) : s.std.length ? gen_ref(s.std[0]) : null; };
+  for(const q of names){ if(!q) continue; const r = tryQ(q); if(r) return r; }
+  for(const q of names){ if(!q) continue;
+    for(const w of norm(q).split(' ').filter(w => w.length >= 4).sort((a,b) => b.length - a.length)){ const g = DEFAULT_PICK[w]; if(g){ const ref = gen_ref(GENBY[g]); ref.vague = true; return ref; } const r = tryQ(w); if(r) return r; } }
+  return null;
+}
+
+// ---------- macros incl. fibre, sodium, potassium ----------
+const naOf = per => per.salt != null ? per.salt * 400 : 0;   // 1 g salt ≈ 400 mg sodium
+function macrosFor(per, amt){ const x = amt / 100; return { kcal: Math.round((per.kcal || 0) * x), p: r1((per.protein || 0) * x), c: r1((per.carbs || 0) * x), f: r1((per.fat || 0) * x),
+  fib: r1((per.fiber || 0) * x), na: Math.round(naOf(per) * x), k: Math.round((per.potassium || 0) * x) }; }
+function logEntry(date, info, amt, time){
+  const m = macrosFor(info.per, amt);
+  (dayLog[date] = dayLog[date] || []).push({ id: uid(), time: time || nowHM(), kind: info.meal ? 'meal' : 'food', refId: info.meal ? info.meal.id : info.food.id,
+    name: info.name, icon: info.icon, amt: r1(amt), unit: info.unit, kcal: m.kcal, p: m.p, c: m.c, f: m.f, fib: m.fib, na: m.na, k: m.k });
+  saveLog();
+}
+function dayTotals(d){ return (dayLog[d] || []).reduce((s, e) => ({ kcal: s.kcal + e.kcal, p: s.p + e.p, c: s.c + e.c, f: s.f + e.f, fib: s.fib + (e.fib || 0), na: s.na + (e.na || 0), k: s.k + (e.k || 0) }), { kcal: 0, p: 0, c: 0, f: 0, fib: 0, na: 0, k: 0 }); }
+function mealTotals(rows){
+  const tot = { kcal:0, protein:0, carbs:0, fat:0, fib:0, na:0, k:0, raw:0 };
+  rows.forEach(r => { if(!r.ref || !(r.grams > 0)) return; const m = r.grams / 100, p = r.ref.per;
+    tot.kcal += (p.kcal || 0) * m; tot.protein += (p.protein || 0) * m; tot.carbs += (p.carbs || 0) * m; tot.fat += (p.fat || 0) * m;
+    tot.fib += (p.fiber || 0) * m; tot.na += naOf(p) * m; tot.k += (p.potassium || 0) * m; tot.raw += r.grams; });
+  return tot;
+}
+const fibTarget = tg => (targets && targets.fib) || (tg ? Math.max(25, Math.round(tg.k / 1000 * 14)) : 30);
+const NA_T = 2300, K_T = 3400;
+function elecHtml(tot){
+  const row = (lbl, v, tgt, col) => { const pct = Math.round(v / tgt * 100), hi = lbl === t('sodium') && pct > 100;
+    return `<div class="mrow" style="--bar:${hi ? 'var(--orange)' : col}"><small>${lbl}</small><span class="mbar"><i style="width:${Math.min(100, pct)}%;background:var(--bar)"></i></span><span><b>${ui.elecMg ? Math.round(v).toLocaleString() + ' mg' : pct + '%'}</b>${hi ? `<small> ${t('elecHigh')}</small>` : ''}</span></div>`; };
+  return `<div class="elec" data-elec><div class="row"><small class="rmeta">⚡ ${t('electrolytes')}</small><small class="rmeta">${ui.elecMg ? 'mg' : '%'}</small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
+}
+$('dTotals').addEventListener('click', e => { if(e.target.closest('[data-elec]')){ ui.elecMg = !ui.elecMg; saveUI(); renderToday(); } });
+
+// ---------- cooking: choose first, then the details ----------
+function cookStep(main){ $('cookStart').classList.toggle('hide', main); $('cookMain').classList.toggle('hide', !main); }
+function openCook(meal, mode){
+  D = { id: mode === 'edit' ? meal.id : (mode === 'again' ? meal.id : null), mode, recipe: meal && meal.recipe ? meal.recipe : null,
+        rows: meal ? meal.ingredients.map(r => ({ ...r, key: uid() })) : [], timesCooked: meal ? (meal.timesCooked || 1) : 0 };
+  $('cookTitle').textContent = mode === 'edit' ? t('editMeal') : mode === 'again' ? t('cookAgainT') : t('cookMeal');
+  $('cName').value = meal ? meal.name : '';
+  $('cPotFull').value = ''; $('cPotEmpty').value = ''; $('cCooked').value = mode === 'edit' && meal && !meal.cookedEstimated ? meal.cookedWeight : '';
+  $('cDelete').classList.toggle('hide', mode !== 'edit');
+  if(!D.rows.length) D.rows.push(newRow());
+  renderUseUp(mode); drawRecipeBox(); drawRows(); cookStep(mode !== 'new'); open('ovCook');
+}
+function drawRecipeBox(){
+  $('recipeBox').classList.add('hide');
+  $('recipeShow').classList.toggle('hide', !D.recipe);
+  if(D.recipe) $('recipeShow').innerHTML = recipeHtml(D.recipe, true) + `<button class="linkbtn" id="dropRecipe">✕ ${t('noThanks')}</button>`;
+}
+$('cookSuggestBtn').addEventListener('click', openSuggest);
+$('cookOwnBtn').addEventListener('click', () => { cookStep(true); setTimeout(() => { const b = document.querySelector('#iRows .ipick'); if(b && !$('cName').value) $('cName').focus(); }, 80); });
+$('pasteBtn').addEventListener('click', () => $('ownBtn').click());
+function applyRecipe(r, own){
+  D.recipe = { title: r.title || $('cName').value.trim(), servings: r.servings || null, minutes: r.minutes || null, steps: r.steps || [], own: !!own,
+    ingredients: (r.ingredients || []).map(i => ({ name: i.name, grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, note: i.note || null })) };
+  D.rows = D.rows.filter(x => x.ref || x.grams);
+  (r.ingredients || []).forEach(i => D.rows.push({ key: uid(), ref: matchIng([i.name, i.name_en]), grams: Number(i.grams) > 0 ? r1(Number(i.grams)) : null, wanted: i.name }));
+  if(!D.rows.length) D.rows.push(newRow());
+  if(!$('cName').value.trim() && r.title) $('cName').value = r.title;
+  drawRecipeBox(); drawRows(); cookStep(true);
+}
+// raw / cooked switch on every ingredient that has both versions
+const pairOf = ref => { if(!ref) return null; if(ref.type === 'gen') return PAIR[ref.id] || null; if(ref.type === 'my'){ const f = foods.find(x => x.id === ref.id); return f && f.gid ? PAIR[f.gid] || null : null; } return null; };
+const refState = ref => { const g = ref.type === 'gen' ? GENBY[ref.id] : ref.type === 'my' ? (foods.find(x => x.id === ref.id) || {}) : {}; return g.state || 'ready'; };
+function drawRows(){
+  $('iRows').innerHTML = D.rows.map(r => { const pr = pairOf(r.ref), st = r.ref ? refState(r.ref) : null;
+    return `<div class="irow" data-key="${r.key}">
+      <button class="ipick ${r.ref ? '' : 'unset'} ${r.ref && r.ref.vague ? 'vague' : ''}" data-pick>${r.ref ? `<span style="font-size:20px">${r.ref.icon || '🍽️'}</span><span>${esc(r.ref.name)}${r.ref.vague ? `<small>${t('tapChangeV')}</small>` : ''}</span>` : `<span>${esc(r.wanted || t('chooseFood'))}</span>`}</button>
+      ${pr ? `<button class="rc ${st === 'cooked' ? 'ck' : ''}" data-rc>${st === 'cooked' ? t('cookedS') : t('raw')}</button>` : ''}
+      <div class="igr"><input type="number" inputmode="decimal" step="any" min="0" value="${r.grams ?? ''}" data-g placeholder="0"><i>${r.ref && r.ref.unit === 'ml' ? 'ml' : 'g'}</i></div>
+      <button class="irm" data-rm aria-label="Remove">✕</button></div>`; }).join('');
+  calcMeal(); updateTake();
+}
+$('iRows').addEventListener('click', e => {
+  const b = e.target.closest('[data-rc]'); if(!b) return; e.stopPropagation();
+  const r = D.rows.find(x => x.key === b.closest('.irow').dataset.key), pr = pairOf(r.ref); if(!pr) return;
+  const mine = foods.find(f => f.gid === pr); r.ref = mine ? foods_ref(mine) : gen_ref(GENBY[pr]); drawRows();
+}, true);
+
+// ---------- ✨ suggest a recipe: chips + remaining macros ----------
+const SG_DEFAULT = { en: ['Chicken','Beef','Pork','Fish','Seafood','Eggs','Pasta','Rice','Potatoes','Legumes','Vegetarian','Quick (≤20 min)','High protein','Low fat','Meal prep','Greek classic'],
+  el: ['Κοτόπουλο','Μοσχάρι','Χοιρινό','Ψάρι','Θαλασσινά','Αυγά','Ζυμαρικά','Ρύζι','Πατάτες','Όσπρια','Χορτοφαγικό','Γρήγορο (≤20′)','Πολλή πρωτεΐνη','Λίγα λιπαρά','Meal prep','Ελληνική κλασική'] };
+let SG = { sel: new Set() };
+function remainingToday(){ const tg = targetFor(todayKey()); if(!tg) return null; const tot = dayTotals(todayKey());
+  return { k: Math.max(0, Math.round(tg.k - tot.kcal)), p: Math.max(0, Math.round(tg.p - tot.p)), c: Math.max(0, Math.round(tg.c - tot.c)), f: Math.max(0, Math.round(tg.f - tot.f)) }; }
+function openSuggest(){
+  SG.sel = new Set(); $('sgIn').value = ''; const rm = remainingToday();
+  $('sgLeft').textContent = rm ? t('sgLeft', rm) : t('sgNoTargets'); drawSgChips(); open('ovSuggest');
+}
+function drawSgChips(){
+  const all = [...(ui.sgChips || []), ...SG_DEFAULT[lang === 'el' ? 'el' : 'en']];
+  $('sgChips').innerHTML = [...new Set(all)].map(c => `<button class="fchip ${SG.sel.has(c) ? 'on' : ''}" data-sg="${esc(c)}">${esc(c)}</button>`).join('');
+}
+function addSgChip(){ const v = $('sgIn').value.trim(); if(!v) return; ui.sgChips = [v, ...(ui.sgChips || []).filter(x => x !== v)].slice(0, 16); saveUI(); SG.sel.add(v); $('sgIn').value = ''; drawSgChips(); }
+$('sgAdd').addEventListener('click', addSgChip);
+$('sgIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); addSgChip(); } });
+$('sgChips').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if(!b) return; const v = b.dataset.sg; SG.sel.has(v) ? SG.sel.delete(v) : SG.sel.add(v); drawSgChips(); });
+let sgCtl = null;
+$('sgGo').addEventListener('click', async () => {
+  if(sgCtl){ sgCtl.abort(); return; }
+  if($('sgIn').value.trim()) addSgChip();
+  if(!SG.sel.size && !$('cName').value.trim()){ toast(t('sgPick')); return; }
+  if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
+  const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.textContent = t('thinking');
+  const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
+  try{
+    const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
+${$('cName').value.trim() ? `Dish name they gave: "${$('cName').value.trim()}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
+${rm ? `Macros LEFT for today: ${rm.k} kcal, protein ${rm.p} g, carbs ${rm.c} g, fat ${rm.f} g. Design it so ONE serving fits inside what's left (if little is left, make it light; prioritise closing the protein gap).` : ''}
+In their fridge (use these when they fit): ${fr || 'unknown'}.
+Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"perServing":{"kcal":number,"protein":number,"carbs":number,"fat":number},"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
+Rules: amounts in grams for the whole batch, weighed raw as they go in (dry pasta/rice, raw meat). Include cooking oil. 3–10 ingredients, 4–10 short steps. name_en = plain generic English food name (e.g. "chicken breast", "olive oil").`, null, (i, n) => { if(sgCtl === ctl) btn.textContent = t('cancelRec', { i, n }); }, ctl.signal);
+    if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
+    pendingRecipe = r; close('ovSuggest');
+    $('rBody').innerHTML = (r.perServing ? `<div class="macroline"><span class="m kc"><b>${Math.round(r.perServing.kcal)}</b> kcal</span><span class="m p">P <b>${fmt(r.perServing.protein)}</b></span><span class="m c">C <b>${fmt(r.perServing.carbs)}</b></span><span class="m f">F <b>${fmt(r.perServing.fat)}</b></span> <small class="rmeta">/ serving</small></div>` : '') + recipeHtml(r, false);
+    open('ovRecipe');
+  }catch(err){ if(!err.cancelled) toast(t('recipeFail', { e: err.message })); }
+  finally{ sgCtl = null; btn.textContent = t('sgGo'); }
+});
+
+// ---------- navigation: 3 tabs, back + forward history, orange back on every sheet ----------
+let NAV = [location.hash.slice(1)], NAVI = 0, navMode = false;
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if(navMode){ navMode = false; return; } if(NAV[NAVI] === h) return; NAV = NAV.slice(0, NAVI + 1); NAV.push(h); NAVI = NAV.length - 1; });
+function navTo(h){ if(location.hash.slice(1) === h){ route(); return; } navMode = true; location.hash = h; }
+const tabOf = h => h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : 'food';
+const TAB_ROOT = { food: '', today: 'today', gym: 'gym' };
+function goBack(){
+  const opens = [...document.querySelectorAll('.overlay.open')].filter(o => o.id !== 'ovLang').sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0));
+  if(opens.length){
+    const top = opens[0].id;
+    if(top === 'ovExPick' && (PK.group || PK.eq)){ PK.fwd = { group: PK.group, head: PK.head, eq: PK.eq }; if(PK.eq) PK.eq = null; else { PK.group = null; PK.head = null; } drawExPick(); return; }
+    if(top === 'ovSession'){ close('ovSession'); renderAll(); } else close(top); return;
+  }
+  const h = location.hash.slice(1);
+  if(NAVI > 0){ NAVI--; navTo(NAV[NAVI]); return; }
+  if(h !== TAB_ROOT[tabOf(h)]) go(TAB_ROOT[tabOf(h)]);
+}
+function goForward(){
+  if(document.querySelector('#ovExPick.open') && PK.fwd){ Object.assign(PK, PK.fwd); PK.fwd = null; drawExPick(); return; }
+  if(document.querySelector('.overlay.open')) return;
+  if(NAVI < NAV.length - 1){ NAVI++; navTo(NAV[NAVI]); }
+}
+(() => {   // swipe from the right edge = forward (left edge = back is already wired)
+  let sx = null, sy = 0, st = 0;
+  document.addEventListener('touchstart', e => { const t0 = e.touches[0]; if(t0.clientX > window.innerWidth - 28){ sx = t0.clientX; sy = t0.clientY; st = Date.now(); } else sx = null; }, { passive: true });
+  document.addEventListener('touchend', e => { if(sx === null) return; const t1 = e.changedTouches[0], dx = t1.clientX - sx, dy = Math.abs(t1.clientY - sy); sx = null;
+    if(dx > -70 || dy > 60 || Date.now() - st > 700) return; goForward(); }, { passive: true });
+})();
+document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.parentElement.id; if(ov === 'ovLang' || ov === 'ovSession') return;
+  const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.textContent = '‹'; b.addEventListener('click', goBack); sh.prepend(b); });
+$('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(!b) return; const tab = b.dataset.tab, h = location.hash.slice(1);
+  if(tabOf(h) === tab && h !== TAB_ROOT[tab]) go(TAB_ROOT[tab]); else if(tabOf(h) !== tab) go(ui['lastIn_' + tab] && tab !== 'today' ? ui['lastIn_' + tab] : TAB_ROOT[tab]); else window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+function route(){
+  const h = location.hash.replace('#','');
+  const page = h === 'foods' || h === 'meals' ? 'foods' : h.startsWith('gym') ? 'gym' : ['supps','today','fridge','groc'].includes(h) ? h : 'home';
+  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym']].forEach(([id, p]) => $(id).classList.toggle('hide', page !== p));
+  const tab = h === 'meals' ? 'meals' : 'store';
+  setSeg('#foodTabs', tab);
+  $('storeView').classList.toggle('hide', tab !== 'store');
+  $('mealsView').classList.toggle('hide', tab !== 'meals');
+  const ft = tabOf(h); document.querySelectorAll('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === ft));
+  ui['lastIn_' + ft] = h; saveUI();
+  const fab = $('fab');
+  fab.classList.toggle('hide', page === 'home' || page === 'groc' || page === 'gym');
+  fab.textContent = page === 'supps' ? t('addSuppFab') : page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : t('addFoodFab');
+  fab.dataset.action = ['supps','today','fridge'].includes(page) ? page : tab;
+  renderAll();
+  window.scrollTo(0, 0);
+}
+
+// ---------- Gym Buddy hub ----------
+const GSEC = { 'gym-week': 'plan', 'gym-lib': 'tpl', 'gym-prog': 'prog', 'gym-rec': 'rec' };
+function renderGym(){
+  const h = location.hash.slice(1), sec = GSEC[h] || null;
+  $('gHub').classList.toggle('hide', !!sec); $('gSecTitle').classList.toggle('hide', !sec);
+  $('gBackBtn').classList.toggle('hide', !sec);
+  $('gSecTitle').textContent = sec ? t({ plan: 'hubWeek', tpl: 'hubLib', prog: 'hubProg', rec: 'hubRec' }[sec]) : '';
+  ['plan', 'tpl', 'prog', 'rec'].forEach(k => $({ plan: 'gPlanV', tpl: 'gTplV', prog: 'gProgV', rec: 'gRecV' }[k]).classList.toggle('hide', sec !== k));
+  const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
+  $('gStart').textContent = active ? t('resume', { m: Math.floor((Date.now() - new Date(active.start)) / 60000) }) : tp ? t('startToday', { n: tp.name }) : t('startAny');
+  $('gStart').classList.toggle('hide', !!sec && sec !== 'tpl');
+  const gap = gapDays(), cb = comebackFactor();
+  $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
+    : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
+  if(!sec){
+    const rd = groupReadiness(Date.now()), colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, REC_COL[recState(r)]])), low = Object.values(rd).filter(r => r < .8).length;
+    $('gMiniRec').innerHTML = anatomySVG({ mode: 'rec', colors, labels: false, max: 150, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady') + ' ✓'}</small>`;
+    $('hubLibSub').textContent = t('hubLibSub', { n: tpls.length });
+  }
+  renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
+}
+$('gHubTiles').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if(b) go(b.dataset.sec); });
+$('gMiniRec').addEventListener('click', () => go('gym-rec'));
+$('gBackBtn').addEventListener('click', goBack);
+
+// ---------- week planner: gym + work blocks ----------
+function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;
+  if(p.tpl === 'rest') return { type: 'rest' }; const tp = tpls.find(x => x.id === p.tpl); return tp ? { type: 'gym', work: workKind(tp.type), time: p.time || '18:00', tpl: tp.id } : null; }
+const workFor = d => { const p = gymPlan[new Date(d + 'T12:00:00').getDay()]; return p && p.work ? p.work : null; };
+function renderGymPlan(){
+  const tk = todayKey(), twd = new Date(tk + 'T12:00:00').getDay(), monday = addDays(tk, -((twd + 6) % 7));
+  $('gPlanV').innerHTML = `<p class="hint" style="margin:10px 0">${t('weekHint')}</p>` + [1, 2, 3, 4, 5, 6, 0].map((wd, i) => { const p = gymPlan[wd] || {}, date = addDays(monday, i), done = sessions.some(s => s.date === date);
+    return `<div class="daycard ${wd === twd ? 'today' : ''}" data-wd="${wd}">
+      <div class="dch"><b>${WD()[wd]}</b><small>${fmtDate(date)}</small>${done ? `<span class="chip ok">✓ ${t('trained')}</span>` : ''}</div>
+      <div class="dcrow"><span class="dcl">🏋️</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${WT_ICON[x.type] || '🏋️'} ${esc(x.name)}</option>`).join('')}</select>
+        <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>
+      ${p.work ? `<div class="dcrow"><span class="dcl">💼</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm>✕</button></div>`
+        : `<button class="linkbtn" data-wadd>${t('addWork')}</button>`}</div>`; }).join('');
+}
+$('gPlanV').addEventListener('click', e => {
+  const row = e.target.closest('[data-wd]'); if(!row) return; const wd = +row.dataset.wd, p = gymPlan[wd] || {};
+  if(e.target.closest('[data-wadd]')){ p.work = { from: '09:00', to: '17:00' }; gymPlan[wd] = p; saveG('plan'); renderGymPlan(); renderToday(); }
+  if(e.target.closest('[data-wrm]')){ delete p.work; if(p.tpl) gymPlan[wd] = p; else delete gymPlan[wd]; saveG('plan'); renderGymPlan(); renderToday(); }
+});
+$('gPlanV').addEventListener('change', e => {
+  const row = e.target.closest('[data-wd]'); if(!row || !(e.target.matches('[data-wfrom]') || e.target.matches('[data-wto]'))) return;
+  const p = gymPlan[+row.dataset.wd]; if(!p || !p.work) return;
+  if(e.target.matches('[data-wfrom]')) p.work.from = e.target.value; else p.work.to = e.target.value; saveG('plan'); renderToday();
+});
+function renderTodayRec(){
+  const el = $('dRec'); if(el) el.innerHTML = daysUntil(curDay) === 0 ? recoveryWarnings().map(w => `<div class="alert" style="margin-top:10px" data-gorec>${w}</div>`).join('') : '';
+  const wb = workFor(curDay), di = dayInfo(curDay), parts = [];
+  if(wb) parts.push(`💼 ${t('work')} ${wb.from}–${wb.to}`);
+  if(di.type === 'gym') parts.push(`🏋️ ${di.time || ''}`);
+  $('dBlocks').innerHTML = parts.length ? parts.join(' · ') + ` <button class="linkbtn" data-goweek>✎</button>` : '';
+}
+$('dBlocks').addEventListener('click', e => { if(e.target.closest('[data-goweek]')) go('gym-week'); });
+$('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')) go('gym-rec'); }, true);
+
+// ---------- Workout Library: starts empty, pick a type ----------
+function renderTpls(){
+  $('gTplV').innerHTML = (tpls.length ? `<div class="list" style="margin-top:10px">${tpls.map(x => { const last = sessions.filter(s => s.tplId === x.id).sort((a, b) => b.start.localeCompare(a.start))[0];
+    return `<div class="card" data-tp="${x.id}"><div class="ficon">${WT_ICON[x.type] || '🏋️'}</div><div class="body">
+      <div class="name">${esc(x.name)}</div><div class="rmeta">${typeLabel_(x.type)} · ${t('nEx', { n: x.exercises.length })}${last ? ' · ' + t('lastDone', { d: fmtDate(last.start) }) : ''}</div>
+      <div class="rmeta" style="margin-top:4px">${x.exercises.slice(0, 4).map(e => esc(exName(e.exId))).join(', ')}${x.exercises.length > 4 ? '…' : ''}</div></div>
+      <button class="usebtn" data-go-tp>▶</button></div>`; }).join('')}</div>` : `<div class="empty" style="margin-top:10px">${t('libEmpty')}</div>`) +
+    `<div class="actions"><button class="btn primary" id="tpNew">${t('newWorkoutBtn')}</button></div>`;
+}
+function openTpl(x, type){
+  if(!x && !type) return openWType();
+  TP = x ? JSON.parse(JSON.stringify(x)) : { id: null, name: typeLabel_(type), type, exercises: [] };
+  $('tpTitle').textContent = x ? t('editWorkout') : t('newWorkout'); $('tpName').value = TP.name; setSeg('#tpType', TP.type);
+  $('tpDel').classList.toggle('hide', !x); drawTpl(); open('ovTpl');
+}
+function openWType(){ drawWType(false); open('ovWType'); }
+function drawWType(bro){
+  $('wtList').innerHTML = (bro ? `<button class="pback" data-wtback>‹ ${t('broSplit')}</button>` : '') + `<div class="ggrid">` +
+    (bro ? BRO.map(([k, l]) => `<button class="gbtn wt" data-wt="${k}"><span class="e">${WT_ICON[k]}</span><b>${t(l)}</b></button>`)
+         : WTYPES.map(([k, ic, l]) => `<button class="gbtn wt" data-wt="${k}"><span class="e">${ic}</span><b>${t(l)}</b>${k === 'bro' ? `<small>${t('broSub')}</small>` : ''}</button>`)).join('') + '</div>';
+}
+$('wtList').addEventListener('click', e => {
+  if(e.target.closest('[data-wtback]')) return drawWType(false);
+  const b = e.target.closest('[data-wt]'); if(!b) return;
+  if(b.dataset.wt === 'bro') return drawWType(true);
+  close('ovWType'); openTpl(null, b.dataset.wt);
+});
+// clear out the old ready-made workouts if they were never used
+if(!ui.seedClean053){
+  const seedNames = new Set(['Upper','Legs','Full body','Cardio','Πάνω σώμα','Πόδια','Όλο το σώμα']);
+  const used = new Set([...sessions.map(s => s.tplId), ...Object.values(gymPlan).map(p => p && p.tpl)].filter(Boolean));
+  tpls = tpls.filter(x => !(seedNames.has(x.name) && !used.has(x.id))); saveG('tpl'); ui.seedClean053 = true; saveUI();
+}
+
+// ---------- "What next?" understands push / pull / bro-split days ----------
+function nextSuggestions(){
+  if(!active) return [];
+  const ses = hitsFrom([active], true), week = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false), ty = active.type;
+  const want = h => { if(h === 'cardio') return false; if(TYPE_HEADS[ty]) return TYPE_HEADS[ty].includes(h); const r = GROUPS[HEADS[h][2]][2];
+    return ty === 'full' || (workKind(ty) === 'legs' ? r === 'low' : r === 'up'); };
+  const heads = Object.keys(HEADS).filter(want).filter(h => h !== 'forearms' && h !== 'lower_back')
+    .map(h => ({ h, s: ses[h] || 0, w: week[h] || 0 })).filter(x => x.s < 2).sort((a, b) => (a.s * 3 + a.w) - (b.s * 3 + b.w)).slice(0, 4);
+  const used = new Set(active.exercises.map(x => x.exId));
+  return heads.map(x => ({ ...x, ex: EX().filter(e => !used.has(e.id) && (e.mu[x.h] || 0) >= 50).sort((a, b) => (exHistory(b.id).length - exHistory(a.id).length) || (b.mu[x.h] - a.mu[x.h]) || (b.rest - a.rest)).slice(0, 3) })).filter(x => x.ex.length);
+}
+
+// ---------- exercise picker: real body figure, muscle colours, equipment bubbles ----------
+const EQ_COL = { barbell:'#ff5c5c', dumbbell:'#5ab0ff', machine:'#b388ff', cable:'#4dd0e1', bodyweight:'#59d38c', kettlebell:'#ffb547', band:'#f48fb1' };
+const EQ_ORDER = ['barbell','dumbbell','machine','cable','bodyweight','kettlebell','band'];
+const EQ_ICON = { barbell:'<path d="M2 12H22M5 7V17M8 8.5V15.5M16 8.5V15.5M19 7V17"/>', dumbbell:'<path d="M8 12H16M4 9V15M7 7V17M17 7V17M20 9V15"/>',
+  machine:'<path d="M5 3H19V21H5ZM8 7H16M8 11H16M8 15H16"/>', cable:'<path d="M12 3V13M8 3H16M12 13L8 20M12 13L16 20M6 21H18"/>',
+  bodyweight:'<circle cx="12" cy="4.5" r="2.2"/><path d="M12 7.5V15M12 15L8 21M12 15L16 21M6 10H18"/>', kettlebell:'<path d="M8.5 9C8.5 4.5 15.5 4.5 15.5 9"/><circle cx="12" cy="15" r="6"/>',
+  band:'<path d="M3 16C7 6 17 6 21 16M3 16C7 11 17 11 21 16"/>' };
+const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${EQ_COL[e] || '#8b949c'}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
+function exTiles(list, key){
+  return `<div class="exgrid">${list.map(x => `<button class="extile" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="eqb">${eqIcon(x.e, 14)}</span><span class="iinfo" data-exinfo="${x.id}">ⓘ</span>${exIcon(x, 52)}<b>${esc(exName(x))}</b><small>${EL(x.e)}${key ? ` · ${exScore(x, key)}%` : ''}</small></button>`).join('')}</div>`;
+}
+function exTilesByEq(list, key){
+  return EQ_ORDER.filter(e => list.some(x => x.e === e)).map(e => `<div class="eqhead" style="color:${EQ_COL[e]}">${eqIcon(e, 18)} ${EL(e)}</div>${exTiles(list.filter(x => x.e === e), key)}`).join('');
+}
+function bodyMapSVG(mode, region, colors){
+  return anatomySVG({ mode, region, colors, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: mode });
+}
+function drawExPick(){
+  const q = norm($('exSearch').value), tokens = q.split(' ').filter(Boolean);
+  setSeg('#pkRegion', PK.region); setSeg('#pkMode', PK.mode);
+  $('pkModeRow').classList.toggle('hide', !!q || PK.region === 'cardio' || !!PK.group);
+  let h = '';
+  if(q){
+    const list = EX().filter(x => tokens.every(tk => norm(`${x.en} ${x.el} ${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`).includes(tk)));
+    h = exTilesByEq(list.slice(0, 80)) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">✏️</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
+  } else if(PK.region === 'cardio'){
+    h = exTiles(EX().filter(x => x.m === 'cardio'));
+  } else if(!PK.group){
+    if(PK.mode === 'map') h = `<div class="bodymap">${bodyMapSVG('pick', PK.region)}</div><p class="hint" style="text-align:center">${t('tapMuscle')}</p>`;
+    else h = `<div class="ggrid">${Object.entries(GROUPS).filter(([, g]) => g[2] === PK.region).map(([k, g]) => { const hs = Object.keys(HEADS).filter(x => HEADS[x][2] === k);
+      return `<button class="gbtn" data-grp="${k}" style="--gc:${HEAD_COL[hs[0]] || g[3]}"><b>${esc(ML(k))}</b><span class="dots">${hs.map(x => `<i style="background:${HEAD_COL[x]}"></i>`).join('')}</span><small>${t('nEx', { n: EX().filter(x => x.m === k).length })}</small></button>`; }).join('')}</div>`;
+  } else {
+    const heads = Object.entries(HEADS).filter(([, v]) => v[2] === PK.group).map(([k]) => k), key = PK.head || PK.group;
+    let list = EX().filter(x => exScore(x, key) >= (PK.head ? 25 : 40) && x.m !== 'cardio').sort((a, b) => exScore(b, key) - exScore(a, key) || (exHistory(b.id).length - exHistory(a.id).length));
+    const eqs = EQ_ORDER.filter(e => list.some(x => x.e === e));
+    if(PK.eq) list = list.filter(x => x.e === PK.eq);
+    h = `<button class="pback" data-pkback>${t('allMuscles')}</button><h3 style="margin:0 0 8px;color:${HEAD_COL[PK.head] || HEAD_COL[heads[0]]}">${esc(ML(PK.head || PK.group))}</h3>` +
+      (heads.length > 1 ? `<div class="chips" style="margin-bottom:8px"><button class="fchip ${!PK.head ? 'on' : ''}" data-head="">${t('all')}</button>${heads.map(k => `<button class="fchip hchip ${PK.head === k ? 'on' : ''}" data-head="${k}" style="--hc:${HEAD_COL[k]}"><i></i>${esc(ML(k))}</button>`).join('')}</div>` : '') +
+      `<div class="chips eqchips" style="margin-bottom:10px"><button class="fchip ${!PK.eq ? 'on' : ''}" data-eq="">${t('allEquip')}</button>${eqs.map(e => `<button class="fchip eqchip ${PK.eq === e ? 'on' : ''}" data-eq="${e}" style="--ec:${EQ_COL[e]}">${eqIcon(e, 15)} ${EL(e)}</button>`).join('')}</div>` +
+      (PK.eq ? exTiles(list, key) : exTilesByEq(list, key));
+  }
+  $('pkBody').innerHTML = h;
+}
+$('pkBody').addEventListener('click', e => {
+  const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopPropagation(); PK.group = HEADS[hh.dataset.hh][2]; PK.head = hh.dataset.hh; PK.eq = null; drawExPick(); return; }
+  const eq = e.target.closest('[data-eq]'); if(eq){ e.stopPropagation(); PK.eq = eq.dataset.eq || null; drawExPick(); return; }
+  if(e.target.closest('[data-pkback]')){ e.stopPropagation(); goBack(); return; }
+  const hd = e.target.closest('[data-head]'); if(hd){ PK.eq = null; }
+}, true);
+
 // ======================= settings + data =======================
 function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join(''); open('ovSettings'); }
@@ -4406,7 +5003,7 @@ route();
 if(!ui.lang) open('ovLang');
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(location.protocol === 'https:') setTimeout(() => getDetector().catch(()=>{}), 2500);
-window.__ft = { groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultDays, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, sortModels };
+window.__ft = { goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultDays, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, sortModels };
 })();
 </script>
 </body>
