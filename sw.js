@@ -1,6 +1,32 @@
 // Keeps the app shell available offline. Network first, so updates show up straight away.
-const CACHE = 'tracker-v0.5.4';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png'];
+const CACHE = 'tracker-v0.5.9';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png',
+  'css/base.css',
+  'css/glass.css',
+  'css/motion.css',
+  'css/layout.css',
+  'css/workout.css',
+  'js/data/config.js',
+  'js/data/strings.js',
+  'js/data/foods.js',
+  'js/data/gym.js',
+  'js/core.js',
+  'js/ui.js',
+  'js/food.js',
+  'js/supplements.js',
+  'js/today.js',
+  'js/fridge.js',
+  'js/gym.js',
+  'js/wire/01-core.js',
+  'js/wire/02-food.js',
+  'js/wire/03-fridge-today.js',
+  'js/wire/04-gym.js',
+  'js/wire/05-nav-cook-gym.js',
+  'js/wire/06-launcher-logging-shop.js',
+  'js/wire/07-fridge-stack-motion.js',
+  'js/wire/08-settings-boot.js',
+  'js/wire/09-tabs-targets-recovery.js',
+  'js/wire/10-workout.js', 'js/wire/11-v059.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

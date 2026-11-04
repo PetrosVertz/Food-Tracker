@@ -1,0 +1,360 @@
+// Today's food: daily log, targets, macros, plan my day, quick add, weigh-in. (functions only)
+// Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
+
+function infoOfEntry(e){
+  if(e.kind === 'meal'){ const m = meals.find(x => x.id === e.refId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null } : null; }
+  const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
+}
+
+function openAmt_0(o){
+  AM = o;
+  const info = o.mode === 'use' ? itemInfo(o.item) : o.mode === 'editlog' ? (infoOfEntry(o.entry) || { name: o.entry.name, icon: o.entry.icon, unit: o.entry.unit, per: { kcal: o.entry.kcal / o.entry.amt * 100, protein: o.entry.p / o.entry.amt * 100, carbs: o.entry.c / o.entry.amt * 100, fat: o.entry.f / o.entry.amt * 100 } }) : o.info;
+  if(!info) return; AM.info = info;
+  $('amTitle').textContent = o.mode === 'use' ? t('useT', { n: info.name }) : `${info.icon} ${info.name}`;
+  $('amSub').textContent = o.mode === 'use' ? t('useSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }) : (o.mode === 'editlog' ? t('edit') : t('logFood'));
+  $('amUnit').textContent = info.unit;
+  const chips = [];
+  if(info.piece && info.pw) [1, 2, 3].forEach(n => chips.push([n * info.piece, `${n} ${n === 1 ? W(info.pw) : WS(info.pw)}`]));
+  if(info.food && info.food.usualPack && info.food.usualPack <= 1000) chips.push([info.food.usualPack, `1 ${t('perPackLabel').replace(/^(per|ανά)\s*/, '')} · ${fmtSize(info.food.usualPack, info.unit)}`]);
+  if(info.meal) [250, 350, 450].forEach(g => chips.push([g, `${g} g`]));
+  if(!info.meal && !(info.piece && info.pw)) (info.unit === 'ml' ? [100, 200, 250, 500] : [50, 100, 150, 200]).forEach(g => chips.push([g, fmtSize(g, info.unit)]));
+  if(o.mode === 'use') chips.push([o.item.qty, `${lang === 'el' ? 'Όλο' : 'All'} · ${fmtSize(o.item.qty, info.unit)}`]);
+  $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
+  $('amAmt').value = o.mode === 'editlog' ? o.entry.amt : '';
+  $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM());
+  $('amLogWrap').classList.toggle('hide', o.mode !== 'use'); $('amLog').checked = true;
+  const key = info.meal ? { mealId: info.meal.id } : info.food ? { foodId: info.food.id } : null;
+  const stock = key ? (key.foodId ? stockOf(key.foodId) : mealStock(key.mealId)) : 0;
+  $('amFridgeWrap').classList.toggle('hide', !(o.mode === 'log' && stock > 0)); $('amFridge').checked = true;
+  $('amFridgeTxt').textContent = t('takeFromFridge', { s: fmtAmt(stock, info) });
+  $('amTimeRow').classList.toggle('hide', o.mode === 'use' && !$('amLog').checked);
+  $('amFinish').classList.toggle('hide', o.mode === 'log'); $('amFinish').textContent = o.mode === 'use' ? t('finishedIt') : t('delete');
+  $('amFinish').classList.toggle('danger', o.mode === 'editlog');
+  amRes(); open('ovAmt'); setTimeout(() => $('amAmt').focus(), 120);
+}
+
+function dayInfo(d){
+  if(days[d]) return days[d];
+  const pl = planFor(d); if(pl) return { ...pl, guessed: true };   // your weekly gym plan comes first
+  const wk = days[addDays(d, -7)];   // same weekday last week is a good guess for a gym schedule
+  return wk ? { type: wk.type, work: wk.work, time: wk.time, guessed: true } : { type: 'rest' };
+}
+
+function targetFor(d){ if(!targets) return null; const di = dayInfo(d); return targets[di.type === 'gym' ? 'gym' : 'rest'] || null; }
+
+// carb windows around the workout (minutes since midnight)
+function carbWindows(d){
+  const di = dayInfo(d), tg = targetFor(d); const C = tg ? tg.c : 0;
+  if(di.type !== 'gym' || !toMin(di.time)){
+    return [['winMorning', 360, 719], ['winMidday', 720, 1019], ['winEvening', 1020, 1439]].map(([k, a, b]) => ({ k, a, b, c: C / 3, na: 1 / 3, kk: 1 / 3, tip: k === 'winMorning' ? t('tipRest') : '' }));
+  }
+  const T = toMin(di.time), cardio = di.work === 'cardio', dur = cardio ? 45 : 75;
+  const split = { legs: [.35, .35], full: [.3, .3], upper: [.25, .25], cardio: [.15, .2] }[di.work || 'upper'];
+  const tips = { legs: ['tipLegsPre', 'tipLegsPost'], full: ['tipLegsPre', 'tipLegsPost'], upper: ['tipUpperPre', 'tipUpperPost'], cardio: ['tipCardioPre', 'tipCardioPost'] }[di.work || 'upper'];
+  const preA = T - (cardio ? 120 : 180), postB = T + dur + 119;
+  return [
+    { k: 'winPre', a: preA, b: T - 1, c: C * split[0], na: .25, kk: .2, tip: t(tips[0]) },   // a bit more sodium around the workout (sweat)
+    { k: 'winWorkout', a: T, b: T + dur - 1, c: 0, na: .1, kk: .05, gym: true, tip: cardio ? t('tipCardioDuring') : '' },
+    { k: 'winPost', a: T + dur, b: postB, c: C * split[1], na: .25, kk: .3, tip: t(tips[1]) },
+    { k: 'other', a: null, b: null, c: C * (1 - split[0] - split[1]), na: .4, kk: .45, tip: t('tipSpread') },
+  ];
+}
+
+function renderToday_0(){
+  const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+  const diff = daysUntil(d);
+  $('dLabel').textContent = (diff === 0 ? t('todayD') + ' · ' : diff === -1 ? t('yesterdayD') + ' · ' : diff === 1 ? t('tomorrowD') + ' · ' : '') +
+    new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
+  const mrow = (cls, label, a, b, u, st) => `<div class="mrow ${cls} ${st || ''}"><small>${label}</small><span class="mbar"><i style="width:${b ? Math.min(100, a / b * 100) : 0}%"></i></span><span><b>${Math.round(a)}</b><small> / ${b ? Math.round(b) : '–'}${u}</small></span></div>`;
+  const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
+  const pill = `<span class="daypill">${t(di.type === 'gym' ? 'gymDay' : 'restDay')}</span>`;
+  $('dTotals').innerHTML = `<div class="kchead"><span class="kcnum" style="color:${kcalColor(tot.kcal, tg && tg.k)}">${Math.round(tot.kcal).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB')}<small>${tg ? '/ ' + tg.k.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB') + ' kcal' : 'kcal'}</small></span>${pill}</div>` +
+    (tg ? '' : `<button class="linkbtn" data-targets><b>${t('noTargets')}</b></button>`) +
+    mrow('p', t('protein'), tot.p, tg && tg.p, ' g', ms('p')) + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g', ms('c')) + mrow('f', t('fat'), tot.f, tg && tg.f, ' g', ms('f'));
+  const fT = fibTarget(tg);
+  $('dExtrasBody').innerHTML = mrow('fi', t('fibre'), tot.fib || 0, fT, ' g', Math.round(tot.fib || 0) >= fT ? 'hit' : '') + elecHtml(tot);
+  // carb timing
+  const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
+  const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
+  $('dTiming').innerHTML = !tg ? `<p class="hint">${t('noTargets')}</p>` : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
+      <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
+      <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
+  // log
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card" data-eid="${e.id}"><div class="ficon">${e.icon || '🍽️'}</div><div class="body">
+      <div class="row"><div class="brand">${e.time}</div><div class="kcal">${e.kcal} <small>kcal</small></div></div>
+      <div class="name">${esc(e.name)} <small style="color:var(--muted);font-weight:400">· ${fmtSize(e.amt, e.unit)}</small></div>
+      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span>${e.fib ? `<span class="m fi">Fi <b>${fmt(e.fib)}</b></span>` : ''}</div></div></div>`).join('')
+    : `<div class="empty">${t('nothingLogged')}</div>`;
+  $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
+  renderPlan();
+}
+
+function openLogSearch(){ $('lSearch').value = ''; drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
+
+// ---------- targets ----------
+function openTargets_0(){
+  const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
+  setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = latestWeight() || tg.bw || ''; $('tgFib').value = '';
+  $('tgCalcHint').textContent = $('tgBw').value ? t('calcFrom', { w: fmt(+$('tgBw').value) }) : t('calcNeedW');
+  [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
+  tgCheck(); open('ovTargets');
+}
+
+function renderPlan(){
+  const p = plans[curDay], el = $('planShow');
+  if(!p){ el.innerHTML = ''; return; }
+  el.innerHTML = `<h3 class="sect"><span>✨ ${t('planT')}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
+    (p.meals || []).map((m, i) => `<div class="planmeal"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
+      <div class="rmeta">P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)}</div>
+      <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">🧊 ${t('fromFridge')}</span>` : ''}${it.expiring ? ` <span class="src-e">⚠️ ${t('expiringTag')}</span>` : ''}</li>`).join('')}</ul>
+      ${m.why ? `<div class="hint">${esc(m.why)}</div>` : ''}
+      <div class="actions" style="margin-top:8px"><button class="btn small" data-plog="${i}">${m.logged ? '✓ ' : ''}${t('logThis')}</button></div></div>`).join('') +
+    (p.tip ? `<p class="hint">💡 ${esc(p.tip)}</p>` : '');
+}
+
+function gapDays(){ const d = lastSessionDate(); return d ? -daysUntil(d) : null; }
+
+   // 1 g salt ≈ 400 mg sodium
+function macrosFor(per, amt){ const x = amt / 100; return { kcal: Math.round((per.kcal || 0) * x), p: r1((per.protein || 0) * x), c: r1((per.carbs || 0) * x), f: r1((per.fat || 0) * x),
+  fib: r1((per.fiber || 0) * x), na: Math.round(naOf(per) * x), k: Math.round((per.potassium || 0) * x) }; }
+
+function logEntry(date, info, amt, time){
+  const m = macrosFor(info.per, amt);
+  (dayLog[date] = dayLog[date] || []).push({ id: uid(), time: time || nowHM(), kind: info.meal ? 'meal' : 'food', refId: info.meal ? info.meal.id : info.food.id,
+    name: info.name, icon: info.icon, amt: r1(amt), unit: info.unit, kcal: m.kcal, p: m.p, c: m.c, f: m.f, fib: m.fib, na: m.na, k: m.k });
+  saveLog();
+}
+
+function dayTotals(d){ return (dayLog[d] || []).reduce((s, e) => ({ kcal: s.kcal + e.kcal, p: s.p + e.p, c: s.c + e.c, f: s.f + e.f, fib: s.fib + (e.fib || 0), na: s.na + (e.na || 0), k: s.k + (e.k || 0) }), { kcal: 0, p: 0, c: 0, f: 0, fib: 0, na: 0, k: 0 }); }
+
+function mealTotals(rows){
+  const tot = { kcal:0, protein:0, carbs:0, fat:0, fib:0, na:0, k:0, raw:0 };
+  rows.forEach(r => { if(!r.ref || !(r.grams > 0)) return; const m = r.grams / 100, p = r.ref.per;
+    tot.kcal += (p.kcal || 0) * m; tot.protein += (p.protein || 0) * m; tot.carbs += (p.carbs || 0) * m; tot.fat += (p.fat || 0) * m;
+    tot.fib += (p.fiber || 0) * m; tot.na += naOf(p) * m; tot.k += (p.potassium || 0) * m; tot.raw += r.grams; });
+  return tot;
+}
+
+function elecHtml(tot){
+  const row = (lbl, v, tgt, col) => { const pct = Math.round(v / tgt * 100), hi = lbl === t('sodium') && pct > 100, hit = lbl === t('potassium') && pct >= 100;
+    return `<div class="mrow" style="--bar:${hi ? 'var(--orange)' : hit ? 'var(--ok)' : col}"><small>${lbl}</small><span class="mbar"><i style="width:${Math.min(100, pct)}%;background:var(--bar)"></i></span><span><b>${ui.elecMg ? Math.round(v).toLocaleString() + ' mg' : pct + '%'}</b>${hi ? `<small> ${t('elecHigh')}</small>` : ''}</span></div>`; };
+  return `<div class="elec" data-elec><div class="row"><small class="rmeta">⚡ ${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small><small class="rmeta">${ui.elecMg ? 'mg' : '%'}</small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
+}
+
+function remainingToday(){ const tg = targetFor(todayKey()); if(!tg) return null; const tot = dayTotals(todayKey());
+  return { k: Math.max(0, Math.round(tg.k - tot.kcal)), p: Math.max(0, Math.round(tg.p - tot.p)), c: Math.max(0, Math.round(tg.c - tot.c)), f: Math.max(0, Math.round(tg.f - tot.f)) }; }
+
+function lastEntryOf(refId){ const ds = Object.keys(dayLog).sort().reverse(); for(const d of ds){ const l = dayLog[d] || []; for(let i = l.length - 1; i >= 0; i--) if(l[i].refId === refId) return l[i]; } return null; }
+
+function usuals(){
+  const now = Date.now(), m = {};
+  Object.keys(dayLog).sort().slice(-60).forEach(d => { const age = (now - new Date(d + 'T12:00:00')) / 864e5; (dayLog[d] || []).forEach(e => { if(!e.refId || e.kind === 'quick') return;
+    const k = e.kind + e.refId; const x = m[k] || (m[k] = { e, n: 0, sc: 0 }); x.n++; x.sc += 1 + Math.max(0, 14 - age) / 7; x.e = e; }); });
+  return Object.values(m).filter(x => infoOfEntry(x.e)).sort((a, b) => b.sc - a.sc).slice(0, 12).map(x => x.e);
+}
+
+function drawLog(){
+  const q = $('lSearch').value.trim(), tokens = norm(q).split(' ').filter(Boolean);
+  const ml = m => `${m.kcal} kcal · P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)} / 100 g`;
+  let h = '';
+  if(!q){
+    LS.recent = usuals();
+    if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
+    else h = `<div class="hint">${t('typeToSearch')}</div>`;
+  } else {
+    LS.meals = meals.filter(m => tokens.every(tk => norm(m.name).includes(tk))).slice(0, 10);
+    const s = searchLocal(q, false, { log: true }); LS.mine = s.mine; LS.std = s.std;
+    if(LS.meals.length) h += `<div class="sgroup">${t('tabMeals')}</div>` + LS.meals.map((m, i) => itemHtml('ml', i, mealIcon(m), m.name, ml(m))).join('');
+    if(LS.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + LS.mine.map((f, i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand || !f.brand ? '' : esc(f.brand) + ' · '}${macroLine(f)}${stockOf(f.id) ? ' · 🧊' : ''}`)).join('');
+    if(LS.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + LS.std.map((g, i) => itemHtml('s', i, subOf(g.cat, g.sub).icon, L(g), macroLine(g))).join('');
+    if(LOGON.q === q && LOGON.res.length) h += `<div class="sgroup">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => itemHtml('o', i, d.source === 'USDA' ? '🇺🇸' : '🌐', d.name, `${d.brand ? esc(d.brand) + ' · ' : ''}${macroLine(d)}`)).join('');
+    else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
+    else if(q.length >= 2) h += `<button class="btn" id="lOnline" style="width:100%;margin-top:8px">🌐 ${t('onlineMore')}</button>`;
+    if(!LS.meals.length && !LS.mine.length && !LS.std.length && !LOGON.busy && !(LOGON.q === q && LOGON.res.length)) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
+  }
+  $('lResults').innerHTML = h;
+}
+
+async function runLogOnline(q){
+  LOGON = { q, res: [], busy: true, timer: null }; drawLog();
+  try{ const res = await searchOnlineAll(q); if($('lSearch').value.trim() !== q) return; LOGON = { q, res, busy: false }; }
+  catch(e){ LOGON = { q, res: [], busy: false }; toast(t('onlineFail')); }
+  drawLog();
+}
+
+// amount sheet: remember last amount, fridge comes off by itself, fridge "use" is take-out only
+function openAmt(o){
+  openAmt_0(o); if(!AM || !AM.info) return; const info = AM.info;
+  if(o.mode === 'log'){
+    const ref = info.meal ? info.meal.id : info.food ? info.food.id : null, last = ref && lastEntryOf(ref);
+    if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amRes(); }
+    const stock = info.meal ? mealStock(info.meal.id) : info.food ? stockOf(info.food.id) : 0;
+    $('amFridgeTxt').textContent = t('fromFridge', { s: fmtAmt(stock, info) }); $('amFridge').checked = true;
+    $('amTitle').innerHTML = `${info.icon} ${esc(info.name)} ${stTag((info.food || {}).state)}`;
+  }
+  if(o.mode === 'use'){ $('amLog').checked = false; $('amLogWrap').classList.add('hide'); $('amTimeRow').classList.add('hide');
+    $('amTitle').textContent = t('takeOutT', { n: info.name }); $('amSub').textContent = t('takeOutSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }); }
+}
+
+// 0.5.9 Quick add: one box. Built-in foods / dishes with a normal portion first, then the AI for mixed dishes.
+let QAbusy = null;
+function openQuick(entry){
+  QA = entry || null; $('qaName').value = entry && entry.name !== t('qaDef') ? entry.name : ''; $('qaOut').textContent = '';
+  setSeg('#qaSize', String(entry && entry.size || 1)); $('qaDel').classList.toggle('hide', !entry);
+  open('ovQuick'); setTimeout(() => $('qaName').focus(), 120);
+}
+function qaPortion(g){   // grams in a normal plate / serving of a built-in food
+  if(g.pieces === 'slice' && g.piece) return { amt: g.piece * 3, n: 3, w: 'slice' };
+  if(g.pieces && g.pieces !== 'none' && g.piece) return { amt: g.piece, n: 1, w: g.pieces };
+  if(g.unit === 'ml') return { amt: 250 };
+  const by = { meat: 150, fish: 150, eggs: 100, rice: 200, pasta: 250, veg: 150, legumes: 250, fruit: 150, dairy: 200, bread: 60, nuts: 30, oils: 15, snacks: 40, supps: 30 };
+  if(g.cat === 'ready') return { amt: g.gid === 'tzatziki' ? 60 : g.gid === 'horiatiki' ? 300 : 350 };
+  if(g.cat === 'dairy' && g.sub === 'cheese') return { amt: 50 };
+  return { amt: by[g.cat] || 150 };
+}
+const QA_ALIAS = { pasta: ['spaghetti', 'μακαροναδ'], spaghetti: ['pasta', 'μακαροναδ'], makaronada: ['μακαροναδ', 'spaghetti'], bolognese: ['κιμα'], gyro: ['gyros', 'γυρο'], gyros: ['γυρο'], souvlaki: ['σουβλακ'], pita: ['πιτα'], pitta: ['pita', 'πιτα'], burger: ['χαμπουργκερ'], toast: ['τοστ'] };
+function qaLocal(q){
+  const s = searchLocal(q, false, { log: true }), toks = norm(q).split(' ').filter(w => w.length >= 3);
+  const hay = f => norm([foodName(f), f.name, f.brand, f.gid && GENBY[f.gid] ? GENBY[f.gid].en + ' ' + GENBY[f.gid].el + ' ' + (GENBY[f.gid].hay || '') : ''].join(' '));
+  const ghay = g => norm([g.en, g.el, g.hay || ''].join(' '));
+  const al = tk => [tk, tk.slice(0, -1), ...(QA_ALIAS[tk] || [])];
+  const covers = h => toks.length && toks.every(tk => al(tk).some(a => a.length >= 3 && h.includes(a)));
+  const m = meals.find(x => covers(norm(x.name)));
+  if(m) return { kind: 'meal', m };
+  // a whole dish beats an ingredient ("souvlaki pita" = the wrap, not the bread)
+  const rd = GEN.filter(g => g.cat === 'ready'), dish = rd.find(g => covers(norm(g.en + ' ' + g.el))) || rd.find(g => covers(ghay(g))); if(dish && toks.length > 1) return { kind: 'gen', g: dish };
+  const f = s.mine.find(x => covers(hay(x))); if(f) return { kind: 'food', f };
+  const g = s.std.find(x => covers(ghay(x))) || dish; if(g) return { kind: 'gen', g };
+  return null;
+}
+async function saveQuick(){
+  const q = $('qaName').value.trim(), size = +(document.querySelector('#qaSize .on') || {}).dataset?.v || 1;
+  if(!q){ toast(t('qaNeedTxt')); $('qaName').focus(); return; }
+  if(QAbusy) return;
+  const time = QA ? QA.time : daysUntil(curDay) === 0 ? nowHM() : '13:00';
+  const dropOld = () => { if(QA){ const l = dayLog[curDay] || [], i = l.indexOf(QA); if(i > -1) l.splice(i, 1); } };
+  const done = (entry, label) => { const l = dayLog[curDay] = dayLog[curDay] || []; l.push(entry); saveLog(); close('ovQuick'); renderAll();
+    toast(t('qaLogged', { n: label, k: entry.kcal }), t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== entry); saveLog(); renderAll(); }); };
+  const loc = qaLocal(q);
+  if(loc){
+    let info, por;
+    if(loc.kind === 'meal'){ info = { name: loc.m.name, icon: mealIcon(loc.m), unit: 'g', per: loc.m, meal: loc.m }; por = { amt: 350 }; }
+    else { const f = loc.kind === 'gen' ? saveGeneric(loc.g) : loc.f; info = { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f }; por = qaPortion(loc.kind === 'gen' ? loc.g : { ...f, gid: f.gid, cat: f.cat, sub: f.sub }); }
+    const amt = Math.round(por.amt * size); dropOld();
+    const m = macrosFor(info.per, amt);
+    done({ id: uid(), time, kind: info.meal ? 'meal' : 'food', refId: info.meal ? info.meal.id : info.food.id, name: info.name, icon: info.icon, amt, unit: info.unit, ...m }, `${info.name} · ${fmtSize(amt, info.unit)}`);
+    return;
+  }
+  if(!settings.geminiKey){ $('qaOut').textContent = t('qaNoKey'); return; }
+  const btn = $('qaSave'); QAbusy = new AbortController(); btn.textContent = t('qaThinking'); $('qaOut').textContent = '';
+  try{
+    const r = await gemini(`Estimate the nutrition of ONE ${size < 1 ? 'small' : size > 1 ? 'large' : 'normal, typical restaurant/home'} portion of this food or dish, as eaten in Greece: "${q}".
+Return ONLY JSON: {"name":string (short name in ${lang === 'el' ? 'Greek' : 'English'}),"grams":number,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number,"sodium_mg":number,"potassium_mg":number}`, null, null, QAbusy.signal);
+    if(!r || !(+r.kcal > 0)) throw new Error('no estimate');
+    dropOld();
+    const e = { id: uid(), time, kind: 'quick', refId: null, icon: '⚡', name: q, size, amt: Math.round(+r.grams || 1), unit: 'g', kcal: Math.round(+r.kcal), p: r1(+r.protein || 0), c: r1(+r.carbs || 0), f: r1(+r.fat || 0),
+      fib: r1(+r.fiber || 0), na: Math.round(+r.sodium_mg || 0), k: Math.round(+r.potassium_mg || 0), ai: true };
+    done(e, q);
+  }catch(err){ if(!err.cancelled) $('qaOut').textContent = t('qaFail'); }
+  finally{ QAbusy = null; btn.textContent = t('qaLog'); }
+}
+
+function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.indexOf(QA); if(i > -1){ l.splice(i, 1); saveLog(); } close('ovQuick'); renderAll(); }
+
+// ---------- Today: just gym or rest; a small reminder instead of time + type fields ----------
+function renderToday(){
+  renderToday_0(); try{ renderTodayRec(); }catch(e){}
+  (dayLog[curDay] || []).filter(e => e.kind === 'quick').forEach(e => { const c = document.querySelector(`#dLog [data-eid="${e.id}"] .name small`); if(c) c.textContent = '· ' + t('qaTag'); });
+}
+
+function weightTrend(){
+  const pts = Object.entries(weights).map(([d, w]) => [new Date(d + 'T12:00:00').getTime() / 864e5, +w]).filter(p => p[1] > 0).sort((a, b) => a[0] - b[0]);
+  const now = Date.now() / 864e5, rec = pts.filter(p => now - p[0] <= 28); if(rec.length < 3) return null;
+  const span = rec[rec.length - 1][0] - rec[0][0]; if(span < 6) return null;
+  const n = rec.length, mx = rec.reduce((a, p) => a + p[0], 0) / n, my = rec.reduce((a, p) => a + p[1], 0) / n;
+  const slope = rec.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / rec.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+  return { perWeek: slope * 7, days: Math.round(span), last: rec[rec.length - 1][1], pts: rec.map(p => p[1]) };
+}
+
+function weighAdvice(tr){
+  const goal = (targets && targets.goal) || 'bulk', pct = tr.perWeek / tr.last * 100;
+  if(goal === 'bulk') return pct < .25 ? { msg: t('wiSlowBulk'), d: 150 } : pct > .6 ? { msg: t('wiFastBulk'), d: -150 } : { msg: t('wiOk'), d: 0 };
+  if(goal === 'cut') return pct > -.4 ? { msg: t('wiSlowCut'), d: -200 } : pct < -1.1 ? { msg: t('wiFastCut'), d: 150 } : { msg: t('wiOk'), d: 0 };
+  return Math.abs(pct) > .3 ? { msg: t('wiRecomp'), d: pct > 0 ? -100 : 100 } : { msg: t('wiOk'), d: 0 };
+}
+
+function drawWeigh(){
+  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] || ''; $('wiIn').placeholder = (targets && targets.bw) || '75';
+  if(!tr){ $('wiOut').innerHTML = `<p class="hint">${t('wiNeed')}</p>`; return; }
+  const a = weighAdvice(tr), sg = (tr.perWeek >= 0 ? '+' : '') + tr.perWeek.toFixed(2);
+  $('wiOut').innerHTML = `<div class="row" style="align-items:center"><span class="rmeta">${t('wiRate', { r: sg, d: tr.days })}</span>${spark(tr.pts)}</div><p class="hint" style="margin:6px 0">${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
+  const ap = $('wiApply'); if(ap) ap.onclick = () => { ['gym', 'rest'].forEach(k => { if(targets[k]){ targets[k].k = Math.round((targets[k].k + a.d) / 50) * 50; targets[k].c = Math.max(0, Math.round((targets[k].c + a.d / 4) / 5) * 5); } });
+    store(TGKEY, targets); renderAll(); drawWeigh(); toast(t('wiApplied', { d: (a.d > 0 ? '+' : '') + a.d })); };
+}
+
+function openTargets(){ openTargets_0(); initMacroSliders(); }
+function latestWeight(){ const d = Object.keys(weights).filter(k => +weights[k] > 0).sort().pop(); return d ? +weights[d] : null; }
+// Calories stay fixed; protein / carbs / fat are % of them and always add up to 100.
+const MX = { G: null, R: null }, MXK = { p: 4, c: 4, f: 9 };
+function mxFromGrams(P){ const k = +$('tg' + P + 'k').value || 0, g = x => +$('tg' + P + x).value || 0;
+  const cal = { p: g('p') * 4, c: g('c') * 4, f: g('f') * 9 }, sum = cal.p + cal.c + cal.f;
+  if(!sum) return { p: 30, c: 45, f: 25 };
+  return { p: cal.p / sum * 100, c: cal.c / sum * 100, f: cal.f / sum * 100 }; }
+function initMacroSliders(){
+  [['G', 'gymDayTargets'], ['R', 'restDayTargets']].forEach(([P]) => {
+    if(!$('mx' + P)){ const grid = $('tg' + P + 'k').closest('.grid4'), d = document.createElement('div'); d.className = 'mxs'; d.id = 'mx' + P;
+      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}">${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}</span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
+        `<div class="mxbar"><i class="mx-p"></i><i class="mx-c"></i><i class="mx-f"></i></div>`;
+      grid.after(d); }
+    MX[P] = mxFromGrams(P); drawMx(P, false); });
+}
+function drawMx(P, writeGrams){
+  const m = MX[P], k = +$('tg' + P + 'k').value || 0, box = $('mx' + P); if(!box) return;
+  ['p', 'c', 'f'].forEach(x => { const gr = Math.round(k * m[x] / 100 / MXK[x]);
+    if(writeGrams) $('tg' + P + x).value = k ? gr : '';
+    { const r = box.querySelector(`[data-k="${x}"]`); r.value = m[x]; r.style.setProperty('--v', m[x] + '%'); } box.querySelector(`[data-o="${x}"]`).textContent = `${Math.round(m[x])}%${k ? ' · ' + gr + ' g' : ''}`;
+    box.querySelector(`.mxbar .mx-${x}`).style.width = m[x] + '%'; });
+  if(writeGrams && typeof tgCheck === 'function') tgCheck();
+}
+function moveMx(P, key, v){
+  const m = MX[P], others = ['p', 'c', 'f'].filter(x => x !== key); v = Math.max(5, Math.min(90, v));
+  const rem = 100 - v, a = m[others[0]], b = m[others[1]];
+  let na = a + b > 0 ? rem * a / (a + b) : rem / 2, nb = rem - na;
+  if(na < 5){ na = 5; nb = rem - 5; } if(nb < 5){ nb = 5; na = rem - 5; }
+  m[key] = v; m[others[0]] = na; m[others[1]] = nb; drawMx(P, true);
+}
+function fibSuggest(){ const goal = TG.goal || 'bulk', k = +$('tgRk').value || +$('tgGk').value || 2500;
+  return goal === 'cut' ? Math.max(32, Math.round(k / 1000 * 16)) : Math.round(k / 1000 * 14); }
+function drawFibSug(){}   // 0.5.9: fibre is automatic, no box
+
+// ---------- 0.5.9 colours ----------
+const rnd50 = v => Math.round(v / 50) * 50;
+// eaten calories: white to 75 %, one step greener every 5 % up to fully green on target, then one step towards red every 50 kcal over (fully red at +500)
+function kcalColor(e, T){
+  if(!T) return 'var(--text)';
+  e = Math.round(e); const pct = e / T * 100;
+  if(pct < 75) return 'var(--text)';
+  if(e <= T){ const f = e >= T ? 1 : (Math.floor((pct - 75) / 5) + 1) / 6, W = [238, 241, 243], G = [89, 211, 140];
+    return `rgb(${W.map((w, i) => Math.round(w + (G[i] - w) * f)).join(',')})`; }
+  const f = Math.min(10, Math.ceil((e - T) / 50)) / 10;
+  return `hsl(${Math.round(145 * (1 - f))},${Math.round(59 + 41 * f)}%,${Math.round(59 + 9 * f)}%)`;
+}
+// macro bars: green when the goal is hit; over it while calories are still under target = light green; red only once calories are used up and past the margin
+const MACRO_MARGIN = { p: .25, c: .1, f: .1 };   // protein gets the biggest margin
+function macroState(k, a, b, usedUp){
+  if(!b || Math.round(a) < Math.round(b)) return '';
+  if(a <= b * 1.03) return 'hit';
+  if(!usedUp) return 'soft';
+  return a > b * (1 + MACRO_MARGIN[k]) ? 'red' : 'hit';
+}
+// ⓘ bubbles
+function showTip(key, btn){
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.textContent = t(key); document.body.appendChild(p);
+  const r = btn.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
+  let x = Math.max(16, Math.min(innerWidth - w - 16, r.left + r.width / 2 - w / 2)), y = r.bottom + 8; if(y + h > innerHeight - 16) y = Math.max(16, r.top - h - 8);
+  p.style.left = x + 'px'; p.style.top = y + 'px';
+}
+function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
+// plan my day runs from the Log food sheet; progress shows on Today where the plan lands
+function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">✨ ${esc(txt)}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }

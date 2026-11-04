@@ -1,0 +1,91 @@
+/* 0.5.7 · one page per tab, side tab strip, pull-to-switch, toggles, macro sliders */
+html,body{height:100%;overflow:hidden}
+section.page.wrap{position:fixed;inset:0;max-width:none;margin:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;
+  padding:0 max(calc(62px + env(safe-area-inset-right)),calc((100vw - 640px) / 2 + 48px)) calc(130px + env(safe-area-inset-bottom)) max(14px,calc((100vw - 640px) / 2))!important}
+section.page > header{position:sticky;top:0;z-index:5;padding-top:calc(10px + env(safe-area-inset-top));margin:0 -4px;padding-left:4px;padding-right:4px;
+  background:linear-gradient(rgba(7,9,11,.92) 70%,rgba(7,9,11,0));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hbtns{display:flex;gap:6px}
+/* side strip */
+.rail{position:fixed;right:calc(8px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:9;display:flex;flex-direction:column;gap:6px;padding:8px 5px;border-radius:26px;
+  background:rgba(28,32,38,.42);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.rail button{position:relative;width:42px;height:42px;border-radius:15px;border:0;background:transparent;font-size:21px;display:grid;place-items:center;cursor:pointer;opacity:.5;filter:grayscale(.7);transition:opacity .25s,filter .25s,background-color .25s,transform .12s}
+.rail button.on{opacity:1;filter:none;background:rgba(198,244,50,.14)}
+.rail .ri{position:relative;display:inline-block;line-height:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rarrow{position:absolute;left:-11px;top:0;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:8px solid var(--accent);transition:transform .35s cubic-bezier(.2,.9,.25,1.15)}
+/* the active icon comes alive */
+.r-gym.on .ri{animation:rLift 1.5s ease-in-out infinite}
+@keyframes rLift{0%,100%{transform:translateY(2px)}45%{transform:translateY(-3px)}55%{transform:translateY(-3px)}}
+.r-food.on .ri{animation:rWob 2.4s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes rWob{0%,55%,100%{transform:rotate(0)}65%{transform:rotate(-12deg)}75%{transform:rotate(9deg)}85%{transform:rotate(-4deg)}}
+.r-fridge.on .ri{animation:rDoor 2.8s ease-in-out infinite;transform-origin:12% 50%}
+@keyframes rDoor{0%,55%,100%{transform:perspective(70px) rotateY(0)}68%,80%{transform:perspective(70px) rotateY(-40deg)}}
+.steam{position:absolute;left:50%;top:-5px;display:none;width:0;height:0}
+.r-today.on .steam{display:block}
+.steam b{position:absolute;bottom:0;width:2px;height:7px;border-radius:2px;background:rgba(255,255,255,.75);opacity:0;animation:rSteam 1.9s ease-out infinite}
+.steam b:nth-child(1){left:-6px}.steam b:nth-child(2){left:-1px;animation-delay:.6s}.steam b:nth-child(3){left:4px;animation-delay:1.2s}
+@keyframes rSteam{0%{opacity:0;transform:translateY(4px) scaleY(.5)}30%{opacity:.85}100%{opacity:0;transform:translate(2px,-9px) scaleY(1.2)}}
+/* pull hint */
+.pullhint{position:fixed;left:50%;z-index:8;display:flex;gap:6px;align-items:center;padding:8px 14px;border-radius:999px;font-size:14px;pointer-events:none;opacity:0;transform:translateX(-50%);
+  background:rgba(28,32,38,.7);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);color:var(--text);transition:background-color .15s,color .15s}
+.pullhint.bottom{bottom:calc(96px + env(safe-area-inset-bottom))} .pullhint.top{top:calc(74px + env(safe-area-inset-top))}
+.pullhint.ready{background:var(--accent);color:var(--accent-ink)}
+/* no bottom bar any more */
+.fab{bottom:calc(22px + env(safe-area-inset-bottom))!important;left:calc(50% - 25px)!important}
+.toast{bottom:calc(92px + env(safe-area-inset-bottom))!important}
+.fgseg{margin:4px 0 10px}
+#foodSupps{margin-top:22px}
+/* iOS-style switches instead of square checkboxes */
+input[type=checkbox]:not(#hapI){-webkit-appearance:none;appearance:none;position:relative;flex:0 0 auto;width:46px;height:28px;margin:0 8px 0 0;border:0;border-radius:999px;background:#3a3f46;cursor:pointer;vertical-align:middle;transition:background-color .22s}
+input[type=checkbox]:not(#hapI)::before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.35);transition:transform .25s cubic-bezier(.2,.9,.3,1.25)}
+input[type=checkbox]:not(#hapI):checked{background:#34c759}
+input[type=checkbox]:not(#hapI):checked::before{transform:translateX(18px)}
+/* linked macro sliders */
+.mxs{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.mxrow{display:grid;grid-template-columns:74px 1fr 92px;align-items:center;gap:8px;margin:4px 0}
+.mxrow b{font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.mxl{font-size:13px;font-weight:600} .mxl.mx-p{color:var(--p)} .mxl.mx-c{color:var(--c)} .mxl.mx-f{color:var(--f)}
+.mxr.mxr{width:100%;--v:30%;--mc:var(--p);background:none!important}
+.mxr.mx-c{--mc:var(--c)} .mxr.mx-f{--mc:var(--f)}
+input.mxr::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(to right,var(--mc) var(--v),rgba(255,255,255,.12) var(--v))}
+input.mxr::-moz-range-track{height:8px;border-radius:8px;background:rgba(255,255,255,.12)} input.mxr::-moz-range-progress{height:8px;border-radius:8px;background:var(--mc)}
+input.mxr::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px}
+.mxbar{display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:6px} .mxbar i{display:block;height:100%;transition:width .15s}
+.mxbar .mx-p{background:var(--p)} .mxbar .mx-c{background:var(--c)} .mxbar .mx-f{background:var(--f)}
+/* recovery estimate in the workout summary */
+.recest{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.rchip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:13px}
+@media(prefers-reduced-motion:reduce){.rail .ri,.steam b{animation:none!important}}
+
+/* ---------- 0.5.9 ---------- */
+/* floating button: centred without transform, so the press just shrinks it in place and springs back */
+.fab{left:0!important;right:50px!important;margin:0 auto;width:max-content;transform:none;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+.fab:active:not(:disabled){transform:scale(.93);transition-duration:.1s}
+/* calories shown once */
+.kchead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.kcnum{font-size:34px;font-weight:800;letter-spacing:-.8px;line-height:1.1;transition:color .4s}
+.kcnum small{font-size:15px;font-weight:400;color:var(--muted);letter-spacing:0;margin-left:4px}
+.daypill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.mrow.hit .mbar i{background:var(--ok)!important}
+.mrow.soft .mbar i{background:#a8ecc4!important}
+.mrow.red .mbar i{background:var(--danger)!important}
+:root{ --fi:#d4a86a; }
+/* folded sections */
+details.fold{margin-top:10px}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:6px 0}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:'›';margin-left:auto;font-size:18px;transition:transform .2s}
+details.fold[open]>summary::after{transform:rotate(90deg)}
+details.fold#dExtras{border-top:1px dashed var(--line);margin-top:10px;padding-top:2px}
+details.sectfold{margin-top:16px}
+details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
+.win .na{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+/* ⓘ info bubbles */
+.ibtn{border:0;background:none;color:var(--muted);font-size:15px;padding:0 4px;cursor:pointer;line-height:1;vertical-align:middle}
+.tippop{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 32px));background:#22272c;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;color:var(--text);box-shadow:0 12px 34px rgba(0,0,0,.45);animation:tipIn .18s ease-out}
+@keyframes tipIn{from{opacity:0;transform:translateY(4px)}}
+/* log sheet: Quick add + Plan my day side by side */
+.logacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px}
+.logacts .btn{width:100%;font-size:14px;padding:11px 8px}
+#qaOut{min-height:18px;margin-top:8px}
+.planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}

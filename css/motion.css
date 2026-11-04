@@ -1,0 +1,22 @@
+/* 0.5.5 · motion + in-app controls */
+section.page{overflow-x:clip}
+@keyframes ovIn{from{background:rgba(0,0,0,0)}} @keyframes ovOut{to{background:rgba(0,0,0,0)}}
+@keyframes shUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}} @keyframes shDown{to{transform:translateY(60px);opacity:0}}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}} @keyframes rowOut{to{opacity:0;transform:translateX(-24px) scale(.96)}}
+@keyframes pgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}} @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.overlay.open{animation:ovIn .22s ease-out} .overlay.open .sheet{animation:shUp .3s cubic-bezier(.2,.9,.25,1)}
+.overlay.closing{display:flex;pointer-events:none;animation:ovOut .2s ease-in forwards} .overlay.closing .sheet{animation:shDown .2s ease-in forwards}
+@media(min-width:700px){@keyframes shUp{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}}
+section.page:not(.hide){animation:pgIn .24s ease-out}
+.enter{animation:rowIn .26s cubic-bezier(.2,.9,.25,1) both} .ghostout{animation:rowOut .24s ease-in forwards}
+.sok.pop{animation:pop .3s ease-out}
+button{transition:transform .12s ease,background-color .15s,opacity .15s} button:active:not(:disabled){transform:scale(.96)}
+.toast{transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.25,1)!important;transform:translateX(-50%) translateY(14px)} .toast.show{transform:translateX(-50%) translateY(0)}
+.nsel{display:none!important}
+.selbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:15px;text-align:left;cursor:pointer;min-width:0}
+.selbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .selbtn i{font-style:normal;color:var(--muted);flex:0 0 auto}
+.picklist{display:flex;flex-direction:column;gap:6px;margin:10px 0} .pickopt{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:16px;text-align:left;cursor:pointer}
+.pickopt.on{border-color:var(--accent)} .pickopt b{color:var(--accent)}
+.askbox p{font-size:17px;line-height:1.4;margin:6px 2px 4px}
+#ovAsk,#ovPick{z-index:60}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
