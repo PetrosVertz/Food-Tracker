@@ -181,7 +181,7 @@
   <div id="gDone"></div>
 </section>
 
-<button class="fab hide" id="fab"></button>
+<button class="fab fab2 hide" id="fab2" type="button" data-t="scanFoodFab"></button><button class="fab hide" id="fab"></button>
 <nav class="rail" id="rail" aria-label="Tabs">
     <button data-tab="today" class="r-today"><span class="ri">🍽️<i class="steam"><b></b><b></b><b></b></i></span><span class="sr" data-t="tabToday"></span></button>
   <button data-tab="gym" class="r-gym"><span class="ri">🏋️</span><span class="sr" data-t="tabGym"></span></button>
@@ -266,7 +266,8 @@
   <div id="cantScan" class="hide">
   <div class="row cscode"><input id="manualCode" inputmode="numeric" data-tp="typeCode" autocomplete="off"><button class="btn primary small" id="lookupBtn" data-t="lookUp"></button></div>
   <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
-  <button class="btn csbtn" id="scanPhotoBtn" data-t="scanPhoto"></button>
+  <button class="btn csbtn" id="scanItemBtn" data-t="scanItem"></button><input type="file" id="itemPhoto" accept="image/*" capture="environment" class="hide">
+  <button class="btn csbtn hide" id="scanPhotoBtn" data-t="scanPhoto"></button>
   <button class="btn csbtn" id="scanLabel" data-t="noBarcodeLabel"></button>
   <button class="btn csbtn" id="scanManual" data-t="typeIt"></button>
   </div>
@@ -758,7 +759,7 @@
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Food Track · Gym Buddy · v0.6.3.1</div>
+  <div class="ver">Food Track · Gym Buddy · v0.6.4</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
