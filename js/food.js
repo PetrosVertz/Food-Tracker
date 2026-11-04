@@ -26,14 +26,15 @@ function renderHome_0(){
 // ======================= store-bought list =======================
 function foodHay(f){ const s = subOf(f.cat, f.sub); return norm(`${foodName(f)} ${f.name} ${f.brand} ${f.barcode||''} ${typeLabel(f.cat,f.sub)} ${s ? s.en + ' ' + s.el + ' ' + s.kw.join(' ') : ''} ${f.gid && GENBY[f.gid] ? GENBY[f.gid].hay : ''}`); }
 
+const FCAT = {};   // open categories in My foods
 function render(){
   const q = norm($('search').value);
   const counts = {}; foods.forEach(f => { const k = f.cat || 'none'; counts[k] = (counts[k]||0) + 1; });
-  if(ui.cat !== 'all' && !counts[ui.cat]) ui.cat = 'all';
+  ui.cat = 'all';   // 0.6.1: categories are drop-downs now, no chips
   const chips = [`<button class="fchip ${ui.cat==='all'?'on':''}" data-c="all">${t('all')} ${foods.length||''}</button>`]
     .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${c.icon} ${esc(L(c))} ${counts[c.id]}</button>`))
     .concat(counts.none ? [`<button class="fchip ${ui.cat==='none'?'on':''}" data-c="none">${t('noType')} ${counts.none}</button>`] : []);
-  $('catChips').innerHTML = foods.length ? chips.join('') : '';
+  $('catChips').innerHTML = '';
   $('sortBtn').innerHTML = foods.length ? t(ui.sort === 'recent' ? 'sortRecent' : 'sortAZ') : '';
   const tokens = q.split(' ').filter(Boolean);
   const items = foods
@@ -43,7 +44,7 @@ function render(){
   $('count').textContent = foods.length ? (items.length === 1 ? t('nFood') : t('nFoods', { n: items.length })) : '';
   if(!foods.length){ $('list').innerHTML = `<div class="empty">${t('noFoods')}</div>`; return; }
   if(!items.length){ $('list').innerHTML = `<div class="empty">${q ? t('nothingMatches', { q: esc($('search').value) }) : t('nothingHere')}</div>`; return; }
-  $('list').innerHTML = items.map(f => {
+  const cardOf = f => {
     const ic = iconOf(f), pt = portion(f), x = pt.amt / 100;
     const sc = v => (v === null || v === undefined || isNaN(v)) ? null : v * x;
     return `<div class="card" data-id="${f.id}" style="position:relative">${stockBadge(f)}
@@ -56,7 +57,15 @@ function render(){
           <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
         </div>
       </div></div>`;
-  }).join('');
+  };
+  // 0.6.1: no search = categories as drop-downs; searching shows the matches straight away
+  if(tokens.length){ $('list').innerHTML = items.map(cardOf).join(''); return; }
+  const groups = {}; items.forEach(f => (groups[f.cat || 'none'] = groups[f.cat || 'none'] || []).push(f));
+  const order = [...CATS.map(c => c.id).filter(id => groups[id]), ...(groups.none ? ['none'] : [])];
+  $('list').innerHTML = order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
+    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><span class="e">${c ? c.icon : '❔'}</span><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>⌄</i></button>` +
+      (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('');
+
 }
 
 // ======================= type picker =======================
@@ -370,6 +379,7 @@ async function lookup(code){
     if(j.status !== 1 || !j.product) return notFound(code, t('notInOFF'));
     const data = offToFood(j.product, code);
     if(data.protein === null && data.carbs === null && data.fat === null) return notFound(code, t('noMacros'));
+    if(scanCtx === 'log'){ scanCtx = null; close('ovScan'); const f = saveOnlineFood({ ...data, source: 'openfoodfacts' }); renderAll(); openAmt({ mode: 'log', info: fInfo_(f) }); toast(t('scanSaved')); return; }
     close('ovScan'); openForm(data, 'Open Food Facts', 'new', { fromScan: true });
   }catch(e){ notFound(code, t('lookupFail')); }
 }
@@ -463,9 +473,10 @@ function scoreHay(hay, names, tokens, q){
 
 async function searchOnline(text){
   const base = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1&page_size=15&fields=${OFF_FIELDS}`;
-  let j = await (await fetch(base + '&countries_tags_en=greece')).json();
-  if(!j.products || !j.products.length) j = await (await fetch(base)).json();
-  return (j.products || []).map(p => offToFood(p, p.code)).filter(d => d.protein !== null && d.carbs !== null && d.fat !== null && d.name).slice(0, 10);
+  const [gr, all] = await Promise.allSettled([fetch(base + '&countries_tags_en=greece').then(r => r.json()), fetch(base).then(r => r.json())]);   // 0.6.3.1: Greek first, then everything
+  if(gr.status === 'rejected' && all.status === 'rejected') throw new Error('offline');
+  const seen = new Set(), prods = [...(gr.value?.products || []), ...(all.value?.products || [])].filter(p => p.code && !seen.has(p.code) && seen.add(p.code));
+  return prods.map(p => offToFood(p, p.code)).filter(d => d.protein !== null && d.carbs !== null && d.fat !== null && d.name).slice(0, 20);
 }
 
 function openIngSearch(prefill, cb, opts){

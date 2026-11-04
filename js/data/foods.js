@@ -245,8 +245,8 @@ const DEFAULT_PICK = { chicken:'chicken_breast', κοτοπουλο:'chicken_bre
 const NA_T = 2300, K_T = 3400;
 
 // ---------- ✨ suggest a recipe: chips + remaining macros ----------
-const SG_DEFAULT = { en: ['Chicken','Beef','Pork','Fish','Seafood','Eggs','Pasta','Rice','Potatoes','Legumes','Vegetarian','Quick (≤20 min)','High protein','Low fat','Meal prep','Greek classic'],
-  el: ['Κοτόπουλο','Μοσχάρι','Χοιρινό','Ψάρι','Θαλασσινά','Αυγά','Ζυμαρικά','Ρύζι','Πατάτες','Όσπρια','Χορτοφαγικό','Γρήγορο (≤20′)','Πολλή πρωτεΐνη','Λίγα λιπαρά','Meal prep','Ελληνική κλασική'] };
+const SG_DEFAULT = { en: ['Chicken','Beef','Pork','Fish','Seafood','Eggs','Pasta','Rice','Potatoes','Legumes','Vegetarian','High protein','Low fat','Meal prep','Greek classic'],
+  el: ['Κοτόπουλο','Μοσχάρι','Χοιρινό','Ψάρι','Θαλασσινά','Αυγά','Ζυμαρικά','Ρύζι','Πατάτες','Όσπρια','Χορτοφαγικό','Πολλή πρωτεΐνη','Λίγα λιπαρά','Meal prep','Ελληνική κλασική'] };
 
 // ---------- 0.5.4: more standard foods (per 100 g / ml; carbs without fibre, like EU labels) ----------
 // [id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fibre g, sodium mg, potassium mg, pieces, piece g]

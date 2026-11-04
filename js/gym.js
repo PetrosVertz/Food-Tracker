@@ -411,7 +411,7 @@ Muscle groups to rate: ${groups.join(', ')}. A simple formula estimated: ${JSON.
 Workout:
 ${lines}
 Return ONLY JSON: {"hours":{${groups.map(g => `"${g}":number`).join(',')}},"note":"one short sentence for the lifter, in ${lang === 'el' ? 'Greek' : 'English'}"}. Each value between 0 and 120.`;
-  const d = await gemini(prompt); const hrs = d && d.hours; if(!hrs) return null;
+  const d = await gemini(prompt, null, null, null, { quiet: true }); const hrs = d && d.hours; if(!hrs) return null;
   const out = {}; groups.forEach(g => { const v = +hrs[g]; out[g] = v >= 0 && v <= 120 ? Math.round(v) : est[g]; });
   return { hours: out, note: String(d.note || '').slice(0, 220) };
 }
@@ -456,9 +456,9 @@ function renderRecovery(){
     `<div class="bodymap" style="margin-top:10px">${bodyMapSVG('rec', null, colors)}</div>
     <div class="legend"><span><i style="background:${REC_COL.ok}"></i>${t('recReady')}</span><span><i style="background:${REC_COL.mid}"></i>${t('recMid')}</span><span><i style="background:${REC_COL.low}"></i>${t('recLow')}</span></div>
     <p class="hint">${t('recHint')}</p>` +
-    (notReady.length ? notReady.map(([g, r]) => `<div class="prog" data-sore="${g}" style="cursor:pointer"><div><b>${esc(ML(g))}</b><small>${t('recIn', { h: hoursUntilReady(g) })}${sore[g] !== undefined ? ' · ' + SORE[Math.round(sore[g])] : ''}</small></div><span class="mbar"><i style="width:${Math.round(r * 100)}%;background:${REC_COL[recState(r)]}"></i></span><span class="pct" style="color:${REC_COL[recState(r)]}">${Math.round(r * 100)}%</span></div>`).join('')
+    (notReady.length ? notReady.map(([g, r]) => `<div class="prog"><div><b>${esc(ML(g))}</b><small>${t('recIn', { h: hoursUntilReady(g) })}</small></div><span class="mbar"><i style="width:${Math.round(r * 100)}%;background:${REC_COL[recState(r)]}"></i></span><span class="pct" style="color:${REC_COL[recState(r)]}">${Math.round(r * 100)}%</span></div>`).join('')
       : `<div class="alert green" style="cursor:default">${t('recAllReady')}</div>`) +
-    `<div class="actions"><button class="btn" id="soreAny">${t('howSore')}</button></div>`;
+    '';
 }
 
 function openSore(g){
@@ -476,12 +476,13 @@ function anatomySVG(o){
     if(mode === 'pick'){ const reg = o.groupRegion ? o.groupRegion(g) : null; return !region || reg === region ? HEAD_COL[h] : '#3a4048'; }
     return HEAD_COL[h]; };
   const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
-  const half = side => ANAT[side].map(([h, d]) => `<path d="${d}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
+  const fem = o.fem !== undefined ? o.fem : ui.sex === 'f', W_ = d => fem ? femWarp(d) : d;
+  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && fill(h) === REC_COL.low ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
       `<path d="${d}" fill="url(#${idp}shade)" style="pointer-events:none"/>`).join('') +
-    `<path d="${ANAT_FIBRES[side]}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
-  const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${d}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
+    `<path d="${W_(ANAT_FIBRES[side])}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
+  const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${W_(d)}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${fem ? femX(cx, cy) : cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
   const fig = (side, ox, label) => `<g transform="translate(${ox} 0)">
-      <g style="pointer-events:none"><ellipse cx="100" cy="36" rx="21" ry="26" fill="#2b3036" stroke="#1a1d21"/><path d="M86 54 L114 54 L121 77 L79 77 Z" fill="#2b3036"/></g>
+      <g style="pointer-events:none">${fem ? '<path d="M78 40 C76 14 124 14 122 40 C124 62 126 78 118 86 L82 86 C74 78 76 62 78 40 Z" fill="#23272c"/>' : ''}<ellipse cx="100" cy="36" rx="${fem ? 19 : 21}" ry="${fem ? 24.5 : 26}" fill="#2b3036" stroke="#1a1d21"/><path d="M86 54 L114 54 L121 77 L79 77 Z" fill="#2b3036"/></g>
       ${skin}<g transform="translate(200 0) scale(-1 1)">${skin}</g>
       ${half(side)}<g transform="translate(200 0) scale(-1 1)">${half(side)}</g>
       ${o.labels === false ? '' : `<text x="100" y="438" text-anchor="middle" fill="#8b949c" font-size="13" font-family="system-ui">${label}</text>`}</g>`;
@@ -515,7 +516,7 @@ function renderGym_053(){
   $('gWeigh').classList.toggle('hide', sec !== 'prog'); if(sec === 'prog' && typeof drawWeigh === 'function') drawWeigh();   // 0.5.9: weigh-in lives in Progress
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
   $('gStart').textContent = active ? t('resume', { m: Math.floor((Date.now() - new Date(active.start)) / 60000) }) : tp ? t('startToday', { n: tp.name }) : t('startAny');
-  $('gStart').classList.toggle('hide', !!sec && sec !== 'tpl');
+  $('gStart').classList.toggle('hide', !!sec);   // 0.6.1: no Start button inside the Library
   const gap = gapDays(), cb = comebackFactor();
   $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
@@ -551,7 +552,7 @@ function renderTpls(){
       <div class="name">${esc(s.name)}</div><div class="rmeta">${fmtDate(s.start)} · ${s.mins} min · ${t('nEx', { n: s.exercises.length })}${s.vol ? ' · ' + s.vol.toLocaleString() + ' kg' : ''}</div></div></div>`).join('')}</div>`
     : `<p class="hint">${t('noPast')}</p>`;
   const fold = (k, title, n, body) => `<button class="foldh ${LIBF[k] ? 'open' : ''}" data-fold="${k}"><b>${title}</b><span class="fn">${n}</span><i>⌄</i></button>${LIBF[k] ? `<div class="foldb">${body}</div>` : ''}`;
-  $('gTplV').innerHTML = fold('saved', t('savedWorkouts'), tpls.length, saved + `<div class="actions"><button class="btn primary" id="tpNew">${t('newWorkoutBtn')}</button></div>`) +
+  $('gTplV').innerHTML = fold('saved', t('savedWorkouts'), tpls.length, saved) +
     fold('past', t('pastWorkouts'), past.length, pastHtml);
 }
 
@@ -678,10 +679,10 @@ function drawTpl(){
   $('tpList').innerHTML = TP.exercises.map((e, i) => { const ex = exById(e.exId), card = isCardio(e.exId);
     const reps = String(e.reps);
     return `<div class="tpcard" data-i="${i}"><div class="tph">${exIcon(ex, 40)}<div class="ttl"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)}</small></div>
-      <div class="tpb"><button data-demo2 class="formb">▶</button>${i > 0 ? `<button data-up aria-label="Move up">↑</button>` : ''}<button data-rm aria-label="Remove">✕</button></div></div>
+      <div class="tpb"><button data-demo2 class="formb">▶</button><button data-rm aria-label="Remove">✕</button></div></div>
       <div class="tpsteps"><div class="tps"><small>${t('setsL')}</small><div class="stepper"><button data-sd>−</button><b>${e.sets}</b><button data-su>＋</button></div></div>
-      <div class="tps"><small>${card ? t('minLbl') : t('repsL')}</small><div class="stepper"><button data-rd>−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru>＋</button></div></div>
-      ${card ? '' : `<div class="tps"><small>${t('restL')}</small><button class="restchip" data-trest>⏱ ${fmtRest(e.rest || 90)}</button></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
+      ${card ? `<div class="tps"><small>${t('minLbl')}</small><div class="stepper"><button data-rd>−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru>＋</button></div></div>`
+        : `<div class="tps"><small>${t('restL')}</small><div class="stepper"><button data-rsd>−</button><b>${fmtRest(rest30(e.rest))}</b><button data-rsu>＋</button></div></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
 }
 
 function openTpl(x, type){ openTpl_053(x, type); if($('ovTpl').classList.contains('open')) $('tpType').classList.add('hide'); }
@@ -834,3 +835,38 @@ function saveSessionAsTpl(){
   tpls.push(tpl); saveG('tpl'); SV.tplId = tpl.id; SV.name = name; saveG('ses'); SV = null;
   close('ovSaveTpl'); renderAll(); toast(t('tplSavedT', { n: name }));
 }
+
+// ---------- 0.6.1: rest in 30 s steps (0:30 – 5:00); long press to drag a block up or down ----------
+const rest30 = v => Math.max(30, Math.min(300, Math.round((+v || 90) / 30) * 30));
+function makeSortable(box, itemSel, onMove){
+  let tm = null, drag = null, sx = 0, sy = 0;
+  const items = () => [...box.querySelectorAll(itemSel)];
+  const stop = () => { clearTimeout(tm); tm = null; };
+  box.addEventListener('pointerdown', e => {
+    if(drag || e.button > 0 || e.target.closest('input,button,textarea,select,a')) return;
+    const it = e.target.closest(itemSel); if(!it || !box.contains(it)) return;
+    sx = e.clientX; sy = e.clientY;
+    tm = setTimeout(() => { tm = null; const list = items(), from = list.indexOf(it); if(from < 0) return;
+      drag = { it, from, to: from, y0: sy, rects: list.map(el => el.getBoundingClientRect()), list };
+      it.classList.add('dragging'); document.body.classList.add('sorting'); if(typeof haptic === 'function') haptic(); }, 420);
+  });
+  box.addEventListener('pointermove', e => {
+    if(tm && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) stop();   // moved first = it's a scroll, not a long press
+    if(!drag) return; e.preventDefault();
+    const dy = e.clientY - drag.y0, r = drag.rects, me = r[drag.from], mid = me.top + me.height / 2 + dy;
+    let to = drag.from; r.forEach((rc, i) => { if(i < drag.from && mid < rc.top + rc.height / 2) to = Math.min(to, i); if(i > drag.from && mid > rc.top + rc.height / 2) to = Math.max(to, i); });
+    drag.to = to; drag.it.style.transform = `translateY(${dy}px) scale(1.02)`;
+    drag.list.forEach((el, i) => { if(el === drag.it) return; const sh = drag.from < to && i > drag.from && i <= to ? -(me.height + 10) : drag.from > to && i < drag.from && i >= to ? me.height + 10 : 0; el.style.transform = sh ? `translateY(${sh}px)` : ''; });
+  });
+  const end = () => { stop(); if(!drag) return; const { from, to, list } = drag; drag = null; document.body.classList.remove('sorting');
+    list.forEach(el => { el.style.transform = ''; el.classList.remove('dragging'); }); if(from !== to) onMove(from, to); };
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+  document.addEventListener('touchmove', e => { if(drag) e.preventDefault(); }, { passive: false });   // no page scroll while dragging
+  box.addEventListener('contextmenu', e => { if(drag || tm) e.preventDefault(); });
+}
+
+// 0.6.2: female figure = the same muscles, reshaped: narrower shoulders and arms, a narrower waist, wider hips
+const FEM_K = [[0, 1], [70, 1], [92, .9], [150, .9], [178, .88], [200, .93], [232, 1.09], [280, 1.05], [330, 1], [460, 1]];
+function femS(y){ for(let i = 1; i < FEM_K.length; i++){ const [y1, s1] = FEM_K[i], [y0, s0] = FEM_K[i - 1]; if(y <= y1) return s0 + (s1 - s0) * (y - y0) / (y1 - y0); } return 1; }
+const femX = (x, y) => +(100 - (100 - x) * femS(y)).toFixed(1);
+function femWarp(d){ return d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g, (m, x, y) => `${femX(+x, +y)} ${y}`); }

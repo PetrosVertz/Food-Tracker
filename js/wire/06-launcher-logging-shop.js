@@ -81,8 +81,9 @@ $('shopFile').addEventListener('change', async () => {
   close('ovShop'); SHOP.items = []; drawShop(); status($('shopStatus'), t('shopReading')); open('ovShopRev');
   const base = `Return ONLY JSON: {"items":[{"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"state":"uncooked"|"ready"}]}
 packSize = net weight of ONE pack/piece in g or ml (read it if printed, otherwise a typical size, e.g. milk 1000 ml, a chicken breast tray 1000 g, one egg 60 g). Macros = typical values per 100 g/ml of that product (carbs without fibre). state "uncooked" for raw meat/fish, dry rice/pasta/oats, else "ready". Food and drinks only.`;
-  const prompt = SHOP.kind === 'receipt' ? `This is a supermarket receipt, often Greek with abbreviated product names. List every food or drink line. Expand abbreviations into a clear name. count = quantity bought; for weighed items (e.g. "0,850 KG") count = 1 and packSize = that weight in g. Skip bags, deposits, discounts and non-food. ${base}`
-    : `This photo shows groceries laid out on a table (likely a Greek supermarket). List every distinct food or drink item you can see. count = how many identical packs or pieces (eggs: count the eggs, packSize 60). ${base}`;
+  const rcpt = `This is a supermarket receipt, often Greek with abbreviated product names. List every food or drink line. Expand abbreviations into a clear name. count = quantity bought; for weighed items (e.g. "0,850 KG") count = 1 and packSize = that weight in g. Skip bags, deposits, discounts and non-food. ${base}`;
+  const groc_ = `This photo shows groceries laid out on a table (likely a Greek supermarket). List every distinct food or drink item you can see. count = how many identical packs or pieces (eggs: count the eggs, packSize 60). ${base}`;
+  const prompt = SHOP.kind === 'receipt' ? rcpt : SHOP.kind === 'camera' ? `This image is EITHER a supermarket receipt OR groceries laid out on a table. Decide which, then follow the matching instructions.\nIF IT IS A RECEIPT: ${rcpt}\nIF IT IS GROCERIES: ${groc_}` : groc_;
   try{
     const img = await shrink(file), d = await gemini(prompt, img);
     const items = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el));

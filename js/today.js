@@ -63,7 +63,7 @@ function carbWindows(d){
 function renderToday_0(){
   const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   const diff = daysUntil(d);
-  $('dLabel').textContent = (diff === 0 ? t('todayD') + ' · ' : diff === -1 ? t('yesterdayD') + ' · ' : diff === 1 ? t('tomorrowD') + ' · ' : '') +
+  $('dLabel').textContent =   // 0.6.3: just the date
     new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
   const mrow = (cls, label, a, b, u, st) => `<div class="mrow ${cls} ${st || ''}"><small>${label}</small><span class="mbar"><i style="width:${b ? Math.min(100, a / b * 100) : 0}%"></i></span><span><b>${Math.round(a)}</b><small> / ${b ? Math.round(b) : '–'}${u}</small></span></div>`;
@@ -151,7 +151,11 @@ function usuals(){
   const now = Date.now(), m = {};
   Object.keys(dayLog).sort().slice(-60).forEach(d => { const age = (now - new Date(d + 'T12:00:00')) / 864e5; (dayLog[d] || []).forEach(e => { if(!e.refId || e.kind === 'quick') return;
     const k = e.kind + e.refId; const x = m[k] || (m[k] = { e, n: 0, sc: 0 }); x.n++; x.sc += 1 + Math.max(0, 14 - age) / 7; x.e = e; }); });
-  return Object.values(m).filter(x => infoOfEntry(x.e)).sort((a, b) => b.sc - a.sc).slice(0, 12).map(x => x.e);
+  const nowM = new Date().getHours() * 60 + new Date().getMinutes(), near = tm => { const d = Math.abs(toMin(tm) - nowM); return Math.min(d, 1440 - d) <= 75; };
+  Object.keys(dayLog).sort().slice(-60).forEach(d => (dayLog[d] || []).forEach(e => { const x = m[e.kind + e.refId]; if(x && e.time && near(e.time)) x.hr = (x.hr || 0) + 1; }));
+  const all = Object.values(m).filter(x => infoOfEntry(x.e)), hour = all.filter(x => (x.hr || 0) >= 2).sort((a, b) => b.hr - a.hr || b.sc - a.sc).slice(0, 5);
+  const rest = all.filter(x => !hour.includes(x)).sort((a, b) => b.sc - a.sc).slice(0, 12 - hour.length);
+  LS.hourN = hour.length; return [...hour, ...rest].map(x => x.e);   // 0.6.2: what you usually eat around this time comes first
 }
 
 function drawLog(){
@@ -160,7 +164,9 @@ function drawLog(){
   let h = '';
   if(!q){
     LS.recent = usuals();
-    if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
+    const uRow = (e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`;
+    if(LS.recent.length && LS.hourN) h += `<div class="sgroup">🕒 ${t('usualHour')}</div>` + LS.recent.slice(0, LS.hourN).map(uRow).join('') + (LS.recent.length > LS.hourN ? `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.slice(LS.hourN).map((e, i) => uRow(e, i + LS.hourN)).join('') : '');
+    else if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
     else h = `<div class="hint">${t('typeToSearch')}</div>`;
   } else {
     LS.meals = meals.filter(m => tokens.every(tk => norm(m.name).includes(tk))).slice(0, 10);
@@ -239,7 +245,10 @@ async function saveQuick(){
   const loc = qaLocal(q);
   if(loc){
     let info, por;
-    if(loc.kind === 'meal'){ info = { name: loc.m.name, icon: mealIcon(loc.m), unit: 'g', per: loc.m, meal: loc.m }; por = { amt: 350 }; }
+    if(loc.kind === 'meal'){ info = { name: loc.m.name, icon: mealIcon(loc.m), unit: 'g', per: loc.m, meal: loc.m }; por = { amt: loc.m.cookedWeight && loc.m.cookedWeight <= 900 && !(loc.m.ingredients || []).length ? loc.m.cookedWeight : 350 }; }
+    else if(loc.kind === 'gen' && loc.g.cat === 'ready'){ const pg = qaPortion(loc.g).amt, x = pg / 100, g = loc.g;
+      const m = dishMeal({ name: L(g), grams: pg, kcal: g.kcal * x, p: g.protein * x, c: g.carbs * x, f: g.fat * x, fib: (g.fiber || 0) * x, na: naOf(g) * x, k: (g.potassium || 0) * x });
+      info = { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m }; por = { amt: pg }; }
     else { const f = loc.kind === 'gen' ? saveGeneric(loc.g) : loc.f; info = { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f }; por = qaPortion(loc.kind === 'gen' ? loc.g : { ...f, gid: f.gid, cat: f.cat, sub: f.sub }); }
     const amt = Math.round(por.amt * size); dropOld();
     const m = macrosFor(info.per, amt);
@@ -253,9 +262,10 @@ async function saveQuick(){
 Return ONLY JSON: {"name":string (short name in ${lang === 'el' ? 'Greek' : 'English'}),"grams":number,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number,"sodium_mg":number,"potassium_mg":number}`, null, null, QAbusy.signal);
     if(!r || !(+r.kcal > 0)) throw new Error('no estimate');
     dropOld();
-    const e = { id: uid(), time, kind: 'quick', refId: null, icon: '⚡', name: q, size, amt: Math.round(+r.grams || 1), unit: 'g', kcal: Math.round(+r.kcal), p: r1(+r.protein || 0), c: r1(+r.carbs || 0), f: r1(+r.fat || 0),
-      fib: r1(+r.fiber || 0), na: Math.round(+r.sodium_mg || 0), k: Math.round(+r.potassium_mg || 0), ai: true };
-    done(e, q);
+    const gr = Math.max(50, Math.round(+r.grams || 350)), base = { kcal: +r.kcal, p: +r.protein || 0, c: +r.carbs || 0, f: +r.fat || 0, fib: +r.fiber || 0, na: +r.sodium_mg || 0, k: +r.potassium_mg || 0 };
+    const nm = q.charAt(0).toUpperCase() + q.slice(1), ml = dishMeal({ name: nm, grams: gr / size, ...Object.fromEntries(Object.entries(base).map(([k, v]) => [k, v / size])) });   // saved as one normal plate
+    const m = macrosFor(ml, gr);
+    done({ id: uid(), time, kind: 'meal', refId: ml.id, name: ml.name, icon: mealIcon(ml), amt: gr, unit: 'g', ...m, ai: true }, nm);
   }catch(err){ if(!err.cancelled) $('qaOut').textContent = t('qaFail'); }
   finally{ QAbusy = null; btn.textContent = t('qaLog'); }
 }
@@ -304,7 +314,7 @@ function mxFromGrams(P){ const k = +$('tg' + P + 'k').value || 0, g = x => +$('t
 function initMacroSliders(){
   [['G', 'gymDayTargets'], ['R', 'restDayTargets']].forEach(([P]) => {
     if(!$('mx' + P)){ const grid = $('tg' + P + 'k').closest('.grid4'), d = document.createElement('div'); d.className = 'mxs'; d.id = 'mx' + P;
-      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}">${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}</span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
+      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}">${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}<button class="mxlock" type="button" data-lock="${k}" data-p="${P}" aria-label="Lock">🔓</button></span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
         `<div class="mxbar"><i class="mx-p"></i><i class="mx-c"></i><i class="mx-f"></i></div>`;
       grid.after(d); }
     MX[P] = mxFromGrams(P); drawMx(P, false); });
@@ -358,3 +368,13 @@ function showTip(key, btn){
 function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
 // plan my day runs from the Log food sheet; progress shows on Today where the plan lands
 function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">✨ ${esc(txt)}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
+
+// 0.6.3.1: dishes (souvlaki, moussaka…) from Quick Add are saved as Home-cooked meals, not store-bought foods
+function dishMeal(d){
+  const ex = meals.find(x => norm(x.name) === norm(d.name)); if(ex) return ex;
+  const per = 100 / d.grams, now = new Date().toISOString();
+  const m = { id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, name: d.name, ingredients: [], rawWeight: Math.round(d.grams), cookedWeight: Math.round(d.grams), cookedEstimated: true, quick: true,
+    kcal: Math.round(d.kcal * per), protein: r1(d.p * per), carbs: r1(d.c * per), fat: r1(d.f * per), fiber: r1(d.fib * per), salt: Math.round(d.na * per / 400 * 100) / 100, potassium: Math.round(d.k * per),
+    total: { kcal: Math.round(d.kcal), protein: r1(d.p), carbs: r1(d.c), fat: r1(d.f) }, recipe: null, updatedAt: now };
+  meals.push(m); saveMeals(); return m;
+}

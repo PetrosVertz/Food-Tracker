@@ -93,3 +93,151 @@ details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 /* ---------- 0.6.0: back buttons are grey, and flash orange while pressed ---------- */
 .sback,.sesback,#gBackBtn,[data-home],#backBtn,#backBtn2,#sesMin,.pback,.backpill,.btn.back{background:rgba(255,255,255,.1)!important;color:var(--text)!important;border-color:var(--line)!important;box-shadow:none!important;transition:background-color .15s,color .15s,transform .12s}
 .sback:active,.sesback:active,#gBackBtn:active,[data-home]:active,#backBtn:active,#backBtn2:active,#sesMin:active,.pback:active,.backpill:active,.btn.back:active{background:var(--orange)!important;color:#1c0e00!important;border-color:var(--orange)!important}
+
+/* ---------- 0.6.1: the icon strip is a bar along the bottom (Settings last); Log Food floats above it; stronger frosted glass ---------- */
+.rail{top:auto!important;right:auto!important;left:50%!important;transform:translateX(-50%)!important;bottom:calc(10px + env(safe-area-inset-bottom));flex-direction:row!important;gap:4px!important;padding:6px 8px!important;border-radius:24px!important;
+  width:min(calc(100% - 24px),420px);justify-content:space-around;
+  background:rgba(30,35,42,.28)!important;-webkit-backdrop-filter:blur(30px) saturate(210%) brightness(1.1)!important;backdrop-filter:blur(30px) saturate(210%) brightness(1.1)!important;
+  border:1px solid rgba(255,255,255,.16)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 34px rgba(0,0,0,.45)!important}
+.rail button{flex:1 1 0;max-width:64px;height:46px!important;width:auto!important}
+.rail .r-set{font-size:20px;color:var(--text)}
+header [data-settings]{display:none!important}
+body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
+.fab{bottom:calc(76px + env(safe-area-inset-bottom))!important;right:0!important}
+.toast{bottom:calc(140px + env(safe-area-inset-bottom))!important}
+.pullhint.bottom{bottom:calc(140px + env(safe-area-inset-bottom))!important}
+/* stronger glass on tabs and tiles */
+.tile,.seg,.tabs,.foldh,.hubtabs button{-webkit-backdrop-filter:blur(26px) saturate(200%);backdrop-filter:blur(26px) saturate(200%)}
+.seg,.tabs{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.tile{background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04))!important;border-color:rgba(255,255,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.25)!important}
+/* 0.6.1 · Food Track categories, Can't scan?, yesterday */
+.catfold{margin-top:8px} .catfold .e{font-size:20px}
+.catbody{padding-top:4px}
+.cantscan{width:100%;margin-top:12px;background:none!important;border:1px dashed var(--line)!important;color:var(--muted)!important}
+.cantscan.open{color:var(--text)!important}
+#cantScan{animation:rowIn .22s ease-out}
+.ghostbtn{width:100%;margin:2px 0 6px;background:none!important;border:1px dashed var(--line)!important;color:var(--muted)!important;font-size:14px;padding:10px}
+/* 0.6.1 · AI loader, cook picker, own recipe quick add */
+.aiwait{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:tipIn .2s ease-out}
+.aiwait.out{opacity:0;transition:opacity .18s}
+.aibox{width:min(300px,calc(100vw - 48px));padding:22px 20px 16px;border-radius:22px;text-align:center;background:rgba(34,39,46,.9);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.aibox b{display:block;font-size:17px;margin-top:14px} .aibox p{margin:6px 0 14px;font-size:13px;color:var(--muted);line-height:1.45} .aibox .btn{width:100%}
+.aispin{width:46px;height:46px;margin:0 auto;border-radius:50%;border:4px solid rgba(198,244,50,.18);border-top-color:var(--accent);animation:aiSpin .9s linear infinite}
+@keyframes aiSpin{to{transform:rotate(360deg)}}
+#cookStart{display:none!important}
+#cookPickOpts .bigopt{width:100%;margin-top:10px}
+#recipeBox .actions,#pasteBtn{display:none!important}
+#cWeighLink{display:block;margin:14px 0 4px;color:var(--muted)}
+.cquick{margin-top:18px;padding:12px;border-radius:16px;border:1px dashed var(--line)}
+.cquick h3{margin:0 0 6px} .cquick textarea{width:100%;min-height:84px} .cquick .btn{width:100%;margin-top:8px}
+#sgIn{width:100%;margin-top:8px}
+#sgTime{margin-top:4px}
+
+/* ---------- 0.6.2 ---------- */
+.fab{bottom:calc(86px + env(safe-area-inset-bottom))!important}
+#gStart{display:none!important}
+.hubstack#gHubTiles{grid-template-columns:1fr!important}
+.hubstack .tile{flex-direction:row!important;min-height:0!important;padding:16px!important}
+/* can't scan: easy to spot */
+.cantscan{background:rgba(255,138,42,.12)!important;border:1px solid rgba(255,138,42,.55)!important;color:var(--orange)!important;font-weight:700;font-size:15px;padding:13px!important}
+/* calorie card: Advanced (bottom left) + 🎯 (bottom right) */
+.macrocard{position:relative}
+#dExtras>summary{padding-right:52px}
+.tgcard{position:absolute;right:10px;bottom:8px;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);font-size:18px;cursor:pointer}
+.advtiming{margin-top:12px;padding-top:8px;border-top:1px dashed var(--line);padding-bottom:40px}
+.advh{display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:8px}
+#dExtras[open]{padding-bottom:4px}
+#targetsBtn{display:none!important}
+/* Eaten drop-down */
+#dEatenFold>summary small{font-weight:400;color:var(--muted);font-size:14px}
+#copyYesterday{margin:0 0 8px}
+/* swipe to delete */
+#dLog .card{position:relative;touch-action:pan-y}
+#dLog .card.swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
+#dLog .card.swiping::after{content:'🗑';position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));font-size:22px;opacity:var(--sw,0);filter:hue-rotate(-30deg) saturate(3)}
+#dLog .card.swready{border-color:var(--danger)!important}
+/* recovery: red muscles breathe */
+path.mlow{animation:mBreathe 3.4s ease-in-out infinite}
+@keyframes mBreathe{0%,100%{fill-opacity:.95}50%{fill-opacity:.35}}
+@media(prefers-reduced-motion:reduce){path.mlow{animation:none}}
+/* titles in the top middle */
+header{position:relative;min-height:56px}
+header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;max-width:62%;overflow:hidden;text-overflow:ellipsis;text-align:center;font-size:20px}
+/* selected segment / tab: dark letters */
+.seg button.on,.tabs button.on{color:#0f1113!important;font-weight:700}
+/* no cupboard */
+#fLoc [data-v="cupboard"],#faLoc [data-v="cupboard"]{display:none!important}
+.camopt{border-color:rgba(198,244,50,.45)!important}
+
+/* ---------- 0.6.3 ---------- */
+/* swipe-to-delete on any list */
+.swipebox .card,.swipebox .exc,.swipebox .tpcard{position:relative;touch-action:pan-y}
+.swipebox .swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
+.swipebox .swiping::after{content:'🗑';position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));font-size:22px;opacity:var(--sw,0);filter:hue-rotate(-30deg) saturate(3);pointer-events:none}
+.swipebox .swready{border-color:var(--danger)!important}
+/* End Workout higher, Discard = a smaller red pill */
+.endbar{padding-bottom:calc(22px + env(safe-area-inset-bottom))!important}
+.discardlink{display:block;width:62%;margin:10px auto 0;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,92,92,.55);background:rgba(255,92,92,.14);color:#ff8a8a;font-weight:700;font-size:15px;opacity:1}
+.discardlink:active{background:rgba(255,92,92,.3)}
+/* Advanced switch */
+.advwrap{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
+.advrow{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin:0;font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:600;cursor:pointer;padding-right:52px}
+.advrow input{margin:0!important}
+.advbody .advtiming{padding-bottom:40px}
+/* macro lock */
+.mxlock{border:0;background:none;font-size:13px;padding:0 0 0 4px;cursor:pointer;opacity:.55;vertical-align:middle}
+.mxlock.on{opacity:1}
+.mxr:disabled{opacity:.45}
+/* Can't scan? layout */
+.cscode{display:flex;gap:8px;margin-top:12px}
+.cscode input{flex:1;min-width:0}
+.csbtn{display:block;width:100%;margin-top:8px;text-align:center}
+/* Gym hub tiles: words next to the icon */
+.hubstack .tile{justify-content:flex-start!important;align-items:center!important;gap:14px!important;text-align:left}
+.hubstack .tile>span:not(.e){flex:1;min-width:0}
+/* Settings: Your Body */
+.bodybox{margin-top:16px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.bodybox h3{margin:0 0 8px}
+/* premium polish pass */
+:root{--r:16px}
+.card,.exc,.tpcard,.macrocard,.wtcard,.win,.remind,.prog,.pgrow,.foldh,.opt{border-radius:var(--r)!important}
+.card,.exc,.tpcard,.macrocard,.prog{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 18px rgba(0,0,0,.18)!important}
+h1,h2{letter-spacing:-.3px;font-weight:750} h3{letter-spacing:-.1px}
+.kcnum,.bigclock,.pct,.kcal,.mrow b,.wthead b,.mxrow b{font-variant-numeric:tabular-nums}
+.btn{border-radius:14px;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s,box-shadow .18s}
+.btn.primary{box-shadow:0 6px 20px rgba(198,244,50,.18)}
+.overlay.open .sheet{animation-duration:.34s!important;animation-timing-function:cubic-bezier(.16,1,.3,1)!important}
+.sheet{box-shadow:0 -12px 40px rgba(0,0,0,.4)}
+input,textarea,select{transition:border-color .18s,box-shadow .18s}
+input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(198,244,50,.16)}
+.foldb,.catbody,.pgsub,#cantScan{animation:rowIn .26s cubic-bezier(.2,.9,.25,1)}
+
+/* ---------- 0.6.3.1 ---------- */
+.advwrap{padding-top:8px}
+.advline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.advline .advrow{padding-right:0}
+.tgcard{position:static!important;flex:0 0 auto}
+.macrocard{padding-bottom:12px}
+/* day arrows: just arrows */
+.daynav #dPrev,.daynav #dNext{background:none!important;border:0!important;box-shadow:none!important;font-size:26px;color:var(--text);width:40px}
+/* no food emojis (custom category icons later) */
+#list .ficon,#dLog .ficon,#lResults .sitem .e,#mealsView .ficon,#sList .ficon{display:none!important}
+#lResults .sitem{padding-left:14px}
+/* supplements */
+#supQuick,label[data-t="supWhen"],#supTimes,label[data-t="supOften"],#supOften,label[for="supFood"],#supFood,#supLinkHint,label[for="supNotes"],#supNotes,[data-t="supDoseHint"]{display:none!important}
+.takes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.take{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 9px;border-radius:999px;background:rgba(89,211,140,.14);border:1px solid rgba(89,211,140,.45);color:var(--ok);font-size:13px}
+.take input{width:auto;padding:2px 4px;border:0;background:none;color:var(--text);font-size:13px}
+.take button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px}
+.takebtn{margin-left:auto}
+#supFood + .selbtn{display:none!important}   /* 0.6.3.1: no linked food in supplements */
+
+/* ---------- Home Screen app (html.pwa): fill the whole screen, keep the bar above the home indicator ---------- */
+html.pwa,html.pwa body{height:var(--appH,100vh)!important;min-height:var(--appH,100vh)}
+html.pwa section.page.wrap{top:0!important;bottom:auto!important;height:var(--appH,100vh)!important}
+html.pwa .overlay{top:0!important;bottom:auto!important;height:var(--appH,100vh)!important}
+html.pwa .rail{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)))!important}
+html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 70px)!important}
+html.pwa .toast{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
+html.pwa .pullhint.bottom{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
+html.pwa .aiwait{height:var(--appH,100vh);bottom:auto}

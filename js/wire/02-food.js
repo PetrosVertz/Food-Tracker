@@ -9,7 +9,7 @@ $('backBtn2').addEventListener('click', () => goBack());
 
 $('tSupps').addEventListener('click', () => go('supps'));
 
-$('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : 'foods')), route(); });
+$('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : b.dataset.v === 'supps' ? 'supps' : 'foods')), route(); });
 
 $('tScan').addEventListener('click', () => startScan());
 
@@ -242,7 +242,7 @@ $('cSave').addEventListener('click', async () => {
   if(rows.some(r => !(r.grams > 0))){ toast(t('needGrams')); return; }
   if(num('cPotFull') && num('cPotEmpty') !== null && num('cPotFull') <= num('cPotEmpty')){ toast(t('potNegative')); return; }
   const tot = mealTotals(rows), w = num('cCooked');
-  if(!(w > 0) && !(await ask(t('noWeightConfirm')))) return;
+  // 0.6.1: no cooked weight = worked out from the ingredients, no question
   const cooked = w > 0 ? w : tot.raw, m = 100 / cooked, now = new Date().toISOString();
   const rec = { name, ingredients: rows.map(({ key, wanted, ...r }) => r), rawWeight: tot.raw, cookedWeight: cooked, cookedEstimated: !(w > 0),
     kcal: Math.round(tot.kcal*m), protein: r1(tot.protein*m), carbs: r1(tot.carbs*m), fat: r1(tot.fat*m), fiber: r1(tot.fib*m), salt: Math.round(tot.na*m/400*100)/100, potassium: Math.round(tot.k*m),

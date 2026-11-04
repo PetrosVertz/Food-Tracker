@@ -196,7 +196,7 @@ document.querySelectorAll('#tpType button').forEach(b => b.addEventListener('cli
 
 $('tpList').addEventListener('click', e => {
   const r = e.target.closest('[data-i]'); if(!r) return; const i = +r.dataset.i, x = TP.exercises[i];
-  if(e.target.closest('[data-up]') && i > 0){ TP.exercises.splice(i - 1, 0, TP.exercises.splice(i, 1)[0]); }
+  if(e.target.closest('[data-rsd]')) x.rest = Math.max(30, rest30(x.rest) - 30); if(e.target.closest('[data-rsu]')) x.rest = Math.min(300, rest30(x.rest) + 30);
   if(e.target.closest('[data-sd]')) x.sets = Math.max(1, x.sets - 1); if(e.target.closest('[data-su]')) x.sets = Math.min(10, x.sets + 1);
   if(e.target.closest('[data-rm]')) TP.exercises.splice(i, 1);
   if(!e.target.matches('[data-reps]')) drawTpl();

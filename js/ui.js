@@ -47,22 +47,24 @@ function goForward(){
 
 function route_053(){
   let h = location.hash.replace('#','');
-  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc'].includes(h) ? h : 'foods';
-  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym'],['pgLaunch','start']].forEach(([id, p]) => $(id).classList.toggle('hide', page !== p));
-  const tab = h === 'meals' ? 'meals' : 'store';
+  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
+  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
+  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
   setSeg('#foodTabs', tab);
   $('storeView').classList.toggle('hide', tab !== 'store');
   $('mealsView').classList.toggle('hide', tab !== 'meals');
+  $('foodSupps').classList.toggle('hide', tab !== 'supps');
   document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === page)));
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', page === 'groc' || page === 'gym');
-  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : t('addFoodFab');
-  fab.dataset.action = ['today','fridge'].includes(page) ? page : tab;
+  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
+  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
+  else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
   renderAll();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
-  if(h === 'supps') setTimeout(() => $('foodSupps').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
 }
 
 function renderLaunch(){
@@ -93,9 +95,9 @@ function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySele
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
 function switchTab(dir, toTab){
-  const h = location.hash.slice(1), cur = tabOf(h), i = TABS3.indexOf(cur);
+  const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Settings sits below Fridge
   const tab = toTab || TABS3[i + dir]; if(!tab || tab === cur || SWITCHING) return;
-  if(!dir) dir = TABS3.indexOf(tab) > i ? 1 : -1;
+  if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || reduce || !pg.animate){ go(tabTarget(tab)); return; }
   // plain slide: this page moves out, the next one moves in (down = next tab slides up from below)
@@ -122,7 +124,7 @@ function openSetup(){
   const tg = targets || {}; const gymDays = Object.entries(gymPlan).filter(([, p]) => p && p.tpl && p.tpl !== 'rest').map(([wd]) => +wd);
   const workDays = Object.entries(gymPlan).filter(([, p]) => p && p.work).map(([wd]) => +wd), w0 = workDays.length ? gymPlan[workDays[0]].work : { from: '09:00', to: '17:00' };
   SUP = { step: 0, lang: lang, bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: ui.gymTime || '18:00',
-    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '' };
+    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: ui.sex || null, h: ui.height || '' };
   drawSetup(); open('ovSetup');
 }
 
@@ -130,7 +132,8 @@ function drawSetup(){
   const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
   let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
   if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>`;
-  if(s === 1) h += `<h2>${t('suAbout')}</h2><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
+  if(s === 1) h += `<h2>${t('suAbout')}</h2><label>${t('suSex')}</label><div class="seg" id="suSex"><button data-v="m" class="${SUP.sex === 'm' ? 'on' : ''}">${t('suMale')}</button><button data-v="f" class="${SUP.sex === 'f' ? 'on' : ''}">${t('suFemale')}</button></div>
+    <label for="suH">${t('suHeight')}</label><div class="brandrow"><input id="suH" type="number" inputmode="numeric" value="${SUP.h || ''}" placeholder="178" style="flex:1"><span style="color:var(--muted)">cm</span></div><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
     <label>${t('suGoal')}</label><div class="seg" id="suGoal">${['bulk', 'recomp', 'cut'].map(g => `<button data-v="${g}" class="${SUP.goal === g ? 'on' : ''}">${t({ bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[g])}</button>`).join('')}</div>`;
   if(s === 2) h += `<h2>${t('suWeek')}</h2><label>${t('suGymDays')}</label>${dayChips(SUP.gym, 'sugym')}
     <div class="brandrow" style="margin-top:12px"><label for="suTime" style="margin:0;flex:1">${t('suGymTime')}</label><input id="suTime" type="time" value="${SUP.time}" style="flex:0 0 130px"></div>
@@ -144,15 +147,23 @@ function drawSetup(){
 }
 
 function readSetup(){ const v = id => $(id) ? $(id).value : null;
-  if($('suBw')) SUP.bw = num('suBw') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); }
+  if($('suBw')) SUP.bw = num('suBw') || ''; if($('suH')) SUP.h = num('suH') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); }
 
-function calcTargets(bw, goal){
+function calcTargets(bw, goal, sex, hcm){
+  sex = sex || ui.sex; hcm = hcm || ui.height;
+  if(sex && hcm > 120){   // 0.6.2: from sex + height + weight (age ~25 assumed), lightly active + training
+    const maint = (10 * bw + 6.25 * hcm - 5 * 25 + (sex === 'f' ? -161 : 5)) * 1.5, gymK = maint + { bulk: 250, recomp: 0, cut: -450 }[goal];
+    const prot = Math.round(bw * (goal === 'cut' ? 2.2 : 2) / 5) * 5, fpk = sex === 'f' ? .1 : 0;
+    const mk = (k, fatPerKg) => { const f = Math.round(bw * fatPerKg / 5) * 5, kk = Math.round(k / 50) * 50; return { k: kk, p: prot, f, c: Math.max(0, Math.round((kk - prot * 4 - f * 9) / 4 / 5) * 5) }; };
+    return { goal, bw, sex, h: hcm, gym: mk(gymK, .9 + fpk), rest: mk(gymK - (goal === 'cut' ? 200 : 250), 1 + fpk) };
+  }
   const kg = { bulk: 36, recomp: 33, cut: 28 }[goal], prot = Math.round(bw * (goal === 'cut' ? 2.2 : 2) / 5) * 5;
   const mk = (k, fatPerKg) => { const f = Math.round(bw * fatPerKg / 5) * 5, kk = Math.round(k / 50) * 50; return { k: kk, p: prot, f, c: Math.max(0, Math.round((kk - prot * 4 - f * 9) / 4 / 5) * 5) }; };
   return { goal, bw, gym: mk(bw * kg, .9), rest: mk(bw * kg - (goal === 'cut' ? 200 : 250), 1) };
 }
 
 function finishSetup(){
+  if(SUP.sex) ui.sex = SUP.sex; if(SUP.h > 120) ui.height = SUP.h; if(SUP.bw > 30 && !Object.keys(weights || {}).length){ weights[todayKey()] = SUP.bw; store(WKEY, weights); }
   const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; store(TGKEY, targets);
   ui.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
     if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
@@ -218,3 +229,5 @@ function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join(''); open('ovSettings'); }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
+
+function tabIdx(tab){ return tab === 'settings' ? TABS3.length : TABS3.indexOf(tab); }   // 0.6.3.1: Settings is a page under Fridge

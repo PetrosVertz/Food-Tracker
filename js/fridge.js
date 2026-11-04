@@ -2,7 +2,8 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ---------- where things go and how long they last (rough defaults, always editable) ----------
-function defaultLoc(f){
+function defaultLoc(f){ const l = defaultLoc_0(f); return l === 'cupboard' ? 'fridge' : l; }   // 0.6.2: no cupboard
+function defaultLoc_0(f){
   const c = f.cat, s = f.sub;
   if(['meat','fish','dairy','eggs','ready'].includes(c)) return 'fridge';
   if(c === 'veg') return ['potato','sweetpotato','onion','garlic'].includes(s) ? 'cupboard' : 'fridge';

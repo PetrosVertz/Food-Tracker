@@ -12,6 +12,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<script>
+// Home Screen app on iPhone: size everything to the real screen (the reported viewport can be shorter, leaving a black strip at the bottom). In Safari nothing changes.
+(function(){ var pwa = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); if(!pwa) return;
+  var de = document.documentElement; de.classList.add('pwa');
+  function fit(){ var portrait = innerHeight >= innerWidth, h = portrait ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
+  fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); })();
+</script>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/glass.css">
 <link rel="stylesheet" href="css/motion.css">
@@ -63,7 +70,7 @@
     <div class="left"><button class="iconbtn hide" id="backBtn" aria-label="Back">‹</button><h1 data-t="tabFood"></h1></div>
     <div class="hbtns"><button class="iconbtn" id="fScanBtn" aria-label="Scan">▥</button><button class="iconbtn" data-settings aria-label="Settings">⚙︎</button></div>
   </header>
-  <div class="tabs" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button></div>
+  <div class="tabs" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
   <div id="storeView">
     <input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off">
     <div class="chips" id="catChips"></div>
@@ -105,12 +112,15 @@
     <div class="brandrow" style="margin-top:8px"><label for="dTime" style="margin:0;flex:1" data-t="workoutAt"></label><input id="dTime" type="time" style="flex:0 0 130px"></div>
   </div>
   <div class="macrocard"><div id="dTotals"></div>
-    <details class="fold" id="dExtras"><summary><span data-t="extrasT"></span></summary><div id="dExtrasBody"></div></details></div>
+    <div class="advwrap" id="dExtras"><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="advSw"></label>
+      <div class="advbody hide" id="advBody"><div id="dExtrasBody"></div>
+      <div class="advtiming"><div class="advh"><span data-t="carbTiming"></span><button class="ibtn" type="button" data-tip="tipCarbT" aria-label="Info">ⓘ</button></div><div id="dTiming"></div></div></div></div>
+    <button class="tgcard" id="tgCardBtn" type="button" aria-label="Daily targets">🎯</button></div>
   <div id="dRec"></div>
-  <details class="fold sectfold" id="dTimingFold"><summary><span data-t="carbTiming"></span><button class="ibtn" type="button" data-tip="tipCarbT" aria-label="Info">ⓘ</button></summary><div id="dTiming"></div></details>
   <div id="planShow"></div>
-  <h3 class="sect"><span data-t="eaten"></span><button class="linkbtn" id="copyYesterday" data-t="copyYesterday"></button></h3>
-  <div class="list" id="dLog"></div>
+  <details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small></summary>
+  <button class="linkbtn" id="copyYesterday" data-t="copyYesterday"></button>
+  <div class="list" id="dLog"></div></details>
 </section>
 
 <!-- ============ GYM ============ -->
@@ -124,12 +134,11 @@
   <button class="btn primary bigstart" id="gStart"></button>
   <div id="gHub">
     <button class="minirec recbig" id="gMiniRec" aria-label="Recovery"></button>
-    <div class="tiles" id="gHubTiles" style="margin-top:12px">
-      <button class="tile" data-sec="gym-week"><span class="e">🗓️</span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
+    <div class="tiles hubstack" id="gHubTiles" style="margin-top:12px">
       <button class="tile" data-sec="gym-lib"><span class="e">📚</span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
       <button class="tile" data-sec="gym-prog"><span class="e">📈</span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
-
-      <button class="tile pettile" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
+      <button class="tile" data-sec="gym-week"><span class="e">🗓️</span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
+      <button class="tile pettile hide" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
     </div>
   </div>
   <div class="tabs hide" id="gTabs" style="margin-top:12px"><button data-v="plan" data-t="gtPlan"></button><button data-v="tpl" data-t="gtWorkouts"></button><button data-v="prog" data-t="gtProgress"></button><button data-v="rec" data-t="gtRecovery"></button></div>
@@ -178,6 +187,7 @@
   <button data-tab="gym" class="r-gym"><span class="ri">🏋️</span><span class="sr" data-t="tabGym"></span></button>
   <button data-tab="food" class="r-food"><span class="ri">🍎</span><span class="sr" data-t="tabFood"></span></button>
   <button data-tab="fridge" class="r-fridge"><span class="ri">🧊</span><span class="sr" data-t="tabFridge"></span></button>
+  <button data-tab="settings" class="r-set" aria-label="Settings"><span class="ri">⚙︎</span><span class="sr" data-t="settings"></span></button>
 </nav>
 <div class="pullhint" id="pullHint" aria-hidden="true"><span id="phIcon"></span><b id="phText"></b></div>
 <nav class="tabbar hide" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
@@ -201,12 +211,11 @@
 <div class="overlay" id="ovShop"><div class="sheet">
   <h2 data-t="shopT"></h2><p class="sub" data-t="shopSub"></p>
   <div id="shopOpts">
-    <button class="opt" data-shop="photo"><span><b data-t="shopPhoto"></b><small data-t="shopPhotoSub"></small></span></button>
-    <button class="opt" data-shop="receipt"><span><b data-t="shopReceipt"></b><small data-t="shopReceiptSub"></small></span></button>
+    <button class="opt camopt" data-shop="camera"><span><b data-t="shopCam"></b><small data-t="shopCamSub"></small></span></button>
     <button class="opt" data-shop="scan"><span><b data-t="shopScan"></b><small data-t="shopScanSub"></small></span></button>
     <button class="opt" data-shop="search"><span><b data-t="shopSearch"></b><small data-t="shopSearchSub"></small></span></button>
   </div>
-  <input type="file" id="shopFile" accept="image/*" class="hide">
+  <input type="file" id="shopFile" accept="image/*" capture="environment" class="hide">
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
 <div class="overlay" id="ovShopRev"><div class="sheet tall">
@@ -253,18 +262,15 @@
     <button class="torch hide" id="torchBtn" data-t="light"></button>
   </div>
   <div class="status" id="scanStatus"></div>
-  <div class="actions" style="margin-top:10px">
-    <button class="btn" id="scanPhotoBtn" data-t="scanPhoto"></button>
-  </div>
+  <button class="btn cantscan" id="cantScanBtn" data-t="cantScan"></button>
+  <div id="cantScan" class="hide">
+  <div class="row cscode"><input id="manualCode" inputmode="numeric" data-tp="typeCode" autocomplete="off"><button class="btn primary small" id="lookupBtn" data-t="lookUp"></button></div>
   <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
-  <label for="manualCode" data-t="typeCode"></label>
-  <div class="row" style="gap:8px">
-    <input id="manualCode" inputmode="numeric" placeholder="5201054017265" autocomplete="off">
-    <button class="btn primary small" id="lookupBtn" data-t="lookUp"></button>
+  <button class="btn csbtn" id="scanPhotoBtn" data-t="scanPhoto"></button>
+  <button class="btn csbtn" id="scanLabel" data-t="noBarcodeLabel"></button>
+  <button class="btn csbtn" id="scanManual" data-t="typeIt"></button>
   </div>
   <div class="actions">
-    <button class="btn small" id="scanLabel" data-t="noBarcodeLabel"></button>
-    <button class="btn small" id="scanManual" data-t="typeIt"></button>
     <button class="btn" id="scanCancel" data-t="close"></button>
   </div>
 </div></div>
@@ -385,6 +391,10 @@
 </div></div>
 
 <!-- ============ COOK A MEAL ============ -->
+<div class="overlay" id="ovCookPick"><div class="sheet">
+  <h2 data-t="cookMeal"></h2>
+  <div id="cookPickOpts"></div>
+</div></div>
 <div class="overlay" id="ovCook"><div class="sheet tall">
   <h2 id="cookTitle"></h2>
   <div id="useUp"></div>
@@ -418,6 +428,7 @@
   <label for="cCooked" data-t="orFoodOnly"></label>
   <input id="cCooked" type="number" inputmode="decimal" step="any" min="0">
   <div class="preview show" id="cResult"></div>
+  <div class="cquick"><h3 data-t="cqT"></h3><textarea id="cQuickTxt" data-tp="cqPh"></textarea><button class="btn" id="cQuickGo" data-t="cqGo"></button></div>
   <label class="check hide" id="cTakeWrap"><input type="checkbox" id="cTake" checked><span id="cTakeTxt"></span></label>
   <label class="check" id="cLeftWrap"><input type="checkbox" id="cLeft"><span data-t="leftoversIn"></span></label>
   <div class="actions">
@@ -570,9 +581,9 @@
 <div class="overlay" id="ovTpl"><div class="sheet tall">
   <h2 id="tpTitle"></h2>
   <label for="tpName" data-t="workoutName"></label>
-  <input id="tpName" autocomplete="off">
-  <label data-t="workoutType"></label>
-  <div id="tpTypeShow"></div>
+  <input id="tpName" autocomplete="off" data-tp="tpNamePh">
+  <label data-t="workoutType" class="hide"></label>
+  <div id="tpTypeShow" class="hide"></div>
   <div class="seg wrapseg" id="tpType"><button data-v="upper" data-t="wUpper"></button><button data-v="lower" data-t="wLower"></button><button data-v="full" data-t="wFull"></button><button data-v="push" data-t="wPush"></button><button data-v="pull" data-t="wPull"></button><button data-v="legs" data-t="wLegs"></button><button data-v="cardio" data-t="wCardio"></button><button data-v="chest" data-t="wChest"></button><button data-v="back" data-t="wBack"></button><button data-v="shoulders" data-t="wShoulders"></button><button data-v="arms" data-t="wArms"></button><button data-v="core" data-t="wCore"></button><button data-v="glutes" data-t="wGlutes"></button></div>
   <h3 data-t="exercises"></h3>
   <div id="tpList"></div>
@@ -661,6 +672,7 @@
   <h2 data-t="logFood"></h2>
   <input class="search" id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off">
   <div class="logacts"><button class="btn" id="lQuickTop" data-t="qaBtn"></button><button class="btn" id="planBtn" data-t="planMyDay"></button></div>
+  <button class="btn ghostbtn hide" id="lYesterday" data-t="addYesterday"></button>
   <div id="lResults" class="sres"></div>
   <div class="actions"><button class="btn" id="lScan" data-t="scanToLog"></button><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
@@ -701,8 +713,11 @@
 <div class="overlay" id="ovSuggest"><div class="sheet tall">
   <h2 data-t="sgT"></h2>
   <p class="sub" id="sgLeft"></p>
-  <div class="brandrow"><input id="sgIn" data-tp="sgPh" autocomplete="off"><button class="btn small" id="sgAdd" data-t="add"></button></div>
+  <input id="sgIn" data-tp="sgPh" autocomplete="off" enterkeyhint="go"><button class="btn small hide" id="sgAdd" data-t="add"></button>
+  <div class="sgroup" data-t="sgIngT"></div>
   <div class="wrapchips" id="sgChips"></div>
+  <div class="sgroup" data-t="sgTimeT"></div>
+  <div class="seg" id="sgTime"><button data-v="quick" data-t="sgQuick"></button><button data-v="mid" data-t="sgMid"></button><button data-v="long" data-t="sgLong"></button></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="sgGo" data-t="sgGo"></button></div>
 </div></div>
 
@@ -720,6 +735,10 @@
   <label data-t="language"></label>
   <div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div>
   <button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button>
+  <div class="bodybox"><h3 data-t="yourBody"></h3>
+    <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
+    <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
+    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div>
   <label for="sKey" data-t="geminiKey"></label>
   <input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off">
   <div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div>
@@ -739,7 +758,7 @@
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Food Track · Gym Buddy · v0.6.0</div>
+  <div class="ver">Food Track · Gym Buddy · v0.6.3.1</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>

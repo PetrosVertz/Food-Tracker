@@ -62,15 +62,16 @@ $('sgChips').addEventListener('click', e => { const b = e.target.closest('[data-
 
 $('sgGo').addEventListener('click', async () => {
   if(sgCtl){ sgCtl.abort(); return; }
-  if($('sgIn').value.trim()) addSgChip();
-  if(!SG.sel.size && !$('cName').value.trim()){ toast(t('sgPick')); return; }
+  const dish = $('sgIn').value.trim() || $('cName').value.trim();
+  if(!SG.sel.size && !dish){ toast(t('sgPick')); return; }
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
   const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.textContent = t('thinking');
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{
     const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
-${$('cName').value.trim() ? `Dish name they gave: "${$('cName').value.trim()}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
-${rm ? `Macros LEFT for today: ${rm.k} kcal, protein ${rm.p} g, carbs ${rm.c} g, fat ${rm.f} g. Design it so ONE serving fits inside what's left (if little is left, make it light; prioritise closing the protein gap).` : ''}
+${dish ? `Dish name they gave: "${dish}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
+${SG.time ? `Total cooking time: ${{ quick: '20 minutes or less', mid: '20 to 60 minutes', long: 'over 60 minutes is fine' }[SG.time]}.` : ''}
+ONE serving is a normal adult portion of a main meal (roughly 600–800 kcal, high protein), whatever they have eaten today.
 In their fridge (use these when they fit): ${fr || 'unknown'}.
 Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"perServing":{"kcal":number,"protein":number,"carbs":number,"fat":number},"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
 Rules: amounts in grams for the whole batch, weighed raw as they go in (dry pasta/rice, raw meat). Include cooking oil. 3–10 ingredients, 4–10 short steps. name_en = plain generic English food name (e.g. "chicken breast", "olive oil").`, null, (i, n) => { if(sgCtl === ctl) btn.textContent = t('cancelRec', { i, n }); }, ctl.signal);
@@ -87,7 +88,7 @@ let NAV = [location.hash.slice(1)], NAVI = 0, navMode = false;
 
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if(navMode){ navMode = false; return; } if(NAV[NAVI] === h) return; NAV = NAV.slice(0, NAVI + 1); NAV.push(h); NAVI = NAV.length - 1; });
 
-const tabOf = h => h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : h === 'fridge' || h === 'groc' ? 'fridge' : 'food';
+const tabOf = h => h === 'settings' ? 'settings' : h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : h === 'fridge' || h === 'groc' ? 'fridge' : 'food';
 
 (() => {   // swipe from the right edge = forward (left edge = back is already wired)
   let sx = null, sy = 0, st = 0;

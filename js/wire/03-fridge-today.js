@@ -223,9 +223,7 @@ document.querySelectorAll('#tgGoal button').forEach(b => b.addEventListener('cli
 
 $('tgCalc').addEventListener('click', () => {
   const bw = num('tgBw'); if(!(bw > 30)){ $('tgBw').focus(); return; }
-  const kg = { bulk: 36, recomp: 33, cut: 28 }[TG.goal], prot = Math.round(bw * (TG.goal === 'cut' ? 2.2 : 2) / 5) * 5;
-  const mk = (k, fatPerKg) => { const f = Math.round(bw * fatPerKg / 5) * 5; return { k: Math.round(k / 50) * 50, p: prot, f, c: Math.max(0, Math.round((Math.round(k / 50) * 50 - prot * 4 - f * 9) / 4 / 5) * 5) }; };
-  const g = mk(bw * kg, .9), r = mk(bw * kg - (TG.goal === 'cut' ? 200 : 250), 1);
+  const ct = calcTargets(bw, TG.goal), g = ct.gym, r = ct.rest;   // 0.6.2: uses sex + height when known
   [['G', g], ['R', r]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x])); tgCheck();
 });
 

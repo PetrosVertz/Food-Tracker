@@ -66,3 +66,14 @@
 .pgex{padding:2px 6px 6px}
 .pgexr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;color:var(--muted);border-bottom:1px dashed rgba(255,255,255,.06)}
 .pgexr .pct{font-size:13px} .pgexr small{font-weight:400;color:var(--muted)}
+/* 0.6.1 · long press to reorder; Create a workout; hub tabs in one row */
+.tpcard,.exc{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .18s ease,box-shadow .18s}
+.tpcard input,.exc input{-webkit-user-select:text;user-select:text}
+.tpcard.dragging,.exc.dragging{transition:none;z-index:5;position:relative;box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 2px var(--accent)!important}
+body.sorting{overscroll-behavior:none}
+.createwk{width:100%;margin-top:12px;padding:15px;font-size:16px}
+#gHubTiles.hubtabs{display:grid!important;grid-template-columns:repeat(4,1fr);gap:8px}
+#gHubTiles.hubtabs .tile{flex-direction:column!important;align-items:center!important;justify-content:center;text-align:center;gap:4px!important;padding:12px 4px!important;min-height:86px!important;border-radius:18px}
+#gHubTiles.hubtabs .tile .e,#gHubTiles.hubtabs .petart{font-size:24px;margin:0!important}
+#gHubTiles.hubtabs .tile b{font-size:12px;line-height:1.2} #gHubTiles.hubtabs .tile small,#gHubTiles.hubtabs .tile .mbar{display:none!important}
+#gHubTiles.hubtabs .petart svg{width:30px!important;height:30px!important}

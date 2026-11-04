@@ -15,10 +15,10 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
 
 // ---------- pull past the end (or the top) of a tab to move to the next one ----------
 (() => {
-  const TH = 56; let P = null, acc = 0, accT = null;
+  const TH = 34; let P = null, acc = 0, accT = null;
   const pageEl = () => document.querySelector('section.page:not(.hide)');
   const skip = el => el.closest('input,textarea,select,.overlay,.hscroll,.chips,.tchips,.rail,.mxs,[data-noswipe]');
-  const nextOf = d => TABS3[TABS3.indexOf(tabOf(location.hash.slice(1))) + d];
+  const nextOf = d => TABS3[tabIdx(tabOf(location.hash.slice(1))) + d];
   const ends = pg => ({ bot: pg.scrollTop + pg.clientHeight >= pg.scrollHeight - 2, top: pg.scrollTop <= 0 });
   function hint(d, prog){ const el = $('pullHint'), tab = d ? nextOf(d) : null;
     if(!tab || prog <= .08){ el.style.opacity = 0; el.classList.remove('ready'); return; }
@@ -39,14 +39,14 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
   // mouse wheel / trackpad on a computer
   document.addEventListener('wheel', e => { const pg = pageEl(); if(!pg || SWITCHING || document.querySelector('.overlay.open')) return; const { bot, top } = ends(pg);
     if((e.deltaY > 0 && bot && nextOf(1)) || (e.deltaY < 0 && top && nextOf(-1))){ acc += e.deltaY; clearTimeout(accT); accT = setTimeout(() => { acc = 0; hint(0, 0); }, 380);
-      const d = Math.sign(acc); hint(d, Math.abs(acc) / 240); if(Math.abs(acc) >= 240){ acc = 0; hint(0, 0); switchTab(d); } }
+      const d = Math.sign(acc); hint(d, Math.abs(acc) / 150); if(Math.abs(acc) >= 150){ acc = 0; hint(0, 0); switchTab(d); } }
     else if(acc){ acc = 0; hint(0, 0); } }, { passive: true });
 })();
 
 // ---------- targets: linked macro sliders, fibre suggestion ----------
 $('ovTargets').addEventListener('input', e => { const r = e.target.closest('.mxr'); if(r){ moveMx(r.dataset.p, r.dataset.k, +r.value); return; }
   const id = e.target.id || ''; const m = id.match(/^tg([GR])([kpcf])$/); if(!m) return;
-  if(m[2] === 'k'){ if(MX[m[1]]) drawMx(m[1], true); } else { MX[m[1]] = mxFromGrams(m[1]); drawMx(m[1], false); }
+  if(m[2] === 'k'){ if(MX[m[1]]){ mxKeepLock(m[1]); drawMx(m[1], true); } } else { MX[m[1]] = mxFromGrams(m[1]); drawMx(m[1], false); }
   if(m[2] === 'k') drawFibSug(); });
 $('ovTargets').addEventListener('click', e => {
   if(e.target.closest('#fibUse')){ $('tgFib').value = fibSuggest(); return; }

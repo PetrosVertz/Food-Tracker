@@ -442,3 +442,58 @@ Object.assign(S, {
     'Το % δείχνει πόσο συνολικό βάρος κινείς ανά σετ εργασίας (κιλά × επαναλήψεις, χωρίς τα σετ προθέρμανσης), σε σχέση με την πρώτη σου προπόνηση. Τα περισσότερα σετ δεν το φουσκώνουν· τα περισσότερα κιλά ή επαναλήψεις ναι. Κάθε άσκηση συγκρίνεται μόνο με τον εαυτό της και μετά ο μυς βγάζει μέσο όρο. Η γκρι γραμμή είναι τα σετ ανά εβδομάδα τις τελευταίες 4 εβδομάδες (μισό σετ όταν ο μυς απλώς βοηθάει).'],
 });
 ['exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'discard', 'endWorkout', 'endEx', 'newSet'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.1 ----------
+Object.assign(S, {
+  addFoodFab: ['▥ Add food', '▥ Προσθήκη'], cantScan: ["Can't scan?", 'Δεν σκανάρει;'], addYesterday: ["↺ Add yesterday's food", '↺ Πρόσθεσε το χθεσινό φαγητό'],
+  createWorkout: ['Create a workout', 'Δημιούργησε προπόνηση'],
+});
+['addFoodFab', 'addYesterday', 'createWorkout'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+Object.assign(S, {
+  aiThinking: ['Thinking…', 'Σκέφτομαι…'], aiSlow: ['This can take up to a minute. Free AI models are often busy, so it tries a few.', 'Μπορεί να πάρει έως ένα λεπτό. Τα δωρεάν μοντέλα AI είναι συχνά απασχολημένα, οπότε δοκιμάζει μερικά.'],
+  aiMany: ['✨ {n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '✨ {n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
+  tryingModel: ['✨ Thinking…', '✨ Σκέφτομαι…'], cancelRec: ['✕ Cancel', '✕ Ακύρωση'],
+  noBarcodeLabel: ['📷 ✨ Label photo', '📷 ✨ Φωτό ετικέτας'], shopPhoto: ['📸 ✨ Photo of the shopping', '📸 ✨ Φωτογραφία των ψωνιών'], shopReceipt: ['🧾 ✨ Photo of the receipt', '🧾 ✨ Φωτογραφία της απόδειξης'],
+  optPhoto: ['✨ Photo of nutrition label<small>Read by the AI (free Gemini key in settings)</small>', '✨ Φωτογραφία διατροφικής ετικέτας<small>Τη διαβάζει το AI (δωρεάν κλειδί Gemini στις ρυθμίσεις)</small>'],
+  geminiKey: ['Gemini API key (✨ = uses it)', 'Κλειδί Gemini API (✨ = το χρησιμοποιεί)'],
+  mealName: ['Recipe title', 'Τίτλος συνταγής'],
+  sgPh: ['Give food name', 'Δώσε όνομα φαγητού'], sgIngT: ['Ingredients', 'Υλικά'], sgTimeT: ['Time available', 'Διαθέσιμος χρόνος'],
+  sgQuick: ['Quick ≤20 min', 'Γρήγορο ≤20′'], sgMid: ['20–60 min', '20–60′'], sgLong: ['60+ min', '60+′'], sgAdult: ['One normal adult portion per serving.', 'Μία κανονική μερίδα ενήλικα ανά μερίδα.'],
+  cWeighLink: ['⚖️ Weighed the cooked food? (optional)', '⚖️ Ζύγισες το μαγειρεμένο φαγητό; (προαιρετικό)'],
+  cqT: ['⚡ Quick add', '⚡ Γρήγορη προσθήκη'], cqPh: ['Write the recipe however you like, e.g. 500 g chicken, 300 g rice, 2 tbsp olive oil, 1 onion', 'Γράψε τη συνταγή όπως θες, π.χ. 500 g κοτόπουλο, 300 g ρύζι, 2 κ.σ. ελαιόλαδο, 1 κρεμμύδι'],
+  cqGo: ['✨ Work it out', '✨ Υπολόγισέ το'], cqDone: ['Added {n} ingredients. Check the amounts.', 'Μπήκαν {n} υλικά. Έλεγξε τις ποσότητες.'],
+  cqFail: ["Couldn't read it. Try listing each ingredient with an amount.", 'Δεν διαβάστηκε. Γράψε κάθε υλικό με ποσότητα.'], cqNoKey: ['Write each ingredient with grams, or add a free Gemini key (settings) for the AI.', 'Γράψε κάθε υλικό με γραμμάρια, ή βάλε δωρεάν κλειδί Gemini (ρυθμίσεις) για το AI.'],
+});
+['mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.2 ----------
+Object.assign(S, {
+  advancedT: ['Advanced · Fibre, Electrolytes, Carb Timing', 'Για προχωρημένους · Ίνες, ηλεκτρολύτες, υδατάνθρακες'],
+  startWk: ['Start workout', 'Έναρξη προπόνησης'], entryDel: ['Deleted {n}', 'Διαγράφηκε: {n}'],
+  usualHour: ['Usually this hour you have:', 'Συνήθως αυτή την ώρα τρως:'],
+  suSex: ['Sex (calories and macros differ)', 'Φύλο (οι θερμίδες διαφέρουν)'], suMale: ['Male', 'Άνδρας'], suFemale: ['Female', 'Γυναίκα'], suHeight: ['Height', 'Ύψος'],
+  shopCam: ['📷 ✨ Camera', '📷 ✨ Κάμερα'], shopCamSub: ['Lay all the items out and take a picture, or picture the receipt (more accurate)', 'Άπλωσε όλα τα προϊόντα και βγάλε φωτογραφία, ή φωτογράφισε την απόδειξη (πιο ακριβές)'],
+  scanSaved: ['Saved to Food Track too, so next time it\'s instant', 'Μπήκε και στο Food Track, την επόμενη φορά είναι άμεσο'],
+  bkAskOld: ['Your data only lives on this phone. Last backup was {d} days ago. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό. Τελευταίο αντίγραφο πριν {d} μέρες. Αντίγραφο τώρα;'],
+  bkAskNever: ['Your data only lives on this phone and you haven\'t backed it up yet. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό και δεν έχεις κρατήσει αντίγραφο. Αντίγραφο τώρα;'],
+  bkYes: ['Back up', 'Αντίγραφο'],
+});
+['startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.3 ----------
+Object.assign(S, {
+  advancedT: ['Advanced', 'Για προχωρημένους'], typeCode: ['Type every number under the barcode', 'Γράψε όλους τους αριθμούς κάτω από το barcode'],
+  tpNamePh: ['Workout name, e.g. Push A', 'Όνομα προπόνησης, π.χ. Push A'], exRemoved: ['Removed {n}', 'Αφαιρέθηκε: {n}'],
+  yourBody: ['Your body', 'Το σώμα σου'], bodySaved: ['Saved', 'Αποθηκεύτηκε'],
+  recalcQ: ['Recalculate your daily targets from this?', 'Να ξαναϋπολογιστούν οι ημερήσιοι στόχοι σου;'], recalcYes: ['Recalculate', 'Υπολογισμός'], recalcNo: ['Keep mine', 'Κράτα τους δικούς μου'],
+});
+['yourBody', 'recalcYes', 'recalcNo'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.3.1 ----------
+Object.assign(S, {
+  tabSupps: ['Supplements', 'Συμπληρώματα'], takeIt: ['Take', 'Το πήρα'], takeAgain: ['+ Again', '+ Ξανά'],
+  u_caps: ['C', 'C'], u_tabs: ['T', 'T'], u_scoops: ['S', 'S'], u_drops: ['D', 'D'],
+  ul_caps: ['capsules', 'κάψουλες'], ul_tabs: ['tablets', 'ταμπλέτες'], ul_scoops: ['scoops', 'μεζούρες'], ul_drops: ['drops', 'σταγόνες'],
+});
+['tabSupps'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
