@@ -156,7 +156,7 @@ $('sesFinish').addEventListener('click', async () => {
   if(!doneSets.length){ toast(t('noSets')); return; }
   const filled = active.exercises.some(x => x.sets.some(s => !s.done && (s.w !== '' || s.r !== '')));
   if(filled && !(await ask(t('unfinished')))) return;
-  const end = new Date(), mins = Math.max(1, Math.round((end - new Date(active.start)) / 60000));
+  const end = new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
   const cardioMin = active.exercises.filter(x => isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done)).reduce((a, s) => a + (+s.r || 0), 0);
   const kcal = Math.round(bodyW() * (5 * Math.max(0, mins - cardioMin) + 7 * cardioMin) / 60);
   const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done && s.type !== 'W')).reduce((a, s) => a + (+s.w || 0) * (+s.r || 0), 0));

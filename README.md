@@ -21,6 +21,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/supplements.js` | Supplements |
 | `js/today.js` | Today's food: log, targets, plan my day, quick add, weigh-in |
 | `js/fridge.js` | Fridge + groceries |
+| `js/progress.js` | Gym → Progress (0.6.0): body weight chart, compact weigh-in, strength by muscle (volume per working set) |
 | `js/gym.js` | Gym Buddy: workouts, sessions, picker, recovery, progress, pets, form demos |
 | `js/wire/01…11-*.js` | Start-up code in order: state, button wiring, first render (11 = 0.5.9: ⓘ bubbles, one-box Quick add, Plan my day in the Log food sheet) |
 | `sw.js` | Offline cache (bump `CACHE` and list new files when adding any) |

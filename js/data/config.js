@@ -1,7 +1,7 @@
 // App settings: version, storage keys, defaults and small lookup tables.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const VERSION = '0.5.9';
+const VERSION = '0.6.0';
 
 const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
 

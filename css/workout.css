@@ -37,3 +37,32 @@
 #gHubTiles .pettile{flex-direction:column;align-items:flex-start;gap:6px;min-height:0}
 /* tab slide: the old page as a picture moving out */
 .pghost{pointer-events:none;z-index:2}
+/* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
+.exc.ended{opacity:1;border-style:solid}
+.exdone{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;color:var(--ok)}
+.exdone .linkbtn{color:var(--muted);font-size:13px}
+#sesBody .addexbig{margin-top:12px}
+.discardlink{display:block;margin:8px auto 0;border:0;background:none;color:var(--danger);font:inherit;font-size:14px;padding:6px 12px;cursor:pointer;opacity:.85}
+/* 0.6.0 · Progress: weight chart, compact weigh-in, strength by muscle */
+.wtcard{padding:12px 12px 6px;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
+.wthead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.wthead b{font-size:24px;font-weight:800;letter-spacing:-.4px}
+.wthead small{display:block;font-size:12px;color:var(--muted)} .wthead small.up{color:var(--ok)} .wthead small.down{color:var(--orange)}
+.wtseg{flex:0 0 auto;margin:0} .wtseg button{padding:5px 9px;font-size:12px}
+.wtchart{display:block;width:100%;height:auto}
+.wtchart text{fill:var(--muted);font-size:10px;font-family:inherit}
+.wtempty{padding:22px 6px;text-align:center;color:var(--muted);font-size:13px}
+.wibox.wismall{margin-top:8px;padding:8px 10px;border-radius:14px}
+.wismall .brandrow{gap:8px;align-items:center} .wismall label{margin:0;flex:1;font-size:13px;text-transform:none;letter-spacing:0}
+.wismall input{flex:0 0 84px;padding:8px 10px} .wismall .btn.small{padding:8px 12px}
+.pglist{margin-top:6px}
+.pgrow{display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:10px;width:100%;padding:10px 12px;margin-top:6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.pgrow.l2{background:none;border-color:transparent;border-bottom:1px solid var(--line);border-radius:0;margin-top:0;padding:9px 6px}
+.pgrow .pgn{font-size:15px;font-weight:600} .pgrow.l2 .pgn{font-size:14px;font-weight:500}
+.pgrow .pgn small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px}
+.pgrow .pct{font-size:16px} .pgrow.l2 .pct{font-size:14px}
+.pgrow i{font-style:normal;color:var(--muted);transition:transform .2s} .pgrow.open i{transform:rotate(90deg)}
+.pgsub{padding:2px 0 4px 12px;animation:rowIn .22s ease-out}
+.pgex{padding:2px 6px 6px}
+.pgexr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;color:var(--muted);border-bottom:1px dashed rgba(255,255,255,.06)}
+.pgexr .pct{font-size:13px} .pgexr small{font-weight:400;color:var(--muted)}

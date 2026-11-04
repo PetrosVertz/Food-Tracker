@@ -80,7 +80,7 @@ function startSession(tpl){
     const ref = {}; sessions.forEach(s => s.exercises.forEach(x => { const h = exHistory(x.exId); if(h.length) ref[x.exId] = +h[h.length - 1].top.w; }));
     comeback = { at: now.toISOString(), base: cbBase(gap), gap, ref }; saveG('cb');
   }
-  active = { id: uid(), date: todayKey(), start: now.toISOString(), tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : t('emptyWorkout'), type: tpl ? tpl.type : 'full', prs: [],
+  active = { id: uid(), date: todayKey(), start: now.toISOString(), clock0: tpl && tpl.exercises.length ? now.getTime() : null, tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : t('emptyWorkout'), type: tpl ? tpl.type : 'full', prs: [],
     exercises: tpl ? tpl.exercises.map(e => ({ exId: e.exId, reps: e.reps, rest: e.rest ?? exById(e.exId).rest, sets: Array.from({ length: e.sets || 3 }, () => newSet()) })) : [] };
   saveG('act');
   days[todayKey()] = { ...dayInfo(todayKey()), type: 'gym', work: workKind(active.type), time: fromMin(now.getHours() * 60 + now.getMinutes()) }; delete days[todayKey()].guessed; saveDays();
@@ -99,13 +99,18 @@ function renderSession(){
     (warn ? `<div class="alert red" style="cursor:default">${warn}</div>` : '') +
     (sp.length ? `<div class="slots" style="margin:0 0 10px"><small class="rmeta" style="align-self:center">${t('suppsNow')}</small>${sp.map(s => { const sl = s.times.find(x => x === 'pre' || x === 'post') || s.times[0]; const k = `${s.id}|${sl}`;
       return `<button class="slot ${day[k] ? 'taken' : ''}" data-ssup="${k}">${day[k] ? '✓ ' : ''}${suppIcon(s)} ${esc(suppName(s))}</button>`; }).join('')}</div>` : '');
+  if(active.clock0 === undefined) active.clock0 = active.exercises.length ? new Date(active.start).getTime() : null;   // workouts started before 0.6.0
+  if(!active.clock0 && active.exercises.length){ active.clock0 = Date.now(); saveG('act'); }   // 0.6.0: the clock starts with the first exercise
   $('sesBody').innerHTML = active.exercises.map(cardHtml).join('') || `<div class="empty">${t('noExYet')}</div>`;
+  SES_ADD = SES_ADD || $('sesAddEx'); $('sesBody').appendChild(SES_ADD);   // Add Exercise always sits under the last exercise
 }
+let SES_ADD = null;
+const sesMs = () => active && active.clock0 ? Date.now() - active.clock0 : 0;
 
 const clk = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}` : `${m}:${String(ss).padStart(2, '0')}`; };
 const exTime = x => '⏱ ' + clk((x.t1 || Date.now()) - x.t0);
 function tickClock(){ if(!active || !$('ovSession').classList.contains('open')) return;
-  $('sesClock').textContent = clk(Date.now() - new Date(active.start)); $('sesDate').textContent = fmtDate(active.start);
+  $('sesClock').textContent = clk(sesMs()); $('sesDate').textContent = fmtDate(active.start);
   document.querySelectorAll('#sesBody [data-xt]').forEach(el => { const x = active.exercises[+el.dataset.xt]; if(x && x.t0) el.textContent = exTime(x); }); }
 
 function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(`.exc[data-x="${xi}"] .setrow[data-s="${si}"] [data-w]`); if(el){ el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 60); }
@@ -638,14 +643,13 @@ function cardHtml(x, i){
   const doneN = x.sets.filter(s => s.done && s.type !== 'W').length, vol = Math.round(exVol(x.exId, x.sets));
   const head = `<div class="exh">${exIcon(ex, 44)}<div class="ttl"><b data-info>${esc(exName(ex))} <span class="i">ⓘ</span></b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${card || x.ended ? '' : ` · <button class="rest" data-rest>⏱ ${fmtRest(x.rest)}</button>`}</small>${x.t0 ? `<small class="extimer" data-xt="${i}">${exTime(x)}</small>` : ''}</div>`;
-  if(x.ended) return `<div class="exc ended" data-x="${i}">${head}<button class="mini" data-reopen>↺</button></div>
-    <div class="exsum">${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · 🏋️' : ''}${x.volPR ? ' · 📈' : ''}</div></div>`;
   let info = '';
   if(sug && sug.last) info += `${t('lastTime')} <b>${sug.last.sets.map(s => `${fmt(+s.w)}×${s.r}`).join(' · ')}</b><br>`;
   if(sug && sug.cb) info += `<span class="cb">${t('comebackW', { p: sug.p, w: fmt(sug.w), r: sug.r })}</span>`;
   else if(sug && sug.first) info += t('firstTime', { r: sug.hi });
   else if(sug) info += `<span class="try">${t('tryNext', { w: fmt(sug.w), r: sug.r })}</span>`;
-  const hasWarm = x.sets.some(s => s.type === 'W'), wu = sug && !sug.first && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
+  if(x.ended) info = '';
+  const hasWarm = x.sets.some(s => s.type === 'W'), wu = !x.ended && sug && !sug.first && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
     if(s.type !== 'W') n++;
@@ -659,12 +663,13 @@ function cardHtml(x, i){
         <button class="sok" data-ok>${s.pr === 'v' ? '📈' : s.pr ? '🏆' : '✓'}</button></div>` + (lw ? `<div class="prevset">${t('lastSetL', { w: fmt(+lw.w), r: lw.r })}</div>` : '') +
       (restHere ? `<div class="restin ${REST.rang ? 'over' : ''}"><div class="rbtop"><b id="restTxt2"></b><span><button data-rs="-15">−15</button><button data-rs="15">+15</button><button data-rs="skip">${t('skip')}</button></span></div><span class="mbar"><i id="restProg2" style="width:${Math.max(0, Math.min(100, (1 - (REST.end - Date.now()) / 1000 / REST.total) * 100))}%"></i></span></div>` : '');
   }).join('');
-  return `<div class="exc" data-x="${i}">${head}<div class="exbtns"><button class="formb" data-demo>${t('formBtn')}</button>${card ? '' : `<button class="taken" data-swap>🚫</button>`}<button data-xrm aria-label="Remove">✕</button></div></div>
+  return `<div class="exc ${x.ended ? 'ended' : ''}" data-x="${i}">${head}<div class="exbtns"><button class="formb" data-demo>${t('formBtn')}</button>${card ? '' : `<button class="taken" data-swap>🚫</button>`}<button data-xrm aria-label="Remove">✕</button></div></div>
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>🔥 ${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
     ${x.sets.length ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span>✓</span></div>` : ''}
     ${rows}
-    <div class="setbtns"><button data-addset>${t('newSet')}</button><button class="endex" data-endex>${t('endEx')}</button></div></div>`;
+    ${x.ended ? `<div class="exdone"><span>✓ ${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · 🏋️' : ''}${x.volPR ? ' · 📈' : ''}</span><button class="linkbtn" data-reopen>↺ ${t('reopenEx')}</button></div>`
+      : `<div class="setbtns"><button data-addset>${t('newSet')}</button><button class="endex" data-endex>${t('endEx')}</button></div>`}</div>`;
 }
 
 // workout template editor: clear rows with labelled steppers

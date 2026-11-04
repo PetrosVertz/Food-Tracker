@@ -135,7 +135,8 @@
   <div class="tabs hide" id="gTabs" style="margin-top:12px"><button data-v="plan" data-t="gtPlan"></button><button data-v="tpl" data-t="gtWorkouts"></button><button data-v="prog" data-t="gtProgress"></button><button data-v="rec" data-t="gtRecovery"></button></div>
   <div id="gPlanV"></div>
   <div id="gTplV" class="hide"></div>
-  <div class="wibox hide" id="gWeigh"><h3 data-t="wiT"></h3><div class="brandrow"><input id="wiIn" type="number" inputmode="decimal" step="any" style="flex:1"><span style="color:var(--muted)">kg</span><button class="btn small" id="wiSave" data-t="wiSave"></button></div><div id="wiOut"></div></div>
+  <div class="hide" id="gWeigh"><h3 class="sect" style="margin-top:4px"><span data-t="wtTitle"></span></h3><div class="wtcard" id="gWChart"></div>
+    <div class="wibox wismall"><div class="brandrow"><label for="wiIn" data-t="wiT"></label><input id="wiIn" type="number" inputmode="decimal" step="any"><span style="color:var(--muted)">kg</span><button class="btn small" id="wiSave" data-t="wiSave"></button></div><div id="wiOut"></div></div></div>
   <div id="gProgV" class="hide"></div>
   <div id="gRecV" class="hide"></div>
 </section>
@@ -196,9 +197,6 @@
   <div class="seg" id="qaSize" style="margin-top:10px"><button data-v="0.7" data-t="qaSmall"></button><button data-v="1" data-t="qaNormal" class="on"></button><button data-v="1.4" data-t="qaBig"></button></div>
   <div class="hint" id="qaOut"></div>
   <div class="actions"><button class="btn small danger hide" id="qaDel" data-t="delete"></button><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="qaSave" data-t="qaLog"></button></div>
-</div></div>
-  <details class="guide"><summary data-t="qaMore"></summary><div class="grid"><div><label for="qaC" data-t="carbs"></label><input id="qaC" type="number" inputmode="decimal" placeholder="g"></div><div><label for="qaF" data-t="fat"></label><input id="qaF" type="number" inputmode="decimal" placeholder="g"></div></div></details>
-  <div class="actions"><button class="btn small danger hide" id="qaDel" data-t="delete"></button><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="qaSave" data-t="save"></button></div>
 </div></div>
 <div class="overlay" id="ovShop"><div class="sheet">
   <h2 data-t="shopT"></h2><p class="sub" data-t="shopSub"></p>
@@ -516,14 +514,13 @@
 <!-- ============ LIVE WORKOUT ============ -->
 <div class="overlay" id="ovSession"><div class="sheet tall session">
   <div class="seshead2"><button class="sesback" id="sesMin" aria-label="Back">‹</button><div class="sestitle"><h2 id="sesName"></h2><small id="sesDate"></small></div><div class="bigclock" id="sesClock">0:00</div></div>
-  <button class="addexbig" id="sesAddEx"><span>＋</span><b data-t="addExercise"></b></button>
+  <button class="addexbig" id="sesAddEx"><b data-t="addExercise"></b></button>
   <div id="sesSupps"></div>
   <div id="sesBody"></div>
   <div class="actions hide"><button class="btn" id="sesNext" data-t="whatNext"></button></div>
-  <div class="actions" style="margin-top:8px"><button class="btn small danger" id="sesDiscard" data-t="discard"></button></div>
   <div style="height:96px"></div>
   <div class="hide" id="restBar"></div>
-  <div class="endbar"><button class="btn primary" id="sesFinish" data-t="endWorkout"></button></div>
+  <div class="endbar"><button class="btn primary" id="sesFinish" data-t="endWorkout"></button><button class="discardlink" id="sesDiscard" data-t="discard"></button></div>
 </div></div>
 
 <!-- ============ PICK EXERCISE ============ -->
@@ -742,7 +739,7 @@
   </div>
   <input type="file" id="importInput" accept="application/json,.json" class="hide">
   <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Food Track · Gym Buddy · v0.5.9</div>
+  <div class="ver">Food Track · Gym Buddy · v0.6.0</div>
 </div></div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
@@ -765,6 +762,7 @@
 <script src="js/today.js"></script>
 <script src="js/fridge.js"></script>
 <script src="js/gym.js"></script>
+<script src="js/progress.js"></script>
 <script src="js/wire/01-core.js"></script>
 <script src="js/wire/02-food.js"></script>
 <script src="js/wire/03-fridge-today.js"></script>

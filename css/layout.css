@@ -89,3 +89,7 @@ details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 .logacts .btn{width:100%;font-size:14px;padding:11px 8px}
 #qaOut{min-height:18px;margin-top:8px}
 .planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+
+/* ---------- 0.6.0: back buttons are grey, and flash orange while pressed ---------- */
+.sback,.sesback,#gBackBtn,[data-home],#backBtn,#backBtn2,#sesMin,.pback,.backpill,.btn.back{background:rgba(255,255,255,.1)!important;color:var(--text)!important;border-color:var(--line)!important;box-shadow:none!important;transition:background-color .15s,color .15s,transform .12s}
+.sback:active,.sesback:active,#gBackBtn:active,[data-home]:active,#backBtn:active,#backBtn2:active,#sesMin:active,.pback:active,.backpill:active,.btn.back:active{background:var(--orange)!important;color:#1c0e00!important;border-color:var(--orange)!important}
