@@ -123,9 +123,9 @@ setTimeout(async () => {
 
 // ---------- 0.6.3 ----------
 // swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
-const SWIPE_OPTS = { '.exc': { skip: '.setrow,.prevset,.restin,.sethead,.setbtns,.exdone,.wuhint' }, '.setrow': { buttons: true } };
 function makeSwipeDelete(box, itemSel, onDelete, opts){
-  opts = opts || SWIPE_OPTS[itemSel] || {}; let S = null, eatClick = false;
+  opts = opts || ({ '.exc': { skip: '.setrow,.prevset,.restin,.sethead,.setbtns,.exdone,.wuhint' }, '.setrow': { buttons: true } })[itemSel] || {};   // inside the function: it's called before this line runs
+  let S = null, eatClick = false;
   const start = (c, x, y) => { S = { c, x, y, dx: 0, claim: null }; };
   const move = (x, y, ev) => { if(!S) return false; const dx = x - S.x, dy = y - S.y;
     if(S.claim === null){ if(dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.3) S.claim = true; else if(Math.abs(dy) > 10 || dx > 10) S.claim = false; }
