@@ -241,3 +241,28 @@ html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px
 html.pwa .toast{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
 html.pwa .pullhint.bottom{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
 html.pwa .aiwait{height:var(--appH,100vh);bottom:auto}
+
+/* ---------- 0.6.4 ---------- */
+/* full width and centred again (the old side strip's space is gone) */
+section.page.wrap{padding-left:max(16px,calc((100vw - 640px) / 2))!important;padding-right:max(16px,calc((100vw - 640px) / 2))!important}
+/* title stays below the status bar on the Home Screen app */
+header .left h1,header>h1{top:calc(50% + env(safe-area-inset-top) / 2 + 4px)!important}
+/* top blur fades out softly instead of ending in a line */
+section.page>header{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-22px;z-index:-1;pointer-events:none;
+  background:linear-gradient(rgba(7,9,11,.94),rgba(7,9,11,.72) 62%,rgba(7,9,11,0));
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+/* Food Track: two buttons side by side */
+.fab2{background:rgba(255,255,255,.12)!important;color:var(--text)!important;border:1px solid rgba(255,255,255,.2)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+body.twofab .fab{margin:0!important;width:auto!important;min-width:0;padding-left:14px;padding-right:14px;font-size:16px}
+body.twofab #fab{left:calc(50% + 5px)!important;right:16px!important}
+body.twofab #fab2{left:16px!important;right:calc(50% + 5px)!important}
+@media(min-width:700px){body.twofab #fab{left:calc(50% + 5px)!important;right:calc(50% - 215px)!important} body.twofab #fab2{left:calc(50% - 215px)!important;right:calc(50% + 5px)!important}}
+/* half body in the exercise picker */
+.pickhalf svg{max-width:560px!important}
+/* short pop-ups float in the middle */
+.overlay.measure .sheet{height:auto!important}
+.overlay.center{align-items:center!important}
+.overlay.center .sheet{height:auto!important;max-height:88vh;width:calc(100% - 24px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;padding-bottom:18px}
+/* smooth scrolling inside pages */
+section.page,.sheet{scroll-behavior:smooth}

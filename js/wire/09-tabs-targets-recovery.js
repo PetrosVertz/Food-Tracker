@@ -15,7 +15,7 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
 
 // ---------- pull past the end (or the top) of a tab to move to the next one ----------
 (() => {
-  const TH = 34; let P = null, acc = 0, accT = null;
+  const TH = 24; let P = null, acc = 0, accT = null;
   const pageEl = () => document.querySelector('section.page:not(.hide)');
   const skip = el => el.closest('input,textarea,select,.overlay,.hscroll,.chips,.tchips,.rail,.mxs,[data-noswipe]');
   const nextOf = d => TABS3[tabIdx(tabOf(location.hash.slice(1))) + d];
@@ -39,7 +39,7 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
   // mouse wheel / trackpad on a computer
   document.addEventListener('wheel', e => { const pg = pageEl(); if(!pg || SWITCHING || document.querySelector('.overlay.open')) return; const { bot, top } = ends(pg);
     if((e.deltaY > 0 && bot && nextOf(1)) || (e.deltaY < 0 && top && nextOf(-1))){ acc += e.deltaY; clearTimeout(accT); accT = setTimeout(() => { acc = 0; hint(0, 0); }, 380);
-      const d = Math.sign(acc); hint(d, Math.abs(acc) / 150); if(Math.abs(acc) >= 150){ acc = 0; hint(0, 0); switchTab(d); } }
+      const d = Math.sign(acc); hint(d, Math.abs(acc) / 100); if(Math.abs(acc) >= 100){ acc = 0; hint(0, 0); switchTab(d); } }
     else if(acc){ acc = 0; hint(0, 0); } }, { passive: true });
 })();
 

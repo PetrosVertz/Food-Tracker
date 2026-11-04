@@ -104,11 +104,11 @@ function switchTab(dir, toTab){
   SWITCHING = true;
   const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
-  const opt = { duration: 360, easing: 'cubic-bezier(.3,.8,.25,1)' }, target = tabTarget(tab);
+  const opt = { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' }, target = tabTarget(tab);
   const run = () => { const np = document.querySelector('section.page:not(.hide):not(.pghost)');
     ghost.animate([{ transform: 'none' }, { transform: `translateY(${dir > 0 ? -100 : 100}%)` }], { ...opt, fill: 'forwards' });
     if(np) np.animate([{ transform: `translateY(${dir > 0 ? 100 : -100}%)` }, { transform: 'none' }], opt);
-    setTimeout(() => { ghost.remove(); SWITCHING = false; }, 380); };
+    setTimeout(() => { ghost.remove(); SWITCHING = false; }, 300); };
   if(location.hash.slice(1) === target){ route(); run(); }
   else { addEventListener('hashchange', run, { once: true }); location.hash = target; }   // the page swaps on hashchange, then it slides
 }

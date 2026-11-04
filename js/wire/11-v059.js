@@ -38,7 +38,7 @@ makeSortable($('sesBody'), '.exc', (a, b) => { const ex = active.exercises, move
 // ---------- 0.6.1: Food Track ----------
 $('list').addEventListener('click', e => { const b = e.target.closest('[data-fcat]'); if(!b) return; FCAT[b.dataset.fcat] = !FCAT[b.dataset.fcat]; render(); });
 // Add food goes straight to the scanner; the other ways hide behind "Can't scan?"
-$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'store'){ e.stopImmediatePropagation(); pendingBarcode = null; startScan(); } }, true);
+$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'store'){ e.stopImmediatePropagation(); pendingBarcode = null; openForm({}, null, 'new'); } }, true);   // 0.6.4: Add Food = type it in
 $('cantScanBtn').addEventListener('click', () => { const c = $('cantScan'), op = c.classList.toggle('hide'); $('cantScanBtn').classList.toggle('open', !op); if(!op) setTimeout(() => c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60); });
 { const ss = startScan; startScan = function(...a){ $('cantScan').classList.add('hide'); $('cantScanBtn').classList.remove('open'); return ss.apply(this, a); }; }
 // Log food: add yesterday's food
@@ -242,3 +242,38 @@ function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel')
   setSeg('#sSex', ui.sex || ''); $('sH').value = ui.height || ''; $('sW').value = latestWeight() || (targets && targets.bw) || ''; }
 openSettings = function(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); if(location.hash.slice(1) !== 'settings') switchTab(1, 'settings'); };
 addEventListener('hashchange', () => { if(location.hash === '#settings') fillSettings(); });
+
+// ---------- 0.6.4 ----------
+// Food Track (Store-bought): two buttons — ＋ Add Food (type it) and ▥ Scan Food (scanner)
+$('fab2').addEventListener('click', () => { pendingBarcode = null; startScan(); });
+function syncFab2(){ const on = $('fab').dataset.action === 'store' && !$('fab').classList.contains('hide'); $('fab2').classList.toggle('hide', !on); document.body.classList.toggle('twofab', on); }
+{ const ra = renderAll; renderAll = function(...a){ const r = ra.apply(this, a); syncFab2(); return r; }; }
+addEventListener('hashchange', () => setTimeout(syncFab2, 0));
+// scanner: a photo of the whole item (the AI recognises it and fills in typical values)
+$('scanItemBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('itemPhoto').value = ''; $('itemPhoto').click(); });
+$('itemPhoto').addEventListener('change', async () => {
+  const file = $('itemPhoto').files[0]; if(!file) return; const ctx = scanCtx;
+  try{
+    const img = await shrink(file);
+    const d = await gemini(`This is a photo of a food or drink product (often from a Greek supermarket). Identify it from the packaging (brand, product name, flavour/variant). If a nutrition table is visible, read it; otherwise give typical values for that exact product. Return ONLY JSON:
+{"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null}
+Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml.`, img);
+    if(!d || !d.name || d.protein == null) throw new Error('not recognised');
+    if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; } if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
+    close('ovScan'); scanCtx = null;
+    if(ctx === 'log' || ctx === 'fridge'){ const f = saveOnlineFood({ ...d, source: 'item photo' }); renderAll(); if(ctx === 'log') openAmt({ mode: 'log', info: fInfo_(f) }); else openFridgeAdd(f); toast(t('scanSaved')); return; }
+    d.source = 'item photo'; openForm(d, t('theItemPhoto'), 'new');
+  }catch(err){ if(!err.cancelled) toast(t('itemFail')); }
+});
+// short pop-ups sit in the middle of the screen instead of a half-empty sheet
+{ const op = open; open = function(id){ const r = op(id); const ov = $(id); if(!ov || id === 'ovSession' || id === 'ovAsk') return r;
+    requestAnimationFrame(() => { const sh = ov.querySelector('.sheet'); if(!sh) return; ov.classList.add('measure'); const hgt = sh.offsetHeight; ov.classList.remove('measure');
+      ov.classList.toggle('center', hgt < (window.innerHeight || 700) * .7); }); return r; }; }
+// tapping something that opens / folds scrolls it smoothly to the middle
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pg],[data-fcat],[data-fold],.foldh,details>summary,.advrow,[data-sec]'); if(!b || e.target.closest('[data-tip]')) return;
+  const key = ['data-pg', 'data-fcat', 'data-fold'].find(a => b.hasAttribute(a)), sel = key ? `[${key}="${b.getAttribute(key)}"]` : null;
+  setTimeout(() => { const el = (sel && document.querySelector(sel)) || (document.contains(b) ? b : null); if(el && el.offsetParent) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
+});
+document.addEventListener('focusin', e => { const i = e.target; if(!i.matches || !i.matches('input:not([type=checkbox]):not([type=range]),textarea')) return;
+  setTimeout(() => { if(document.activeElement === i) i.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 320); });

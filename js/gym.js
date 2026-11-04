@@ -486,9 +486,10 @@ function anatomySVG(o){
       ${skin}<g transform="translate(200 0) scale(-1 1)">${skin}</g>
       ${half(side)}<g transform="translate(200 0) scale(-1 1)">${half(side)}</g>
       ${o.labels === false ? '' : `<text x="100" y="438" text-anchor="middle" fill="#8b949c" font-size="13" font-family="system-ui">${label}</text>`}</g>`;
-  return `<svg viewBox="0 0 420 446" width="100%" style="max-width:${o.max || 380}px;display:block;margin:0 auto" aria-hidden="true">
+  const vb = o.half === 'up' ? '22 4 336 262' : o.half === 'low' ? '22 196 336 252' : '0 0 420 446';   // 0.6.4: half a body, bigger
+  return `<svg viewBox="${vb}" width="100%" style="max-width:${o.max || 380}px;display:block;margin:0 auto" aria-hidden="true">
     <defs><radialGradient id="${idp}shade" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient></defs>
-    ${fig('f', 0, o.front || 'Front')}${fig('b', 220, o.back || 'Back')}</svg>`;
+    ${fig('f', 0, o.front || 'Front')}${fig('b', o.half ? 160 : 220, o.back || 'Back')}</svg>`;
 }
 
 function drawRecipeBox(){
@@ -606,7 +607,7 @@ function drawExPick(){
   } else if(PK.region === 'cardio'){
     h = exTiles(EX().filter(x => x.m === 'cardio'));
   } else if(!PK.group){
-    if(PK.mode === 'map') h = `<div class="bodymap">${bodyMapSVG('pick', PK.region)}</div><p class="hint" style="text-align:center">${t('tapMuscle')}</p>`;
+    if(PK.mode === 'map') h = `<div class="bodymap pickhalf">${anatomySVG({ mode: 'pick', region: PK.region, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: 'pick', half: PK.region === 'up' || PK.region === 'low' ? PK.region : null, max: 560 })}</div><p class="hint" style="text-align:center">${t('tapMuscle')}</p>`;
     else h = `<div class="ggrid">${Object.entries(GROUPS).filter(([, g]) => g[2] === PK.region).map(([k, g]) => { const hs = Object.keys(HEADS).filter(x => HEADS[x][2] === k);
       return `<button class="gbtn" data-grp="${k}" style="--gc:${HEAD_COL[hs[0]] || g[3]}"><b>${esc(ML(k))}</b><span class="dots">${hs.map(x => `<i style="background:${HEAD_COL[x]}"></i>`).join('')}</span><small>${t('nEx', { n: EX().filter(x => x.m === k).length })}</small></button>`; }).join('')}</div>`;
   } else {

@@ -497,3 +497,11 @@ Object.assign(S, {
   ul_caps: ['capsules', 'κάψουλες'], ul_tabs: ['tablets', 'ταμπλέτες'], ul_scoops: ['scoops', 'μεζούρες'], ul_drops: ['drops', 'σταγόνες'],
 });
 ['tabSupps'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.4 ----------
+Object.assign(S, {
+  addFoodFab: ['＋ Add food', '＋ Προσθήκη'], scanFoodFab: ['▥ Scan food', '▥ Σάρωση'],
+  scanItem: ['📸 ✨ Photo of the whole item', '📸 ✨ Φωτογραφία του προϊόντος'], theItemPhoto: ['the item photo', 'τη φωτογραφία του προϊόντος'],
+  itemFail: ["Couldn't recognise it. Try a clearer photo of the front, or the label.", 'Δεν αναγνωρίστηκε. Δοκίμασε πιο καθαρή φωτογραφία της μπροστινής πλευράς ή της ετικέτας.'],
+});
+['addFoodFab', 'scanFoodFab'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
