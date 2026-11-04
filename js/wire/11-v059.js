@@ -123,8 +123,9 @@ setTimeout(async () => {
 
 // ---------- 0.6.3 ----------
 // swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
-function makeSwipeDelete(box, itemSel, onDelete){
-  let S = null, eatClick = false;
+const SWIPE_OPTS = { '.exc': { skip: '.setrow,.prevset,.restin,.sethead,.setbtns,.exdone,.wuhint' }, '.setrow': { buttons: true } };
+function makeSwipeDelete(box, itemSel, onDelete, opts){
+  opts = opts || SWIPE_OPTS[itemSel] || {}; let S = null, eatClick = false;
   const start = (c, x, y) => { S = { c, x, y, dx: 0, claim: null }; };
   const move = (x, y, ev) => { if(!S) return false; const dx = x - S.x, dy = y - S.y;
     if(S.claim === null){ if(dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.3) S.claim = true; else if(Math.abs(dy) > 10 || dx > 10) S.claim = false; }
@@ -135,7 +136,7 @@ function makeSwipeDelete(box, itemSel, onDelete){
   const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
     if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
     else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
-  const ok = t => !t.closest('input,textarea,select,button,.stepper');
+  const ok = t => !t.closest(opts.buttons ? 'input,textarea,select' : 'input,textarea,select,button,.stepper') && !(opts.skip && t.closest(opts.skip));
   box.addEventListener('touchstart', e => { const c = e.target.closest(itemSel); if(!c || e.touches.length > 1 || !ok(e.target)){ S = null; return; } start(c, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
   box.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false });
   box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
@@ -275,5 +276,84 @@ document.addEventListener('click', e => {
   const key = ['data-pg', 'data-fcat', 'data-fold'].find(a => b.hasAttribute(a)), sel = key ? `[${key}="${b.getAttribute(key)}"]` : null;
   setTimeout(() => { const el = (sel && document.querySelector(sel)) || (document.contains(b) ? b : null); if(el && el.offsetParent) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
 });
-document.addEventListener('focusin', e => { const i = e.target; if(!i.matches || !i.matches('input:not([type=checkbox]):not([type=range]),textarea')) return;
-  setTimeout(() => { if(document.activeElement === i) i.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 320); });
+// 0.6.5: typing no longer scrolls things around (it made search windows jump)
+
+// ---------- 0.6.5 ----------
+// unilateral exercises: L and R sets in pairs; rest starts after the R side
+const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|split squat|lunge|step[- ]?up|pistol|concentration|kickback|suitcase/i;
+const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && UNI_RE.test(ex.en || ''); };
+const uniPair = s => [{ ...newSet(s && s.type), side: 'L' }, { ...newSet(s && s.type), side: 'R' }];
+function makeUni(x, on){ x.uni = on;
+  if(on) x.sets = x.sets.flatMap(s => s.type === 'W' || s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R', w: s.w, r: s.r }]);
+  else x.sets = x.sets.filter(s => s.side !== 'R').map(s => { const c = { ...s }; delete c.side; return c; }); }
+{ const ats = addToSession; addToSession = function(id){ const r = ats(id); const x = active.exercises[active.exercises.length - 1]; if(x && isUni(id)){ makeUni(x, true); saveG('act'); renderSession(); } return r; }; }
+{ const ss = startSession; startSession = function(tpl){ const r = ss(tpl); if(active){ active.exercises.forEach((x, i) => { const e = tpl && tpl.exercises[i], on = e && e.uni !== undefined ? e.uni : isUni(x.exId); if(on && !x.uni) makeUni(x, true); }); saveG('act'); if($('ovSession').classList.contains('open')) renderSession(); } return r; }; }
+$('sesBody').addEventListener('click', e => { const c = e.target.closest('[data-x]'); if(!c) return; const x = active && active.exercises[+c.dataset.x]; if(!x) return;
+  if(e.target.closest('[data-uni]')){ e.stopImmediatePropagation(); makeUni(x, !x.uni); saveG('act'); renderSession(); return; }
+  if(x.uni && e.target.closest('[data-addset]')){ e.stopImmediatePropagation(); x.sets.push(...uniPair()); saveG('act'); renderSession(); focusSet(+c.dataset.x, x.sets.length - 2); } }, true);
+// swipe a set right-to-left to delete it (like exercises)
+makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data-x]').dataset.x, si = +row.dataset.s, x = active.exercises[xi]; if(!x) return; const gone = x.sets.splice(si, 1)[0];
+  if(REST && REST.xi === xi){ if(REST.si === si){ REST = null; $('restBar').classList.add('hide'); } else if(REST.si > si) REST.si--; }
+  saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });
+
+// AI works in a bubble in the corner: keep using the app, tap the bubble when it's ready
+aiWait = function(){};
+const AIB = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [] };
+function aiBubble(st){ let b = $('aiBub');
+  if(st === 'hide'){ if(b) b.remove(); return; }
+  if(!b){ b = document.createElement('button'); b.id = 'aiBub'; b.type = 'button'; b.className = 'aibub'; document.body.appendChild(b);
+    b.addEventListener('click', e => { if(e.target.closest('[data-aix]')){ AIB.ctls.forEach(c => c.abort()); return; }
+      if(b.classList.contains('ready')){ const ids = AIB.show; aiBubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); }); }
+  b.className = 'aibub ' + st; b.innerHTML = st === 'run' ? `<span class="aispin2"></span><span class="aist">✨</span><i data-aix aria-label="Cancel">✕</i>` : `<span class="aist">✨</span><b>✓</b>`;
+  b.setAttribute('aria-label', st === 'run' ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+{ const g1 = gemini; gemini = async function(prompt, img, onTry, outer, opts){
+    if(opts && opts.quiet) return g1(prompt, img, onTry, outer, opts);
+    const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
+    if(!AIB.jobs){ AIB.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); AIB.pending = []; AIB.closed = []; AIB.was.forEach(id => close(id)); toast(t('aiBg')); }
+    AIB.jobs++; AIB.ctls.push(ctl); aiBubble('run'); let ok = false;
+    try{ const r = await g1(prompt, img, onTry, ctl.signal); ok = true; return r; }
+    finally{ AIB.jobs--; AIB.ctls = AIB.ctls.filter(c => c !== ctl);
+      if(!AIB.jobs){ AIB.defer = true; setTimeout(() => { AIB.defer = false;
+        if(!ok){ aiBubble('hide'); AIB.was.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); return; }   // failed or cancelled: put things back
+        AIB.show = [...new Set([...AIB.was.filter(id => !AIB.closed.includes(id)), ...AIB.pending])];
+        if(!AIB.show.length){ aiBubble('hide'); return; } aiBubble('ready'); }, 0); } } }; }
+{ const op = open; open = function(id){ if(AIB.defer){ AIB.pending.push(id); return; } return op(id); }; }
+{ const cl = close; close = function(id){ if(AIB.defer) AIB.closed.push(id); return cl(id); }; }
+
+// Plan My Day: shrink portions if the plan would go over what's left
+function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0), 0), k = Math.max(0, rem.k);
+  if(!(tot > 0) || tot <= k * 1.03) return; const f = Math.max(.3, k / tot);
+  r.meals.forEach(m => { (m.items || []).forEach(it => { it.grams = Math.round((+it.grams || 0) * f / 5) * 5; }); ['kcal', 'protein', 'carbs', 'fat'].forEach(q => { m[q] = Math.round((+m[q] || 0) * f); }); }); }
+
+// windows: search windows sit in the top two thirds at a fixed size (the list drops down under the box); other short ones float in the middle at a steady size
+{ const op = open; open = function(id){ const r = op(id); const ov = $(id); if(!ov) return r;
+    const searchy = !!ov.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2');
+    ov.classList.toggle('searchy', searchy); if(searchy) ov.classList.remove('center'); return r; }; }
+
+// Fridge: the button scans a receipt with the camera; ＋ Add has barcode, search and a photo of the items
+function shopCamera(){ if(!settings.geminiKey){ open('ovShop'); toast(t('needKeyFirst')); return; } SHOP.kind = 'camera'; $('shopFile').value = ''; $('shopFile').click(); }
+$('fab2').addEventListener('click', e => { if($('fab').dataset.action === 'fridge'){ e.stopImmediatePropagation(); open('ovShop'); } }, true);
+syncFab2 = function(){ const a = $('fab').dataset.action, hid = $('fab').classList.contains('hide'), on = (a === 'store' || a === 'fridge') && !hid;
+  $('fab2').classList.toggle('hide', !on); document.body.classList.toggle('twofab', on);
+  if(on && a === 'fridge'){ $('fab').textContent = t('scanReceipt'); $('fab2').textContent = t('addFridgeFab'); } else $('fab2').textContent = t('scanFoodFab'); };
+// Fridge: no Fridge/Freezer tabs; "Frozen" is a switch when adding, frozen things show ❄️
+ui.floc = 'all';
+(() => { const seg = $('faLoc'); if(!seg) return; const lb = seg.previousElementSibling; if(lb && lb.tagName === 'LABEL') lb.classList.add('hide'); seg.classList.add('hide');
+  const row = document.createElement('label'); row.className = 'advrow frzrow'; row.innerHTML = `<span>❄️ ${t('frozen')}</span><input type="checkbox" id="faFrozen">`; seg.after(row);
+  $('faFrozen').addEventListener('change', () => { const b = seg.querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); }); })();
+{ const ofa = openFridgeAdd; openFridgeAdd = function(...a){ const r = ofa.apply(this, a); if($('faFrozen')) $('faFrozen').checked = FA.loc === 'freezer'; return r; }; }
+
+// Add food: an Advanced switch for everything under fibre (sugar, saturated fat, salt, potassium)
+(() => { const ids = ['fSug', 'fSat', 'fSalt'], g = $('fFib').closest('.grid4'); if(!g) return;
+  const box = document.createElement('div'); box.id = 'fAdv'; box.className = 'hide'; const g2 = document.createElement('div'); g2.className = 'grid4'; box.appendChild(g2);
+  ids.forEach(id => g2.appendChild($(id).parentElement)); box.appendChild(document.querySelector('label[for="fK"]')); box.appendChild($('fK'));
+  const row = document.createElement('label'); row.className = 'advrow'; row.innerHTML = `<span>${t('advancedT')}</span><input type="checkbox" id="fAdvSw">`;
+  g.after(row); row.after(box); $('fAdvSw').addEventListener('change', () => box.classList.toggle('hide', !$('fAdvSw').checked)); })();
+{ const of = openForm; openForm = function(...a){ const r = of.apply(this, a); const has = ['fSug', 'fSat', 'fSalt', 'fK'].some(id => $(id).value !== ''); $('fAdvSw').checked = has; $('fAdv').classList.toggle('hide', !has); return r; }; }
+
+// one-plate recipes: log the whole plate in one tap; no leftovers by default
+{ const oa = openAmt; openAmt = function(o){ const r = oa(o); const m = AM && AM.info && AM.info.meal;
+    if(m && (m.quick || (m.recipe && m.recipe.servings === 1)) && m.cookedWeight){ const cw = Math.round(m.cookedWeight);
+      $('amQuick').insertAdjacentHTML('afterbegin', `<button data-v="${cw}">1 ${t('plate')} · ${cw} g</button>`);
+      if(o.mode === 'log' && !lastEntryOf(m.id)){ $('amAmt').value = cw; amRes(); } } return r; }; }
+$('rYes').addEventListener('click', () => setTimeout(() => { if(D && D.recipe && (D.recipe.servings || 1) <= 1){ $('cLeft').checked = false; } }, 0));

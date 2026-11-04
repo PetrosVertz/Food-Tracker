@@ -505,3 +505,13 @@ Object.assign(S, {
   itemFail: ["Couldn't recognise it. Try a clearer photo of the front, or the label.", 'Δεν αναγνωρίστηκε. Δοκίμασε πιο καθαρή φωτογραφία της μπροστινής πλευράς ή της ετικέτας.'],
 });
 ['addFoodFab', 'scanFoodFab'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.5 ----------
+Object.assign(S, {
+  uniT: ['One side at a time (L / R sets)', 'Μία πλευρά τη φορά (σετ Α / Δ)'], setRemoved: ['Set removed', 'Το σετ αφαιρέθηκε'],
+  aiBg: ['✨ Working on it. Keep using the app; tap the bubble when it\'s ready.', '✨ Δουλεύει. Συνέχισε στην εφαρμογή· πάτα τη φούσκα όταν είναι έτοιμο.'],
+  aiStill: ['Still thinking…', 'Ακόμα σκέφτεται…'], aiReady: ['Ready, tap to open', 'Έτοιμο, πάτα για άνοιγμα'],
+  scanReceipt: ['🧾 Scan receipt', '🧾 Σάρωση απόδειξης'], addFridgeFab: ['＋ Add', '＋ Προσθήκη'],
+  frozen: ['Frozen', 'Κατεψυγμένο'], frozenTip: ['Frozen', 'Κατεψυγμένο'], plate: ['plate', 'πιάτο'],
+});
+['scanReceipt'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });

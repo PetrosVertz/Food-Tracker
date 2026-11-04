@@ -99,7 +99,7 @@ function switchTab(dir, toTab){
   const tab = toTab || TABS3[i + dir]; if(!tab || tab === cur || SWITCHING) return;
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!pg || reduce || !pg.animate){ go(tabTarget(tab)); return; }
+  if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   // plain slide: this page moves out, the next one moves in (down = next tab slides up from below)
   SWITCHING = true;
   const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
@@ -110,7 +110,7 @@ function switchTab(dir, toTab){
     if(np) np.animate([{ transform: `translateY(${dir > 0 ? 100 : -100}%)` }, { transform: 'none' }], opt);
     setTimeout(() => { ghost.remove(); SWITCHING = false; }, 300); };
   if(location.hash.slice(1) === target){ route(); run(); }
-  else { addEventListener('hashchange', run, { once: true }); location.hash = target; }   // the page swaps on hashchange, then it slides
+  else { addEventListener('hashchange', run, { once: true }); location.replace('#' + target); }   // 0.6.5: replace, not push — the phone's back never jumps tabs; the page swaps on hashchange, then it slides
 }
 
 function route(){

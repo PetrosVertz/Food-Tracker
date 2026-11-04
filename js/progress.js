@@ -9,7 +9,7 @@ const PG = { open: {} };   // which folds are open (upper, lower, a group, a hea
 
 function setLoad(s){ const w = +s.w || 0, r = +s.r || 0; return w > 0 ? w * r : r; }   // bodyweight moves count reps
 function exVps(exId){   // [{ start, vps, n }] per workout, oldest first
-  return exHistory(exId).map(h => ({ start: h.start, n: h.sets.length, vps: h.sets.reduce((a, s) => a + setLoad(s), 0) / h.sets.length })).filter(x => x.vps > 0);
+  return exHistory(exId).map(h => { const n = h.sets.filter(s => s.side !== 'R').length || 1; return { start: h.start, n, vps: h.sets.reduce((a, s) => a + setLoad(s), 0) / n }; }).filter(x => x.vps > 0);   // L+R = one set
 }
 function exChange(exId){   // % change of volume per set: first workout vs the average of the last two
   const v = exVps(exId); if(v.length < 2) return { pct: null, n: v.length, last: v.length ? v[v.length - 1].start : null };
@@ -28,7 +28,7 @@ function muscleStats(heads){   // heads: list of head keys → { pct, setsWk, ex
     const c = exChange(id), recent = c.last && now - new Date(c.last) <= MONTH;
     // sets in the last 4 weeks: a full set when it's a main muscle of the move, half when it helps
     sessions.forEach(s => { if(now - new Date(s.start) > MONTH) return; s.exercises.filter(x => x.exId === id).forEach(x => {
-      sets += x.sets.filter(st => st.done && st.type !== 'W').length * (share >= 40 ? 1 : share >= 20 ? .5 : 0); }); });
+      sets += x.sets.filter(st => st.done && st.type !== 'W' && st.side !== 'R').length * (share >= 40 ? 1 : share >= 20 ? .5 : 0); }); });
     if(c.pct !== null){ wSum += share; pSum += c.pct * share; }
     if(recent) ex.push({ id, pct: c.pct, n: c.n, share });
   });

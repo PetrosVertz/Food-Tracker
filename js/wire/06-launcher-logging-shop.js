@@ -66,7 +66,7 @@ $('suBody').addEventListener('click', e => {
 $('suBody').addEventListener('change', e => { if(e.target.id === 'suWork'){ readSetup(); SUP.work = e.target.checked; drawSetup(); } });
 
 // ---------- fridge = stock only; shopping in by photo, receipt or barcode ----------
-$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'fridge'){ e.stopImmediatePropagation(); open('ovShop'); } }, true);
+$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'fridge'){ e.stopImmediatePropagation(); shopCamera(); } }, true);
 
 $('shopOpts').addEventListener('click', e => {
   const b = e.target.closest('[data-shop]'); if(!b) return; const k = b.dataset.shop;

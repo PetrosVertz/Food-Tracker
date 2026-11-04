@@ -266,3 +266,40 @@ body.twofab #fab2{left:16px!important;right:calc(50% + 5px)!important}
 .overlay.center .sheet{height:auto!important;max-height:88vh;width:calc(100% - 24px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;padding-bottom:18px}
 /* smooth scrolling inside pages */
 section.page,.sheet{scroll-behavior:smooth}
+
+/* ---------- 0.6.5 ---------- */
+/* My Own Recipe: no quick add, no weighing; workout summary: no post-workout meal button */
+.cquick,#cWeighLink,#cWeighBox{display:none!important}
+#smMeal{display:none!important}
+/* unilateral sets */
+.snum .side{display:inline-block;margin-left:2px;font-style:normal;font-size:10px;font-weight:800;padding:1px 4px;border-radius:6px;vertical-align:middle}
+.snum .sL{background:rgba(90,176,255,.22);color:#8cc8ff} .snum .sR{background:rgba(255,181,71,.22);color:#ffc773}
+.setrow:has(.sL){margin-bottom:2px}
+.unib{font-weight:800;font-size:12px;letter-spacing:.5px;opacity:.55} .unib.on{opacity:1;border-color:var(--accent)!important;color:var(--accent)!important}
+.swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
+/* AI bubble */
+.aibub{position:fixed;right:14px;z-index:150;width:58px;height:58px;border-radius:50%;border:1px solid rgba(198,244,50,.5);background:rgba(28,33,38,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  box-shadow:0 10px 30px rgba(0,0,0,.5);display:grid;place-items:center;cursor:pointer;color:var(--text);bottom:calc(150px + env(safe-area-inset-bottom));animation:tipIn .25s ease-out}
+html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 140px)}
+.aibub .aist{font-size:20px;grid-area:1/1} .aispin2{grid-area:1/1;width:50px;height:50px;border-radius:50%;border:3px solid rgba(198,244,50,.15);border-top-color:var(--accent);animation:aiSpin 1s linear infinite}
+.aibub i{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
+.aibub.ready{background:var(--accent);border-color:var(--accent);animation:aiPulse 1.6s ease-in-out infinite} .aibub.ready .aist{display:none} .aibub.ready b{color:#0f1113;font-size:24px;grid-area:1/1}
+@keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,244,50,.55),0 10px 30px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px rgba(198,244,50,0),0 10px 30px rgba(0,0,0,.5)}}
+.aiwait{display:none!important}
+/* search windows: top two thirds, fixed size, list drops down under the box */
+.overlay.searchy{align-items:flex-start!important}
+.overlay.searchy .sheet{height:min(64vh,600px)!important;max-height:none;margin-top:calc(env(safe-area-inset-top) + 12px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);display:flex;flex-direction:column}
+.overlay.searchy .sheet>*{flex:0 0 auto} .overlay.searchy .sres,.overlay.searchy #lResults,.overlay.searchy #pkBody,.overlay.searchy .slist{flex:1 1 auto;min-height:0;overflow-y:auto}
+.overlay.searchy.open .sheet{animation-name:tipIn!important}
+/* other short windows: a steady, bigger size */
+.overlay.center .sheet{min-height:min(440px,60vh)}
+#ovAsk .sheet,#ovPick .sheet{min-height:0!important}
+/* Fridge: tidier spacing; no Fridge/Freezer tabs; ❄️ for frozen */
+#fLoc{display:none!important}
+#pgFridge .fgseg{margin:6px 0 12px} #pgFridge .search{margin:0 0 12px} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
+.frz{border:0;background:none;padding:0 2px;font-size:15px;cursor:pointer;vertical-align:middle}
+.frzrow{margin:10px 0}
+/* Home Screen app: everything a little lower */
+html.pwa section.page>header{padding-top:calc(16px + env(safe-area-inset-top))!important}
+html.pwa .rail{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px))!important}
+html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}

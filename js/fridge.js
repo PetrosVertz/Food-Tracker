@@ -198,8 +198,8 @@ function renderFridge(){
     return `<div class="card ${st === 'gone' ? 'bad' : st === 'soon' ? 'warn' : ''}" data-fid="${it.id}">
       <div class="ficon">${info.icon}</div>
       <div class="body">
-        <div class="name">${esc(info.name)}${it.mealId ? ` <span class="tag">${t('leftovers')}</span>` : ''}</div>
-        <div class="rmeta fmeta">${amt}${loc === 'all' ? ' · ' + t(LOC_KEY[it.loc]) : ''}</div>
+        <div class="name">${esc(info.name)}${it.loc === 'freezer' ? ` <button class="frz" type="button" data-tip="frozenTip" aria-label="Frozen">❄️</button>` : ''}${it.mealId ? ` <span class="tag">${t('leftovers')}</span>` : ''}</div>
+        <div class="rmeta fmeta">${amt}</div>
         <div class="frow2">${expBadge(it)}${full ? `<div class="stackbtns"><button data-minus aria-label="−1">−</button><button data-plus aria-label="+1">＋</button></div>` : ''}</div>
       </div>
       <button class="usebtn" data-use>${t('useBtn')}</button></div>`; }).join('');

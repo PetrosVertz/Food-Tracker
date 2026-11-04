@@ -136,7 +136,7 @@ function tickSet(x, s, row, xi, si){
     }
   }
   saveG('act');
-  if(!card){ REST = { end: Date.now() + (s.type === 'W' ? 60 : x.rest) * 1000, total: s.type === 'W' ? 60 : x.rest, rang: false, xi, si }; }
+  if(!card && !(x.uni && s.side === 'L')){ REST = { end: Date.now() + (s.type === 'W' ? 60 : x.rest) * 1000, total: s.type === 'W' ? 60 : x.rest, rang: false, xi, si }; }
   renderSession(); tickRest();
 }
 
@@ -654,18 +654,18 @@ function cardHtml(x, i){
   const hasWarm = x.sets.some(s => s.type === 'W'), wu = !x.ended && sug && !sug.first && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
-    if(s.type !== 'W') n++;
+    if(s.type !== 'W' && s.side !== 'R') n++;
     const ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && !sug.first ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     const restHere = REST && REST.xi === i && REST.si === j;
     const lw = s.type !== 'W' && sug && sug.last && !card ? sug.last.sets.filter(z => z.type !== 'W')[n - 1] : null;
     const stp = k => `<div class="stepper"><button data-step="${k}" data-d="-1" aria-label="minus">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}"><button data-step="${k}" data-d="1" aria-label="plus">＋</button></div>`;
     return `<div class="setrow t-${s.type} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''}" data-s="${j}">
-        <button class="snum" data-type title="${t('tapNum')}">${s.type === 'N' ? n : s.type}</button>${stp('w')}${stp('r')}
+        <button class="snum" data-type title="${t('tapNum')}">${s.type === 'N' ? n : s.type}${s.side ? `<i class="side s${s.side}">${s.side}</i>` : ''}</button>${stp('w')}${stp('r')}
         <button class="sok" data-ok>${s.pr === 'v' ? '📈' : s.pr ? '🏆' : '✓'}</button></div>` + (lw ? `<div class="prevset">${t('lastSetL', { w: fmt(+lw.w), r: lw.r })}</div>` : '') +
       (restHere ? `<div class="restin ${REST.rang ? 'over' : ''}"><div class="rbtop"><b id="restTxt2"></b><span><button data-rs="-15">−15</button><button data-rs="15">+15</button><button data-rs="skip">${t('skip')}</button></span></div><span class="mbar"><i id="restProg2" style="width:${Math.max(0, Math.min(100, (1 - (REST.end - Date.now()) / 1000 / REST.total) * 100))}%"></i></span></div>` : '');
   }).join('');
-  return `<div class="exc ${x.ended ? 'ended' : ''}" data-x="${i}">${head}<div class="exbtns"><button class="formb" data-demo>${t('formBtn')}</button>${card ? '' : `<button class="taken" data-swap>🚫</button>`}<button data-xrm aria-label="Remove">✕</button></div></div>
+  return `<div class="exc ${x.ended ? 'ended' : ''}" data-x="${i}">${head}<div class="exbtns">${card ? '' : `<button class="unib ${x.uni ? 'on' : ''}" data-uni title="${t('uniT')}">L|R</button>`}<button class="formb" data-demo>${t('formBtn')}</button>${card ? '' : `<button class="taken" data-swap>🚫</button>`}<button data-xrm aria-label="Remove">✕</button></div></div>
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>🔥 ${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
     ${x.sets.length ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span>✓</span></div>` : ''}
