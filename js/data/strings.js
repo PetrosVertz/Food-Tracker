@@ -515,3 +515,10 @@ Object.assign(S, {
   frozen: ['Frozen', 'Κατεψυγμένο'], frozenTip: ['Frozen', 'Κατεψυγμένο'], plate: ['plate', 'πιάτο'],
 });
 ['scanReceipt'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// ---------- 0.6.5.1 ----------
+Object.assign(S, {
+  planMyDay: ['✨ Fill my food', '✨ Συμπλήρωσε τα υπόλοιπα'], planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
+  qaBtn: ['🥡 Add takeaway', '🥡 Φαγητό απ\' έξω'], qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
+});
+['planMyDay', 'planT', 'qaBtn', 'qaT', 'allFoods'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });

@@ -357,3 +357,10 @@ ui.floc = 'all';
       $('amQuick').insertAdjacentHTML('afterbegin', `<button data-v="${cw}">1 ${t('plate')} · ${cw} g</button>`);
       if(o.mode === 'log' && !lastEntryOf(m.id)){ $('amAmt').value = cw; amRes(); } } return r; }; }
 $('rYes').addEventListener('click', () => setTimeout(() => { if(D && D.recipe && (D.recipe.servings || 1) <= 1){ $('cLeft').checked = false; } }, 0));
+
+// ---------- 0.6.5.1: Add food = Brand, Product, Uncooked/Cooked/Ready, g/ml, kcal, protein, carbs, fat; everything else under Advanced ----------
+(() => { const box = $('fAdv'), sw = $('fAdvSw').closest('label'), sheet = $('ovForm').querySelector('.sheet'); if(!box || !sw) return;
+  const macros = $('fKcal').closest('.grid4'), chk = $('kcalCheck'); macros.after(chk); chk.after(sw); sw.after(box);
+  const first = document.createElement('div'); box.prepend(first);
+  [document.querySelector('#ovForm label[data-t="foodType"]'), $('typeBtn'), $('fFib').closest('.grid4'), document.querySelector('#ovForm [data-t="stateHint"]')].forEach(el => el && first.appendChild(el));
+  let el = box.nextElementSibling; while(el && !el.classList.contains('actions')){ const nx = el.nextElementSibling; box.appendChild(el); el = nx; } })();

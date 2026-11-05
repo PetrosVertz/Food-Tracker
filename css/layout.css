@@ -303,3 +303,13 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(sa
 html.pwa section.page>header{padding-top:calc(16px + env(safe-area-inset-top))!important}
 html.pwa .rail{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px))!important}
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
+
+/* ---------- 0.6.5.1 ---------- */
+.mxlock{padding:0 5px 0 0!important}
+/* every window sits in the middle at a steady size; long lists show ~5 rows and scroll inside */
+.overlay:not(#ovSession){align-items:center!important}
+.overlay:not(#ovSession) .sheet{border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);margin:0!important}
+.overlay.searchy .sheet{height:min(70vh,620px)!important}
+.picklist,#supQuickList,.sres:not(#lResults),#shopList,#sgChips{max-height:300px;overflow-y:auto}
+#ovExPick .sheet{height:min(80vh,680px)!important;display:flex;flex-direction:column} #ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-y:auto}
+.allfold{margin-top:6px} .allfold b{font-size:17px}

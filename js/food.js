@@ -62,9 +62,10 @@ function render(){
   if(tokens.length){ $('list').innerHTML = items.map(cardOf).join(''); return; }
   const groups = {}; items.forEach(f => (groups[f.cat || 'none'] = groups[f.cat || 'none'] || []).push(f));
   const order = [...CATS.map(c => c.id).filter(id => groups[id]), ...(groups.none ? ['none'] : [])];
-  $('list').innerHTML = order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
+  const allOpen = !!FCAT.__all;   // 0.6.5.1: everything sits inside one All Foods fold
+  $('list').innerHTML = `<button class="foldh catfold allfold ${allOpen ? 'open' : ''}" data-fcat="__all"><b>${t('allFoods')}</b><span class="fn">${items.length}</span><i>⌄</i></button>` + (!allOpen ? '' : '<div class="foldb allbody">' + order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
     return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><span class="e">${c ? c.icon : '❔'}</span><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>⌄</i></button>` +
-      (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('');
+      (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('') + '</div>');
 
 }
 

@@ -314,7 +314,7 @@ function mxFromGrams(P){ const k = +$('tg' + P + 'k').value || 0, g = x => +$('t
 function initMacroSliders(){
   [['G', 'gymDayTargets'], ['R', 'restDayTargets']].forEach(([P]) => {
     if(!$('mx' + P)){ const grid = $('tg' + P + 'k').closest('.grid4'), d = document.createElement('div'); d.className = 'mxs'; d.id = 'mx' + P;
-      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}">${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}<button class="mxlock" type="button" data-lock="${k}" data-p="${P}" aria-label="Lock">🔓</button></span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
+      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}"><button class="mxlock" type="button" data-lock="${k}" data-p="${P}" aria-label="Lock">🔓</button>${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}</span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
         `<div class="mxbar"><i class="mx-p"></i><i class="mx-c"></i><i class="mx-f"></i></div>`;
       grid.after(d); }
     MX[P] = mxFromGrams(P); drawMx(P, false); });
