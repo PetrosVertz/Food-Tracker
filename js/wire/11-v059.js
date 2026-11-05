@@ -364,3 +364,6 @@ $('rYes').addEventListener('click', () => setTimeout(() => { if(D && D.recipe &&
   const first = document.createElement('div'); box.prepend(first);
   [document.querySelector('#ovForm label[data-t="foodType"]'), $('typeBtn'), $('fFib').closest('.grid4'), document.querySelector('#ovForm [data-t="stateHint"]')].forEach(el => el && first.appendChild(el));
   let el = box.nextElementSibling; while(el && !el.classList.contains('actions')){ const nx = el.nextElementSibling; box.appendChild(el); el = nx; } })();
+
+// ---------- 0.6.5.2: Fill My Food meals wait (greyed) at the top of Eaten until you tap ✓ Ate ----------
+(() => { const ps = $('planShow'), dl = $('dLog'); if(ps && dl) dl.before(ps); })();

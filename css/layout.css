@@ -313,3 +313,13 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .picklist,#supQuickList,.sres:not(#lResults),#shopList,#sgChips{max-height:300px;overflow-y:auto}
 #ovExPick .sheet{height:min(80vh,680px)!important;display:flex;flex-direction:column} #ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-y:auto}
 .allfold{margin-top:6px} .allfold b{font-size:17px}
+/* 0.6.5.2: planned (not eaten yet) meals are greyed and don't count */
+.planmeal.planned{opacity:.55;border:1px dashed var(--line)!important;background:rgba(255,255,255,.02)!important;filter:grayscale(.6);transition:opacity .2s}
+.planmeal.planned [data-plog]{filter:none;opacity:1}
+#planShow h3.sect{margin-top:4px}
+/* 0.6.5.3: menus show as much as fits; the body map always fits inside the picker (no scrolling the body) */
+#ovExPick .sheet{height:min(90vh,800px)!important}
+.overlay.searchy .sheet{height:min(84vh,740px)!important}
+html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area-inset-top)),800px)!important}
+#ovExPick .bodymap{margin:0} #ovExPick .bodymap svg{width:100%!important;max-width:none!important;height:auto;max-height:calc(min(90vh,800px) - 270px)}
+#ovExPick .bodymap + .hint{margin:4px 0 0}

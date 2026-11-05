@@ -522,3 +522,5 @@ Object.assign(S, {
   qaBtn: ['🥡 Add takeaway', '🥡 Φαγητό απ\' έξω'], qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
 });
 ['planMyDay', 'planT', 'qaBtn', 'qaT', 'allFoods'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+Object.assign(S, { ateBtn: ['Ate', 'Το έφαγα'] });

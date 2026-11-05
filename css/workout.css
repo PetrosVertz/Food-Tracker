@@ -77,3 +77,12 @@ body.sorting{overscroll-behavior:none}
 #gHubTiles.hubtabs .tile .e,#gHubTiles.hubtabs .petart{font-size:24px;margin:0!important}
 #gHubTiles.hubtabs .tile b{font-size:12px;line-height:1.2} #gHubTiles.hubtabs .tile small,#gHubTiles.hubtabs .tile .mbar{display:none!important}
 #gHubTiles.hubtabs .petart svg{width:30px!important;height:30px!important}
+/* 0.6.5.4: End Workout pinned to the bottom, Discard as a real red pill (this file loads last, so it wins) */
+#ovSession .sheet.session{display:flex;flex-direction:column}
+#ovSession .sheet.session>*{flex:0 0 auto}
+#ovSession .endbar{margin-top:auto;background:linear-gradient(rgba(15,17,19,0),rgba(15,17,19,.92) 28%)!important;padding-top:26px}
+.discardlink{display:block!important;width:62%!important;margin:10px auto 0!important;padding:12px 14px!important;border-radius:999px!important;border:1px solid rgba(255,92,92,.6)!important;background:rgba(255,92,92,.16)!important;color:#ff8a8a!important;font-weight:700!important;font-size:15px!important;text-align:center}
+.discardlink:active{background:rgba(255,92,92,.32)!important}
+/* AI bubble: always on top of everything, ring spinner around the ✨ */
+.aibub{z-index:100000!important;right:12px!important;width:60px!important;height:60px!important}
+.aibub .aispin2{width:52px!important;height:52px!important}

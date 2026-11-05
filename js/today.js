@@ -103,13 +103,13 @@ function openTargets_0(){
 
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
-  if(!p){ el.innerHTML = ''; return; }
+  if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // 0.6.5.2: eaten plan meals move into Eaten
   el.innerHTML = `<h3 class="sect"><span>✨ ${t('planT')}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
-    (p.meals || []).map((m, i) => `<div class="planmeal"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
+    (p.meals || []).map((m, i) => m.logged ? '' : `<div class="planmeal planned"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
       <div class="rmeta">P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)}</div>
       <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">🧊 ${t('fromFridge')}</span>` : ''}${it.expiring ? ` <span class="src-e">⚠️ ${t('expiringTag')}</span>` : ''}</li>`).join('')}</ul>
       ${m.why ? `<div class="hint">${esc(m.why)}</div>` : ''}
-      <div class="actions" style="margin-top:8px"><button class="btn small" data-plog="${i}">${m.logged ? '✓ ' : ''}${t('logThis')}</button></div></div>`).join('') +
+      <div class="actions" style="margin-top:8px"><button class="btn small primary" data-plog="${i}">✓ ${t('ateBtn')}</button></div></div>`).join('') +
     (p.tip ? `<p class="hint">💡 ${esc(p.tip)}</p>` : '');
 }
 
