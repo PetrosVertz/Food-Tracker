@@ -279,27 +279,7 @@ const SPECIFIC = {
   face_pull:['Pull the rope toward your eyes and spread the ends apart.','Τράβα το σχοινί προς τα μάτια και άνοιξε τις άκρες.'],
 };
 
-const GKEY = { custom:'ft.gym.custom', tpl:'ft.gym.tpl', plan:'ft.gym.plan', ses:'ft.gym.sessions', act:'ft.gym.active', cb:'ft.gym.comeback', pet:'ft.pet.v1' };
-
-const TYPE_LBL = { W: 'tWarm', N: 'tWork', D: 'tDrop', F: 'tFail' };
-
-// simple front/back body figure; regions are muscle groups
-const BODY = {
-  f: { shoulders: '<ellipse cx="27" cy="43" rx="8.5" ry="7"/><ellipse cx="73" cy="43" rx="8.5" ry="7"/>',
-       chest: '<path d="M33 45Q41 40 49 44V58Q40 62 33 56Z"/><path d="M51 44Q59 40 67 45V56Q60 62 51 58Z"/>',
-       arms: '<ellipse cx="20" cy="61" rx="5.5" ry="11"/><ellipse cx="80" cy="61" rx="5.5" ry="11"/><ellipse cx="18.5" cy="86" rx="5" ry="11"/><ellipse cx="81.5" cy="86" rx="5" ry="11"/>',
-       core: '<rect x="42.5" y="62" width="15" height="33" rx="4"/><ellipse cx="36.5" cy="77" rx="4.2" ry="12"/><ellipse cx="63.5" cy="77" rx="4.2" ry="12"/>',
-       quads: '<ellipse cx="41" cy="124" rx="8" ry="21"/><ellipse cx="59" cy="124" rx="8" ry="21"/>',
-       adductors: '<ellipse cx="50" cy="113" rx="3.4" ry="10"/>',
-       calves: '<ellipse cx="41" cy="167" rx="5.5" ry="15"/><ellipse cx="59" cy="167" rx="5.5" ry="15"/>' },
-  b: { back: '<path d="M38 34Q50 28 62 34L58 42H42Z"/><rect x="39" y="43" width="22" height="14" rx="3"/><path d="M33 47L40 58L42 78L35 70Z"/><path d="M67 47L60 58L58 78L65 70Z"/><rect x="43.5" y="79" width="13" height="16" rx="3"/>',
-       shoulders: '<ellipse cx="27" cy="43" rx="8.5" ry="7"/><ellipse cx="73" cy="43" rx="8.5" ry="7"/>',
-       arms: '<ellipse cx="20" cy="61" rx="5.5" ry="11"/><ellipse cx="80" cy="61" rx="5.5" ry="11"/><ellipse cx="18.5" cy="86" rx="5" ry="11"/><ellipse cx="81.5" cy="86" rx="5" ry="11"/>',
-       glutes: '<ellipse cx="42" cy="106" rx="9" ry="9"/><ellipse cx="58" cy="106" rx="9" ry="9"/>',
-       hamstrings: '<ellipse cx="41" cy="133" rx="7.5" ry="17"/><ellipse cx="59" cy="133" rx="7.5" ry="17"/>',
-       calves: '<ellipse cx="41" cy="168" rx="6.5" ry="14"/><ellipse cx="59" cy="168" rx="6.5" ry="14"/>' } };
-
-const SILHOUETTE = '<circle cx="50" cy="16" r="11"/><rect x="45" y="26" width="10" height="8"/><path d="M29 36Q50 29 71 36L75 60L69 100H31L25 60Z"/><rect x="13" y="40" width="13" height="60" rx="6.5"/><rect x="74" y="40" width="13" height="60" rx="6.5"/><rect x="32" y="97" width="17" height="94" rx="7.5"/><rect x="51" y="97" width="17" height="94" rx="7.5"/>';
+const GKEY = { custom: 'exCustom', tpl: 'tpls', plan: 'gymPlan', ses: 'sessions', act: 'active', cb: 'comeback', pet: 'pet' };   // short names → Store names
 
 // ---------- pets (original starters, three evolution stages each) ----------
 const PETS = {
@@ -399,10 +379,14 @@ const EQ_COL = { barbell:'#ff5c5c', dumbbell:'#5ab0ff', machine:'#b388ff', cable
 
 const EQ_ORDER = ['barbell','dumbbell','machine','cable','bodyweight','kettlebell','band'];
 
-const EQ_ICON = { barbell:'<path d="M2 12H22M5 7V17M8 8.5V15.5M16 8.5V15.5M19 7V17"/>', dumbbell:'<path d="M8 12H16M4 9V15M7 7V17M17 7V17M20 9V15"/>',
-  machine:'<path d="M5 3H19V21H5ZM8 7H16M8 11H16M8 15H16"/>', cable:'<path d="M12 3V13M8 3H16M12 13L8 20M12 13L16 20M6 21H18"/>',
-  bodyweight:'<circle cx="12" cy="4.5" r="2.2"/><path d="M12 7.5V15M12 15L8 21M12 15L16 21M6 10H18"/>', kettlebell:'<path d="M8.5 9C8.5 4.5 15.5 4.5 15.5 9"/><circle cx="12" cy="15" r="6"/>',
-  band:'<path d="M3 16C7 6 17 6 21 16M3 16C7 11 17 11 21 16"/>' };
+const EQ_ICON = {   // 0.6.8: a different shape for each, not just a colour
+  barbell: '<path d="M1 12H23"/><rect x="3.5" y="6" width="3" height="12" rx="1"/><rect x="17.5" y="6" width="3" height="12" rx="1"/>',
+  dumbbell: '<path d="M9 12H15"/><path d="M4.5 8.5L6.5 7L8.5 8.5V15.5L6.5 17L4.5 15.5Z"/><path d="M15.5 8.5L17.5 7L19.5 8.5V15.5L17.5 17L15.5 15.5Z"/>',
+  machine: '<rect x="14" y="3" width="6" height="18" rx="1"/><path d="M14 8H20M14 13H20M3 16H11M5 16V21M10 9V16M5 9H10"/>',
+  cable: '<path d="M4 3H20"/><circle cx="12" cy="7" r="2.6"/><path d="M12 9.6V17.5M8.5 17.5H15.5M8.5 21H15.5"/>',
+  bodyweight: '<circle cx="12" cy="4.5" r="2.2"/><path d="M12 7.5V15M12 15L8 21M12 15L16 21M6 10H18"/>',
+  kettlebell: '<path d="M8.5 9C8.5 4.5 15.5 4.5 15.5 9"/><circle cx="12" cy="15" r="6"/>',
+  band: '<path d="M3 16C7 6 17 6 21 16M3 16C7 11 17 11 21 16"/>' };
 
 const SYN = { db: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', ohp: 'overhead press', 'pull-up': 'pullup', 'pull-ups': 'pullup', 'chin-up': 'chinup', pullups: 'pullup', rdl: 'romanian deadlift', 'push-up': 'pushup', 'push-ups': 'pushup', pushups: 'pushup', 'sit-up': 'situp', flyes: 'fly', flye: 'fly', flies: 'fly', raises: 'raise', curls: 'curl', presses: 'press', rows: 'row', extensions: 'extension', 'skull': 'skullcrusher', lunges: 'lunge', squats: 'squat', dips: 'dip', 'kickbacks': 'kickback', 'pulldown': 'pulldown', 'pull-down': 'pulldown' };
 

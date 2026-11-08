@@ -1,15 +1,6 @@
 // Wiring that runs at start-up, in order: state, event listeners, first render.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-$('fList').addEventListener('click', e => {
-  const pm = e.target.closest('[data-minus],[data-plus]'); if(!pm) return; e.stopImmediatePropagation();
-  const c = pm.closest('[data-fid]'), it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
-  if(pm.hasAttribute('data-plus')){ const { id, addedAt, ...rest } = it; fridge.push({ ...rest, qty: it.packSize, id: uid(), addedAt: new Date().toISOString() }); saveFridge(); }
-  else { const twin = [...fridge].reverse().find(x => x !== it && x.foodId === it.foodId && x.mealId === it.mealId && x.loc === it.loc && x.packSize === it.packSize && (x.exp || '') === (it.exp || '') && Math.abs(x.qty - x.packSize) <= 0.5) || it;
-    fridge = fridge.filter(x => x !== twin); saveFridge(); if(it.foodId && checkRestock(it.foodId)) toast(t('toList').trim()); }
-  renderAll();
-}, true);
-
 const askDone = v => { close('ovAsk'); const r = ASK; ASK = null; if(r) r(v); };
 
 $('askYes').addEventListener('click', () => askDone(true));
@@ -70,3 +61,19 @@ setTimeout(() => { document.querySelectorAll(KEYATTR.map(a => `[${a}]`).join(','
 // tick pop on a finished set
 document.addEventListener('click', e => { const ok = e.target.closest('[data-ok]'); if(!ok) return; const x = ok.closest('[data-x]'), s = ok.closest('[data-s]'); if(!x || !s) return;
   const xi = x.dataset.x, si = s.dataset.s; setTimeout(() => { const b = document.querySelector(`#sesBody [data-x="${xi}"] [data-s="${si}"] .sok`); if(b){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } }, 0); }, true);
+
+// ⓘ info bubbles (capture, so they never also toggle a fold or the % / mg switch)
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-tip]');
+  if(b){ e.preventDefault(); e.stopPropagation(); if($('tipPop') && $('tipPop').dataset.k === b.dataset.tip){ hideTip(); return; } showTip(b.dataset.tip, b); $('tipPop').dataset.k = b.dataset.tip; return; }
+  if($('tipPop')) hideTip();
+}, true);
+addEventListener('scroll', hideTip, true);
+addEventListener('hashchange', hideTip);
+
+// tapping something that opens / folds scrolls it smoothly to the middle
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pg],[data-fcat],[data-fold],.foldh,details>summary,.advrow,[data-sec]'); if(!b || e.target.closest('[data-tip]')) return;
+  const key = ['data-pg', 'data-fcat', 'data-fold'].find(a => b.hasAttribute(a)), sel = key ? `[${key}="${b.getAttribute(key)}"]` : null;
+  setTimeout(() => { const el = (sel && document.querySelector(sel)) || (document.contains(b) ? b : null); if(el && el.offsetParent) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
+});

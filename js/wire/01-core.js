@@ -125,27 +125,32 @@ const GEN = GEN_RAW.map(([id,en,el,alias,cat,sub,unit,state,kcal,protein,carbs,f
 
 const GENBY = Object.fromEntries(GEN.map(g => [g.gid, g]));
 
-let foods = load(KEY, []).map(migrate);
+let foods = Store.load('foods', []).map(normFood);
 
-let meals = load(MKEY, []);
+let meals = Store.load('meals', []);
 
-let supps = load(SUKEY, []);
+let supps = Store.load('supps', []);
 
-let suppLog = load(LOGKEY, {});
+let suppLog = Store.load('suppLog', {});
 
-const saveSupps = () => store(SUKEY, supps);
+const saveSupps = () => Store.save('supps', supps);
 
-let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, load(SKEY, {}));
+let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, Store.load('settings', {}));
 
-let ui = Object.assign({ sort:'recent', cat:'all', lang:null }, load(UKEY, {}));
+let ui = Object.assign({ sort:'recent', cat:'all', lang:null }, Store.load('ui', {}));
 
 lang = ui.lang || 'en';
 
-const saveFoods = () => store(KEY, foods);
+const saveFoods = () => Store.save('foods', foods);
 
-const saveMeals = () => store(MKEY, meals);
+const saveMeals = () => Store.save('meals', meals);
 
-const saveUI = () => store(UKEY, ui);
+const saveUI = () => Store.save('ui', ui);
+
+// body + gym habits (synced data; device-only things stay in ui)
+let profile = Store.load('profile', {});
+
+const saveProfile = () => Store.save('profile', profile);
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 

@@ -6,33 +6,6 @@ function infoOfEntry(e){
   const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
 }
 
-function openAmt_0(o){
-  AM = o;
-  const info = o.mode === 'use' ? itemInfo(o.item) : o.mode === 'editlog' ? (infoOfEntry(o.entry) || { name: o.entry.name, icon: o.entry.icon, unit: o.entry.unit, per: { kcal: o.entry.kcal / o.entry.amt * 100, protein: o.entry.p / o.entry.amt * 100, carbs: o.entry.c / o.entry.amt * 100, fat: o.entry.f / o.entry.amt * 100 } }) : o.info;
-  if(!info) return; AM.info = info;
-  $('amTitle').textContent = o.mode === 'use' ? t('useT', { n: info.name }) : `${info.icon} ${info.name}`;
-  $('amSub').textContent = o.mode === 'use' ? t('useSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }) : (o.mode === 'editlog' ? t('edit') : t('logFood'));
-  $('amUnit').textContent = info.unit;
-  const chips = [];
-  if(info.piece && info.pw) [1, 2, 3].forEach(n => chips.push([n * info.piece, `${n} ${n === 1 ? W(info.pw) : WS(info.pw)}`]));
-  if(info.food && info.food.usualPack && info.food.usualPack <= 1000) chips.push([info.food.usualPack, `1 ${t('perPackLabel').replace(/^(per|ανά)\s*/, '')} · ${fmtSize(info.food.usualPack, info.unit)}`]);
-  if(info.meal) [250, 350, 450].forEach(g => chips.push([g, `${g} g`]));
-  if(!info.meal && !(info.piece && info.pw)) (info.unit === 'ml' ? [100, 200, 250, 500] : [50, 100, 150, 200]).forEach(g => chips.push([g, fmtSize(g, info.unit)]));
-  if(o.mode === 'use') chips.push([o.item.qty, `${lang === 'el' ? 'Όλο' : 'All'} · ${fmtSize(o.item.qty, info.unit)}`]);
-  $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
-  $('amAmt').value = o.mode === 'editlog' ? o.entry.amt : '';
-  $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM());
-  $('amLogWrap').classList.toggle('hide', o.mode !== 'use'); $('amLog').checked = true;
-  const key = info.meal ? { mealId: info.meal.id } : info.food ? { foodId: info.food.id } : null;
-  const stock = key ? (key.foodId ? stockOf(key.foodId) : mealStock(key.mealId)) : 0;
-  $('amFridgeWrap').classList.toggle('hide', !(o.mode === 'log' && stock > 0)); $('amFridge').checked = true;
-  $('amFridgeTxt').textContent = t('takeFromFridge', { s: fmtAmt(stock, info) });
-  $('amTimeRow').classList.toggle('hide', o.mode === 'use' && !$('amLog').checked);
-  $('amFinish').classList.toggle('hide', o.mode === 'log'); $('amFinish').textContent = o.mode === 'use' ? t('finishedIt') : t('delete');
-  $('amFinish').classList.toggle('danger', o.mode === 'editlog');
-  amRes(); open('ovAmt'); setTimeout(() => $('amAmt').focus(), 120);
-}
-
 function dayInfo(d){
   if(days[d]) return days[d];
   const pl = planFor(d); if(pl) return { ...pl, guessed: true };   // your weekly gym plan comes first
@@ -60,47 +33,9 @@ function carbWindows(d){
   ];
 }
 
-function renderToday_0(){
-  const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
-  const diff = daysUntil(d);
-  $('dLabel').textContent =   // 0.6.3: just the date
-    new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
-  const mrow = (cls, label, a, b, u, st) => `<div class="mrow ${cls} ${st || ''}"><small>${label}</small><span class="mbar"><i style="width:${b ? Math.min(100, a / b * 100) : 0}%"></i></span><span><b>${Math.round(a)}</b><small> / ${b ? Math.round(b) : '–'}${u}</small></span></div>`;
-  const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
-  const pill = `<span class="daypill">${t(di.type === 'gym' ? 'gymDay' : 'restDay')}</span>`;
-  $('dTotals').innerHTML = `<div class="kchead"><span class="kcnum" style="color:${kcalColor(tot.kcal, tg && tg.k)}">${Math.round(tot.kcal).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB')}<small>${tg ? '/ ' + tg.k.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB') + ' kcal' : 'kcal'}</small></span>${pill}</div>` +
-    (tg ? '' : `<button class="linkbtn" data-targets><b>${t('noTargets')}</b></button>`) +
-    mrow('p', t('protein'), tot.p, tg && tg.p, ' g', ms('p')) + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g', ms('c')) + mrow('f', t('fat'), tot.f, tg && tg.f, ' g', ms('f'));
-  const fT = fibTarget(tg);
-  $('dExtrasBody').innerHTML = mrow('fi', t('fibre'), tot.fib || 0, fT, ' g', Math.round(tot.fib || 0) >= fT ? 'hit' : '') + elecHtml(tot);
-  // carb timing
-  const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
-  const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
-  $('dTiming').innerHTML = !tg ? `<p class="hint">${t('noTargets')}</p>` : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
-      <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
-      <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
-  // log
-  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card" data-eid="${e.id}"><div class="ficon">${e.icon || '🍽️'}</div><div class="body">
-      <div class="row"><div class="brand">${e.time}</div><div class="kcal">${e.kcal} <small>kcal</small></div></div>
-      <div class="name">${esc(e.name)} <small style="color:var(--muted);font-weight:400">· ${fmtSize(e.amt, e.unit)}</small></div>
-      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span>${e.fib ? `<span class="m fi">Fi <b>${fmt(e.fib)}</b></span>` : ''}</div></div></div>`).join('')
-    : `<div class="empty">${t('nothingLogged')}</div>`;
-  $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
-  renderPlan();
-}
-
-function openLogSearch(){ $('lSearch').value = ''; drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
+function openLogSearch(){ $('lSearch').value = ''; $('lYesterday').classList.toggle('hide', !(dayLog[addDays(curDay, -1)] || []).length); drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
 
 // ---------- targets ----------
-function openTargets_0(){
-  const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
-  setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = latestWeight() || tg.bw || ''; $('tgFib').value = '';
-  $('tgCalcHint').textContent = $('tgBw').value ? t('calcFrom', { w: fmt(+$('tgBw').value) }) : t('calcNeedW');
-  [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
-  tgCheck(); open('ovTargets');
-}
-
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
   if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // 0.6.5.2: eaten plan meals move into Eaten
@@ -169,15 +104,19 @@ function drawLog(){
     else if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
     else h = `<div class="hint">${t('typeToSearch')}</div>`;
   } else {
-    LS.meals = meals.filter(m => tokens.every(tk => norm(m.name).includes(tk))).slice(0, 10);
-    const s = searchLocal(q, false, { log: true }); LS.mine = s.mine; LS.std = s.std;
+    const s = searchLocal(q, false, { log: true, meals: true }); LS.meals = s.meals; LS.mine = s.mine; LS.std = s.std;
     if(LS.meals.length) h += `<div class="sgroup">${t('tabMeals')}</div>` + LS.meals.map((m, i) => itemHtml('ml', i, mealIcon(m), m.name, ml(m))).join('');
     if(LS.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + LS.mine.map((f, i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand || !f.brand ? '' : esc(f.brand) + ' · '}${macroLine(f)}${stockOf(f.id) ? ' · 🧊' : ''}`)).join('');
     if(LS.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + LS.std.map((g, i) => itemHtml('s', i, subOf(g.cat, g.sub).icon, L(g), macroLine(g))).join('');
-    if(LOGON.q === q && LOGON.res.length) h += `<div class="sgroup">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => itemHtml('o', i, d.source === 'USDA' ? '🇺🇸' : '🌐', d.name, `${d.brand ? esc(d.brand) + ' · ' : ''}${macroLine(d)}`)).join('');
+    const onl = LOGON.q === q && LOGON.res.length, local = LS.meals.length + LS.mine.length + LS.std.length;
+    if(onl) h += `<div class="sgroup">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => itemHtml('o', i, d.source === 'USDA' ? '🇺🇸' : '🌐', d.name, `${d.brand ? esc(d.brand) + ' · ' : ''}${macroLine(d)}${d.check ? ' · ⚠️ ' + t('checkVals') : ''}`)).join('');
     else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
-    else if(q.length >= 2) h += `<button class="btn" id="lOnline" style="width:100%;margin-top:8px">🌐 ${t('onlineMore')}</button>`;
-    if(!LS.meals.length && !LS.mine.length && !LS.std.length && !LOGON.busy && !(LOGON.q === q && LOGON.res.length)) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
+    else if(q.length >= 2 && LOGON.q !== q) h += `<button class="btn" id="lOnline" style="width:100%;margin-top:8px">🌐 ${t('onlineMore')}</button>`;
+    // never a dead end: a spelling fix when little matched, and Add as Takeaway for anything
+    const dym = local + (onl ? LOGON.res.length : 0) < 3 ? Search.didYouMean(q) : null;
+    if(!local && !LOGON.busy && !onl) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
+    if(dym) h = `<button class="dym" data-dym="${esc(dym)}">${t('didYouMean')} <b>${esc(dym)}</b>?</button>` + h;
+    h += `<button class="sitem takeaway" id="lTakeaway"><span class="e">🥡</span><span class="t"><b>${t('addAsTakeaway', { q: esc(q) })}</b><small>${t('takeawaySub')}</small></span></button>`;
   }
   $('lResults').innerHTML = h;
 }
@@ -191,17 +130,60 @@ async function runLogOnline(q){
 
 // amount sheet: remember last amount, fridge comes off by itself, fridge "use" is take-out only
 function openAmt(o){
-  openAmt_0(o); if(!AM || !AM.info) return; const info = AM.info;
+  AM = o;
+  const info = o.mode === 'use' ? itemInfo(o.item) : o.mode === 'editlog' ? (infoOfEntry(o.entry) || { name: o.entry.name, icon: o.entry.icon, unit: o.entry.unit, per: { kcal: o.entry.kcal / o.entry.amt * 100, protein: o.entry.p / o.entry.amt * 100, carbs: o.entry.c / o.entry.amt * 100, fat: o.entry.f / o.entry.amt * 100 } }) : o.info;
+  if(!info) return; AM.info = info;
+  $('amTitle').textContent = o.mode === 'use' ? t('useT', { n: info.name }) : `${info.icon} ${info.name}`;
+  $('amSub').textContent = o.mode === 'use' ? t('useSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }) : (o.mode === 'editlog' ? t('edit') : t('logFood'));
+  const chips = [];
+  if(info.piece && info.pw) [1, 2, 3].forEach(n => chips.push([n * info.piece, `${n} ${n === 1 ? W(info.pw) : WS(info.pw)}`]));
+  if(info.food && info.food.usualPack && info.food.usualPack <= 1000) chips.push([info.food.usualPack, `1 ${t('perPackLabel').replace(/^(per|ανά)\s*/, '')} · ${fmtSize(info.food.usualPack, info.unit)}`]);
+  if(info.meal) [250, 350, 450].forEach(g => chips.push([g, `${g} g`]));
+  if(!info.meal && !(info.piece && info.pw)) (info.unit === 'ml' ? [100, 200, 250, 500] : [50, 100, 150, 200]).forEach(g => chips.push([g, fmtSize(g, info.unit)]));
+  if(o.mode === 'use') chips.push([o.item.qty, `${lang === 'el' ? 'Όλο' : 'All'} · ${fmtSize(o.item.qty, info.unit)}`]);
+  $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
+  $('amAmt').value = o.mode === 'editlog' ? o.entry.amt : '';
+  $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM());
+  $('amLogWrap').classList.toggle('hide', o.mode !== 'use'); $('amLog').checked = true;
+  const key = info.meal ? { mealId: info.meal.id } : info.food ? { foodId: info.food.id } : null;
+  const stock = key ? (key.foodId ? stockOf(key.foodId) : mealStock(key.mealId)) : 0;
+  $('amFridgeWrap').classList.toggle('hide', !(o.mode === 'log' && stock > 0)); $('amFridge').checked = true;
+  $('amFridgeTxt').textContent = t('takeFromFridge', { s: fmtAmt(stock, info) });
+  $('amTimeRow').classList.toggle('hide', o.mode === 'use' && !$('amLog').checked);
+  $('amFinish').classList.toggle('hide', o.mode === 'log'); $('amFinish').textContent = o.mode === 'use' ? t('finishedIt') : t('delete');
+  $('amFinish').classList.toggle('danger', o.mode === 'editlog');
+  amUnits(o); amRes(); open('ovAmt'); setTimeout(() => $('amN').focus(), 120);
+  
   if(o.mode === 'log'){
     const ref = info.meal ? info.meal.id : info.food ? info.food.id : null, last = ref && lastEntryOf(ref);
-    if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amRes(); }
+    if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amUnits(o); amRes(); }   // your usual amount, in the unit it fits
     const stock = info.meal ? mealStock(info.meal.id) : info.food ? stockOf(info.food.id) : 0;
     $('amFridgeTxt').textContent = t('fromFridge', { s: fmtAmt(stock, info) }); $('amFridge').checked = true;
     $('amTitle').innerHTML = `${info.icon} ${esc(info.name)} ${stTag((info.food || {}).state)}`;
   }
   if(o.mode === 'use'){ $('amLog').checked = false; $('amLogWrap').classList.add('hide'); $('amTimeRow').classList.add('hide');
     $('amTitle').textContent = t('takeOutT', { n: info.name }); $('amSub').textContent = t('takeOutSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }); }
+  // one-plate recipes: log the whole plate in one tap
+  const m = info.meal;
+  if(m && (m.quick || (m.recipe && m.recipe.servings === 1)) && m.cookedWeight){ const cw = Math.round(m.cookedWeight);
+    $('amQuick').insertAdjacentHTML('afterbegin', `<button data-v="${cw}">1 ${t('plate')} · ${cw} g</button>`);
+    if(o.mode === 'log' && !lastEntryOf(m.id)){ $('amAmt').value = cw; amUnits(o); amRes(); } }
 }
+
+// amount picker: a number + a unit (g/ml, slices or pieces, packs, plates); the grams behind it are what gets saved
+function amUnits(o){
+  const info = AM.info, f = info.food, u = [{ k: 'g', size: 1, l: info.unit }];
+  if(info.piece && info.pw) u.push({ k: 'pc', size: info.piece, l: WS(info.pw) });
+  if(f && f.usualPack && f.usualPack !== info.piece) u.push({ k: 'pack', size: f.usualPack, l: t('uPacks') });
+  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', size: Math.round(info.meal.cookedWeight), l: t('uPlates') });
+  if(o.mode === 'use' && o.item && o.item.packSize && !u.some(x => x.k === 'pack')) u.push({ k: 'pack', size: o.item.packSize, l: t('uPacks') });
+  AM.units = u; const g = num('amAmt');
+  // start in the unit the amount fits best: whole slices / packs / plates, else grams
+  let i = 0; if(g > 0) u.forEach((x, j) => { if(j && i === 0){ const n = g / x.size; if(n >= .5 && Math.abs(n - Math.round(n * 2) / 2) < .03) i = j; } });
+  else if(u.length > 1 && u[1].k === 'pc') i = 1;
+  AM.u = i; $('amU').innerHTML = u.map(x => `<option value="${x.k}">${esc(x.l)}</option>`).join(''); $('amU').selectedIndex = i; syncSel($('amU'));
+}
+function amFromN(){ const u = AM.units[AM.u] || { size: 1 }, n = num('amN'); $('amAmt').value = n > 0 ? r1(n * u.size) : ''; AM.typing = true; amRes(); AM.typing = false; }
 
 // 0.5.9 Quick add: one box. Built-in foods / dishes with a normal portion first, then the AI for mixed dishes.
 let QAbusy = null;
@@ -274,8 +256,39 @@ function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.index
 
 // ---------- Today: just gym or rest; a small reminder instead of time + type fields ----------
 function renderToday(){
-  renderToday_0(); try{ renderTodayRec(); }catch(e){}
+  const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+  const diff = daysUntil(d);
+  $('dLabel').textContent =   // 0.6.3: just the date
+    new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
+  // big bars: the numbers sit inside in white; where the fill passes under them they turn dark (two text layers, one clipped to the fill)
+  const mrow = (cls, label, a, b, u, st) => { const w = b ? Math.min(100, a / b * 100) : 0, txt = `<b>${Math.round(a)}</b> / ${b ? Math.round(b) : '–'}${u.trim()}`;
+    return `<div class="mrow hero ${cls} ${st || ''}"><small>${label}</small><span class="hbar"><i style="width:${w}%"></i><em>${txt}</em><em class="inv" style="clip-path:inset(0 ${100 - w}% 0 0)">${txt}</em></span></div>`; };
+  const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
+  const pill = `<span class="daypill">${t(di.type === 'gym' ? 'gymDay' : 'restDay')}</span>`;
+  $('dTotals').innerHTML = `<div class="kchead"><span class="kcnum" style="color:${kcalColor(tot.kcal, tg && tg.k)}">${Math.round(tot.kcal).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB')}<small>${tg ? '/ ' + tg.k.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB') + ' kcal' : 'kcal'}</small></span>${pill}</div>` +
+    (tg ? '' : `<button class="linkbtn" data-targets><b>${t('noTargets')}</b></button>`) +
+    mrow('p', t('protein'), tot.p, tg && tg.p, ' g', ms('p')) + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g', ms('c')) + mrow('f', t('fat'), tot.f, tg && tg.f, ' g', ms('f'));
+  const fT = fibTarget(tg);
+  $('dExtrasBody').innerHTML = mrow('fi', t('fibre'), tot.fib || 0, fT, ' g', Math.round(tot.fib || 0) >= fT ? 'hit' : '') + elecHtml(tot);
+  // carb timing
+  const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
+  const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
+  $('dTiming').innerHTML = !tg ? `<p class="hint">${t('noTargets')}</p>` : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
+      <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
+      <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
+  // log
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card" data-eid="${e.id}"><div class="ficon">${e.icon || '🍽️'}</div><div class="body">
+      <div class="row"><div class="brand">${e.time}</div><div class="kcal">${e.kcal} <small>kcal</small></div></div>
+      <div class="name">${esc(e.name)} <small style="color:var(--muted);font-weight:400">· ${fmtSize(e.amt, e.unit)}</small></div>
+      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span>${e.fib ? `<span class="m fi">Fi <b>${fmt(e.fib)}</b></span>` : ''}</div></div></div>`).join('')
+    : `<div class="empty">${t('nothingLogged')}</div>`;
+  $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
+  renderPlan();
+  try{ renderTodayRec(); }catch(e){}
   (dayLog[curDay] || []).filter(e => e.kind === 'quick').forEach(e => { const c = document.querySelector(`#dLog [data-eid="${e.id}"] .name small`); if(c) c.textContent = '· ' + t('qaTag'); });
+  $('realStart').checked = !!profile.realStart;
+  const n = (dayLog[curDay] || []).length; $('dEatenN').textContent = n ? ` · ${n}` : '';
 }
 
 function weightTrend(){
@@ -294,16 +307,16 @@ function weighAdvice(tr){
   return Math.abs(pct) > .3 ? { msg: t('wiRecomp'), d: pct > 0 ? -100 : 100 } : { msg: t('wiOk'), d: 0 };
 }
 
-function drawWeigh(){
-  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] || ''; $('wiIn').placeholder = (targets && targets.bw) || '75';
-  if(!tr){ $('wiOut').innerHTML = `<p class="hint">${t('wiNeed')}</p>`; return; }
-  const a = weighAdvice(tr), sg = (tr.perWeek >= 0 ? '+' : '') + tr.perWeek.toFixed(2);
-  $('wiOut').innerHTML = `<div class="row" style="align-items:center"><span class="rmeta">${t('wiRate', { r: sg, d: tr.days })}</span>${spark(tr.pts)}</div><p class="hint" style="margin:6px 0">${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
-  const ap = $('wiApply'); if(ap) ap.onclick = () => { ['gym', 'rest'].forEach(k => { if(targets[k]){ targets[k].k = Math.round((targets[k].k + a.d) / 50) * 50; targets[k].c = Math.max(0, Math.round((targets[k].c + a.d / 4) / 5) * 5); } });
-    store(TGKEY, targets); renderAll(); drawWeigh(); toast(t('wiApplied', { d: (a.d > 0 ? '+' : '') + a.d })); };
+function openTargets(){
+  const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
+  setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = latestWeight() || tg.bw || ''; $('tgFib').value = '';
+  $('tgCalcHint').textContent = $('tgBw').value ? t('calcFrom', { w: fmt(+$('tgBw').value) }) : t('calcNeedW');
+  [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
+  tgCheck(); open('ovTargets');
+  initMacroSliders();
+  const lk = (targets && targets.lock) || {};   // padlocks are remembered
+  ['G', 'R'].forEach(P => { MXL[P] = lk[P] || null; MXLG[P] = MXL[P] ? +$('tg' + P + MXL[P]).value || 0 : 0; }); drawLocks();
 }
-
-function openTargets(){ openTargets_0(); initMacroSliders(); }
 function latestWeight(){ const d = Object.keys(weights).filter(k => +weights[k] > 0).sort().pop(); return d ? +weights[d] : null; }
 // Calories stay fixed; protein / carbs / fat are % of them and always add up to 100.
 const MX = { G: null, R: null }, MXK = { p: 4, c: 4, f: 9 };
@@ -328,12 +341,23 @@ function drawMx(P, writeGrams){
   if(writeGrams && typeof tgCheck === 'function') tgCheck();
 }
 function moveMx(P, key, v){
-  const m = MX[P], others = ['p', 'c', 'f'].filter(x => x !== key); v = Math.max(5, Math.min(90, v));
+  const m = MX[P], L = MXL[P];
+  if(L && L !== key){   // a locked macro never moves: the change comes out of the third one
+    const third = ['p', 'c', 'f'].find(x => x !== key && x !== L); v = Math.max(5, Math.min(100 - m[L] - 5, v)); m[key] = v; m[third] = 100 - m[L] - v; drawMx(P, true); return; }
+  const others = ['p', 'c', 'f'].filter(x => x !== key); v = Math.max(5, Math.min(90, v));
   const rem = 100 - v, a = m[others[0]], b = m[others[1]];
   let na = a + b > 0 ? rem * a / (a + b) : rem / 2, nb = rem - na;
   if(na < 5){ na = 5; nb = rem - 5; } if(nb < 5){ nb = 5; na = rem - 5; }
   m[key] = v; m[others[0]] = na; m[others[1]] = nb; drawMx(P, true);
+  if(L){ const k = +$('tg' + P + 'k').value || 0; MXLG[P] = k ? Math.round(k * m[L] / 100 / MXK[L]) : 0; }   // dragging the locked one: it keeps its new grams
 }
+
+// padlock: lock one macro's grams any time; the locked slider can still be dragged, but moving the others never moves it
+const MXL = { G: null, R: null }, MXLG = { G: 0, R: 0 };
+function mxKeepLock(P){ const L = MXL[P], k = +$('tg' + P + 'k').value || 0; if(!L || !k || !MXLG[P]) return; const m = MX[P];
+  const pct = Math.max(5, Math.min(90, MXLG[P] * MXK[L] / k * 100)), others = ['p', 'c', 'f'].filter(x => x !== L), sum = m[others[0]] + m[others[1]] || 1, rem = 100 - pct;
+  m[L] = pct; m[others[0]] = Math.max(5, rem * m[others[0]] / sum); m[others[1]] = 100 - pct - m[others[0]]; }
+function drawLocks(){ ['G', 'R'].forEach(P => { const box = $('mx' + P); if(!box) return; box.querySelectorAll('[data-lock]').forEach(b => { const on = MXL[P] === b.dataset.lock; b.textContent = on ? '🔒' : '🔓'; b.classList.toggle('on', on); }); }); }
 function fibSuggest(){ const goal = TG.goal || 'bulk', k = +$('tgRk').value || +$('tgGk').value || 2500;
   return goal === 'cut' ? Math.max(32, Math.round(k / 1000 * 16)) : Math.round(k / 1000 * 14); }
 function drawFibSug(){}   // 0.5.9: fibre is automatic, no box
@@ -378,3 +402,12 @@ function dishMeal(d){
     total: { kcal: Math.round(d.kcal), protein: r1(d.p), carbs: r1(d.c), fat: r1(d.f) }, recipe: null, updatedAt: now };
   meals.push(m); saveMeals(); return m;
 }
+
+// Eaten: swipe a food right-to-left to delete it (Undo in the toast)
+function delEntry(id){ const l = dayLog[curDay] || [], i = l.findIndex(x => x.id === id); if(i < 0) return; const [gone] = l.splice(i, 1); saveLog(); renderAll();
+  toast(t('entryDel', { n: gone.name }), t('undo'), () => { (dayLog[curDay] = dayLog[curDay] || []).splice(i, 0, gone); saveLog(); renderAll(); }); }
+
+// Fill My Food: shrink portions if the plan would go over what's left
+function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0), 0), k = Math.max(0, rem.k);
+  if(!(tot > 0) || tot <= k * 1.03) return; const f = Math.max(.3, k / tot);
+  r.meals.forEach(m => { (m.items || []).forEach(it => { it.grams = Math.round((+it.grams || 0) * f / 5) * 5; }); ['kcal', 'protein', 'carbs', 'fat'].forEach(q => { m[q] = Math.round((+m[q] || 0) * f); }); }); }

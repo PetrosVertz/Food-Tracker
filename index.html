@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tracker</title>
@@ -19,11 +18,15 @@
   function fit(){ var portrait = innerHeight >= innerWidth, h = portrait ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
   fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;1,500;1,700;1,800&amp;display=swap">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/glass.css">
 <link rel="stylesheet" href="css/motion.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/workout.css">
+<link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
 
@@ -112,15 +115,15 @@
     <div class="brandrow" style="margin-top:8px"><label for="dTime" style="margin:0;flex:1" data-t="workoutAt"></label><input id="dTime" type="time" style="flex:0 0 130px"></div>
   </div>
   <div class="macrocard"><div id="dTotals"></div>
-    <div class="advwrap" id="dExtras"><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="advSw"></label>
+    <div class="advwrap" id="dExtras"><div class="advline"><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="advSw"></label><button class="tgcard" id="tgCardBtn" type="button" aria-label="Daily targets">🎯</button></div>
       <div class="advbody hide" id="advBody"><div id="dExtrasBody"></div>
-      <div class="advtiming"><div class="advh"><span data-t="carbTiming"></span><button class="ibtn" type="button" data-tip="tipCarbT" aria-label="Info">ⓘ</button></div><div id="dTiming"></div></div></div></div>
-    <button class="tgcard" id="tgCardBtn" type="button" aria-label="Daily targets">🎯</button></div>
+      <div class="advtiming"><div class="advh"><span data-t="carbTiming"></span><button class="ibtn" type="button" data-tip="tipCarbT" aria-label="Info">ⓘ</button></div><div id="dTiming"></div><label class="advrow realrow"><span data-t="realStartT"></span><input type="checkbox" id="realStart"></label></div></div></div>
+    </div>
   <div id="dRec"></div>
-  <div id="planShow"></div>
+  
   <details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small></summary>
   <button class="linkbtn" id="copyYesterday" data-t="copyYesterday"></button>
-  <div class="list" id="dLog"></div></details>
+  <div id="planShow"></div><div class="list" id="dLog"></div></details>
 </section>
 
 <!-- ============ GYM ============ -->
@@ -131,7 +134,7 @@
   </header>
   <h2 id="gSecTitle" class="sectitle hide"></h2>
   <div id="gBanner"></div>
-  <button class="btn primary bigstart" id="gStart"></button>
+  <button class="btn primary bigstart" id="gStart"></button><button class="linkbtn gother" id="gOther" data-t="otherWorkout"></button>
   <div id="gHub">
     <button class="minirec recbig" id="gMiniRec" aria-label="Recovery"></button>
     <div class="tiles hubstack" id="gHubTiles" style="margin-top:12px">
@@ -161,7 +164,13 @@
   <input class="search" id="fSearch" type="search" data-tp="searchFridge" autocomplete="off">
   <div id="fAlerts"></div>
   <div class="list" id="fList"></div>
-</section>
+</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><p class="sub" data-t="settingsSub"></p><label data-t="language"></label><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div><button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button><div class="bodybox"><h3 data-t="yourBody"></h3>
+    <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
+    <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
+    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><hr><h2 data-t="yourData"></h2><p class="sub" data-t="yourDataSub"></p><div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div><div class="actions" style="margin-top:10px">
+    <button class="btn" id="exportJson" data-t="download"></button>
+    <button class="btn" id="importBtn" data-t="import"></button>
+  </div><input type="file" id="importInput" accept="application/json,.json" class="hide"><div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div><div class="ver">Food Track · Gym Buddy · v0.6.8.1</div></section>
 
 <!-- ============ GROCERIES ============ -->
 <section class="page wrap hide" id="pgGroc">
@@ -280,8 +289,8 @@
 <div class="overlay" id="ovForm"><div class="sheet">
   <h2 id="formTitle"></h2>
   <p class="sub" id="formSub"></p>
-  <label data-t="foodType"></label>
-  <button class="typebtn" id="typeBtn"></button>
+  
+  
   <label for="fBrand" data-t="brand"></label>
   <div class="brandrow">
     <input id="fBrand" data-tp="brandPh" autocomplete="off" list="brandList">
@@ -292,7 +301,7 @@
   <input id="fName" data-tp="productPh" autocomplete="off">
   <label data-t="labelFor"></label>
   <div class="seg" id="fState"><button data-v="uncooked" data-t="uncooked"></button><button data-v="cooked" data-t="cooked"></button><button data-v="ready" data-t="ready"></button></div>
-  <div class="hint" data-t="stateHint"></div>
+  
   <label data-t="measuredIn"></label>
   <div class="seg" id="fUnit"><button data-v="g" data-t="grams"></button><button data-v="ml" data-t="millilitres"></button></div>
   <label id="per100"></label>
@@ -301,41 +310,41 @@
     <div><label for="fP" data-t="protein"></label><input id="fP" type="number" inputmode="decimal" step="any" min="0"></div>
     <div><label for="fC" data-t="carbs"></label><input id="fC" type="number" inputmode="decimal" step="any" min="0"></div>
     <div><label for="fF" data-t="fat"></label><input id="fF" type="number" inputmode="decimal" step="any" min="0"></div>
-  </div>
-  <div class="grid4">
+  </div><div class="hint" id="kcalCheck"></div><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="fAdvSw"></label><div id="fAdv" class="hide"><div><label data-t="foodType"></label><button class="typebtn" id="typeBtn"></button><div class="grid4">
     <div><label for="fFib" data-t="fibre"></label><input id="fFib" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSug" data-t="sugar"></label><input id="fSug" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSat" data-t="satFat"></label><input id="fSat" type="number" inputmode="decimal" step="any" min="0"></div>
-    <div><label for="fSalt" data-t="salt"></label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div>
-  </div>
-  <label for="fK" data-t="potMg"></label><input id="fK" type="number" inputmode="numeric" step="any" min="0">
-  <div class="hint" id="kcalCheck"></div>
-  <label for="packIn" data-t="packSizes"></label>
-  <div class="brandrow">
+    
+    
+    
+  </div><div class="hint" data-t="stateHint"></div></div><div class="grid4"><div><label for="fSug" data-t="sugar"></label><input id="fSug" type="number" inputmode="decimal" step="any" min="0"></div><div><label for="fSat" data-t="satFat"></label><input id="fSat" type="number" inputmode="decimal" step="any" min="0"></div><div><label for="fSalt" data-t="salt"></label><input id="fSalt" type="number" inputmode="decimal" step="any" min="0"></div></div><label for="fK" data-t="potMg"></label><input id="fK" type="number" inputmode="numeric" step="any" min="0"><label for="packIn" data-t="packSizes"></label><div class="brandrow">
     <input id="packIn" type="number" inputmode="decimal" step="any" min="0" placeholder="1000">
     <span id="packUnit" style="color:var(--muted)">g</span>
     <button class="btn small" id="packAdd" data-t="add"></button>
-  </div>
-  <div class="packs" id="packList"></div>
-  <div class="hint" data-t="packHint"></div>
-  <label data-t="comesAs"></label>
-  <div class="seg" id="fPieces"><button data-v="none" data-t="whole"></button><button data-v="slice" data-t="slices"></button><button data-v="piece" data-t="pieces"></button></div>
-  <div id="pieceBox" class="hide">
+  </div><div class="packs" id="packList"></div><div class="hint" data-t="packHint"></div><label data-t="comesAs"></label><div class="seg" id="fPieces"><button data-v="none" data-t="whole"></button><button data-v="slice" data-t="slices"></button><button data-v="piece" data-t="pieces"></button></div><div id="pieceBox" class="hide">
     <div class="grid">
       <div><label for="fPiece" id="pieceLbl"></label><input id="fPiece" type="number" inputmode="decimal" step="any" min="0" data-tp="weighOnePh"></div>
       <div><label for="fCount" id="countLbl"></label><input id="fCount" type="number" inputmode="numeric" step="1" min="1" data-tp="countPh"></div>
     </div>
     <div class="hint" id="pieceHint"></div>
-  </div>
-  <label data-t="showOnList"></label>
-  <div class="seg" id="fDisplay"><button data-v="auto" data-t="auto"></button><button data-v="piece"></button><button data-v="pack" data-t="perPack"></button><button data-v="100"></button></div>
-  <div class="hint" id="displayHint"></div>
-  <div class="preview" id="packPreview"></div>
-  <label for="fCode" data-t="barcode"></label>
-  <input id="fCode" inputmode="numeric" autocomplete="off">
-  <label for="fNotes" data-t="notes"></label>
-  <textarea id="fNotes" rows="2" data-tp="notesPh"></textarea>
-  <div class="src" id="fSource"></div>
+  </div><label data-t="showOnList"></label><div class="seg" id="fDisplay"><button data-v="auto" data-t="auto"></button><button data-v="piece"></button><button data-v="pack" data-t="perPack"></button><button data-v="100"></button></div><div class="hint" id="displayHint"></div><div class="preview" id="packPreview"></div><label for="fCode" data-t="barcode"></label><input id="fCode" inputmode="numeric" autocomplete="off"><label for="fNotes" data-t="notes"></label><textarea id="fNotes" rows="2" data-tp="notesPh"></textarea><div class="src" id="fSource"></div></div>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   <div class="actions">
     <button class="btn small danger hide" id="delBtn" data-t="delete"></button>
     <button class="btn small hide" id="dupBtn" data-t="duplicate"></button>
@@ -394,7 +403,7 @@
 <!-- ============ COOK A MEAL ============ -->
 <div class="overlay" id="ovCookPick"><div class="sheet">
   <h2 data-t="cookMeal"></h2>
-  <div id="cookPickOpts"></div>
+  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button></div>
 </div></div>
 <div class="overlay" id="ovCook"><div class="sheet tall">
   <h2 id="cookTitle"></h2>
@@ -403,8 +412,8 @@
   <input id="cName" data-tp="mealNamePh" autocomplete="off">
   <div id="cookStart">
     <p class="sub" style="margin:16px 0 10px" data-t="cookHow"></p>
-    <button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button>
-    <button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
+    
+    
   </div>
   <div id="cookMain">
   <div id="recipeBox">
@@ -420,14 +429,14 @@
   <button class="btn" id="addIng" style="width:100%" data-t="addIngredient"></button>
   <div class="totals" id="cTotals"></div>
 
-  <h3 data-t="finishedWeight"></h3>
-  <div class="hint" style="margin:-2px 0 6px" data-t="finishedHint"></div>
-  <div class="grid">
+  <button type="button" class="linkbtn" id="cWeighLink" data-t="cWeighLink"></button><div id="cWeighBox" class="hide"><h3 data-t="finishedWeight"></h3><div class="hint" style="margin:-2px 0 6px" data-t="finishedHint"></div><label for="cCooked" data-t="cookedW"></label><input id="cCooked" type="number" inputmode="decimal" step="any" min="0"><button type="button" class="linkbtn" id="potOther" data-t="potOther" style="margin: 6px 0px;"></button><div class="grid hide">
     <div><label for="cPotFull" data-t="potFull"></label><input id="cPotFull" type="number" inputmode="decimal" step="any" min="0"></div>
     <div><label for="cPotEmpty" data-t="potEmpty"></label><input id="cPotEmpty" type="number" inputmode="decimal" step="any" min="0"></div>
-  </div>
-  <label for="cCooked" data-t="orFoodOnly"></label>
-  <input id="cCooked" type="number" inputmode="decimal" step="any" min="0">
+  </div></div>
+  
+  
+  
+  
   <div class="preview show" id="cResult"></div>
   <div class="cquick"><h3 data-t="cqT"></h3><textarea id="cQuickTxt" data-tp="cqPh"></textarea><button class="btn" id="cQuickGo" data-t="cqGo"></button></div>
   <label class="check hide" id="cTakeWrap"><input type="checkbox" id="cTake" checked><span id="cTakeTxt"></span></label>
@@ -525,14 +534,14 @@
 
 <!-- ============ LIVE WORKOUT ============ -->
 <div class="overlay" id="ovSession"><div class="sheet tall session">
-  <div class="seshead2"><button class="sesback" id="sesMin" aria-label="Back">‹</button><div class="sestitle"><h2 id="sesName"></h2><small id="sesDate"></small></div><div class="bigclock" id="sesClock">0:00</div></div>
+  <div class="seshead3"><button class="sesback" id="sesMin" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="sesName"></h2><span class="wclock"><span id="sesClock">0:00</span><span id="sesHg"></span></span></div>
   <button class="addexbig" id="sesAddEx"><b data-t="addExercise"></b></button>
   <div id="sesSupps"></div>
   <div id="sesBody"></div>
   <div class="actions hide"><button class="btn" id="sesNext" data-t="whatNext"></button></div>
   <div style="height:96px"></div>
   <div class="hide" id="restBar"></div>
-  <div class="endbar"><button class="btn primary" id="sesFinish" data-t="endWorkout"></button><button class="discardlink" id="sesDiscard" data-t="discard"></button></div>
+  <div class="endbar2"><button class="pillbtn danger" id="sesDiscard" data-t="discardBtn"></button><button class="pillbtn primary" id="sesFinish" data-t="endWorkoutPill"></button></div>
 </div></div>
 
 <!-- ============ PICK EXERCISE ============ -->
@@ -633,8 +642,8 @@
     <span style="color:var(--muted)">×</span><input id="faCount" type="number" inputmode="numeric" step="1" min="1" value="1" style="flex:0 0 70px">
   </div>
   <div class="hint" id="faHint"></div>
-  <label data-t="whereKept"></label>
-  <div class="seg" id="faLoc"><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
+  <label data-t="whereKept" class="hide"></label>
+  <div class="seg hide" id="faLoc"><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div><label class="advrow frzrow"><span>❄️ <span data-t="frozen"></span></span><input type="checkbox" id="faFrozen"></label>
   <label for="faExp" data-t="expires"></label>
   <div class="brandrow"><input id="faExp" type="date" style="flex:1"><button class="toggle" id="faNoExp" data-t="noExpiry"></button></div>
   <div class="tchips" id="faExpQuick" style="margin-top:8px"></div>
@@ -656,7 +665,7 @@
   <h2 id="amTitle"></h2>
   <p class="sub" id="amSub"></p>
   <div class="tchips" id="amQuick"></div>
-  <div class="brandrow" style="margin-top:10px"><input id="amAmt" type="number" inputmode="decimal" step="any" min="0" style="flex:1"><span id="amUnit" style="color:var(--muted)">g</span></div>
+  <div class="amrow"><input id="amN" type="number" inputmode="decimal" step="any" min="0" aria-label="Amount"><select id="amU" aria-label="Unit"></select><input id="amAmt" type="hidden"></div>
   <div class="preview show" id="amRes"></div>
   <div class="brandrow" id="amTimeRow" style="margin-top:10px"><label for="amTime" style="margin:0;flex:1" data-t="ateAt"></label><input id="amTime" type="time" style="flex:0 0 130px"></div>
   <label class="check" id="amLogWrap"><input type="checkbox" id="amLog" checked><span data-t="alsoLog"></span></label>
@@ -671,11 +680,11 @@
 <!-- ============ LOG FOOD SEARCH ============ -->
 <div class="overlay" id="ovLog"><div class="sheet tall">
   <h2 data-t="logFood"></h2>
-  <input class="search" id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off">
+  <div class="searchrow"><input class="search" id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off"><button class="iconbtn scanin" id="lScanIn" type="button" aria-label="Scan">▥</button></div>
   <div class="logacts"><button class="btn" id="lQuickTop" data-t="qaBtn"></button><button class="btn" id="planBtn" data-t="planMyDay"></button></div>
   <button class="btn ghostbtn hide" id="lYesterday" data-t="addYesterday"></button>
   <div id="lResults" class="sres"></div>
-  <div class="actions"><button class="btn" id="lScan" data-t="scanToLog"></button><button class="btn" data-close data-t="cancel"></button></div>
+  <div class="actions"><button class="btn hide" id="lScan" data-t="scanToLog"></button><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
 
 <!-- ============ TARGETS ============ -->
@@ -730,37 +739,7 @@
 </div></div>
 
 <!-- ============ SETTINGS ============ -->
-<div class="overlay" id="ovSettings"><div class="sheet">
-  <div class="sheethead"><h2 data-t="settings"></h2><button class="backpill" data-close data-t="backArrow"></button></div>
-  <p class="sub" data-t="settingsSub"></p>
-  <label data-t="language"></label>
-  <div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div>
-  <button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button>
-  <div class="bodybox"><h3 data-t="yourBody"></h3>
-    <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
-    <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
-    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div>
-  <label for="sKey" data-t="geminiKey"></label>
-  <input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off">
-  <div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div>
-  <div class="status" id="keyStatus"></div>
-  <details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details>
-  <div class="hint" data-t="getKeyHint"></div>
-  <label for="sModel" data-t="geminiModel"></label>
-  <input id="sModel" autocomplete="off">
-  <div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div>
-  <hr>
-  <h2 data-t="yourData"></h2>
-  <p class="sub" data-t="yourDataSub"></p>
-  <div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div>
-  <div class="actions" style="margin-top:10px">
-    <button class="btn" id="exportJson" data-t="download"></button>
-    <button class="btn" id="importBtn" data-t="import"></button>
-  </div>
-  <input type="file" id="importInput" accept="application/json,.json" class="hide">
-  <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
-  <div class="ver">Food Track · Gym Buddy · v0.6.5.4</div>
-</div></div>
+
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
@@ -772,12 +751,17 @@
     catch(e){ try{ return f(s, t); }catch(_){ } } }; }); })();
 </script>
 <script src="js/data/config.js"></script>
+<script src="js/platform/store.js"></script>
+<script src="js/platform/phone.js"></script>
+<script src="js/platform/ai.js"></script>
 <script src="js/data/strings.js"></script>
 <script src="js/data/foods.js"></script>
+<script src="js/data/foods-more.js"></script>
 <script src="js/data/gym.js"></script>
 <script src="js/core.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/food.js"></script>
+<script src="js/search.js"></script>
 <script src="js/supplements.js"></script>
 <script src="js/today.js"></script>
 <script src="js/fridge.js"></script>
@@ -793,6 +777,7 @@
 <script src="js/wire/08-settings-boot.js"></script>
 <script src="js/wire/09-tabs-targets-recovery.js"></script>
 <script src="js/wire/10-workout.js"></script>
-<script src="js/wire/11-v059.js"></script>
-</body>
-</html>
+
+
+
+</body></html>

@@ -35,9 +35,9 @@ const fibTarget = tg => { const k = tg ? tg.k : 2500, cut = targets && targets.g
 
 $('dTotals').addEventListener('click', e => { if(e.target.closest('[data-elec]')){ ui.elecMg = !ui.elecMg; saveUI(); renderToday(); } });
 
-$('cookSuggestBtn').addEventListener('click', openSuggest);
+$('cookSuggestBtn').addEventListener('click', () => { close('ovCookPick'); $('cName').value = ''; SG.time = null; openSuggest(); setSeg('#sgTime', ''); $('sgLeft').textContent = t('sgAdult'); setTimeout(() => $('sgIn').focus(), 150); });
 
-$('cookOwnBtn').addEventListener('click', () => { cookStep(true); setTimeout(() => { const b = document.querySelector('#iRows .ipick'); if(b && !$('cName').value) $('cName').focus(); }, 80); });
+$('cookOwnBtn').addEventListener('click', () => { close('ovCookPick'); openCook(null, 'new'); setTimeout(() => $('cName').focus(), 150); });
 
 $('pasteBtn').addEventListener('click', () => $('ownBtn').click());
 
@@ -56,7 +56,7 @@ let SG = { sel: new Set() };
 
 $('sgAdd').addEventListener('click', addSgChip);
 
-$('sgIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); addSgChip(); } });
+$('sgIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('sgGo').click(); } });
 
 $('sgChips').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if(!b) return; const v = b.dataset.sg; SG.sel.has(v) ? SG.sel.delete(v) : SG.sel.add(v); drawSgChips(); });
 
@@ -111,7 +111,11 @@ $('gBackBtn').addEventListener('click', goBack);
 
 const workFor = d => { const p = gymPlan[new Date(d + 'T12:00:00').getDay()]; return p && p.work ? p.work : null; };
 
+$('gPlanV').addEventListener('change', e => { if(e.target.id === 'wpAdv'){ ui.wpAdv = e.target.checked; saveUI(); renderGymPlan(); } });
 $('gPlanV').addEventListener('click', e => {
+  const ws = e.target.closest('[data-wpset]'); if(ws){ const wd = +ws.closest('[data-wd]').dataset.wd, p = { ...(gymPlan[wd] || {}) };
+    if(ws.dataset.wpset === 'rest') p.tpl = 'rest'; else { if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || profile.gymTime || '18:00'; }
+    gymPlan[wd] = p; saveG('plan'); renderAll(); return; }
   const row = e.target.closest('[data-wd]'); if(!row) return; const wd = +row.dataset.wd, p = gymPlan[wd] || {};
   if(e.target.closest('[data-wadd]')){ p.work = { from: '09:00', to: '17:00' }; gymPlan[wd] = p; saveG('plan'); renderGymPlan(); renderToday(); }
   if(e.target.closest('[data-wrm]')){ delete p.work; if(p.tpl) gymPlan[wd] = p; else delete gymPlan[wd]; saveG('plan'); renderGymPlan(); renderToday(); }
@@ -126,13 +130,6 @@ $('gPlanV').addEventListener('change', e => {
 $('dBlocks').addEventListener('click', e => { if(e.target.closest('[data-goweek]')) go('gym-week'); });
 
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')) go('gym-rec'); }, true);
-
-$('wtList').addEventListener('click', e => {
-  if(e.target.closest('[data-wtback]')) return drawWType(false);
-  const b = e.target.closest('[data-wt]'); if(!b) return;
-  if(b.dataset.wt === 'bro') return drawWType(true);
-  close('ovWType'); openTpl(null, b.dataset.wt);
-});
 
 // clear out the old ready-made workouts if they were never used
 if(!ui.seedClean053){
@@ -150,7 +147,7 @@ $('pkBody').addEventListener('click', e => {
   const hd = e.target.closest('[data-head]'); if(hd){ PK.eq = null; }
 }, true);
 
-GEN_MORE.forEach(([id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fib, na, k, pieces, piece]) => {
+[...GEN_MORE, ...GEN_067].forEach(([id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fib, na, k, pieces, piece]) => {
   if(GENBY[id]) return;
   const so = subOf(cat, sub) || {}; const g = { gid: id, en, el, alias, cat, sub, unit, state, kcal, protein, carbs, fat, fiber: fib, salt: r1(na * 2.5 / 1000 * 100) / 100, potassium: k,
     pieces: pieces || 'none', piece: piece || null, hay: norm(`${en} ${el} ${alias} ${so.en || ''} ${so.el || ''} ${(so.kw || []).join(' ')}`) };
@@ -160,3 +157,23 @@ GEN_MORE.forEach(([id, en, el, alias, cat, sub, unit, state, kcal, protein, carb
 const POPI = Object.fromEntries(POP.map((g, i) => [g, i]));
 
 const popBonus = gid => gid in POPI ? 7 * (1 - POPI[gid] / POP.length) + 1 : 0;
+
+
+// Suggest a meal: time available (tap again to clear)
+document.querySelectorAll('#sgTime button').forEach(b => b.addEventListener('click', () => { SG.time = SG.time === b.dataset.v ? null : b.dataset.v; setSeg('#sgTime', SG.time || ''); }));
+// My Own Recipe: the cooked weight is worked out from the ingredients; weighing it yourself is optional and folded away
+$('cWeighLink').addEventListener('click', () => $('cWeighBox').classList.toggle('hide'));
+// free-write quick add: the AI turns it into ingredients and amounts (without a key, the built-in reader tries)
+$('cQuickGo').addEventListener('click', async () => {
+  const txt = $('cQuickTxt').value.trim(); if(!txt){ $('cQuickTxt').focus(); return; }
+  let r = null;
+  if(settings.geminiKey){
+    try{ r = await gemini(`Turn this home recipe into structured data. Write names in ${lang === 'el' ? 'Greek' : 'English'}. Text: """${txt}"""
+Return ONLY JSON: {"title":string,"servings":number,"ingredients":[{"name":string,"name_en":string,"grams":number}],"steps":[string]}
+Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to grams; include oil; name_en = plain generic English food name.`); }
+    catch(err){ if(err.cancelled) return; toast(t('cqFail')); }
+  }
+  if(!r){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(settings.geminiKey ? 'cqFail' : 'cqNoKey')); return; } }
+  if(r.title && !$('cName').value.trim()) $('cName').value = r.title;
+  applyRecipe(r, true); $('cQuickTxt').value = ''; toast(t('cqDone', { n: (r.ingredients || []).length }));
+});

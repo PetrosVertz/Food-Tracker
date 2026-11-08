@@ -13,19 +13,16 @@ function portion(f){
   return { mode, amt: 100, label: t('per100Label', { u: f.unit }), size: '' };
 }
 
-function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec(); }
+function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec();
+  const fab = $('fab'); if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
+  syncFab2(); }
 
-function renderHome_0(){
-  $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
-  $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
-  const tp = todayProgress();
-  renderHome15(); renderHome16(); renderHome17();
-  $('tSuppsSub').textContent = !supps.length ? t('nSupps', { n: 0 }) : (supps.length === 1 ? t('nSupp') : t('nSupps', { n: supps.length })) + (tp.total ? ` · ${t('todayLabel')}: ${t('todayTaken', { a: tp.done, b: tp.total })}` : '');
-}
+// the second floating button: ▥ Scan Food on Food Track, ＋ Add on Fridge
+function syncFab2(){ const a = $('fab').dataset.action, hid = $('fab').classList.contains('hide'), on = (a === 'store' || a === 'fridge') && !hid;
+  $('fab2').classList.toggle('hide', !on); document.body.classList.toggle('twofab', on);
+  if(on && a === 'fridge'){ $('fab').textContent = t('scanReceipt'); $('fab2').textContent = t('addFridgeFab'); } else $('fab2').textContent = t('scanFoodFab'); }
 
 // ======================= store-bought list =======================
-function foodHay(f){ const s = subOf(f.cat, f.sub); return norm(`${foodName(f)} ${f.name} ${f.brand} ${f.barcode||''} ${typeLabel(f.cat,f.sub)} ${s ? s.en + ' ' + s.el + ' ' + s.kw.join(' ') : ''} ${f.gid && GENBY[f.gid] ? GENBY[f.gid].hay : ''}`); }
-
 const FCAT = {};   // open categories in My foods
 function render(){
   const q = norm($('search').value);
@@ -39,7 +36,7 @@ function render(){
   const tokens = q.split(' ').filter(Boolean);
   const items = foods
     .filter(f => ui.cat === 'all' || (f.cat || 'none') === ui.cat)
-    .filter(f => !tokens.length || (h => tokens.every(tk => h.includes(tk)))(foodHay(f)))
+    .filter(f => !tokens.length || Search.matches(q, f))
     .sort(ui.sort === 'recent' ? (a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'') : (a,b) => norm(foodName(a)).localeCompare(norm(foodName(b))) || norm(a.brand).localeCompare(norm(b.brand)));
   $('count').textContent = foods.length ? (items.length === 1 ? t('nFood') : t('nFoods', { n: items.length })) : '';
   if(!foods.length){ $('list').innerHTML = `<div class="empty">${t('noFoods')}</div>`; return; }
@@ -164,7 +161,7 @@ function updatePreview(){
 
 function openForm(data, sourceNote, mode, opts){
   opts = opts || {};
-  data = migrate(data || {});
+  data = normFood(data || {});
   F.editingId = mode === 'edit' ? data.id : null;
   F.fromScan = !!opts.fromScan; F.onSaved = opts.onSaved || null;
   F.stateTouched = mode === 'edit';
@@ -197,6 +194,7 @@ function openForm(data, sourceNote, mode, opts){
   checkKcal(); drawPacks();
   open('ovForm');
   if(mode !== 'edit' && !data.name) setTimeout(() => $('fName').focus(), 150);
+  const adv = ['fSug', 'fSat', 'fSalt', 'fK'].some(id => $(id).value !== ''); $('fAdvSw').checked = adv; $('fAdv').classList.toggle('hide', !adv);
 }
 
 function checkKcal(){
@@ -215,30 +213,9 @@ function readForm(){
   return { name: $('fName').value.trim(), brand: F.noBrand ? '' : $('fBrand').value.trim(), vals };
 }
 
-function askMissing(needBrand, needType){
-  M = { brandMode:null, cat:null, sub:null, needBrand, needType };
-  $('mBrandSec').classList.toggle('hide', !needBrand);
-  $('mTypeSec').classList.toggle('hide', !needType);
-  setSeg('#mBrandSeg', ''); $('mBrand').value = ''; $('mBrand').classList.add('hide');
-  if(needType) mountPicker($('mTypePicker'), guessType($('fName').value), v => { M.cat = v.cat; M.sub = v.sub; checkMissing(); });
-  checkMissing(); open('ovMissing');
-}
-
 function checkMissing(){
   const brandOk = !M.needBrand || M.brandMode === 'none' || (M.brandMode === 'add' && $('mBrand').value.trim());
   $('mSave').disabled = !(brandOk && (!M.needType || !!M.cat));
-}
-
-function askPiece(){
-  const w = W(F.pieces), ws = WS(F.pieces), u = F.unit;
-  $('pcTitle').textContent = t('pieceQ', { w });
-  $('pcSub').textContent = t('pieceSub', { w }) + (F.serving ? t('pieceSkipEst', { s: fmtSize(F.serving, u), w }) : t('pieceSkipLater'));
-  $('pcGl').textContent = t('oneWeighs', { w, u });
-  $('pcNl').textContent = t('inPack', { Ws: ws[0].toUpperCase() + ws.slice(1) });
-  $('pcPackl').textContent = t('wholePackU', { u });
-  $('pcNone').textContent = t('notInPieces', { ws });
-  $('pcG').value = ''; $('pcN').value = ''; $('pcPack').value = F.usual || '';
-  setPcMode('weigh'); open('ovPiece'); setTimeout(() => $('pcG').focus(), 120);
 }
 
 function setPcMode(m){ PC.mode = m; setSeg('#pcSeg', m); $('pcWeigh').classList.toggle('hide', m !== 'weigh'); $('pcCount').classList.toggle('hide', m !== 'count'); pcCheck(); }
@@ -286,20 +263,6 @@ async function commit(){
   else toast(t('saved', { i: iconOf(rec) || '' }));
 }
 
-function getDetector(){
-  if(detector) return Promise.resolve(detector);
-  if(detectorP) return detectorP;
-  detectorP = (async () => {
-    if('BarcodeDetector' in window){
-      try{ const sup = await window.BarcodeDetector.getSupportedFormats();
-        if(sup.includes('ean_13')) return detector = new window.BarcodeDetector({ formats: FORMATS.filter(f => sup.includes(f)) }); }catch(e){}
-    }
-    const m = await import('https://fastly.jsdelivr.net/npm/barcode-detector@3/dist/es/ponyfill.min.js');
-    return detector = new m.BarcodeDetector({ formats: FORMATS });
-  })().catch(e => { detectorP = null; throw e; });
-  return detectorP;
-}
-
 function validGTIN(c){
   if(!/^\d{8}$|^\d{12,14}$/.test(c)) return /^\d{6,}$/.test(c);
   const d = c.split('').map(Number), check = d.pop();
@@ -308,13 +271,12 @@ function validGTIN(c){
 }
 
 async function startScan(ctx){
-  scanCtx = ctx || null;
+  scanCtx = ctx || null; $('cantScan').classList.add('hide'); $('cantScanBtn').classList.remove('open');
   open('ovScan'); status($('scanStatus'), t('startingCam')); $('manualCode').value = '';
   $('torchBtn').classList.add('hide'); torchOn = false;
-  if(!navigator.mediaDevices?.getUserMedia){ status($('scanStatus'), t('camFail'), true); return; }
+  if(!Phone.hasCamera()){ status($('scanStatus'), t('camFail'), true); return; }
   try{
-    const [det, s] = await Promise.all([ getDetector(),
-      navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 }, height:{ ideal:1080 } } }) ]);
+    const [det, s] = await Promise.all([Phone.barcodeReader(), Phone.camera()]);
     if(!$('ovScan').classList.contains('open')){ s.getTracks().forEach(tr => tr.stop()); return; }
     stream = s; const v = $('video'); v.srcObject = s; await v.play().catch(()=>{});
     const track = s.getVideoTracks()[0], caps = track.getCapabilities ? track.getCapabilities() : {};
@@ -328,7 +290,7 @@ async function startScan(ctx){
         if(v.readyState >= 2){
           const res = await det.detect(v);
           const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
-          if(hit){ if(hit === last){ scanOn = false; navigator.vibrate?.(60); stopScan(); lookup(hit); return; } last = hit; }
+          if(hit){ if(hit === last){ scanOn = false; Phone.vibrate(60); stopScan(); lookup(hit); return; } last = hit; }
         }
       }catch(e){}
       scanLoop = setTimeout(tick, 90);
@@ -390,96 +352,10 @@ function notFound(code, why){
   status($('addStatus'), t('notFoundMsg', { c: code, why }), true);
 }
 
-function fetchT(url, opts, ms, outer){
-  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), ms);
-  const onOuter = () => ctl.abort();
-  if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', onOuter); }
-  return fetch(url, { ...opts, signal: ctl.signal }).finally(() => { clearTimeout(timer); if(outer) outer.removeEventListener('abort', onOuter); });
-}
-
-function sortModels(names){
-  const ver = n => { const m = n.match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
-  const tier = n => /latest/.test(n) ? 0 : /preview|exp/.test(n) ? 2 : 1;
-  const kind = n => /flash-lite/.test(n) ? 1 : /flash/.test(n) ? 0 : /pro/.test(n) ? 3 : 2;
-  return names.sort((a,b) => tier(a) - tier(b) || ver(b) - ver(a) || kind(a) - kind(b));
-}
-
-async function listModels(){
-  const tag = settings.geminiKey.slice(-6), c = load(MLKEY, null);
-  if(c && c.tag === tag && Date.now() - c.at < 864e5 && c.list && c.list.length) return c.list;
-  try{
-    const r = await fetchT(`${GAPI}?pageSize=200`, { headers:{ 'x-goog-api-key': settings.geminiKey } }, 10000);
-    if(!r.ok) return [];
-    const j = await r.json();
-    const list = sortModels((j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
-      .map(m => m.name.replace(/^models\//, ''))
-      .filter(n => /^gemini/.test(n) && !/(embed|image|tts|audio|live|aqa|robotics|computer|learnlm)/.test(n)));
-    store(MLKEY, { at: Date.now(), tag, list });
-    return list;
-  }catch(e){ return []; }
-}
-
-async function gemini(prompt, imageB64, onTry, outer){
-  const parts = [{ text: prompt }]; if(imageB64) parts.push({ inline_data:{ mime_type:'image/jpeg', data:imageB64 } });
-  const chain = [...new Set([settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...(await listModels())])].slice(0, 10);
-  let lastErr = null;
-  for(let i = 0; i < chain.length; i++){
-    if(outer && outer.aborted) throw Object.assign(new Error(t('cancelled')), { cancelled: true });
-    if(onTry) onTry(i + 1, chain.length, chain[i]);
-    try{
-      const r = await fetchT(`${GAPI}/${encodeURIComponent(chain[i])}:generateContent`, {
-        method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': settings.geminiKey },
-        body: JSON.stringify({ contents:[{ parts }], generationConfig:{ responseMimeType:'application/json', temperature: imageB64 ? 0 : 0.6 } })
-      }, GEMINI_TIMEOUT, outer);
-      let j = null; try{ j = await r.json(); }catch(e){}
-      if(!r.ok){
-        const msg = (j && j.error && j.error.message) || `HTTP ${r.status}`;
-        // a bad key won't work on any model, so stop right away; everything else → next model
-        if(r.status === 401 || /api key not valid|api_key_invalid|denied access/i.test(msg)) throw Object.assign(new Error(t('keyBad', { e: msg.replace(/\.\s*$/, '') })), { fatal: true });
-        lastErr = new Error(msg.length > 90 ? msg.slice(0, 90) + '…' : msg); continue;
-      }
-      const txt = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-      try{ return JSON.parse(txt.replace(/^\s*```(json)?|```\s*$/g, '').trim()); }catch(e){ lastErr = new Error('unreadable answer'); continue; }
-    }catch(e){
-      if(e.fatal) throw e;
-      if(outer && outer.aborted) throw Object.assign(new Error(t('cancelled')), { cancelled: true });
-      lastErr = e && e.name === 'AbortError' ? new Error(t('timedOut')) : e;
-    }
-  }
-  throw new Error(t('allBusy', { e: lastErr ? lastErr.message : '?' }));
-}
-
-function shrink(file){
-  return new Promise((res, rej) => {
-    const img = new Image(), url = URL.createObjectURL(file);
-    img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas');
-      c.width = Math.round(img.width*s); c.height = Math.round(img.height*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85).split(',')[1]); };
-    img.onerror = () => rej(new Error('photo')); img.src = url;
-  });
-}
 
 // ======================= ingredient search =======================
 // Order: your own foods → the standard list (works in Greek and English) → Open Food Facts online
 // names are checked in both Greek and English, so "κοτόπουλο στήθος" and "chicken breast" land on the same food
-function scoreHay(hay, names, tokens, q){
-  if(!tokens.every(tk => hay.includes(tk))) return 0;
-  let best = 0;
-  for(const nm of names){ if(!nm) continue; const n = norm(nm); let s = 10;
-    if(n.startsWith(q)) s += 6; else if(n.includes(q)) s += 3;
-    if(tokens.every(tk => n.includes(tk))) s += 4;
-    best = Math.max(best, s - Math.min(n.length, 60) / 30); }
-  return best;
-}
-
-async function searchOnline(text){
-  const base = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1&page_size=15&fields=${OFF_FIELDS}`;
-  const [gr, all] = await Promise.allSettled([fetch(base + '&countries_tags_en=greece').then(r => r.json()), fetch(base).then(r => r.json())]);   // 0.6.3.1: Greek first, then everything
-  if(gr.status === 'rejected' && all.status === 'rejected') throw new Error('offline');
-  const seen = new Set(), prods = [...(gr.value?.products || []), ...(all.value?.products || [])].filter(p => p.code && !seen.has(p.code) && seen.add(p.code));
-  return prods.map(p => offToFood(p, p.code)).filter(d => d.protein !== null && d.carbs !== null && d.fat !== null && d.name).slice(0, 20);
-}
-
 function openIngSearch(prefill, cb, opts){
   opts = opts || {};
   ING = { cb, online:[], onlineQ:'', timer:null, force: !!opts.force };
@@ -623,19 +499,6 @@ function openMeal(id){
   open('ovMeal');
 }
 
-function todayProgress(){
-  const day = suppLog[todayKey()] || {}; let total = 0, done = 0;
-  supps.filter(s => s.often === 'daily').forEach(s => s.times.forEach(sl => { total++; if(day[`${s.id}|${sl}`]) done++; }));
-  return { total, done };
-}
-
-function doseMacros(s){
-  const f = s.foodId && foods.find(x => x.id === s.foodId);
-  if(!f || !(s.dose > 0) || !['g','ml','scoops'].includes(s.unit)) return '';
-  const grams = s.unit === 'scoops' ? (f.serving || 30) * s.dose : s.dose, x = grams / 100;
-  return ` · ${Math.round((f.kcal || 0) * x)} kcal · P ${r1((f.protein || 0) * x)}`;
-}
-
 function drawSupTimes(){ $('supTimes').innerHTML = SLOTS.map(sl => `<button data-t2="${sl}" class="${SU.times.includes(sl) ? 'on' : ''}">${t('slot_' + sl)}</button>`).join(''); }
 
 function faHint(){
@@ -645,6 +508,7 @@ function faHint(){
 
 function amRes(){
   const a = num('amAmt'), el = $('amRes');
+  if(AM && !AM.typing && AM.units){ const u = AM.units[AM.u] || { size: 1 }; $('amN').value = a > 0 ? r1(a / u.size) : ''; }
   if(!(a > 0)){ el.innerHTML = ''; el.style.display = 'none'; return; }
   const m = macrosFor(AM.info.per, a); el.style.display = 'block';
   el.innerHTML = `${fmtSize(a, AM.info.unit)}: <b>${m.kcal} kcal</b> · P ${m.p} · C ${m.c} · F ${m.f}`;
@@ -652,8 +516,8 @@ function amRes(){
 
 async function shareList(){
   const text = grocText(); if(!text){ toast(t('nothingToSend')); return; }
-  if(navigator.share){ try{ await navigator.share({ title: t('tGroc'), text }); return; }catch(e){ if(e && e.name === 'AbortError') return; } }
-  try{ await navigator.clipboard.writeText(text); toast(t('listCopied')); }catch(e){ toast(t('listCopied')); }
+  try{ if(await Phone.shareText(t('tGroc'), text)) return; }catch(e){ if(e && e.name === 'AbortError') return; }
+  await Phone.copy(text); toast(t('listCopied'));
 }
 
 function updateTake(){
@@ -697,7 +561,7 @@ function tgCheck(){
 }
 
 // ---------- home additions ----------
-function renderHome15(){
+function homeTodayTiles(){
   const tg = targetFor(todayKey()), tot = dayTotals(todayKey()), di = dayInfo(todayKey());
   $('tTodaySub').textContent = `${Math.round(tot.kcal)}${tg ? ' / ' + tg.k : ''} kcal · ${di.type === 'gym' ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') + (di.time ? ' ' + di.time : '') : '😴'}`;
   $('tTodayBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0';
@@ -715,7 +579,7 @@ function renderHome15(){
 function saveGeneric(g){
   const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
   const now = new Date().toISOString();
-  const f = migrate({ id: uid(), gid: g.gid, name: L(g), brand:'', noBrand:true, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
+  const f = normFood({ id: uid(), gid: g.gid, name: L(g), brand:'', noBrand:true, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
     kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber: g.fiber ?? null, salt: g.salt ?? null, potassium: g.potassium ?? null,
     pieces:g.pieces, piece:g.piece, pieceSkipped: !g.piece && g.pieces !== 'none', source:'standard', createdAt: now, updatedAt: now });
   foods.push(f); saveFoods(); renderAll(); return f;
@@ -738,8 +602,7 @@ function openCook(meal, mode){
   $('cName').value = meal ? meal.name : '';
   $('cPotFull').value = ''; $('cPotEmpty').value = ''; $('cCooked').value = mode === 'edit' && meal && !meal.cookedEstimated ? meal.cookedWeight : '';
   $('cDelete').classList.toggle('hide', mode !== 'edit');
-  if(!D.rows.length) D.rows.push(newRow());
-  renderUseUp(mode); drawRecipeBox(); drawRows(); cookStep(mode !== 'new'); open('ovCook');
+  renderUseUp(mode); drawRecipeBox(); drawRows(); cookStep(true); open('ovCook');
 }
 
 function drawRows(){
@@ -767,59 +630,14 @@ function addSgChip(){ const v = $('sgIn').value.trim(); if(!v) return; ui.sgChip
 // ---------- tags: raw (light blue) / cooked (light green) ----------
 function stTag(state){ return state === 'uncooked' ? `<span class="sttag raw">${t('rawTag')}</span>` : state === 'cooked' ? `<span class="sttag cooked">${t('cookedTag')}</span>` : ''; }
 
-// ---------- smarter search: popularity, your own habits, up to 50 results ----------
-function useCounts(){
-  const c = {}; Object.keys(dayLog).sort().slice(-90).forEach(d => (dayLog[d] || []).forEach(e => { if(e.refId) c[e.refId] = (c[e.refId] || 0) + 1; }));
-  foods.forEach(f => { if(f.gid && c[f.id]) c['g:' + f.gid] = c[f.id]; }); return c;
-}
-
-function searchLocal(text, raw, opts){
-  const q = norm(text), tokens = q.split(' ').filter(Boolean); opts = opts || {};
-  if(!tokens.length) return { mine: [], std: [] };
-  const uc = useCounts(), habit = n => n ? Math.min(8, 3 + n / 2) : 0;
-  const names = f => [foodName(f), f.name, f.gid && GENBY[f.gid] ? GENBY[f.gid].en : '', f.gid && GENBY[f.gid] ? GENBY[f.gid].el : ''];
-  const cookBias = st => raw ? (st === 'cooked' ? -6 : 0) : opts.log ? (st === 'cooked' ? 1.5 : 0) : 0;
-  const mine = foods.map(f => { const s = scoreHay(foodHay(f), names(f), tokens, q); return { f, s: s > 0 ? s + habit(uc[f.id]) + (f.gid ? popBonus(f.gid) : 0) + cookBias(f.state) : 0 }; })
-    .filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, opts.mineMax || 20).map(x => x.f);
-  const have = new Set(foods.map(f => f.gid).filter(Boolean));
-  const std = GEN.filter(g => !have.has(g.gid)).map(g => { const s = scoreHay(g.hay, [g.en, g.el], tokens, q); return { g, s: s > 0 ? s + popBonus(g.gid) + cookBias(g.state) : 0 }; })
-    .filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, opts.stdMax || 50).map(x => x.g);
-  return { mine, std };
-}
-
-// online: Open Food Facts (packaged foods) + USDA FoodData Central (plain foods)
-async function searchUSDA(text){
-  const key = settings.usdaKey || 'DEMO_KEY';
-  const r = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${key}&query=${encodeURIComponent(text)}&pageSize=25&dataType=Foundation,SR%20Legacy`);
-  if(!r.ok) throw new Error('USDA ' + r.status); const j = await r.json();
-  const nv = (f, ids) => { for(const n of f.foodNutrients || []){ if(ids.includes(n.nutrientId) || ids.includes(+n.nutrientNumber)) return n.value; } return null; };
-  return (j.foods || []).map(f => { let kcal = nv(f, [1008, 208]); if(kcal == null){ const kj = nv(f, [1062]); if(kj != null) kcal = Math.round(kj / 4.184); }
-    const carbs = nv(f, [1005, 205]), fib = nv(f, [1079, 291]);
-    const nm = f.description.replace(/\s+/g, ' ');
-    return { name: nm.charAt(0) + nm.slice(1).toLowerCase(), brand: '', noBrand: true, kcal: kcal != null ? Math.round(kcal) : null, protein: nv(f, [1003, 203]), carbs: carbs != null ? r1(Math.max(0, carbs - (fib || 0))) : null, fat: nv(f, [1004, 204]),
-      fiber: fib, salt: nv(f, [1093, 307]) != null ? r1(nv(f, [1093, 307]) * 2.5 / 1000 * 100) / 100 : null, potassium: nv(f, [1092, 306]), unit: 'g', packs: [], usualPack: null,
-      state: /\braw\b/i.test(nm) ? 'uncooked' : /cooked|boiled|roasted|grilled|baked|fried|steamed|braised/i.test(nm) ? 'cooked' : 'ready', source: 'USDA', fdc: f.fdcId }; })
-    .filter(d => d.protein != null && d.carbs != null && d.fat != null);
-}
-
-async function searchOnlineAll(text){
-  const [a, b] = await Promise.allSettled([searchOnline(text), searchUSDA(text)]);
-  const off = a.status === 'fulfilled' ? a.value.map(d => ({ ...d, source: 'openfoodfacts' })) : [], us = b.status === 'fulfilled' ? b.value : [];
-  if(a.status === 'rejected' && b.status === 'rejected') throw new Error('offline');
-  const out = [], seen = new Set(); [us.slice(0, 15), off].flat().forEach(d => { const k = norm(d.name + (d.brand || '')); if(!seen.has(k)){ seen.add(k); out.push(d); } });
-  return out.slice(0, 40);
-}
-
 function saveOnlineFood(d){
   if(d.barcode){ const ex = foods.find(f => f.barcode === d.barcode); if(ex) return ex; }
   const now = new Date().toISOString(), g = guessType(d.name + ' ' + (d.hint || ''));
-  const f = migrate({ id: uid(), name: d.name, brand: d.brand || '', noBrand: !d.brand, barcode: d.barcode || null, cat: g ? g.cat : 'other', sub: g ? g.sub : 'general', unit: d.unit || 'g', state: d.state || 'ready',
+  const f = normFood({ id: uid(), name: d.name, brand: d.brand || '', noBrand: !d.brand, barcode: d.barcode || null, cat: g ? g.cat : 'other', sub: g ? g.sub : 'general', unit: d.unit || 'g', state: d.state || 'ready',
     kcal: d.kcal ?? Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9), protein: d.protein, carbs: d.carbs, fat: d.fat, fiber: d.fiber ?? null, salt: d.salt ?? null, potassium: d.potassium ?? null,
     packs: d.packs || [], usualPack: d.usualPack || null, pieces: 'none', serving: d.serving || null, source: d.source || 'online', createdAt: now, updatedAt: now });
   foods.push(f); saveFoods(); return f;
 }
-
-function renderHome17(){}
 
 // ---------- fewer pop-ups when saving a food ----------
 function trySave(){
@@ -833,4 +651,11 @@ function trySave(){
   commit();
 }
 
-function renderHome(){ renderHome_0(); renderBackupCard($('homeBackup')); }
+function renderHome(){
+  $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
+  $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
+  const tp = todayProgress();
+  homeTodayTiles(); homeGymTile();
+  $('tSuppsSub').textContent = !supps.length ? t('nSupps', { n: 0 }) : (supps.length === 1 ? t('nSupp') : t('nSupps', { n: supps.length })) + (tp.total ? ` · ${t('todayLabel')}: ${t('todayTaken', { a: tp.done, b: tp.total })}` : '');
+  renderBackupCard($('homeBackup'));
+}

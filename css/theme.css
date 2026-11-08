@@ -1,0 +1,104 @@
+/* Design system (visual spec 8 Nov, canvas "Tracker look: pills, themes and fonts"). Loaded last: every screen takes its values from here.
+   Type: Inter · sizes 32 / 28 / 20 / 15 / 12 · weights 700 / 500 / 400 (800 only in the set setter and rest bracket).
+   Spacing in steps of 4 and 8 · radii: cards 20, rows 16, inputs 10–12, pills 999.
+   Glass only on floating things (bottom bar, sheets, AI bubble); cards are solid. */
+
+:root{
+  /* type */
+  --font:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --fs-hero:32px; --fs-clock:28px; --fs-title:20px; --fs-body:15px; --fs-label:12px;
+  --w-bold:700; --w-med:500; --w-reg:400; --w-setter:800;
+  /* shape + spacing */
+  --r-card:20px; --r-row:16px; --r-input:10px; --r-input2:12px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px;
+
+  /* elevation, dark (Phones.dc.html BASE.dark) */
+  --t-bg:#000000; --t-card:#161718; --t-card2:#1d1e20; --t-sel:#26282b; --t-press:#2e3034;
+  --t-line:#2c2e31; --t-edge:rgba(255,255,255,.06); --t-track:#242628; --t-off:#27292c;
+  --t-text:#eef0f2; --t-muted:#8d9399; --t-clock:#ffffff;
+  --t-glass:rgba(26,27,29,.72); --t-glass-edge:rgba(255,255,255,.08); --t-scrim:rgba(0,0,0,.5);
+  --t-glass-btn:rgba(255,255,255,.07); --t-glass-btn-edge:rgba(255,255,255,.10);
+  --t-tick-idle:#6b7178; --t-tick-edge:#3a3d41; --t-shadow:none;
+
+  /* colour roles (fixed in every theme) */
+  --t-accent:#c6f432; --t-on:#0f1113;
+  --t-done:#59d38c; --t-done-soft:rgba(89,211,140,.16); --t-done-ink:#0b1a10;
+  --t-rest:#5fa8f5; --t-rest-box:#1b1c1e;
+  --t-warm:#f2b84b; --t-drop:#b39bff; --t-fail:#ff7a7a;
+  --t-danger:#ff7a7a; --t-danger-soft:rgba(255,107,107,.14);
+  --t-p:#7fa6c9; --t-c:#d6b679; --t-f:#d98b80;
+  --t-sore:#ff6b5c; --t-mid:#e8b04a;
+
+  /* main selector pill (dark: white pill, accent italic letters with a thin dark outline) */
+  --t-mp-bg:linear-gradient(180deg,#ffffff 0%,#eceef0 100%);
+  --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.3);
+  --t-mp-text:var(--t-accent); --t-mp-stroke:2.4px #0b0d0f;
+  /* secondary selector (quiet grey) */
+  --t-sp-bg:#34373b; --t-sp-shadow:inset 0 0 0 1px #44484d; --t-sp-text:#ffffff;
+
+  /* the app's older names → the new values */
+  --bg:var(--t-bg); --panel:var(--t-card); --panel2:var(--t-card2); --line:var(--t-line);
+  --text:var(--t-text); --muted:var(--t-muted); --accent:var(--t-accent); --accent-ink:var(--t-on);
+  --p:var(--t-p); --c:var(--t-c); --f:var(--t-f); --ok:var(--t-done); --danger:var(--t-danger);
+  --glass:var(--t-glass); --edge:var(--t-edge); --kc:var(--t-accent); --r:var(--r-card);
+}
+
+/* Light mode (not on canvas yet): soft grey background, white cards, hairline + a barely-there shadow; never pure white backgrounds */
+:root[data-theme="light"]{
+  --t-bg:#e2e3e6; --t-card:#ffffff; --t-card2:#ebecee; --t-sel:#e6e7ea; --t-press:#dcdde0;
+  --t-line:#d3d5d9; --t-edge:rgba(0,0,0,.08); --t-track:#d9dbdf; --t-off:#d0d3d7;
+  --t-text:#16181b; --t-muted:#596067; --t-clock:#000000;
+  --t-glass:rgba(244,244,245,.75); --t-glass-edge:rgba(0,0,0,.06); --t-scrim:rgba(20,22,25,.28);
+  --t-glass-btn:rgba(0,0,0,.05); --t-glass-btn-edge:rgba(0,0,0,.08);
+  --t-tick-idle:#8a9097; --t-tick-edge:#c3c6cb; --t-shadow:0 1px 2px rgba(0,0,0,.04);
+  --t-accent:#8fbb12; --t-on:#0f1113;
+  --t-done:#1f9d57; --t-done-soft:rgba(31,157,87,.12); --t-rest-box:#f0f1f3;
+  --t-danger:#c93a3a; --t-danger-soft:rgba(201,58,58,.10);
+  --t-p:#3f6f9c; --t-c:#9c7424; --t-f:#ad5548; --t-sore:#dc4436; --t-mid:#c28414;
+  --t-mp-bg:linear-gradient(180deg,#2a2c30 0%,#16181b 100%); --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.22);
+  --t-mp-text:#c6f432; --t-mp-stroke:0;
+  --t-sp-bg:#ffffff; --t-sp-shadow:0 1px 3px rgba(0,0,0,.15); --t-sp-text:#16181b;
+}
+
+/* ---------- base ---------- */
+html,body{background:var(--t-bg)!important;color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-reg)}
+body::before{display:none!important}   /* no coloured blobs behind the app: plain black / soft grey */
+button,input,select,textarea{font-family:inherit}
+h1,h2{font-size:var(--fs-title)!important;font-weight:var(--w-bold)!important;letter-spacing:-.4px}
+h3{font-size:var(--fs-body);font-weight:var(--w-bold)}
+small,.rmeta,.hint,.sub{font-size:var(--fs-label);font-weight:var(--w-reg)}
+label{font-size:var(--fs-label);font-weight:var(--w-med)}
+
+/* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard,.foldh,.exrow,.opt,.pgrow{
+  background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard{border-radius:var(--r-card)!important}
+.exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
+.tile.big{background:var(--t-accent)!important;color:var(--t-on)}
+.card .name,.sitem .t b,.exrow .exn b{font-size:var(--fs-body);font-weight:var(--w-med)}
+.kcnum{font-size:var(--fs-hero)!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.5px}
+
+/* ---------- inputs / inner ---------- */
+input,select,textarea{background:var(--t-card2);border:1px solid var(--t-line);border-radius:var(--r-input2);color:var(--t-text)}
+.mbar,.hbar{background:var(--t-track)!important}
+
+/* ---------- buttons ---------- */
+.btn{background:var(--t-sel);border:0;color:var(--t-text);font-weight:var(--w-med);border-radius:var(--r-input2)}
+.btn.primary,.fab{background:var(--t-accent)!important;color:var(--t-on)!important;font-weight:var(--w-bold)!important;font-size:var(--fs-body)!important}
+.btn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
+/* press feedback: scale and dim while pressed, spring back */
+button:not(.fab){transition:transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
+button:not(.fab):active{transform:scale(.96);opacity:.85}
+.fab:active{opacity:.85}
+
+/* ---------- glass: floating things only ---------- */
+.sheet{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(24px)!important;backdrop-filter:blur(24px)!important;border:1px solid var(--t-glass-edge)!important}
+.tabbar,.rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
+.overlay{background:var(--t-scrim)}
+
+/* ---------- colour roles ---------- */
+.mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
+.mrow.p .mbar i{background:var(--t-p)} .mrow.c .mbar i{background:var(--t-c)} .mrow.f .mbar i{background:var(--t-f)}
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation:none!important;transition:none!important} }

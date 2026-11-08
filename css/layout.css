@@ -118,11 +118,6 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 #cantScan{animation:rowIn .22s ease-out}
 .ghostbtn{width:100%;margin:2px 0 6px;background:none!important;border:1px dashed var(--line)!important;color:var(--muted)!important;font-size:14px;padding:10px}
 /* 0.6.1 · AI loader, cook picker, own recipe quick add */
-.aiwait{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:tipIn .2s ease-out}
-.aiwait.out{opacity:0;transition:opacity .18s}
-.aibox{width:min(300px,calc(100vw - 48px));padding:22px 20px 16px;border-radius:22px;text-align:center;background:rgba(34,39,46,.9);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.aibox b{display:block;font-size:17px;margin-top:14px} .aibox p{margin:6px 0 14px;font-size:13px;color:var(--muted);line-height:1.45} .aibox .btn{width:100%}
-.aispin{width:46px;height:46px;margin:0 auto;border-radius:50%;border:4px solid rgba(198,244,50,.18);border-top-color:var(--accent);animation:aiSpin .9s linear infinite}
 @keyframes aiSpin{to{transform:rotate(360deg)}}
 #cookStart{display:none!important}
 #cookPickOpts .bigopt{width:100%;margin-top:10px}
@@ -176,9 +171,6 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 .swipebox .swiping::after{content:'🗑';position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));font-size:22px;opacity:var(--sw,0);filter:hue-rotate(-30deg) saturate(3);pointer-events:none}
 .swipebox .swready{border-color:var(--danger)!important}
 /* End Workout higher, Discard = a smaller red pill */
-.endbar{padding-bottom:calc(22px + env(safe-area-inset-bottom))!important}
-.discardlink{display:block;width:62%;margin:10px auto 0;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,92,92,.55);background:rgba(255,92,92,.14);color:#ff8a8a;font-weight:700;font-size:15px;opacity:1}
-.discardlink:active{background:rgba(255,92,92,.3)}
 /* Advanced switch */
 .advwrap{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
 .advrow{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin:0;font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:600;cursor:pointer;padding-right:52px}
@@ -203,7 +195,7 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 .card,.exc,.tpcard,.macrocard,.wtcard,.win,.remind,.prog,.pgrow,.foldh,.opt{border-radius:var(--r)!important}
 .card,.exc,.tpcard,.macrocard,.prog{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 18px rgba(0,0,0,.18)!important}
 h1,h2{letter-spacing:-.3px;font-weight:750} h3{letter-spacing:-.1px}
-.kcnum,.bigclock,.pct,.kcal,.mrow b,.wthead b,.mxrow b{font-variant-numeric:tabular-nums}
+.kcnum,.pct,.kcal,.mrow b,.wthead b,.mxrow b{font-variant-numeric:tabular-nums}
 .btn{border-radius:14px;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s,box-shadow .18s}
 .btn.primary{box-shadow:0 6px 20px rgba(198,244,50,.18)}
 .overlay.open .sheet{animation-duration:.34s!important;animation-timing-function:cubic-bezier(.16,1,.3,1)!important}
@@ -240,7 +232,6 @@ html.pwa .rail{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10p
 html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 70px)!important}
 html.pwa .toast{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
 html.pwa .pullhint.bottom{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
-html.pwa .aiwait{height:var(--appH,100vh);bottom:auto}
 
 /* ---------- 0.6.4 ---------- */
 /* full width and centred again (the old side strip's space is gone) */
@@ -272,10 +263,6 @@ section.page,.sheet{scroll-behavior:smooth}
 .cquick,#cWeighLink,#cWeighBox{display:none!important}
 #smMeal{display:none!important}
 /* unilateral sets */
-.snum .side{display:inline-block;margin-left:2px;font-style:normal;font-size:10px;font-weight:800;padding:1px 4px;border-radius:6px;vertical-align:middle}
-.snum .sL{background:rgba(90,176,255,.22);color:#8cc8ff} .snum .sR{background:rgba(255,181,71,.22);color:#ffc773}
-.setrow:has(.sL){margin-bottom:2px}
-.unib{font-weight:800;font-size:12px;letter-spacing:.5px;opacity:.55} .unib.on{opacity:1;border-color:var(--accent)!important;color:var(--accent)!important}
 .swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
 /* AI bubble */
 .aibub{position:fixed;right:14px;z-index:150;width:58px;height:58px;border-radius:50%;border:1px solid rgba(198,244,50,.5);background:rgba(28,33,38,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
@@ -285,7 +272,6 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(sa
 .aibub i{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
 .aibub.ready{background:var(--accent);border-color:var(--accent);animation:aiPulse 1.6s ease-in-out infinite} .aibub.ready .aist{display:none} .aibub.ready b{color:#0f1113;font-size:24px;grid-area:1/1}
 @keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,244,50,.55),0 10px 30px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px rgba(198,244,50,0),0 10px 30px rgba(0,0,0,.5)}}
-.aiwait{display:none!important}
 /* search windows: top two thirds, fixed size, list drops down under the box */
 .overlay.searchy{align-items:flex-start!important}
 .overlay.searchy .sheet{height:min(64vh,600px)!important;max-height:none;margin-top:calc(env(safe-area-inset-top) + 12px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);display:flex;flex-direction:column}
@@ -323,3 +309,28 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area-inset-top)),800px)!important}
 #ovExPick .bodymap{margin:0} #ovExPick .bodymap svg{width:100%!important;max-width:none!important;height:auto;max-height:calc(min(90vh,800px) - 270px)}
 #ovExPick .bodymap + .hint{margin:4px 0 0}
+
+/* 0.6.7 · search: did you mean, add as takeaway, amount unit */
+.dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;color:var(--muted);font-size:14px;cursor:pointer}
+.dym b{color:var(--accent)}
+.sitem.takeaway{margin-top:10px;border:1px dashed rgba(198,244,50,.35)}
+#ovAmt .amrow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+#ovAmt .amrow input{flex:1 1 0;min-width:0;font-size:20px;font-weight:700;text-align:center}
+#ovAmt .amrow .selbtn{flex:0 0 42%;width:42%;min-width:0}
+
+/* 0.6.8 · hero card: big Protein / Carbs / Fat bars, numbers inside (white, dark where the fill is under them) */
+.mrow.hero{grid-template-columns:58px 1fr;gap:10px;margin:8px 0}
+.mrow.hero > small{font-size:13px;font-weight:700;color:var(--text)}
+.hbar{position:relative;display:block;height:30px;border-radius:10px;background:rgba(255,255,255,.07);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.hbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:10px;transition:width .35s cubic-bezier(.2,.9,.25,1)}
+.hbar em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:3px;font-style:normal;font-size:14px;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+.hbar em b{font-weight:800}
+.hbar em.inv{color:#0b0d0f;transition:clip-path .35s cubic-bezier(.2,.9,.25,1)}
+.mrow.hero.p .hbar i{background:var(--p)} .mrow.hero.c .hbar i{background:var(--c)} .mrow.hero.f .hbar i{background:var(--f)}
+.mrow.hero.hit .hbar i{background:var(--ok)!important} .mrow.hero.soft .hbar i{background:#a8ecc4!important} .mrow.hero.red .hbar i{background:var(--danger)!important}
+
+/* 0.6.8 · faint outline on the cards */
+:root{--edge:rgba(255,255,255,.11)}
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard,.foldh,.exrow{border-color:var(--edge)!important}
+.exrow{border-left-color:var(--eq)!important} .exc.ss,.tpcard.ss{border-left-color:var(--ssc)!important}
+.toast{max-width:calc(100vw - 32px);white-space:normal;text-align:center;line-height:1.35}   /* 0.6.8: long messages wrap instead of running off the screen */

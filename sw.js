@@ -1,18 +1,24 @@
 // Keeps the app shell available offline. Network first, so updates show up straight away.
-const CACHE = 'tracker-v0.6.5.4';
+const CACHE = 'tracker-v0.6.8.1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-maskable-512.png',
   'css/base.css',
   'css/glass.css',
   'css/motion.css',
   'css/layout.css',
   'css/workout.css',
+  'css/theme.css',
   'js/data/config.js',
+  'js/platform/store.js',
+  'js/platform/phone.js',
+  'js/platform/ai.js',
   'js/data/strings.js',
   'js/data/foods.js',
+  'js/data/foods-more.js',
   'js/data/gym.js',
   'js/core.js',
   'js/ui.js',
   'js/food.js',
+  'js/search.js',
   'js/supplements.js',
   'js/today.js',
   'js/fridge.js',
@@ -26,7 +32,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/wire/07-fridge-stack-motion.js',
   'js/wire/08-settings-boot.js',
   'js/wire/09-tabs-targets-recovery.js',
-  'js/wire/10-workout.js', 'js/wire/11-v059.js'];
+  'js/wire/10-workout.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -36,7 +42,10 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return; // never touch API calls
+  if (e.request.method !== 'GET') return;
+  // the Inter font: cached the first time, so it works offline
+  if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) { e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; }))); return; }
+  if (url.origin !== location.origin) return; // never touch API calls
   e.respondWith(
     fetch(e.request).then(r => {
       const copy = r.clone();

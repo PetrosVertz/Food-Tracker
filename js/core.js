@@ -34,12 +34,9 @@ function guessPieces(cat, sub, name){
   return 'none';
 }
 
-// ======================= storage =======================
-function load(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }
-
-function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ toast(t('saveFail')); return false; } }
-
-function migrate(f){
+// ======================= food records =======================
+// (saving and loading lives in js/platform/store.js)
+function normFood(f){
   const clean = Object.fromEntries(Object.entries(f || {}).filter(([,v]) => v !== undefined && v !== null));
   const out = Object.assign({ unit:'g', packs:[], usualPack:null, noBrand:false, cat:null, sub:null, state:'ready' }, clean);
   if(!['g','ml'].includes(out.unit)) out.unit = 'g';
@@ -50,6 +47,14 @@ function migrate(f){
   if(!['auto','piece','pack','100'].includes(out.display)) out.display = 'auto';
   out.pieceSkipped = !!out.pieceSkipped;
   return out;
+}
+
+// fetch with a time limit; an outer signal cancels it too
+function fetchT(url, opts, ms, outer){
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), ms);
+  const onOuter = () => ctl.abort();
+  if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', onOuter); }
+  return fetch(url, { ...opts, signal: ctl.signal }).finally(() => { clearTimeout(timer); if(outer) outer.removeEventListener('abort', onOuter); });
 }
 
 function status(el, msg, err){ el.textContent = msg; el.classList.toggle('show', !!msg); el.classList.toggle('err', !!err); }

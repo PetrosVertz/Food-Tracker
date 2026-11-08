@@ -13,7 +13,7 @@ const HEAVY = new Set(['bench','incline_bench','squat','front_squat','deadlift',
 const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), th = topHead(m_);
   return { id, en, el, e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
 
-let exCustom = load(GKEY.custom, []), tpls = load(GKEY.tpl, null), gymPlan = load(GKEY.plan, {}), sessions = load(GKEY.ses, []), active = load(GKEY.act, null), comeback = load(GKEY.cb, null), pet = load(GKEY.pet, null);
+let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null), pet = Store.load('pet', null);
 
 const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: exCustom.length, l: LIB.concat(exCustom.map(normEx)) }).l;
 
@@ -35,7 +35,7 @@ const e1rm = (w, r, id) => { const ex = exById(id); const load_ = ex.e === 'body
 
 const fmtRest = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
 
-const saveG = k => store(GKEY[k], { custom: exCustom, tpl: tpls, plan: gymPlan, ses: sessions, act: active, cb: comeback, pet }[k]);
+const saveG = k => Store.save(GKEY[k], { custom: exCustom, tpl: tpls, plan: gymPlan, ses: sessions, act: active, cb: comeback, pet }[k]);
 
 if(!tpls){
   const mk = (name, type, ids) => ({ id: uid(), name, type, exercises: ids.map(([id, sets]) => ({ exId: id, sets, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest })) });
@@ -56,6 +56,9 @@ $('gPlanV').addEventListener('change', e => {
 
 const loadOf = (exId, w) => exById(exId).e === 'bodyweight' ? bodyW() + (+w || 0) : (+w || 0);
 
+// a set that counts on its own: not a warm-up, not the R half of an L/R pair, not a drop under another set
+const isMainSet = s => s.type !== 'W' && s.side !== 'R' && !s.drop;
+
 const exVol = (exId, sets) => sets.filter(s => s.done && s.type !== 'W').reduce((a, s) => a + loadOf(exId, s.w) * (+s.r || 0), 0);
 
 const exAt = el => { const c = el.closest('[data-x]'); return c ? active.exercises[+c.dataset.x] : null; };
@@ -67,28 +70,40 @@ $('sesBody').addEventListener('input', e => {
 
 $('sesBody').addEventListener('click', e => {
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
+  const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
+    setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
+  const lk = e.target.closest('[data-link]'); if(lk){ toggleLink(active.exercises, +lk.dataset.link); saveG('act'); renderSession(); return; }
+  const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
+  const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
+  if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
-  if(e.target.closest('[data-type]') && s){ s.type = { N: 'W', W: 'D', D: 'F', F: 'N' }[s.type]; saveG('act'); renderSession(); return; }
+  if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
+  if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
+    if(s.drop){ addDrop(x, j); saveG('act'); renderSession(); return; }   // ↘ on a drop: one more drop
+    s.type = { N: 'W', W: 'D', D: 'F', F: 'N' }[s.type];
+    if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
+    if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
+    saveG('act'); renderSession(); return; }
+  if(e.target.closest('[data-replace]')){ openExPick(id => { const nx = exById(id); x.exId = id; x.rest = nx.rest; x.reps = isCardio(id) ? '20' : defReps(nx.rest); x.volPR = false; if(isUni(id) !== !!x.uni) makeUni(x, isUni(id)); saveG('act'); renderSession(); }); return; }
   if(e.target.closest('[data-ok]') && s){ tickSet(x, s, row, xi, +row.dataset.s); return; }
-  if(e.target.closest('[data-addset]')){ x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - 1); return; }
-  if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || z.w !== '' || z.r !== ''); saveG('act'); renderSession();
+  if(e.target.closest('[data-addset]')){ if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
+  if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || z.w !== '' || z.r !== ''); delete active.cur; saveG('act'); renderSession();
     const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => (next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')).scrollIntoView({ behavior: 'smooth', block: 'center' }), 60); return; }
   if(e.target.closest('[data-reopen]')){ x.ended = false; x.t1 = null; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-rest]')){ const opts = [60, 90, 120, 150, 180, 240, 300]; x.rest = opts[(opts.indexOf(x.rest) + 1) % opts.length] || 90; saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-warm]')){ const sug = suggestFor(x.exId, x.reps); x.sets.unshift(...warmupFor(x.exId, sug.w).map(w => ({ type: 'W', w: String(w.w), r: String(w.r), done: false }))); saveG('act'); renderSession(); return; }
+  if(e.target.closest('[data-warm]')){ const sug = suggestFor(x.exId, x.reps); x.sets.unshift(...warmupFor(x.exId, sug.w).map(w => ({ id: uid(), type: 'W', w: String(w.w), r: String(w.r), done: false }))); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-swap]')){ openSwap(xi); return; }
   if(e.target.closest('[data-xrm]')){ active.exercises.splice(xi, 1); if(REST && REST.xi === xi) REST = null; saveG('act'); renderSession(); return; }
 });
 
 $('sesSupps').addEventListener('click', e => {
   const b = e.target.closest('[data-ssup]'); if(!b) return; const k = todayKey(); suppLog[k] = suppLog[k] || {};
-  if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; store(LOGKEY, suppLog); renderSession(); renderHome(); renderSupps();
+  if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderHome(); renderSupps();
 });
 
 const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); return h.length ? Math.max(...h.map(z => exVol(exId, z.sets.map(s => ({ ...s, done: true }))))) : 0; };
 
-const beep = bell;
 
 $('restBar').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if(b) restAdjust(b.dataset.rs); });
 
@@ -97,6 +112,7 @@ setInterval(() => { tickRest(); tickClock(); }, 500);
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
 $('exSearch').addEventListener('input', drawExPick);
+$('pkBody').addEventListener('change', e => { if(e.target.id === 'pkSortMu'){ ui.pkSortMu = e.target.checked; saveUI(); drawExPick(); } });   // one list by muscle usage
 
 document.querySelectorAll('#pkRegion button').forEach(b => b.addEventListener('click', () => { PK.region = b.dataset.v; PK.group = null; PK.head = null; ui.pkRegion = PK.region; saveUI(); drawExPick(); }));
 
@@ -149,26 +165,55 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
 // ---------- finish → summary (ties into food, supplements and the pet) ----------
 $('sesMin').addEventListener('click', () => { close('ovSession'); renderAll(); });
 
-$('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discardQ')))) return; active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); close('ovSession'); renderAll(); });
+$('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;
+  if(active && active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }   // the day goes back to how it was
+  active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); close('ovSession'); renderAll(); });
 
-$('sesFinish').addEventListener('click', async () => {
+$('sesFinish').addEventListener('click', () => finishWorkout());
+
+// save the workout; auto = ended by itself after 20 min without a tap (end time = the last tap, no questions)
+async function finishWorkout(auto){
   const doneSets = active.exercises.flatMap(x => x.sets.filter(s => s.done));
-  if(!doneSets.length){ toast(t('noSets')); return; }
+  if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
   const filled = active.exercises.some(x => x.sets.some(s => !s.done && (s.w !== '' || s.r !== '')));
-  if(filled && !(await ask(t('unfinished')))) return;
-  const end = new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
+  if(!auto && filled && !(await ask(t('unfinished')))) return false;
+  const end = auto && active.last ? new Date(active.last) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
   const cardioMin = active.exercises.filter(x => isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done)).reduce((a, s) => a + (+s.r || 0), 0);
   const kcal = Math.round(bodyW() * (5 * Math.max(0, mins - cardioMin) + 7 * cardioMin) / 60);
   const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done && s.type !== 'W')).reduce((a, s) => a + (+s.w || 0) * (+s.r || 0), 0));
   const ses = { ...active, end: end.toISOString(), mins, kcal, vol, exercises: active.exercises.map(x => ({ ...x, sets: x.sets.filter(s => s.done) })).filter(x => x.sets.length) };
+  delete ses.last; delete ses.dayBefore; delete ses.cur; if(auto) ses.autoEnded = true;
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   sessions.push(ses); saveG('ses');
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
-  active = null; saveG('act'); REST = null; $('restBar').classList.add('hide');
+  active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
   petAward('workout', 1);
-  close('ovSession'); showSummary(ses); renderAll();
+  close('ovSession');
+  if(auto){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
+  showSummary(ses); renderAll();
   if(!ses.tplId) askSaveTpl(ses);
-});
+  return true;
+}
+
+// ---------- abandoned workouts (iPhone web apps don't run in the background, so this is checked when the app opens) ----------
+const IDLE_MS = 20 * 60000;
+let lastMark = 0;
+function markActive(){ if(!active) return; const now = Date.now(); active.last = now; if(now - lastMark > 15000){ lastMark = now; saveG('act'); } }
+$('ovSession').addEventListener('pointerdown', markActive, true); $('ovSession').addEventListener('input', markActive, true);
+async function checkAbandoned(){
+  if(!active) return; if(!active.last){ active.last = Date.now(); saveG('act'); return; }
+  if(Date.now() - active.last < IDLE_MS || active.askedAt === active.last) return;
+  const n = active.exercises.filter(x => x.sets.some(s => s.done)).length;   // only exercises with a finished set count
+  if(n >= 4){ await finishWorkout(true); return; }
+  active.askedAt = active.last; saveG('act');
+  if(await ask(t('idleQ', { m: Math.round((Date.now() - active.last) / 60000) }), t('idleBack'), t('idleEnd'))){ markActive(); saveG('act'); openSession(); return; }
+  if(active.exercises.some(x => x.sets.some(s => s.done))){ if(await finishWorkout(true)) return; }
+  if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
+  active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); renderAll(); toast(t('idleDiscarded'));
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') setTimeout(checkAbandoned, 600); });
+setInterval(checkAbandoned, 60000);
+
 
 $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
@@ -176,6 +221,8 @@ $('gTabs').addEventListener('click', e => { const b = e.target.closest('button')
 
 $('gStart').addEventListener('click', () => {
   if(active) return openSession();
+  const pick = forcePick; forcePick = false;   // "Other workout" always shows the list
+  const pl = planFor(todayKey()), planned = pl && pl.tpl && tpls.find(x => x.id === pl.tpl); if(planned && !pick) return startSession(planned);   // a planned day starts straight away
   if(!tpls.length) return startSession(null);   // nothing saved yet: straight into an empty workout
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
   $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="sitem" data-st="${x.id}"><span class="e">${x === tp ? '⭐' : '🏋️'}</span><span class="t"><b>${esc(x.name)}</b><small>${t('nEx', { n: x.exercises.length })}</small></span></button>`).join('') +
@@ -195,7 +242,11 @@ $('gTplV').addEventListener('click', e => {
 document.querySelectorAll('#tpType button').forEach(b => b.addEventListener('click', () => { TP.type = b.dataset.v; setSeg('#tpType', TP.type); }));
 
 $('tpList').addEventListener('click', e => {
+  const lk = e.target.closest('[data-link]'); if(lk){ toggleLink(TP.exercises, +lk.dataset.link); drawTpl(); return; }
   const r = e.target.closest('[data-i]'); if(!r) return; const i = +r.dataset.i, x = TP.exercises[i];
+  if(e.target.closest('[data-demo2]')) return openDemo(x.exId);
+  if(e.target.closest('[data-rd]')) x.reps = bumpReps(x.reps, -1); if(e.target.closest('[data-ru]')) x.reps = bumpReps(x.reps, 1);
+  if(e.target.closest('[data-trest]')){ const o = [60, 90, 120, 150, 180, 240]; x.rest = o[(o.indexOf(x.rest) + 1) % o.length] || 90; }
   if(e.target.closest('[data-rsd]')) x.rest = Math.max(30, rest30(x.rest) - 30); if(e.target.closest('[data-rsu]')) x.rest = Math.min(300, rest30(x.rest) + 30);
   if(e.target.closest('[data-sd]')) x.sets = Math.max(1, x.sets - 1); if(e.target.closest('[data-su]')) x.sets = Math.min(10, x.sets + 1);
   if(e.target.closest('[data-rm]')) TP.exercises.splice(i, 1);
@@ -207,7 +258,7 @@ $('tpList').addEventListener('input', e => { if(e.target.matches('[data-reps]'))
 $('tpAdd').addEventListener('click', () => openExPick(id => { TP.exercises.push({ exId: id, sets: isCardio(id) ? 1 : 3, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest }); drawTpl(); }));
 
 $('tpSave').addEventListener('click', () => {
-  TP.name = $('tpName').value.trim() || ({ upper: t('wUpper'), legs: t('wLegs'), full: t('wFull'), cardio: t('wCardio') }[TP.type]);
+  TP.type = inferType(TP.exercises); TP.name = $('tpName').value.trim() || typeLabel_(TP.type);
   if(TP.id){ const i = tpls.findIndex(y => y.id === TP.id); tpls[i] = TP; } else { TP.id = uid(); tpls.push(TP); }
   saveG('tpl'); close('ovTpl'); renderAll(); toast(t('updated'));
 });
@@ -215,7 +266,7 @@ $('tpSave').addEventListener('click', () => {
 $('tpDel').addEventListener('click', () => { const i = tpls.findIndex(y => y.id === TP.id); if(i === -1) return; const [gone] = tpls.splice(i, 1); saveG('tpl'); close('ovTpl'); renderAll();
   toast(t('deleted', { n: gone.name }), t('undo'), () => { tpls.splice(i, 0, gone); saveG('tpl'); renderAll(); }); });
 
-$('gProgV').addEventListener('change', e => { if(e.target.id === 'gLast'){ ui.gymLast = e.target.value || null; saveUI(); renderGym(); } });
+$('gProgV').addEventListener('change', e => { if(e.target.id === 'gLast'){ profile.gymLast = e.target.value || null; saveProfile(); renderGym(); } });
 
 $('gProgV').addEventListener('click', e => { const c = e.target.closest('[data-ses]'); if(c){ const s = sessions.find(x => x.id === c.dataset.ses); if(s) showSummary(s); } });
 
@@ -252,14 +303,34 @@ $('gRecV').addEventListener('click', e => {
 
 $('soRange').addEventListener('input', soreLbl);
 
-$('soGroups').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if(!b) return; SO.g = b.dataset.sg; $('soGroups').querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === b)); $('soTitle').textContent = `${t('soreQ')} · ${ML(SO.g)}`; const lv = ((ui.sore || {})[todayKey()] || {})[SO.g]; $('soRange').value = lv ?? 0; soreLbl(); });
+$('soGroups').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if(!b) return; SO.g = b.dataset.sg; $('soGroups').querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === b)); $('soTitle').textContent = `${t('soreQ')} · ${ML(SO.g)}`; const lv = ((profile.sore || {})[todayKey()] || {})[SO.g]; $('soRange').value = lv ?? 0; soreLbl(); });
 
 $('soSave').addEventListener('click', () => {
   if(!SO.g){ toast(t('tapMuscle')); return; }
-  ui.sore = ui.sore || {}; const k = todayKey(); ui.sore = { [k]: { ...(ui.sore[k] || {}), [SO.g]: +$('soRange').value } }; saveUI();
+  profile.sore = profile.sore || {}; const k = todayKey(); profile.sore = { [k]: { ...(profile.sore[k] || {}), [SO.g]: +$('soRange').value } }; saveProfile();
   close('ovSore'); renderAll(); toast(t('soreSaved'));
 });
 
 $('homeAlerts').addEventListener('click', e => { if(e.target.closest('[data-rec]')){ ui.gtab = 'rec'; saveUI(); } }, true);
 
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
+
+// Progress: folds; weight chart Day / Week / Month
+$('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if(!b) return; PG.open[b.dataset.pg] = !PG.open[b.dataset.pg]; renderProgress(); });
+$('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
+
+// long press to reorder exercises (workout editor + live workout)
+makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); drawTpl(); });
+makeSortable($('sesBody'), '.exc', (a, b) => { const ex = active.exercises; ex.splice(b, 0, ex.splice(a, 1)[0]);
+  if(REST && typeof REST.xi === 'number') REST.xi = REST.xi === a ? b : REST.xi > a && REST.xi <= b ? REST.xi - 1 : REST.xi < a && REST.xi >= b ? REST.xi + 1 : REST.xi;
+  saveG('act'); renderSession(); });
+
+// swipe to delete: exercises (live workout + workout editor) and sets, with Undo
+makeSwipeDelete($('sesBody'), '.exc', c => { const i = +c.dataset.x, gone = active.exercises.splice(i, 1)[0]; if(!gone) return;
+  const rest = REST; if(REST && REST.xi === i){ REST = null; $('restBar').classList.add('hide'); } else if(REST && REST.xi > i) REST.xi--;
+  saveG('act'); renderSession(); toast(t('exRemoved', { n: exName(gone.exId) }), t('undo'), () => { active.exercises.splice(i, 0, gone); if(rest && rest.xi >= i && REST) REST.xi++; saveG('act'); renderSession(); }); });
+makeSwipeDelete($('tpList'), '.tpcard', c => { const i = +c.dataset.i, gone = TP.exercises.splice(i, 1)[0]; if(!gone) return; drawTpl();
+  toast(t('exRemoved', { n: exName(gone.exId) }), t('undo'), () => { TP.exercises.splice(i, 0, gone); drawTpl(); }); });
+makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data-x]').dataset.x, si = +row.dataset.s, x = active.exercises[xi]; if(!x) return; const gone = x.sets.splice(si, 1)[0];
+  if(REST && REST.xi === xi){ if(REST.si === si){ REST = null; $('restBar').classList.add('hide'); } else if(REST.si > si) REST.si--; }
+  saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });

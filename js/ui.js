@@ -45,28 +45,6 @@ function goForward(){
   if(NAVI < NAV.length - 1 && tabOf(NAV[NAVI + 1]) === tabOf(location.hash.slice(1))){ NAVI++; navTo(NAV[NAVI]); }
 }
 
-function route_053(){
-  let h = location.hash.replace('#','');
-  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
-  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
-  setSeg('#foodTabs', tab);
-  $('storeView').classList.toggle('hide', tab !== 'store');
-  $('mealsView').classList.toggle('hide', tab !== 'meals');
-  $('foodSupps').classList.toggle('hide', tab !== 'supps');
-  document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === page)));
-  const ft = tabOf(h); markRail(ft);
-  ui['lastIn_' + ft] = h; saveUI();
-  const fab = $('fab');
-  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
-  fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
-  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
-  else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
-  renderAll();
-  const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
-}
-
 function renderLaunch(){
   const hr = new Date().getHours(); $('lHello').textContent = t(hr < 12 ? 'hiMorning' : hr < 18 ? 'hiDay' : 'hiEvening') + ' 👋';
   const tk = todayKey(), tg = targetFor(tk), tot = dayTotals(tk), pl = planFor(tk), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
@@ -114,17 +92,35 @@ function switchTab(dir, toTab){
 }
 
 function route(){
-  const h = location.hash.slice(1);
+  let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : '#today'); }
   $('pgLaunch').classList.add('hide'); $('tabbar').classList.add('hide');
-  route_053();
+  h = location.hash.replace('#','');   // re-read: the start page may have just switched it
+  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
+  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
+  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
+  setSeg('#foodTabs', tab);
+  $('storeView').classList.toggle('hide', tab !== 'store');
+  $('mealsView').classList.toggle('hide', tab !== 'meals');
+  $('foodSupps').classList.toggle('hide', tab !== 'supps');
+  document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === page)));
+  const ft = tabOf(h); markRail(ft);
+  ui['lastIn_' + ft] = h; saveUI();
+  const fab = $('fab');
+  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
+  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
+  else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
+  renderAll();
+  const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
 function openSetup(){
   const tg = targets || {}; const gymDays = Object.entries(gymPlan).filter(([, p]) => p && p.tpl && p.tpl !== 'rest').map(([wd]) => +wd);
   const workDays = Object.entries(gymPlan).filter(([, p]) => p && p.work).map(([wd]) => +wd), w0 = workDays.length ? gymPlan[workDays[0]].work : { from: '09:00', to: '17:00' };
-  SUP = { step: 0, lang: lang, bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: ui.gymTime || '18:00',
-    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: ui.sex || null, h: ui.height || '' };
+  SUP = { step: 0, lang: lang, bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: profile.gymTime || '18:00',
+    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: profile.sex || null, h: profile.height || '' };
   drawSetup(); open('ovSetup');
 }
 
@@ -150,7 +146,7 @@ function readSetup(){ const v = id => $(id) ? $(id).value : null;
   if($('suBw')) SUP.bw = num('suBw') || ''; if($('suH')) SUP.h = num('suH') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); }
 
 function calcTargets(bw, goal, sex, hcm){
-  sex = sex || ui.sex; hcm = hcm || ui.height;
+  sex = sex || profile.sex; hcm = hcm || profile.height;
   if(sex && hcm > 120){   // 0.6.2: from sex + height + weight (age ~25 assumed), lightly active + training
     const maint = (10 * bw + 6.25 * hcm - 5 * 25 + (sex === 'f' ? -161 : 5)) * 1.5, gymK = maint + { bulk: 250, recomp: 0, cut: -450 }[goal];
     const prot = Math.round(bw * (goal === 'cut' ? 2.2 : 2) / 5) * 5, fpk = sex === 'f' ? .1 : 0;
@@ -163,24 +159,22 @@ function calcTargets(bw, goal, sex, hcm){
 }
 
 function finishSetup(){
-  if(SUP.sex) ui.sex = SUP.sex; if(SUP.h > 120) ui.height = SUP.h; if(SUP.bw > 30 && !Object.keys(weights || {}).length){ weights[todayKey()] = SUP.bw; store(WKEY, weights); }
-  const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; store(TGKEY, targets);
-  ui.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
+  if(SUP.sex) profile.sex = SUP.sex; if(SUP.h > 120) profile.height = SUP.h; if(SUP.bw > 30 && !Object.keys(weights || {}).length){ weights[todayKey()] = SUP.bw; Store.save('weights', weights); }
+  const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets);
+  profile.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
     if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
     if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
-  saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; store(SKEY, settings); }
-  ui.setupDone = true; ui.lang = lang; saveUI(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+  saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); }
+  ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
 }
 
 // ---------- weekly backup, one tap to the share sheet (iCloud Drive / Files) ----------
-function backupBlob(){ return new Blob([JSON.stringify({ app: 'tracker', version: VERSION, exportedAt: new Date().toISOString(), foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, gym: { custom: exCustom, tpl: tpls, plan: gymPlan, sessions, comeback }, pet }, null, 2)], { type: 'application/json' }); }
+function backupBlob(){ return new Blob([JSON.stringify(Store.snapshot(), null, 2)], { type: 'application/json' }); }
 
 async function backupNow(){
   const name = `tracker-${todayKey()}.json`, blob = backupBlob();
-  try{ const file = new File([blob], name, { type: 'application/json' });
-    if(navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], title: name }); }
-    else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
+  try{ await Phone.shareFile(blob, name);
     ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
   }catch(e){ if(e && e.name !== 'AbortError') toast(e.message || 'backup'); }
 }
@@ -216,18 +210,55 @@ function fixNum(inp){
 }
 
 // ---------- tiny haptic taps (iPhone: hidden switch trick, Android: vibrate) ----------
-function haptic(){ try{ if(navigator.vibrate && !/iPhone|iPad/.test(navigator.userAgent)) navigator.vibrate(8); else $('hapL').click(); }catch(_){} }
+const haptic = () => Phone.haptic();
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan') stopScan(); if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan') stopScan(); if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
   if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => el.classList.remove('closing'), 200); } }
 
-function open(id){ const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); }
+function open(id){
+  if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the ✨ bubble
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open');
+  // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
+  const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
+  if(searchy){ el.classList.remove('center'); return; }
+  if(id === 'ovSession' || id === 'ovAsk') return;
+  requestAnimationFrame(() => { const sh = el.querySelector('.sheet'); if(!sh) return; el.classList.add('measure'); const hgt = sh.offsetHeight; el.classList.remove('measure');
+    el.classList.toggle('center', hgt < (window.innerHeight || 700) * .7); });
+}
 
 // ======================= settings + data =======================
-function openSettings(){ $('sKey').value = settings.geminiKey; $('sModel').value = settings.model; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
-  $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join(''); open('ovSettings'); }
+// Settings is a page under Fridge (tap ⚙︎ to slide down; pull up to go back to Fridge)
+function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
+  $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
+  setSeg('#sSex', profile.sex || ''); $('sH').value = profile.height || ''; $('sW').value = latestWeight() || (targets && targets.bw) || ''; }
+function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); if(location.hash.slice(1) !== 'settings') switchTab(1, 'settings'); }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
 function tabIdx(tab){ return tab === 'settings' ? TABS3.length : TABS3.indexOf(tab); }   // 0.6.3.1: Settings is a page under Fridge
+
+// swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
+function makeSwipeDelete(box, itemSel, onDelete, opts){
+  opts = opts || ({ '.exc': { skip: '.setrow,.rbwrap,.sethead,.newset,.endex2,.adddrop,.exdone,.wuhint,.expills' }, '.setrow': { buttons: true } })[itemSel] || {};
+  let S = null, eatClick = false;
+  const start = (c, x, y) => { S = { c, x, y, dx: 0, claim: null }; };
+  const move = (x, y, ev) => { if(!S) return false; const dx = x - S.x, dy = y - S.y;
+    if(S.claim === null){ if(dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.3) S.claim = true; else if(Math.abs(dy) > 10 || dx > 10) S.claim = false; }
+    if(!S.claim) return false; ev.stopPropagation(); if(ev.cancelable) ev.preventDefault();
+    S.dx = Math.min(0, dx); const pr = Math.min(1, -S.dx / (S.c.offsetWidth / 3));
+    S.c.classList.add('swiping'); S.c.style.transform = `translateX(${S.dx}px)`; S.c.style.setProperty('--sw', pr.toFixed(2));
+    if(pr >= 1 && !S.c.classList.contains('swready')) haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
+  const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
+    if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
+    else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
+  const ok = t => !t.closest(opts.buttons ? 'input,textarea,select' : 'input,textarea,select,button,.stepper,.sbox') && !(opts.skip && t.closest(opts.skip));
+  box.addEventListener('touchstart', e => { const c = e.target.closest(itemSel); if(!c || e.touches.length > 1 || !ok(e.target)){ S = null; return; } start(c, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+  box.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false });
+  box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
+  box.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse' || e.button) return; const c = e.target.closest(itemSel); if(!c || !ok(e.target)) return; start(c, e.clientX, e.clientY); });
+  addEventListener('pointermove', e => { if(e.pointerType === 'mouse' && S) move(e.clientX, e.clientY, e); });
+  addEventListener('pointerup', e => { if(e.pointerType === 'mouse') end(e); });
+  box.addEventListener('click', e => { if(eatClick){ e.stopPropagation(); e.preventDefault(); eatClick = false; } }, true);
+  box.classList.add('swipebox');
+}

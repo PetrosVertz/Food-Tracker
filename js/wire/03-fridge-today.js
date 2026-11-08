@@ -1,9 +1,9 @@
 // Wiring that runs at start-up, in order: state, event listeners, first render.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-let fridge = load(FRKEY, []), groc = load(GRKEY, []), dayLog = load(LGKEY, {}), days = load(DYKEY, {}), targets = load(TGKEY, null), plans = load(PLKEY, {});
+let fridge = Store.load('fridge', []), groc = Store.load('groc', []), dayLog = Store.load('dayLog', {}), days = Store.load('days', {}), targets = Store.load('targets', null), plans = Store.load('plans', {});
 
-const saveFridge = () => store(FRKEY, fridge), saveGroc = () => store(GRKEY, groc), saveLog = () => store(LGKEY, dayLog), saveDays = () => store(DYKEY, days);
+const saveFridge = () => Store.save('fridge', fridge), saveGroc = () => Store.save('groc', groc), saveLog = () => Store.save('dayLog', dayLog), saveDays = () => Store.save('days', days);
 
 const dayStr = d => d.toLocaleDateString('en-CA');
 
@@ -17,7 +17,7 @@ const fromMin = m => { m = Math.max(0, Math.min(1439, Math.round(m))); return `$
 
 const nowHM = () => fromMin(new Date().getHours() * 60 + new Date().getMinutes());
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isIOS = Phone.isIOS;
 
 const stockOf = foodId => r1(fridge.filter(it => it.foodId === foodId).reduce((s, it) => s + it.qty, 0));
 
@@ -30,6 +30,7 @@ $('fLoc').addEventListener('click', e => { const b = e.target.closest('button');
 $('fAlerts').addEventListener('click', e => { if(e.target.closest('[data-cookup]')){ go('meals'); setTimeout(() => openCook(null, 'new'), 80); } });
 
 $('fList').addEventListener('click', e => {
+  const pm = e.target.closest('[data-minus],[data-plus]'); if(pm){ stepPack(pm); return; }
   const c = e.target.closest('[data-fid]'); if(!c) return; const it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
   if(e.target.closest('[data-use]')) openAmt({ mode: 'use', item: it }); else openFridgeItem(it);
 });
@@ -75,14 +76,15 @@ $('faDel').addEventListener('click', () => {
     fridge.splice(i, 0, gone); saveFridge(); if(added){ groc = groc.filter(g => !(g.foodId === gone.foodId && g.why && !g.done)); saveGroc(); } renderAll(); });
 });
 
-$('amAmt').addEventListener('input', amRes);
+$('amN').addEventListener('input', amFromN);
+$('amU').addEventListener('change', () => { AM.u = $('amU').selectedIndex; if(!(num('amAmt') > 0)){ $('amN').value = 1; amFromN(); } else amRes(); });
 
-$('amQuick').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b){ $('amAmt').value = b.dataset.v; amRes(); } });
+$('amQuick').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b){ $('amAmt').value = b.dataset.v; amUnits(AM); amRes(); } });
 
 $('amLog').addEventListener('change', () => $('amTimeRow').classList.toggle('hide', !$('amLog').checked));
 
 $('amSave').addEventListener('click', () => {
-  const a = num('amAmt'); if(!(a > 0)){ toast(t('needAmount')); $('amAmt').focus(); return; }
+  const a = num('amAmt'); if(!(a > 0)){ toast(t('needAmount')); $('amN').focus(); return; }
   const info = AM.info, time = $('amTime').value || nowHM(); let extra = '';
   if(AM.mode === 'use'){
     const it = fridge.find(x => x.id === AM.item.id);
@@ -135,7 +137,7 @@ $('gSugg').addEventListener('click', e => {
 
 document.getElementById('pgGroc').addEventListener('click', e => {
   const g = grocById(e.target);
-  if(g && e.target.closest('[data-tick]')){ g.done = !g.done; g.doneAt = new Date().toISOString(); navigator.vibrate?.(20); saveGroc(); renderAll(); return; }
+  if(g && e.target.closest('[data-tick]')){ g.done = !g.done; g.doneAt = new Date().toISOString(); Phone.vibrate(20); saveGroc(); renderAll(); return; }
   if(g && e.target.closest('[data-inc]')){ g.count++; saveGroc(); renderGroc(); return; }
   if(g && e.target.closest('[data-dec]')){ g.count = Math.max(1, g.count - 1); saveGroc(); renderGroc(); return; }
   if(g && e.target.closest('[data-del]')){ const i = groc.indexOf(g); groc.splice(i, 1); saveGroc(); renderAll();
@@ -183,7 +185,9 @@ $('dPrev').addEventListener('click', () => { curDay = addDays(curDay, -1); rende
 
 $('dNext').addEventListener('click', () => { curDay = addDays(curDay, 1); renderToday(); });
 
-document.querySelectorAll('#dType button').forEach(b => b.addEventListener('click', () => setDay({ type: b.dataset.v, work: dayInfo(curDay).work || (b.dataset.v === 'gym' ? 'upper' : undefined), time: dayInfo(curDay).time || (b.dataset.v === 'gym' ? '18:00' : undefined) })));
+// Today: gym or rest (gym keeps the work type and time it had, or your usual gym time)
+document.querySelectorAll('#dType button').forEach(b => b.addEventListener('click', () => { const di = dayInfo(curDay);
+  setDay(b.dataset.v === 'gym' ? { type: 'gym', work: di.work || 'upper', time: di.time || profile.gymTime || '18:00' } : { type: b.dataset.v, work: di.work, time: di.time }); }));
 
 document.querySelectorAll('#dWork button').forEach(b => b.addEventListener('click', () => setDay({ type: 'gym', work: b.dataset.v })));
 
@@ -193,20 +197,30 @@ $('dTotals').addEventListener('click', e => { if(e.target.closest('[data-targets
 
 $('targetsBtn').addEventListener('click', openTargets);
 
-$('dLog').addEventListener('click', e => { const c = e.target.closest('[data-eid]'); if(!c) return; const en = (dayLog[curDay] || []).find(x => x.id === c.dataset.eid); if(en) openAmt({ mode: 'editlog', entry: en, date: curDay }); });
+$('dLog').addEventListener('click', e => { const c = e.target.closest('[data-eid]'); if(!c) return; const en = (dayLog[curDay] || []).find(x => x.id === c.dataset.eid); if(!en) return;
+  if(en.kind === 'quick') openQuick(en); else openAmt({ mode: 'editlog', entry: en, date: curDay }); });
 
 $('copyYesterday').addEventListener('click', () => {
   const y = dayLog[addDays(curDay, -1)] || []; if(!y.length){ toast(t('nothingYesterday')); return; }
   dayLog[curDay] = (dayLog[curDay] || []).concat(y.map(e => ({ ...e, id: uid() }))); saveLog(); renderAll(); toast(t('copiedDay', { n: y.length }));
 });
 
-const mealOrFoodStock = it => it.foodId ? stockOf(it.foodId) : mealStock(it.mealId);
 
 $('lSearch').addEventListener('input', drawLog);
 
 $('lResults').addEventListener('click', e => {
+  if(e.target.closest('#lOnline')){ runLogOnline($('lSearch').value.trim()); return; }
+  const dy = e.target.closest('[data-dym]'); if(dy){ $('lSearch').value = dy.dataset.dym; $('lSearch').dispatchEvent(new Event('input')); return; }
+  if(e.target.closest('#lTakeaway')){ const q = $('lSearch').value.trim(); close('ovLog'); openQuick(); $('qaName').value = q; return; }
+  if(e.target.closest('#lQuick')){ close('ovLog'); openQuick(); return; }
+  const ql = e.target.closest('[data-ql]');
+  if(ql){ const en = LS.recent[+ql.dataset.ql], info = infoOfEntry(en); if(!info) return;
+    logEntry(curDay, info, en.amt, daysUntil(curDay) === 0 ? nowHM() : '13:00'); const r = info.food ? takeFromFridge({ foodId: info.food.id }, en.amt) : info.meal ? takeFromFridge({ mealId: info.meal.id }, en.amt) : null;
+    const list = dayLog[curDay], added = list[list.length - 1]; close('ovLog'); renderAll();
+    toast(t('quickLogged', { a: fmtSize(en.amt, en.unit), n: info.name }), t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); saveLog(); renderAll(); }); return; }
+  const o = e.target.closest('.sitem[data-k="o"]'); if(o){ const f = saveOnlineFood(LOGON.res[+o.dataset.i]); close('ovLog'); openAmt({ mode: 'log', info: fInfo_(f) }); return; }   // online result
   const b = e.target.closest('.sitem'); if(!b) return; const k = b.dataset.k, i = +b.dataset.i; let info = null, amt = null;
-  const fInfo = f => ({ name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces });
+  const fInfo = fInfo_;
   const mInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
   if(k === 'ml') info = mInfo(LS.meals[i]);
   else if(k === 'm') info = fInfo(LS.mine[i]);
@@ -214,7 +228,7 @@ $('lResults').addEventListener('click', e => {
   else if(k === 'fr') info = LS.fr[i].info.meal ? mInfo(LS.fr[i].info.meal) : fInfo(LS.fr[i].info.food);
   else if(k === 'rc'){ info = infoOfEntry(LS.recent[i]); amt = LS.recent[i].amt; }
   if(!info) return;
-  close('ovLog'); openAmt({ mode: 'log', info }); if(amt){ $('amAmt').value = amt; amRes(); }
+  close('ovLog'); openAmt({ mode: 'log', info }); if(amt){ $('amAmt').value = amt; amUnits(AM); amRes(); }
 });
 
 $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); });
@@ -222,7 +236,7 @@ $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); }
 document.querySelectorAll('#tgGoal button').forEach(b => b.addEventListener('click', () => { TG.goal = b.dataset.v; setSeg('#tgGoal', TG.goal); }));
 
 $('tgCalc').addEventListener('click', () => {
-  const bw = num('tgBw'); if(!(bw > 30)){ $('tgBw').focus(); return; }
+  const bw = num('tgBw'); if(!(bw > 30)){ toast(t('calcNeedW')); close('ovTargets'); go('gym-prog'); return; }   // Calculate uses your latest weigh-in (Gym → Progress)
   const ct = calcTargets(bw, TG.goal), g = ct.gym, r = ct.rest;   // 0.6.2: uses sex + height when known
   [['G', g], ['R', r]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x])); tgCheck();
 });
@@ -231,13 +245,14 @@ $('tgCalc').addEventListener('click', () => {
 
 $('tgSave').addEventListener('click', () => {
   const rd = p => { const o = {}; ['k', 'p', 'c', 'f'].forEach(x => o[x] = num('tg' + p + x)); if(!o.k && o.p !== null && o.c !== null && o.f !== null) o.k = Math.round(o.p * 4 + o.c * 4 + o.f * 9); return o; };
-  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null };
+  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null, lock: { G: MXL.G, R: MXL.R } };
   if(!targets.rest.k) targets.rest = { ...targets.gym };
-  store(TGKEY, targets); close('ovTargets'); renderAll(); toast(t('targetsSaved'));
+  Store.save('targets', targets); close('ovTargets'); renderAll(); toast(t('targetsSaved'));
 });
 
 $('planShow').addEventListener('click', e => {
-  if(e.target.closest('#dropPlan')){ delete plans[curDay]; store(PLKEY, plans); renderPlan(); return; }
+  if(e.target.closest('#planCancel')){ if(planCtl){ planCtl.abort(); renderPlan(); } return; }
+  if(e.target.closest('#dropPlan')){ delete plans[curDay]; Store.save('plans', plans); renderPlan(); return; }
   const b = e.target.closest('[data-plog]'); if(!b) return;
   const m = plans[curDay].meals[+b.dataset.plog]; let n = 0, miss = 0;
   (m.items || []).forEach(it => {
@@ -253,7 +268,7 @@ $('planShow').addEventListener('click', e => {
     if(it.from === 'fridge') takeFromFridge(info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }, g);
     n++;
   });
-  m.logged = true; store(PLKEY, plans); renderAll();
+  m.logged = true; Store.save('plans', plans); renderAll();
   toast(t('planLogged', { n }) + (miss ? ' · ' + t('planUnmatched', { n: miss }) : ''));
 });
 
@@ -287,7 +302,7 @@ Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":stri
     planFit(r, { k: tg.k - tot.kcal, p: tg.p - tot.p, c: tg.c - tot.c, f: tg.f - tot.f });   // 0.6.5: never over what's left
     const expNames = new Set(expiringList().map(x => norm(x.info.name)));
     r.meals.forEach(m => (m.items || []).forEach(it => { it.expiring = expNames.has(norm(it.name)); }));
-    plans[curDay] = r; store(PLKEY, plans); renderPlan();
+    plans[curDay] = r; Store.save('plans', plans); renderPlan();
     setTimeout(() => $('planShow').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
   finally{ planCtl = null; btn.textContent = t('planMyDay'); }
@@ -308,11 +323,45 @@ $('testKey').addEventListener('click', async () => {
   if(!key){ status(el, t('keyEmpty'), true); return; }
   status(el, t('keyTesting'));
   try{
-    const r = await fetchT(`${GAPI}?pageSize=200`, { headers: { 'x-goog-api-key': key } }, 12000);
-    const j = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
-    const n = (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
+    const n = await AI.testKey(key);
     status(el, t('keyOk', { n })); el.style.color = 'var(--ok)';
-    if(key !== settings.geminiKey){ settings.geminiKey = key; store(SKEY, settings); store(MLKEY, null); }
   }catch(e){ el.style.color = ''; status(el, t('keyFail', { e: e.name === 'AbortError' ? t('timedOut') : e.message }), true); }
 });
+
+// Carb Timing: the windows follow the real workout start (on) or the Week Planner time (off)
+$('realStart').addEventListener('change', () => { profile.realStart = $('realStart').checked; saveProfile();
+  const tk = todayKey(), pl = planFor(tk), d = days[tk];
+  if(d && d.type === 'gym'){ const real = active && active.date === tk ? fromMin(new Date(active.start).getHours() * 60 + new Date(active.start).getMinutes()) : null;
+    const t_ = profile.realStart ? real : pl && pl.time; if(t_){ d.time = t_; saveDays(); } }
+  renderAll(); });
+
+// Fridge − / +: one pack less (the last one goes on Groceries) or one more
+function stepPack(pm){
+  const c = pm.closest('[data-fid]'), it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
+  if(pm.hasAttribute('data-plus')){ const { id, addedAt, ...rest } = it; fridge.push({ ...rest, qty: it.packSize, id: uid(), addedAt: new Date().toISOString() }); saveFridge(); }
+  else { const twin = [...fridge].reverse().find(x => x !== it && x.foodId === it.foodId && x.mealId === it.mealId && x.loc === it.loc && x.packSize === it.packSize && (x.exp || '') === (it.exp || '') && Math.abs(x.qty - x.packSize) <= 0.5) || it;
+    fridge = fridge.filter(x => x !== twin); saveFridge(); if(it.foodId && checkRestock(it.foodId)) toast(t('toList').trim()); }
+  renderAll();
+}
+
+// Log food sheet: Add Takeaway, yesterday's food
+$('lQuickTop').addEventListener('click', () => { close('ovLog'); openQuick(); });
+$('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });
+// Add Takeaway: one box, Small / Normal / Big
+document.querySelectorAll('#qaSize button').forEach(b => b.addEventListener('click', () => setSeg('#qaSize', b.dataset.v)));
+$('qaName').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); saveQuick(); } });
+// Extras: tap the electrolytes to switch % / mg
+$('dExtrasBody').addEventListener('click', e => { if(e.target.closest('[data-elec]')){ ui.elecMg = !ui.elecMg; saveUI(); renderToday(); } });
+// calorie card: Daily Targets; Advanced is a switch, off every time the app opens
+$('tgCardBtn').addEventListener('click', openTargets);
+$('advSw').checked = false;
+$('advSw').addEventListener('change', () => { const b = $('advBody'); b.classList.toggle('hide', !$('advSw').checked); if($('advSw').checked) b.animate && b.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1)' }); });
+// Eaten: swipe to delete
+makeSwipeDelete($('dLog'), '.card[data-eid]', c => delEntry(c.dataset.eid));
+// Daily Targets: padlocks
+$('ovTargets').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
+  MXL[P] = MXL[P] === k ? null : k; MXLG[P] = +$('tg' + P + k).value || 0; drawLocks(); });
+$('ovTargets').addEventListener('input', e => { const id = e.target.id || '', m = id.match(/^tg([GR])([pcf])$/); if(m && MXL[m[1]] === m[2]) MXLG[m[1]] = +e.target.value || 0; });
+// Fridge: no Fridge/Freezer tabs; "Frozen" is a switch when adding, frozen things show ❄️
+ui.floc = 'all';
+$('faFrozen').addEventListener('change', () => { const b = $('faLoc').querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); });

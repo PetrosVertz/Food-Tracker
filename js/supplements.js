@@ -1,31 +1,32 @@
 // Supplements. (functions only)
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
+// Supplements: name + dose; a Take button logs the time (change it if you took it earlier); take it again later the same day
+const takesOf = (d, id) => ((suppLog[d] || {}).takes || {})[id] || [];
+function setTakes(d, id, arr){ const day = suppLog[d] = suppLog[d] || {}; day.takes = day.takes || {}; if(arr.length) day.takes[id] = arr; else delete day.takes[id]; Store.save('suppLog', suppLog); }
+function todayProgress(){ const d = todayKey(); return { total: supps.length, done: supps.filter(s => takesOf(d, s.id).length).length }; }
+
 function renderSupps(){
-  const tp = todayProgress();
-  $('sToday').textContent = `${t('todayLabel')} · ${new Date().toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday:'long', day:'numeric', month:'short' })}`;
-  $('sTodayN').textContent = tp.total ? (tp.done === tp.total ? t('allTaken') : t('todayTaken', { a: tp.done, b: tp.total })) : '';
+  const tp = todayProgress(), d = todayKey();
+  $('sToday').textContent = `${t('todayLabel')} · ${new Date().toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}`;
+  $('sTodayN').textContent = tp.total ? t('todayTaken', { a: tp.done, b: tp.total }) : '';
   $('sProg').style.width = tp.total ? `${Math.round(tp.done / tp.total * 100)}%` : '0';
   if(!supps.length){ $('sList').innerHTML = `<div class="empty">${t('noSupps')}</div>`; return; }
-  const day = suppLog[todayKey()] || {};
-  const order = s => Math.min(...s.times.map(x => SLOTS.indexOf(x)));
-  $('sList').innerHTML = supps.slice().sort((a,b) => order(a) - order(b)).map(s => `<div class="card" data-sid="${s.id}">
-      <div class="ficon">${suppIcon(s)}</div>
-      <div class="body">
-        <div class="row"><div class="name">${esc(suppName(s))}</div>${s.often !== 'daily' ? `<span class="tag">${t(s.often === 'training' ? 'tagTraining' : 'tagNeeded')}</span>` : ''}</div>
-        <div class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}${doseMacros(s)}${s.notes ? ' · ' + esc(s.notes) : ''}</div>
-        <div class="slots">${s.times.map(sl => `<button class="slot ${day[`${s.id}|${sl}`] ? 'taken' : ''}" data-slot="${sl}">${day[`${s.id}|${sl}`] ? '✓ ' : ''}${t('slot_' + sl)}</button>`).join('')}</div>
-      </div></div>`).join('');
+  $('sList').innerHTML = supps.map(s => { const tk = takesOf(d, s.id);
+    return `<div class="card supcard" data-sid="${s.id}"><div class="body">
+      <div class="row"><div class="name">${esc(suppName(s))}</div><span class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}</span></div>
+      <div class="takes">${tk.map((tm, i) => `<span class="take"><span>✓</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="Time taken"><button data-tkx="${i}" aria-label="Remove">✕</button></span>`).join('')}
+        <button class="btn small takebtn" data-take>${tk.length ? t('takeAgain') : t('takeIt')}</button></div></div></div>`; }).join('');
 }
 
 function openSupp(s){
-  SU = { id: s ? s.id : null, qid: s ? s.qid || null : null, times: s ? [...s.times] : [], often: s ? s.often : 'daily', icon: s ? s.icon || null : null };
+  SU = { id: s ? s.id : null, qid: s ? s.qid || null : null, times: s ? [...s.times] : ['any'], often: s ? s.often : 'daily', icon: s ? s.icon || null : null };
   $('supTitle').textContent = s ? t('editSupp') : t('addSupp');
   $('supQuick').classList.toggle('hide', !!s);
   const have = new Set(supps.map(x => x.qid).filter(Boolean));
   $('supQuickList').innerHTML = QUICK.filter(q => !have.has(q.id)).map(q => `<button data-q="${q.id}">${q.icon} ${esc(L(q))}</button>`).join('');
   $('supName').value = s ? suppName(s) : ''; $('supDose').value = s ? s.dose : ''; $('supNotes').value = s ? s.notes || '' : '';
-  $('supUnit').innerHTML = SUNITS.map(u => `<option value="${u}">${esc(unitLabel(u))}</option>`).join(''); $('supUnit').value = s ? s.unit : 'mg';
+  $('supUnit').innerHTML = SUNITS.map(u => { const long = t('ul_' + u); return `<option value="${u}">${esc(unitLabel(u))}${long && long !== 'ul_' + u ? ' · ' + esc(long) : ''}</option>`; }).join('');   // C = capsules, T = tablets, S = scoops, D = drops $('supUnit').value = s ? s.unit : 'mg';
   const opts = foods.slice().sort((a,b) => (b.cat === 'supps') - (a.cat === 'supps') || norm(foodName(a)).localeCompare(norm(foodName(b))));
   $('supFood').innerHTML = `<option value="">${t('supLinkNone')}</option>` + opts.map(f => `<option value="${f.id}">${iconOf(f) || ''} ${esc(foodName(f))}${f.brand ? ' · ' + esc(f.brand) : ''}</option>`).join('');
   $('supFood').value = s && s.foodId ? s.foodId : '';

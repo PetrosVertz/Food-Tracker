@@ -127,7 +127,6 @@ const GEN_RAW = [
 const SMALL_PACK = 350;
 
 // ======================= barcode scanner =======================
-const FORMATS = ['ean_13','ean_8','upc_a','upc_e','code_128'];
 
 const OFF_FIELDS = 'code,product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity,quantity,product_quantity,product_quantity_unit,categories_tags';
 

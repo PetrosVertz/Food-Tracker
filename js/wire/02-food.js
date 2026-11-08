@@ -17,7 +17,12 @@ $('tFoods').addEventListener('click', () => go('foods'));
 
 $('tMeals').addEventListener('click', () => go('meals'));
 
-$('fab').addEventListener('click', () => { const a = $('fab').dataset.action; if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') openFridgeChooser(); else if(a === 'meals') openCook(null, 'new'); else { pendingBarcode = null; status($('addStatus'), ''); open('ovAdd'); } });
+// the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
+$('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
+  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') shopCamera(); else if(a === 'meals') open('ovCookPick');
+  else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
+  else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
+$('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ open('ovShop'); return; } pendingBarcode = null; startScan(); });
 
 document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 
@@ -142,7 +147,7 @@ $('barcodePhoto').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
   status($('scanStatus'), t('readingPhoto'));
   try{
-    const det = await getDetector(); const bmp = await createImageBitmap(file);
+    const det = await Phone.barcodeReader(); const bmp = await createImageBitmap(file);
     const hit = (await det.detect(bmp)).map(r => r.rawValue).find(c => validGTIN(c));
     if(hit){ stopScan(); lookup(hit); } else status($('scanStatus'), t('noCodeInPhoto'), true);
   }catch(err){ status($('scanStatus'), t('photoFail'), true); }
@@ -288,7 +293,10 @@ Foods the user already has (prefer them when they fit): ${have || 'none listed'}
 
 $('rNo').addEventListener('click', () => { pendingRecipe = null; close('ovRecipe'); });
 
-$('rYes').addEventListener('click', () => { if(pendingRecipe){ applyRecipe(pendingRecipe, false); pendingRecipe = null; } close('ovRecipe'); });
+$('rYes').addEventListener('click', () => {
+  if(pendingRecipe){ const r = pendingRecipe; if(!$('ovCook').classList.contains('open')){ openCook(null, 'new'); if(r.title) $('cName').value = r.title; }
+    applyRecipe(r, false); pendingRecipe = null; }
+  close('ovRecipe'); if(D && D.recipe && (D.recipe.servings || 1) <= 1) $('cLeft').checked = false; });   // one-plate recipes: no leftovers by default
 
 const nk = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/ς/g,'σ');
 
@@ -334,18 +342,14 @@ const suppIcon = s => s.icon || (s.qid && QBY[s.qid] ? QBY[s.qid].icon : '💊')
 
 const unitLabel = u => t('u_' + u);
 
-$('sList').addEventListener('click', e => {
-  const card = e.target.closest('[data-sid]'); if(!card) return;
-  const slot = e.target.closest('[data-slot]');
-  if(slot){
-    const k = todayKey(), key = `${card.dataset.sid}|${slot.dataset.slot}`;
-    suppLog[k] = suppLog[k] || {}; if(suppLog[k][key]) delete suppLog[k][key]; else { suppLog[k][key] = true; navigator.vibrate?.(30); }
-    // keep two months of history
-    const keep = Object.keys(suppLog).sort().slice(-60); suppLog = Object.fromEntries(keep.map(d => [d, suppLog[d]]));
-    store(LOGKEY, suppLog); renderSupps(); renderHome(); return;
-  }
-  const s = supps.find(x => x.id === card.dataset.sid); if(s) openSupp(s);
-});
+$('sList').addEventListener('click', e => { const c = e.target.closest('[data-sid]'); if(!c) return; const id = c.dataset.sid, d = todayKey();
+  if(e.target.closest('[data-take]')){ setTakes(d, id, [...takesOf(d, id), nowHM()].sort()); haptic(); renderAll(); return; }
+  const x = e.target.closest('[data-tkx]'); if(x){ const a = takesOf(d, id).slice(); a.splice(+x.dataset.tkx, 1); setTakes(d, id, a); renderAll(); return; }
+  if(e.target.closest('.take,input')) return;
+  const s = supps.find(x => x.id === id); if(s) openSupp(s); });
+
+$('sList').addEventListener('change', e => { const i = e.target.closest('[data-tkt]'); if(!i) return; const id = i.closest('[data-sid]').dataset.sid, d = todayKey(), a = takesOf(d, id).slice();
+  a[+i.dataset.tkt] = i.value || a[+i.dataset.tkt]; setTakes(d, id, a.sort()); renderAll(); });
 
 $('supTimes').addEventListener('click', e => { const b = e.target.closest('[data-t2]'); if(!b) return; const v = b.dataset.t2;
   SU.times = SU.times.includes(v) ? SU.times.filter(x => x !== v) : [...SU.times, v]; drawSupTimes(); });
@@ -366,7 +370,7 @@ $('supSave').addEventListener('click', () => {
   const name = $('supName').value.trim(), dose = num('supDose');
   if(!name){ toast(t('supNeedName')); $('supName').focus(); return; }
   if(!(dose > 0)){ toast(t('supNeedDose')); $('supDose').focus(); return; }
-  if(!SU.times.length){ toast(t('supNeedTime')); return; }
+  if(!SU.times.length) SU.times = ['any']; SU.often = 'daily';   // name + dose only
   const now = new Date().toISOString();
   const rec = { name, qid: SU.qid, icon: SU.icon, dose, unit: $('supUnit').value, times: SLOTS.filter(x => SU.times.includes(x)), often: SU.often,
     foodId: $('supFood').value || null, notes: $('supNotes').value.trim(), updatedAt: now };
@@ -380,4 +384,28 @@ $('supDel').addEventListener('click', () => {
   const i = supps.findIndex(x => x.id === SU.id); if(i === -1) return;
   const [gone] = supps.splice(i, 1); saveSupps(); close('ovSupp'); renderAll();
   toast(t('deleted', { n: suppName(gone) }), t('undo'), () => { supps.splice(i, 0, gone); saveSupps(); renderAll(); });
+});
+
+// Food Track: folds per category
+$('list').addEventListener('click', e => { const b = e.target.closest('[data-fcat]'); if(!b) return; FCAT[b.dataset.fcat] = !FCAT[b.dataset.fcat]; render(); });
+// Add food: the other ways hide behind "Can't scan?"
+$('cantScanBtn').addEventListener('click', () => { const c = $('cantScan'), op = c.classList.toggle('hide'); $('cantScanBtn').classList.toggle('open', !op); if(!op) setTimeout(() => c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60); });
+// Add food: Advanced holds everything under the four macros
+$('fAdvSw').addEventListener('change', () => $('fAdv').classList.toggle('hide', !$('fAdvSw').checked));
+
+// scanner: a photo of the whole item (the AI recognises it and fills in typical values)
+$('scanItemBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('itemPhoto').value = ''; $('itemPhoto').click(); });
+$('itemPhoto').addEventListener('change', async () => {
+  const file = $('itemPhoto').files[0]; if(!file) return; const ctx = scanCtx;
+  try{
+    const img = await shrink(file);
+    const d = await gemini(`This is a photo of a food or drink product (often from a Greek supermarket). Identify it from the packaging (brand, product name, flavour/variant). If a nutrition table is visible, read it; otherwise give typical values for that exact product. Return ONLY JSON:
+{"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null}
+Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml.`, img);
+    if(!d || !d.name || d.protein == null) throw new Error('not recognised');
+    if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; } if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
+    close('ovScan'); scanCtx = null;
+    if(ctx === 'log' || ctx === 'fridge'){ const f = saveOnlineFood({ ...d, source: 'item photo' }); renderAll(); if(ctx === 'log') openAmt({ mode: 'log', info: fInfo_(f) }); else openFridgeAdd(f); toast(t('scanSaved')); return; }
+    d.source = 'item photo'; openForm(d, t('theItemPhoto'), 'new');
+  }catch(err){ if(!err.cancelled) toast(t('itemFail')); }
 });

@@ -1,17 +1,13 @@
 // App settings: version, storage keys, defaults and small lookup tables.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const VERSION = '0.6.5.4';
-
-const KEY = 'ft.foods.v1', MKEY = 'ft.meals.v1', SKEY = 'ft.settings.v1', UKEY = 'ft.ui.v1';
+const VERSION = '0.6.8.1';
 
 const DEFAULT_MODEL = 'gemini-flash-latest';
 
 const KEY_URL = 'https://aistudio.google.com/apikey';
 
 let lang = 'en';
-
-const SUKEY = 'ft.supps.v1', LOGKEY = 'ft.supplog.v1';
 
 let toastTimer;
 
@@ -31,11 +27,8 @@ let PC = { mode:'weigh' };
 // ======================= add flow =======================
 let pendingBarcode = null;
 
-let detector = null, detectorP = null, stream = null, scanLoop = null, scanOn = false, torchOn = false;
+let stream = null, scanLoop = null, scanOn = false, torchOn = false;
 
-// ======================= Gemini (label photos + recipes) =======================
-// Free Gemini models get overloaded, so we try every model your key can use, each for at most 30 s, until one answers.
-const MLKEY = 'ft.models.v1', GEMINI_TIMEOUT = 30000, GAPI = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 let ING = { cb:null, online:[], onlineQ:'', timer:null };
 
@@ -56,7 +49,6 @@ let SU = { id:null, qid:null, times:[], often:'daily', icon:null };
 // =====================================================================
 // v1.5 — FRIDGE · GROCERIES · TODAY'S FOOD · PLAN MY DAY
 // =====================================================================
-const FRKEY = 'ft.fridge.v1', GRKEY = 'ft.groc.v1', LGKEY = 'ft.log.v1', DYKEY = 'ft.days.v1', TGKEY = 'ft.targets.v1', PLKEY = 'ft.plans.v1';
 
 let scanCtx = null;
 
@@ -102,7 +94,7 @@ let lastAutoFridge = null;
 
 let sgCtl = null;
 
-const TAB_ROOT = { today: 'today', gym: 'gym', food: 'foods', fridge: 'fridge' };
+const TAB_ROOT = { today: 'today', gym: 'gym', food: 'foods', fridge: 'fridge', settings: 'settings' };
 
 let LOGON = { q: '', res: [], busy: false, timer: null };
 
@@ -127,8 +119,6 @@ const FEDB_URLS = ['https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/di
 
 let FEDB = null, DEMO = { timer: null };
 
-// ---------- weigh-in inside targets ----------
-const WKEY = 'ft.weights.v1';
 
 // ---------- in-app yes/no (instead of the phone's own pop-up) ----------
 let ASK = null;
@@ -136,6 +126,6 @@ let ASK = null;
 // ---------- in-app picker for every dropdown ----------
 let PICKSEL = null;
 
-const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.bubble,#tabbar button,.extile,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
+const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.bubble,#tabbar button,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
 
 const KEYATTR = ['data-eid', 'data-fid', 'data-x', 'data-s', 'data-tid', 'data-gid', 'data-mid', 'data-sid'];

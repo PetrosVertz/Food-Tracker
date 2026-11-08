@@ -2,16 +2,7 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ---------- where things go and how long they last (rough defaults, always editable) ----------
-function defaultLoc(f){ const l = defaultLoc_0(f); return l === 'cupboard' ? 'fridge' : l; }   // 0.6.2: no cupboard
-function defaultLoc_0(f){
-  const c = f.cat, s = f.sub;
-  if(['meat','fish','dairy','eggs','ready'].includes(c)) return 'fridge';
-  if(c === 'veg') return ['potato','sweetpotato','onion','garlic'].includes(s) ? 'cupboard' : 'fridge';
-  if(c === 'fruit') return ['banana','dried'].includes(s) ? 'cupboard' : 'fridge';
-  if(c === 'drinks') return s === 'juice' ? 'fridge' : 'cupboard';
-  return 'cupboard';
-}
-
+function defaultLoc(f){ return 'fridge'; }   // everything starts in the fridge (no cupboard since 0.6.2); ❄️ Frozen is a switch when adding
 function defaultDays(f, loc){
   const c = f.cat, s = f.sub;
   if(loc === 'freezer') return ['meat','fish'].includes(c) ? 120 : 90;
@@ -42,12 +33,13 @@ function liveItems(){ return fridge.map(it => ({ it, info: itemInfo(it) })).filt
 
 // take an amount out of the fridge, soonest-expiring first; returns how much was actually there
 function takeFromFridge(key, amount){
-  let left = amount;
-  fridge.filter(it => key.foodId ? it.foodId === key.foodId : it.mealId === key.mealId)
+  let left = amount; const mine = fridge.filter(it => key.foodId ? it.foodId === key.foodId : it.mealId === key.mealId);
+  mine
     .sort((a, b) => (a.exp || '9999').localeCompare(b.exp || '9999'))
     .forEach(it => { if(left <= 0) return; const d = Math.min(it.qty, left); it.qty = r1(it.qty - d); left -= d; });
   fridge = fridge.filter(it => it.qty > 0.05); saveFridge();
-  const added = key.foodId ? checkRestock(key.foodId) : false;
+  // only something that was in the fridge can go on Groceries (a takeaway or a Fill My Food item never does)
+  const added = key.foodId && mine.length ? checkRestock(key.foodId) : false;
   return { took: r1(amount - Math.max(0, left)), added };
 }
 
@@ -68,7 +60,7 @@ function openFridgeAdd(food, preset){
   $('faTitle').textContent = t('addFridgeHow'); $('faFood').textContent = `${iconOf(food) || '📦'} ${foodName(food)}`;
   const amt = preset.amt || food.usualPack || (food.piece ? food.piece * (food.cat === 'eggs' ? 6 : 1) : 100);
   $('faAmt').value = r1(amt); $('faCount').value = preset.count || 1; $('faCount').parentElement.querySelector('span:nth-of-type(2)').classList.remove('hide'); $('faCount').classList.remove('hide');
-  fillFA(food, loc, null); $('faDel').classList.add('hide'); open('ovFAdd');
+  fillFA(food, loc, null); $('faDel').classList.add('hide'); $('faFrozen').checked = loc === 'freezer'; open('ovFAdd');
 }
 
 function openFridgeItem(it){
@@ -77,7 +69,7 @@ function openFridgeItem(it){
   $('faTitle').textContent = info.name; $('faFood').textContent = `${info.icon} ${t(LOC_KEY[it.loc])}`;
   $('faAmt').value = it.qty; $('faCount').value = 1; $('faCount').classList.add('hide'); $('faCount').parentElement.querySelector('span:nth-of-type(2)').classList.add('hide');
   fillFA(info.food || { unit: 'g', cat: 'ready', sub: 'meal', packs: [] }, it.loc, it.exp);
-  $('faDel').classList.remove('hide'); open('ovFAdd');
+  $('faDel').classList.remove('hide'); $('faFrozen').checked = it.loc === 'freezer'; open('ovFAdd');
 }
 
 function fillFA(food, loc, exp){
@@ -204,3 +196,6 @@ function renderFridge(){
       </div>
       <button class="usebtn" data-use>${t('useBtn')}</button></div>`; }).join('');
 }
+
+// Fridge: the main button scans a receipt with the camera
+function shopCamera(){ if(!settings.geminiKey){ open('ovShop'); toast(t('needKeyFirst')); return; } SHOP.kind = 'camera'; $('shopFile').value = ''; $('shopFile').click(); }
