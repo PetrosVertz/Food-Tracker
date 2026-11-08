@@ -33,7 +33,7 @@ function carbWindows(d){
   ];
 }
 
-function openLogSearch(){ $('lSearch').value = ''; $('lYesterday').classList.toggle('hide', !(dayLog[addDays(curDay, -1)] || []).length); drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
+function openLogSearch(){ $('lSearch').value = ''; LW = { rows: {}, open: null, added: [] }; $('lAdded').innerHTML = ''; drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
 
 // ---------- targets ----------
 function renderPlan(){
@@ -93,30 +93,121 @@ function usuals(){
   LS.hourN = hour.length; return [...hour, ...rest].map(x => x.e);   // 0.6.2: what you usually eat around this time comes first
 }
 
+// ---------- Log Food window (canvas Phones.dc.html screen 4 + logging mockup v1 + Petros's six v2 changes) ----------
+// One window: search on top, rows with ＋ (log the usual amount in one tap, Undo in the toast) and an inline panel on tap
+// (amount + one unit from a custom list, the cooking slider where it matters, live kcal/P/C/F, Add). The window stays open;
+// what you added shows as green chips at the top. Editing a row only updates that row, never the whole list.
+let LW = { rows: {}, open: null, added: [] };
+// single units for foods where they make sense (v2 #4): the number goes in the box beside the unit
+const LW_UNITS = [
+  [/\begg(s)?\b/, [['Small Egg', 'Μικρό αυγό', 43], ['Medium Egg', 'Μεσαίο αυγό', 50], ['Large Egg', 'Μεγάλο αυγό', 58]]],
+  [/\b(fries|chips|french fr)/, [['Small Portion', 'Μικρή μερίδα', 80], ['Medium Portion', 'Μεσαία μερίδα', 120], ['Large Portion', 'Μεγάλη μερίδα', 160]]],
+  [/chicken breast|στήθος κοτ/, [['Breast', 'Στήθος', 170]]],
+  [/yogh?urt|γιαούρτ/, [['Pot', 'Κεσεδάκι', 170]]],
+  [/\b(rice|oats|cereal|milk)\b|ρύζι|γάλα/, [['Cup', 'Φλιτζάνι', 158]]],
+  [/\boil\b|λάδι/, [['Tbsp', 'Κ. σούπας', 13.5], ['Tsp', 'Κ. γλυκού', 4.5]]] ];
+// the cooking slider (v1 + v2 #1/#3): three ways of cooking with their own values per 100 g; Title Case labels, no text above
+const LW_COOK = [
+  [/scrambled egg|eggs? scrambled|ομελέτα|αυγά χτυπητά/, 1, [['With Butter / Oil', 'Με βούτυρο / λάδι', 212, 13.8, 2, 16.5], ['Little Oil', 'Λίγο λάδι', 170, 13, 1.5, 12], ['No Fat', 'Χωρίς λιπαρά', 140, 12.6, 1.1, 9.5]]],
+  [/\b(french )?fries\b|\bchips\b|πατάτες τηγαν/, 2, [['Deep Fried', 'Τηγανητές', 312, 3.4, 41, 15], ['Pan / Oven', 'Τηγάνι / φούρνος', 200, 3.2, 33, 6.5], ['Air Fried', 'Air fryer', 150, 3, 30, 2.5]]],
+  [/chicken breast|στήθος κοτ/, 2, [['Fried', 'Τηγανητό', 222, 30, 2, 10], ['Pan, Little Oil', 'Τηγάνι, λίγο λάδι', 187, 31, 0, 6.5], ['Grilled / No Oil', 'Ψητό / χωρίς λάδι', 165, 31, 0, 3.6]]] ];
+const lwL = a => lang === 'el' ? a[1] : a[0];
+function lwInfo(k, i){
+  const mInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
+  if(k === 'rc') return infoOfEntry(LS.recent[i]);
+  if(k === 'ml') return mInfo(LS.meals[i]);
+  if(k === 'm') return fInfo_(LS.mine[i]);
+  if(k === 's'){ const g = LS.std[i]; return { ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g }; }
+  if(k === 'o'){ const d = LOGON.res[i]; return { name: d.name, icon: '🌐', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }; }
+  return null;
+}
+function lwRef(info){ return info.meal ? 'm:' + info.meal.id : info.food ? 'f:' + info.food.id : info.gen ? 'g:' + info.gen.gid : info.online ? 'o:' + (info.online.barcode || info.name) : 'n:' + info.name; }
+function lwUnits(info){
+  const u = [], name = norm(info.name || ''), f = info.food || info.gen;
+  const hint = LW_UNITS.find(([re]) => re.test(name)); if(hint && info.unit !== 'ml') hint[1].forEach(x => u.push({ k: 'h' + x[2], l: lwL(x), size: x[2] }));
+  if(!hint && info.piece && info.pw) u.push({ k: 'pc', l: info.pw === 'slice' ? (lang === 'el' ? 'Φέτα' : 'Slice') : (lang === 'el' ? 'Τεμάχιο' : 'Piece'), size: info.piece });
+  if(f && f.usualPack && f.usualPack <= 1000 && f.usualPack !== info.piece) u.push({ k: 'pack', l: lang === 'el' ? 'Συσκευασία' : 'Pack', size: f.usualPack });
+  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', l: lang === 'el' ? 'Πιάτο' : 'Plate', size: Math.round(info.meal.cookedWeight) });
+  u.push({ k: 'g', l: info.unit === 'ml' ? (lang === 'el' ? 'ml' : 'Millilitres') : (lang === 'el' ? 'Γραμμάρια' : 'Grams'), size: 1 });
+  return u;
+}
+function lwState(k, i){
+  const key = k + i; if(LW.rows[key]) return LW.rows[key];
+  const info = lwInfo(k, i); if(!info) return null;
+  const ref = lwRef(info), units = lwUnits(info), name = norm(info.name || ''), cook = LW_COOK.find(([re]) => re.test(name));
+  const pick = (ui.logUnit || {})[ref], last = info.meal || info.food ? lastEntryOf((info.meal || info.food).id) : (k === 'rc' ? LS.recent[i] : null);
+  // v2 #5: grams by default, always grams once you've logged this food in grams; otherwise it opens on your last pick ("2 Medium Eggs")
+  let u = units.length - 1, n = last ? last.amt : 100;
+  if(pick && pick !== 'g'){ const j = units.findIndex(x => x.k === pick); if(j > -1){ u = j; n = last ? Math.max(.5, Math.round(last.amt / units[j].size * 2) / 2) : 1; } }
+  if(!last && units.length > 1 && !pick && units[0].k !== 'g' && info.meal) { u = 0; n = 1; }
+  const ck = cook ? ((ui.logCook || {})[ref] ?? cook[1]) : null;
+  return (LW.rows[key] = { k, i, info, ref, units, u, n, cook: cook ? cook[2] : null, ck });
+}
+function lwPer(st){ if(!st.cook) return st.info.per; const c = st.cook[st.ck]; return { ...st.info.per, kcal: c[2], protein: c[3], carbs: c[4], fat: c[5] }; }
+function lwCalc(st){ const g = (+st.n || 0) * st.units[st.u].size; return { g, ...macrosFor(lwPer(st), g) }; }
+function lwSub(st){ const r = lwCalc(st), un = st.units[st.u], n = +st.n || 0;
+  const amt = un.k === 'g' ? fmtSize(r.g, st.info.unit) : `${fmt(n)} ${n === 1 || lang === 'el' || /sp$/.test(un.l) ? un.l : un.l + 's'} · ${fmtSize(r.g, st.info.unit)}`;
+  return `${amt} · ${r.kcal} kcal`; }
+function lwRow(k, i){ const st = lwState(k, i); if(!st) return ''; const open = LW.open === k + i;
+  return `<div class="lrow ${open ? 'open' : ''}" data-k="${k}" data-i="${i}"><div class="lrh"><button class="lrn" type="button" data-lopen><span class="nm">${esc(st.info.name)}</span><small class="ls">${esc(lwSub(st))}</small></button>
+    <button class="lplus" type="button" data-lplus aria-label="${t('lwUsual')}">+</button></div>${open ? lwPanel(st) : ''}</div>`; }
+function lwPanel(st){
+  const r = lwCalc(st);
+  return `<div class="lpn"><div class="lamt"><input class="lan" type="number" inputmode="decimal" step="any" min="0" value="${fmt(+st.n || 0)}" aria-label="${t('lwAmount')}">
+    <div class="ldd"><button class="ldb" type="button" data-ldd aria-haspopup="listbox"><span class="ldl">${esc(lwUnitLbl(st, st.u))}</span>${svgIcon('down', 16, 2.4)}</button><div class="ldm hide" role="listbox">${lwMenu(st)}</div></div></div>
+    ${st.cook ? `<div class="seg lck">${st.cook.map((c, j) => `<button type="button" data-v="${j}" data-lck="${j}" class="${j === st.ck ? 'on' : ''}">${esc(lwL(c))}</button>`).join('')}</div>` : ''}
+    <div class="lres"><span class="lk">${r.kcal} kcal</span><span class="lm"><b class="p">P ${fmt(r.p)}</b> · <b class="c">C ${fmt(r.c)}</b> · <b class="f">F ${fmt(r.f)}</b></span></div>
+    <button class="lgo" type="button" data-ladd>${t('add')}</button></div>`; }
+function lwUnitLbl(st, j){ const u = st.units[j]; return u.k === 'g' ? u.l : `${u.l} (${fmtSize(u.size, st.info.unit)})`; }
+// v2 #6: a custom list — the portion and its weight on the left, its calories on the right (they follow the cooking slider)
+function lwMenu(st){ const per = lwPer(st);
+  return st.units.map((u, j) => `<button type="button" class="ldo ${j === st.u ? 'on' : ''}" data-lu="${j}" role="option" aria-selected="${j === st.u}"><span>${esc(lwUnitLbl(st, j))}</span><span>${macrosFor(per, u.k === 'g' ? 100 : u.size).kcal} kcal${u.k === 'g' ? ' / 100 ' + (st.info.unit || 'g') : ''}</span></button>`).join(''); }
+// v2 #2: only the numbers, the line under the name, the slider and the list change
+function lwUpdate(row, st){ const r = lwCalc(st);
+  row.querySelector('.ls').textContent = lwSub(st);
+  const k = row.querySelector('.lk'); if(k) k.textContent = r.kcal + ' kcal';
+  const m = row.querySelector('.lm'); if(m) m.innerHTML = `<b class="p">P ${fmt(r.p)}</b> · <b class="c">C ${fmt(r.c)}</b> · <b class="f">F ${fmt(r.f)}</b>`;
+  const l = row.querySelector('.ldl'); if(l) l.textContent = lwUnitLbl(st, st.u);
+  const mn = row.querySelector('.ldm'); if(mn) mn.innerHTML = lwMenu(st);
+  row.querySelectorAll('[data-lck]').forEach(b => b.classList.toggle('on', +b.dataset.lck === st.ck)); }
+function lwAdd(st){
+  const r = lwCalc(st); if(!(r.g > 0)){ toast(t('needAmount')); return; }
+  let info = st.info;
+  if(info.gen) info = fInfo_(saveGeneric(info.gen)); else if(info.online) info = fInfo_(saveOnlineFood(info.online));
+  info = { ...info, per: lwPer(st) };
+  const ref = lwRef(info), un = st.units[st.u].k;
+  if(un === 'g') ui.logGrams = { ...(ui.logGrams || {}), [ref]: true };   // once in grams, always grams
+  ui.logUnit = { ...(ui.logUnit || {}), [ref]: (ui.logGrams || {})[ref] ? 'g' : un };
+  if(st.cook) ui.logCook = { ...(ui.logCook || {}), [ref]: st.ck }; saveUI();
+  logEntry(curDay, info, r.g, daysUntil(curDay) === 0 ? nowHM() : '13:00');
+  const list = dayLog[curDay], added = list[list.length - 1];
+  const key = info.meal ? { mealId: info.meal.id } : info.food ? { foodId: info.food.id } : null, stock = key ? (key.foodId ? stockOf(key.foodId) : mealStock(key.mealId)) : 0;
+  let extra = ''; if(key && stock > 0){ const x = takeFromFridge(key, r.g); if(x && x.added) extra = ' ' + t('toList'); }
+  LW.added.push(added); LW.open = null; lwChips(); renderAll(); drawLog();
+  toast(t('logged', { n: info.name }) + ` · ${added.kcal} kcal` + extra, t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); LW.added = LW.added.filter(x => x !== added); saveLog(); lwChips(); renderAll(); });
+}
+function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(e.name)} · ${e.kcal}</span>`).join(''); }
 function drawLog(){
-  const q = $('lSearch').value.trim(), tokens = norm(q).split(' ').filter(Boolean);
-  const ml = m => `${m.kcal} kcal · P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)} / 100 g`;
+  const q = $('lSearch').value.trim();
+  if(LW.q !== q){ LW.rows = {}; LW.open = null; LW.q = q; }
   let h = '';
   if(!q){
-    LS.recent = usuals();
-    const uRow = (e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`;
-    if(LS.recent.length && LS.hourN) h += `<div class="sgroup">🕒 ${t('usualHour')}</div>` + LS.recent.slice(0, LS.hourN).map(uRow).join('') + (LS.recent.length > LS.hourN ? `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.slice(LS.hourN).map((e, i) => uRow(e, i + LS.hourN)).join('') : '');
-    else if(LS.recent.length) h += `<div class="sgroup">⭐ ${t('usuals')}</div>` + LS.recent.map((e, i) => `<div class="srow">${itemHtml('rc', i, e.icon || '🍽️', e.name, t('lastAmt', { a: fmtSize(e.amt, e.unit) }) + ` · ${e.kcal} kcal`)}<button class="qlog" data-ql="${i}" aria-label="Log again">＋</button></div>`).join('');
+    LS.recent = usuals(); const ids = LS.recent.map((e, i) => i);
+    if(LS.recent.length && LS.hourN) h += `<div class="lgrp">🕒 ${t('lwHour')}</div>` + ids.slice(0, LS.hourN).map(i => lwRow('rc', i)).join('') + (LS.recent.length > LS.hourN ? `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.slice(LS.hourN).map(i => lwRow('rc', i)).join('') : '');
+    else if(LS.recent.length) h += `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.map(i => lwRow('rc', i)).join('');
     else h = `<div class="hint">${t('typeToSearch')}</div>`;
   } else {
     const s = searchLocal(q, false, { log: true, meals: true }); LS.meals = s.meals; LS.mine = s.mine; LS.std = s.std;
-    if(LS.meals.length) h += `<div class="sgroup">${t('tabMeals')}</div>` + LS.meals.map((m, i) => itemHtml('ml', i, mealIcon(m), m.name, ml(m))).join('');
-    if(LS.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + LS.mine.map((f, i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand || !f.brand ? '' : esc(f.brand) + ' · '}${macroLine(f)}${stockOf(f.id) ? ' · 🧊' : ''}`)).join('');
-    if(LS.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + LS.std.map((g, i) => itemHtml('s', i, subOf(g.cat, g.sub).icon, L(g), macroLine(g))).join('');
-    const onl = LOGON.q === q && LOGON.res.length, local = LS.meals.length + LS.mine.length + LS.std.length;
-    if(onl) h += `<div class="sgroup">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => itemHtml('o', i, d.source === 'USDA' ? '🇺🇸' : '🌐', d.name, `${d.brand ? esc(d.brand) + ' · ' : ''}${macroLine(d)}${d.check ? ' · ⚠️ ' + t('checkVals') : ''}`)).join('');
+    const local = LS.meals.length + LS.mine.length + LS.std.length, onl = LOGON.q === q && LOGON.res.length;
+    if(local) h += `<div class="lgrp">${t('lwResults')}</div>` + LS.meals.map((m, i) => lwRow('ml', i)).join('') + LS.mine.map((f, i) => lwRow('m', i)).join('') + LS.std.map((g, i) => lwRow('s', i)).join('');
+    if(onl) h += `<div class="lgrp">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => lwRow('o', i)).join('');
     else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
-    else if(q.length >= 2 && LOGON.q !== q) h += `<button class="btn" id="lOnline" style="width:100%;margin-top:8px">🌐 ${t('onlineMore')}</button>`;
+    else if(q.length >= 2 && LOGON.q !== q) h += `<button class="lmore" id="lOnline" type="button">🌐 ${t('onlineMore')}</button>`;
     // never a dead end: a spelling fix when little matched, and Add as Takeaway for anything
     const dym = local + (onl ? LOGON.res.length : 0) < 3 ? Search.didYouMean(q) : null;
     if(!local && !LOGON.busy && !onl) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
     if(dym) h = `<button class="dym" data-dym="${esc(dym)}">${t('didYouMean')} <b>${esc(dym)}</b>?</button>` + h;
-    h += `<button class="sitem takeaway" id="lTakeaway"><span class="e">🥡</span><span class="t"><b>${t('addAsTakeaway', { q: esc(q) })}</b><small>${t('takeawaySub')}</small></span></button>`;
+    h += `<button class="lmore" id="lTakeaway" type="button">🥡 ${t('addAsTakeaway', { q: esc(q) })}<small>${t('takeawaySub')}</small></button>`;
   }
   $('lResults').innerHTML = h;
 }
@@ -261,7 +352,7 @@ function renderToday(){
   $('dLabel').textContent =   // 0.6.3: just the date
     new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
-  // big bars: the numbers sit inside in white; where the fill passes under them they turn dark (two text layers, one clipped to the fill)
+  // hero bars (0.6.8.2): slim, fully round; "112 / 160 g" sits inside at the right end; where the fill reaches the letters they flip colour (two text layers, one clipped to the fill)
   const mrow = (cls, label, a, b, u, st) => { const w = b ? Math.min(100, a / b * 100) : 0, txt = `<b>${Math.round(a)}</b> / ${b ? Math.round(b) : '–'}${u.trim()}`;
     return `<div class="mrow hero ${cls} ${st || ''}"><small>${label}</small><span class="hbar"><i style="width:${w}%"></i><em>${txt}</em><em class="inv" style="clip-path:inset(0 ${100 - w}% 0 0)">${txt}</em></span></div>`; };
   const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
@@ -278,15 +369,13 @@ function renderToday(){
       <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
       <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
   // log
-  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card" data-eid="${e.id}"><div class="ficon">${e.icon || '🍽️'}</div><div class="body">
-      <div class="row"><div class="brand">${e.time}</div><div class="kcal">${e.kcal} <small>kcal</small></div></div>
-      <div class="name">${esc(e.name)} <small style="color:var(--muted);font-weight:400">· ${fmtSize(e.amt, e.unit)}</small></div>
-      <div class="macros"><span class="m p">P <b>${fmt(e.p)}</b></span><span class="m c">C <b>${fmt(e.c)}</b></span><span class="m f">F <b>${fmt(e.f)}</b></span>${e.fib ? `<span class="m fi">Fi <b>${fmt(e.fib)}</b></span>` : ''}</div></div></div>`).join('')
+  // Eaten rows (canvas Phones.dc.html): name 15/500, then "time · amount" 12 muted; kcal on the right
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name">${esc(e.name)}</span><small class="esub">${e.time} · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)} kcal</span></div>`).join('')
     : `<div class="empty">${t('nothingLogged')}</div>`;
   $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
   renderPlan();
   try{ renderTodayRec(); }catch(e){}
-  (dayLog[curDay] || []).filter(e => e.kind === 'quick').forEach(e => { const c = document.querySelector(`#dLog [data-eid="${e.id}"] .name small`); if(c) c.textContent = '· ' + t('qaTag'); });
+  (dayLog[curDay] || []).filter(e => e.kind === 'quick').forEach(e => { const c = document.querySelector(`#dLog [data-eid="${e.id}"] .eamt`); if(c) c.textContent = t('qaTag'); });
   $('realStart').checked = !!profile.realStart;
   const n = (dayLog[curDay] || []).length; $('dEatenN').textContent = n ? ` · ${n}` : '';
 }

@@ -12,6 +12,11 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <script>
+// 0.6.8.2 theme (device setting in ft.ui.v1): applied before the first paint so there's no flash. The full logic is THEME in js/ui.js.
+(function(){ try{ var u = JSON.parse(localStorage.getItem('ft.ui.v1') || '{}'), th = u.theme || {}, m = th.mode || 'dark';
+  var look = m === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : m; document.documentElement.setAttribute('data-theme', look); }catch(e){} })();
+</script>
+<script>
 // Home Screen app on iPhone: size everything to the real screen (the reported viewport can be shorter, leaving a black strip at the bottom). In Safari nothing changes.
 (function(){ var pwa = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); if(!pwa) return;
   var de = document.documentElement; de.classList.add('pwa');
@@ -70,10 +75,10 @@
 <!-- ============ MY FOODS ============ -->
 <section class="page wrap hide" id="pgFoods">
   <header>
-    <div class="left"><button class="iconbtn hide" id="backBtn" aria-label="Back">‹</button><h1 data-t="tabFood"></h1></div>
-    <div class="hbtns"><button class="iconbtn" id="fScanBtn" aria-label="Scan">▥</button><button class="iconbtn" data-settings aria-label="Settings">⚙︎</button></div>
+    <div class="left"><button class="backarrow hide" id="backBtn" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabFood"></h1></div>
+    <div class="hbtns"><button class="iconbtn plainic" id="fScanBtn" aria-label="Scan"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button><button class="iconbtn" data-settings aria-label="Settings">⚙︎</button></div>
   </header>
-  <div class="tabs" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
+  <div class="mpill" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
   <div id="storeView">
     <input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off">
     <div class="chips" id="catChips"></div>
@@ -96,7 +101,7 @@
 <!-- ============ MY SUPPLEMENTS ============ -->
 <section class="page wrap hide" id="pgSupps">
   <header>
-    <div class="left"><button class="iconbtn" id="backBtn2" aria-label="Back">‹</button><h1 data-t="tSupps"></h1></div>
+    <div class="left"><button class="backarrow" id="backBtn2" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tSupps"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
 </section>
@@ -105,9 +110,9 @@
 <section class="page wrap hide" id="pgToday">
   <header>
     <div class="left"><h1 data-t="tToday"></h1></div>
-    <div class="hbtns"><button class="iconbtn" id="targetsBtn" aria-label="Targets">🎯</button><button class="iconbtn" data-settings aria-label="Settings">⚙︎</button></div>
+    <div class="hbtns"><button class="iconbtn plainic" id="targetsBtn" aria-label="Targets"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><button class="iconbtn" data-settings aria-label="Settings">⚙︎</button></div>
   </header>
-  <div class="daynav"><button class="iconbtn" id="dPrev">‹</button><b id="dLabel"></b><button class="iconbtn" id="dNext">›</button></div>
+  <div class="daynav"><button class="backarrow" id="dPrev" aria-label="Previous day"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="dLabel"></b><button class="backarrow" id="dNext" aria-label="Next day"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
   <div id="dBlocks" class="dblocks"></div>
   <div class="seg hide" id="dType" style="display:none"><button data-v="gym" data-t="gymDay"></button><button data-v="rest" data-t="restDay"></button></div>
   <div id="gymBox" class="hide">
@@ -129,7 +134,7 @@
 <!-- ============ GYM ============ -->
 <section class="page wrap hide" id="pgGym">
   <header>
-    <div class="left"><button class="iconbtn hide" id="gBackBtn" aria-label="Back">‹</button><h1 data-t="tabGym"></h1></div>
+    <div class="left"><button class="backarrow hide" id="gBackBtn" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabGym"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
   <h2 id="gSecTitle" class="sectitle hide"></h2>
@@ -144,7 +149,7 @@
       <button class="tile pettile hide" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
     </div>
   </div>
-  <div class="tabs hide" id="gTabs" style="margin-top:12px"><button data-v="plan" data-t="gtPlan"></button><button data-v="tpl" data-t="gtWorkouts"></button><button data-v="prog" data-t="gtProgress"></button><button data-v="rec" data-t="gtRecovery"></button></div>
+  <div class="mpill hide" id="gTabs" style="margin:4px 0 16px"><button data-sec="gym-lib" data-t="gtLib"></button><button data-sec="gym-prog" data-t="gtProgress"></button><button data-sec="gym-week" data-t="gtPlanner"></button><button data-pet id="gtPet" class="hide" data-t="gtPartner"></button></div>
   <div id="gPlanV"></div>
   <div id="gTplV" class="hide"></div>
   <div class="hide" id="gWeigh"><h3 class="sect" style="margin-top:4px"><span data-t="wtTitle"></span></h3><div class="wtcard" id="gWChart"></div>
@@ -159,18 +164,18 @@
     <div class="left"><h1 data-t="tabFridge"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
-<div class="seg fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
-  <div class="tabs" id="fLoc"><button data-v="all" data-t="all"></button><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
+<div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
+  <div class="mpill" id="fLoc"><button data-v="all" data-t="all"></button><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
   <input class="search" id="fSearch" type="search" data-tp="searchFridge" autocomplete="off">
   <div id="fAlerts"></div>
   <div class="list" id="fList"></div>
-</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><p class="sub" data-t="settingsSub"></p><label data-t="language"></label><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div><button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button><div class="bodybox"><h3 data-t="yourBody"></h3>
+</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><p class="sub" data-t="settingsSub"></p><button class="setrow" id="sThemeBtn" type="button"><span data-t="themeT"></span><span class="sv" id="sThemeVal"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><label data-t="language"></label><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div><button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button><div class="bodybox"><h3 data-t="yourBody"></h3>
     <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
     <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
     <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><hr><h2 data-t="yourData"></h2><p class="sub" data-t="yourDataSub"></p><div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div><div class="actions" style="margin-top:10px">
     <button class="btn" id="exportJson" data-t="download"></button>
     <button class="btn" id="importBtn" data-t="import"></button>
-  </div><input type="file" id="importInput" accept="application/json,.json" class="hide"><div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div><div class="ver">Food Track · Gym Buddy · v0.6.8.1</div></section>
+  </div><input type="file" id="importInput" accept="application/json,.json" class="hide"><div class="ver">Food Track · Gym Buddy · v0.6.8.2</div></section>
 
 <!-- ============ GROCERIES ============ -->
 <section class="page wrap hide" id="pgGroc">
@@ -178,7 +183,7 @@
     <div class="left"><h1 data-t="tabFridge"></h1></div>
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
-<div class="seg fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
+<div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
   <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
   <div id="gSugg" class="sres"></div>
   <div class="actions" style="margin-top:10px">
@@ -192,11 +197,11 @@
 
 <button class="fab fab2 hide" id="fab2" type="button" data-t="scanFoodFab"></button><button class="fab hide" id="fab"></button>
 <nav class="rail" id="rail" aria-label="Tabs">
-    <button data-tab="today" class="r-today"><span class="ri">🍽️<i class="steam"><b></b><b></b><b></b></i></span><span class="sr" data-t="tabToday"></span></button>
-  <button data-tab="gym" class="r-gym"><span class="ri">🏋️</span><span class="sr" data-t="tabGym"></span></button>
-  <button data-tab="food" class="r-food"><span class="ri">🍎</span><span class="sr" data-t="tabFood"></span></button>
-  <button data-tab="fridge" class="r-fridge"><span class="ri">🧊</span><span class="sr" data-t="tabFridge"></span></button>
-  <button data-tab="settings" class="r-set" aria-label="Settings"><span class="ri">⚙︎</span><span class="sr" data-t="settings"></span></button>
+  <button data-tab="today" class="r-today"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></svg></span><span class="sr" data-t="tabToday"></span></button>
+  <button data-tab="gym" class="r-gym"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg></span><span class="sr" data-t="tabGym"></span></button>
+  <button data-tab="food" class="r-food"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span class="sr" data-t="tabFood"></span></button>
+  <button data-tab="fridge" class="r-fridge"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/></svg></span><span class="sr" data-t="tabFridge"></span></button>
+  <button data-tab="settings" class="r-settings"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span><span class="sr" data-t="settings"></span></button>
 </nav>
 <div class="pullhint" id="pullHint" aria-hidden="true"><span id="phIcon"></span><b id="phText"></b></div>
 <nav class="tabbar hide" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
@@ -233,10 +238,24 @@
   <div id="shopList"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="shopAddBtn"></button></div>
 </div></div>
-<div class="overlay" id="ovDemo"><div class="sheet tall">
+<div class="overlay" id="ovDemo"><div class="sheet tall formpage">
   <h2 id="dmTitle"></h2>
-  <div id="dmBody"></div>
-  <div class="actions"><button class="btn hide" id="dmNext" data-t="formNext"></button><button class="btn" data-close data-t="close"></button></div>
+  <div class="fpphoto" id="dmPhoto"></div>
+  <button class="linkbtn hide" id="dmNext" data-t="formNext"></button>
+  <div class="fpcols" id="dmBody"></div>
+  <p class="hint" id="dmCredit" data-t="formCredit"></p>
+</div></div>
+
+<!-- ============ THEME (Settings › Theme, canvas ThemeMenu.dc.html) ============ -->
+<div class="overlay" id="ovTheme"><div class="sheet tall themepage">
+  <h2 data-t="themeT"></h2>
+  <span class="thl" data-t="thAppearance"></span>
+  <div class="mpill" id="thMode"><button data-v="dark" data-t="thDark"></button><button data-v="light" data-t="thLight"></button><button data-v="auto" data-t="thAuto"></button></div>
+  <span class="thl" id="thNote"></span>
+  <span class="thl" data-t="thColour"></span>
+  <div class="thsw" id="thSw"></div>
+  <span class="thl" data-t="thPreview"></span>
+  <div class="thprev"><div class="kchead"><span class="kcnum">1,846<small>/ 2,900 kcal</small></span></div><span class="thbar"><i></i></span><button class="btn primary thlog" type="button" tabindex="-1">+ Log Food</button></div>
 </div></div>
 
 <!-- ============ LANGUAGE (first launch) ============ -->
@@ -548,8 +567,8 @@
 <div class="overlay" id="ovExPick"><div class="sheet tall">
   <h2 data-t="addExercise"></h2>
   <input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off">
-  <div class="seg" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
-  <div id="pkModeRow" style="margin-top:8px"><div class="seg" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
+  <div class="mpill" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
+  <div id="pkModeRow" style="margin-top:8px"><div class="mpill" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
   <div id="pkBody" style="margin-top:12px"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
   <button class="bulb hide" id="pkBulb" aria-label="What next?">💡</button>
@@ -579,12 +598,10 @@
 </div></div>
 
 <!-- ============ TAKEN → SWAP ============ -->
-<div class="overlay" id="ovSwap"><div class="sheet tall">
-  <h2 id="swTitle"></h2>
-  <p class="sub" data-t="swapSub"></p>
-  <div class="seg" id="swEquip"></div>
-  <div id="swList" class="sres" style="margin-top:10px"></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+<div class="overlay" id="ovSwap"><div class="sheet swapsheet">
+  <span class="grab" aria-hidden="true"></span>
+  <div class="swhead"><h2 id="swTitle"></h2><span class="sub" data-t="swapSub"></span></div>
+  <div id="swList"></div>
 </div></div>
 
 <!-- ============ WORKOUT TEMPLATE ============ -->
@@ -622,7 +639,7 @@
 <!-- ============ PET ============ -->
 <div class="overlay" id="ovPet"><div class="sheet tall">
   <div id="petBody"></div>
-  <div class="actions"><button class="btn back" data-close data-t="backArrow"></button></div>
+  
 </div></div>
 <div class="overlay" id="ovPetPick"><div class="sheet tall">
   <h2 data-t="petChoose"></h2>
@@ -678,13 +695,15 @@
 </div></div>
 
 <!-- ============ LOG FOOD SEARCH ============ -->
-<div class="overlay" id="ovLog"><div class="sheet tall">
-  <h2 data-t="logFood"></h2>
-  <div class="searchrow"><input class="search" id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off"><button class="iconbtn scanin" id="lScanIn" type="button" aria-label="Scan">▥</button></div>
-  <div class="logacts"><button class="btn" id="lQuickTop" data-t="qaBtn"></button><button class="btn" id="planBtn" data-t="planMyDay"></button></div>
-  <button class="btn ghostbtn hide" id="lYesterday" data-t="addYesterday"></button>
-  <div id="lResults" class="sres"></div>
-  <div class="actions"><button class="btn hide" id="lScan" data-t="scanToLog"></button><button class="btn" data-close data-t="cancel"></button></div>
+<div class="overlay" id="ovLog"><div class="sheet logwin">
+  <div class="lwtop">
+    <div class="lwrow"><h2 data-t="lwTitle"></h2><button class="lwdone" type="button" data-close data-t="done"></button></div>
+    <div class="lwsearch"><input id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off" aria-label="Search foods"><button class="lwscan" id="lScanIn" type="button" aria-label="Scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
+    <div class="lwacts"><button type="button" id="lQuickTop" data-t="lwTake"></button><button type="button" id="planBtn" data-t="lwFill"></button><button type="button" id="lTrack" data-t="lwTrack"></button></div>
+    <div class="lwadded" id="lAdded"></div>
+    <button class="hide" id="lYesterday" type="button"></button><button class="hide" id="lScan" type="button"></button>
+  </div>
+  <div class="lwlist" id="lResults"></div>
 </div></div>
 
 <!-- ============ TARGETS ============ -->

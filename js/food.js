@@ -74,7 +74,7 @@ function mountPicker(el, current, onPick){
       el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${esc(L(c))}</button>`).join('')}</div>`;
     } else {
       const c = CAT[showCat];
-      el.innerHTML = `<button class="pback" data-back>${t('allCats')}</button><div class="pgrid">${c.subs.map(s =>
+      el.innerHTML = `<button class="pback" data-back>${svgIcon('back', 20, 2.4)}${t('allCats')}</button><div class="pgrid">${c.subs.map(s =>
         `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}"><span class="e">${s.icon}</span>${s.id==='general' ? `${t('general')} · ${esc(L(c))}` : esc(L(s))}</button>`).join('')}</div>`;
     }
   };

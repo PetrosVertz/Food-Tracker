@@ -6,7 +6,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | Path | What's in it |
 |---|---|
 | `index.html` | All screens and pop-up sheets (markup only) + the list of CSS/JS files to load |
-| `css/theme.css` | **Design system** (loaded last): Inter, sizes 32/28/20/15/12, weights 700/500/400, radii, elevation, colour roles, light-mode values; the older colour names point here |
+| `css/theme.css` | **Design system** (loaded last): Inter, sizes 32/28/20/15/12, weights 700/500/400, radii, elevation, colour roles, light-mode values; the older colour names point here. Since 0.6.8.2 also every canvas piece: sliding main/secondary pills, bottom bar, back arrow, Today's Food, Form page, Swap sheet, Recovery, Settings › Theme, Log Food window |
 | `css/*.css` | base, glass look, motion, page layout, workout mode (live workout screen = canvas design, end of workout.css) |
 | `js/data/config.js` | Version, defaults, small shared state |
 | `js/platform/store.js` | **Storage + data model.** The only code that touches localStorage. Device settings vs synced data, schema version + migrations, record ids, change times and tombstones for sync, backups, `Account` (who the user is) |
@@ -15,7 +15,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/data/strings.js` | Every text in English + Greek |
 | `js/data/foods.js`, `js/data/foods-more.js`, `js/data/gym.js` | Built-in foods (700, incl. ~370 cooked foods and dishes added in 0.6.7) / exercises, muscles, equipment |
 | `js/core.js` | Helpers: text, food records, fetch with timeout, Claude export |
-| `js/ui.js` | Navigation, tabs, sheets (open/close), setup, settings, backup, swipe-to-delete |
+| `js/ui.js` | Line icons (`ICON`, `svgIcon`, `BACK_SVG`), sliding pills (one knob per selector follows `.on`), themes (`THEMES`, `applyTheme`), navigation, tabs, sheets (open/close), setup, settings, backup, swipe-to-delete |
 | `js/food.js` | Food Track: food list, food form, barcode, cooking, meals |
 | `js/search.js` | **Search** (0.6.7): word order, plurals, typos, other names (`SYN_GROUPS`), ranking by your habits and time of day, Did you mean, online (USDA + Open Food Facts) with a quality check |
 | `js/supplements.js` | Supplements (Take button with times) |

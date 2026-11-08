@@ -73,7 +73,7 @@ function weightSeries(mode){
 }
 function weightChart(){
   const mode = ui.wtMode || 'day', s = weightSeries(mode), all = Object.entries(weights).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0]));
-  const seg = `<div class="seg wtseg">${['day', 'week', 'month'].map(m => `<button data-wt="${m}" class="${m === mode ? 'on' : ''}">${t('wt_' + m)}</button>`).join('')}</div>`;
+  const seg = `<div class="mpill wtseg">${['day', 'week', 'month'].map(m => `<button data-wt="${m}" class="${m === mode ? 'on' : ''}">${t('wt_' + m)}</button>`).join('')}</div>`;
   const last = all.length ? +all[all.length - 1][1] : null, firstW = all.length ? +all[0][1] : null;
   const head = `<div class="wthead"><span><b>${last !== null ? fmt(last) + ' kg' : '–'}</b>${all.length > 1 ? `<small class="${last - firstW > 0 ? 'up' : last - firstW < 0 ? 'down' : ''}">${last - firstW > 0 ? '+' : ''}${fmt(Math.round((last - firstW) * 10) / 10)} kg ${t('wtSince', { d: fmtDate(all[0][0] + 'T12:00:00') })}</small>` : ''}</span>${seg}</div>`;
   if(s.length < 2) return head + `<div class="wtempty">${t('wtNeed')}</div>`;

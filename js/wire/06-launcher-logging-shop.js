@@ -115,6 +115,8 @@ const FEDB_IMG = p => `https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main
 const tokz = s => norm(s).replace(/[()/,]/g, ' ').split(' ').filter(Boolean).map(w => SYN[w] || w).join(' ').split(' ').filter(w => w.length > 1 && !['the', 'with', 'and', 'on', 'to', 'of', 'grip'].includes(w));
 
 $('dmNext').addEventListener('click', () => { if(!DEMO.list || DEMO.list.length < 2) return; DEMO.i = (DEMO.i + 1) % DEMO.list.length; ui.demoPick = { ...(ui.demoPick || {}), [DEMO.exId]: DEMO.list[DEMO.i].id }; saveUI(); drawDemo(); });
+$('dmBody').addEventListener('click', e => { const b = e.target.closest('#dmPct'); if(!b) return; const on = !b.classList.contains('on');
+  b.classList.toggle('on', on); b.setAttribute('aria-checked', on); ui.formPct = on; saveUI(); const g = $('fmLbl'); if(g) g.style.opacity = on ? 1 : 0; });
 
  let weights = Store.load('weights', {});
 
@@ -130,9 +132,9 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 // ---------- smooth sliders ----------
 $('soRange').setAttribute('step', 'any');
 
-// new sheets get the orange back button and tap-outside-to-close, like the others
+// new sheets get the back arrow and tap-outside-to-close, like the others
 ['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
-  if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.textContent = '‹'; b.addEventListener('click', goBack); sh.prepend(b); }
+  if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 
 $('qaSave').addEventListener('click', saveQuick);

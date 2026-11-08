@@ -212,24 +212,19 @@ $('lResults').addEventListener('click', e => {
   if(e.target.closest('#lOnline')){ runLogOnline($('lSearch').value.trim()); return; }
   const dy = e.target.closest('[data-dym]'); if(dy){ $('lSearch').value = dy.dataset.dym; $('lSearch').dispatchEvent(new Event('input')); return; }
   if(e.target.closest('#lTakeaway')){ const q = $('lSearch').value.trim(); close('ovLog'); openQuick(); $('qaName').value = q; return; }
-  if(e.target.closest('#lQuick')){ close('ovLog'); openQuick(); return; }
-  const ql = e.target.closest('[data-ql]');
-  if(ql){ const en = LS.recent[+ql.dataset.ql], info = infoOfEntry(en); if(!info) return;
-    logEntry(curDay, info, en.amt, daysUntil(curDay) === 0 ? nowHM() : '13:00'); const r = info.food ? takeFromFridge({ foodId: info.food.id }, en.amt) : info.meal ? takeFromFridge({ mealId: info.meal.id }, en.amt) : null;
-    const list = dayLog[curDay], added = list[list.length - 1]; close('ovLog'); renderAll();
-    toast(t('quickLogged', { a: fmtSize(en.amt, en.unit), n: info.name }), t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); saveLog(); renderAll(); }); return; }
-  const o = e.target.closest('.sitem[data-k="o"]'); if(o){ const f = saveOnlineFood(LOGON.res[+o.dataset.i]); close('ovLog'); openAmt({ mode: 'log', info: fInfo_(f) }); return; }   // online result
-  const b = e.target.closest('.sitem'); if(!b) return; const k = b.dataset.k, i = +b.dataset.i; let info = null, amt = null;
-  const fInfo = fInfo_;
-  const mInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
-  if(k === 'ml') info = mInfo(LS.meals[i]);
-  else if(k === 'm') info = fInfo(LS.mine[i]);
-  else if(k === 's') info = fInfo(saveGeneric(LS.std[i]));
-  else if(k === 'fr') info = LS.fr[i].info.meal ? mInfo(LS.fr[i].info.meal) : fInfo(LS.fr[i].info.food);
-  else if(k === 'rc'){ info = infoOfEntry(LS.recent[i]); amt = LS.recent[i].amt; }
-  if(!info) return;
-  close('ovLog'); openAmt({ mode: 'log', info }); if(amt){ $('amAmt').value = amt; amUnits(AM); amRes(); }
+  const row = e.target.closest('.lrow'); if(!row) return; const st = lwState(row.dataset.k, +row.dataset.i); if(!st) return;
+  if(e.target.closest('[data-lplus]')) return lwAdd(st);                                  // ＋ = the usual amount, one tap
+  if(e.target.closest('[data-ladd]')) return lwAdd(st);
+  const dd = e.target.closest('[data-ldd]'); if(dd){ const m = row.querySelector('.ldm'); m.classList.toggle('hide'); dd.setAttribute('aria-expanded', !m.classList.contains('hide')); return; }
+  const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size;
+    st.u = j; st.n = st.units[j].k === 'g' ? Math.round(g || 100) : 1; row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); lwUpdate(row, st); return; }
+  const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; lwUpdate(row, st); return; }
+  if(e.target.closest('[data-lopen]')){ const key = st.k + st.i; LW.open = LW.open === key ? null : key;
+    document.querySelectorAll('#lResults .lrow.open').forEach(r => { if(r !== row){ r.classList.remove('open'); const p = r.querySelector('.lpn'); if(p) p.remove(); } });
+    row.classList.toggle('open', LW.open === key); const p = row.querySelector('.lpn'); if(p) p.remove(); else row.insertAdjacentHTML('beforeend', lwPanel(st)); }
 });
+$('lResults').addEventListener('input', e => { if(!e.target.matches('.lan')) return; const row = e.target.closest('.lrow'), st = lwState(row.dataset.k, +row.dataset.i); st.n = +e.target.value || 0; lwUpdate(row, st); });
+$('lResults').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.matches('.lan')){ const row = e.target.closest('.lrow'); lwAdd(lwState(row.dataset.k, +row.dataset.i)); } });
 
 $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); });
 
@@ -305,7 +300,7 @@ Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":stri
     plans[curDay] = r; Store.save('plans', plans); renderPlan();
     setTimeout(() => $('planShow').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
-  finally{ planCtl = null; btn.textContent = t('planMyDay'); }
+  finally{ planCtl = null; btn.textContent = t('lwFill'); }
 });
 
 $('homeAlerts').addEventListener('click', e => { const a = e.target.closest('[data-go]'); if(a) go(a.dataset.go); });
@@ -346,6 +341,7 @@ function stepPack(pm){
 
 // Log food sheet: Add Takeaway, yesterday's food
 $('lQuickTop').addEventListener('click', () => { close('ovLog'); openQuick(); });
+$('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
 $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });
 // Add Takeaway: one box, Small / Normal / Big
 document.querySelectorAll('#qaSize button').forEach(b => b.addEventListener('click', () => setSeg('#qaSize', b.dataset.v)));

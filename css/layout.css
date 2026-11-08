@@ -6,25 +6,7 @@ section.page > header{position:sticky;top:0;z-index:5;padding-top:calc(10px + en
   background:linear-gradient(rgba(7,9,11,.92) 70%,rgba(7,9,11,0));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .hbtns{display:flex;gap:6px}
 /* side strip */
-.rail{position:fixed;right:calc(8px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:9;display:flex;flex-direction:column;gap:6px;padding:8px 5px;border-radius:26px;
-  background:rgba(28,32,38,.42);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.rail button{position:relative;width:42px;height:42px;border-radius:15px;border:0;background:transparent;font-size:21px;display:grid;place-items:center;cursor:pointer;opacity:.5;filter:grayscale(.7);transition:opacity .25s,filter .25s,background-color .25s,transform .12s}
-.rail button.on{opacity:1;filter:none;background:rgba(198,244,50,.14)}
-.rail .ri{position:relative;display:inline-block;line-height:1}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.rarrow{position:absolute;left:-11px;top:0;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:8px solid var(--accent);transition:transform .35s cubic-bezier(.2,.9,.25,1.15)}
-/* the active icon comes alive */
-.r-gym.on .ri{animation:rLift 1.5s ease-in-out infinite}
-@keyframes rLift{0%,100%{transform:translateY(2px)}45%{transform:translateY(-3px)}55%{transform:translateY(-3px)}}
-.r-food.on .ri{animation:rWob 2.4s ease-in-out infinite;transform-origin:50% 90%}
-@keyframes rWob{0%,55%,100%{transform:rotate(0)}65%{transform:rotate(-12deg)}75%{transform:rotate(9deg)}85%{transform:rotate(-4deg)}}
-.r-fridge.on .ri{animation:rDoor 2.8s ease-in-out infinite;transform-origin:12% 50%}
-@keyframes rDoor{0%,55%,100%{transform:perspective(70px) rotateY(0)}68%,80%{transform:perspective(70px) rotateY(-40deg)}}
-.steam{position:absolute;left:50%;top:-5px;display:none;width:0;height:0}
-.r-today.on .steam{display:block}
-.steam b{position:absolute;bottom:0;width:2px;height:7px;border-radius:2px;background:rgba(255,255,255,.75);opacity:0;animation:rSteam 1.9s ease-out infinite}
-.steam b:nth-child(1){left:-6px}.steam b:nth-child(2){left:-1px;animation-delay:.6s}.steam b:nth-child(3){left:4px;animation-delay:1.2s}
-@keyframes rSteam{0%{opacity:0;transform:translateY(4px) scaleY(.5)}30%{opacity:.85}100%{opacity:0;transform:translate(2px,-9px) scaleY(1.2)}}
 /* pull hint */
 .pullhint{position:fixed;left:50%;z-index:8;display:flex;gap:6px;align-items:center;padding:8px 14px;border-radius:999px;font-size:14px;pointer-events:none;opacity:0;transform:translateX(-50%);
   background:rgba(28,32,38,.7);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);color:var(--text);transition:background-color .15s,color .15s}
@@ -33,7 +15,6 @@ section.page > header{position:sticky;top:0;z-index:5;padding-top:calc(10px + en
 /* no bottom bar any more */
 .fab{bottom:calc(22px + env(safe-area-inset-bottom))!important;left:calc(50% - 25px)!important}
 .toast{bottom:calc(92px + env(safe-area-inset-bottom))!important}
-.fgseg{margin:4px 0 10px}
 #foodSupps{margin-top:22px}
 /* iOS-style switches instead of square checkboxes */
 input[type=checkbox]:not(#hapI){-webkit-appearance:none;appearance:none;position:relative;flex:0 0 auto;width:46px;height:28px;margin:0 8px 0 0;border:0;border-radius:999px;background:#3a3f46;cursor:pointer;vertical-align:middle;transition:background-color .22s}
@@ -55,7 +36,6 @@ input.mxr::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px}
 /* recovery estimate in the workout summary */
 .recest{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .rchip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:13px}
-@media(prefers-reduced-motion:reduce){.rail .ri,.steam b{animation:none!important}}
 
 /* ---------- 0.5.9 ---------- */
 /* floating button: centred without transform, so the press just shrinks it in place and springs back */
@@ -91,24 +71,15 @@ details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 .planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
 
 /* ---------- 0.6.0: back buttons are grey, and flash orange while pressed ---------- */
-.sback,.sesback,#gBackBtn,[data-home],#backBtn,#backBtn2,#sesMin,.pback,.backpill,.btn.back{background:rgba(255,255,255,.1)!important;color:var(--text)!important;border-color:var(--line)!important;box-shadow:none!important;transition:background-color .15s,color .15s,transform .12s}
-.sback:active,.sesback:active,#gBackBtn:active,[data-home]:active,#backBtn:active,#backBtn2:active,#sesMin:active,.pback:active,.backpill:active,.btn.back:active{background:var(--orange)!important;color:#1c0e00!important;border-color:var(--orange)!important}
 
 /* ---------- 0.6.1: the icon strip is a bar along the bottom (Settings last); Log Food floats above it; stronger frosted glass ---------- */
-.rail{top:auto!important;right:auto!important;left:50%!important;transform:translateX(-50%)!important;bottom:calc(10px + env(safe-area-inset-bottom));flex-direction:row!important;gap:4px!important;padding:6px 8px!important;border-radius:24px!important;
-  width:min(calc(100% - 24px),420px);justify-content:space-around;
-  background:rgba(30,35,42,.28)!important;-webkit-backdrop-filter:blur(30px) saturate(210%) brightness(1.1)!important;backdrop-filter:blur(30px) saturate(210%) brightness(1.1)!important;
-  border:1px solid rgba(255,255,255,.16)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 34px rgba(0,0,0,.45)!important}
-.rail button{flex:1 1 0;max-width:64px;height:46px!important;width:auto!important}
-.rail .r-set{font-size:20px;color:var(--text)}
 header [data-settings]{display:none!important}
 body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 .fab{bottom:calc(76px + env(safe-area-inset-bottom))!important;right:0!important}
 .toast{bottom:calc(140px + env(safe-area-inset-bottom))!important}
 .pullhint.bottom{bottom:calc(140px + env(safe-area-inset-bottom))!important}
 /* stronger glass on tabs and tiles */
-.tile,.seg,.tabs,.foldh,.hubtabs button{-webkit-backdrop-filter:blur(26px) saturate(200%);backdrop-filter:blur(26px) saturate(200%)}
-.seg,.tabs{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.tile,.foldh,.hubtabs button{-webkit-backdrop-filter:blur(26px) saturate(200%);backdrop-filter:blur(26px) saturate(200%)}
 .tile{background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04))!important;border-color:rgba(255,255,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.25)!important}
 /* 0.6.1 · Food Track categories, Can't scan?, yesterday */
 .catfold{margin-top:8px} .catfold .e{font-size:20px}
@@ -159,10 +130,9 @@ path.mlow{animation:mBreathe 3.4s ease-in-out infinite}
 header{position:relative;min-height:56px}
 header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;max-width:62%;overflow:hidden;text-overflow:ellipsis;text-align:center;font-size:20px}
 /* selected segment / tab: dark letters */
-.seg button.on,.tabs button.on{color:#0f1113!important;font-weight:700}
 /* no cupboard */
 #fLoc [data-v="cupboard"],#faLoc [data-v="cupboard"]{display:none!important}
-.camopt{border-color:rgba(198,244,50,.45)!important}
+.camopt{border-color:color-mix(in srgb,var(--t-accent) 45%,transparent)!important}
 
 /* ---------- 0.6.3 ---------- */
 /* swipe-to-delete on any list */
@@ -197,11 +167,11 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 h1,h2{letter-spacing:-.3px;font-weight:750} h3{letter-spacing:-.1px}
 .kcnum,.pct,.kcal,.mrow b,.wthead b,.mxrow b{font-variant-numeric:tabular-nums}
 .btn{border-radius:14px;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s,box-shadow .18s}
-.btn.primary{box-shadow:0 6px 20px rgba(198,244,50,.18)}
+.btn.primary{box-shadow:0 6px 20px color-mix(in srgb,var(--t-accent) 18%,transparent)}
 .overlay.open .sheet{animation-duration:.34s!important;animation-timing-function:cubic-bezier(.16,1,.3,1)!important}
 .sheet{box-shadow:0 -12px 40px rgba(0,0,0,.4)}
 input,textarea,select{transition:border-color .18s,box-shadow .18s}
-input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(198,244,50,.16)}
+input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--t-accent) 16%,transparent)}
 .foldb,.catbody,.pgsub,#cantScan{animation:rowIn .26s cubic-bezier(.2,.9,.25,1)}
 
 /* ---------- 0.6.3.1 ---------- */
@@ -228,7 +198,6 @@ input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(198,244,50,.16)}
 html.pwa,html.pwa body{height:var(--appH,100vh)!important;min-height:var(--appH,100vh)}
 html.pwa section.page.wrap{top:0!important;bottom:auto!important;height:var(--appH,100vh)!important}
 html.pwa .overlay{top:0!important;bottom:auto!important;height:var(--appH,100vh)!important}
-html.pwa .rail{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)))!important}
 html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 70px)!important}
 html.pwa .toast{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
 html.pwa .pullhint.bottom{bottom:auto!important;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 130px)!important}
@@ -265,13 +234,13 @@ section.page,.sheet{scroll-behavior:smooth}
 /* unilateral sets */
 .swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
 /* AI bubble */
-.aibub{position:fixed;right:14px;z-index:150;width:58px;height:58px;border-radius:50%;border:1px solid rgba(198,244,50,.5);background:rgba(28,33,38,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+.aibub{position:fixed;right:14px;z-index:150;width:58px;height:58px;border-radius:50%;border:1px solid color-mix(in srgb,var(--t-accent) 50%,transparent);background:rgba(28,33,38,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
   box-shadow:0 10px 30px rgba(0,0,0,.5);display:grid;place-items:center;cursor:pointer;color:var(--text);bottom:calc(150px + env(safe-area-inset-bottom));animation:tipIn .25s ease-out}
 html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 140px)}
-.aibub .aist{font-size:20px;grid-area:1/1} .aispin2{grid-area:1/1;width:50px;height:50px;border-radius:50%;border:3px solid rgba(198,244,50,.15);border-top-color:var(--accent);animation:aiSpin 1s linear infinite}
+.aibub .aist{font-size:20px;grid-area:1/1} .aispin2{grid-area:1/1;width:50px;height:50px;border-radius:50%;border:3px solid color-mix(in srgb,var(--t-accent) 15%,transparent);border-top-color:var(--accent);animation:aiSpin 1s linear infinite}
 .aibub i{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
 .aibub.ready{background:var(--accent);border-color:var(--accent);animation:aiPulse 1.6s ease-in-out infinite} .aibub.ready .aist{display:none} .aibub.ready b{color:#0f1113;font-size:24px;grid-area:1/1}
-@keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,244,50,.55),0 10px 30px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px rgba(198,244,50,0),0 10px 30px rgba(0,0,0,.5)}}
+@keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--t-accent) 55%,transparent),0 10px 30px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px color-mix(in srgb,var(--t-accent) 0%,transparent),0 10px 30px rgba(0,0,0,.5)}}
 /* search windows: top two thirds, fixed size, list drops down under the box */
 .overlay.searchy{align-items:flex-start!important}
 .overlay.searchy .sheet{height:min(64vh,600px)!important;max-height:none;margin-top:calc(env(safe-area-inset-top) + 12px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);display:flex;flex-direction:column}
@@ -287,7 +256,6 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(sa
 .frzrow{margin:10px 0}
 /* Home Screen app: everything a little lower */
 html.pwa section.page>header{padding-top:calc(16px + env(safe-area-inset-top))!important}
-html.pwa .rail{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px))!important}
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
 
 /* ---------- 0.6.5.1 ---------- */
@@ -313,19 +281,12 @@ html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area
 /* 0.6.7 · search: did you mean, add as takeaway, amount unit */
 .dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;color:var(--muted);font-size:14px;cursor:pointer}
 .dym b{color:var(--accent)}
-.sitem.takeaway{margin-top:10px;border:1px dashed rgba(198,244,50,.35)}
+.sitem.takeaway{margin-top:10px;border:1px dashed color-mix(in srgb,var(--t-accent) 35%,transparent)}
 #ovAmt .amrow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
 #ovAmt .amrow input{flex:1 1 0;min-width:0;font-size:20px;font-weight:700;text-align:center}
 #ovAmt .amrow .selbtn{flex:0 0 42%;width:42%;min-width:0}
 
 /* 0.6.8 · hero card: big Protein / Carbs / Fat bars, numbers inside (white, dark where the fill is under them) */
-.mrow.hero{grid-template-columns:58px 1fr;gap:10px;margin:8px 0}
-.mrow.hero > small{font-size:13px;font-weight:700;color:var(--text)}
-.hbar{position:relative;display:block;height:30px;border-radius:10px;background:rgba(255,255,255,.07);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
-.hbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:10px;transition:width .35s cubic-bezier(.2,.9,.25,1)}
-.hbar em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:3px;font-style:normal;font-size:14px;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
-.hbar em b{font-weight:800}
-.hbar em.inv{color:#0b0d0f;transition:clip-path .35s cubic-bezier(.2,.9,.25,1)}
 .mrow.hero.p .hbar i{background:var(--p)} .mrow.hero.c .hbar i{background:var(--c)} .mrow.hero.f .hbar i{background:var(--f)}
 .mrow.hero.hit .hbar i{background:var(--ok)!important} .mrow.hero.soft .hbar i{background:#a8ecc4!important} .mrow.hero.red .hbar i{background:var(--danger)!important}
 

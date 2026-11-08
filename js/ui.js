@@ -1,3 +1,74 @@
+// ---------- icons (canvas Phones.dc.html): line icons, stroke = currentColor ----------
+const ICON = {
+  today: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
+  gym: '<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
+  food: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  fridge: '<rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+  scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>',
+};
+const svgIcon = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain arrow (no box)
+
+// ---------- sliding pills (canvas Main.dc.html): every selector has one knob that glides to the chosen button ----------
+// Works for main pills (.mpill), secondary pills (.seg) and the bottom bar (.rail, 52×44 bubble). Whatever code toggles
+// .on on a button, the knob follows: one observer watches class changes and re-rendered selectors.
+// ---------- Settings › Theme (canvas ThemeMenu.dc.html): Dark / Light / Automatic + nine accent presets on one neutral grey base ----------
+// [id, name, dark accent, dark text-on-accent, light accent, light text-on-accent]. A device setting (ui.theme), not synced.
+const THEMES = [
+  ['lime', 'Lime', '#c6f432', '#0f1113', '#8fbb12', '#0f1113'], ['ocean', 'Ocean', '#3fd5e0', '#061316', '#0f9aa6', '#ffffff'],
+  ['sunset', 'Sunset', '#ff8c4a', '#1a0d06', '#e8692a', '#1a0d06'], ['violet', 'Violet', '#b39bff', '#120d22', '#7457ea', '#ffffff'],
+  ['mono', 'Mono', '#f1f3f5', '#0a0a0b', '#1d1f22', '#f4f4f5'], ['red', 'Racing Red', '#ff4d4d', '#1a0606', '#d42c2c', '#ffffff'],
+  ['gold', 'Gold', '#f2c14e', '#1a1306', '#c08c0c', '#1a1306'], ['mint', 'Mint', '#5fe3b0', '#04170f', '#16a673', '#04170f'],
+  ['pink', 'Soft Pink', '#ff9ec7', '#2a0a18', '#db4f8c', '#ffffff'] ];
+const THEME_WARM = ['sunset', 'red', 'gold', 'pink'];   // "Ready" muscles use green in these so they don't look like "Sore"
+function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'dark', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
+  return { mode, p, look: mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode }; }
+function applyTheme(){
+  const { p, look } = themeNow(), L = look === 'light', mono = p[0] === 'mono', r = document.documentElement, set = (k, v) => r.style.setProperty(k, v);
+  r.setAttribute('data-theme', look);
+  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]);
+  set('--t-mp-text', mono ? (L ? '#ffffff' : '#0a0a0b') : p[2]);                 // the main pill keeps the bright accent (on black in Light)
+  set('--t-mp-stroke', !L && !mono ? '2.4px #0b0d0f' : '0');
+  set('--t-ready', THEME_WARM.includes(p[0]) ? 'var(--t-done)' : 'var(--t-accent)');
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', L ? '#e2e3e6' : '#000000');
+  pillsAll && pillsAll();
+}
+function drawTheme(){
+  const { mode, p, look } = themeNow(), L = look === 'light';
+  setSeg('#thMode', mode); $('thNote').textContent = t(mode === 'auto' ? 'thAutoNote' : 'thLightNote');
+  $('thSw').innerHTML = THEMES.map(x => `<button type="button" data-preset="${x[0]}" class="${x[0] === p[0] ? 'on' : ''}" style="--sw:${L ? x[4] : x[2]}" aria-label="${x[1]}" aria-pressed="${x[0] === p[0]}"><i></i><span>${x[1]}</span></button>`).join('');
+  const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
+}
+function setTheme(ch){ ui.theme = { ...(ui.theme || {}), ...ch }; saveUI(); applyTheme(); drawTheme(); if(location.hash.slice(1) === 'gym-rec' && typeof renderRecovery === 'function') renderRecovery(); }
+try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if(themeNow().mode === 'auto') setTheme({}); }); }catch(e){}
+
+const PILL_SEL = '.mpill,.seg,.rail';
+function pillSync(el){
+  let k = el.querySelector(':scope > .knob'), fresh = false;
+  if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
+  const b = el.querySelector(':scope > button.on');
+  if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
+  const rail = el.classList.contains('rail'), w = rail ? 52 : b.offsetWidth, hh = rail ? 44 : b.offsetHeight,
+    x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
+  if(jump) k.style.transition = 'none';
+  k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
+  if(jump){ void k.offsetWidth; k.style.transition = ''; }
+}
+const pillRO = typeof ResizeObserver === 'function' ? new ResizeObserver(es => es.forEach(e => pillSync(e.target))) : null;
+let pillQ = new Set(), pillRaf = 0;
+function pillQueue(el){ pillQ.add(el); if(!pillRaf) pillRaf = requestAnimationFrame(() => { pillRaf = 0; const q = [...pillQ]; pillQ.clear(); q.forEach(e => e.isConnected && pillSync(e)); }); }
+function pillsAll(){ document.querySelectorAll(PILL_SEL).forEach(pillQueue); }
+new MutationObserver(recs => { for(const r of recs){
+    const t = r.target; if(t.nodeType !== 1) continue;
+    if(r.type === 'attributes'){ if(t.matches(PILL_SEL)) pillQueue(t); else if(t.parentElement && t.parentElement.matches(PILL_SEL)) pillQueue(t.parentElement); continue; }   // a hidden selector that appears is caught by the ResizeObserver
+    if(t.matches(PILL_SEL)) pillQueue(t);
+    r.addedNodes.forEach(n => { if(n.nodeType !== 1) return; if(n.matches(PILL_SEL)) pillQueue(n); n.querySelectorAll && n.querySelectorAll(PILL_SEL).forEach(pillQueue); });
+  } }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+addEventListener('resize', pillsAll); document.addEventListener('DOMContentLoaded', pillsAll); if(document.fonts) document.fonts.ready.then(pillsAll);
+
+
 // App shell: navigation, tabs, launcher, sheets, toasts, setup, settings, backup, motion, haptics, in-app pickers. (functions only)
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 

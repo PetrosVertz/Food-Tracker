@@ -1,7 +1,7 @@
 // Wiring for 0.5.7: side tab strip, pull-to-switch tabs, Fridge/Groceries switch, supplements in Food, linked macro sliders.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const RAIL_IC = { today: '🍽️', gym: '🏋️', food: '🍎', fridge: '🧊', settings: '⚙︎' }, TAB_LBL = { today: 'tabToday', gym: 'tabGym', food: 'tabFood', fridge: 'tabFridge', settings: 'settings' };
+const TAB_LBL = { today: 'tabToday', gym: 'tabGym', food: 'tabFood', fridge: 'tabFridge', settings: 'settings' };
 
 // ---------- side strip ----------
 $('rail').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(!b) return;
@@ -23,7 +23,7 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
   function hint(d, prog){ const el = $('pullHint'), tab = d ? nextOf(d) : null;
     if(!tab || prog <= .08){ el.style.opacity = 0; el.classList.remove('ready'); return; }
     el.classList.toggle('top', d < 0); el.classList.toggle('bottom', d > 0);
-    $('phIcon').textContent = RAIL_IC[tab]; $('phText').textContent = (d > 0 ? '↓ ' : '↑ ') + t(TAB_LBL[tab]);
+    $('phIcon').innerHTML = svgIcon(tab, 20); $('phText').textContent = (d > 0 ? '↓ ' : '↑ ') + t(TAB_LBL[tab]);
     const p = Math.min(1, prog); el.style.opacity = .35 + .65 * p; el.style.transform = `translateX(-50%) translateY(${(d > 0 ? 1 : -1) * (1 - p) * 14}px) scale(${.88 + .12 * p})`;
     const ready = prog >= 1; if(ready && !el.classList.contains('ready')) haptic(); el.classList.toggle('ready', ready); }
   document.addEventListener('touchstart', e => { const pg = pageEl();

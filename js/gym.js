@@ -228,20 +228,22 @@ function makeUni(x, on){ x.uni = on;
   if(on) x.sets = x.sets.flatMap(s => s.type === 'W' || s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R', w: s.w, r: s.r }]);
   else x.sets = x.sets.filter(s => s.side !== 'R').map(s => { const c = { ...s }; delete c.side; return c; }); }
 
+// ---------- Swap (canvas Gym.dc.html): frosted bottom sheet, every exercise ranked by how alike its muscle use is ----------
+function swapMatch(a, b){ let d = 0, na = 0, nb = 0; new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => { const x = a[k] || 0, y = b[k] || 0; d += x * y; na += x * x; nb += y * y; });
+  return na && nb ? d / Math.sqrt(na * nb) : 0; }
 function openSwap(xi){
-  const x = active.exercises[xi], ex = exById(x.exId); SW = { xi, taken: ex.e };
+  const x = active.exercises[xi], ex = exById(x.exId); SW = { xi };
   $('swTitle').textContent = t('swapT', { n: exName(ex) });
-  $('swEquip').innerHTML = Object.keys(EQUIP).filter(k => EX().some(a => a.h === ex.h && a.e === k)).map(k => `<button data-v="${k}">${EL(k)}</button>`).join('');
   drawSwap(); open('ovSwap');
 }
 
 function drawSwap(){
-  setSeg('#swEquip', SW.taken);
-  const x = active.exercises[SW.xi], ex = exById(x.exId);
-  let alts = EX().filter(a => a.h === ex.h && a.id !== ex.id && a.e !== SW.taken);
-  if(alts.length < 3) alts = alts.concat(EX().filter(a => a.m === ex.m && a.h !== ex.h && a.id !== ex.id && a.e !== SW.taken && a.m !== 'cardio').slice(0, 6));
-  alts.sort((a, b) => (exHistory(b.id).length - exHistory(a.id).length) || ((b.mu[ex.h] || 0) - (a.mu[ex.h] || 0)));
-  $('swList').innerHTML = alts.length ? exTiles(alts, ex.h) : `<p class="hint">${t('nothingHere')}</p>`;
+  const x = active.exercises[SW.xi], ex = exById(x.exId), mu = ex.mu || {};
+  const alts = EX().filter(a => a.id !== ex.id && !isCardio(a.id)).map(a => ({ a, m: Math.round(swapMatch(mu, a.mu || {}) * 100) })).filter(z => z.m >= 40)
+    .sort((p, q) => q.m - p.m || (exHistory(q.a.id).length - exHistory(p.a.id).length)).slice(0, 8);
+  $('swList').innerHTML = alts.length ? alts.map(({ a, m }, i) => { const top = Object.entries(a.mu || {}).sort((p, q) => q[1] - p[1])[0];
+    return `<button class="swrow" data-ex="${a.id}"><span class="swt"><span class="swn">${esc(exName(a))}</span><small>${EL(a.e)}${top ? ` · ${esc(ML(top[0]))} ${Math.round(top[1])}%` : ''}</small></span><span class="swm ${i < 2 ? 'top' : ''}">${m}%</span></button>`; }).join('')
+    : `<p class="hint">${t('nothingHere')}</p>`;
 }
 
 // ---------- 💡 what next? muscles you haven't hit yet (free) + ✨ Gemini ----------
@@ -447,17 +449,23 @@ function sessionRecoveryWarn(){
   return bad.length ? t('recWarnToday', { m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) }) : '';
 }
 
+// Recovery (canvas Phones.dc.html screen 3): Front / Back main pill, one body in a card, legend, then a row per muscle that isn't ready
+function hoursSinceTrained(g){
+  let last = 0; sessions.concat(active ? [{ ...active, end: new Date().toISOString() }] : []).forEach(s => { const end = new Date(s.end || s.start).getTime();
+    if(end > last && s.exercises.some(x => x.sets.some(z => z.done) && Object.entries(exById(x.exId).mu || {}).some(([h, v]) => v >= 40 && HEADS[h] && HEADS[h][2] === g))) last = end; });
+  return last ? Math.max(1, Math.round((Date.now() - last) / 3.6e6)) : null; }
 function renderRecovery(){
-  const rd = groupReadiness(Date.now()), colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, REC_COL[recState(r)]]));
-  const notReady = Object.entries(rd).filter(([, r]) => r < .8).sort((a, b) => a[1] - b[1]);
-  const sore = (profile.sore || {})[todayKey()] || {};
-  $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-top:10px">${w}</div>`).join('') +
-    `<div class="bodymap" style="margin-top:10px">${bodyMapSVG('rec', null, colors)}</div>
-    <div class="legend"><span><i style="background:${REC_COL.ok}"></i>${t('recReady')}</span><span><i style="background:${REC_COL.mid}"></i>${t('recMid')}</span><span><i style="background:${REC_COL.low}"></i>${t('recLow')}</span></div>
-    <p class="hint">${t('recHint')}</p>` +
-    (notReady.length ? notReady.map(([g, r]) => `<div class="prog"><div><b>${esc(ML(g))}</b><small>${t('recIn', { h: hoursUntilReady(g) })}</small></div><span class="mbar"><i style="width:${Math.round(r * 100)}%;background:${REC_COL[recState(r)]}"></i></span><span class="pct" style="color:${REC_COL[recState(r)]}">${Math.round(r * 100)}%</span></div>`).join('')
-      : `<div class="alert green" style="cursor:default">${t('recAllReady')}</div>`) +
-    '';
+  const rd = groupReadiness(Date.now()), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low }, colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, C[recState(r)]]));
+  const notReady = Object.entries(rd).filter(([, r]) => r < .8).sort((a, b) => a[1] - b[1]), side = ui.recSide === 'b' ? 'b' : 'f';
+  const row = ([g, r]) => { const st = recState(r), h = hoursUntilReady(g), ago = hoursSinceTrained(g);
+    const txt = st === 'low' ? t('recLow') + (ago ? ' · ' + t('recAgo', { h: ago }) : '') : t('recMid') + ' · ' + (h < 24 ? t('recIn', { h }) : Math.round(h / 24) === 1 ? t('recDay1') : t('recDays', { n: Math.round(h / 24) }));
+    return `<button class="recrow" data-sore="${g}"><span class="rn">${esc(ML(g))}</span><span class="rs" style="color:${C[st]}">${txt}</span></button>`; };
+  $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-bottom:12px">${w}</div>`).join('') +
+    `<div class="mpill" id="recSide"><button data-side="f" class="${side === 'f' ? 'on' : ''}">${t('front')}</button><button data-side="b" class="${side === 'b' ? 'on' : ''}">${t('backSide')}</button></div>
+    <div class="reccard bodymap">${anatomySVG({ mode: 'rec', colors, side, w: 200, h: 446, idp: 'rec' + side })}</div>
+    <div class="legend2"><span><i style="background:${C.low}"></i>${t('recLow')}</span><span><i style="background:${C.mid}"></i>${t('recMid')}</span><span><i style="background:${C.ok}"></i>${t('recReady')}</span></div>
+    <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
+    <p class="hint">${t('recHint')}</p>`;
 }
 
 function openSore(g){
@@ -477,7 +485,7 @@ function anatomySVG(o){
     return HEAD_COL[h]; };
   const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
   const fem = o.fem !== undefined ? o.fem : profile.sex === 'f', W_ = d => fem ? femWarp(d) : d;
-  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && fill(h) === REC_COL.low ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
+  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && fill(h) === REC_COL.low ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${mode === 'mu' && (o.mu || {})[h] > 0 ? 'fill:var(--t-accent);' : ''}${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
       `<path d="${d}" fill="url(#${idp}shade)" style="pointer-events:none"/>`).join('') +
     `<path d="${W_(ANAT_FIBRES[side])}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
   const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${W_(d)}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${fem ? femX(cx, cy) : cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
@@ -599,7 +607,7 @@ function drawExPick(){
     let list = EX().filter(x => exScore(x, key) >= (PK.head ? 25 : 40) && x.m !== 'cardio').sort((a, b) => exScore(b, key) - exScore(a, key) || (exHistory(b.id).length - exHistory(a.id).length));
     const eqs = EQ_ORDER.filter(e => list.some(x => x.e === e));
     if(PK.eq) list = list.filter(x => x.e === PK.eq);
-    h = `<button class="pback" data-pkback>${t('allMuscles')}</button><h3 style="margin:0 0 8px;color:${HEAD_COL[PK.head] || HEAD_COL[heads[0]]}">${esc(ML(PK.head || PK.group))}</h3>` +
+    h = `<button class="pback" data-pkback>${svgIcon('back', 20, 2.4)}${t('allMuscles')}</button><h3 style="margin:0 0 8px;color:${HEAD_COL[PK.head] || HEAD_COL[heads[0]]}">${esc(ML(PK.head || PK.group))}</h3>` +
       (heads.length > 1 ? `<div class="chips" style="margin-bottom:8px"><button class="fchip ${!PK.head ? 'on' : ''}" data-head="">${t('all')}</button>${heads.map(k => `<button class="fchip hchip ${PK.head === k ? 'on' : ''}" data-head="${k}" style="--hc:${HEAD_COL[k]}"><i></i>${esc(ML(k))}</button>`).join('')}</div>` : '') +
       `<div class="chips eqchips" style="margin-bottom:10px"><button class="fchip ${!PK.eq ? 'on' : ''}" data-eq="">${t('allEquip')}</button>${eqs.map(e => `<button class="fchip eqchip ${PK.eq === e ? 'on' : ''}" data-eq="${e}" style="--ec:${EQ_COL[e]}">${eqIcon(e, 15)} ${EL(e)}</button>`).join('')}</div>` +
       `<label class="advrow musort"><span>${t('sortByMu')}</span><input type="checkbox" id="pkSortMu" ${ui.pkSortMu ? 'checked' : ''}></label>` +
@@ -684,20 +692,29 @@ function cardHtml(x, i){
 // rest bracket: a thin blue box under the set just finished; the outline draws in, then burns from the left to meet on the right at 0:00
 function restBracket(){
   const el = (Date.now() - (REST.end - REST.total * 1000)) / 1000, first = !REST.drawn; REST.drawn = true;
-  const fuse = d => `<path class="${first ? 'drawIn' : ''}" d="${d}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="0" vector-effect="non-scaling-stroke"/>`;
+  // the two fuse lines are built from the box's real width the first frame it is on screen (restFit), so they always run the whole outline
   return `<div class="rbwrap" id="rbWrap"><div class="rbk"><div class="rbglow" id="rbGlow"></div>
-    <svg class="rbfuse" id="rbFuse" width="100%" height="100%" viewBox="0 0 324 52" preserveAspectRatio="none" aria-hidden="true">${fuse('M1.5 26V13.5Q1.5 1.5 13.5 1.5H310.5Q322.5 1.5 322.5 13.5V26')}${fuse('M1.5 26V38.5Q1.5 50.5 13.5 50.5H310.5Q322.5 50.5 322.5 38.5V26')}</svg>
+    <svg class="rbfuse" id="rbFuse" data-intro="${first ? 1 : ''}" width="100%" height="100%" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
     ${hourglass('hg', 22, Math.max(0, el))}<span class="rbt" id="restTxt2">${clk(Math.max(0, REST.end - Date.now()) + 999)}</span><span class="rbsp"></span>
     <div class="rbb"><button data-rs="15" aria-label="${t('add15')}">+</button><button data-rs="-15" aria-label="${t('sub15')}">−</button><button class="skip" data-rs="skip">${t('skip')}</button></div></div></div>`;
 }
 // where the burning tip is along the top half of the bracket (viewBox 324 × 52, corner radius 12) — the soft blue fill follows it
-function restTip(L){
-  const a1 = 12.5, arc = Math.PI * 6, st = 297;
-  if(L <= a1) return 1.5; L -= a1;
-  if(L <= arc){ const g = Math.PI + (L / arc) * Math.PI / 2; return 13.5 + 12 * Math.cos(g); } L -= arc;
-  if(L <= st) return 13.5 + L; L -= st;
-  if(L <= arc){ const g = 1.5 * Math.PI + (L / arc) * Math.PI / 2; return 310.5 + 12 * Math.cos(g); }
-  return 322.5;
+// 0.6.8.2: fit the fuse to the bracket's real size (any width, any rest length): top and bottom halves of a rounded box,
+// both starting at the left-middle and meeting at the right-middle. Returns the length of one half, in px.
+function restFit(svg){
+  const W = svg.clientWidth, H = svg.clientHeight; if(!W || !H) return 0;
+  if(+svg.dataset.w === W && +svg.dataset.h === H) return +svg.dataset.len;
+  const r = 12, a = 1.5, m = H / 2, R = W - a, B = H - a;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const [top, bot] = svg.querySelectorAll('path');
+  top.setAttribute('d', `M${a} ${m}V${a + r}Q${a} ${a} ${a + r} ${a}H${R - r}Q${R} ${a} ${R} ${a + r}V${m}`);
+  bot.setAttribute('d', `M${a} ${m}V${B - r}Q${a} ${B} ${a + r} ${B}H${R - r}Q${R} ${B} ${R} ${B - r}V${m}`);
+  const L = top.getTotalLength();
+  [top, bot].forEach(p => p.setAttribute('stroke-dasharray', `${L} ${L}`));
+  svg.dataset.w = W; svg.dataset.h = H; svg.dataset.len = L;
+  if(svg.dataset.intro){ svg.dataset.intro = ''; if(!matchMedia('(prefers-reduced-motion: reduce)').matches && top.animate)
+    [top, bot].forEach(p => p.animate([{ strokeDashoffset: -L }, { strokeDashoffset: 0 }], { duration: 700, easing: 'cubic-bezier(.3,.7,.3,1)' })); }
+  return L;
 }
 
 // workout template editor: clear rows with labelled steppers
@@ -736,9 +753,21 @@ function demoMatches(exId){
     .filter(Boolean).sort((a, b) => b.s - a.s).slice(0, 6).map(x => x.d);
 }
 
+// ---------- Form page (canvas Gym.dc.html): crossfading photos · How to do it + Common mistakes · zoomable muscle map ----------
 async function openDemo(exId){
-  DEMO.exId = exId; clearInterval(DEMO.timer); $('dmTitle').textContent = exName(exId); $('dmBody').innerHTML = `<p class="hint">${t('formLoading')}</p>`; $('dmNext').classList.add('hide'); open('ovDemo');
-  try{ await loadFedb(); }catch(e){ $('dmBody').innerHTML = `<p class="hint">${t('formFail')}</p>`; return; }
+  DEMO.exId = exId; clearInterval(DEMO.timer); const x = exById(exId), L_ = lang === 'el' ? 1 : 0;
+  $('dmTitle').textContent = exName(exId); $('dmNext').classList.add('hide');
+  $('dmPhoto').innerHTML = `<span class="fpcap">${t('formLoading')}</span>`;
+  const steps = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[exId] ? [SPECIFIC[exId][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
+  const left = `<div class="fpl"><div class="fpblk"><b>${t('howTo')}</b><ol id="dmSteps">${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
+    ${errs.length ? `<div class="fpblk"><b>${t('mistakesT')}</b><ul class="fpx">${errs.map(s => `<li><span>✕</span>${esc(s)}</li>`).join('')}</ul></div>` : ''}</div>`;
+  const map = isCardio(exId) ? '' : `<div class="fpr"><div class="fpsw"><span>${t('formPct')}</span><button class="switch ${ui.formPct === false ? '' : 'on'}" id="dmPct" type="button" role="switch" aria-checked="${ui.formPct !== false}" aria-label="${t('formPct')}"><i></i></button></div>
+    <div class="fpstage bodymap" id="fmStage"></div><span class="fphint">${t('formZoomHint')}</span></div>`;
+  $('dmBody').classList.toggle('one', !map); $('dmBody').innerHTML = left + map;
+  open('ovDemo');
+  if(map) requestAnimationFrame(() => formMap(exId));
+  try{ await loadFedb(); }catch(e){ $('dmPhoto').innerHTML = `<span class="fpcap">${t('formFail')}</span>`; return; }
+  if(DEMO.exId !== exId) return;
   DEMO.list = demoMatches(exId); const saved = (ui.demoPick || {})[exId], si = saved ? DEMO.list.findIndex(d => d.id === saved) : -1;
   if(saved && si === -1){ const d = FEDB.find(z => z.id === saved); if(d) DEMO.list.unshift(d); }
   DEMO.i = Math.max(0, si); drawDemo();
@@ -746,12 +775,88 @@ async function openDemo(exId){
 
 function drawDemo(){
   clearInterval(DEMO.timer); const d = DEMO.list[DEMO.i];
-  if(!d){ $('dmBody').innerHTML = `<p class="hint">${t('formNone')}</p>`; $('dmNext').classList.add('hide'); return; }
+  if(!d){ $('dmPhoto').innerHTML = `<span class="fpcap">${t('formNone')}</span>`; $('dmNext').classList.add('hide'); return; }
   $('dmNext').classList.toggle('hide', DEMO.list.length < 2);
   const imgs = (d.images || []).map(FEDB_IMG);
-  $('dmBody').innerHTML = `<div class="demoimg">${imgs.map((u, i) => `<img src="${u}" alt="" class="${i ? '' : 'on'}" loading="eager">`).join('')}</div><p class="rmeta" style="margin:8px 0 0"><b>${esc(d.name)}</b>${d.equipment ? ' · ' + esc(d.equipment) : ''}</p>
-    <ol class="steps demosteps">${(d.instructions || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol><p class="hint">${t('formCredit')}</p>`;
-  let k = 0; DEMO.timer = setInterval(() => { const im = $('dmBody').querySelectorAll('.demoimg img'); if(!im.length || !$('ovDemo').classList.contains('open')){ clearInterval(DEMO.timer); return; } k = (k + 1) % im.length; im.forEach((x, j) => x.classList.toggle('on', j === k)); }, 900);
+  $('dmPhoto').innerHTML = imgs.map((u, i) => `<img src="${u}" alt="" class="${i ? '' : 'on'}" loading="eager">`).join('') +
+    (imgs.length > 1 ? `<span class="fpdots">${imgs.map((u, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : '');
+  // our own short steps come first; the photo set's steps fill in when we have none
+  const ol = $('dmSteps'); if(ol && !ol.children.length) ol.innerHTML = (d.instructions || []).slice(0, 5).map(s => `<li>${esc(s)}</li>`).join('');
+  if(imgs.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let k = 0; DEMO.timer = setInterval(() => { const ph = $('dmPhoto'); if(!$('ovDemo').classList.contains('open')){ clearInterval(DEMO.timer); return; }
+    k = (k + 1) % imgs.length; ph.querySelectorAll('img').forEach((x, j) => x.classList.toggle('on', j === k)); ph.querySelectorAll('.fpdots i').forEach((x, j) => x.classList.toggle('on', j === k)); }, 2000);
+}
+
+// zoomable muscle map: one side of the body, zoomed onto the working heads, leader lines to each head and its %.
+// The body moves as one layer (pinch, drag with momentum, edge bounce, double-tap to reset); labels are redrawn at screen size
+// so they stay readable, and more helper muscles get labels as you zoom in.
+const FM = { s: 1, x: 0, y: 0 };
+function formMap(exId){
+  const st = $('fmStage'); if(!st) return; const x = exById(exId), mu = x.mu || {}, fem = profile.sex === 'f';
+  const sideSum = sd => [...new Set(ANAT[sd].map(a => a[0]))].reduce((s, h) => s + (mu[h] || 0), 0), side = sideSum('b') > sideSum('f') ? 'b' : 'f';
+  const pts = {}; ANAT[side].forEach(([h, d]) => { if(!(mu[h] > 0)) return; const a = d.match(/-?\d+(?:\.\d+)?/g).map(Number);
+    for(let i = 0; i + 1 < a.length; i += 2) (pts[h] = pts[h] || []).push([200 - (fem ? femX(a[i], a[i + 1]) : a[i]), a[i + 1]]); });   // the mirrored (right-hand) copy, so lines run right
+  const heads = Object.keys(pts).map(h => { const p = pts[h], xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+    return { h, v: mu[h], ax: xs.reduce((a, b) => a + b, 0) / xs.length, ay: ys.reduce((a, b) => a + b, 0) / ys.length, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }; })
+    .sort((a, b) => b.v - a.v);
+  const W = st.clientWidth || 163, H = 300, BW = Math.round(W * .55);
+  const max = Math.max(...Object.values(mu), 1);
+  st.innerHTML = `<svg id="fmSvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(heads.map(z => ML(z.h) + ' ' + Math.round(z.v) + '%').join(', '))}">
+    <defs><clipPath id="fmClip"><rect x="0" y="0" width="${BW}" height="${H}"/></clipPath></defs>
+    <g clip-path="url(#fmClip)"><g id="fmBody">${anatomySVG({ mode: 'mu', mu, muMax: max, side, w: 200, h: 446, idp: 'fm', labels: false })}</g></g><g id="fmLbl" style="transition:opacity .25s;opacity:${ui.formPct === false ? 0 : 1}"></g></svg>`;
+  const bx0 = heads.length ? Math.min(...heads.map(z => z.x0)) : 100, bx1 = heads.length ? Math.max(...heads.map(z => z.x1)) : 200,
+    by0 = heads.length ? Math.min(...heads.map(z => z.y0)) : 60, by1 = heads.length ? Math.max(...heads.map(z => z.y1)) : 300;
+  const s0 = Math.max(.6, Math.min(3.5, BW * .9 / Math.max(20, bx1 - bx0), H * .85 / Math.max(20, by1 - by0)));
+  Object.assign(FM, { st, W, H, BW, heads, s0, fit: { s: s0, x: BW / 2 - s0 * (bx0 + bx1) / 2, y: H / 2 - s0 * (by0 + by1) / 2 }, cx: (bx0 + bx1) / 2, cy: (by0 + by1) / 2 });
+  Object.assign(FM, FM.fit); fmApply(); fmGestures(st);
+}
+function fmApply(){
+  const b = $('fmBody'); if(!b) return; b.setAttribute('transform', `translate(${FM.x.toFixed(2)} ${FM.y.toFixed(2)}) scale(${FM.s.toFixed(4)})`);
+  const z = FM.s / FM.s0, show = FM.heads.filter((h, i) => i < (z < 1.4 ? 5 : z < 2.2 ? 8 : 99))
+    .map(h => ({ ...h, sx: FM.x + FM.s * h.ax, sy: FM.y + FM.s * h.ay })).filter(h => h.sx > 0 && h.sx < FM.BW && h.sy > 0 && h.sy < FM.H).sort((a, b) => a.sy - b.sy);
+  const gap = 36, ys = []; show.forEach((h, i) => ys.push(Math.max(i ? ys[i - 1] + gap : 22, Math.min(FM.H - 12, h.sy))));
+  for(let i = ys.length - 1; i >= 0; i--){ const lim = (i === ys.length - 1 ? FM.H - 12 : ys[i + 1] - gap); if(ys[i] > lim) ys[i] = lim; }
+  const lx = FM.BW + 6, top = FM.heads[0] && FM.heads[0].h;
+  $('fmLbl').innerHTML = show.map((h, i) => `<path d="M${h.sx.toFixed(1)} ${h.sy.toFixed(1)}L${lx - 2} ${(ys[i] - 4).toFixed(1)}" stroke="var(--t-muted)" stroke-width="1" fill="none"/><circle cx="${h.sx.toFixed(1)}" cy="${h.sy.toFixed(1)}" r="2" fill="var(--t-text)"/>
+    <text x="${lx}" y="${(ys[i] - 8).toFixed(1)}" font-size="12" fill="var(--t-muted)">${esc(ML(h.h))}</text><text x="${lx}" y="${(ys[i] + 9).toFixed(1)}" font-size="15" font-weight="700" font-style="italic" fill="${h.h === top ? 'var(--t-accent)' : 'var(--t-text)'}">${Math.round(h.v)}%</text>`).join('');
+}
+function fmBounds(){ const lo = { x: -FM.s * FM.cx + 8, y: -FM.s * FM.cy + 8 }, hi = { x: FM.BW - 8 - FM.s * FM.cx, y: FM.H - 8 - FM.s * FM.cy };   // the working area stays on screen
+  return { x: [lo.x, hi.x], y: [lo.y, hi.y] }; }
+function fmAnimTo(tg, ms){ cancelAnimationFrame(FM.raf); const a = { s: FM.s, x: FM.x, y: FM.y }, t0 = performance.now(), d = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : ms || 320;
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); FM.s = a.s + (tg.s - a.s) * e; FM.x = a.x + (tg.x - a.x) * e; FM.y = a.y + (tg.y - a.y) * e; fmApply(); if(k < 1) FM.raf = requestAnimationFrame(step); };
+  FM.raf = requestAnimationFrame(step); }
+function fmSettle(){
+  if(FM.s < FM.s0 * .98) return fmAnimTo(FM.fit);
+  const B = fmBounds(), c = (v, r) => Math.min(r[1], Math.max(r[0], v)), tx = c(FM.x, B.x), ty = c(FM.y, B.y);
+  if(tx !== FM.x || ty !== FM.y) fmAnimTo({ s: FM.s, x: tx, y: ty }, 280);
+}
+function fmGestures(st){
+  if(st.dataset.g) return; st.dataset.g = 1;
+  const P = new Map(); let last = null, start = null, vel = { x: 0, y: 0 }, lastTap = 0, moved = 0;
+  const rel = e => { const r = st.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const pair = () => { const [a, b] = [...P.values()]; return { m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d: Math.hypot(a.x - b.x, a.y - b.y) || 1 }; };
+  const rubber = (v, r) => v < r[0] ? r[0] - (r[0] - v) * .45 : v > r[1] ? r[1] + (v - r[1]) * .45 : v;
+  st.addEventListener('pointerdown', e => { st.setPointerCapture(e.pointerId); cancelAnimationFrame(FM.raf); P.set(e.pointerId, rel(e)); moved = 0;
+    start = P.size === 2 ? { ...pair(), s: FM.s, x: FM.x, y: FM.y } : null; last = { ...rel(e), t: performance.now() }; vel = { x: 0, y: 0 }; });
+  st.addEventListener('pointermove', e => { if(!P.has(e.pointerId)) return; const p = rel(e), prev = P.get(e.pointerId); P.set(e.pointerId, p);
+    if(P.size === 2 && start){ const q = pair(), s = Math.min(FM.s0 * 5, Math.max(FM.s0 * .7, start.s * q.d / start.d)), k = s / start.s;
+      FM.s = s; FM.x = q.m.x - (start.m.x - start.x) * k; FM.y = q.m.y - (start.m.y - start.y) * k; moved += 10; }
+    else if(P.size === 1){ const dx = p.x - prev.x, dy = p.y - prev.y, B = fmBounds(); moved += Math.abs(dx) + Math.abs(dy);
+      FM.x = rubber(FM.x + dx, B.x) === FM.x + dx ? FM.x + dx : FM.x + dx * .45; FM.y = rubber(FM.y + dy, B.y) === FM.y + dy ? FM.y + dy : FM.y + dy * .45;
+      const now = performance.now(), dt = Math.max(1, now - last.t); vel = { x: dx / dt * 16, y: dy / dt * 16 }; last = { ...p, t: now }; }
+    fmApply(); });
+  const up = e => { if(!P.has(e.pointerId)) return; P.delete(e.pointerId);
+    if(P.size === 1){ start = null; const p = [...P.values()][0]; last = { ...p, t: performance.now() }; vel = { x: 0, y: 0 }; return; }
+    if(P.size) return;
+    const now = performance.now();
+    if(moved < 8){ if(now - lastTap < 300){ lastTap = 0; return fmAnimTo(FM.fit); } lastTap = now; return; }
+    if(Math.hypot(vel.x, vel.y) > .8 && !matchMedia('(prefers-reduced-motion: reduce)').matches){   // momentum, then bounce back inside
+      const glide = () => { vel.x *= .92; vel.y *= .92; FM.x += vel.x; FM.y += vel.y; const B = fmBounds();
+        if(FM.x < B.x[0] - 40 || FM.x > B.x[1] + 40) vel.x *= .5; if(FM.y < B.y[0] - 40 || FM.y > B.y[1] + 40) vel.y *= .5;
+        fmApply(); if(Math.hypot(vel.x, vel.y) > .3) FM.raf = requestAnimationFrame(glide); else fmSettle(); };
+      FM.raf = requestAnimationFrame(glide); }
+    else fmSettle(); };
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
 }
 
 function openExInfo(id, addCb){
@@ -776,6 +881,8 @@ function renderGym(){
   const h = location.hash.slice(1), sec = GSEC[h] || null;
   $('gHub').classList.toggle('hide', !!sec); $('gSecTitle').classList.toggle('hide', !sec);
   $('gBackBtn').classList.toggle('hide', !sec);
+  $('gTabs').classList.toggle('hide', !sec || sec === 'rec'); $('gtPet').classList.toggle('hide', $('tPet').classList.contains('hide'));
+  $('gTabs').querySelectorAll('[data-sec]').forEach(b => b.classList.toggle('on', b.dataset.sec === h));
   $('gSecTitle').textContent = sec ? t({ plan: 'hubWeek', tpl: 'hubLib', prog: 'hubProg', rec: 'hubRec' }[sec]) : '';
   ['plan', 'tpl', 'prog', 'rec'].forEach(k => $({ plan: 'gPlanV', tpl: 'gTplV', prog: 'gProgV', rec: 'gRecV' }[k]).classList.toggle('hide', sec !== k));
   $('gWeigh').classList.toggle('hide', sec !== 'prog'); if(sec === 'prog' && typeof drawWeigh === 'function') drawWeigh();   // 0.5.9: weigh-in lives in Progress

@@ -132,7 +132,6 @@ $('pkBody').addEventListener('click', e => {
 
 $('sesAddEx').addEventListener('click', () => openExPick(addToSession));
 
-$('swEquip').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b){ SW.taken = b.dataset.v; drawSwap(); } });
 
 $('swList').addEventListener('click', e => {
   const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); openExInfo(inf.dataset.exinfo); return; }
@@ -217,7 +216,7 @@ setInterval(checkAbandoned, 60000);
 
 $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
-$('gTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; ui.gtab = b.dataset.v; saveUI(); renderGym(); });
+$('gTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; if(b.hasAttribute('data-pet')) return openPet(); if(location.hash.slice(1) !== b.dataset.sec) history.replaceState(null, '', '#' + b.dataset.sec), route(); });
 
 $('gStart').addEventListener('click', () => {
   if(active) return openSession();
@@ -296,6 +295,8 @@ $('tGym').addEventListener('click', () => { if(active) openSession(); else go('g
 const recState = r => r >= .8 ? 'ok' : r >= .5 ? 'mid' : 'low';
 
 $('gRecV').addEventListener('click', e => {
+  const sd = e.target.closest('[data-side]'); if(sd){ if(ui.recSide !== sd.dataset.side){ ui.recSide = sd.dataset.side; saveUI();
+      document.querySelectorAll('#recSide [data-side]').forEach(b => b.classList.toggle('on', b === sd)); setTimeout(renderRecovery, 260); } return; }   // the pill glides first, then the body turns
   const g = e.target.closest('[data-g]'); if(g && g.dataset.g) return openSore(g.dataset.g);
   const r = e.target.closest('[data-sore]'); if(r) return openSore(r.dataset.sore);
   if(e.target.closest('#soreAny')) return openSore(null);

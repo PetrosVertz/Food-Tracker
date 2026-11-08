@@ -83,3 +83,9 @@ setTimeout(async () => {
   if(!days3 || ui.bkAsked === todayKey()) return; ui.bkAsked = todayKey(); saveUI();
   if(await ask(t(last ? 'bkAskOld' : 'bkAskNever', { d: last ? Math.floor((Date.now() - last) / 864e5) : 0 }), t('bkYes'), t('later'))) backupNow();
 }, 1500);
+
+// ---------- 0.6.8.2: Settings › Theme ----------
+applyTheme(); drawTheme();
+$('sThemeBtn').addEventListener('click', () => { drawTheme(); open('ovTheme'); });
+$('thMode').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b) setTheme({ mode: b.dataset.v }); });
+$('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });

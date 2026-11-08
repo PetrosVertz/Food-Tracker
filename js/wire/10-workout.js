@@ -36,8 +36,9 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 (function restLoop(){
   const fz = REST && $('rbFuse');
   if(fz){ const left = Math.max(0, REST.end - Date.now()), prog = Math.min(1, 1 - left / (REST.total * 1000)), secs = Math.ceil(left / 1000);
-    fz.querySelectorAll('path').forEach(p => p.setAttribute('stroke-dashoffset', String(-100 * prog)));   // the lines burn from the left and meet on the right
-    const g = $('rbGlow'); if(g){ g.style.left = (restTip(prog * 359.7) / 324 * 100).toFixed(2) + '%'; g.style.opacity = .6 + .4 * prog; }
+    const L = restFit(fz);
+    if(L){ const ps = fz.querySelectorAll('path'); ps.forEach(p => p.setAttribute('stroke-dashoffset', String(-L * prog)));   // the lines burn from the left and meet on the right
+      const g = $('rbGlow'); if(g){ g.style.left = (ps[0].getPointAtLength(Math.min(L, L * prog)).x / fz.clientWidth * 100).toFixed(2) + '%'; g.style.opacity = .6 + .4 * prog; } }
     const tx = $('restTxt2'); if(tx){ tx.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'); tx.classList.toggle('last', secs <= 10 && left > 0); }
     if(!left) tickRest(); }
   requestAnimationFrame(restLoop); })();
