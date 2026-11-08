@@ -19,10 +19,10 @@ $('tMeals').addEventListener('click', () => go('meals'));
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
-  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') shopCamera(); else if(a === 'meals') open('ovCookPick');
+  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
   else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
-$('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ open('ovShop'); return; } pendingBarcode = null; startScan(); });
+$('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ shopCamera(); return; } pendingBarcode = null; startScan(); });
 
 document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 

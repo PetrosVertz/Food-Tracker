@@ -74,7 +74,7 @@ function mealTotals(rows){
 function elecHtml(tot){
   const row = (lbl, v, tgt, col) => { const pct = Math.round(v / tgt * 100), hi = lbl === t('sodium') && pct > 100, hit = lbl === t('potassium') && pct >= 100;
     return `<div class="mrow" style="--bar:${hi ? 'var(--orange)' : hit ? 'var(--ok)' : col}"><small>${lbl}</small><span class="mbar"><i style="width:${Math.min(100, pct)}%;background:var(--bar)"></i></span><span><b>${ui.elecMg ? Math.round(v).toLocaleString() + ' mg' : pct + '%'}</b>${hi ? `<small> ${t('elecHigh')}</small>` : ''}</span></div>`; };
-  return `<div class="elec" data-elec><div class="row"><small class="rmeta">⚡ ${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small><small class="rmeta">${ui.elecMg ? 'mg' : '%'}</small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
+  return `<div class="elec" data-elec><div class="row"><small class="rmeta">⚡ ${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
 }
 
 function remainingToday(){ const tg = targetFor(todayKey()); if(!tg) return null; const tot = dayTotals(todayKey());
@@ -128,7 +128,7 @@ function lwUnits(info){
   if(!hint && info.piece && info.pw) u.push({ k: 'pc', l: info.pw === 'slice' ? (lang === 'el' ? 'Φέτα' : 'Slice') : (lang === 'el' ? 'Τεμάχιο' : 'Piece'), size: info.piece });
   if(f && f.usualPack && f.usualPack <= 1000 && f.usualPack !== info.piece) u.push({ k: 'pack', l: lang === 'el' ? 'Συσκευασία' : 'Pack', size: f.usualPack });
   if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', l: lang === 'el' ? 'Πιάτο' : 'Plate', size: Math.round(info.meal.cookedWeight) });
-  u.push({ k: 'g', l: info.unit === 'ml' ? (lang === 'el' ? 'ml' : 'Millilitres') : (lang === 'el' ? 'Γραμμάρια' : 'Grams'), size: 1 });
+  u.push(info.unit !== 'ml' && UN().f === 'oz' ? { k: 'g', l: lang === 'el' ? 'Ουγγιές' : 'Ounces', size: OZ } : { k: 'g', l: info.unit === 'ml' ? (lang === 'el' ? 'ml' : 'Millilitres') : (lang === 'el' ? 'Γραμμάρια' : 'Grams'), size: 1 });
   return u;
 }
 function lwState(k, i){
@@ -137,7 +137,7 @@ function lwState(k, i){
   const ref = lwRef(info), units = lwUnits(info), name = norm(info.name || ''), cook = LW_COOK.find(([re]) => re.test(name));
   const pick = (ui.logUnit || {})[ref], last = info.meal || info.food ? lastEntryOf((info.meal || info.food).id) : (k === 'rc' ? LS.recent[i] : null);
   // v2 #5: grams by default, always grams once you've logged this food in grams; otherwise it opens on your last pick ("2 Medium Eggs")
-  let u = units.length - 1, n = last ? last.amt : 100;
+  let u = units.length - 1, n = r1((last ? last.amt : 100) / units[units.length - 1].size);
   if(pick && pick !== 'g'){ const j = units.findIndex(x => x.k === pick); if(j > -1){ u = j; n = last ? Math.max(.5, Math.round(last.amt / units[j].size * 2) / 2) : 1; } }
   if(!last && units.length > 1 && !pick && units[0].k !== 'g' && info.meal) { u = 0; n = 1; }
   const ck = cook ? ((ui.logCook || {})[ref] ?? cook[1]) : null;
@@ -161,7 +161,7 @@ function lwPanel(st){
 function lwUnitLbl(st, j){ const u = st.units[j]; return u.k === 'g' ? u.l : `${u.l} (${fmtSize(u.size, st.info.unit)})`; }
 // v2 #6: a custom list — the portion and its weight on the left, its calories on the right (they follow the cooking slider)
 function lwMenu(st){ const per = lwPer(st);
-  return st.units.map((u, j) => `<button type="button" class="ldo ${j === st.u ? 'on' : ''}" data-lu="${j}" role="option" aria-selected="${j === st.u}"><span>${esc(lwUnitLbl(st, j))}</span><span>${macrosFor(per, u.k === 'g' ? 100 : u.size).kcal} kcal${u.k === 'g' ? ' / 100 ' + (st.info.unit || 'g') : ''}</span></button>`).join(''); }
+  return st.units.map((u, j) => `<button type="button" class="ldo ${j === st.u ? 'on' : ''}" data-lu="${j}" role="option" aria-selected="${j === st.u}"><span>${esc(lwUnitLbl(st, j))}</span><span>${macrosFor(per, u.k === 'g' && u.size === 1 ? 100 : u.size).kcal} kcal${u.k === 'g' ? (u.size === 1 ? ' / 100 ' + (st.info.unit || 'g') : ' / oz') : ''}</span></button>`).join(''); }
 // v2 #2: only the numbers, the line under the name, the slider and the list change
 function lwUpdate(row, st){ const r = lwCalc(st);
   row.querySelector('.ls').textContent = lwSub(st);
@@ -369,8 +369,10 @@ function renderToday(){
       <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
       <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
   // log
-  // Eaten rows (canvas Phones.dc.html): name 15/500, then "time · amount" 12 muted; kcal on the right
-  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name">${esc(e.name)}</span><small class="esub">${e.time} · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)} kcal</span></div>`).join('')
+  // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.
+  // The time shows only when you tap the row (the edit sheet).
+  const stOf = e => { if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f ? f.state : ''; };
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name"><span class="nmt">${esc(bareName(e.name))}</span>${stTag(stOf(e))}</span><small class="esub"><b class="p">P ${fmt(e.p)}</b> · <b class="c">C ${fmt(e.c)}</b> · <b class="f">F ${fmt(e.f)}</b> · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)}<small>kcal</small></span></div>`).join('')
     : `<div class="empty">${t('nothingLogged')}</div>`;
   $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
   renderPlan();

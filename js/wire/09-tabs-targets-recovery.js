@@ -18,7 +18,7 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
   const TH = 46; let P = null, acc = 0, accT = null;
   const pageEl = () => document.querySelector('section.page:not(.hide)');
   const skip = el => el.closest('input,textarea,select,.overlay,.hscroll,.chips,.tchips,.rail,.mxs,[data-noswipe]');
-  const nextOf = d => TABS3[tabIdx(tabOf(location.hash.slice(1))) + d];
+  const nextOf = d => [...TABS3, 'settings'][tabIdx(tabOf(location.hash.slice(1))) + d];   // 0.6.9: keep pulling past Fridge to reach Settings
   const ends = pg => ({ bot: pg.scrollTop + pg.clientHeight >= pg.scrollHeight - 2, top: pg.scrollTop <= 0 });
   function hint(d, prog){ const el = $('pullHint'), tab = d ? nextOf(d) : null;
     if(!tab || prog <= .08){ el.style.opacity = 0; el.classList.remove('ready'); return; }

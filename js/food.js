@@ -17,10 +17,11 @@ function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); rend
   const fab = $('fab'); if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
   syncFab2(); }
 
-// the second floating button: ▥ Scan Food on Food Track, ＋ Add on Fridge
+// the second floating button (0.6.9): the same pair on Food Tracker and Fridge — scan first (line scanner icon), then ＋ Add Food
 function syncFab2(){ const a = $('fab').dataset.action, hid = $('fab').classList.contains('hide'), on = (a === 'store' || a === 'fridge') && !hid;
   $('fab2').classList.toggle('hide', !on); document.body.classList.toggle('twofab', on);
-  if(on && a === 'fridge'){ $('fab').textContent = t('scanReceipt'); $('fab2').textContent = t('addFridgeFab'); } else $('fab2').textContent = t('scanFoodFab'); }
+  const scan = l => `<span class="fabic">${svgIcon('scan', 18)}</span>${esc(l)}`;
+  if(on && a === 'fridge'){ $('fab2').innerHTML = scan(t('scanReceipt')); $('fab').textContent = t('addFridgeFab'); } else $('fab2').innerHTML = scan(t('scanFoodFab')); }
 
 // ======================= store-bought list =======================
 const FCAT = {};   // open categories in My foods
@@ -628,7 +629,9 @@ function drawSgChips(){
 function addSgChip(){ const v = $('sgIn').value.trim(); if(!v) return; ui.sgChips = [v, ...(ui.sgChips || []).filter(x => x !== v)].slice(0, 16); saveUI(); SG.sel.add(v); $('sgIn').value = ''; drawSgChips(); }
 
 // ---------- tags: raw (light blue) / cooked (light green) ----------
-function stTag(state){ return state === 'uncooked' ? `<span class="sttag raw">${t('rawTag')}</span>` : state === 'cooked' ? `<span class="sttag cooked">${t('cookedTag')}</span>` : ''; }
+function stTag(state){ return state === 'uncooked' ? `<span class="sttag raw">${t('rawTag')}</span>` : state === 'cooked' ? `<span class="sttag cooked">${t('cookedTag')}</span>` : state === 'ready' ? `<span class="sttag ready">${t('readyTag')}</span>` : ''; }
+// "Chicken breast, cooked" → "Chicken breast" (the tag says it instead)
+const bareName = n => String(n || '').replace(/,\s*(cooked|raw|uncooked|ready[- ]to[- ]eat|μαγειρεμέν[οηα]|ωμ[όήά])\s*$/i, '');
 
 function saveOnlineFood(d){
   if(d.barcode){ const ex = foods.find(f => f.barcode === d.barcode); if(ex) return ex; }

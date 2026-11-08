@@ -19,7 +19,9 @@ const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: ex
 
 const exById = id => EX().find(x => x.id === id) || normEx({ id, en: id, el: id, m: 'other', e: 'machine', rest: 90 });
 
-const exName = x => (typeof x === 'string' ? exById(x) : x)[lang === 'el' ? 'el' : 'en'];
+// 0.6.9: exercise names are titles — a capital on every word ("Lateral Raise")
+const titleCase = s => String(s || '').replace(/(^|[\s(\-/])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
+const exName = x => titleCase((typeof x === 'string' ? exById(x) : x)[lang === 'el' ? 'el' : 'en']);
 
 const isCardio = id => exById(id).m === 'cardio';
 
@@ -72,7 +74,6 @@ $('sesBody').addEventListener('click', e => {
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
-  const lk = e.target.closest('[data-link]'); if(lk){ toggleLink(active.exercises, +lk.dataset.link); saveG('act'); renderSession(); return; }
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
@@ -241,7 +242,6 @@ $('gTplV').addEventListener('click', e => {
 document.querySelectorAll('#tpType button').forEach(b => b.addEventListener('click', () => { TP.type = b.dataset.v; setSeg('#tpType', TP.type); }));
 
 $('tpList').addEventListener('click', e => {
-  const lk = e.target.closest('[data-link]'); if(lk){ toggleLink(TP.exercises, +lk.dataset.link); drawTpl(); return; }
   const r = e.target.closest('[data-i]'); if(!r) return; const i = +r.dataset.i, x = TP.exercises[i];
   if(e.target.closest('[data-demo2]')) return openDemo(x.exId);
   if(e.target.closest('[data-rd]')) x.reps = bumpReps(x.reps, -1); if(e.target.closest('[data-ru]')) x.reps = bumpReps(x.reps, 1);
@@ -295,21 +295,13 @@ $('tGym').addEventListener('click', () => { if(active) openSession(); else go('g
 const recState = r => r >= .8 ? 'ok' : r >= .5 ? 'mid' : 'low';
 
 $('gRecV').addEventListener('click', e => {
-  const sd = e.target.closest('[data-side]'); if(sd){ if(ui.recSide !== sd.dataset.side){ ui.recSide = sd.dataset.side; saveUI();
-      document.querySelectorAll('#recSide [data-side]').forEach(b => b.classList.toggle('on', b === sd)); setTimeout(renderRecovery, 260); } return; }   // the pill glides first, then the body turns
-  const g = e.target.closest('[data-g]'); if(g && g.dataset.g) return openSore(g.dataset.g);
-  const r = e.target.closest('[data-sore]'); if(r) return openSore(r.dataset.sore);
-  if(e.target.closest('#soreAny')) return openSore(null);
-});
-
-$('soRange').addEventListener('input', soreLbl);
-
-$('soGroups').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if(!b) return; SO.g = b.dataset.sg; $('soGroups').querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === b)); $('soTitle').textContent = `${t('soreQ')} · ${ML(SO.g)}`; const lv = ((profile.sore || {})[todayKey()] || {})[SO.g]; $('soRange').value = lv ?? 0; soreLbl(); });
-
-$('soSave').addEventListener('click', () => {
-  if(!SO.g){ toast(t('tapMuscle')); return; }
-  profile.sore = profile.sore || {}; const k = todayKey(); profile.sore = { [k]: { ...(profile.sore[k] || {}), [SO.g]: +$('soRange').value } }; saveProfile();
-  close('ovSore'); renderAll(); toast(t('soreSaved'));
+  const sd = e.target.closest('[data-side]'); if(!sd || ui.recSide === sd.dataset.side) return; ui.recSide = sd.dataset.side; saveUI();
+  document.querySelectorAll('#recSide [data-side]').forEach(b => b.classList.toggle('on', b === sd));   // the pill glides…
+  const fig = $('recFig'), sv = fig && fig.querySelector('svg'), swap = () => { fig.innerHTML = recFigure(); };
+  if(!sv || !sv.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return swap();
+  // …and the body turns around: it narrows to a line, swaps sides, opens back out (~⅓ s)
+  sv.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 150, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }).onfinish = () => { swap();
+    const n = fig.querySelector('svg'); if(n) n.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 180, easing: 'cubic-bezier(.25,1,.5,1)' }); };
 });
 
 $('homeAlerts').addEventListener('click', e => { if(e.target.closest('[data-rec]')){ ui.gtab = 'rec'; saveUI(); } }, true);
@@ -321,10 +313,13 @@ $('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-p
 $('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
 
 // long press to reorder exercises (workout editor + live workout)
-makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); drawTpl(); });
+makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); normalizeSS(TP.exercises); drawTpl(); },
+  (a, b) => { const L = TP.exercises; if(isCardio(L[a].exId) || isCardio(L[b].exId)) return; ssMerge(L, a, b); drawTpl(); toast(t('ssMade')); });
 makeSortable($('sesBody'), '.exc', (a, b) => { const ex = active.exercises; ex.splice(b, 0, ex.splice(a, 1)[0]);
   if(REST && typeof REST.xi === 'number') REST.xi = REST.xi === a ? b : REST.xi > a && REST.xi <= b ? REST.xi - 1 : REST.xi < a && REST.xi >= b ? REST.xi + 1 : REST.xi;
-  saveG('act'); renderSession(); });
+  normalizeSS(ex); saveG('act'); renderSession(); },
+  (a, b) => { const ex = active.exercises; if(isCardio(ex[a].exId) || isCardio(ex[b].exId)) return; const rx = REST && typeof REST.xi === 'number' ? ex[REST.xi] : null;
+    ssMerge(ex, a, b); if(rx) REST.xi = ex.indexOf(rx); saveG('act'); renderSession(); toast(t('ssMade')); });
 
 // swipe to delete: exercises (live workout + workout editor) and sets, with Undo
 makeSwipeDelete($('sesBody'), '.exc', c => { const i = +c.dataset.x, gone = active.exercises.splice(i, 1)[0]; if(!gone) return;

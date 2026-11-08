@@ -210,7 +210,7 @@ header .left h1,header>h1{top:calc(50% + env(safe-area-inset-top) / 2 + 4px)!imp
 /* top blur fades out softly instead of ending in a line */
 section.page>header{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-22px;z-index:-1;pointer-events:none;
-  background:linear-gradient(rgba(7,9,11,.94),rgba(7,9,11,.72) 62%,rgba(7,9,11,0));
+  background:linear-gradient(color-mix(in srgb,var(--t-bg) 94%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent) 62%,color-mix(in srgb,var(--t-bg) 0%,transparent));
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 /* Food Track: two buttons side by side */
 .fab2{background:rgba(255,255,255,.12)!important;color:var(--text)!important;border:1px solid rgba(255,255,255,.2)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}

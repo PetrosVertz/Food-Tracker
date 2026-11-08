@@ -225,8 +225,8 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .recrow .rn{font-size:var(--fs-body);font-weight:var(--w-med)} .recrow .rs{font-size:var(--fs-label);font-weight:var(--w-med);text-align:right}
 
 /* ---------- Settings › Theme (ThemeMenu.dc.html) ---------- */
-.setrow{display:flex;align-items:center;gap:var(--s2);width:100%;min-height:52px;margin:var(--s3) 0;padding:12px 16px;border:1px solid var(--t-edge);border-radius:var(--r-row);background:var(--t-card);color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);text-align:left;cursor:pointer}
-.setrow>span:first-child{flex:1} .setrow .sv{color:var(--t-muted);font-weight:var(--w-reg)} .setrow svg{color:var(--t-muted)}
+.prow{display:flex;align-items:center;gap:var(--s2);width:100%;min-height:52px;margin:var(--s3) 0;padding:12px 16px;border:1px solid var(--t-edge);border-radius:var(--r-row);background:var(--t-card);color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);text-align:left;cursor:pointer}
+.prow>span:first-child{flex:1} .prow .sv{color:var(--t-muted);font-weight:var(--w-reg)} .prow svg{color:var(--t-muted)}
 #ovTheme .sheet{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
   background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto;display:flex;flex-direction:column;gap:var(--s4)}
@@ -294,3 +294,62 @@ html{transition:background-color .3s}
 html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - max(24px,calc(env(safe-area-inset-bottom) - 10px)) - 64px - 24px - 50px)!important}
 body.twofab .fab{padding:16px 20px!important}
 #ovLog .lwlist{flex:1 1 auto;min-height:0}
+
+/* ======================= 0.6.9 ======================= */
+/* info bubbles and tips follow the theme (were dark grey on Light) */
+.ibtn{color:var(--t-text)!important;opacity:.7}
+.tippop{background:var(--t-card)!important;border:1px solid var(--t-line)!important;color:var(--t-text)!important;box-shadow:0 12px 34px rgba(0,0,0,.25)!important}
+:root[data-theme="light"] .tippop{box-shadow:0 8px 24px rgba(0,0,0,.12)!important}
+/* hero card: only the eaten number is italic; "/ 2,900 kcal" upright. Bars 16 tall, labels 15 so they sit level */
+.kcnum small{font-style:normal}
+.mrow.hero{grid-template-columns:72px 1fr}
+.mrow.hero>small{font-size:var(--fs-body)!important}
+.hbar{height:16px!important} .hbar em{padding:0 8px;font-size:11px}
+/* every switch: the toggle first, then its label */
+.advrow{flex-direction:row-reverse!important;justify-content:flex-end!important;padding-right:0!important}
+.fpsw{flex-direction:row-reverse;justify-content:flex-end;gap:var(--s2)}
+
+/* Eaten rows (0.6.9) */
+.eatrow .name{display:flex;align-items:center;gap:6px;min-width:0} .eatrow .nmt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.eatrow .name .sttag{flex:0 0 auto;margin:0}
+.eatrow .esub b{font-weight:var(--w-med)} .eatrow .esub .p{color:var(--t-p)} .eatrow .esub .c{color:var(--t-c)} .eatrow .esub .f{color:var(--t-f)}
+.eatrow .ekc{font-size:var(--fs-title)!important;font-weight:var(--w-bold);font-style:italic;color:var(--t-text)!important;letter-spacing:-.3px}
+.eatrow .ekc small{font-size:var(--fs-label);font-weight:var(--w-reg);font-style:normal;color:var(--t-muted);margin-left:3px}
+.sttag.ready{background:color-mix(in srgb,var(--t-warm) 18%,transparent);color:var(--t-warm);border:1px solid color-mix(in srgb,var(--t-warm) 45%,transparent)}
+:root[data-theme="light"] .sttag.raw{color:#2a6fa8} :root[data-theme="light"] .sttag.cooked{color:#1f8a4c}
+
+/* gym-day card (0.6.9) */
+#dBlocks .remind{position:relative;display:flex;align-items:center;gap:var(--s3)}
+#dBlocks .rmtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+#dBlocks .rmhint{display:block;font-size:var(--fs-label);color:var(--t-muted)}
+#dBlocks .skipbtn{position:relative;z-index:2;flex:0 0 auto;margin:0}
+#dBlocks .rmrec{position:relative;z-index:2}
+.remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
+.fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
+.fab2{background:var(--t-glass)!important;color:var(--t-text)!important;border:1px solid var(--t-glass-edge)!important}
+/* superset by holding one exercise over another (0.6.9) */
+.exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
+.exc.ssarm::after,.tpcard.ssarm::after{content:attr(data-ssl);position:absolute;right:12px;top:10px;padding:4px 10px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold);font-style:italic}
+.sslbl{text-transform:none!important;letter-spacing:0!important;font-size:var(--fs-label)!important;font-weight:var(--w-bold)!important}
+.swapq{display:inline-flex!important;align-items:center;justify-content:center;width:36px!important;height:36px!important;background:var(--t-sel)!important;border:0!important;color:var(--t-text)!important}
+.exc .exhead .exname{font-size:var(--fs-clock)!important;line-height:1.15}
+/* Recovery is look-only (0.6.9) */
+.reccard svg,.reccard svg *{pointer-events:none;cursor:default!important}
+.reccard svg{transform-origin:50% 50%}
+.recrow{cursor:default}
+.pglock{margin-top:var(--s3);padding:16px;border-radius:var(--r-row);background:var(--t-card);border:1px solid var(--t-edge);color:var(--t-muted);font-size:var(--fs-body);text-align:center}
+/* ---------- Settings (0.6.9): grouped rows; each opens its own full page with the back arrow ---------- */
+.pgroup{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s3) 0}
+.pgroup .prow{margin:0}
+.overlay .sheet.setpage,.overlay.center .sheet.setpage{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
+  background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;animation-name:none;
+  padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
+.setpage>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
+.setpage>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
+.setpage .bodybox{background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);padding:var(--s4)}
+.setpage .bodybox h3{display:none}
+.aboutver{font-size:var(--fs-body)!important;color:var(--t-text)!important}
+#pgSettings .ver{text-align:center;color:var(--t-muted);font-size:var(--fs-label);margin-top:var(--s6)}
+.overlay.open .sheet.setpage{animation:spIn .28s cubic-bezier(.2,.9,.25,1)}
+@keyframes spIn{from{transform:translateX(24px);opacity:0}}
+@media (prefers-reduced-motion: reduce){ .overlay.open .sheet.setpage{animation:none} }

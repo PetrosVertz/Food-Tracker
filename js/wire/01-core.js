@@ -164,7 +164,7 @@ const r1 = n => Math.round(n*10)/10;
 
 const fmt = n => (n === null || n === undefined || n === '' || isNaN(n)) ? '–' : String(r1(n));
 
-const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `${r1(n)} ml`) : (n >= 1000 ? `${r1(n/1000)} kg` : `${r1(n)} g`);
+const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `${r1(n)} ml`) : UN().f === 'oz' ? (n >= 453.6 ? `${r1(n / 453.592)} lb` : `${r1(n / OZ)} oz`) : (n >= 1000 ? `${r1(n/1000)} kg` : `${r1(n)} g`);
 
 const fmtDate = iso => { try{ return new Date(iso).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day:'numeric', month:'short' }); }catch(e){ return ''; } };
 

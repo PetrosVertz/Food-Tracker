@@ -65,7 +65,7 @@ window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFe
 // Settings → Your Body: sex, height, weight; offers to recalculate targets
 document.querySelectorAll('#sSex button').forEach(b => b.addEventListener('click', () => setSeg('#sSex', b.dataset.v)));
 $('sBodySave').addEventListener('click', async () => {
-  const sx = (document.querySelector('#sSex .on') || {}).dataset?.v || null, hh = num('sH'), w = num('sW');
+  const sx = (document.querySelector('#sSex .on') || {}).dataset?.v || null, hh = Math.round(hIn($('sH').value) || 0), w = r1(bwIn(num('sW')));
   if(sx) profile.sex = sx; if(hh > 120 && hh < 230) profile.height = hh; saveProfile();
   if(w > 30 && w < 300){ weights[todayKey()] = w; Store.save('weights', weights); if(targets){ targets.bw = w; Store.save('targets', targets); } }
   renderAll(); toast(t('bodySaved'));
@@ -89,3 +89,12 @@ applyTheme(); drawTheme();
 $('sThemeBtn').addEventListener('click', () => { drawTheme(); open('ovTheme'); });
 $('thMode').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b) setTheme({ mode: b.dataset.v }); });
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
+
+// ---------- 0.6.9: Settings in groups — each row opens its own page ----------
+document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
+$('sTargetsBtn').addEventListener('click', () => openTargets());
+function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
+  document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
+[['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
+  ui.units = { ...UN(), [k]: b.dataset.v }; saveUI(); drawUnits(); fillSettings(); renderAll(); }));
+drawUnits();

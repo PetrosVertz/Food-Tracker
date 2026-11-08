@@ -14,6 +14,16 @@ const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain
 // ---------- sliding pills (canvas Main.dc.html): every selector has one knob that glides to the chosen button ----------
 // Works for main pills (.mpill), secondary pills (.seg) and the bottom bar (.rail, 52×44 bubble). Whatever code toggles
 // .on on a button, the knob follows: one observer watches class changes and re-rendered selectors.
+// ---------- Settings › Customize › Units (0.6.9): body weight kg/lb, height cm/ft-in, food g/oz. Everything is stored metric;
+// only what you see and type changes. (Lifting weights stay in kg for now.)
+const UN = () => ({ w: 'kg', h: 'cm', f: 'g', ...((typeof ui === 'object' && ui && ui.units) || {}) });
+const LB = 2.20462, OZ = 28.3495;
+const bwU = () => UN().w === 'lb' ? 'lb' : 'kg';
+const bwOut = kg => kg == null || kg === '' ? '' : UN().w === 'lb' ? Math.round(+kg * LB * 10) / 10 : Math.round(+kg * 10) / 10;
+const bwIn = v => UN().w === 'lb' ? +v / LB : +v;
+const hOut = cm => { if(!cm) return ''; if(UN().h !== 'ft') return cm; const inch = Math.round(cm / 2.54); return `${Math.floor(inch / 12)}'${inch % 12}`; };
+const hIn = v => { if(UN().h !== 'ft') return +v; const m = String(v).match(/(\d+)\D+(\d+)/); if(m) return (+m[1] * 12 + +m[2]) * 2.54; const n = +v; return n > 0 && n < 9 ? n * 12 * 2.54 : n * 2.54; };
+
 // ---------- Settings › Theme (canvas ThemeMenu.dc.html): Dark / Light / Automatic + nine accent presets on one neutral grey base ----------
 // [id, name, dark accent, dark text-on-accent, light accent, light text-on-accent]. A device setting (ui.theme), not synced.
 const THEMES = [
@@ -145,7 +155,7 @@ function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
 function switchTab(dir, toTab){
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Settings sits below Fridge
-  const tab = toTab || TABS3[i + dir]; if(!tab || tab === cur || SWITCHING) return;
+  const tab = toTab || [...TABS3, 'settings'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
@@ -168,7 +178,9 @@ function route(){
   $('pgLaunch').classList.add('hide'); $('tabbar').classList.add('hide');
   h = location.hash.replace('#','');   // re-read: the start page may have just switched it
   const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGroc','groc'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
+  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
+  $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
   setSeg('#foodTabs', tab);
   $('storeView').classList.toggle('hide', tab !== 'store');
@@ -302,7 +314,7 @@ function open(id){
 // Settings is a page under Fridge (tap ⚙︎ to slide down; pull up to go back to Fridge)
 function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
-  setSeg('#sSex', profile.sex || ''); $('sH').value = profile.height || ''; $('sW').value = latestWeight() || (targets && targets.bw) || ''; }
+  setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); if(location.hash.slice(1) !== 'settings') switchTab(1, 'settings'); }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }

@@ -217,7 +217,7 @@ $('lResults').addEventListener('click', e => {
   if(e.target.closest('[data-ladd]')) return lwAdd(st);
   const dd = e.target.closest('[data-ldd]'); if(dd){ const m = row.querySelector('.ldm'); m.classList.toggle('hide'); dd.setAttribute('aria-expanded', !m.classList.contains('hide')); return; }
   const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size;
-    st.u = j; st.n = st.units[j].k === 'g' ? Math.round(g || 100) : 1; row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); lwUpdate(row, st); return; }
+    st.u = j; st.n = st.units[j].k === 'g' ? r1((g || 100) / st.units[j].size) : 1; row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); lwUpdate(row, st); return; }
   const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; lwUpdate(row, st); return; }
   if(e.target.closest('[data-lopen]')){ const key = st.k + st.i; LW.open = LW.open === key ? null : key;
     document.querySelectorAll('#lResults .lrow.open').forEach(r => { if(r !== row){ r.classList.remove('open'); const p = r.querySelector('.lpn'); if(p) p.remove(); } });

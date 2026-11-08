@@ -127,7 +127,7 @@ $('gPlanV').addEventListener('change', e => {
   if(e.target.matches('[data-wfrom]')) p.work.from = e.target.value; else p.work.to = e.target.value; saveG('plan'); renderToday();
 });
 
-$('dBlocks').addEventListener('click', e => { if(e.target.closest('[data-goweek]')) go('gym-week'); });
+$('dBlocks').addEventListener('change', e => { if(e.target.id === 'dRemTime' && e.target.value){ setDay({ type: 'gym', time: e.target.value }); renderAll(); } });
 
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')) go('gym-rec'); }, true);
 

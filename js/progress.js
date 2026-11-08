@@ -45,6 +45,9 @@ function renderProgress(){
     el.innerHTML = `<div class="empty" style="margin-top:10px">${t('progNone')}</div><label for="gLast" style="margin-top:14px">${t('lastTrained')}</label><input id="gLast" type="date" value="${profile.gymLast || ''}" max="${todayKey()}">`;
     return;
   }
+  // 0.6.9: strength by muscle unlocks after 10 workouts — before that the numbers are just noise
+  const PG_MIN = 10, n = sessions.length;
+  if(n < PG_MIN){ el.innerHTML = `<h3 class="sect" style="margin-bottom:0"><span>${t('pgStrength')}</span></h3><div class="pglock">${t('pgLocked', { n: PG_MIN, k: PG_MIN - n })}</div>`; return; }
   const headsOf = g => Object.keys(HEADS).filter(h => HEADS[h][2] === g);
   const exRows = st => st.ex.length ? `<div class="pgex">${st.ex.map(x => `<div class="pgexr"><span>${esc(exName(x.id))}</span><b class="pct ${pctCls(x.pct)}">${x.pct === null ? `<small>${t('pgOnce')}</small>` : pctTxt(x.pct)}</b></div>`).join('')}</div>`
     : `<div class="pgex"><div class="pgexr"><span class="rmeta">${t('pgNoMonth')}</span></div></div>`;
@@ -72,10 +75,10 @@ function weightSeries(mode){
     lbl: mode === 'month' ? new Date(k + '-15T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { month: 'short', year: '2-digit' }) : new Date(k + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }) }));
 }
 function weightChart(){
-  const mode = ui.wtMode || 'day', s = weightSeries(mode), all = Object.entries(weights).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0]));
+  const mode = ui.wtMode || 'day', s = weightSeries(mode).map(p => ({ ...p, w: bwOut(p.w) })), all = Object.entries(weights).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).map(([d, w]) => [d, bwOut(w)]);
   const seg = `<div class="mpill wtseg">${['day', 'week', 'month'].map(m => `<button data-wt="${m}" class="${m === mode ? 'on' : ''}">${t('wt_' + m)}</button>`).join('')}</div>`;
   const last = all.length ? +all[all.length - 1][1] : null, firstW = all.length ? +all[0][1] : null;
-  const head = `<div class="wthead"><span><b>${last !== null ? fmt(last) + ' kg' : '–'}</b>${all.length > 1 ? `<small class="${last - firstW > 0 ? 'up' : last - firstW < 0 ? 'down' : ''}">${last - firstW > 0 ? '+' : ''}${fmt(Math.round((last - firstW) * 10) / 10)} kg ${t('wtSince', { d: fmtDate(all[0][0] + 'T12:00:00') })}</small>` : ''}</span>${seg}</div>`;
+  const head = `<div class="wthead"><span><b>${last !== null ? fmt(last) + ' ' + bwU() : '–'}</b>${all.length > 1 ? `<small class="${last - firstW > 0 ? 'up' : last - firstW < 0 ? 'down' : ''}">${last - firstW > 0 ? '+' : ''}${fmt(Math.round((last - firstW) * 10) / 10)} ${bwU()} ${t('wtSince', { d: fmtDate(all[0][0] + 'T12:00:00') })}</small>` : ''}</span>${seg}</div>`;
   if(s.length < 2) return head + `<div class="wtempty">${t('wtNeed')}</div>`;
   const W = 340, H = 150, L = 34, R = 8, T = 10, B = 22, ws = s.map(p => p.w);
   let lo = Math.min(...ws), hi = Math.max(...ws); if(hi - lo < 1){ const m = (hi + lo) / 2; lo = m - .5; hi = m + .5; } const pad = (hi - lo) * .12; lo -= pad; hi += pad;
@@ -95,11 +98,11 @@ function weightChart(){
 
 // compact weigh-in under the chart
 function drawWeigh(){
-  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] || ''; $('wiIn').placeholder = (targets && targets.bw) || '75';
+  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] ? bwOut(weights[tk]) : ''; $('wiIn').placeholder = bwOut((targets && targets.bw) || 75);
   const ch = $('gWChart'); if(ch) ch.innerHTML = weightChart();
   if(!tr){ $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiNeed')}</p>`; return; }
-  const a = weighAdvice(tr), sg = (tr.perWeek >= 0 ? '+' : '') + tr.perWeek.toFixed(2);
-  $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiRate', { r: sg, d: tr.days })} · ${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
+  const a = weighAdvice(tr), pw = UN().w === 'lb' ? tr.perWeek * LB : tr.perWeek, sg = (pw >= 0 ? '+' : '') + pw.toFixed(2);
+  $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiRate', { r: sg, d: tr.days }).replace('kg/', bwU() + '/')} · ${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
   const ap = $('wiApply'); if(ap) ap.onclick = () => { ['gym', 'rest'].forEach(k => { if(targets[k]){ targets[k].k = Math.round((targets[k].k + a.d) / 50) * 50; targets[k].c = Math.max(0, Math.round((targets[k].c + a.d / 4) / 5) * 5); } });
     Store.save('targets', targets); renderAll(); drawWeigh(); toast(t('wiApplied', { d: (a.d > 0 ? '+' : '') + a.d })); };
 }

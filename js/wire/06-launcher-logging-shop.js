@@ -120,7 +120,7 @@ $('dmBody').addEventListener('click', e => { const b = e.target.closest('#dmPct'
 
  let weights = Store.load('weights', {});
 
-$('wiSave').addEventListener('click', () => { const w = num('wiIn'); if(!(w > 30)) { $('wiIn').focus(); return; } weights[todayKey()] = w; Store.save('weights', weights);
+$('wiSave').addEventListener('click', () => { const w = r1(bwIn(num('wiIn'))); if(!(w > 30)) { $('wiIn').focus(); return; } weights[todayKey()] = w; Store.save('weights', weights);
   if(targets){ targets.bw = w; Store.save('targets', targets); } $('tgBw').value = w; drawWeigh(); toast(t('wiSaved')); });
 
 document.addEventListener('click', e => { if(e.target.closest('[data-backup]')) backupNow(); });
@@ -130,7 +130,7 @@ document.addEventListener('click', e => { if(e.target.closest('[data-backup]')) 
 $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').classList.toggle('hide'));
 
 // ---------- smooth sliders ----------
-$('soRange').setAttribute('step', 'any');
+
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
 ['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');

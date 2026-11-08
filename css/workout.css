@@ -126,7 +126,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .exc.mini .mtxt b{font-size:var(--fs-body);font-weight:var(--w-med)}
 .exc.mini .mtxt small{font-size:var(--fs-label);color:var(--t-muted)}
 .exhead{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:4px;text-align:center}
-.exname{font-size:var(--fs-title);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
+.exname{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
 .exhead small{font-size:var(--fs-label);color:var(--t-muted)}
 .exhead .xt{color:var(--t-text);font-weight:var(--w-med);font-variant-numeric:tabular-nums}
 .expills{display:flex;justify-content:center;gap:8px;margin-top:8px}

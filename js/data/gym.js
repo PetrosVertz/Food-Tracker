@@ -292,10 +292,10 @@ const FAV_KEY = { pr: 'pfPR', kcal: 'pfKcal', supps: 'pfSupps' };
 
 const SORE = ['😎', '🙂', '😬', '😵', '💀'];
 
-// Sore / Recovering / Ready follow the theme (red / amber / accent; green in the warm presets). Read from the CSS variables
-// each time so the map, legend and rows always match the chosen theme.
+// Needs Rest / Recovering / Ready are always red / yellow / green (0.6.9, whatever the accent); read from the CSS variables
+// so Light mode gets its own shades.
 const cssVar = (n, fb) => { try{ return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb; }catch(e){ return fb; } };
-const REC_COL = { get ok(){ return cssVar('--t-ready', '#c6f432'); }, get mid(){ return cssVar('--t-mid', '#e8b04a'); }, get low(){ return cssVar('--t-sore', '#ff6b5c'); } };
+const REC_COL = { get ok(){ return cssVar('--t-done', '#59d38c'); }, get mid(){ return cssVar('--t-mid', '#e8b04a'); }, get low(){ return cssVar('--t-sore', '#ff6b5c'); } };
 
 // ---------- anatomical body figure (front + back), drawn as real muscle shapes, mirrored left/right ----------
 const HEAD_COL = { chest_upper:'#ff8fab', chest_mid:'#ff5c8a', chest_lower:'#d63a6a', delt_front:'#ffc46b', delt_side:'#ffa53a', delt_rear:'#e07b00',

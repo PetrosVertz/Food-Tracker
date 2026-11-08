@@ -12,7 +12,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <script>
-// 0.6.8.2 theme (device setting in ft.ui.v1): applied before the first paint so there's no flash. The full logic is THEME in js/ui.js.
+// 0.6.9 theme (device setting in ft.ui.v1): applied before the first paint so there's no flash. The full logic is THEME in js/ui.js.
 (function(){ try{ var u = JSON.parse(localStorage.getItem('ft.ui.v1') || '{}'), th = u.theme || {}, m = th.mode || 'dark';
   var look = m === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : m; document.documentElement.setAttribute('data-theme', look); }catch(e){} })();
 </script>
@@ -165,25 +165,13 @@
     <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
 <div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
+  <div id="fridgeView">
   <div class="mpill" id="fLoc"><button data-v="all" data-t="all"></button><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
   <input class="search" id="fSearch" type="search" data-tp="searchFridge" autocomplete="off">
   <div id="fAlerts"></div>
   <div class="list" id="fList"></div>
-</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><p class="sub" data-t="settingsSub"></p><button class="setrow" id="sThemeBtn" type="button"><span data-t="themeT"></span><span class="sv" id="sThemeVal"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><label data-t="language"></label><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div><button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button><div class="bodybox"><h3 data-t="yourBody"></h3>
-    <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
-    <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
-    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><hr><h2 data-t="yourData"></h2><p class="sub" data-t="yourDataSub"></p><div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div><div class="actions" style="margin-top:10px">
-    <button class="btn" id="exportJson" data-t="download"></button>
-    <button class="btn" id="importBtn" data-t="import"></button>
-  </div><input type="file" id="importInput" accept="application/json,.json" class="hide"><div class="ver">Food Track · Gym Buddy · v0.6.8.2</div></section>
-
-<!-- ============ GROCERIES ============ -->
-<section class="page wrap hide" id="pgGroc">
-  <header>
-    <div class="left"><h1 data-t="tabFridge"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
-  </header>
-<div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
+</div>
+  <div id="pgGroc" class="hide">
   <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
   <div id="gSugg" class="sres"></div>
   <div class="actions" style="margin-top:10px">
@@ -193,7 +181,10 @@
   <div class="hint" id="gSendHint"></div>
   <div class="list" id="gList" style="margin-top:12px"></div>
   <div id="gDone"></div>
-</section>
+</div>
+</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><div class="pgroup"><button class="prow" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span><span class="sv" data-t="stCustomSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSBody"><span data-t="stBody"></span><span class="sv" data-t="stBodySub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAI"><span data-t="stAI"></span><span class="sv" data-t="stAISub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSData"><span data-t="stData"></span><span class="sv" data-t="stDataSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span><span class="sv" data-t="stAboutSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="ver">Food Tracker · Gym Buddy · v0.6.9</div></section>
+
+
 
 <button class="fab fab2 hide" id="fab2" type="button" data-t="scanFoodFab"></button><button class="fab hide" id="fab"></button>
 <nav class="rail" id="rail" aria-label="Tabs">
@@ -245,6 +236,21 @@
   <div class="fpcols" id="dmBody"></div>
   <p class="hint" id="dmCredit" data-t="formCredit"></p>
 </div></div>
+
+<!-- ============ SETTINGS PAGES (0.6.9, iPhone-style) ============ -->
+<div class="overlay" id="ovSCustom"><div class="sheet tall setpage"><h2 data-t="stCustom"></h2><div class="pgroup"><button class="prow" id="sThemeBtn" type="button"><span data-t="themeT"></span><span class="sv" id="sThemeVal"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSLang"><span data-t="language"></span><span class="sv" data-t="langName"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSUnits"><span data-t="unitsT"></span><span class="sv" data-t="unitsSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div></div></div>
+<div class="overlay" id="ovSLang"><div class="sheet tall setpage"><h2 data-t="language"></h2><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div></div></div>
+<div class="overlay" id="ovSUnits"><div class="sheet tall setpage"><h2 data-t="unitsT"></h2><label data-t="unW"></label><div class="seg" id="unW"><button data-v="kg">kg</button><button data-v="lb">lb</button></div><label data-t="unH"></label><div class="seg" id="unH"><button data-v="cm">cm</button><button data-v="ft">ft / in</button></div><label data-t="unF"></label><div class="seg" id="unF"><button data-v="g">g</button><button data-v="oz">oz</button></div><p class="hint" data-t="unNote"></p></div></div>
+<div class="overlay" id="ovSBody"><div class="sheet tall setpage"><h2 data-t="stBody"></h2><div class="bodybox"><h3 data-t="yourBody"></h3>
+    <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
+    <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
+    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div><div class="pgroup" style="margin-top:16px"><button class="prow" type="button" id="sTargetsBtn"><span data-t="dailyTargets"></span><span class="sv"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div></div></div>
+<div class="overlay" id="ovSAI"><div class="sheet tall setpage"><h2 data-t="stAI"></h2><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div></div></div>
+<div class="overlay" id="ovSData"><div class="sheet tall setpage"><h2 data-t="stData"></h2><p class="sub" data-t="yourDataSub"></p><div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div><div class="actions" style="margin-top:10px">
+    <button class="btn" id="exportJson" data-t="download"></button>
+    <button class="btn" id="importBtn" data-t="import"></button>
+  </div><input type="file" id="importInput" accept="application/json,.json" class="hide"></div></div>
+<div class="overlay" id="ovSAbout"><div class="sheet tall setpage"><h2 data-t="stAbout"></h2><p class="sub aboutver" id="sAboutVer"></p><button class="linkbtn" id="suAgainBtn" data-t="suAgain" style="margin-top:8px"></button></div></div>
 
 <!-- ============ THEME (Settings › Theme, canvas ThemeMenu.dc.html) ============ -->
 <div class="overlay" id="ovTheme"><div class="sheet tall themepage">
@@ -588,15 +594,6 @@
 </div></div>
 
 <!-- ============ SORENESS ============ -->
-<div class="overlay" id="ovSore"><div class="sheet">
-  <h2 id="soTitle"></h2>
-  <div class="chips" id="soGroups" style="margin:10px -16px 14px"></div>
-  <div class="soreface"><span id="soFace"></span><b id="soText"></b></div>
-  <input type="range" id="soRange" min="0" max="4" step="1" value="0">
-  <div class="soreemo"><span>😎</span><span>🙂</span><span>😬</span><span>😵</span><span>💀</span></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="soSave" data-t="save"></button></div>
-</div></div>
-
 <!-- ============ TAKEN → SWAP ============ -->
 <div class="overlay" id="ovSwap"><div class="sheet swapsheet">
   <span class="grab" aria-hidden="true"></span>
