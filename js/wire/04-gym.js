@@ -20,8 +20,8 @@ const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: ex
 const exById = id => EX().find(x => x.id === id) || normEx({ id, en: id, el: id, m: 'other', e: 'machine', rest: 90 });
 
 // 0.6.9: exercise names are titles — a capital on every word ("Lateral Raise")
-const titleCase = s => String(s || '').replace(/(^|[\s(\-/])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
-const exName = x => titleCase((typeof x === 'string' ? exById(x) : x)[lang === 'el' ? 'el' : 'en']);
+const exTitle = s => String(s || '').replace(/(^|[\s(\-/])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
+const exName = x => exTitle((typeof x === 'string' ? exById(x) : x)[lang === 'el' ? 'el' : 'en']);
 
 const isCardio = id => exById(id).m === 'cardio';
 
