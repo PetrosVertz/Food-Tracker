@@ -49,7 +49,7 @@ function render(){
       <div class="ficon ${ic?'':'none'}">${ic || '❔'}</div>
       <div class="body">
         <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div></div>
-        <div class="name">${esc(foodName(f))}</div>
+        <div class="name">${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
         <div class="row" style="margin-top:2px">
           <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span>${f.fiber != null ? `<span class="m fi">Fi <b>${fmt(sc(f.fiber))}</b></span>` : ''}</div>
           <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
@@ -247,7 +247,7 @@ async function commit(){
   const rec = { brand, noBrand: F.noBrand, name, gid: F.gid, barcode: code || null, cat: F.cat, sub: F.sub || 'general', state: F.state, unit: F.unit,
     packs: [...F.packs], usualPack: F.usual, pieces: F.pieces, piece: F.pieces !== 'none' ? num('fPiece') : null,
     pieceSkipped: F.pieceSkipped, display: F.display, serving: F.serving,
-    notes: $('fNotes').value.trim(), source: F.source, ...vals, updatedAt: now };
+    notes: $('fNotes').value.trim(), source: F.source, ...vals, checked: null, updatedAt: now };   // editing a food takes its ✓ (Check My Foods) away
   const wasEdit = !!F.editingId; let saved;
   if(wasEdit){ const i = foods.findIndex(f => f.id === F.editingId); foods[i] = saved = { ...foods[i], ...rec }; }
   else foods.push(saved = { id: uid(), createdAt: now, ...rec });
@@ -273,6 +273,7 @@ function validGTIN(c){
 
 async function startScan(ctx){
   scanCtx = ctx || null; $('cantScan').classList.add('hide'); $('cantScanBtn').classList.remove('open');
+  if(scanCtx === 'fridge') shopScanStart(); else { SHOP.scan = null; scanUI(); }   // 0.7: fridge scanning keeps going and collects a list
   open('ovScan'); status($('scanStatus'), t('startingCam')); $('manualCode').value = '';
   $('torchBtn').classList.add('hide'); torchOn = false;
   if(!Phone.hasCamera()){ status($('scanStatus'), t('camFail'), true); return; }
@@ -291,7 +292,8 @@ async function startScan(ctx){
         if(v.readyState >= 2){
           const res = await det.detect(v);
           const hit = res.map(r => r.rawValue).find(c => validGTIN(c));
-          if(hit){ if(hit === last){ scanOn = false; Phone.vibrate(60); stopScan(); lookup(hit); return; } last = hit; }
+          if(scanCtx === 'fridge' && SHOP.scan) shopSeen(hit || null);   // fridge: every pack counts, the camera stays on
+          else if(hit){ if(hit === last){ scanOn = false; Phone.vibrate(60); stopScan(); lookup(hit); return; } last = hit; }
         }
       }catch(e){}
       scanLoop = setTimeout(tick, 90);
@@ -531,14 +533,7 @@ function updateTake(){
 function renderUseUp(mode){
   const box = $('useUp'); $('cLeft').checked = mode !== 'edit'; $('cLeftWrap').classList.toggle('hide', mode === 'edit');
   if(mode === 'edit'){ box.innerHTML = ''; return; }
-  const soon = expiringList().filter(x => x.info.food);
-  if(!soon.length){ box.innerHTML = ''; return; }
-  const ids = new Set(soon.map(x => x.it.foodId)), gids = new Set(soon.map(x => x.info.food.gid).filter(Boolean));
-  const hits = meals.map(m => ({ m, used: m.ingredients.filter(i => (i.ref.type === 'my' && ids.has(i.ref.id)) || (i.ref.type === 'gen' && gids.has(i.ref.id))) }))
-    .filter(x => x.used.length).sort((a, b) => b.used.length - a.used.length).slice(0, 3);
-  box.innerHTML = `<div class="alert" style="display:block;cursor:default"><b>${t('useUpT')}</b><br>${soon.map(x => `${x.info.icon} ${esc(x.info.name)} <span class="exp soon">${daysUntil(x.it.exp) === 0 ? t('expToday') : daysUntil(x.it.exp) === 1 ? t('expTomorrow') : t('expIn', { n: daysUntil(x.it.exp) })}</span>`).join(' · ')}
-    <div class="ideas">${hits.length ? `<small>${t('useUpIdeas')}</small>` + hits.map(h => `<button data-again="${h.m.id}">${mealIcon(h.m)} ${esc(h.m.name)}<small>${t('uses', { list: esc(h.used.map(u => u.ref.name).join(', ')) })}</small></button>`).join('') : `<small>${t('useUpNone')}</small>`}
-    ${settings.geminiKey ? `<button id="useUpAI">${t('useUpAI')}</button>` : ''}<div id="useUpAIOut" class="ideas"></div></div></div>`;
+  box.innerHTML = '';   // 0.7: the "use these soon" ideas went with the expiry dates
 }
 
 function afterCook(mealId, rows, cooked){
@@ -548,7 +543,7 @@ function afterCook(mealId, rows, cooked){
     if(n) msg += ' · ' + t('tookOut', { n });
   }
   if(D.mode !== 'edit' && $('cLeft').checked && cooked > 0){
-    addToFridge({ mealId, qty: r1(cooked), unit: 'g', loc: 'fridge', exp: addDays(todayKey(), 3), expAuto: true });
+    addToFridge({ mealId, qty: r1(cooked), unit: 'g', loc: 'fridge' });
   }
   return msg;
 }
@@ -566,15 +561,13 @@ function homeTodayTiles(){
   const tg = targetFor(todayKey()), tot = dayTotals(todayKey()), di = dayInfo(todayKey());
   $('tTodaySub').textContent = `${Math.round(tot.kcal)}${tg ? ' / ' + tg.k : ''} kcal · ${di.type === 'gym' ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') + (di.time ? ' ' + di.time : '') : '😴'}`;
   $('tTodayBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0';
-  const items = liveItems(), soon = expiringList(), gone = expiredList(), toBuy = groc.filter(g => !g.done).length;
-  $('tFridgeSub').textContent = !items.length ? t('fridgeSubEmpty') : (soon.length + gone.length ? t('fridgeSub', { n: items.length, e: soon.length + gone.length }) : t('fridgeSubOk', { n: items.length }));
-  $('tFridgeBadge').textContent = `⚠️ ${soon.length + gone.length}`; $('tFridgeBadge').classList.toggle('hide', !(soon.length + gone.length));
+  const items = liveItems(), toBuy = groc.filter(g => !g.done).length;
+  $('tFridgeSub').textContent = !items.length ? t('fridgeSubEmpty') : t('fridgeSubOk', { n: items.length });
+  $('tFridgeBadge').classList.add('hide');
   $('tGrocSub').textContent = toBuy ? t('grocSub', { n: toBuy }) : t('grocSubEmpty');
   $('tGrocBadge').textContent = toBuy; $('tGrocBadge').classList.toggle('hide', !toBuy);
   const tp = todayProgress();
-  $('homeAlerts').innerHTML = (gone.length ? `<div class="alert red" data-go="fridge">${t('alertGone', { n: gone.length, list: esc(gone.map(x => x.info.name).join(', ')) })}</div>` : '') +
-    (soon.length ? `<div class="alert" data-go="fridge">${t('alertExp', { n: soon.length, list: esc(soon.map(x => x.info.name).join(', ')) })}</div>` : '') +
-    (tp.total && tp.done < tp.total && new Date().getHours() >= 12 ? `<div class="alert green" data-go="supps">${t('alertSupps', { n: tp.total - tp.done })}</div>` : '');
+  $('homeAlerts').innerHTML = (tp.total && tp.done < tp.total && new Date().getHours() >= 12 ? `<div class="alert green" data-go="supps">${t('alertSupps', { n: tp.total - tp.done })}</div>` : '');
 }
 
 function saveGeneric(g){

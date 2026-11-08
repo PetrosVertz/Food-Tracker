@@ -44,49 +44,43 @@ $('suBody').addEventListener('change', e => { if(e.target.id === 'suWork'){ read
 $('shopOpts').addEventListener('click', e => {
   const b = e.target.closest('[data-shop]'); if(!b) return; const k = b.dataset.shop;
   if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
-  if(k === 'scan'){ close('ovShop'); SHOP.scanLoop = true; startScan('fridge'); return; }
+  if(k === 'scan'){ close('ovShop'); startScan('fridge'); return; }
   if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
-  SHOP.kind = k; $('shopFile').value = ''; $('shopFile').click();
+  $('shopFile').value = ''; $('shopFile').click();
 });
 
-$('shopFile').addEventListener('change', async () => {
-  const file = $('shopFile').files[0]; if(!file) return;
-  close('ovShop'); SHOP.items = []; drawShop(); status($('shopStatus'), t('shopReading')); open('ovShopRev');
-  const base = `Return ONLY JSON: {"items":[{"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"state":"uncooked"|"ready"}]}
-packSize = net weight of ONE pack/piece in g or ml (read it if printed, otherwise a typical size, e.g. milk 1000 ml, a chicken breast tray 1000 g, one egg 60 g). Macros = typical values per 100 g/ml of that product (carbs without fibre). state "uncooked" for raw meat/fish, dry rice/pasta/oats, else "ready". Food and drinks only.`;
-  const rcpt = `This is a supermarket receipt, often Greek with abbreviated product names. List every food or drink line. Expand abbreviations into a clear name. count = quantity bought; for weighed items (e.g. "0,850 KG") count = 1 and packSize = that weight in g. Skip bags, deposits, discounts and non-food. ${base}`;
-  const groc_ = `This photo shows groceries laid out on a table (likely a Greek supermarket). List every distinct food or drink item you can see. count = how many identical packs or pieces (eggs: count the eggs, packSize 60). ${base}`;
-  const prompt = SHOP.kind === 'receipt' ? rcpt : SHOP.kind === 'camera' ? `This image is EITHER a supermarket receipt OR groceries laid out on a table. Decide which, then follow the matching instructions.\nIF IT IS A RECEIPT: ${rcpt}\nIF IT IS GROCERIES: ${groc_}` : groc_;
-  try{
-    const img = await shrink(file), d = await gemini(prompt, img);
-    const items = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el));
-    if(!items.length){ status($('shopStatus'), t('shopNone'), true); return; }
-    SHOP.items = items.map(x => { const ref = matchIng([x.name_en, x.name_el]); return { ...x, on: true, ref, count: Math.max(1, Math.round(x.count || 1)), size: x.packSize > 0 ? Math.round(x.packSize) : null, unit: x.unit === 'ml' ? 'ml' : 'g', loc: null }; });
-    status($('shopStatus'), ''); drawShop();
-  }catch(err){ status($('shopStatus'), t('shopFail', { e: err.message }), true); }
-});
+// 0.7: receipts and grocery photos: the best model reads the lines at full sharpness, the app finds the foods (shop.js)
+$('shopFile').addEventListener('change', () => { const file = $('shopFile').files[0]; if(!file) return; close('ovShop'); shopPhoto(file); });
 
+// the review list: tick, change the food, pack size, the count wheel, Add all
 $('shopList').addEventListener('click', e => {
-  const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si];
-  if(e.target.closest('[data-son]')){ x.on = !x.on; drawShop(); return; }
-  if(e.target.closest('[data-sloc]')){ const cur = x.loc || 'fridge', o = ['fridge', 'freezer', 'cupboard']; x.loc = o[(o.indexOf(cur) + 1) % 3]; drawShop(); return; }
-  if(e.target.closest('[data-sname]')) openIngSearch(x.name_en || '', ref => { x.ref = ref; x.on = true; drawShop(); open('ovShopRev'); }, { force: true });
+  const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si]; if(!x) return;
+  if(e.target.closest('[data-son]')){ if(!x.on && !x.foodId && !x.gid && !x.data) return shopPickFor(x); x.on = !x.on; shopRedrawRow(x); drawShopBtn(); return; }
+  if(e.target.closest('[data-sname]')) return shopPickFor(x);
+  const wn = e.target.closest('[data-wn]'); if(wn){ const w = wn.closest('.wheel'); w.scrollTo({ top: (+wn.dataset.wn - 1) * WH, behavior: 'smooth' }); }
 });
-
+function shopPickFor(x){ openIngSearch(x.name_en || x.name || '', ref => { if(ref.type === 'my'){ const f = foods.find(y => y.id === ref.id); if(f) shopSetFood(x, f); } else if(ref.type === 'gen'){ x.gid = ref.id; x.foodId = null; x.data = null; x.web = false; x.name = ref.name; }
+  x.on = true; open('ovShopRev'); drawShop(); }, { force: true }); }
+function drawShopBtn(){ const n = shopVisible().filter(({ x }) => x.on).length; $('shopAddBtn').textContent = n ? t('shopAddAll', { n }) : t('done'); }
 $('shopList').addEventListener('input', e => { const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si];
-  if(e.target.matches('[data-scount]')) x.count = Math.max(1, Math.round(+e.target.value || 1)); if(e.target.matches('[data-ssize]')) x.size = +e.target.value.replace(',', '.') || null; });
+  if(e.target.matches('[data-ssize]')){ x.size = +e.target.value.replace(',', '.') || null; x.sizeFixed = true; } });
+// the wheel: scroll snaps to a number; a light tick each time it passes one
+$('shopList').addEventListener('scroll', e => { const w = e.target; if(!w.classList || !w.classList.contains('wheel')) return;
+  const x = SHOP.items[+w.closest('[data-si]').dataset.si], n = Math.max(1, Math.min(30, Math.round(w.scrollTop / WH) + 1));
+  if(n !== x.count){ x.count = n; x.userCount = true; Phone.vibrate(5); w.querySelectorAll('[data-wn]').forEach(d => d.classList.toggle('on', +d.dataset.wn === n)); } }, true);
+new ResizeObserver(() => syncWheels()).observe($('shopList'));
+$('shopAddBtn').addEventListener('click', shopAddAll);
+$('shopDone').addEventListener('click', e => { if(e.target.closest('#shopUndoSure')){ takeBack(SHOP.sureIds || []); SHOP.items.forEach(x => { if(x.sure){ x.done = false; x.on = true; } }); SHOP.sureIds = []; renderAll(); drawShop(); } });
 
-$('shopAddBtn').addEventListener('click', () => {
-  let n = 0;
-  SHOP.items.filter(x => x.on).forEach(x => { const f = shopFood(x); if(!f) return; const loc = x.loc || defaultLoc(f), size = x.size || f.usualPack || (f.piece || 100);
-    for(let i = 0; i < x.count; i++) addToFridge({ foodId: f.id, qty: r1(size), packSize: r1(size), unit: f.unit, loc, exp: addDays(todayKey(), defaultDays(f, loc)), expAuto: true });
-    if(x.size && !(f.packs || []).includes(x.size)){ f.packs = [...(f.packs || []), x.size]; f.usualPack = f.usualPack || x.size; } n++; });
-  saveFoods(); close('ovShopRev'); renderAll(); toast(t('shopAdded', { n }));
-});
+// the scanner's "More items?" (after the first scan)
+$('scanQMore').addEventListener('click', () => { if(!SHOP.scan) return; SHOP.scan.cont = true; SHOP.scan.ask = false; scanUI(); });
+$('scanQClose').addEventListener('click', () => close('ovScan'));
 
-$('faSave').addEventListener('click', () => { if(SHOP.scanLoop && !$('ovFAdd').classList.contains('open')) setTimeout(() => toast(t('scanNextQ'), t('scanNext'), () => startScan('fridge')), 300); });
-
-$('ovShop').addEventListener('click', e => { if(e.target === $('ovShop')) SHOP.scanLoop = false; });
+// ✨ Check My Foods
+$('checkFoodsBtn').addEventListener('click', checkFoods);
+$('chkCancel').addEventListener('click', () => { if(CHK && CHK.running) CHK.ctl.abort(); else close('ovCheck'); });
+$('chkList').addEventListener('click', e => { const r = e.target.closest('[data-ck]'); if(!r) return;
+  if(e.target.closest('[data-cacc]')) checkDecide(+r.dataset.ck, true); else if(e.target.closest('[data-ckeep]')) checkDecide(+r.dataset.ck, false); });
 
 $('gOther').addEventListener('click', () => { forcePick = true; $('gStart').click(); });
 
@@ -134,7 +128,7 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
-['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
+['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
   if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 

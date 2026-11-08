@@ -11,7 +11,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/data/config.js` | Version, defaults, small shared state |
 | `js/platform/store.js` | **Storage + data model.** The only code that touches localStorage. Device settings vs synced data, schema version + migrations, record ids, change times and tombstones for sync, backups, `Account` (who the user is) |
 | `js/platform/phone.js` | **Phone features**: haptics, vibration, camera, barcode reader, keep screen on, share/save files, clipboard |
-| `js/platform/ai.js` | **AI service**: models, the Gemini call, daily counter, the ✨ bubble, Test key, photo shrinking |
+| `js/platform/ai.js` | **AI service**: models, the Gemini call (`best`: strongest model first; `search`: Google Search), daily counter, the ✨ bubble, Test key, photo shrinking |
 | `js/data/strings.js` | Every text in English + Greek |
 | `js/data/foods.js`, `js/data/foods-more.js`, `js/data/gym.js` | Built-in foods (700, incl. ~370 cooked foods and dishes added in 0.6.7) / exercises, muscles, equipment |
 | `js/core.js` | Helpers: text, food records, fetch with timeout, Claude export |
@@ -21,6 +21,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/supplements.js` | Supplements (Take button with times) |
 | `js/today.js` | Today's food: log, targets + padlocks, Fill My Food, Add Takeaway, weigh-in |
 | `js/fridge.js` | Fridge + groceries |
+| `js/shop.js` | **Shopping in (0.7)**: Groceries tick → fridge, remembered packs (`usualPack` / `usualCount`), continuous barcode scanning + the review list with the count wheel, receipts (best model reads the lines; matched against your foods → built-in → Open Food Facts → one web lookup), ✨ Check My Foods |
 | `js/gym.js` | Gym Buddy: workouts, sessions, L/R sets, picker, recovery, pets, form demos |
 | `js/progress.js` | Gym → Progress |
 | `js/wire/01…10-*.js` | Start-up wiring in order: state, button wiring, first render (by topic) |

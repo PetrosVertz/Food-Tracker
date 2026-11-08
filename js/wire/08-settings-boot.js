@@ -61,7 +61,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:') navigator.ser
 
 if(location.protocol === 'https:') setTimeout(() => Phone.barcodeReader().catch(()=>{}), 2500);
 
-window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFedb, switchTab, renderLaunch, calcTargets, backupBlob, get SHOP(){ return SHOP; }, set FEDB(v){ FEDB = v; }, goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultDays, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, AI, Store, Phone, Account };
+window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFedb, switchTab, renderLaunch, calcTargets, backupBlob, get SHOP(){ return SHOP; }, set FEDB(v){ FEDB = v; }, goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, AI, Store, Phone, Account };
 
 // Settings → Your Body: sex, height, weight; offers to recalculate targets
 document.querySelectorAll('#sSex button').forEach(b => b.addEventListener('click', () => setSeg('#sSex', b.dataset.v)));

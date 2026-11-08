@@ -1,30 +1,15 @@
 // Gym Buddy: workouts, sessions, library, picker, recovery, progress, pets, form demos. (functions only)
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-function expState(it){ if(!it.exp) return null; const d = daysUntil(it.exp); return d < 0 ? 'gone' : d <= 2 ? 'soon' : 'ok'; }
-
-function expBadge(it){
-  if(!it.exp) return '';
-  const d = daysUntil(it.exp), st = expState(it);
-  const txt = d < 0 ? t('expGone') : d === 0 ? t('expToday') : d === 1 ? t('expTomorrow') : d < 14 ? t('expIn', { n: d }) : fmtDate(it.exp);
-  return `<span class="exp ${st === 'ok' ? '' : st}">${st === 'gone' ? '⛔ ' : st === 'soon' ? '⚠️ ' : ''}${txt}</span>`;
-}
-
-function expiringList(){ return liveItems().filter(x => expState(x.it) === 'soon').sort((a, b) => a.it.exp.localeCompare(b.it.exp)); }
-
-function expiredList(){ return liveItems().filter(x => expState(x.it) === 'gone'); }
-
 // ran out (or below your level) → onto the grocery list by itself
 function checkRestock(foodId){
   const f = foods.find(x => x.id === foodId); if(!f || f.noAutoGrocery) return false;
   const have = stockOf(foodId), min = f.minStock || 0;
   const low = min > 0 ? have < min : have <= 0;
   if(!low || groc.some(g => g.foodId === foodId && !g.done)) return false;
-  groc.push({ id: uid(), foodId, name: foodName(f), count: 1, size: f.usualPack || null, unit: f.unit, why: have <= 0 ? 'out' : 'low', done: false, addedAt: new Date().toISOString() });
+  groc.push({ id: uid(), foodId, name: foodName(f), count: f.usualCount || 1, size: f.usualPack || null, unit: f.unit, why: have <= 0 ? 'out' : 'low', done: false, addedAt: new Date().toISOString() });   // the usual pack × the usual count
   saveGroc(); return true;
 }
-
-function setNoExp(on){ FA.noExp = on; $('faNoExp').classList.toggle('on', on); $('faExp').disabled = on; }
 
 function setDay(patch){ days[curDay] = { ...dayInfo(curDay), ...patch }; delete days[curDay].guessed; saveDays(); renderToday(); renderHome(); }
 
@@ -911,7 +896,7 @@ function renderGym(){
 function fridgeGroups(items){
   const map = new Map();
   items.forEach(x => { const it = x.it, full = it.packSize && Math.abs(it.qty - it.packSize) <= 0.5;
-    const k = full ? [it.foodId || 'm' + it.mealId, it.loc, it.packSize, it.exp || ''].join('|') : 'one|' + it.id;
+    const k = full ? [it.foodId || 'm' + it.mealId, it.loc, it.packSize].join('|') : 'one|' + it.id;
     if(!map.has(k)) map.set(k, { ...x, list: [] }); map.get(k).list.push(it); });
   return [...map.values()];
 }

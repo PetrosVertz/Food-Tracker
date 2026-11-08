@@ -1,5 +1,5 @@
 // Keeps the app shell available offline. Network first, so updates show up straight away.
-const CACHE = 'tracker-v0.6.9.3';
+const CACHE = 'tracker-v0.7';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-maskable-512.png',
   'css/base.css',
   'css/glass.css',
@@ -22,6 +22,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/supplements.js',
   'js/today.js',
   'js/fridge.js',
+  'js/shop.js',
   'js/gym.js', 'js/progress.js',
   'js/wire/01-core.js',
   'js/wire/02-food.js',

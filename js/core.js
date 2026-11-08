@@ -80,7 +80,7 @@ function claudeText(){
   }
   const fl = liveItems();
   if(fl.length){ out.push('\nIn my fridge/freezer/cupboard right now:');
-    fl.forEach(x => out.push(`- ${x.info.food && x.info.food.gid && GENBY[x.info.food.gid] ? GENBY[x.info.food.gid].en : x.info.name}${x.it.mealId ? ' (leftovers)' : ''}: ${fmtSize(x.it.qty, x.info.unit)} in the ${x.it.loc}${x.it.exp ? `, expires ${x.it.exp}` : ''}`)); }
+    fl.forEach(x => out.push(`- ${x.info.food && x.info.food.gid && GENBY[x.info.food.gid] ? GENBY[x.info.food.gid].en : x.info.name}${x.it.mealId ? ' (leftovers)' : ''}: ${fmtSize(x.it.qty, x.info.unit)} in the ${x.it.loc}`)); }
   const gl = groc.filter(g => !g.done);
   if(gl.length) out.push('\nGrocery list: ' + grocText().split('\n').join('; '));
   if(targets) out.push(`\nMy targets (${targets.goal}${targets.bw ? ', ' + targets.bw + ' kg' : ''}): gym day ${targets.gym.k} kcal P${targets.gym.p} C${targets.gym.c} F${targets.gym.f}; rest day ${targets.rest.k} kcal P${targets.rest.p} C${targets.rest.c} F${targets.rest.f}`);

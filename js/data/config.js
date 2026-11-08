@@ -1,7 +1,7 @@
 // App settings: version, storage keys, defaults and small lookup tables.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const VERSION = '0.6.9.3';
+const VERSION = '0.7';
 
 const DEFAULT_MODEL = 'gemini-flash-latest';
 
@@ -109,7 +109,7 @@ const TABS3 = ['today', 'gym', 'food', 'fridge'];   // top → bottom on the sid
 // ---------- first-time setup ----------
 let SUP = { step: 0 };
 
-let SHOP = { items: [], scanLoop: false };
+let SHOP = { items: [], scan: null, busy: false };   // 0.7: the review list (scanned packs or receipt lines) and the live scan
 
 // ---------- gym: straight start on planned days ----------
 let forcePick = false;

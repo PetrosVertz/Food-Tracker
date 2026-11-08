@@ -1,6 +1,7 @@
 // AI in one place: which models, the key, the call, the daily use counter, and the ✨ bubble that lets you keep using the app.
 // Food Track · Gym Buddy — today it calls Gemini with the user's own key; to run it on our own server later, change call() only.
-// Callers use gemini(prompt, imageB64, onTry, signal, { quiet }) and get the parsed JSON back (or an error with .cancelled).
+// Callers use gemini(prompt, imageB64, onTry, signal, { quiet, best, search }) and get the parsed JSON back (or an error with .cancelled).
+// best: the strongest model the key allows first (Pro before Flash; receipts). search: Gemini looks things up with Google Search (web lookups, Check My Foods).
 
 const AI = (() => {
   const GAPI = 'https://generativelanguage.googleapis.com/v1beta/models', TIMEOUT = 30000;
@@ -12,6 +13,12 @@ const AI = (() => {
     const tier = n => /latest/.test(n) ? 0 : /preview|exp/.test(n) ? 2 : 1;
     const kind = n => /flash-lite/.test(n) ? 1 : /flash/.test(n) ? 0 : /pro/.test(n) ? 3 : 2;
     return names.sort((a, b) => tier(a) - tier(b) || ver(b) - ver(a) || kind(a) - kind(b));
+  }
+  // the strongest first: Pro, then Flash, then the rest, Lite last; newest version first within each
+  function bestModels(names){
+    const ver = n => /latest/.test(n) ? 99 : (n.match(/(\d+(?:\.\d+)?)/) || [0, 0])[1] * 1;
+    const kind = n => /flash-lite/.test(n) ? 3 : /pro/.test(n) ? 0 : /flash/.test(n) ? 1 : 2;
+    return [...names].filter(n => !/(gemma|nano|thinking-exp|8b)/.test(n)).sort((a, b) => kind(a) - kind(b) || ver(b) - ver(a) || (/preview|exp/.test(a) - /preview|exp/.test(b)));
   }
   async function listModels(){
     const tag = key().slice(-6), c = Store.load('models', null);
@@ -30,18 +37,23 @@ const AI = (() => {
   const cancelled = () => Object.assign(new Error(t('cancelled')), { cancelled: true });
 
   // the one network call
-  async function call(prompt, imageB64, onTry, outer){
+  async function call(prompt, imageB64, onTry, outer, opts){
+    opts = opts || {};
     const parts = [{ text: prompt }]; if(imageB64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: imageB64 } });
-    const chain = [...new Set([settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...(await listModels())])].slice(0, 10);
+    const all = await listModels();
+    const chain = opts.best ? [...new Set([...bestModels(all).slice(0, 4), settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest'])].slice(0, 7)
+      : [...new Set([settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...all])].slice(0, 10);
+    // Google Search can't be combined with the JSON-only answer mode, so with search the JSON is cut out of the text instead
+    const gen = opts.search ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: imageB64 || opts.best ? 0 : 0.6 };
+    const body = JSON.stringify({ contents: [{ parts }], generationConfig: gen, ...(opts.search ? { tools: [{ google_search: {} }] } : {}) });
     let lastErr = null;
     for(let i = 0; i < chain.length; i++){
       if(outer && outer.aborted) throw cancelled();
       if(onTry) onTry(i + 1, chain.length, chain[i]);
       try{
         const r = await fetchT(`${GAPI}/${encodeURIComponent(chain[i])}:generateContent`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key() },
-          body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: imageB64 ? 0 : 0.6 } })
-        }, TIMEOUT, outer);
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key() }, body
+        }, opts.best || opts.search ? 60000 : TIMEOUT, outer);
         let j = null; try{ j = await r.json(); }catch(e){}
         if(!r.ok){
           const msg = (j && j.error && j.error.message) || `HTTP ${r.status}`;
@@ -50,7 +62,9 @@ const AI = (() => {
           lastErr = new Error(msg.length > 90 ? msg.slice(0, 90) + '…' : msg); continue;
         }
         const txt = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-        try{ return JSON.parse(txt.replace(/^\s*```(json)?|```\s*$/g, '').trim()); }catch(e){ lastErr = new Error('unreadable answer'); continue; }
+        try{ return JSON.parse(txt.replace(/^\s*```(json)?|```\s*$/g, '').trim()); }catch(e){}
+        try{ const a = txt.indexOf('{'), b = txt.lastIndexOf('}'); if(a !== -1 && b > a) return JSON.parse(txt.slice(a, b + 1)); }catch(e){}   // search answers wrap the JSON in text
+        lastErr = new Error('unreadable answer'); continue;
       }catch(e){
         if(e.fatal) throw e;
         if(outer && outer.aborted) throw cancelled();
@@ -76,11 +90,11 @@ const AI = (() => {
 
   async function ask(prompt, img, onTry, outer, opts){
     count();
-    if(opts && opts.quiet) return call(prompt, img, onTry, outer);   // background jobs (recovery check) stay invisible
+    if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
     if(!B.jobs){ B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
-    try{ const r = await call(prompt, img, onTry, ctl.signal); ok = true; return r; }
+    try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);
       if(!B.jobs){ B.defer = true; setTimeout(() => { B.defer = false;
         if(!ok){ bubble('hide'); B.was.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); return; }   // failed or cancelled: put things back
@@ -98,7 +112,7 @@ const AI = (() => {
   }
 
   return {
-    ask, hasKey: () => !!key(), listModels, testKey,
+    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },
@@ -107,13 +121,13 @@ const AI = (() => {
 
 const gemini = AI.ask;
 
-// photos for the AI: at most 1600 px, JPEG
-function shrink(file){
+// photos for the AI: at most 1600 px, JPEG (receipts: up to 3072 px at high quality, so small print stays sharp)
+function shrink(file, max, q){
   return new Promise((res, rej) => {
     const img = new Image(), url = URL.createObjectURL(file);
-    img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas');
+    img.onload = () => { const s = Math.min(1, (max || 1600) / Math.max(img.width, img.height)); const c = document.createElement('canvas');
       c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85).split(',')[1]); };
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q || 0.85).split(',')[1]); };
     img.onerror = () => rej(new Error('photo')); img.src = url;
   });
 }

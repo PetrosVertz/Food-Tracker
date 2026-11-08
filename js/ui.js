@@ -320,7 +320,7 @@ function fixNum(inp){
 const haptic = () => Phone.haptic();
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan') stopScan(); if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
   if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => el.classList.remove('closing'), 200); } }
 
 function open(id){

@@ -149,6 +149,7 @@ $('barcodePhoto').addEventListener('change', async e => {
   try{
     const det = await Phone.barcodeReader(); const bmp = await createImageBitmap(file);
     const hit = (await det.detect(bmp)).map(r => r.rawValue).find(c => validGTIN(c));
+    if(hit && scanCtx === 'fridge' && SHOP.scan){ status($('scanStatus'), ''); shopAddCode(hit); return; }
     if(hit){ stopScan(); lookup(hit); } else status($('scanStatus'), t('noCodeInPhoto'), true);
   }catch(err){ status($('scanStatus'), t('photoFail'), true); }
 });
@@ -158,6 +159,7 @@ $('lookupBtn').addEventListener('click', async () => {
   if(!c){ toast(t('typeCodeFirst')); $('manualCode').focus(); return; }
   if(c.length < 8){ toast(t('codeShort')); return; }
   if(!validGTIN(c) && !(await ask(t('codeInvalid')))) return;
+  if(scanCtx === 'fridge' && SHOP.scan){ $('manualCode').value = ''; shopAddCode(c); return; }   // typed codes join the list too
   stopScan(); lookup(c);
 });
 
@@ -404,6 +406,8 @@ $('itemPhoto').addEventListener('change', async () => {
 Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml.`, img);
     if(!d || !d.name || d.protein == null) throw new Error('not recognised');
     if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; } if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
+    if(ctx === 'fridge' && SHOP.scan){ const f = saveOnlineFood({ ...d, source: 'item photo' }), x = shopItem({ scans: 1 }); shopSetFood(x, f); SHOP.items.push(x);
+      SHOP.scan = null; close('ovScan'); scanCtx = null; renderAll(); shopReview(); return; }   // the photographed item joins the review list
     close('ovScan'); scanCtx = null;
     if(ctx === 'log' || ctx === 'fridge'){ const f = saveOnlineFood({ ...d, source: 'item photo' }); renderAll(); if(ctx === 'log') openAmt({ mode: 'log', info: fInfo_(f) }); else openFridgeAdd(f); toast(t('scanSaved')); return; }
     d.source = 'item photo'; openForm(d, t('theItemPhoto'), 'new');

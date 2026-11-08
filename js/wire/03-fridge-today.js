@@ -27,8 +27,6 @@ $('fSearch').addEventListener('input', renderFridge);
 
 $('fLoc').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; ui.floc = b.dataset.v; saveUI(); renderFridge(); });
 
-$('fAlerts').addEventListener('click', e => { if(e.target.closest('[data-cookup]')){ go('meals'); setTimeout(() => openCook(null, 'new'), 80); } });
-
 $('fList').addEventListener('click', e => {
   const pm = e.target.closest('[data-minus],[data-plus]'); if(pm){ stepPack(pm); return; }
   const c = e.target.closest('[data-fid]'); if(!c) return; const it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
@@ -43,27 +41,21 @@ $('faPacks').addEventListener('click', e => { const b = e.target.closest('[data-
 
 document.querySelectorAll('#faLoc button').forEach(b => b.addEventListener('click', () => {
   FA.loc = b.dataset.v; setSeg('#faLoc', FA.loc);
-  if(FA.expAuto && FA.food){ $('faExp').value = addDays(todayKey(), defaultDays(FA.food, FA.loc)); $('faExpHint').textContent = t('expAuto', { w: t(LOC_KEY[FA.loc]).toLowerCase() }); }
-  if(FA.meal && FA.loc === 'freezer' && FA.expAuto !== false){ $('faExp').value = addDays(todayKey(), 90); }
 }));
-
-$('faNoExp').addEventListener('click', () => setNoExp(!FA.noExp));
-
-$('faExp').addEventListener('input', () => { FA.expAuto = false; $('faExpHint').textContent = ''; });
-
-$('faExpQuick').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if(!b) return; setNoExp(false); $('faExp').value = addDays(todayKey(), +b.dataset.d); FA.expAuto = false; $('faExpHint').textContent = ''; });
 
 $('faSave').addEventListener('click', () => {
   const amt = num('faAmt'), n = Math.max(1, Math.round(num('faCount') || 1));
   if(!(amt > 0)){ toast(t('needAmount')); return; }
-  const exp = FA.noExp ? null : ($('faExp').value || null);
   if(FA.food){ const f = foods.find(x => x.id === FA.food.id); if(f){ f.minStock = num('faMin') || null; f.noAutoGrocery = !$('faAuto').checked; saveFoods(); } }
   if(FA.mode === 'new'){
-    addToFridge({ foodId: FA.food.id, qty: r1(amt * n), packSize: n === 1 ? amt : null, unit: FA.food.unit, loc: FA.loc, exp, expAuto: !!FA.expAuto });
-    close('ovFAdd'); renderAll();
+    // 0.7: n packs are n separate packs (they stack into one row), and the pack size + count are remembered for next time
+    for(let i = 0; i < n; i++) addToFridge({ foodId: FA.food.id, qty: r1(amt), packSize: r1(amt), unit: FA.food.unit, loc: FA.loc });
+    learnPack(FA.food.id, amt, n); close('ovFAdd'); renderAll();
     toast(t('addedFridge', { l: t(LOC_KEY[FA.loc]).toLowerCase(), i: iconOf(FA.food) || '' }), t('scanNext'), () => startScan('fridge'));
   } else {
-    const it = fridge.find(x => x.id === FA.item.id); if(it){ it.qty = r1(amt); it.loc = FA.loc; it.exp = exp; it.expAuto = !!FA.expAuto && !!exp; }
+    const it = fridge.find(x => x.id === FA.item.id);
+    if(it){ if(it.qtyGuess && it.foodId){ fridge.filter(x => x.foodId === it.foodId && x.qtyGuess).forEach(x => { x.qty = x.packSize = r1(amt); delete x.qtyGuess; }); learnPack(it.foodId, amt); }   // fixing a guessed pack fixes it for next time too
+      it.qty = r1(amt); it.loc = FA.loc; delete it.exp; delete it.expAuto; delete it.qtyGuess; }
     saveFridge(); if(it && it.foodId) checkRestock(it.foodId); close('ovFAdd'); renderAll(); toast(t('updated'));
   }
 });
@@ -139,23 +131,13 @@ $('gSugg').addEventListener('click', e => {
 
 document.getElementById('pgGroc').addEventListener('click', e => {
   const g = grocById(e.target);
-  if(g && e.target.closest('[data-tick]')){ g.done = !g.done; g.doneAt = new Date().toISOString(); Phone.vibrate(20); saveGroc(); renderAll(); return; }
+  if(g && e.target.closest('[data-tick]')){ Phone.vibrate(20); grocTick(g); return; }   // 0.7: ticked = in the fridge (unticking takes it back out)
   if(g && e.target.closest('[data-inc]')){ g.count++; saveGroc(); renderGroc(); return; }
   if(g && e.target.closest('[data-dec]')){ if(g.count > 1){ g.count--; saveGroc(); renderGroc(); return; }   // − at 1 takes it off the list (Undo in the toast)
     const i = groc.indexOf(g); groc.splice(i, 1); saveGroc(); renderAll(); toast(t('deleted'), t('undo'), () => { groc.splice(i, 0, g); saveGroc(); renderAll(); }); return; }
   if(g && e.target.closest('[data-del]')){ const i = groc.indexOf(g); groc.splice(i, 1); saveGroc(); renderAll();
     toast(t('deleted', { n: g.name }), t('undo'), () => { groc.splice(i, 0, g); saveGroc(); renderAll(); }); return; }
   if(e.target.closest('#gClear')){ groc = groc.filter(x => !x.done); saveGroc(); renderAll(); return; }
-  if(e.target.closest('#gPutAway')){
-    let n = 0, text = 0;
-    groc.filter(x => x.done).forEach(x => { const f = x.foodId && foods.find(y => y.id === x.foodId);
-      if(!f){ text++; return; }
-      const size = x.size || f.usualPack || (f.piece ? f.piece * 6 : 100), loc = defaultLoc(f);
-      fridge.push({ id: uid(), addedAt: new Date().toISOString(), foodId: f.id, qty: r1(size * x.count), packSize: x.count === 1 ? size : null, unit: f.unit, loc,
-        exp: addDays(todayKey(), defaultDays(f, loc)), expAuto: true }); n++; });
-    groc = groc.filter(x => !x.done); saveFridge(); saveGroc(); renderAll();
-    toast(t('putAwayDone', { n }) + (text ? ' · ' + t('notFoodWarn', { n: text }) : ''), t('tFridge'), () => go('fridge'));
-  }
 });
 
 $('gSend').addEventListener('click', () => { if(!isIOS) return shareList(); if(!ui.scDone) return openShortcutGuide(); runShortcut(); });
@@ -165,21 +147,6 @@ $('gShare').addEventListener('click', shareList);
 $('scDone').addEventListener('change', () => { ui.scDone = $('scDone').checked; saveUI(); renderGroc(); });
 
 $('scTry').addEventListener('click', () => { ui.scDone = true; saveUI(); close('ovShortcut'); renderGroc(); runShortcut(); });
-
-$('useUp').addEventListener('click', async e => {
-  const a = e.target.closest('[data-again]');
-  if(a){ const m = meals.find(x => x.id === a.dataset.again); if(m){ close('ovCook'); setTimeout(() => openCook(m, 'again'), 60); } return; }
-  const pick = e.target.closest('[data-idea]'); if(pick){ $('cName').value = pick.dataset.idea; $('cName').focus(); return; }
-  const b = e.target.closest('#useUpAI'); if(!b || b.disabled) return;
-  b.disabled = true; b.textContent = t('thinking');
-  try{
-    const soon = expiringList().map(x => x.info.name).join(', ');
-    const r = await gemini(`Suggest 3 simple home-cooked dishes (gym-friendly, high protein) that use up these ingredients before they expire: ${soon}. Other foods available: ${liveItems().map(x => x.info.name).slice(0, 30).join(', ')}.
-Write in ${lang === 'el' ? 'Greek' : 'English'}. Return ONLY JSON: {"ideas":[{"name":string,"why":string}]} where "why" is one short line.`, null, (i, n) => { b.textContent = t('cancelRec', { i, n }).replace(/^✕\s*\S+\s*·\s*/, ''); });
-    $('useUpAIOut').innerHTML = (r.ideas || []).slice(0, 3).map(i => `<button data-idea="${esc(i.name)}">✨ ${esc(i.name)}<small>${esc(i.why || '')}</small></button>`).join('');
-    b.remove();
-  }catch(err){ b.disabled = false; b.textContent = t('useUpAI'); $('useUpAIOut').innerHTML = `<small>${esc(err.message)}</small>`; }
-});
 
 // ---------- today's food ----------
 let curDay = todayKey();
@@ -290,7 +257,7 @@ $('planBtn').addEventListener('click', async () => {
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
   const btn = $('planBtn'), di = dayInfo(curDay), tot = dayTotals(curDay), isToday = daysUntil(curDay) === 0;
   planCtl = new AbortController(); const ctl = planCtl; btn.textContent = t('planning'); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
-  const fr = liveItems().map(x => `${x.info.name}: ${fmtSize(x.it.qty, x.info.unit)}${x.it.exp ? `, expires in ${daysUntil(x.it.exp)} days` : ''}`).join('; ');
+  const fr = liveItems().map(x => `${x.info.name}: ${fmtSize(x.it.qty, x.info.unit)}`).join('; ');
   const fl = foods.slice(0, 70).map(f => `${foodName(f)} (${f.kcal}kcal P${f.protein} C${f.carbs} F${f.fat} per 100${f.unit}${f.state === 'uncooked' ? ', weighed raw' : ''})`).join('; ');
   const ml = meals.map(m => `${m.name} (per 100 g cooked: ${m.kcal}kcal P${m.protein} C${m.carbs} F${m.fat})`).join('; ');
   const eaten = (dayLog[curDay] || []).map(e => `${e.time} ${e.name} ${e.amt}${e.unit}`).join('; ');
@@ -302,7 +269,7 @@ Electrolytes so far: sodium ${Math.round(tot.na || 0)} mg (guideline ~2300), pot
 ${workFor(curDay) ? `They are at WORK ${workFor(curDay).from}-${workFor(curDay).to}: meals in that window must be portable and simple; plan a solid meal before and after work.` : 'No work today: proper meals at home are fine.'}
 Already eaten today: ${eaten || 'nothing'} (totals ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)}, C ${Math.round(tot.c)}, F ${Math.round(tot.f)}).
 ${isToday ? `Time now: ${nowHM()}. Only plan meals from now on.` : 'Plan the whole day.'}
-In the fridge/cupboard (use these FIRST, and anything expiring soonest before everything else): ${fr || 'nothing logged'}.
+In the fridge/cupboard (use these FIRST): ${fr || 'nothing logged'}.
 Their saved foods: ${fl || 'none'}.
 Their home-cooked meals: ${ml || 'none'}.
 Carb timing: ${di.type !== 'gym' ? 'spread carbs evenly; protein every 3-4 h.' : di.work === 'legs' || di.work === 'full' ? 'put most carbs in the meals 2-3 h before and within 2 h after the workout.' : di.work === 'cardio' ? 'light carb snack 1-2 h before, normal carbs after; remind to hydrate.' : 'moderate carbs before and after, rest spread out.'}
@@ -312,8 +279,6 @@ Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":stri
       null, (i, n) => { if(planCtl === ctl){ btn.textContent = t('cancelRec', { i, n }); planStat(t('cancelRec', { i, n })); } }, ctl.signal);
     if(!r || !Array.isArray(r.meals) || !r.meals.length) throw new Error('empty plan');
     planFit(r, { k: tg.k - tot.kcal, p: tg.p - tot.p, c: tg.c - tot.c, f: tg.f - tot.f });   // 0.6.5: never over what's left
-    const expNames = new Set(expiringList().map(x => norm(x.info.name)));
-    r.meals.forEach(m => (m.items || []).forEach(it => { it.expiring = expNames.has(norm(it.name)); }));
     plans[curDay] = r; Store.save('plans', plans); renderPlan();
     setTimeout(() => $('planShow').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
@@ -351,7 +316,7 @@ $('realStart').addEventListener('change', () => { profile.realStart = $('realSta
 function stepPack(pm){
   const c = pm.closest('[data-fid]'), it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
   if(pm.hasAttribute('data-plus')){ const { id, addedAt, ...rest } = it; fridge.push({ ...rest, qty: it.packSize, id: uid(), addedAt: new Date().toISOString() }); saveFridge(); }
-  else { const twin = [...fridge].reverse().find(x => x !== it && x.foodId === it.foodId && x.mealId === it.mealId && x.loc === it.loc && x.packSize === it.packSize && (x.exp || '') === (it.exp || '') && Math.abs(x.qty - x.packSize) <= 0.5) || it;
+  else { const twin = [...fridge].reverse().find(x => x !== it && x.foodId === it.foodId && x.mealId === it.mealId && x.loc === it.loc && x.packSize === it.packSize && Math.abs(x.qty - x.packSize) <= 0.5) || it;
     fridge = fridge.filter(x => x !== twin); saveFridge(); if(it.foodId && checkRestock(it.foodId)) toast(t('toList').trim()); }
   renderAll();
 }
