@@ -338,7 +338,7 @@ const todayKey = () => new Date().toLocaleDateString('en-CA');
 
 const suppName = s => (s.qid && QBY[s.qid] && s.name === QBY[s.qid].en) || (s.qid && QBY[s.qid] && s.name === QBY[s.qid].el) ? L(QBY[s.qid]) : s.name;
 
-const suppIcon = s => s.icon || (s.qid && QBY[s.qid] ? QBY[s.qid].icon : '💊');
+const suppIcon = s => `<span class="sic">${svgIcon('capsule', 14, 2)}</span>`;   // 0.6.9.3: the line capsule everywhere
 
 const unitLabel = u => t('u_' + u);
 
@@ -377,7 +377,7 @@ $('supSave').addEventListener('click', () => {
   if(SU.id){ const i = supps.findIndex(x => x.id === SU.id); supps[i] = { ...supps[i], ...rec }; }
   else supps.push({ id: uid(), createdAt: now, ...rec });
   if(!saveSupps()) return;
-  close('ovSupp'); renderAll(); toast(SU.id ? t('updated') : t('saved', { i: rec.icon || '💊' }));
+  close('ovSupp'); renderAll(); toast(SU.id ? t('updated') : t('saved', { i: '' }).trim());
 });
 
 $('supDel').addEventListener('click', () => {

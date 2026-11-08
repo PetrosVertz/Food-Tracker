@@ -91,20 +91,18 @@ function fillFA(food, loc, exp){
 // ---------- groceries ----------
 function renderGroc(){
   const open_ = groc.filter(g => !g.done), done = groc.filter(g => g.done);
-  $('gSendHint').textContent = isIOS ? (ui.scDone ? '' : t('sendHintIos')) : t('sendHintAndroid');
-  $('gSend').textContent = isIOS ? t('sendReminders') : '📲 ' + t('share');
-  $('gShare').classList.toggle('hide', !isIOS);
-  const row = g => { const f = g.foodId && foods.find(x => x.id === g.foodId); const icon = f ? iconOf(f) || '🛒' : '🛒';
-    return `<div class="gitem ${g.done ? 'done' : ''}" data-gid="${g.id}">
-      <button class="box" data-tick>${g.done ? '✓' : ''}</button><span style="font-size:22px">${icon}</span>
-      <div class="gname">${esc(f ? foodName(f) : g.name)}<small>${[g.size ? fmtSize(g.size, g.unit) : '', g.why === 'out' ? t('autoTag') : g.why === 'low' ? t('lowTag') : '', f && f.brand && !f.noBrand ? esc(f.brand) : ''].filter(Boolean).join(' · ')}</small></div>
-      ${g.done ? '' : `<div class="qty"><button data-dec>−</button><b>${g.count}</b><button data-inc>＋</button></div>`}
-      <button class="irm" data-del>✕</button></div>`; };
+  // 0.6.9.3: a supermarket checklist — round tick on the left, the name, the amount on the right; ticked items are
+  // crossed off (a line through, faded) and drop to the Bought section. No emoji, no Share (Add to Reminders comes with the App Store app).
+  const row = g => { const f = g.foodId && foods.find(x => x.id === g.foodId), meta = [g.size ? fmtSize(g.size, g.unit) : '', g.why === 'out' ? t('autoTag') : g.why === 'low' ? t('lowTag') : '', f && f.brand && !f.noBrand ? esc(f.brand) : ''].filter(Boolean).join(' · ');
+    return `<div class="gitem2 ${g.done ? 'done' : ''}" data-gid="${g.id}">
+      <button class="gtick" type="button" data-tick aria-label="${g.done ? t('undo') : 'Bought'}">${g.done ? svgIcon('check', 16, 3) : ''}</button>
+      <div class="gname"><span class="gn">${esc(f ? foodName(f) : g.name)}</span>${meta ? `<small>${meta}</small>` : ''}</div>
+      ${g.done ? `<button class="girm" type="button" data-del aria-label="Remove">${svgIcon('x', 16, 2.2)}</button>` : `<div class="gqty"><button type="button" data-dec aria-label="Less">−</button><b>${g.count}</b><button type="button" data-inc aria-label="More">+</button></div>`}</div>`; };
   $('gList').innerHTML = open_.length ? open_.map(row).join('') : `<div class="empty">${t('emptyGroc')}</div>`;
-  $('gList').style.display = 'flex'; $('gList').style.flexDirection = 'column'; $('gList').style.gap = '8px';
+
   const linked = done.filter(g => g.foodId && foods.some(f => f.id === g.foodId)).length;
   $('gDone').innerHTML = done.length ? `<h3 class="sect"><span>${t('bought', { n: done.length })}</span><button class="linkbtn" id="gClear">${t('clearBought')}</button></h3>
-    <div class="list" style="gap:8px">${done.map(row).join('')}</div>
+    <div class="glist">${done.map(row).join('')}</div>
     ${linked ? `<div class="actions"><button class="btn primary" id="gPutAway">${t('putAway', { n: linked })}</button></div>` : ''}` : '';
 }
 

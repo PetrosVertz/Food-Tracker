@@ -538,9 +538,9 @@ function renderGymPlan(){
     const head = `<div class="daycard ${wd === twd ? 'today' : ''}" data-wd="${wd}">
       <div class="dch"><b>${WD()[wd]}</b><small>${fmtDate(date)}</small>${done ? `<span class="chip ok">✓ ${t('trained')}</span>` : ''}</div>`;
     if(!adv){ const gym = p.tpl && p.tpl !== 'rest';
-      return head + `<div class="seg wpseg"><button data-wpset="gym" class="${gym ? 'on' : ''}">🏋️ ${t('gymL')}</button><button data-wpset="rest" class="${p.tpl === 'rest' ? 'on' : ''}">😴 ${t('restDayS')}</button></div></div>`; }
+      return head + `<div class="seg wpseg"><button data-wpset="gym" class="${gym ? 'on' : ''}">${t('gymL')}</button><button data-wpset="rest" class="${p.tpl === 'rest' ? 'on' : ''}">${t('restDayS')}</button></div></div>`; }
     return head + `
-      <div class="dcrow"><span class="dcl">🏋️</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>😴 ${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${WT_ICON[x.type] || '🏋️'} ${esc(x.name)}</option>`).join('')}</select>
+      <div class="dcrow"><span class="dcl lic">${svgIcon('cartridge', 18, 1.8)}</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
         <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>
       ${p.work ? `<div class="dcrow"><span class="dcl">💼</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm>✕</button></div>`
         : `<button class="linkbtn" data-wadd>${t('addWork')}</button>`}</div>`; }).join('');
@@ -550,12 +550,12 @@ function renderGymPlan(){
 let LIBF = { saved: true, past: false };
 function renderTpls(){
   const saved = tpls.length ? `<div class="list" style="margin-top:6px">${tpls.map(x => { const last = sessions.filter(s => s.tplId === x.id).sort((a, b) => b.start.localeCompare(a.start))[0];
-    return `<div class="card" data-tp="${x.id}"><div class="ficon">${WT_ICON[x.type] || '🏋️'}</div><div class="body">
+    return `<div class="card" data-tp="${x.id}"><div class="ficon lic">${svgIcon('cartridge', 22, 1.8)}</div><div class="body">
       <div class="name">${esc(x.name)}</div><div class="rmeta">${typeLabel_(x.type)} · ${t('nEx', { n: x.exercises.length })}${last ? ' · ' + t('lastDone', { d: fmtDate(last.start) }) : ''}</div>
       <div class="rmeta" style="margin-top:4px">${x.exercises.slice(0, 4).map(e => esc(exName(e.exId))).join(', ')}${x.exercises.length > 4 ? '…' : ''}</div></div>
       <button class="usebtn" data-go-tp>▶</button></div>`; }).join('')}</div>` : `<div class="empty" style="margin-top:6px">${t('libEmpty')}</div>`;
   const past = sessions.slice().sort((a, b) => b.start.localeCompare(a.start));
-  const pastHtml = past.length ? `<div class="list" style="margin-top:6px">${past.map(s => `<div class="card" data-ses="${s.id}"><div class="ficon">${WT_ICON[s.type] || '🏋️'}</div><div class="body">
+  const pastHtml = past.length ? `<div class="list" style="margin-top:6px">${past.map(s => `<div class="card" data-ses="${s.id}"><div class="ficon lic">${svgIcon('workouts', 22, 1.8)}</div><div class="body">
       <div class="name">${esc(s.name)}</div><div class="rmeta">${fmtDate(s.start)} · ${s.mins} min · ${t('nEx', { n: s.exercises.length })}${s.vol ? ' · ' + s.vol.toLocaleString() + ' kg' : ''}</div></div></div>`).join('')}</div>`
     : `<p class="hint">${t('noPast')}</p>`;
   const fold = (k, title, n, body) => `<button class="foldh ${LIBF[k] ? 'open' : ''}" data-fold="${k}"><b>${title}</b><span class="fn">${n}</span><i>⌄</i></button>${LIBF[k] ? `<div class="foldb">${body}</div>` : ''}`;
@@ -638,7 +638,7 @@ function renderTodayRec(){
     if(!active || active.date !== curDay) skip = `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
   else if(days[curDay] && days[curDay].skipped){ lines.push(`<b>${t('gymSkipped')}</b>`); skip = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }   // rest-day calories and macros today
   const ws = isToday ? recoveryWarnings() : [];
-  $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec>🔋 ${w}</div>`).join('')}</div>${skip}</div>` : '';
+  $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip}</div>` : '';
 }
 
 function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;
@@ -726,12 +726,12 @@ function restFit(svg){
 
 // workout template editor: clear rows with labelled steppers
 function drawTpl(){
-  $('tpTypeShow').innerHTML = `${WT_ICON[TP.type] || '🏋️'} <b>${typeLabel_(TP.type)}</b> <button class="linkbtn" id="tpTypeChg">${t('typeChange')}</button>`;
+  $('tpTypeShow').innerHTML = `<b>${typeLabel_(TP.type)}</b> <button class="linkbtn" id="tpTypeChg">${t('typeChange')}</button>`;
   normalizeSS(TP.exercises);
   $('tpList').innerHTML = TP.exercises.map((e, i, all) => { const ex = exById(e.exId), card = isCardio(e.exId), sc = e.ss ? ssColor(all, e.ss) : null;
     const reps = String(e.reps);
     return `<div class="tpcard ${sc ? 'ss' : ''}" data-i="${i}"${sc ? ` style="--ssc:${sc}"` : ''}>${sc ? `<div class="sslbl">${t('superset')}</div>` : ''}<div class="tph">${exIcon(ex, 40)}<div class="ttl"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)}</small></div>
-      <div class="tpb"><button data-demo2 class="formb">▶</button><button data-rm aria-label="Remove">✕</button></div></div>
+      <div class="tpb"><button data-demo2 class="formb" aria-label="${t('formBtn')}">${svgIcon('eye', 18, 2)}</button><button data-rm aria-label="Remove">${svgIcon('x', 18, 2)}</button></div></div>
       <div class="tpsteps"><div class="tps"><small>${t('setsL')}</small><div class="stepper"><button data-sd>−</button><b>${e.sets}</b><button data-su>＋</button></div></div>
       ${card ? `<div class="tps"><small>${t('minLbl')}</small><div class="stepper"><button data-rd>−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru>＋</button></div></div>`
         : `<div class="tps"><small>${t('restL')}</small><div class="stepper"><button data-rsd>−</button><b>${fmtRest(rest30(e.rest))}</b><button data-rsu>＋</button></div></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
@@ -899,8 +899,8 @@ function renderGym(){
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
   if(!sec){
     const rd = groupReadiness(Date.now()), colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, REC_COL[recState(r)]])), low = Object.values(rd).filter(r => r < .8).length;
-    $('gMiniRec').innerHTML = `<div class="rbhead"><b>🔋 ${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady') + ' ✓'}</small>`;
-    $('hubLibSub').textContent = t('hubLibSub', { n: tpls.length });
+    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady') + ' ✓'}</small>`;
+    $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
   }
   renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
   $('gOther').classList.toggle('hide', !!active || !tp || $('gStart').classList.contains('hide'));
@@ -918,7 +918,7 @@ function fridgeGroups(items){
 
 // summary + recovery estimate (offline at once, AI refines it when there's a key)
 function recBlock(ses, r, note){
-  return `<div id="smRec"><h3>🔋 ${t('recEstT')}</h3><p class="hint" style="margin:0">${t('recEstSub')}</p><div class="recest">${Object.entries(r).sort((a, b) => b[1] - a[1]).map(([g, hh]) => `<span class="rchip"><b>${esc(ML(g))}</b> ${hh > 0 ? `~${hh} h` : t('recReadyChip')}</span>`).join('')}</div>
+  return `<div id="smRec"><h3><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('recEstT')}</h3><p class="hint" style="margin:0">${t('recEstSub')}</p><div class="recest">${Object.entries(r).sort((a, b) => b[1] - a[1]).map(([g, hh]) => `<span class="rchip"><b>${esc(ML(g))}</b> ${hh > 0 ? `~${hh} h` : t('recReadyChip')}</span>`).join('')}</div>
     <p class="hint">${note}</p></div>`;
 }
 function showSummary(ses){
@@ -984,11 +984,11 @@ function openBulb(){
   open('ovBulb');
 }
 function drawBulbTypes(){
-  $('blTitle').textContent = '💡 ' + t('blBuildT');
+  $('blTitle').textContent = t('blBuildT');
   const types = [['push', '🫸', 'wPush'], ['pull', '🫷', 'wPull'], ['upper', '💪', 'wUpper'], ['lower', '🦵', 'wLower'], ['full', '🏋️', 'wFull']];
   $('blBody').innerHTML = `<div class="alert" style="cursor:default">${t('blNeedEx')}</div><p class="sub">${t('blPick')}</p>
-    <div class="blchips">${types.map(([k, ic, l]) => `<button class="blchip" data-bt="${k}">${ic} ${t(l)}</button>`).join('')}</div>
-    <p class="sub" style="margin-top:12px">${t('blOrMuscle')}</p><div class="blchips">${BRO.map(([k, l]) => `<button class="blchip" data-bt="${k}">${WT_ICON[k] || '•'} ${t(l)}</button>`).join('')}</div><div id="blPlan"></div>`;
+    <div class="blchips">${types.map(([k, ic, l]) => `<button class="blchip" data-bt="${k}">${t(l)}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:12px">${t('blOrMuscle')}</p><div class="blchips">${BRO.map(([k, l]) => `<button class="blchip" data-bt="${k}">${t(l)}</button>`).join('')}</div><div id="blPlan"></div>`;
 }
 function drawBulbPlan(type){
   const list = buildWorkout(type); BULB = { type, list };

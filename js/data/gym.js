@@ -382,14 +382,14 @@ const EQ_COL = { barbell:'#ff5c5c', dumbbell:'#5ab0ff', machine:'#b388ff', cable
 
 const EQ_ORDER = ['barbell','dumbbell','machine','cable','bodyweight','kettlebell','band'];
 
-const EQ_ICON = {   // 0.6.8: a different shape for each, not just a colour
-  barbell: '<path d="M1 12H23"/><rect x="3.5" y="6" width="3" height="12" rx="1"/><rect x="17.5" y="6" width="3" height="12" rx="1"/>',
-  dumbbell: '<path d="M9 12H15"/><path d="M4.5 8.5L6.5 7L8.5 8.5V15.5L6.5 17L4.5 15.5Z"/><path d="M15.5 8.5L17.5 7L19.5 8.5V15.5L17.5 17L15.5 15.5Z"/>',
-  machine: '<rect x="14" y="3" width="6" height="18" rx="1"/><path d="M14 8H20M14 13H20M3 16H11M5 16V21M10 9V16M5 9H10"/>',
-  cable: '<path d="M4 3H20"/><circle cx="12" cy="7" r="2.6"/><path d="M12 9.6V17.5M8.5 17.5H15.5M8.5 21H15.5"/>',
-  bodyweight: '<circle cx="12" cy="4.5" r="2.2"/><path d="M12 7.5V15M12 15L8 21M12 15L16 21M6 10H18"/>',
-  kettlebell: '<path d="M8.5 9C8.5 4.5 15.5 4.5 15.5 9"/><circle cx="12" cy="15" r="6"/>',
-  band: '<path d="M3 16C7 6 17 6 21 16M3 16C7 11 17 11 21 16"/>' };
+const EQ_ICON = {   // 0.6.9.3: detailed line drawings; bodyweight is just "BW"
+  barbell: '<path d="M1 12h22"/><rect x="2.6" y="7.5" width="2" height="9" rx=".6"/><rect x="5.2" y="5" width="2.4" height="14" rx=".6"/><path d="M8.6 10.3v3.4"/><rect x="16.4" y="5" width="2.4" height="14" rx=".6"/><rect x="19.4" y="7.5" width="2" height="9" rx=".6"/><path d="M15.4 10.3v3.4"/>',
+  dumbbell: '<path d="M5 7.6l3.8 2.2v4.4L5 16.4l-3.8-2.2V9.8z"/><path d="M19 7.6l3.8 2.2v4.4L19 16.4l-3.8-2.2V9.8z"/><path d="M8.8 12h6.4M10.6 10.9v2.2M12 10.9v2.2M13.4 10.9v2.2"/>',
+  machine: '<rect x="16" y="2" width="6" height="20" rx="1"/><path d="M16 6.5h6M16 10.5h6M16 14.5h6M19 14.5v3"/><path d="M3 4h10"/><path d="M5 4v6M11 4v6"/><rect x="3.6" y="9.5" width="2.8" height="5" rx="1.2"/><rect x="9.6" y="9.5" width="2.8" height="5" rx="1.2"/><path d="M5 20h8M9 15v5M8 15h4"/>',
+  cable: '<path d="M4 22V2h11"/><circle cx="15" cy="5" r="2.2"/><path d="M15 7.2V15"/><path d="M12 15h6l-1.2 4h-3.6z"/><path d="M4 8h3M4 11h3M4 14h3M4 17h3"/>',
+  bodyweight: '<text x="12" y="16.2" text-anchor="middle" font-size="10.5" font-weight="700" font-family="Inter,system-ui,sans-serif" fill="currentColor" stroke="none">BW</text>',
+  kettlebell: '<path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M6.5 14a5.5 5.5 0 1 1 11 0c0 2.8-.9 5-1.9 6.5H8.4C7.4 19 6.5 16.8 6.5 14z"/><path d="M9 20.5h6"/>',
+  band: '<path d="M4.5 7c5 5 10 5 15 0"/><path d="M4.5 7c4 10 11 10 15 0"/><rect x="1.5" y="4.5" width="3.2" height="5" rx="1.2"/><rect x="19.3" y="4.5" width="3.2" height="5" rx="1.2"/>' };
 
 const SYN = { db: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', ohp: 'overhead press', 'pull-up': 'pullup', 'pull-ups': 'pullup', 'chin-up': 'chinup', pullups: 'pullup', rdl: 'romanian deadlift', 'push-up': 'pushup', 'push-ups': 'pushup', pushups: 'pushup', 'sit-up': 'situp', flyes: 'fly', flye: 'fly', flies: 'fly', raises: 'raise', curls: 'curl', presses: 'press', rows: 'row', extensions: 'extension', 'skull': 'skullcrusher', lunges: 'lunge', squats: 'squat', dips: 'dip', 'kickbacks': 'kickback', 'pulldown': 'pulldown', 'pull-down': 'pulldown' };
 

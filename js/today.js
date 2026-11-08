@@ -74,7 +74,7 @@ function mealTotals(rows){
 function elecHtml(tot){
   const row = (lbl, v, tgt, col) => { const pct = Math.round(v / tgt * 100), hi = lbl === t('sodium') && pct > 100, hit = lbl === t('potassium') && pct >= 100;
     return `<div class="mrow" style="--bar:${hi ? 'var(--orange)' : hit ? 'var(--ok)' : col}"><small>${lbl}</small><span class="mbar"><i style="width:${Math.min(100, pct)}%;background:var(--bar)"></i></span><span><b>${ui.elecMg ? Math.round(v).toLocaleString() + ' mg' : pct + '%'}</b>${hi ? `<small> ${t('elecHigh')}</small>` : ''}</span></div>`; };
-  return `<div class="elec" data-elec><div class="row"><small class="rmeta">⚡ ${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
+  return `<div class="elec" data-elec><div class="row"><small class="rmeta">${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
 }
 
 function remainingToday(){ const tg = targetFor(todayKey()); if(!tg) return null; const tot = dayTotals(todayKey());
@@ -186,16 +186,31 @@ function lwAdd(st){
   LW.added.push(added); LW.open = null; lwChips(); renderAll(); drawLog();
   toast(t('logged', { n: info.name }) + ` · ${added.kcal} kcal` + extra, t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); LW.added = LW.added.filter(x => x !== added); saveLog(); lwChips(); renderAll(); });
 }
-function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(e.name)} · ${e.kcal}</span>`).join(''); }
+function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(bareName(e.name))} · ${e.kcal}</span>`).join('') +
+  (LW.added.length >= 2 ? (LW.naming ? `<span class="lcombo"><input id="lComboName" placeholder="${t('comboPh')}" autocomplete="off"><button type="button" class="lwdone" id="lComboSave">${t('save')}</button></span>` : `<button type="button" class="lsave" id="lComboBtn">${svgIcon('plus', 14, 2.4)}${t('comboSave')}</button>`) : ''); }
+
+// ---------- combos (0.6.9.3): the same few foods you often eat together, logged in one tap ("My breakfast") ----------
+let combos = Store.load('combos', []);
+const saveCombos = () => Store.save('combos', combos);
+function comboKcal(c){ return Math.round(c.items.reduce((a, e) => a + (+e.kcal || 0), 0)); }
+function comboFromEntries(name, list){
+  const c = { id: uid(), name: name.trim(), items: list.map(e => Object.fromEntries(Object.entries(e).filter(([k]) => k !== 'id' && k !== 'time'))), at: new Date().toISOString() };
+  combos.unshift(c); saveCombos(); return c; }
+function logCombo(c){ const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = c.items.map(e => ({ ...e, id: uid(), time: tm }));
+  dayLog[day] = (dayLog[day] || []).concat(added); saveLog(); LW.added.push(...added); lwChips(); renderAll(); drawLog();
+  toast(t('comboLogged', { n: c.name, k: comboKcal(c) }), t('undo'), () => { const ids = new Set(added.map(z => z.id)); dayLog[day] = (dayLog[day] || []).filter(z => !ids.has(z.id)); LW.added = LW.added.filter(z => !ids.has(z.id)); saveLog(); lwChips(); renderAll(); }); }
+const comboRow = (c, i) => `<div class="lrow combo" data-combo="${i}"><div class="lrh"><button class="lrn" type="button" data-copen><span class="nm">${esc(c.name)}</span><small class="ls">${t('comboSub', { n: c.items.length, k: comboKcal(c) })}</small></button><button class="lplus" type="button" data-cplus aria-label="${t('lwUsual')}">+</button></div>
+  ${LW.copen === i ? `<div class="lpn"><div class="cmlist">${c.items.map(e => `<div><span>${esc(bareName(e.name))}</span><small>${fmtSize(e.amt, e.unit)} · ${Math.round(e.kcal)} kcal</small></div>`).join('')}</div><button type="button" class="linkbtn danger" data-cdel>${t('comboDel')}</button></div>` : ''}</div>`;
 function drawLog(){
   const q = $('lSearch').value.trim();
   if(LW.q !== q){ LW.rows = {}; LW.open = null; LW.q = q; }
   let h = '';
   if(!q){
     LS.recent = usuals(); const ids = LS.recent.map((e, i) => i);
+    if(combos.length) h += `<div class="lgrp">${t('comboT')}</div>` + combos.map(comboRow).join('');
     if(LS.recent.length && LS.hourN) h += `<div class="lgrp">🕒 ${t('lwHour')}</div>` + ids.slice(0, LS.hourN).map(i => lwRow('rc', i)).join('') + (LS.recent.length > LS.hourN ? `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.slice(LS.hourN).map(i => lwRow('rc', i)).join('') : '');
     else if(LS.recent.length) h += `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.map(i => lwRow('rc', i)).join('');
-    else h = `<div class="hint">${t('typeToSearch')}</div>`;
+    else if(!combos.length) h = `<div class="hint">${t('typeToSearch')}</div>`;
   } else {
     const s = searchLocal(q, false, { log: true, meals: true }); LS.meals = s.meals; LS.mine = s.mine; LS.std = s.std;
     const local = LS.meals.length + LS.mine.length + LS.std.length, onl = LOGON.q === q && LOGON.res.length;
@@ -224,7 +239,7 @@ function openAmt(o){
   AM = o;
   const info = o.mode === 'use' ? itemInfo(o.item) : o.mode === 'editlog' ? (infoOfEntry(o.entry) || { name: o.entry.name, icon: o.entry.icon, unit: o.entry.unit, per: { kcal: o.entry.kcal / o.entry.amt * 100, protein: o.entry.p / o.entry.amt * 100, carbs: o.entry.c / o.entry.amt * 100, fat: o.entry.f / o.entry.amt * 100 } }) : o.info;
   if(!info) return; AM.info = info;
-  $('amTitle').textContent = o.mode === 'use' ? t('useT', { n: info.name }) : `${info.icon} ${info.name}`;
+  $('amTitle').textContent = o.mode === 'use' ? t('useT', { n: info.name }) : bareName(info.name);
   $('amSub').textContent = o.mode === 'use' ? t('useSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }) : (o.mode === 'editlog' ? t('edit') : t('logFood'));
   const chips = [];
   if(info.piece && info.pw) [1, 2, 3].forEach(n => chips.push([n * info.piece, `${n} ${n === 1 ? W(info.pw) : WS(info.pw)}`]));
@@ -250,7 +265,7 @@ function openAmt(o){
     if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amUnits(o); amRes(); }   // your usual amount, in the unit it fits
     const stock = info.meal ? mealStock(info.meal.id) : info.food ? stockOf(info.food.id) : 0;
     $('amFridgeTxt').textContent = t('fromFridge', { s: fmtAmt(stock, info) }); $('amFridge').checked = true;
-    $('amTitle').innerHTML = `${info.icon} ${esc(info.name)} ${stTag((info.food || {}).state)}`;
+    $('amTitle').innerHTML = `${esc(bareName(info.name))} ${stTag((info.food || {}).state)}`;
   }
   if(o.mode === 'use'){ $('amLog').checked = false; $('amLogWrap').classList.add('hide'); $('amTimeRow').classList.add('hide');
     $('amTitle').textContent = t('takeOutT', { n: info.name }); $('amSub').textContent = t('takeOutSub') + ' · ' + t('left', { a: fmtAmt(o.item.qty, info) }); }
@@ -272,8 +287,12 @@ function amUnits(o){
   // start in the unit the amount fits best: whole slices / packs / plates, else grams
   let i = 0; if(g > 0) u.forEach((x, j) => { if(j && i === 0){ const n = g / x.size; if(n >= .5 && Math.abs(n - Math.round(n * 2) / 2) < .03) i = j; } });
   else if(u.length > 1 && u[1].k === 'pc') i = 1;
-  AM.u = i; $('amU').innerHTML = u.map(x => `<option value="${x.k}">${esc(x.l)}</option>`).join(''); $('amU').selectedIndex = i; syncSel($('amU'));
+  AM.u = i; $('amU').innerHTML = u.map(x => `<option value="${x.k}">${esc(x.l)}</option>`).join(''); $('amU').selectedIndex = i; syncSel($('amU')); amDD();
 }
+// 0.6.9.3: the same custom unit list as Log Food — portion + weight on the left, its calories on the right
+function amDD(){ if(!AM || !AM.units) return; const per = AM.info.per, lbl = x => x.k === 'g' ? (x.l === 'ml' ? 'ml' : lang === 'el' ? 'Γραμμάρια' : 'Grams') : `${x.l} (${fmtSize(x.size, AM.info.unit)})`;
+  $('amDDL').textContent = lbl(AM.units[AM.u] || AM.units[0]);
+  $('amDDM').innerHTML = AM.units.map((x, j) => `<button type="button" class="ldo ${j === AM.u ? 'on' : ''}" data-amu="${j}" role="option"><span>${esc(lbl(x))}</span><span>${macrosFor(per, x.k === 'g' ? 100 : x.size).kcal} kcal${x.k === 'g' ? ' / 100 ' + (AM.info.unit || 'g') : ''}</span></button>`).join(''); }
 function amFromN(){ const u = AM.units[AM.u] || { size: 1 }, n = num('amN'); $('amAmt').value = n > 0 ? r1(n * u.size) : ''; AM.typing = true; amRes(); AM.typing = false; }
 
 // 0.5.9 Quick add: one box. Built-in foods / dishes with a normal portion first, then the AI for mixed dishes.

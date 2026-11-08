@@ -98,7 +98,7 @@ function weightChart(){
 
 // compact weigh-in under the chart
 function drawWeigh(){
-  const tr = weightTrend(), tk = todayKey(); $('wiIn').value = weights[tk] ? bwOut(weights[tk]) : ''; $('wiIn').placeholder = bwOut((targets && targets.bw) || 75);
+  const tr = weightTrend(), tk = todayKey(); $('wiU').textContent = bwU(); $('wiIn').value = weights[tk] ? bwOut(weights[tk]) : ''; $('wiIn').placeholder = bwOut((targets && targets.bw) || 75);
   const ch = $('gWChart'); if(ch) ch.innerHTML = weightChart();
   if(!tr){ $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiNeed')}</p>`; return; }
   const a = weighAdvice(tr), pw = UN().w === 'lb' ? tr.perWeek * LB : tr.perWeek, sg = (pw >= 0 ? '+' : '') + pw.toFixed(2);

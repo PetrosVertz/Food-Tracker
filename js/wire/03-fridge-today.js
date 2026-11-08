@@ -77,7 +77,9 @@ $('faDel').addEventListener('click', () => {
 });
 
 $('amN').addEventListener('input', amFromN);
-$('amU').addEventListener('change', () => { AM.u = $('amU').selectedIndex; if(!(num('amAmt') > 0)){ $('amN').value = 1; amFromN(); } else amRes(); });
+$('amU').addEventListener('change', () => { AM.u = $('amU').selectedIndex; if(!(num('amAmt') > 0)){ $('amN').value = 1; amFromN(); } else amRes(); amDD(); });
+$('amDDB').addEventListener('click', () => $('amDDM').classList.toggle('hide'));
+$('amDDM').addEventListener('click', e => { const b = e.target.closest('[data-amu]'); if(!b) return; $('amU').selectedIndex = +b.dataset.amu; $('amDDM').classList.add('hide'); $('amU').dispatchEvent(new Event('change')); });
 
 $('amQuick').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b){ $('amAmt').value = b.dataset.v; amUnits(AM); amRes(); } });
 
@@ -139,7 +141,8 @@ document.getElementById('pgGroc').addEventListener('click', e => {
   const g = grocById(e.target);
   if(g && e.target.closest('[data-tick]')){ g.done = !g.done; g.doneAt = new Date().toISOString(); Phone.vibrate(20); saveGroc(); renderAll(); return; }
   if(g && e.target.closest('[data-inc]')){ g.count++; saveGroc(); renderGroc(); return; }
-  if(g && e.target.closest('[data-dec]')){ g.count = Math.max(1, g.count - 1); saveGroc(); renderGroc(); return; }
+  if(g && e.target.closest('[data-dec]')){ if(g.count > 1){ g.count--; saveGroc(); renderGroc(); return; }   // − at 1 takes it off the list (Undo in the toast)
+    const i = groc.indexOf(g); groc.splice(i, 1); saveGroc(); renderAll(); toast(t('deleted'), t('undo'), () => { groc.splice(i, 0, g); saveGroc(); renderAll(); }); return; }
   if(g && e.target.closest('[data-del]')){ const i = groc.indexOf(g); groc.splice(i, 1); saveGroc(); renderAll();
     toast(t('deleted', { n: g.name }), t('undo'), () => { groc.splice(i, 0, g); saveGroc(); renderAll(); }); return; }
   if(e.target.closest('#gClear')){ groc = groc.filter(x => !x.done); saveGroc(); renderAll(); return; }
@@ -200,15 +203,29 @@ $('targetsBtn').addEventListener('click', openTargets);
 $('dLog').addEventListener('click', e => { const c = e.target.closest('[data-eid]'); if(!c) return; const en = (dayLog[curDay] || []).find(x => x.id === c.dataset.eid); if(!en) return;
   if(en.kind === 'quick') openQuick(en); else openAmt({ mode: 'editlog', entry: en, date: curDay }); });
 
-$('copyYesterday').addEventListener('click', () => {
+// 0.6.9.3: the circular arrows on the Eaten header (only while today is empty) copy yesterday's food in, with Undo
+$('copyYesterday').addEventListener('click', e => {
+  e.preventDefault(); e.stopPropagation();   // it sits in the header; don't fold the list
   const y = dayLog[addDays(curDay, -1)] || []; if(!y.length){ toast(t('nothingYesterday')); return; }
-  dayLog[curDay] = (dayLog[curDay] || []).concat(y.map(e => ({ ...e, id: uid() }))); saveLog(); renderAll(); toast(t('copiedDay', { n: y.length }));
+  const day = curDay, added = y.map(z => ({ ...z, id: uid() }));
+  dayLog[day] = (dayLog[day] || []).concat(added); saveLog(); renderAll();
+  toast(t('copiedDay', { n: y.length }), t('undo'), () => { const ids = new Set(added.map(z => z.id)); dayLog[day] = (dayLog[day] || []).filter(z => !ids.has(z.id)); saveLog(); renderAll(); });
 });
 
 
 $('lSearch').addEventListener('input', drawLog);
 
+$('lAdded').addEventListener('click', e => {
+  if(e.target.closest('#lComboBtn')){ LW.naming = true; lwChips(); setTimeout(() => $('lComboName') && $('lComboName').focus(), 50); return; }
+  if(e.target.closest('#lComboSave')){ const n = ($('lComboName').value || '').trim(); if(!n){ $('lComboName').focus(); return; }
+    const c = comboFromEntries(n, LW.added); LW.naming = false; LW.added = []; lwChips(); drawLog(); toast(t('comboSaved', { n: c.name })); }
+});
+$('lAdded').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.id === 'lComboName') $('lComboSave').click(); });
 $('lResults').addEventListener('click', e => {
+  const cr = e.target.closest('[data-combo]'); if(cr){ const i = +cr.dataset.combo, c = combos[i]; if(!c) return;
+    if(e.target.closest('[data-cplus]')) return logCombo(c);
+    if(e.target.closest('[data-cdel]')){ combos.splice(i, 1); saveCombos(); LW.copen = null; drawLog(); toast(t('deleted'), t('undo'), () => { combos.splice(i, 0, c); saveCombos(); drawLog(); }); return; }
+    if(e.target.closest('[data-copen]')){ LW.copen = LW.copen === i ? null : i; drawLog(); } return; }
   if(e.target.closest('#lOnline')){ runLogOnline($('lSearch').value.trim()); return; }
   const dy = e.target.closest('[data-dym]'); if(dy){ $('lSearch').value = dy.dataset.dym; $('lSearch').dispatchEvent(new Event('input')); return; }
   if(e.target.closest('#lTakeaway')){ const q = $('lSearch').value.trim(); close('ovLog'); openQuick(); $('qaName').value = q; return; }

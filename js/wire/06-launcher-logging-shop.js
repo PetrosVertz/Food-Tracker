@@ -25,6 +25,7 @@ const WD1 = () => [1, 2, 3, 4, 5, 6, 0];
 $('suBody').addEventListener('click', e => {
   const L2 = e.target.closest('[data-sulang]'); if(L2){ lang = L2.dataset.sulang; ui.lang = lang; saveUI(); applyLang(); route(); drawSetup(); return; }
   const g = e.target.closest('#suGoal [data-v]'); if(g){ SUP.goal = g.dataset.v; setSeg('#suGoal', SUP.goal); return; }
+  const us = e.target.closest('#suUse [data-v]'); if(us){ SUP.use = us.dataset.v; setSeg('#suUse', SUP.use); return; }
   const gd = e.target.closest('[data-sugym]'); if(gd){ readSetup(); const d = +gd.dataset.sugym; SUP.gym.has(d) ? SUP.gym.delete(d) : SUP.gym.add(d); drawSetup(); return; }
   const wd = e.target.closest('[data-suwd]'); if(wd){ readSetup(); const d = +wd.dataset.suwd; SUP.workDays.has(d) ? SUP.workDays.delete(d) : SUP.workDays.add(d); drawSetup(); return; }
   if(e.target.closest('#suGetKey')){ const gk = $('getKey'); if(gk) gk.click(); return; }
@@ -145,7 +146,7 @@ document.querySelectorAll('#pgLaunch .bubble').forEach(b => b.addEventListener('
 
 $('suAgainBtn').addEventListener('click', () => { close('ovSettings'); openSetup(); });
 
-history.replaceState(null, '', '#today'); NAV = ['today']; NAVI = 0;   // the app always opens on Today's food
+applyTabOrder(); history.replaceState(null, '', homeHash()); NAV = [homeHash().slice(1)]; NAVI = 0;   // the app opens on the first tab (Today's Food, or Gym Buddy for mainly-gym use)
 
 // Setup: male / female
 document.addEventListener('click', e => { const b = e.target.closest('#suSex [data-v]'); if(!b) return; readSetup(); SUP.sex = b.dataset.v; setSeg('#suSex', SUP.sex); });

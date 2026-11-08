@@ -138,7 +138,7 @@ if(!ui.seedClean053){
   tpls = tpls.filter(x => !(seedNames.has(x.name) && !used.has(x.id))); saveG('tpl'); ui.seedClean053 = true; saveUI();
 }
 
-const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${EQ_COL[e] || '#8b949c'}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
+const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${EQ_COL[e] || '#8b949c'}" style="color:${EQ_COL[e] || '#8b949c'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
 
 $('pkBody').addEventListener('click', e => {
   const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopPropagation(); PK.group = HEADS[hh.dataset.hh][2]; PK.head = hh.dataset.hh; PK.eq = null; drawExPick(); return; }

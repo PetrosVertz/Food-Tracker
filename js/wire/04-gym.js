@@ -86,7 +86,7 @@ $('sesBody').addEventListener('click', e => {
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
     if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
     saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-replace]')){ openExPick(id => { const nx = exById(id); x.exId = id; x.rest = nx.rest; x.reps = isCardio(id) ? '20' : defReps(nx.rest); x.volPR = false; if(isUni(id) !== !!x.uni) makeUni(x, isUni(id)); saveG('act'); renderSession(); }); return; }
+  if(e.target.closest('[data-replace]')) return openSwap(xi);   // 0.6.9.3: the same Swap menu as inside the open exercise
   if(e.target.closest('[data-ok]') && s){ tickSet(x, s, row, xi, +row.dataset.s); return; }
   if(e.target.closest('[data-addset]')){ if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
   if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || z.w !== '' || z.r !== ''); delete active.cur; saveG('act'); renderSession();
@@ -225,12 +225,13 @@ $('gStart').addEventListener('click', () => {
   const pl = planFor(todayKey()), planned = pl && pl.tpl && tpls.find(x => x.id === pl.tpl); if(planned && !pick) return startSession(planned);   // a planned day starts straight away
   if(!tpls.length) return startSession(null);   // nothing saved yet: straight into an empty workout
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
-  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="sitem" data-st="${x.id}"><span class="e">${x === tp ? '⭐' : '🏋️'}</span><span class="t"><b>${esc(x.name)}</b><small>${t('nEx', { n: x.exercises.length })}</small></span></button>`).join('') +
-    `<button class="sitem" data-st=""><span class="e">➕</span><span class="t"><b>${t('emptyWorkout')}</b></span></button>`;
+  // Saved Workouts (0.6.9.3): a cartridge for each, the name in slanted capitals; Start Empty Workout underneath
+  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${svgIcon('cartridge', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span></button>`).join('');
   open('ovStart');
 });
 
 $('stList').addEventListener('click', e => { const b = e.target.closest('[data-st]'); if(b) startSession(tpls.find(x => x.id === b.dataset.st) || null); });
+$('stEmpty').addEventListener('click', () => startSession(null));
 
 $('gTplV').addEventListener('click', e => {
   if(e.target.closest('#tpNew')) return openTpl(null);

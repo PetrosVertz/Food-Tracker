@@ -4,7 +4,21 @@ const ICON = {
   gym: '<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
   food: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
   fridge: '<rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/>',
-  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+  settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',   // 0.6.9.3: a real gear (the rays looked like a sun)
+  workouts: '<g transform="rotate(-45 12 12)"><path d="M7.5 12h9"/><rect x="4" y="7.5" width="3.5" height="9" rx="1"/><rect x="16.5" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10.5v3M22 10.5v3"/></g>',
+  progress: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/>',
+  bolt: '<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/>',
+  dial: '<circle cx="12" cy="12" r="5.6"/><path d="M12 12l2.6-2.9"/><path d="M5.21 18.79h.01M2.40 12.00h.01M5.21 5.21h.01M12.00 2.40h.01M18.79 5.21h.01M21.60 12.00h.01M18.79 18.79h.01" stroke-width="2.6"/>',
+  capsule: '<g transform="rotate(-45 12 12)"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></g>',
+  cartridge: '<path d="M5 3.5A1.5 1.5 0 0 1 6.5 2h11A1.5 1.5 0 0 1 19 3.5V18l-2 2v2H7v-2l-2-2z"/><rect x="8" y="5.5" width="8" height="7" rx="1"/><path d="M9.5 18.5v1.5M12 18.5v1.5M14.5 18.5v1.5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  again: '<path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3M19 4v5h-5M5 20v-5h5"/>',
+  scale: '<rect x="3" y="3.5" width="18" height="17" rx="4"/><path d="M7.5 9.5a6 6 0 0 1 9 0"/><path d="M12 10.5l1.6-2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/>',
   back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>',
 };
@@ -51,6 +65,15 @@ function drawTheme(){
   $('thSw').innerHTML = THEMES.map(x => `<button type="button" data-preset="${x[0]}" class="${x[0] === p[0] ? 'on' : ''}" style="--sw:${L ? x[4] : x[2]}" aria-label="${x[1]}" aria-pressed="${x[0] === p[0]}"><i></i><span>${x[1]}</span></button>`).join('');
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
+// ---------- 0.6.9.3: what the app is used for — "mainly gym work" puts Gym Buddy first (nothing is hidden) ----------
+function applyTabOrder(){
+  const order = ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge'];
+  TABS3.splice(0, TABS3.length, ...order);
+  const bar = $('rail'); if(bar){ const set = bar.querySelector('[data-tab="settings"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, set); }); }
+  if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
+  if(typeof pillsAll === 'function') pillsAll();
+}
+const homeHash = () => '#' + TAB_ROOT[TABS3[0]];
 function setTheme(ch){ ui.theme = { ...(ui.theme || {}), ...ch }; saveUI(); applyTheme(); drawTheme(); if(location.hash.slice(1) === 'gym-rec' && typeof renderRecovery === 'function') renderRecovery(); }
 try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if(themeNow().mode === 'auto') setTheme({}); }); }catch(e){}
 
@@ -174,7 +197,7 @@ function switchTab(dir, toTab){
 
 function route(){
   let h = location.hash.slice(1);
-  if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : '#today'); }
+  if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   $('pgLaunch').classList.add('hide'); $('tabbar').classList.add('hide');
   h = location.hash.replace('#','');   // re-read: the start page may have just switched it
   const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
@@ -202,7 +225,7 @@ function route(){
 function openSetup(){
   const tg = targets || {}; const gymDays = Object.entries(gymPlan).filter(([, p]) => p && p.tpl && p.tpl !== 'rest').map(([wd]) => +wd);
   const workDays = Object.entries(gymPlan).filter(([, p]) => p && p.work).map(([wd]) => +wd), w0 = workDays.length ? gymPlan[workDays[0]].work : { from: '09:00', to: '17:00' };
-  SUP = { step: 0, lang: lang, bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: profile.gymTime || '18:00',
+  SUP = { step: 0, lang: lang, use: ui.gymFirst ? 'gym' : 'both', bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: profile.gymTime || '18:00',
     work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: profile.sex || null, h: profile.height || '' };
   drawSetup(); open('ovSetup');
 }
@@ -210,7 +233,8 @@ function openSetup(){
 function drawSetup(){
   const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
   let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
-  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>`;
+  const useSeg = `<label style="margin-top:16px">${t('suUse')}</label><div class="seg" id="suUse"><button data-v="both" class="${SUP.use !== 'gym' ? 'on' : ''}">${t('useBoth')}</button><button data-v="gym" class="${SUP.use === 'gym' ? 'on' : ''}">${t('useGym')}</button></div>`;
+  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>` + useSeg;
   if(s === 1) h += `<h2>${t('suAbout')}</h2><label>${t('suSex')}</label><div class="seg" id="suSex"><button data-v="m" class="${SUP.sex === 'm' ? 'on' : ''}">${t('suMale')}</button><button data-v="f" class="${SUP.sex === 'f' ? 'on' : ''}">${t('suFemale')}</button></div>
     <label for="suH">${t('suHeight')}</label><div class="brandrow"><input id="suH" type="number" inputmode="numeric" value="${SUP.h || ''}" placeholder="178" style="flex:1"><span style="color:var(--muted)">cm</span></div><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
     <label>${t('suGoal')}</label><div class="seg" id="suGoal">${['bulk', 'recomp', 'cut'].map(g => `<button data-v="${g}" class="${SUP.goal === g ? 'on' : ''}">${t({ bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[g])}</button>`).join('')}</div>`;
@@ -249,7 +273,7 @@ function finishSetup(){
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
     if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
   saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); }
-  ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+  ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
 }
 
 // ---------- weekly backup, one tap to the share sheet (iCloud Drive / Files) ----------

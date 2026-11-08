@@ -512,7 +512,7 @@ function amRes(){
   if(AM && !AM.typing && AM.units){ const u = AM.units[AM.u] || { size: 1 }; $('amN').value = a > 0 ? r1(a / u.size) : ''; }
   if(!(a > 0)){ el.innerHTML = ''; el.style.display = 'none'; return; }
   const m = macrosFor(AM.info.per, a); el.style.display = 'block';
-  el.innerHTML = `${fmtSize(a, AM.info.unit)}: <b>${m.kcal} kcal</b> · P ${m.p} · C ${m.c} · F ${m.f}`;
+  el.innerHTML = `<div class="lres"><span class="lk">${m.kcal} kcal</span><span class="lm"><b class="p">P ${m.p}</b> · <b class="c">C ${m.c}</b> · <b class="f">F ${m.f}</b> · ${fmtSize(a, AM.info.unit)}</span></div>`;
 }
 
 async function shareList(){

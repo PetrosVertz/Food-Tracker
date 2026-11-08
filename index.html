@@ -91,7 +91,7 @@
     <div class="list" id="mList"></div>
   </div>
   <div id="foodSupps">
-    <h3 class="sect"><span>💊 <span data-t="tSupps"></span></span><button class="linkbtn" id="suppAddBtn" data-t="addSuppFab"></button></h3>
+    <h3 class="sect"><span class="sic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-45 12 12)"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></g></svg><span data-t="tSupps"></span></span><button class="linkbtn" id="suppAddBtn" data-t="addSuppFab"></button></h3>
     <div class="bar" style="margin-top:4px"><span id="sToday"></span><span id="sTodayN"></span></div>
     <div class="progress"><i id="sProg" style="width:0"></i></div>
     <div class="list" id="sList"></div>
@@ -120,14 +120,13 @@
     <div class="brandrow" style="margin-top:8px"><label for="dTime" style="margin:0;flex:1" data-t="workoutAt"></label><input id="dTime" type="time" style="flex:0 0 130px"></div>
   </div>
   <div class="macrocard"><div id="dTotals"></div>
-    <div class="advwrap" id="dExtras"><div class="advline"><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="advSw"></label><button class="tgcard" id="tgCardBtn" type="button" aria-label="Daily targets">🎯</button></div>
+    <div class="advwrap" id="dExtras"><div class="advline"><label class="advrow"><span data-t="advancedT"></span><input type="checkbox" id="advSw"></label><button class="tgcard" id="tgCardBtn" type="button" aria-label="Daily targets"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5.6"/><path d="M12 12l2.6-2.9"/><path d="M5.21 18.79h.01M2.40 12.00h.01M5.21 5.21h.01M12.00 2.40h.01M18.79 5.21h.01M21.60 12.00h.01M18.79 18.79h.01" stroke-width="2.6"/></svg></button></div>
       <div class="advbody hide" id="advBody"><div id="dExtrasBody"></div>
       <div class="advtiming"><div class="advh"><span data-t="carbTiming"></span><button class="ibtn" type="button" data-tip="tipCarbT" aria-label="Info">ⓘ</button></div><div id="dTiming"></div><label class="advrow realrow"><span data-t="realStartT"></span><input type="checkbox" id="realStart"></label></div></div></div>
     </div>
   <div id="dRec"></div>
   
-  <details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small></summary>
-  <button class="linkbtn" id="copyYesterday" data-t="copyYesterday"></button>
+  <details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small><button class="eyest" id="copyYesterday" type="button" data-tl="copyYesterday" aria-label="Same as yesterday"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3M19 4v5h-5M5 20v-5h5"/></svg></button></summary>
   <div id="planShow"></div><div class="list" id="dLog"></div></details>
 </section>
 
@@ -143,9 +142,9 @@
   <div id="gHub">
     <button class="minirec recbig" id="gMiniRec" aria-label="Recovery"></button>
     <div class="tiles hubstack" id="gHubTiles" style="margin-top:12px">
-      <button class="tile" data-sec="gym-lib"><span class="e">📚</span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
-      <button class="tile" data-sec="gym-prog"><span class="e">📈</span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
-      <button class="tile" data-sec="gym-week"><span class="e">🗓️</span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
+      <button class="tile" data-sec="gym-lib"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-45 12 12)"><path d="M7.5 12h9"/><rect x="4" y="7.5" width="3.5" height="9" rx="1"/><rect x="16.5" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10.5v3M22 10.5v3"/></g></svg></span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
+      <button class="tile" data-sec="gym-prog"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/></svg></span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
+      <button class="tile" data-sec="gym-week"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
       <button class="tile pettile hide" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
     </div>
   </div>
@@ -153,7 +152,7 @@
   <div id="gPlanV"></div>
   <div id="gTplV" class="hide"></div>
   <div class="hide" id="gWeigh"><h3 class="sect" style="margin-top:4px"><span data-t="wtTitle"></span></h3><div class="wtcard" id="gWChart"></div>
-    <div class="wibox wismall"><div class="brandrow"><label for="wiIn" data-t="wiT"></label><input id="wiIn" type="number" inputmode="decimal" step="any"><span style="color:var(--muted)">kg</span><button class="btn small" id="wiSave" data-t="wiSave"></button></div><div id="wiOut"></div></div></div>
+    <div class="wibox wismall"><div class="brandrow"><label for="wiIn" class="wil"><span class="sic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="18" height="17" rx="4"/><path d="M7.5 9.5a6 6 0 0 1 9 0"/><path d="M12 10.5l1.6-2"/></svg></span><span data-t="wiT"></span></label><input id="wiIn" type="number" inputmode="decimal" step="any"><span id="wiU" style="color:var(--muted)">kg</span><button class="btn small" id="wiSave" data-t="wiSave"></button></div><div id="wiOut"></div></div></div>
   <div id="gProgV" class="hide"></div>
   <div id="gRecV" class="hide"></div>
 </section>
@@ -174,15 +173,11 @@
   <div id="pgGroc" class="hide">
   <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
   <div id="gSugg" class="sres"></div>
-  <div class="actions" style="margin-top:10px">
-    <button class="btn" id="gSend" data-t="sendReminders"></button>
-    <button class="btn small" id="gShare" data-t="share"></button>
-  </div>
-  <div class="hint" id="gSendHint"></div>
+  <div class="hide"><button id="gSend" type="button"></button><button id="gShare" type="button"></button><div id="gSendHint"></div></div>
   <div class="list" id="gList" style="margin-top:12px"></div>
   <div id="gDone"></div>
 </div>
-</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><div class="pgroup"><button class="prow" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span><span class="sv" data-t="stCustomSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSBody"><span data-t="stBody"></span><span class="sv" data-t="stBodySub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAI"><span data-t="stAI"></span><span class="sv" data-t="stAISub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSData"><span data-t="stData"></span><span class="sv" data-t="stDataSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span><span class="sv" data-t="stAboutSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="ver">Food Tracker · Gym Buddy · v0.6.9.1</div></section>
+</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><div class="pgroup"><button class="prow" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span><span class="sv" data-t="stCustomSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSBody"><span data-t="stBody"></span><span class="sv" data-t="stBodySub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAI"><span data-t="stAI"></span><span class="sv" data-t="stAISub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSData"><span data-t="stData"></span><span class="sv" data-t="stDataSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span><span class="sv" data-t="stAboutSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="ver">Food Tracker · Gym Buddy · v0.6.9.3</div></section>
 
 
 
@@ -192,7 +187,7 @@
   <button data-tab="gym" class="r-gym"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg></span><span class="sr" data-t="tabGym"></span></button>
   <button data-tab="food" class="r-food"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span class="sr" data-t="tabFood"></span></button>
   <button data-tab="fridge" class="r-fridge"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/></svg></span><span class="sr" data-t="tabFridge"></span></button>
-  <button data-tab="settings" class="r-settings"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span><span class="sr" data-t="settings"></span></button>
+  <button data-tab="settings" class="r-settings"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sr" data-t="settings"></span></button>
 </nav>
 <div class="pullhint" id="pullHint" aria-hidden="true"><span id="phIcon"></span><b id="phText"></b></div>
 <nav class="tabbar hide" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
@@ -238,7 +233,7 @@
 </div></div>
 
 <!-- ============ SETTINGS PAGES (0.6.9, iPhone-style) ============ -->
-<div class="overlay" id="ovSCustom"><div class="sheet tall setpage"><h2 data-t="stCustom"></h2><div class="pgroup"><button class="prow" id="sThemeBtn" type="button"><span data-t="themeT"></span><span class="sv" id="sThemeVal"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSLang"><span data-t="language"></span><span class="sv" data-t="langName"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSUnits"><span data-t="unitsT"></span><span class="sv" data-t="unitsSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div></div></div>
+<div class="overlay" id="ovSCustom"><div class="sheet tall setpage"><h2 data-t="stCustom"></h2><div class="pgroup"><button class="prow" id="sThemeBtn" type="button"><span data-t="themeT"></span><span class="sv" id="sThemeVal"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSLang"><span data-t="language"></span><span class="sv" data-t="langName"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSUnits"><span data-t="unitsT"></span><span class="sv" data-t="unitsSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><label data-t="suUse"></label><div class="seg" id="sUse"><button data-v="both" data-t="useBoth"></button><button data-v="gym" data-t="useGym"></button></div></div></div></div>
 <div class="overlay" id="ovSLang"><div class="sheet tall setpage"><h2 data-t="language"></h2><div class="seg" id="sLang"><button data-v="en">English</button><button data-v="el">Ελληνικά</button></div></div></div>
 <div class="overlay" id="ovSUnits"><div class="sheet tall setpage"><h2 data-t="unitsT"></h2><label data-t="unW"></label><div class="seg" id="unW"><button data-v="kg">kg</button><button data-v="lb">lb</button></div><label data-t="unH"></label><div class="seg" id="unH"><button data-v="cm">cm</button><button data-v="ft">ft / in</button></div><label data-t="unF"></label><div class="seg" id="unF"><button data-v="g">g</button><button data-v="oz">oz</button></div><p class="hint" data-t="unNote"></p></div></div>
 <div class="overlay" id="ovSBody"><div class="sheet tall setpage"><h2 data-t="stBody"></h2><div class="bodybox"><h3 data-t="yourBody"></h3>
@@ -572,11 +567,10 @@
 <!-- ============ PICK EXERCISE ============ -->
 <div class="overlay" id="ovExPick"><div class="sheet tall">
   <h2 data-t="addExercise"></h2>
-  <input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off">
   <div class="mpill" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
   <div id="pkModeRow" style="margin-top:8px"><div class="mpill" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
   <div id="pkBody" style="margin-top:12px"></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+  <div class="pksearch"><span class="pksi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off"></div>
   <button class="bulb hide" id="pkBulb" aria-label="What next?">💡</button>
 </div></div>
 
@@ -622,8 +616,8 @@
 <!-- ============ CHOOSE WORKOUT ============ -->
 <div class="overlay" id="ovStart"><div class="sheet">
   <h2 data-t="savedTpls"></h2>
-  <div id="stList" class="sres"></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
+  <div id="stList"></div>
+  <button class="btn primary bigstart" id="stEmpty" type="button" data-st="" data-t="startEmpty"></button>
 </div></div>
 
 <!-- ============ SUMMARY ============ -->
@@ -679,7 +673,7 @@
   <h2 id="amTitle"></h2>
   <p class="sub" id="amSub"></p>
   <div class="tchips" id="amQuick"></div>
-  <div class="amrow"><input id="amN" type="number" inputmode="decimal" step="any" min="0" aria-label="Amount"><select id="amU" aria-label="Unit"></select><input id="amAmt" type="hidden"></div>
+  <div class="amrow lamt"><input id="amN" class="lan" type="number" inputmode="decimal" step="any" min="0" aria-label="Amount"><div class="ldd" id="amDD"><button class="ldb" type="button" id="amDDB" aria-haspopup="listbox"><span class="ldl" id="amDDL"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="ldm hide" id="amDDM" role="listbox"></div></div><select id="amU" class="amnative" aria-hidden="true" tabindex="-1"></select><input id="amAmt" type="hidden"></div>
   <div class="preview show" id="amRes"></div>
   <div class="brandrow" id="amTimeRow" style="margin-top:10px"><label for="amTime" style="margin:0;flex:1" data-t="ateAt"></label><input id="amTime" type="time" style="flex:0 0 130px"></div>
   <label class="check" id="amLogWrap"><input type="checkbox" id="amLog" checked><span data-t="alsoLog"></span></label>

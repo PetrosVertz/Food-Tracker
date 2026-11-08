@@ -38,6 +38,7 @@ $('importInput').addEventListener('change', async e => {
     if(data.plans && typeof data.plans === 'object') plans = { ...data.plans, ...plans };
     if(data.targets && !targets) targets = data.targets;
     if(data.weights && typeof data.weights === 'object'){ weights = { ...data.weights, ...weights }; Store.save('weights', weights); }
+    if(Array.isArray(data.combos)){ const hc = new Set(combos.map(x => x.id)); combos = combos.concat(data.combos.filter(x => x && x.id && !hc.has(x.id))); saveCombos(); }
     if(data.gym){ const g = data.gym; const have = new Set(sessions.map(x => x.id)); sessions = sessions.concat((g.sessions || []).filter(x => !have.has(x.id))).sort((a, b) => a.start.localeCompare(b.start));
       const ht = new Set(tpls.map(x => x.id)); tpls = tpls.concat((g.tpl || []).filter(x => !ht.has(x.id))); const hc = new Set(exCustom.map(x => x.id)); exCustom = exCustom.concat((g.custom || []).filter(x => !hc.has(x.id)));
       if(g.plan && !Object.keys(gymPlan).length) gymPlan = g.plan; ['ses', 'tpl', 'custom', 'plan'].forEach(saveG); }
@@ -98,3 +99,7 @@ function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); 
 [['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
   ui.units = { ...UN(), [k]: b.dataset.v }; saveUI(); drawUnits(); fillSettings(); renderAll(); }));
 drawUnits();
+
+// 0.6.9.3: Customize › Use the app for (also asked at first launch)
+$('sUse').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return; ui.gymFirst = b.dataset.v === 'gym'; saveUI(); applyTabOrder(); toast(t(ui.gymFirst ? 'useGymOn' : 'useBothOn')); });
+applyTabOrder();
