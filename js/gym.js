@@ -669,7 +669,7 @@ function cardHtml(x, i){
     let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
-    const box = k => `<div class="sbox"><button data-step="${k}" data-d="-1" aria-label="minus">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="plus">+</button></div>`;
+    const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="minus">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="plus">+</button></div>`;
     const ty = s.drop ? 'D' : s.type, base = s.drop ? '↘' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;

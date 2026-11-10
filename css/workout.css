@@ -146,19 +146,19 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .t-W{--sc:var(--t-warm)} .t-D{--sc:var(--t-drop)} .t-F{--sc:var(--t-fail)}
 .setrow.done .snum.tb{background:var(--sc);color:#000}
 .setrow.done .snum.tn{background:var(--t-done);border-color:var(--t-done);color:#000}   /* finished set number = filled green badge */
-.sbox{height:38px;border-radius:var(--r-input);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);display:flex;align-items:center;min-width:0;transition:background .2s,color .2s,border-color .2s}
-.sbox input{flex:1;min-width:0;width:100%;height:100%;border:0;background:none;padding:0;text-align:center;font-size:16px;font-weight:var(--w-setter);font-style:italic;color:inherit}
-.sbox input:focus,.tpcard input:focus,.wismall input:focus{outline:0!important;box-shadow:none!important}
-.sbox input,.tpcard input{-webkit-tap-highlight-color:transparent}
-.sbox input::placeholder{color:var(--t-muted);opacity:.55;font-weight:600}
-.sbox button{flex:0 0 22px;height:100%;border:0;background:none;padding:0;color:var(--t-muted);font-size:15px;font-weight:var(--w-med);opacity:.7}
-.setrow.done .sbox{background:var(--t-done-soft);border-color:var(--t-done);color:var(--t-done)}
-.setrow.done .sbox button{color:var(--t-done)}
+.gymsbox{height:38px;border-radius:var(--r-input);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);display:flex;align-items:center;min-width:0;transition:background .2s,color .2s,border-color .2s}
+.gymsbox input{flex:1;min-width:0;width:100%;height:100%;border:0;background:none;padding:0;text-align:center;font-size:16px;font-weight:var(--w-setter);font-style:italic;color:inherit}
+.gymsbox input:focus,.tpcard input:focus,.wismall input:focus{outline:0!important;box-shadow:none!important}
+.gymsbox input,.tpcard input{-webkit-tap-highlight-color:transparent}
+.gymsbox input::placeholder{color:var(--t-muted);opacity:.55;font-weight:600}
+.gymsbox button{flex:0 0 22px;height:100%;border:0;background:none;padding:0;color:var(--t-muted);font-size:15px;font-weight:var(--w-med);opacity:.7}
+.setrow.done .gymsbox{background:var(--t-done-soft);border-color:var(--t-done);color:var(--t-done)}
+.setrow.done .gymsbox button{color:var(--t-done)}
 .sok{width:38px;height:38px;box-sizing:border-box;padding:0;border-radius:var(--r-input);background:var(--t-card2);border:1.5px solid var(--t-tick-edge);color:var(--t-tick-idle);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .setrow.done .sok{background:var(--t-done);border:0;color:var(--t-done-ink)}
 /* L | R: a tight pair of slimmer rows */
 .setrow.pair .snum{width:42px;font-size:var(--fs-label)}
-.setrow.pair .sbox,.setrow.pair .sok{height:34px}
+.setrow.pair .gymsbox,.setrow.pair .sok{height:34px}
 .setrow.rside{margin-top:-4px}
 /* drops sit under their set */
 .setrow.drop{margin-left:14px;position:relative}
