@@ -55,7 +55,7 @@ function suggestFor(exId, reps){
 // Conservative on purpose (about 85% of the estimate); after the first session your real numbers take over.
 const EQF = { barbell: 1, machine: 1.1, cable: .65, dumbbell: .4, kettlebell: .35, band: .3 };   // dumbbell / kettlebell = per hand
 function estimateNew(exId, reps){
-  const ex = exById(exId); if(!ex || isCardio(exId) || !(ex.e in EQF)) return null;
+  const ex = exById(exId); if(!ex || isCardio(exId) || gymIsAssist(exId) || !(ex.e in EQF)) return null;
   const cos = (a, b) => { let d = 0, na = 0, nb = 0; Object.keys({ ...a, ...b }).forEach(k => { d += (a[k] || 0) * (b[k] || 0); na += (a[k] || 0) ** 2; nb += (b[k] || 0) ** 2; }); return na && nb ? d / Math.sqrt(na * nb) : 0; };
   const ids = [...new Set(sessions.flatMap(s => s.exercises.map(x => x.exId)))].filter(id => id !== exId && !isCardio(id));
   const rel = ids.map(id => { const o = exById(id); if(!(o.e in EQF)) return null; const sim = cos(ex.mu, o.mu) * (o.p === ex.p ? 1 : .7); if(sim < .55) return null;
@@ -80,6 +80,9 @@ function warmupFor(exId, w){
   const ex = exById(exId); if(!(w >= 20) || ex.e === 'bodyweight' || isCardio(exId)) return [];
   return [[.4, 8], [.6, 5], [.8, 3]].map(([p, r]) => ({ w: Math.max(ex.e === 'barbell' ? 20 : 0, r25(w * p, ex.e)), r })).filter((x, i, a) => x.w > 0 && (i === 0 || x.w > a[i - 1].w));
 }
+
+// 0.7.1: the small "AI" pill replaces ✨ on every AI feature (style: .aibadge in theme.css, gym slot)
+const gymAIB = '<b class="aibadge">AI</b>';
 
 // ---------- live session ----------
 function newSet(type){ return { id: uid(), type: type || 'N', w: '', r: '', done: false }; }
@@ -135,7 +138,7 @@ function tickSet(x, s, row, xi, si){
   if(s.done){ s.done = false; s.pr = null; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
-  if(s.r === '' || (!card && s.w === '' && exById(x.exId).e !== 'bodyweight')){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
+  if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; ensureAudio(); if(!x.t0) x.t0 = Date.now();
   if(!card && s.type !== 'W'){
@@ -157,6 +160,8 @@ function tickSet(x, s, row, xi, si){
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
+  if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L') && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
+    const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true); x.sets.push(...add); saveG('act'); }
   renderSession(); tickRest();
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
 }
@@ -211,7 +216,7 @@ function tickRest(){
 function restAdjust(v){ if(!REST) return; if(v === 'skip'){ REST = null; renderSession(); return; }
   REST.end = Math.max(Date.now() + 1000, REST.end + +v * 1000); REST.total = Math.max(REST.total, Math.round((REST.end - Date.now()) / 1000)); REST.rang = false; tickRest(); }   // the bracket updates itself every frame
 
-function openExPick(cb){ PK = { cb, region: ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: null, head: null }; $('exSearch').value = ''; drawExPick(); open('ovExPick'); }
+function openExPick(cb){ PK = { cb, region: ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: null, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); }
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
 function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
@@ -255,7 +260,7 @@ function hitsFrom(list, includeUndone){
 function openNext(){
   const list = nextSuggestions();
   $('nxBody').innerHTML = (list.length ? list.map(x => `<div class="nxrow"><b>${esc(ML(x.h))}</b> <small class="rmeta">${t('nxWhy', { a: Math.round(x.s * 10) / 10, b: Math.round(x.w * 10) / 10 })}</small>${exTiles(x.ex, x.h)}</div>`).join('') : `<p class="hint">${t('nxNone')}</p>`) +
-    (settings.geminiKey ? `<div class="actions"><button class="btn" id="nxAI">${t('nxAI')}</button></div><div id="nxAIOut"></div>` : `<p class="hint">${t('nxNoKey')}</p>`);
+    (settings.geminiKey ? `<div class="actions"><button class="btn" id="nxAI">${gymAIB}${t('nxAI')}</button></div><div id="nxAIOut"></div>` : `<p class="hint">${t('nxNoKey')}</p>`);
   open('ovNext');
 }
 
@@ -646,7 +651,7 @@ function cardHtml(x, i){
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
   if(!isOpenEx(i)){   // short card: tap to open
-    const n = x.ended ? doneN : x.sets.filter(isMainSet).length;
+    const n = x.ended ? doneN : x.sets.filter(z => isMainSet(z) && !(z.auto && !z.done)).length;   // the waiting auto set doesn't count
     return `<div class="exc mini ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}" data-openex${ssStyle}>${ssl}<div class="mtxt"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)} · ${x.ended ? '✓ ' : ''}${t('nSets', { n })}</small></div>${fresh ? `<button class="swapq" data-replace aria-label="${t('swapEx')}">${ICO_SWAP.replace(/width="12" height="12"/, 'width="16" height="16"')}</button>` : ''}</div>`;
   }
   const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
@@ -661,8 +666,9 @@ function cardHtml(x, i){
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
-    const ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
+    let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
+    if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
     const box = k => `<div class="sbox"><button data-step="${k}" data-d="-1" aria-label="minus">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="plus">+</button></div>`;
     const ty = s.drop ? 'D' : s.type, base = s.drop ? '↘' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
@@ -688,7 +694,7 @@ function restBracket(){
   return `<div class="rbwrap" id="rbWrap"><div class="rbk"><div class="rbglow" id="rbGlow"></div>
     <svg class="rbfuse" id="rbFuse" data-intro="${first ? 1 : ''}" width="100%" height="100%" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
     ${hourglass('hg', 22, Math.max(0, el))}<span class="rbt" id="restTxt2">${clk(Math.max(0, REST.end - Date.now()) + 999)}</span><span class="rbsp"></span>
-    <div class="rbb"><button data-rs="15" aria-label="${t('add15')}">+</button><button data-rs="-15" aria-label="${t('sub15')}">−</button><button class="skip" data-rs="skip">${t('skip')}</button></div></div></div>`;
+    <div class="rbb"><button data-rs="-15" aria-label="${t('sub15')}">−</button><button data-rs="15" aria-label="${t('add15')}">+</button><button class="skip" data-rs="skip">${t('skip')}</button></div></div></div>`;
 }
 // where the burning tip is along the top half of the bracket (viewBox 324 × 52, corner radius 12) — the soft blue fill follows it
 // 0.6.8.2: fit the fuse to the bracket's real size (any width, any rest length): top and bottom halves of a rounded box,
@@ -745,7 +751,7 @@ function demoMatches(exId){
     .filter(Boolean).sort((a, b) => b.s - a.s).slice(0, 6).map(x => x.d);
 }
 
-// ---------- Form page (canvas Gym.dc.html): crossfading photos · How to do it + Common mistakes · zoomable muscle map ----------
+// ---------- Form page (canvas Gym.dc.html): crossfading photos · How to do it + Common mistakes · fixed muscle map ----------
 async function openDemo(exId){
   DEMO.exId = exId; clearInterval(DEMO.timer); const x = exById(exId), L_ = lang === 'el' ? 1 : 0;
   $('dmTitle').textContent = exName(exId); $('dmNext').classList.add('hide');
@@ -754,7 +760,7 @@ async function openDemo(exId){
   const left = `<div class="fpl"><div class="fpblk"><b>${t('howTo')}</b><ol id="dmSteps">${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
     ${errs.length ? `<div class="fpblk"><b>${t('mistakesT')}</b><ul class="fpx">${errs.map(s => `<li><span>✕</span>${esc(s)}</li>`).join('')}</ul></div>` : ''}</div>`;
   const map = isCardio(exId) ? '' : `<div class="fpr"><div class="fpsw"><span>${t('formPct')}</span><button class="switch ${ui.formPct === false ? '' : 'on'}" id="dmPct" type="button" role="switch" aria-checked="${ui.formPct !== false}" aria-label="${t('formPct')}"><i></i></button></div>
-    <div class="fpstage bodymap" id="fmStage"></div><span class="fphint">${t('formZoomHint')}</span></div>`;
+    <div class="fpstage bodymap" id="fmStage"></div></div>`;
   $('dmBody').classList.toggle('one', !map); $('dmBody').innerHTML = left + map;
   open('ovDemo');
   if(map) requestAnimationFrame(() => formMap(exId));
@@ -779,9 +785,8 @@ function drawDemo(){
     k = (k + 1) % imgs.length; ph.querySelectorAll('img').forEach((x, j) => x.classList.toggle('on', j === k)); ph.querySelectorAll('.fpdots i').forEach((x, j) => x.classList.toggle('on', j === k)); }, 2000);
 }
 
-// zoomable muscle map: one side of the body, zoomed onto the working heads, leader lines to each head and its %.
-// The body moves as one layer (pinch, drag with momentum, edge bounce, double-tap to reset); labels are redrawn at screen size
-// so they stay readable, and more helper muscles get labels as you zoom in.
+// 0.7.1: the muscle map is fixed (no pinch, drag or double-tap): one side of the body fitted onto the working heads,
+// with a leader line and % for EVERY working muscle. The stage grows taller when there are many labels.
 const FM = { s: 1, x: 0, y: 0 };
 function formMap(exId){
   const st = $('fmStage'); if(!st) return; const x = exById(exId), mu = x.mu || {}, fem = profile.sex === 'f';
@@ -791,7 +796,7 @@ function formMap(exId){
   const heads = Object.keys(pts).map(h => { const p = pts[h], xs = p.map(q => q[0]), ys = p.map(q => q[1]);
     return { h, v: mu[h], ax: xs.reduce((a, b) => a + b, 0) / xs.length, ay: ys.reduce((a, b) => a + b, 0) / ys.length, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }; })
     .sort((a, b) => b.v - a.v);
-  const W = st.clientWidth || 163, H = 300, BW = Math.round(W * .55);
+  const W = st.clientWidth || 163, H = Math.max(300, heads.length * 36 + 30), BW = Math.round(W * .55);
   const max = Math.max(...Object.values(mu), 1);
   st.innerHTML = `<svg id="fmSvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(heads.map(z => ML(z.h) + ' ' + Math.round(z.v) + '%').join(', '))}">
     <defs><clipPath id="fmClip"><rect x="0" y="0" width="${BW}" height="${H}"/></clipPath></defs>
@@ -799,56 +804,16 @@ function formMap(exId){
   const bx0 = heads.length ? Math.min(...heads.map(z => z.x0)) : 100, bx1 = heads.length ? Math.max(...heads.map(z => z.x1)) : 200,
     by0 = heads.length ? Math.min(...heads.map(z => z.y0)) : 60, by1 = heads.length ? Math.max(...heads.map(z => z.y1)) : 300;
   const s0 = Math.max(.6, Math.min(3.5, BW * .9 / Math.max(20, bx1 - bx0), H * .85 / Math.max(20, by1 - by0)));
-  Object.assign(FM, { st, W, H, BW, heads, s0, fit: { s: s0, x: BW / 2 - s0 * (bx0 + bx1) / 2, y: H / 2 - s0 * (by0 + by1) / 2 }, cx: (bx0 + bx1) / 2, cy: (by0 + by1) / 2 });
-  Object.assign(FM, FM.fit); fmApply(); fmGestures(st);
+  Object.assign(FM, { st, W, H, BW, heads, s: s0, x: BW / 2 - s0 * (bx0 + bx1) / 2, y: H / 2 - s0 * (by0 + by1) / 2 }); fmApply();
 }
 function fmApply(){
   const b = $('fmBody'); if(!b) return; b.setAttribute('transform', `translate(${FM.x.toFixed(2)} ${FM.y.toFixed(2)}) scale(${FM.s.toFixed(4)})`);
-  const z = FM.s / FM.s0, show = FM.heads.filter((h, i) => i < (z < 1.4 ? 5 : z < 2.2 ? 8 : 99))
-    .map(h => ({ ...h, sx: FM.x + FM.s * h.ax, sy: FM.y + FM.s * h.ay })).filter(h => h.sx > 0 && h.sx < FM.BW && h.sy > 0 && h.sy < FM.H).sort((a, b) => a.sy - b.sy);
+  const show = FM.heads.map(h => ({ ...h, sx: Math.min(FM.BW - 4, Math.max(4, FM.x + FM.s * h.ax)), sy: Math.min(FM.H - 4, Math.max(4, FM.y + FM.s * h.ay)) })).sort((a, b) => a.sy - b.sy);
   const gap = 36, ys = []; show.forEach((h, i) => ys.push(Math.max(i ? ys[i - 1] + gap : 22, Math.min(FM.H - 12, h.sy))));
   for(let i = ys.length - 1; i >= 0; i--){ const lim = (i === ys.length - 1 ? FM.H - 12 : ys[i + 1] - gap); if(ys[i] > lim) ys[i] = lim; }
   const lx = FM.BW + 6, top = FM.heads[0] && FM.heads[0].h;
   $('fmLbl').innerHTML = show.map((h, i) => `<path d="M${h.sx.toFixed(1)} ${h.sy.toFixed(1)}L${lx - 2} ${(ys[i] - 4).toFixed(1)}" stroke="var(--t-muted)" stroke-width="1" fill="none"/><circle cx="${h.sx.toFixed(1)}" cy="${h.sy.toFixed(1)}" r="2" fill="var(--t-text)"/>
     <text x="${lx}" y="${(ys[i] - 8).toFixed(1)}" font-size="12" fill="var(--t-muted)">${esc(ML(h.h))}</text><text x="${lx}" y="${(ys[i] + 9).toFixed(1)}" font-size="15" font-weight="700" font-style="italic" fill="${h.h === top ? 'var(--t-accent)' : 'var(--t-text)'}">${Math.round(h.v)}%</text>`).join('');
-}
-function fmBounds(){ const lo = { x: -FM.s * FM.cx + 8, y: -FM.s * FM.cy + 8 }, hi = { x: FM.BW - 8 - FM.s * FM.cx, y: FM.H - 8 - FM.s * FM.cy };   // the working area stays on screen
-  return { x: [lo.x, hi.x], y: [lo.y, hi.y] }; }
-function fmAnimTo(tg, ms){ cancelAnimationFrame(FM.raf); const a = { s: FM.s, x: FM.x, y: FM.y }, t0 = performance.now(), d = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : ms || 320;
-  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); FM.s = a.s + (tg.s - a.s) * e; FM.x = a.x + (tg.x - a.x) * e; FM.y = a.y + (tg.y - a.y) * e; fmApply(); if(k < 1) FM.raf = requestAnimationFrame(step); };
-  FM.raf = requestAnimationFrame(step); }
-function fmSettle(){
-  if(FM.s < FM.s0 * .98) return fmAnimTo(FM.fit);
-  const B = fmBounds(), c = (v, r) => Math.min(r[1], Math.max(r[0], v)), tx = c(FM.x, B.x), ty = c(FM.y, B.y);
-  if(tx !== FM.x || ty !== FM.y) fmAnimTo({ s: FM.s, x: tx, y: ty }, 280);
-}
-function fmGestures(st){
-  if(st.dataset.g) return; st.dataset.g = 1;
-  const P = new Map(); let last = null, start = null, vel = { x: 0, y: 0 }, lastTap = 0, moved = 0;
-  const rel = e => { const r = st.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-  const pair = () => { const [a, b] = [...P.values()]; return { m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d: Math.hypot(a.x - b.x, a.y - b.y) || 1 }; };
-  const rubber = (v, r) => v < r[0] ? r[0] - (r[0] - v) * .45 : v > r[1] ? r[1] + (v - r[1]) * .45 : v;
-  st.addEventListener('pointerdown', e => { st.setPointerCapture(e.pointerId); cancelAnimationFrame(FM.raf); P.set(e.pointerId, rel(e)); moved = 0;
-    start = P.size === 2 ? { ...pair(), s: FM.s, x: FM.x, y: FM.y } : null; last = { ...rel(e), t: performance.now() }; vel = { x: 0, y: 0 }; });
-  st.addEventListener('pointermove', e => { if(!P.has(e.pointerId)) return; const p = rel(e), prev = P.get(e.pointerId); P.set(e.pointerId, p);
-    if(P.size === 2 && start){ const q = pair(), s = Math.min(FM.s0 * 5, Math.max(FM.s0 * .7, start.s * q.d / start.d)), k = s / start.s;
-      FM.s = s; FM.x = q.m.x - (start.m.x - start.x) * k; FM.y = q.m.y - (start.m.y - start.y) * k; moved += 10; }
-    else if(P.size === 1){ const dx = p.x - prev.x, dy = p.y - prev.y, B = fmBounds(); moved += Math.abs(dx) + Math.abs(dy);
-      FM.x = rubber(FM.x + dx, B.x) === FM.x + dx ? FM.x + dx : FM.x + dx * .45; FM.y = rubber(FM.y + dy, B.y) === FM.y + dy ? FM.y + dy : FM.y + dy * .45;
-      const now = performance.now(), dt = Math.max(1, now - last.t); vel = { x: dx / dt * 16, y: dy / dt * 16 }; last = { ...p, t: now }; }
-    fmApply(); });
-  const up = e => { if(!P.has(e.pointerId)) return; P.delete(e.pointerId);
-    if(P.size === 1){ start = null; const p = [...P.values()][0]; last = { ...p, t: performance.now() }; vel = { x: 0, y: 0 }; return; }
-    if(P.size) return;
-    const now = performance.now();
-    if(moved < 8){ if(now - lastTap < 300){ lastTap = 0; return fmAnimTo(FM.fit); } lastTap = now; return; }
-    if(Math.hypot(vel.x, vel.y) > .8 && !matchMedia('(prefers-reduced-motion: reduce)').matches){   // momentum, then bounce back inside
-      const glide = () => { vel.x *= .92; vel.y *= .92; FM.x += vel.x; FM.y += vel.y; const B = fmBounds();
-        if(FM.x < B.x[0] - 40 || FM.x > B.x[1] + 40) vel.x *= .5; if(FM.y < B.y[0] - 40 || FM.y > B.y[1] + 40) vel.y *= .5;
-        fmApply(); if(Math.hypot(vel.x, vel.y) > .3) FM.raf = requestAnimationFrame(glide); else fmSettle(); };
-      FM.raf = requestAnimationFrame(glide); }
-    else fmSettle(); };
-  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
 }
 
 function openExInfo(id, addCb){
@@ -918,14 +883,14 @@ function showSummary(ses){
   open('ovSummary');
   const r = ses.recov || estimateRecovery(ses); if(!Object.keys(r).length) return;
   const fresh = ses === sessions[sessions.length - 1] && !ses.recovAI && Date.now() - new Date(ses.end || 0) < 6e5 && settings.geminiKey;
-  const note = ses.recovAI ? '✨ ' + esc(ses.recovNote || t('recAIdone')) : fresh ? t('recAIwait') : t('recOffline');
+  const note = ses.recovAI ? gymAIB + esc(ses.recovNote || t('recAIdone')) : fresh ? gymAIB + t('recAIwait') : t('recOffline');
   const box = document.createElement('div'); box.innerHTML = recBlock(ses, r, note);
   const h3 = [...$('smBody').querySelectorAll('h3')][0]; if(h3) h3.before(box.firstElementChild); else $('smBody').appendChild(box.firstElementChild);
   if(!fresh) return;
   aiRecovery(ses).then(res => { const el = $('smRec');
     if(!res){ if(el) el.outerHTML = recBlock(ses, r, t('recAIFail')); return; }
     ses.recov = res.hours; ses.recovAI = true; ses.recovNote = res.note; saveG('ses'); renderAll();
-    if(el && document.contains(el)) el.outerHTML = recBlock(ses, res.hours, '✨ ' + esc(res.note || t('recAIdone')));
+    if(el && document.contains(el)) el.outerHTML = recBlock(ses, res.hours, gymAIB + esc(res.note || t('recAIdone')));
   }).catch(() => { const el = $('smRec'); if(el) el.outerHTML = recBlock(ses, r, t('recAIFail')); });
 }
 

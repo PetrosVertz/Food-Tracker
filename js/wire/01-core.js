@@ -138,6 +138,8 @@ const saveSupps = () => Store.save('supps', supps);
 let settings = Object.assign({ geminiKey:'', model:DEFAULT_MODEL }, Store.load('settings', {}));
 
 let ui = Object.assign({ sort:'recent', cat:'all', lang:null }, Store.load('ui', {}));
+// 0.7.1: new installs start on Automatic + Lime; a device that already had settings keeps what it was showing (Dark)
+if(!ui.theme){ ui.theme = { mode: Store.load('ui', null) ? 'dark' : 'auto', preset: 'lime' }; Store.save('ui', ui); }
 
 lang = ui.lang || 'en';
 

@@ -53,15 +53,4 @@ $('ovTargets').addEventListener('click', e => {
   if(e.target.closest('#tgGoal button') || e.target.closest('#tgCalc,[data-calc]') || /calc/i.test(e.target.id || '')) setTimeout(() => { ['G', 'R'].forEach(P => { if($('mx' + P)){ MX[P] = mxFromGrams(P); drawMx(P, false); } }); drawFibSug(); }, 0);
 });
 
-// ---------- 0.6.9.3: the bottom bar shrinks while you scroll down and grows back when you scroll up or tap it ----------
-(() => { let lastY = 0, lastEl = null, acc = 0;
-  // each page scrolls on its own (section.page), so listen to whatever page is scrolling
-  document.addEventListener('scroll', e => { const el = e.target; if(!el || !el.matches || !el.matches('section.page')) return;
-    const y = el.scrollTop, d = el === lastEl ? y - lastY : 0; lastY = y; lastEl = el;
-    if(y < 40){ document.body.classList.remove('barmini'); acc = 0; return; }
-    acc = Math.sign(d) === Math.sign(acc) ? acc + d : d;
-    if(acc > 24) document.body.classList.add('barmini'); else if(acc < -24) document.body.classList.remove('barmini'); }, { passive: true, capture: true });
-  // first tap on a shrunk bar only grows it; tap again to switch tabs
-  $('rail').addEventListener('click', e => { if(!document.body.classList.contains('barmini')) return; e.preventDefault(); e.stopImmediatePropagation(); document.body.classList.remove('barmini'); }, true);
-  addEventListener('hashchange', () => document.body.classList.remove('barmini'));
-})();
+// 0.7.1: the bottom bar stays one size (the 0.6.9.3 shrink-on-scroll is gone)

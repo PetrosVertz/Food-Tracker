@@ -294,7 +294,7 @@ Object.assign(S, {
  howTo:['How to do it','Πώς γίνεται'], mistakesT:['Common mistakes','Συνηθισμένα λάθη'], bestW:['Heaviest','Πιο βαρύ'], bestV:['Best volume','Καλύτερος όγκος'], addThis:['＋ Add exercise','＋ Προσθήκη'],
  whatNext:['💡 What next?','💡 Τι μετά;'], nxT:['What next?','Τι μετά;'], nxSub:['Muscles you haven’t hit yet, based on this session and your week.','Μύες που δεν έχεις δουλέψει ακόμα, με βάση αυτή την προπόνηση και την εβδομάδα.'],
  nxWhy:['{a} sets today · {b} this week','{a} σετ σήμερα · {b} αυτή την εβδομάδα'], nxNone:['You’ve covered everything for this workout. Nice.','Τα κάλυψες όλα για αυτή την προπόνηση. Ωραία.'],
- nxAI:['✨ Ask Gemini for a smarter pick','✨ Ρώτα το Gemini για καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for ✨ smarter picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για ✨ πιο έξυπνες προτάσεις.'],
+ nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
  gtRecovery:['Recovery','Αποκατάσταση'], recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'], recAgo:['trained {h} h ago','δούλεψε πριν {h} ώρες'], recDay1:['1 more day','1 μέρα ακόμα'], recDays:['{n} more days','{n} μέρες ακόμα'],
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'], recAllReady:['Everything is recovered. Good to go 💪','Όλα έχουν αναρρώσει. Πάμε 💪'],
  recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
@@ -373,7 +373,7 @@ Object.assign(S, {
 Object.assign(S, {
   tabFridge: ['Fridge', 'Ψυγείο'],
   fibSug: ['Suggested: {g} g', 'Προτείνεται: {g} g'], fibCutX: [' (more on a cut keeps you full)', ' (στη γράμμωση το παραπάνω σε κρατάει χορτάτο)'], fibUse: ['Use it', 'Χρήση'],
-  recEstT: ['Recovery estimate', 'Εκτίμηση αποκατάστασης'], recAIwait: ['✨ The AI is checking your sets…', '✨ Το AI ελέγχει τα σετ σου…'],
+  recEstT: ['Recovery estimate', 'Εκτίμηση αποκατάστασης'], recAIwait: ['The AI is checking your sets…', 'Το AI ελέγχει τα σετ σου…'],
   recOffline: ['From your sets, failure sets and heavy lowering moves. Add a Gemini key for an AI check.', 'Από τα σετ, τα σετ μέχρι αποτυχία και τις βαριές εκκεντρικές. Βάλε κλειδί Gemini για έλεγχο AI.'],
   recAIFail: ['Couldn\'t reach the AI, so this is the built-in estimate.', 'Δεν απάντησε το AI, άρα αυτή είναι η ενσωματωμένη εκτίμηση.'], recAIdone: ['Checked by AI', 'Ελέγχθηκε από AI'], recReadyChip: ['ready ✓', 'έτοιμο ✓'], recEstSub: ['Hours until you can train it hard again', 'Ώρες μέχρι να το ξαναδουλέψεις δυνατά'],
 });
@@ -446,11 +446,11 @@ Object.assign(S, {
 
 Object.assign(S, {
   aiThinking: ['Thinking…', 'Σκέφτομαι…'], aiSlow: ['This can take up to a minute. Free AI models are often busy, so it tries a few.', 'Μπορεί να πάρει έως ένα λεπτό. Τα δωρεάν μοντέλα AI είναι συχνά απασχολημένα, οπότε δοκιμάζει μερικά.'],
-  aiMany: ['✨ {n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '✨ {n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
-  tryingModel: ['✨ Thinking…', '✨ Σκέφτομαι…'], cancelRec: ['✕ Cancel', '✕ Ακύρωση'],
+  aiMany: ['{n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '{n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
+  tryingModel: ['Thinking…', 'Σκέφτομαι…'], cancelRec: ['✕ Cancel', '✕ Ακύρωση'],
   noBarcodeLabel: ['📷 ✨ Label photo', '📷 ✨ Φωτό ετικέτας'], shopPhoto: ['📸 ✨ Photo of the shopping', '📸 ✨ Φωτογραφία των ψωνιών'], shopReceipt: ['🧾 ✨ Photo of the receipt', '🧾 ✨ Φωτογραφία της απόδειξης'],
   optPhoto: ['✨ Photo of nutrition label<small>Read by the AI (free Gemini key in settings)</small>', '✨ Φωτογραφία διατροφικής ετικέτας<small>Τη διαβάζει το AI (δωρεάν κλειδί Gemini στις ρυθμίσεις)</small>'],
-  geminiKey: ['Gemini API key (✨ = uses it)', 'Κλειδί Gemini API (✨ = το χρησιμοποιεί)'],
+  geminiKey: ['Gemini API key (AI = uses it)', 'Κλειδί Gemini API (AI = το χρησιμοποιεί)'],
   mealName: ['Recipe title', 'Τίτλος συνταγής'],
   sgPh: ['Give food name', 'Δώσε όνομα φαγητού'], sgIngT: ['Ingredients', 'Υλικά'], sgTimeT: ['Time available', 'Διαθέσιμος χρόνος'],
   sgQuick: ['Quick ≤20 min', 'Γρήγορο ≤20′'], sgMid: ['20–60 min', '20–60′'], sgLong: ['60+ min', '60+′'], sgAdult: ['One normal adult portion per serving.', 'Μία κανονική μερίδα ενήλικα ανά μερίδα.'],
@@ -503,7 +503,7 @@ Object.assign(S, {
 // ---------- 0.6.5 ----------
 Object.assign(S, {
   uniT: ['One side at a time (L / R sets)', 'Μία πλευρά τη φορά (σετ Α / Δ)'], setRemoved: ['Set removed', 'Το σετ αφαιρέθηκε'],
-  aiBg: ['✨ Working on it. Keep using the app; tap the bubble when it\'s ready.', '✨ Δουλεύει. Συνέχισε στην εφαρμογή· πάτα τη φούσκα όταν είναι έτοιμο.'],
+  aiBg: ['Working on it. Keep using the app; tap the bubble when it\'s ready.', 'Δουλεύει. Συνέχισε στην εφαρμογή· πάτα τη φούσκα όταν είναι έτοιμο.'],
   aiStill: ['Still thinking…', 'Ακόμα σκέφτεται…'], aiReady: ['Ready, tap to open', 'Έτοιμο, πάτα για άνοιγμα'],
   scanReceipt: ['Scan Receipt', 'Σάρωση απόδειξης'], addFridgeFab: ['＋ Add Food', '＋ Προσθήκη'],
   frozen: ['Frozen', 'Κατεψυγμένο'], frozenTip: ['Frozen', 'Κατεψυγμένο'], plate: ['plate', 'πιάτο'],
@@ -538,7 +538,7 @@ Object.assign(S, {
   discardQ2: ['Discard this workout?', 'Απόρριψη αυτής της προπόνησης;'], discardBtn: ['Discard', 'Απόρριψη'], keepBtn: ['Keep', 'Κράτησέ τη'], endWorkoutPill: ['End Workout', 'Τέλος προπόνησης'], skipGym: ['Skip', 'Παράλειψη'], gymSkipped: ['Gym skipped today · rest-day calories', 'Χωρίς γυμναστήριο σήμερα · θερμίδες ημέρας ξεκούρασης'],
   gymSkippedT: ['Skipped: today uses your rest-day targets', 'Παράλειψη: σήμερα ισχύουν οι στόχοι ημέρας ξεκούρασης'], weekHintSimple: ['Tap Gym or Rest for each day.', 'Πάτα Γυμναστήριο ή Ξεκούραση για κάθε μέρα.'],
   gymL: ['Gym', 'Γυμναστήριο'], restDayS: ['Rest', 'Ξεκούραση'], muUse: ['Muscle Usage {p}%', 'Χρήση μυός {p}%'], sortByMu: ['Sort by muscle usage', 'Ταξινόμηση κατά χρήση μυός'], estNew: ['Based on your other exercises, try {w} kg for {r} reps', 'Με βάση τις άλλες σου ασκήσεις, δοκίμασε {w} kg για {r} επαναλήψεις'],
-  autoEnded: ['Workout saved. It ended by itself at {t} (no taps for 20 min).', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t} (20 λεπτά χωρίς πάτημα).'],
+  autoEnded: ['Workout saved. It ended by itself at {t} (no taps for 15 min).', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t} (15 λεπτά χωρίς πάτημα).'],
   idleQ: ['Your workout has been open with no taps for {m} min. Go back to it?', 'Η προπόνηση είναι ανοιχτή χωρίς πάτημα εδώ και {m} λεπτά. Επιστροφή σε αυτή;'],
   idleBack: ['Back to workout', 'Επιστροφή'], idleEnd: ['End it', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['＋ Drop', '＋ Drop'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
 });
@@ -564,4 +564,32 @@ Object.assign(S, {
   chkSrc: ['Source', 'Πηγή'], chkAccept: ['Accept', 'Αποδοχή'], chkKeep: ['Keep Mine', 'Κράτα τα δικά μου'], chkNothing: ['<b>Nothing to fix</b>Everything that was found online matches.', '<b>Τίποτα για διόρθωση</b>Ό,τι βρέθηκε συμφωνεί.'],
   inFridgeTag: ['in the fridge', 'στο ψυγείο'],
   chkTick: ['Checked against online sources', 'Ελέγχθηκε με πηγές στο διαδίκτυο'],
+  // ==== branch: gym (new Gym Buddy text goes on the lines below) ====
+  // ==== end gym ====
+  // ==== branch: log (new Today & Logging text goes on the lines below) ====
+  logQT: ['Quick Log', 'Quick Log'],
+  logQPh: ['What did you eat?', 'Τι έφαγες;'],
+  logQHi: ['Type everything you ate, with amounts if you know them. The AI splits it into foods, then each one is found: your foods first, then the built-in list, then online.', 'Γράψε ό,τι έφαγες, με ποσότητες αν τις ξέρεις. Το AI το χωρίζει σε τρόφιμα και μετά βρίσκεται το καθένα: πρώτα τα δικά σου, μετά η βασική λίστα, μετά online.'],
+  logQEx: ['e.g. 200g Fage yogurt, 4 scrambled eggs, 100g chicken breast, 210g Domino\'s margarita', 'π.χ. 200g γιαούρτι Fage, 4 αυγά ομελέτα, 100g στήθος κοτόπουλο, 210g μαργαρίτα Domino\'s'],
+  logQNoKey: ['No Gemini key, so it gets split at commas and “and”. A free key in Settings splits it much better.', 'Χωρίς κλειδί Gemini χωρίζεται στα κόμματα και στο «και». Με δωρεάν κλειδί στις Ρυθμίσεις χωρίζεται πολύ καλύτερα.'],
+  logQWork: ['Splitting it up…', 'Το χωρίζω…'], logQFind: ['Finding…', 'Ψάχνω…'],
+  logQAll: ['Log All', 'Καταγραφή όλων'], logQTotal: ['Total', 'Σύνολο'],
+  logQLogged: ['Logged {n} foods · {k} kcal', 'Καταγράφηκαν {n} τρόφιμα · {k} kcal'], logQDone: ['Logged', 'Καταγράφηκε'],
+  logQNew: ['{n} new estimated foods saved', '{n} νέα τρόφιμα με εκτίμηση αποθηκεύτηκαν'],
+  logQStd: ['built-in', 'βασικό'], logQOnl: ['online', 'online'], logQEst: ['estimate', 'εκτίμηση'],
+  logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
+  logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
+  logQNoMatch: ['Nothing matches “{q}”', 'Τίποτα για «{q}»'],
+  logQFail: ['Couldn’t split that. Put commas between the foods and try again.', 'Δεν χωρίστηκε. Βάλε κόμματα ανάμεσα στα τρόφιμα και ξαναδοκίμασε.'],
+  logQAIFail: ['The AI didn’t answer ({e}), so it was split at commas instead.', 'Το AI δεν απάντησε ({e}), οπότε χωρίστηκε στα κόμματα.'],
+  logQNothing: ['Nothing to log yet', 'Δεν υπάρχει κάτι για καταγραφή'],
+  logQOpen: ['Quick Log “{q}”', 'Quick Log «{q}»'], logQOpenSub: ['The AI splits it and finds each food', 'Το AI το χωρίζει και βρίσκει κάθε τρόφιμο'],
+  logQSend: ['Send', 'Αποστολή'],
+  // ==== end log ====
+  // ==== branch: foods (new My Foods & Search text goes on the lines below) ====
+  // ==== end foods ====
+  // ==== branch: shop (new Fridge & Groceries text goes on the lines below) ====
+  // ==== end shop ====
+  // ==== branch: shell (new App Shell & Settings text goes on the lines below) ====
+  // ==== end shell ====
 });

@@ -195,7 +195,7 @@ $('lResults').addEventListener('click', e => {
     if(e.target.closest('[data-copen]')){ LW.copen = LW.copen === i ? null : i; drawLog(); } return; }
   if(e.target.closest('#lOnline')){ runLogOnline($('lSearch').value.trim()); return; }
   const dy = e.target.closest('[data-dym]'); if(dy){ $('lSearch').value = dy.dataset.dym; $('lSearch').dispatchEvent(new Event('input')); return; }
-  if(e.target.closest('#lTakeaway')){ const q = $('lSearch').value.trim(); close('ovLog'); openQuick(); $('qaName').value = q; return; }
+  if(e.target.closest('#lTakeaway')){ const q = $('lSearch').value.trim(); close('ovLog'); logQOpenSheet(q); return; }
   const row = e.target.closest('.lrow'); if(!row) return; const st = lwState(row.dataset.k, +row.dataset.i); if(!st) return;
   if(e.target.closest('[data-lplus]')) return lwAdd(st);                                  // ＋ = the usual amount, one tap
   if(e.target.closest('[data-ladd]')) return lwAdd(st);
@@ -321,11 +321,12 @@ function stepPack(pm){
   renderAll();
 }
 
-// Log food sheet: Add Takeaway, yesterday's food
-$('lQuickTop').addEventListener('click', () => { close('ovLog'); openQuick(); });
+// Log food sheet: Quick Log (0.7.1, replaces Add Takeaway), yesterday's food
+$('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
+logQWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
 $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });
-// Add Takeaway: one box, Small / Normal / Big
+// old Add Takeaway sheet: still opens to edit takeaway entries logged before 0.7.1
 document.querySelectorAll('#qaSize button').forEach(b => b.addEventListener('click', () => setSeg('#qaSize', b.dataset.v)));
 $('qaName').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); saveQuick(); } });
 // Extras: tap the electrolytes to switch % / mg

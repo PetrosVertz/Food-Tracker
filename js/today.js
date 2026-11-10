@@ -39,7 +39,7 @@ function openLogSearch(){ $('lSearch').value = ''; LW = { rows: {}, open: null, 
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
   if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // 0.6.5.2: eaten plan meals move into Eaten
-  el.innerHTML = `<h3 class="sect"><span>✨ ${t('planT')}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
+  el.innerHTML = `<h3 class="sect"><span>${t('planT')} ${logAIB()}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
     (p.meals || []).map((m, i) => m.logged ? '' : `<div class="planmeal planned"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
       <div class="rmeta">P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)}</div>
       <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">🧊 ${t('fromFridge')}</span>` : ''}</li>`).join('')}</ul>
@@ -218,11 +218,11 @@ function drawLog(){
     if(onl) h += `<div class="lgrp">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => lwRow('o', i)).join('');
     else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
     else if(q.length >= 2 && LOGON.q !== q) h += `<button class="lmore" id="lOnline" type="button">🌐 ${t('onlineMore')}</button>`;
-    // never a dead end: a spelling fix when little matched, and Add as Takeaway for anything
+    // never a dead end: a spelling fix when little matched, and Quick Log for anything
     const dym = local + (onl ? LOGON.res.length : 0) < 3 ? Search.didYouMean(q) : null;
     if(!local && !LOGON.busy && !onl) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
     if(dym) h = `<button class="dym" data-dym="${esc(dym)}">${t('didYouMean')} <b>${esc(dym)}</b>?</button>` + h;
-    h += `<button class="lmore" id="lTakeaway" type="button">🥡 ${t('addAsTakeaway', { q: esc(q) })}<small>${t('takeawaySub')}</small></button>`;
+    h += `<button class="lmore" id="lTakeaway" type="button"><span>${t('logQOpen', { q: esc(q) })} ${logAIB()}</span><small>${t('logQOpenSub')}</small></button>`;
   }
   $('lResults').innerHTML = h;
 }
@@ -391,7 +391,7 @@ function renderToday(){
   // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.
   // The time shows only when you tap the row (the edit sheet).
   const stOf = e => { if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f ? f.state : ''; };
-  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name"><span class="nmt">${esc(bareName(e.name))}</span>${stTag(stOf(e))}</span><small class="esub"><b class="p">P ${fmt(e.p)}</b> · <b class="c">C ${fmt(e.c)}</b> · <b class="f">F ${fmt(e.f)}</b> · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)}<small>kcal</small></span></div>`).join('')
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name"><span class="nmt">${esc(bareName(e.name))}</span>${stTag(stOf(e))}${logQEstTag(e)}</span><small class="esub"><b class="p">P ${fmt(e.p)}</b> · <b class="c">C ${fmt(e.c)}</b> · <b class="f">F ${fmt(e.f)}</b> · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)}<small>kcal</small></span></div>`).join('')
     : `<div class="empty">${t('nothingLogged')}</div>`;
   $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
   renderPlan();
@@ -501,7 +501,7 @@ function showTip(key, btn){
 }
 function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
 // plan my day runs from the Log food sheet; progress shows on Today where the plan lands
-function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">✨ ${esc(txt)}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
+function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${logAIB()} ${esc(txt)}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
 
 // 0.6.3.1: dishes (souvlaki, moussaka…) from Quick Add are saved as Home-cooked meals, not store-bought foods
 function dishMeal(d){
@@ -521,3 +521,248 @@ function delEntry(id){ const l = dayLog[curDay] || [], i = l.findIndex(x => x.id
 function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0), 0), k = Math.max(0, rem.k);
   if(!(tot > 0) || tot <= k * 1.03) return; const f = Math.max(.3, k / tot);
   r.meals.forEach(m => { (m.items || []).forEach(it => { it.grams = Math.round((+it.grams || 0) * f / 5) * 5; }); ['kcal', 'protein', 'carbs', 'fat'].forEach(q => { m[q] = Math.round((+m[q] || 0) * f); }); }); }
+
+// ---------- 0.7.1 Quick Log (replaces Add Takeaway) ----------
+// A chat box: type what you ate. The AI only splits it into items + amounts (one AI use per message; the same answer carries a
+// per-100 g estimate, used only when a food can't be found). Each item is matched: what you typed before → your foods / meals →
+// the built-in list → online (USDA + Open Food Facts). Not found anywhere → saved as a new food (kcal/P/C/F only, "estimate" tag)
+// when you Log All. Rows reuse the Log Food row: units, your egg size and the cooking slider follow your Log Food settings.
+let logPhr = Store.load('logPhr', {});   // 'p:<typed words>' → { f: foodId } | { m: mealId };  'm:<whole message>' → the AI's split
+const logQSavePhr = () => Store.save('logPhr', logPhr);
+let logQS = { msgs: [], ctl: null };
+const logAIB = () => '<span class="aib">AI</span>';
+function logQEstTag(e){ if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f && f.source === 'estimate' ? `<span class="sttag est">${t('logQEst')}</span>` : ''; }
+
+// the typed words for one food, without amounts: "Fage yogurt 200g" → "fage yogurt"
+const logQDrop = new Set('g gr gram grams kg ml l lt cup cups tbsp tsp piece pieces pc pcs slice slices serving servings portion portions plate plates one two three four five six half a an of x γρ γραμμαρια τεμ τεμαχια φετα φετεσ μεριδα μεριδεσ ενα ενασ μια δυο τρια τρεισ τεσσερα τεσσερισ μιση μισο'.split(' '));
+function logQKey(s){ return norm(s).replace(/(\d)([^\d\s.,])/gu, '$1 $2').split(/[^\p{L}\p{N}]+/u).filter(w => w && !/^\d/.test(w) && !logQDrop.has(w)).join(' '); }
+
+const logQMealInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
+const logQGenInfo = g => ({ ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g });
+function logQFromRef(r){
+  if(!r) return null;
+  if(r.m){ const m = meals.find(x => x.id === r.m); return m ? { info: logQMealInfo(m), src: 'meal' } : null; }
+  if(r.f){ const f = foods.find(x => x.id === r.f); return f ? { info: fInfo_(f), src: f.source === 'estimate' ? 'est' : 'mine' } : null; }
+  return null;
+}
+
+// the AI: split only (plus a fallback estimate per 100 g)
+function logQPrompt(txt){
+  return `Split this note of what someone ate into separate food items. Text: """${txt}"""
+Rules:
+- One item per food. "granola and nuts 200ml milk" is two items (granola with nuts; milk). Keep every food; never merge or skip one.
+- text: the words for that item as written, without the amount.
+- qty + unit: the amount as written; unit is one of g, ml, kg, l, piece, slice, cup, tbsp, tsp, serving. Counted things ("4 eggs", "a banana") are piece. qty null when no amount is written.
+- name: short plain food name in ${lang === 'el' ? 'Greek' : 'English'}, with how it was cooked when that is said ("scrambled eggs"), without the brand. name_en: the same name in English. brand: the brand or restaurant, "" if none.
+- grams: your best guess of the whole amount eaten, in grams (ml for drinks). ml: true for drinks.
+- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
+Return ONLY JSON: {"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number}]}`;
+}
+function logQClean(a){
+  if(!Array.isArray(a)) return null;
+  const n = v => (v === null || v === undefined || v === '' || isNaN(+v)) ? null : +v;
+  return a.filter(x => x && (x.name || x.text)).slice(0, 25).map(x => ({ text: String(x.text || x.name).slice(0, 80), name: String(x.name || x.text).slice(0, 60), name_en: String(x.name_en || x.name || '').slice(0, 60),
+    brand: String(x.brand || '').slice(0, 40), qty: n(x.qty) > 0 ? n(x.qty) : null, unit: x.unit ? String(x.unit) : null, grams: n(x.grams) > 0 ? n(x.grams) : null, ml: !!x.ml,
+    kcal: n(x.kcal) !== null && n(x.kcal) >= 0 ? n(x.kcal) : null, protein: Math.max(0, n(x.protein) || 0), carbs: Math.max(0, n(x.carbs) || 0), fat: Math.max(0, n(x.fat) || 0) }));
+}
+// without a key (or when the AI fails): split at commas, "and", "+", new lines; the recipe reader finds the amounts
+function logQSplit(txt){
+  return txt.split(/\s*(?:[,;\n+]|\band\b|\s(?:και|κ\.)\s)\s*/i).map(s => s.trim()).filter(s => s.length > 1).slice(0, 25).map(s => {
+    const p = parseIngLine(s) || {}, name = p.name || cleanName(s);
+    return { text: s, name, name_en: name, brand: '', qty: p.count || p.grams || null, unit: p.count ? 'piece' : p.grams ? 'g' : null, grams: p.grams || null, ml: false, kcal: null, protein: 0, carbs: 0, fat: 0 }; });
+}
+
+// one item → a Log Food row state (amount + unit + cooking), from what was typed
+function logQState(info, it){
+  const ref = lwRef(info), units = lwUnits(info), cook = LW_COOK.find(([re]) => re.test(norm(info.name || '')));
+  const gi = units.length - 1, qty = +it.qty || 0, un = norm(it.unit || ''), pick = (ui.logUnit || {})[ref];
+  const mk = (u, n) => ({ k: 'q', i: 0, info, ref, units, u, n, cook: cook ? cook[2] : null, ck: cook ? ((ui.logCook || {})[ref] ?? cook[1]) : null });
+  let g = 0;
+  if(qty && /^(g|gr|gram|kg|ml|l$|lt|lit|oz|γρ)/.test(un)) g = qty * (/^(kg|l$|lt|lit)/.test(un) ? 1000 : /^oz/.test(un) ? OZ : 1);
+  else if(qty){
+    const want = /cup|φλιτζ/.test(un) ? 'h158' : /tbsp|tablesp|σουπ/.test(un) ? 'h13.5' : /tsp|teasp|γλυκ/.test(un) ? 'h4.5' : null;
+    let j = -1;
+    if(want) j = units.findIndex(x => x.k === want);
+    else if(/serv|portion|plate|μεριδ|πιατ/.test(un)) j = units.findIndex(x => x.k === 'plate');
+    else if(/slice|φετ/.test(un)) j = info.pw === 'slice' ? units.findIndex(x => x.k === 'pc') : -1;
+    else {   // a count: "4 eggs", "a yogurt"; the unit you last picked in Log Food (your egg size) wins
+      j = units.findIndex(x => x.k === pick && x.k !== 'g');
+      if(j < 0 && units.some(x => x.k === 'h50')){ const egg = Object.values(ui.logUnit || {}).filter(k => ['h43', 'h50', 'h58'].includes(k)).pop(); j = units.findIndex(x => x.k === (egg || 'h50')); }
+      if(j < 0) j = units.findIndex(x => /^h/.test(x.k));
+      if(j < 0) j = units.findIndex(x => x.k === 'pc' || x.k === 'plate' || x.k === 'pack'); }
+    if(j > -1) return mk(j, qty);
+    g = +it.grams || 0;
+  } else { const last = info.meal || info.food ? lastEntryOf((info.meal || info.food).id) : null; g = last ? last.amt : +it.grams || 0; }
+  if(!(g > 0)) g = 100;
+  return mk(gi, r1(g / units[gi].size));
+}
+function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
+
+async function logQMatch(it){
+  const mem = logQFromRef(logPhr['p:' + logQKey(it.text || it.name)]) || (it.name_en ? logQFromRef(logPhr['p:' + logQKey(it.name_en)]) : null);
+  if(mem) return logQSet(it, mem.info, mem.src);
+  const nm = it.name || it.text, en = it.name_en || nm, br = (it.brand || '').trim(), nb = norm(br);
+  // a food of yours with another brand isn't the one you typed ("Fage yogurt" ≠ your Olympus yogurt)
+  const brandOk = f => !br || !f.brand || norm(f.brand).includes(nb.split(' ')[0]) || nb.includes(norm(f.brand).split(' ')[0]);
+  for(const q of [...new Set([br && `${br} ${nm}`, br && `${br} ${en}`, nm, en].filter(Boolean))]){
+    const s = searchLocal(q, false, { log: true, meals: true });
+    const f = s.mine.find(brandOk); if(f) return logQSet(it, fInfo_(f), f.source === 'estimate' ? 'est' : 'mine');
+    if(!br && s.meals[0]) return logQSet(it, logQMealInfo(s.meals[0]), 'meal');
+  }
+  for(const q of [...new Set([nm, en])]){ const s = searchLocal(q, false, { log: true }); if(s.std[0]) return logQSet(it, logQGenInfo(s.std[0]), 'std'); }
+  try{
+    const res = await Promise.race([searchOnlineAll(br ? `${br} ${en}` : en), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 15000))]);
+    const d = (res || []).find(x => !x.check && +x.kcal > 0);
+    if(d) return logQSet(it, { name: d.name, icon: '🌐', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }, 'onl');
+  }catch(e){}
+  if(it.kcal !== null && it.kcal !== undefined){ const nmC = nm.charAt(0).toUpperCase() + nm.slice(1);
+    return logQSet(it, { name: nmC, icon: '🍽️', unit: it.ml ? 'ml' : 'g', per: { kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat }, food: null, est: { brand: br, en }, piece: null }, 'est'); }
+  it.st = null; it.src = 'none';
+}
+
+// ---- drawing ----
+function logQDraw(){
+  const el = $('lqList'); if(!el) return;
+  el.innerHTML = `<div class="lqmsg app"><div class="lqtxt">${t('logQHi')}<small>${t('logQEx')}</small>${AI.hasKey() ? '' : `<small>${t('logQNoKey')}</small>`}</div></div>` +
+    logQS.msgs.map(m => m.who === 'me' ? `<div class="lqmsg me"><div class="lqtxt">${esc(m.text)}</div></div>` : `<div class="lqmsg app" data-mid="${m.id}">${logQCardHtml(m)}</div>`).join('');
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+}
+function logQRedraw(m){ const el = document.querySelector(`#lqList [data-mid="${m.id}"]`); if(el) el.innerHTML = logQCardHtml(m); else logQDraw(); }
+function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, it) => { const r = lwCalc(it.st); return { kcal: a.kcal + r.kcal, p: a.p + r.p, c: a.c + r.c, f: a.f + r.f }; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
+function logQCardHtml(m){
+  if(m.state === 'work') return `<div class="lqtxt lqwork"><span class="lqdots" aria-hidden="true"><i></i><i></i><i></i></span>${t('logQWork')}</div>`;
+  if(m.state === 'fail') return `<div class="lqtxt">${esc(m.err || t('logQFail'))}</div>`;
+  const tot = logQTot(m), done = m.state === 'logged', busy = m.items.some(it => it.busy), n = m.items.filter(it => it.st).length;
+  const foot = done ? `<div class="lqfoot done">${t('logQDone')} · ${m.loggedK} kcal</div>`
+    : `<div class="lqfoot"><div class="lres"><span class="lk">${Math.round(tot.kcal)} kcal</span><span class="lm"><b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b></span></div>
+      <button class="lgo" type="button" data-qall ${busy || !n ? 'disabled' : ''}>${t('logQAll')}</button></div>`;
+  return `<div class="lqcard ${done ? 'logged' : ''}">${m.note ? `<div class="lqnote">${esc(m.note)}</div>` : ''}${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}</div>`;
+}
+function logQRowHtml(m, it, i){
+  const tag = { std: t('logQStd'), onl: t('logQOnl'), est: t('logQEst') }[it.src], done = m.state === 'logged';
+  const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
+  return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ` <span class="sttag lq ${it.src}">${tag}</span>` : ''}</span><small class="ls">${esc(sub)}</small></button>
+    ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`}</div>
+    ${it.open && !done ? logQPanel(it) : ''}</div>`;
+}
+function logQPanel(it){
+  const sw = `<div class="lqswap"><input class="lqsq" type="search" data-qsq value="${esc(it.sq || '')}" placeholder="${t('logQSwapPh')}" autocomplete="off" enterkeyhint="search" aria-label="${t('logQSwapPh')}"><div class="lqsres">${logQSwapRes(it)}</div></div>`;
+  const st = it.st; if(!st) return `<div class="lpn">${sw}</div>`;
+  const r = lwCalc(st);
+  return `<div class="lpn"><div class="lamt"><input class="lan" type="number" inputmode="decimal" step="any" min="0" value="${fmt(+st.n || 0)}" aria-label="${t('lwAmount')}">
+    <div class="ldd"><button class="ldb" type="button" data-ldd aria-haspopup="listbox"><span class="ldl">${esc(lwUnitLbl(st, st.u))}</span>${svgIcon('down', 16, 2.4)}</button><div class="ldm hide" role="listbox">${lwMenu(st)}</div></div></div>
+    ${st.cook ? `<div class="seg lck">${st.cook.map((c, j) => `<button type="button" data-v="${j}" data-lck="${j}" class="${j === st.ck ? 'on' : ''}">${esc(lwL(c))}</button>`).join('')}</div>` : ''}
+    <div class="lres"><span class="lk">${r.kcal} kcal</span><span class="lm"><b class="p">P ${fmt(r.p)}</b> · <b class="c">C ${fmt(r.c)}</b> · <b class="f">F ${fmt(r.f)}</b></span></div>
+    ${it.swap ? sw : `<button class="lqswapbtn" type="button" data-qswap>${t('logQSwap')}</button>`}</div>`;
+}
+function logQSwapRes(it){
+  const q = (it.sq || '').trim(); if(!q){ it.sres = []; return ''; }
+  const s = searchLocal(q, false, { log: true, meals: true });
+  it.sres = [...s.mine.slice(0, 4).map(f => [f.source === 'estimate' ? 'est' : 'mine', fInfo_(f)]), ...s.meals.slice(0, 2).map(m => ['meal', logQMealInfo(m)]), ...s.std.slice(0, 4).map(g => ['std', logQGenInfo(g)])];
+  if(!it.sres.length) return `<div class="hint">${t('logQNoMatch', { q: esc(q) })}</div>`;
+  return it.sres.map(([, inf], j) => `<button class="lqpick" type="button" data-qpick="${j}"><span>${esc(inf.name)}</span><small>${macrosFor(inf.per, 100).kcal} kcal / 100 ${inf.unit || 'g'}</small></button>`).join('');
+}
+// typing an amount / changing the unit or cooking: only that row and the card's total change
+function logQUpd(m, row, it){
+  lwUpdate(row, it.st);
+  const card = row.closest('.lqcard'), tot = logQTot(m), k = card && card.querySelector('.lqfoot .lk'), mm = card && card.querySelector('.lqfoot .lm');
+  if(k) k.textContent = Math.round(tot.kcal) + ' kcal';
+  if(mm) mm.innerHTML = `<b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b>`;
+}
+
+// ---- send, log ----
+function logQOpenSheet(q){
+  const last = logQS.msgs[logQS.msgs.length - 1]; if(last && last.state === 'logged') logQS.msgs = [];
+  logQDraw(); open('ovQLog'); logQFit();
+  if(q) $('lqIn').value = q; logQGrow();
+  setTimeout(() => { try{ $('lqIn').focus(); }catch(e){} }, 120);
+}
+function logQGrow(){ const ta = $('lqIn'); if(!ta) return; ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; }
+function logQFit(){ const ov = $('ovQLog'), vv = window.visualViewport; if(!ov || !vv) return;   // the chat box stays above the keyboard
+  ov.style.setProperty('--lqvh', vv.height + 'px'); ov.style.setProperty('--lqvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < window.innerHeight * .8); }
+function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return; ks.filter(k => k.startsWith('m:')).slice(0, ks.length - 500).forEach(k => { delete logPhr[k]; }); }
+
+async function logQSend(){
+  const box = $('lqIn'), txt = box.value.trim(); if(!txt) return;
+  if(logQS.ctl){ toast(t('aiStill')); return; }
+  box.value = ''; logQGrow();
+  const last = logQS.msgs[logQS.msgs.length - 1]; if(last && last.state === 'logged') logQS.msgs = [];
+  const me = { id: uid(), who: 'me', text: txt }, rep = { id: uid(), who: 'app', state: 'work', items: [], mk: 'm:' + norm(txt) };
+  logQS.msgs.push(me, rep); logQDraw();
+  let parts = Array.isArray(logPhr[rep.mk]) ? logPhr[rep.mk] : null;   // the same message as before: no AI at all
+  if(!parts && AI.hasKey()){
+    const ctl = logQS.ctl = new AbortController();
+    try{ parts = logQClean((await gemini(logQPrompt(txt), null, null, ctl.signal) || {}).items); if(parts && parts.length) rep.parts = parts; else parts = null; }
+    catch(err){ if(err.cancelled){ logQS.msgs = logQS.msgs.filter(x => x !== me && x !== rep); box.value = txt; logQGrow(); logQDraw(); return; }
+      rep.note = t('logQAIFail', { e: err.message }); }
+    finally{ logQS.ctl = null; }
+  }
+  if(!parts) parts = logQSplit(txt);
+  if(!parts.length){ rep.state = 'fail'; logQRedraw(rep); return; }
+  rep.items = parts.map(p => ({ ...p, busy: true })); rep.state = 'ready'; logQRedraw(rep);
+  await Promise.all(rep.items.map(async it => { try{ await logQMatch(it); }catch(e){ it.st = null; it.src = 'none'; } it.busy = false; logQRedraw(rep); }));
+}
+
+function logQEstFood(info){ const p = info.per;   // kcal / P / C / F only, tagged so it can be found and fixed later
+  return saveOnlineFood({ name: info.name, brand: info.est.brand || '', hint: info.est.en || '', unit: info.unit, kcal: Math.round(p.kcal), protein: r1(p.protein), carbs: r1(p.carbs), fat: r1(p.fat), state: 'ready', source: 'estimate' }); }
+
+function logQLogAll(m){
+  const ok = m.items.filter(it => it.st && !it.busy); if(!ok.length){ toast(t('logQNothing')); return; }
+  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], made = [];
+  ok.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
+    let info = st.info;
+    if(info.gen) info = fInfo_(saveGeneric(info.gen));
+    else if(info.online) info = fInfo_(saveOnlineFood(info.online));
+    else if(info.est){ const f = logQEstFood(info); made.push(f); info = fInfo_(f); }
+    info = { ...info, per: lwPer(st) };
+    logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]);
+    const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
+    try{ if(key.foodId ? stockOf(key.foodId) > 0 : mealStock(key.mealId) > 0) takeFromFridge(key, r.g); }catch(e){}
+    const pk = logQKey(it.text || it.name); if(pk) logPhr['p:' + pk] = info.meal ? { m: info.meal.id } : { f: info.food.id };
+  });
+  if(!added.length){ toast(t('needAmount')); return; }
+  if(m.parts) logPhr[m.mk] = m.parts;
+  logQTrim(); logQSavePhr();
+  const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)); m.state = 'logged'; m.loggedK = k;
+  close('ovQLog'); renderAll(); logQRedraw(m);
+  toast(t('logQLogged', { n: added.length, k }) + (made.length ? ' · ' + t('logQNew', { n: made.length }) : ''), t('undo'), () => {
+    const ids = new Set(added.map(e => e.id)); dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog();
+    made.forEach(f => { const i = foods.indexOf(f); if(i > -1) foods.splice(i, 1); }); if(made.length) saveFoods();
+    m.state = 'ready'; renderAll(); logQRedraw(m); });
+}
+
+// wiring (called once from wire/03, where the Log Food sheet is wired)
+function logQWire(){
+  $('lqForm').addEventListener('submit', e => { e.preventDefault(); logQSend(); });
+  $('lqIn').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); logQSend(); } });
+  $('lqIn').addEventListener('input', logQGrow);
+  const msgOf = el => { const b = el.closest('[data-mid]'); return b ? logQS.msgs.find(x => x.id === b.dataset.mid) : null; };
+  $('lqList').addEventListener('click', e => {
+    const m = msgOf(e.target); if(!m) return;
+    if(e.target.closest('[data-qall]')) return logQLogAll(m);
+    const row = e.target.closest('[data-qi]'); if(!row || m.state === 'logged') return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
+    if(e.target.closest('[data-qrm]')){ m.items.splice(i, 1); logQRedraw(m); return; }
+    const focusQ = () => setTimeout(() => { const r = document.querySelector(`#lqList [data-mid="${m.id}"] [data-qi="${i}"] .lqsq`); if(r) r.focus(); }, 30);
+    if(e.target.closest('[data-qopen]')){ const was = it.open; m.items.forEach(x => { x.open = false; x.swap = false; }); it.open = !was; if(it.open && !it.st){ it.swap = true; focusQ(); } logQRedraw(m); return; }
+    if(e.target.closest('[data-qswap]')){ it.swap = true; logQRedraw(m); focusQ(); return; }
+    const pk = e.target.closest('[data-qpick]'); if(pk){ const [src, info] = (it.sres || [])[+pk.dataset.qpick] || []; if(!info) return;
+      const g = it.st ? lwCalc(it.st).g : +it.grams || 0;
+      it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; logQRedraw(m); return; }
+    const st = it.st; if(!st) return;
+    const dd = e.target.closest('[data-ldd]'); if(dd){ const mn = row.querySelector('.ldm'); mn.classList.toggle('hide'); dd.setAttribute('aria-expanded', !mn.classList.contains('hide')); return; }
+    const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size, sz = st.units[j].size;
+      st.u = j; st.n = st.units[j].k === 'g' ? r1((g || 100) / sz) : Math.max(.5, Math.round((g || sz) / sz * 2) / 2);
+      row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); logQUpd(m, row, it); return; }
+    const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; logQUpd(m, row, it); }
+  });
+  $('lqList').addEventListener('input', e => {
+    const m = msgOf(e.target), row = e.target.closest('[data-qi]'); if(!m || !row) return; const it = m.items[+row.dataset.qi]; if(!it) return;
+    if(e.target.matches('[data-qsq]')){ it.sq = e.target.value; row.querySelector('.lqsres').innerHTML = logQSwapRes(it); return; }
+    if(e.target.classList.contains('lan') && it.st){ it.st.n = e.target.value; logQUpd(m, row, it); }
+  });
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize', () => { if(!$('ovQLog').classList.contains('open')) return; logQFit(); const l = $('lqList'); l.scrollTop = l.scrollHeight; });
+    visualViewport.addEventListener('scroll', () => { if($('ovQLog').classList.contains('open')) logQFit(); });
+  }
+}

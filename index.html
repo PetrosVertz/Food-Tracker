@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <script>
 // 0.6.9 theme (device setting in ft.ui.v1): applied before the first paint so there's no flash. The full logic is THEME in js/ui.js.
-(function(){ try{ var u = JSON.parse(localStorage.getItem('ft.ui.v1') || '{}'), th = u.theme || {}, m = th.mode || 'dark';
+(function(){ try{ var raw = localStorage.getItem('ft.ui.v1'), u = JSON.parse(raw || '{}'), th = u.theme || {}, m = th.mode || (raw ? 'dark' : 'auto');
   var look = m === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : m; document.documentElement.setAttribute('data-theme', look); }catch(e){} })();
 </script>
 <script>
@@ -142,9 +142,9 @@
   <div id="gHub">
     <button class="minirec recbig" id="gMiniRec" aria-label="Recovery"></button>
     <div class="tiles hubstack" id="gHubTiles" style="margin-top:12px">
-      <button class="tile" data-sec="gym-lib"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-45 12 12)"><path d="M7.5 12h9"/><rect x="4" y="7.5" width="3.5" height="9" rx="1"/><rect x="16.5" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10.5v3M22 10.5v3"/></g></svg></span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
-      <button class="tile" data-sec="gym-prog"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/></svg></span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
-      <button class="tile" data-sec="gym-week"><span class="e lic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
+      <button class="tile" data-sec="gym-lib"><span class="e hubic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-45 12 12)"><path d="M7.5 12h9"/><rect x="4" y="7.5" width="3.5" height="9" rx="1"/><rect x="16.5" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10.5v3M22 10.5v3"/></g></svg></span><span><b data-t="hubLib"></b><small id="hubLibSub"></small></span></button>
+      <button class="tile" data-sec="gym-prog"><span class="e hubic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/></svg></span><span><b data-t="hubProg"></b><small data-t="hubProgSub"></small></span></button>
+      <button class="tile" data-sec="gym-week"><span class="e hubic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
       <button class="tile pettile hide" id="tPet"><span id="tPetArt" class="petart"></span><span style="flex:1;min-width:0"><b id="tPetName"></b><small id="tPetSub"></small><span class="mbar" style="margin-top:8px"><i id="tPetBar"></i></span></span></button>
     </div>
   </div>
@@ -695,7 +695,7 @@
   <div class="lwtop">
     <div class="lwrow"><h2 data-t="lwTitle"></h2><button class="lwdone" type="button" data-close data-t="done"></button></div>
     <div class="lwsearch"><input id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off" aria-label="Search foods"><button class="lwscan" id="lScanIn" type="button" aria-label="Scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
-    <div class="lwacts"><button type="button" id="lQuickTop" data-t="lwTake"></button><button type="button" id="planBtn" data-t="lwFill"></button><button type="button" id="lTrack" data-t="lwTrack"></button></div>
+    <div class="lwacts"><button type="button" id="lQuickTop" class="aiafter" data-t="logQT"></button><button type="button" id="planBtn" class="aiafter" data-t="lwFill"></button><button type="button" id="lTrack" data-t="lwTrack"></button></div>
     <div class="lwadded" id="lAdded"></div>
     <button class="hide" id="lYesterday" type="button"></button><button class="hide" id="lScan" type="button"></button>
   </div>
@@ -755,6 +755,22 @@
 
 <!-- ============ SETTINGS ============ -->
 
+
+<!-- ==== branch: gym (new Gym Buddy sheets go on the lines below) ==== -->
+<!-- ==== end gym ==== -->
+<!-- ==== branch: log (new Today & Logging sheets go on the lines below) ==== -->
+<div class="overlay" id="ovQLog"><div class="sheet lqwin">
+  <div class="lqtop"><h2><span data-t="logQT"></span> <span class="aib">AI</span></h2><button class="lwdone" type="button" data-close data-t="done"></button></div>
+  <div class="lqlist" id="lqList" aria-live="polite"></div>
+  <form class="lqbar" id="lqForm"><textarea id="lqIn" rows="1" enterkeyhint="send" autocomplete="off" data-tp="logQPh" aria-label="Quick Log"></textarea><button class="lqsend" type="submit" id="lqSend" aria-label="Send"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button></form>
+</div></div>
+<!-- ==== end log ==== -->
+<!-- ==== branch: foods (new My Foods & Search sheets go on the lines below) ==== -->
+<!-- ==== end foods ==== -->
+<!-- ==== branch: shop (new Fridge & Groceries sheets go on the lines below) ==== -->
+<!-- ==== end shop ==== -->
+<!-- ==== branch: shell (new App Shell & Settings sheets go on the lines below) ==== -->
+<!-- ==== end shell ==== -->
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 

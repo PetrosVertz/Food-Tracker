@@ -2,8 +2,9 @@
 html,body{height:100%;overflow:hidden}
 section.page.wrap{position:fixed;inset:0;max-width:none;margin:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;
   padding:0 max(calc(62px + env(safe-area-inset-right)),calc((100vw - 640px) / 2 + 48px)) calc(130px + env(safe-area-inset-bottom)) max(14px,calc((100vw - 640px) / 2))!important}
-section.page > header{position:sticky;top:0;z-index:5;padding-top:calc(10px + env(safe-area-inset-top));margin:0 -4px;padding-left:4px;padding-right:4px;
-  background:linear-gradient(rgba(7,9,11,.92) 70%,rgba(7,9,11,0));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+/* 0.7.1: every main page header is the same height, so the title never jumps between tabs (--hpad = space above the 56 px title row) */
+:root{--hpad:calc(10px + env(safe-area-inset-top))} html.pwa{--hpad:calc(16px + env(safe-area-inset-top))}
+section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 64px);min-height:0;padding:var(--hpad) 4px 8px;margin:0 -4px;isolation:isolate}
 .hbtns{display:flex;gap:6px}
 /* side strip */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -138,8 +139,11 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 /* swipe-to-delete on any list */
 .swipebox .card,.swipebox .exc,.swipebox .tpcard{position:relative;touch-action:pan-y}
 .swipebox .swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
-.swipebox .swiping::after{content:'🗑';position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));font-size:22px;opacity:var(--sw,0);filter:hue-rotate(-30deg) saturate(3);pointer-events:none}
+.swipebox .swiping::after{content:'';position:absolute;right:16px;top:50%;width:22px;height:22px;background:var(--danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;transform:translateY(-50%) scale(.6);opacity:0;transition:opacity .16s ease-out,transform .22s cubic-bezier(.3,1.4,.6,1);pointer-events:none}
+.swipebox .swready::after{opacity:1;transform:translateY(-50%) scale(1)}
 .swipebox .swready{border-color:var(--danger)!important}
+:root{--trash:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12.2A2 2 0 0 0 8.5 21h7a2 2 0 0 0 2-1.8L18.5 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7'/%3E%3C/svg%3E")}
+@media(prefers-reduced-motion:reduce){.swipebox .swiping::after{transition:none}}
 /* End Workout higher, Discard = a smaller red pill */
 /* Advanced switch */
 .advwrap{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
@@ -206,10 +210,10 @@ html.pwa .pullhint.bottom{bottom:auto!important;top:calc(var(--appH,100vh) - 58p
 /* full width and centred again (the old side strip's space is gone) */
 section.page.wrap{padding-left:max(16px,calc((100vw - 640px) / 2))!important;padding-right:max(16px,calc((100vw - 640px) / 2))!important}
 /* title stays below the status bar on the Home Screen app */
-header .left h1,header>h1{top:calc(50% + env(safe-area-inset-top) / 2 + 4px)!important}
+section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 28px);z-index:2}   /* 0.7.1: fixed spot, drawn above the blur */
+section.page>header>:not(.left),section.page>header .left>:not(h1){position:relative;z-index:1}
 /* top blur fades out softly instead of ending in a line */
-section.page>header{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-22px;z-index:-1;pointer-events:none;
+section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-22px;z-index:0;pointer-events:none;
   background:linear-gradient(color-mix(in srgb,var(--t-bg) 94%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent) 62%,color-mix(in srgb,var(--t-bg) 0%,transparent));
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 /* Food Track: two buttons side by side */
@@ -233,14 +237,25 @@ section.page,.sheet{scroll-behavior:smooth}
 #smMeal{display:none!important}
 /* unilateral sets */
 .swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
-/* AI bubble */
-.aibub{position:fixed;right:14px;z-index:150;width:58px;height:58px;border-radius:50%;border:1px solid color-mix(in srgb,var(--t-accent) 50%,transparent);background:rgba(28,33,38,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
-  box-shadow:0 10px 30px rgba(0,0,0,.5);display:grid;place-items:center;cursor:pointer;color:var(--text);bottom:calc(150px + env(safe-area-inset-bottom));animation:tipIn .25s ease-out}
-html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(safe-area-inset-bottom)) - 140px)}
-.aibub .aist{font-size:20px;grid-area:1/1} .aispin2{grid-area:1/1;width:50px;height:50px;border-radius:50%;border:3px solid color-mix(in srgb,var(--t-accent) 15%,transparent);border-top-color:var(--accent);animation:aiSpin 1s linear infinite}
-.aibub i{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
-.aibub.ready{background:var(--accent);border-color:var(--accent);animation:aiPulse 1.6s ease-in-out infinite} .aibub.ready .aist{display:none} .aibub.ready b{color:#0f1113;font-size:24px;grid-area:1/1}
-@keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--t-accent) 55%,transparent),0 10px 30px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px color-mix(in srgb,var(--t-accent) 0%,transparent),0 10px 30px rgba(0,0,0,.5)}}
+/* AI bubble (0.7.1): the robot in a round glass button; while it works a lime glow circles BEHIND it and the robot thinks (canvas "Robots and anatomy" v2) */
+.aibub{position:fixed;right:14px;z-index:150;width:64px;height:64px;padding:0;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;color:var(--text);
+  bottom:calc(150px + env(safe-area-inset-bottom));animation:tipIn .25s ease-out;-webkit-tap-highlight-color:transparent}
+html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 140px)}
+.aibub .rcore{position:relative;grid-area:1/1;width:64px;height:64px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#26282b;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+:root[data-theme="light"] .aibub .rcore{background:#ffffff;border-color:rgba(0,0,0,.1);box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.aibub .rglow{position:absolute;inset:-10px;border-radius:50%;filter:blur(7px);pointer-events:none;animation:aiSpin 1.6s linear infinite;
+  background:conic-gradient(from 0deg,color-mix(in srgb,var(--t-accent) 0%,transparent),color-mix(in srgb,var(--t-accent) 95%,transparent) 70deg,color-mix(in srgb,var(--t-accent) 0%,transparent) 140deg,color-mix(in srgb,var(--t-accent) 0%,transparent))}
+.aibub i{position:absolute;top:-6px;right:-6px;z-index:2;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
+.aibub .rok{position:absolute;top:-4px;right:-4px;z-index:2;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#59d38c;color:#0b1a10}
+:root[data-theme="light"] .aibub .rok{background:#1f9d57;color:#ffffff}
+@keyframes rtilt{0%,40%{transform:rotate(-7deg)}50%,90%{transform:rotate(7deg)}100%{transform:rotate(-7deg)}}
+@keyframes rfa{0%,42%{opacity:1}48%,92%{opacity:0}98%,100%{opacity:1}}
+@keyframes rfb{0%,42%{opacity:0}48%,92%{opacity:1}98%,100%{opacity:0}}
+.robot .rtilt{transform-box:view-box;transform-origin:60px 136px;animation:rtilt 2.6s ease-in-out infinite}
+.robot .rfa{animation:rfa 2.6s ease-in-out infinite} .robot .rfb{opacity:0;animation:rfb 2.6s ease-in-out infinite} .robot .rfi{display:none}
+/* Reduce Motion: no sway, no glancing, no spin: the idle face and a still lime ring while it works */
+@media (prefers-reduced-motion: reduce){ .robot .rfa,.robot .rfb{display:none} .robot .rfi{display:inline}
+  .aibub .rglow{background:color-mix(in srgb,var(--t-accent) 55%,transparent);filter:blur(6px);inset:-6px} }
 /* search windows: top two thirds, fixed size, list drops down under the box */
 .overlay.searchy{align-items:flex-start!important}
 .overlay.searchy .sheet{height:min(64vh,600px)!important;max-height:none;margin-top:calc(env(safe-area-inset-top) + 12px);border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);display:flex;flex-direction:column}
@@ -255,7 +270,6 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 58px - max(10px, env(sa
 .frz{border:0;background:none;padding:0 2px;font-size:15px;cursor:pointer;vertical-align:middle}
 .frzrow{margin:10px 0}
 /* Home Screen app: everything a little lower */
-html.pwa section.page>header{padding-top:calc(16px + env(safe-area-inset-top))!important}
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
 
 /* ---------- 0.6.5.1 ---------- */

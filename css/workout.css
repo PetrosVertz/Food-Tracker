@@ -42,7 +42,7 @@
 .wtempty{padding:22px 6px;text-align:center;color:var(--muted);font-size:13px}
 .wibox.wismall{margin-top:8px;padding:8px 10px;border-radius:14px}
 .wismall .brandrow{gap:8px;align-items:center} .wismall label{margin:0;flex:1;font-size:13px;text-transform:none;letter-spacing:0}
-.wismall input{flex:0 0 84px;padding:8px 10px} .wismall .btn.small{padding:8px 12px}
+.wismall input{flex:0 0 84px;padding:8px 10px;font-size:16px} .wismall .btn.small{padding:8px 12px}
 .pglist{margin-top:6px}
 .pgrow{display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:10px;width:100%;padding:10px 12px;margin-top:6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);font:inherit;text-align:left;cursor:pointer}
 .pgrow.l2{background:none;border-color:transparent;border-bottom:1px solid var(--line);border-radius:0;margin-top:0;padding:9px 6px}
@@ -147,7 +147,9 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .setrow.done .snum.tb{background:var(--sc);color:#000}
 .setrow.done .snum.tn{background:var(--t-done);border-color:var(--t-done);color:#000}   /* finished set number = filled green badge */
 .sbox{height:38px;border-radius:var(--r-input);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);display:flex;align-items:center;min-width:0;transition:background .2s,color .2s,border-color .2s}
-.sbox input{flex:1;min-width:0;width:100%;height:100%;border:0;background:none;padding:0;text-align:center;font-size:15px;font-weight:var(--w-setter);font-style:italic;color:inherit}
+.sbox input{flex:1;min-width:0;width:100%;height:100%;border:0;background:none;padding:0;text-align:center;font-size:16px;font-weight:var(--w-setter);font-style:italic;color:inherit}
+.sbox input:focus,.tpcard input:focus,.wismall input:focus{outline:0!important;box-shadow:none!important}
+.sbox input,.tpcard input{-webkit-tap-highlight-color:transparent}
 .sbox input::placeholder{color:var(--t-muted);opacity:.55;font-weight:600}
 .sbox button{flex:0 0 22px;height:100%;border:0;background:none;padding:0;color:var(--t-muted);font-size:15px;font-weight:var(--w-med);opacity:.7}
 .setrow.done .sbox{background:var(--t-done-soft);border-color:var(--t-done);color:var(--t-done)}
@@ -188,3 +190,16 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .pillbtn{height:52px;border-radius:var(--r-pill);border:0;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .pillbtn.primary{background:var(--t-accent);color:var(--t-on)}
 .pillbtn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
+
+/* ======================= 0.7.1 (gym branch) ======================= */
+/* hub icons: plain, no box (like the Recovery bolt) */
+.tile .e.hubic{display:flex;align-items:center;justify-content:center;width:30px;height:44px;flex:0 0 30px;color:var(--t-text);font-size:0;background:none}
+/* no sideways drift and no zoom on the workout screens (every input 16px+) */
+#ovSession .sheet,#ovExPick .sheet,#ovTpl .sheet,#ovDemo .sheet,#ovSwap .sheet{overflow-x:hidden;overscroll-behavior-x:none}
+#sesBody,#pkBody,#tpList{max-width:100%;overflow-x:hidden;touch-action:pan-y}
+.tpcard input,#ovExPick input,#ovSwap input,#ovTpl input{font-size:16px!important}
+/* exercise search: while you search, the box moves to the top and stays there as the list scrolls */
+#ovExPick .sheet.pksearching{display:flex;flex-direction:column}
+#ovExPick .sheet.pksearching>h2,#ovExPick .sheet.pksearching>#pkRegion{display:none}
+#ovExPick .sheet.pksearching .pksearch{order:-1;position:sticky;top:0;bottom:auto;margin:0 -16px var(--s2);padding:8px 16px 10px}
+#ovExPick .sheet.pksearching .pksearch .pksi{transform:translateY(-50%)}

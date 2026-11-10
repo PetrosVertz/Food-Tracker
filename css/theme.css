@@ -195,9 +195,8 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .switch{width:40px;height:24px;border-radius:999px;border:0;padding:2px;background:var(--t-off);cursor:pointer;transition:background .2s;flex:0 0 40px}
 .switch i{display:block;width:20px;height:20px;border-radius:999px;background:#fff;transition:transform .22s cubic-bezier(.3,1.3,.6,1)}
 .switch.on{background:var(--t-accent)} .switch.on i{transform:translateX(16px)}
-.fpstage{position:relative;height:300px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.fpstage{position:relative;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .fpstage svg{display:block;font-family:var(--font)}
-.fphint{font-size:var(--fs-label);color:var(--t-muted);text-align:center;padding:0 4px}
 @media (prefers-reduced-motion: reduce){ .fpphoto img{transition:none} }
 
 /* ---------- Swap sheet (Gym.dc.html) ---------- */
@@ -420,15 +419,9 @@ body.twofab .fab{padding:16px 20px!important}
 .langpick button{border-radius:999px!important}
 .seg.wrapseg,#dWork,#fDisplay,#sLang{border-radius:24px!important}
 
-/* bottom bar (0.6.9.3): a bit more see-through (blur kept); shrinks when you scroll down, like Instagram — scroll up or tap it to grow it back.
-   The main buttons (Log Food, Start Workout…) stay and slide down with it. */
+/* bottom bar: a bit more see-through (blur kept). 0.7.1: always one size (no shrink on scroll). */
 :root{--t-bar:rgba(26,27,29,.55)} :root[data-theme="light"]{--t-bar:rgba(244,244,245,.6)}
-.rail{background:var(--t-bar)!important;-webkit-backdrop-filter:blur(24px) saturate(160%)!important;backdrop-filter:blur(24px) saturate(160%)!important;
-  transform-origin:50% 100%;transition:transform .28s cubic-bezier(.3,1.3,.6,1)}
-body.barmini .rail{transform:translateX(-50%) scale(.72)}
-.fab{transition:translate .28s cubic-bezier(.3,1.3,.6,1),opacity .12s}
-body.barmini .fab{translate:0 18px}
-@media (prefers-reduced-motion: reduce){ .rail,.fab{transition:none} }
+.rail{background:var(--t-bar)!important;-webkit-backdrop-filter:blur(24px) saturate(160%)!important;backdrop-filter:blur(24px) saturate(160%)!important}
 
 /* macro colours a step more vibrant (not neon) */
 :root{--t-p:#5aa9f0;--t-c:#f0c35a;--t-f:#f0846f}
@@ -500,3 +493,81 @@ body.barmini .fab{translate:0 18px}
 .chkvals i{font-style:normal;color:var(--t-muted);font-size:var(--fs-label)} .chkvals .chg b{color:var(--t-accent);font-weight:var(--w-bold)}
 .chksrc{display:block;color:var(--t-muted);font-size:var(--fs-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chkbtns{display:flex;gap:8px;margin-top:8px} .chkbtns .btn{flex:1;border-radius:999px}
+
+/* ==== branch: gym (new Gym Buddy styles go on the lines below) ==== */
+/* 0.7.1 "AI" badge (replaces ✨): tiny pill, bold italic. On dark/grey: accent pill + dark text; on an accent button: dark pill + accent text */
+.aibadge{display:inline-flex;align-items:center;justify-content:center;height:16px;padding:0 6px;margin-right:6px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:var(--font);font-size:10px;font-weight:800;font-style:italic;letter-spacing:.3px;line-height:1;vertical-align:1px;flex:0 0 auto}
+.btn.primary .aibadge,.pillbtn.primary .aibadge{background:var(--t-on);color:var(--t-accent)}
+/* ==== end gym ==== */
+/* ==== branch: log (new Today & Logging styles go on the lines below) ==== */
+/* 0.7.1 · the AI badge (canvas "Robots and anatomy"): tiny pill, bold italic AI. On dark: accent pill, dark text; on Light or on an accent button: dark pill, accent text.
+   Any part can use it: <span class="aib">AI</span>, or class="aiafter" on a button whose text comes from data-t. */
+.aib,.aiafter::after{display:inline-block;font-size:11px;font-weight:800;font-style:italic;line-height:1;letter-spacing:.2px;padding:3px 7px;border-radius:999px;background:var(--t-accent);color:var(--t-on);vertical-align:1px;white-space:nowrap}
+.aiafter::after{content:'AI';margin-left:6px}
+:root[data-theme="light"] .aib,:root[data-theme="light"] .aiafter::after,.lgo .aib,.lwdone .aib{background:#0f1113;color:var(--t-accent)}
+.lwacts .aiafter::after{font-size:10px;padding:2px 5px;margin-left:4px}
+.lmore>span .aib{margin-left:2px}
+
+/* 0.7.1 · Quick Log: a chat window like Log Food's; the chat box sits at the bottom and stays above the keyboard */
+#ovQLog{align-items:flex-start!important;top:var(--lqvt,0px)!important;bottom:auto!important;height:var(--lqvh,var(--appH,100vh))!important}
+#ovQLog .sheet.lqwin{position:relative;width:calc(100% - 24px)!important;max-width:520px!important;margin:max(52px,calc(env(safe-area-inset-top) + 8px)) auto 0!important;
+  height:min(712px,calc(var(--lqvh,var(--appH,100vh)) - max(52px,calc(env(safe-area-inset-top) + 8px)) - 12px))!important;max-height:none!important;padding:0!important;
+  border-radius:28px!important;display:flex;flex-direction:column;overflow:hidden}
+#ovQLog.kb .sheet.lqwin{margin-top:8px!important;height:calc(var(--lqvh,100vh) - 16px)!important}
+#ovQLog .sback{display:none}
+.lqtop{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--t-line)}
+.lqtop h2{margin:0;display:flex;align-items:center;gap:8px}
+.lqlist{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:var(--s3)}
+.lqmsg{display:flex} .lqmsg.me{justify-content:flex-end}
+.lqtxt{max-width:86%;padding:10px 14px;border-radius:20px;font-size:var(--fs-body);line-height:1.4;overflow-wrap:anywhere}
+.lqmsg.me .lqtxt{background:var(--t-sel);color:var(--t-text);border-bottom-right-radius:6px;white-space:pre-wrap}
+.lqmsg.app .lqtxt{background:var(--t-card);color:var(--t-text);border-bottom-left-radius:6px}
+.lqtxt small{display:block;margin-top:6px;font-size:var(--fs-label);color:var(--t-muted)}
+.lqwork{display:flex;align-items:center;gap:10px;color:var(--t-muted)}
+.lqdots{display:inline-flex;gap:4px} .lqdots i{width:6px;height:6px;border-radius:50%;background:var(--t-accent);animation:lqDot 1.1s ease-in-out infinite}
+.lqdots i:nth-child(2){animation-delay:.15s} .lqdots i:nth-child(3){animation-delay:.3s}
+@keyframes lqDot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.lqmsg.app>.lqcard{width:100%}
+.lqcard{background:var(--t-card);border-radius:var(--r-card);border-bottom-left-radius:6px;padding:4px 12px 12px;display:flex;flex-direction:column}
+.lqnote{font-size:var(--fs-label);color:var(--t-muted);padding:10px 0 4px}
+.lqrow{display:flex;flex-direction:column;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--t-line)}
+.lqrow .lrn:disabled{cursor:default;opacity:1}
+.lqrow .nm{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lqrow.busy .ls{animation:lqDot 1.4s ease-in-out infinite}
+.lqrow.miss .ls{color:var(--t-danger)}
+.lqx{flex:0 0 36px;width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lqrow .lan{background:var(--t-bg)}
+.lqswapbtn{align-self:flex-start;border:0;background:none;padding:4px 0;color:var(--t-accent);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
+.lqswap{display:flex;flex-direction:column;gap:6px}
+.lqsq{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none}
+.lqsres{display:flex;flex-direction:column;gap:4px} .lqsres:empty{display:none}
+.lqpick{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);min-height:44px;padding:0 12px;border:0;border-radius:12px;background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:var(--fs-body);text-align:left;cursor:pointer}
+.lqpick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .lqpick small{color:var(--t-muted);font-size:var(--fs-label);white-space:nowrap}
+.lqfoot{display:flex;flex-direction:column;gap:var(--s3);padding-top:12px}
+.lqfoot .lgo:disabled{opacity:.4;cursor:default}
+.lqfoot.done{flex-direction:row;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-done)}
+.lqfoot.done::before{content:'✓'}
+.lqbar{display:flex;align-items:flex-end;gap:var(--s2);padding:10px 12px 12px;border-top:1px solid var(--t-line)}
+.lqbar textarea{flex:1;min-width:0;min-height:44px;max-height:120px;resize:none;padding:11px 16px;border-radius:22px;border:1.5px solid var(--t-line);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;line-height:1.35;outline:none;box-shadow:none}
+.lqbar textarea:focus{border-color:var(--t-accent)}
+.lqsend{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:50%;background:var(--t-accent);color:var(--t-on);display:flex;align-items:center;justify-content:center;cursor:pointer}
+/* where an item came from (your own foods need no tag) */
+.sttag.lq{margin:0;font-weight:var(--w-med);letter-spacing:0;text-transform:none}
+.sttag.lq.std{background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
+.sttag.lq.onl{background:color-mix(in srgb,var(--t-rest) 16%,transparent);color:var(--t-rest);border:1px solid color-mix(in srgb,var(--t-rest) 45%,transparent)}
+.sttag.est{background:none;color:var(--t-warm);border:1px dashed color-mix(in srgb,var(--t-warm) 70%,transparent)}
+:root[data-theme="light"] .sttag.est{color:#9a6a06}
+
+/* 0.7.1 · Eaten swipe to delete: only the red glow while you drag; the bin fades in once you're past the delete point */
+#dLog .swiping::after{opacity:0;transform:translateY(-50%) scale(.7);transition:opacity .16s ease,transform .24s cubic-bezier(.3,1.3,.6,1)}
+#dLog .swready::after{opacity:1;transform:translateY(-50%) scale(1)}
+/* ==== end log ==== */
+/* ==== branch: foods (new My Foods & Search styles go on the lines below) ==== */
+/* ==== end foods ==== */
+/* ==== branch: shop (new Fridge & Groceries styles go on the lines below) ==== */
+/* ==== end shop ==== */
+/* ==== branch: shell (new App Shell & Settings styles go on the lines below) ==== */
+/* 0.7.1 "AI" badge (replaces ✨): tiny bold italic pill. On dark: accent pill + dark text; on an accent button or in Light: dark pill + bright accent text */
+.aibadge{display:inline-block;margin-left:4px;padding:2px 7px;border-radius:999px;font-size:11px;line-height:1.35;font-weight:800;font-style:italic;letter-spacing:0;vertical-align:1px;white-space:nowrap;background:var(--t-accent);color:var(--t-on)}
+:root[data-theme="light"] .aibadge,.fab .aibadge,.btn.primary .aibadge,.aibadge.onacc{background:#0f1113;color:var(--t-mp-text)}
+/* ==== end shell ==== */

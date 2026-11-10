@@ -1,4 +1,4 @@
-// AI in one place: which models, the key, the call, the daily use counter, and the ✨ bubble that lets you keep using the app.
+// AI in one place: which models, the key, the call, the daily use counter, and the robot bubble that lets you keep using the app.
 // Food Track · Gym Buddy — today it calls Gemini with the user's own key; to run it on our own server later, change call() only.
 // Callers use gemini(prompt, imageB64, onTry, signal, { quiet, best, search }) and get the parsed JSON back (or an error with .cancelled).
 // best: the strongest model the key allows first (Pro before Flash; receipts). search: Gemini looks things up with Google Search (web lookups, Check My Foods).
@@ -78,21 +78,56 @@ const AI = (() => {
   function count(){ const d = todayKey(); if(!ui.ai || ui.ai.d !== d) ui.ai = { d, n: 0 }; ui.ai.n++; saveUI();
     const n = ui.ai.n; if(n === 100 || (n > 100 && n % 25 === 0)) setTimeout(() => toast(t('aiMany', { n })), 400); }
 
-  // ✨ bubble: the window that asked closes while the AI works; tap the bubble when it's ready to bring it back with the answer
-  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [] };
+  // 0.7.1 robot bubble: the window that asked closes while the AI works; tap the bubble when it's ready to bring it back with the answer.
+  // Chef robot = food jobs, the same robot with a lime sweatband = gym jobs (opts.robot, else Gym Buddy pages). Drawings from the "Robots and anatomy" canvas (v2).
+  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [], robot: 'chef' };
+  const ROBOT_DEFS = '<g id="rEars"><rect x="9" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/><rect x="100" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/></g>'
+    + '<g id="rChefBase"><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/>'
+    + '<path d="M31 51 C15 50 10 30 24 23 C21 6 41 -4 54 6 C61 -5 81 -4 86 8 C101 4 112 22 101 35 C108 44 100 53 89 51 Z" fill="#ffffff" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/>'
+    + '<path d="M44 30 Q47 38 45 46 M60 24 Q62 34 60 46 M76 30 Q73 38 75 46" fill="none" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".28"/>'
+    + '<rect x="29" y="45" width="62" height="21" rx="5" fill="#ffffff" stroke="#0f1113" stroke-width="4"/>'
+    + '<path d="M39.5 49 V62 M49.5 49 V62 M60 49 V62 M70.5 49 V62 M80.5 49 V62" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".35"/></g>'
+    + '<clipPath id="rHeadClip"><rect x="18" y="62" width="84" height="72" rx="30"/></clipPath>'
+    + '<g id="rGymBase"><line x1="60" y1="62" x2="60" y2="44" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="39" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/>'
+    + '<use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2"/>'
+    + '<g clip-path="url(#rHeadClip)"><rect x="10" y="71" width="100" height="15" fill="#c6f432"/><line x1="10" y1="71" x2="110" y2="71" stroke="#0f1113" stroke-width="3.5"/><line x1="10" y1="86" x2="110" y2="86" stroke="#0f1113" stroke-width="3.5"/>'
+    + '<path d="M27 78.5 H40 M80 78.5 H93" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".4"/></g>'
+    + '<rect x="18" y="62" width="84" height="72" rx="30" fill="none" stroke="#0f1113" stroke-width="4"/>'
+    + '<path d="M109 56 C104 63 104 68 109 69.5 C114 68 114 63 109 56 Z" fill="#5aa9f0" stroke="#0f1113" stroke-width="3" stroke-linejoin="round"/></g>'
+    + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/>'
+    + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
+    + '<g id="rFaceA"><ellipse cx="42" cy="99" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="74" cy="99" rx="10" ry="12.5" fill="#0f1113"/><circle cx="39" cy="92.5" r="3.4" fill="#ffffff"/><circle cx="71" cy="92.5" r="3.4" fill="#ffffff"/>'
+    + '<path d="M53 120 Q59 118 66 115.5" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
+    + '<g id="rFaceB"><ellipse cx="46" cy="99" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="78" cy="99" rx="10" ry="12.5" fill="#0f1113"/><circle cx="49" cy="92.5" r="3.4" fill="#ffffff"/><circle cx="81" cy="92.5" r="3.4" fill="#ffffff"/>'
+    + '<path d="M54 115.5 Q61 118 67 120" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
+  function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
+    d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
+  // the robot as an <svg>: kind 'chef' | 'gym'; think = the two glancing looks + sway (Reduce Motion shows the idle face)
+  function robot(kind, size, think){ robotDefs(); const base = kind === 'gym' ? 'rGymBase' : 'rChefBase', w = size || 40, h = Math.round(w * 146 / 120);
+    const face = think ? '<use class="rfa" href="#rFaceA"/><use class="rfb" href="#rFaceB"/><use class="rfi" href="#rFaceIdle"/>' : '<use href="#rFaceIdle"/>';
+    return `<svg class="robot" width="${w}" height="${h}" viewBox="0 -6 120 146" aria-hidden="true"><g${think ? ' class="rtilt"' : ''}><use href="#${base}"/>${face}</g></svg>`; }
+  const OK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function bubble(st){ let b = $('aiBub');
     if(st === 'hide'){ if(b) b.remove(); return; }
     if(!b){ b = document.createElement('button'); b.id = 'aiBub'; b.type = 'button'; b.className = 'aibub'; document.body.appendChild(b);
       b.addEventListener('click', e => { if(e.target.closest('[data-aix]')){ B.ctls.forEach(c => c.abort()); return; }
         if(b.classList.contains('ready')){ const ids = B.show; bubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); }); }
-    b.className = 'aibub ' + st; b.innerHTML = st === 'run' ? `<span class="aispin2"></span><span class="aist">✨</span><i data-aix aria-label="Cancel">✕</i>` : `<span class="aist">✨</span><b>✓</b>`;
-    b.setAttribute('aria-label', st === 'run' ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+    const run = st === 'run';
+    b.className = 'aibub ' + st + ' r' + B.robot;
+    b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '<i data-aix aria-label="Cancel">✕</i>' : `<b class="rok">${OK_SVG}</b>`);
+    b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+  // the "AI" pill that replaces ✨ on AI buttons; label() turns a '✨ Text' string into 'Text <AI>' (html = the string is already markup)
+  const badge = () => '<span class="aibadge">AI</span>';
+  function label(s, html){ s = String(s ?? ''); if(!s.includes('✨')) return html ? s : esc(s);
+    const plain = s.replace(/✨\s?/g, '').trim(); if(!html) return `${esc(plain)} ${badge()}`;
+    const i = plain.indexOf('<'); return i > 0 ? `${plain.slice(0, i).trim()} ${badge()}${plain.slice(i)}` : `${plain} ${badge()}`; }
 
   async function ask(prompt, img, onTry, outer, opts){
     count();
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
     if(!B.jobs){ B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
+    B.robot = opts && opts.robot === 'gym' || (!(opts && opts.robot) && location.hash.startsWith('#gym')) ? 'gym' : 'chef';
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
     try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);
@@ -112,7 +147,7 @@ const AI = (() => {
   }
 
   return {
-    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0,
+    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

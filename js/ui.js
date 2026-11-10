@@ -47,7 +47,7 @@ const THEMES = [
   ['gold', 'Gold', '#f2c14e', '#1a1306', '#c08c0c', '#1a1306'], ['mint', 'Mint', '#5fe3b0', '#04170f', '#16a673', '#04170f'],
   ['pink', 'Soft Pink', '#ff9ec7', '#2a0a18', '#db4f8c', '#ffffff'] ];
 const THEME_WARM = ['sunset', 'red', 'gold', 'pink'];   // "Ready" muscles use green in these so they don't look like "Sore"
-function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'dark', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
+function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'auto', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
   return { mode, p, look: mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode }; }
 function applyTheme(){
   const { p, look } = themeNow(), L = look === 'light', mono = p[0] === 'mono', r = document.documentElement, set = (k, v) => r.style.setProperty(k, v);
@@ -107,9 +107,10 @@ addEventListener('resize', pillsAll); document.addEventListener('DOMContentLoade
 
 function applyLang(){
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
-  document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = t(el.dataset.th));
-  document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp));
+  // 0.7.1: a ✨ in a label becomes the "AI" badge after the text
+  document.querySelectorAll('[data-t]').forEach(el => { const s = t(el.dataset.t); if(s.includes('✨')) el.innerHTML = AI.label(s); else el.textContent = s; });
+  document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = AI.label(t(el.dataset.th), true));
+  document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp).replace(/✨\s?/g, ''));
   setSeg('#sLang', lang);
 }
 
@@ -324,7 +325,7 @@ function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const wa
   if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => el.classList.remove('closing'), 200); } }
 
 function open(id){
-  if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the ✨ bubble
+  if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
   const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open');
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);

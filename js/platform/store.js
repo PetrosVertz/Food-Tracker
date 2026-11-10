@@ -22,6 +22,7 @@ const Store = (() => {
     targets: ['ft.targets.v1', 'one', 1], plans: ['ft.plans.v1', 'map', 1], weights: ['ft.weights.v1', 'map', 1], profile: ['ft.profile.v1', 'one', 1],
     exCustom: ['ft.gym.custom', 'list', 1], tpls: ['ft.gym.tpl', 'list', 1], gymPlan: ['ft.gym.plan', 'map', 1], sessions: ['ft.gym.sessions', 'list', 1],
     active: ['ft.gym.active', 'one', 1], comeback: ['ft.gym.comeback', 'one', 1], pet: ['ft.pet.v1', 'one', 1], combos: ['ft.combos.v1', 'list', 1],
+    logPhr: ['ft.logphr.v1', 'map', 1],   // 0.7.1 Quick Log: typed phrase → food, so repeats need no AI matching
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],
   };
   const BY_KEY = Object.fromEntries(Object.entries(C).map(([n, c]) => [c[0], n]));

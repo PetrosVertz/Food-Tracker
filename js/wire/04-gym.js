@@ -31,9 +31,12 @@ const repRange = s => { const m = String(s || '').match(/(\d+)\s*[-–]\s*(\d+)/
 
 const defReps = rest => rest >= 180 ? '5-8' : rest >= 120 ? '8-12' : rest >= 90 ? '10-15' : '12-20';
 
-const bodyW = () => (targets && targets.bw) || 75;
+// 0.7.1: your latest weigh-in, then the target body weight, then 75
+const bodyW = () => { const w = typeof weights === 'object' && weights ? weights : {}, k = Object.keys(w).filter(d => +w[d] > 30).sort().pop(); return (k && +w[k]) || (targets && targets.bw) || 75; };
+const gymIsAssist = exId => { const ex = exById(exId); return !!ex && /assist/i.test(`${ex.id} ${ex.en || ''}`); };
+const gymBwDash = exId => { const ex = exById(exId); return !!ex && (ex.e === 'bodyweight' || gymIsAssist(exId)); };   // kg box starts with a dash
 
-const e1rm = (w, r, id) => { const ex = exById(id); const load_ = ex.e === 'bodyweight' ? bodyW() + (w || 0) : w; return r >= 1 && r <= 20 && load_ > 0 ? load_ * (1 + r / 30) : 0; };
+const e1rm = (w, r, id) => { const load_ = loadOf(id, w); return r >= 1 && r <= 20 && load_ > 0 ? load_ * (1 + r / 30) : 0; };
 
 const fmtRest = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
 
@@ -56,7 +59,15 @@ $('gPlanV').addEventListener('change', e => {
   saveG('plan'); renderGymPlan(); renderHome(); renderToday(); toast(t('planSaved'));
 });
 
-const loadOf = (exId, w) => exById(exId).e === 'bodyweight' ? bodyW() + (+w || 0) : (+w || 0);
+// the weight a set really moved: body weight + belt on bodyweight moves, body weight − assistance on assisted machines
+const loadOf = (exId, w) => gymIsAssist(exId) ? Math.max(0, bodyW() - (+w || 0)) : exById(exId).e === 'bodyweight' ? bodyW() + (+w || 0) : (+w || 0);
+// 0.7.1 calories: counted from the sets you did, not the time (rest and a forgotten open workout don't add any).
+// About a third of a kcal per kg of body weight per working set, more for big muscles and more reps; warm-ups, drops and single sides count less.
+function gymSetKcal(exId, s, bw){
+  if(isCardio(exId)) return bw * 7 * (+s.r || 0) / 60;
+  const mu = exById(exId).mu || {}, big = Object.entries(mu).reduce((a, [h, v]) => a + (BIG_HEADS.has(h) ? v : 0), 0) / 100;
+  const reps = Math.min(1.4, Math.max(.7, Math.sqrt((+s.r || 8) / 10)));
+  return bw * .33 * (.75 + .45 * big) * reps * (s.type === 'W' ? .5 : 1) * (s.drop ? .6 : 1) * (s.side ? .6 : 1); }
 
 // a set that counts on its own: not a warm-up, not the R half of an L/R pair, not a drop under another set
 const isMainSet = s => s.type !== 'W' && s.side !== 'R' && !s.drop;
@@ -88,8 +99,8 @@ $('sesBody').addEventListener('click', e => {
     saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-replace]')) return openSwap(xi);   // 0.6.9.3: the same Swap menu as inside the open exercise
   if(e.target.closest('[data-ok]') && s){ tickSet(x, s, row, xi, +row.dataset.s); return; }
-  if(e.target.closest('[data-addset]')){ if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
-  if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || z.w !== '' || z.r !== ''); delete active.cur; saveG('act'); renderSession();
+  if(e.target.closest('[data-addset]')){ if(!x.t0) x.t0 = Date.now(); if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
+  if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || (!z.auto && (z.w !== '' || z.r !== ''))); delete active.cur; saveG('act'); renderSession();
     const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => (next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')).scrollIntoView({ behavior: 'smooth', block: 'center' }), 60); return; }
   if(e.target.closest('[data-reopen]')){ x.ended = false; x.t1 = null; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-rest]')){ const opts = [60, 90, 120, 150, 180, 240, 300]; x.rest = opts[(opts.indexOf(x.rest) + 1) % opts.length] || 90; saveG('act'); renderSession(); return; }
@@ -113,6 +124,9 @@ setInterval(() => { tickRest(); tickClock(); }, 500);
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
 $('exSearch').addEventListener('input', drawExPick);
+// 0.7.1: while searching, the box sits at the top and the list scrolls under it (it no longer slides away behind the keyboard)
+const gymPkSearching = () => $('ovExPick').querySelector('.sheet').classList.toggle('pksearching', document.activeElement === $('exSearch') || !!$('exSearch').value.trim());
+['focus', 'input', 'blur'].forEach(k => $('exSearch').addEventListener(k, () => setTimeout(gymPkSearching, 0)));
 $('pkBody').addEventListener('change', e => { if(e.target.id === 'pkSortMu'){ ui.pkSortMu = e.target.checked; saveUI(); drawExPick(); } });   // one list by muscle usage
 
 document.querySelectorAll('#pkRegion button').forEach(b => b.addEventListener('click', () => { PK.region = b.dataset.v; PK.group = null; PK.head = null; ui.pkRegion = PK.region; saveUI(); drawExPick(); }));
@@ -157,9 +171,9 @@ $('nxBody').addEventListener('click', async e => {
 Suggest the 3 best next exercises to balance this session (fill muscles that are missing, avoid overdoing ones already hit). Pick ONLY from this list, using the exact English names: ${names}.
 Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON: {"picks":[{"name":string,"why":string,"sets":number,"reps":string}]}`, null, (i, n) => { ai.textContent = t('cancelRec', { i, n }).replace(/^✕\s*\S+\s*·\s*/, ''); });
     const picks = (r.picks || []).map(p => ({ ...p, ex: EX().find(x => norm(x.en) === norm(p.name)) || EX().find(x => norm(x.en).includes(norm(p.name)) || norm(p.name).includes(norm(x.en))) })).filter(p => p.ex);
-    $('nxAIOut').innerHTML = picks.map(p => `<div class="nxrow"><small class="rmeta">✨ ${esc(p.why || '')}${p.sets ? ` · ${p.sets}×${esc(p.reps || '')}` : ''}</small>${exTiles([p.ex])}</div>`).join('') || `<p class="hint">${t('nothingHere')}</p>`;
+    $('nxAIOut').innerHTML = picks.map(p => `<div class="nxrow"><small class="rmeta">${gymAIB}${esc(p.why || '')}${p.sets ? ` · ${p.sets}×${esc(p.reps || '')}` : ''}</small>${exTiles([p.ex])}</div>`).join('') || `<p class="hint">${t('nothingHere')}</p>`;
     ai.remove();
-  }catch(err){ ai.disabled = false; ai.textContent = t('nxAI'); $('nxAIOut').innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
+  }catch(err){ ai.disabled = false; ai.innerHTML = gymAIB + t('nxAI'); $('nxAIOut').innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
 });
 
 // ---------- finish → summary (ties into food, supplements and the pet) ----------
@@ -171,16 +185,15 @@ $('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discar
 
 $('sesFinish').addEventListener('click', () => finishWorkout());
 
-// save the workout; auto = ended by itself after 20 min without a tap (end time = the last tap, no questions)
+// save the workout; auto = ended by itself after 15 min without a tap (end time = the last tap, no questions)
 async function finishWorkout(auto){
   const doneSets = active.exercises.flatMap(x => x.sets.filter(s => s.done));
   if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
   const filled = active.exercises.some(x => x.sets.some(s => !s.done && (s.w !== '' || s.r !== '')));
   if(!auto && filled && !(await ask(t('unfinished')))) return false;
   const end = auto && active.last ? new Date(active.last) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
-  const cardioMin = active.exercises.filter(x => isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done)).reduce((a, s) => a + (+s.r || 0), 0);
-  const kcal = Math.round(bodyW() * (5 * Math.max(0, mins - cardioMin) + 7 * cardioMin) / 60);
-  const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).flatMap(x => x.sets.filter(s => s.done && s.type !== 'W')).reduce((a, s) => a + (+s.w || 0) * (+s.r || 0), 0));
+  const bw = bodyW(), kcal = Math.round(active.exercises.reduce((a, x) => a + x.sets.filter(s => s.done).reduce((b, s) => b + gymSetKcal(x.exId, s, bw), 0), 0) / 5) * 5;
+  const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets), 0));
   const ses = { ...active, end: end.toISOString(), mins, kcal, vol, exercises: active.exercises.map(x => ({ ...x, sets: x.sets.filter(s => s.done) })).filter(x => x.sets.length) };
   delete ses.last; delete ses.dayBefore; delete ses.cur; if(auto) ses.autoEnded = true;
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
@@ -196,7 +209,7 @@ async function finishWorkout(auto){
 }
 
 // ---------- abandoned workouts (iPhone web apps don't run in the background, so this is checked when the app opens) ----------
-const IDLE_MS = 20 * 60000;
+const IDLE_MS = 15 * 60000;
 let lastMark = 0;
 function markActive(){ if(!active) return; const now = Date.now(); active.last = now; if(now - lastMark > 15000){ lastMark = now; saveG('act'); } }
 $('ovSession').addEventListener('pointerdown', markActive, true); $('ovSession').addEventListener('input', markActive, true);
