@@ -97,11 +97,7 @@ function weightChart(){
 
 // compact weigh-in under the chart
 function drawWeigh(){
-  const tr = weightTrend(), tk = todayKey(); $('wiU').textContent = bwU(); $('wiIn').value = weights[tk] ? bwOut(weights[tk]) : ''; $('wiIn').placeholder = bwOut((targets && targets.bw) || 75);
+  const tk = todayKey(); $('wiU').textContent = bwU(); $('wiIn').value = weights[tk] ? bwOut(weights[tk]) : ''; $('wiIn').placeholder = bwOut((targets && targets.bw) || 75);
   const ch = $('gWChart'); if(ch) ch.innerHTML = weightChart();
-  if(!tr){ $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiNeed')}</p>`; return; }
-  const a = weighAdvice(tr), pw = UN().w === 'lb' ? tr.perWeek * LB : tr.perWeek, sg = (pw >= 0 ? '+' : '') + pw.toFixed(2);
-  $('wiOut').innerHTML = `<p class="hint" style="margin:6px 0 0">${t('wiRate', { r: sg, d: tr.days }).replace('kg/', bwU() + '/')} · ${a.msg}</p>${a.d && targets ? `<button class="btn small" id="wiApply">${t('wiApply', { d: (a.d > 0 ? '+' : '') + a.d })}</button>` : ''}`;
-  const ap = $('wiApply'); if(ap) ap.onclick = () => { ['gym', 'rest'].forEach(k => { if(targets[k]){ targets[k].k = Math.round((targets[k].k + a.d) / 50) * 50; targets[k].c = Math.max(0, Math.round((targets[k].c + a.d / 4) / 5) * 5); } });
-    Store.save('targets', targets); renderAll(); drawWeigh(); toast(t('wiApplied', { d: (a.d > 0 ? '+' : '') + a.d })); };
+  $('wiOut').innerHTML = '';   // 0.7.2: the weigh-in is just the title, the kg box and Save (no trend text or advice under it)
 }

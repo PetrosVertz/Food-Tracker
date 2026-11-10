@@ -148,7 +148,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 .sheethead h2{margin:0}
 .tile.wide{grid-column:1/-1;min-height:96px;flex-direction:row;align-items:center;justify-content:flex-start}
 .tile.wide .e{font-size:34px}
-textarea.big{min-height:180px;font-size:15px;line-height:1.45}
+textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .parsed li.miss{color:var(--c)}
 .slots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .slot{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:999px;padding:6px 10px;font-size:13px;cursor:pointer}
@@ -163,7 +163,6 @@ textarea.big{min-height:180px;font-size:15px;line-height:1.45}
 :root{ --kc:#c6f432; --fi:#59d38c; --na:#b388ff; --kk:#4dd0e1; }
 body{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 .fab{bottom:calc(84px + env(safe-area-inset-bottom))!important}
-.toast{bottom:calc(150px + env(safe-area-inset-bottom))!important}
 #pgToday [data-home]{display:none}
 .sectitle{margin:4px 0 10px;font-size:20px}
 .hubrow{display:grid;grid-template-columns:1fr 1.25fr;gap:12px;margin-top:12px}
@@ -233,10 +232,10 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 .restbar.over{border-color:var(--orange);background:#2a1a08} .restbar.over b{color:var(--orange)}
 .dayrow{display:grid;grid-template-columns:54px 1fr 108px;gap:8px;align-items:center;margin-bottom:8px}
 .dayrow b{font-size:14px} .dayrow.today b{color:var(--accent)}
-.dayrow select,.dayrow input{padding:9px 8px;font-size:15px}
+.dayrow select,.dayrow input{padding:9px 8px;font-size:16px}
 .tpex{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px}
 .tpex .ctl{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.tpex .ctl input{width:64px;padding:6px;text-align:center;font-size:14px}
+.tpex .ctl input{width:64px;padding:6px;text-align:center;font-size:16px}
 .tpex .ctl button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer}
 .tpex small{color:var(--muted)}
 .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}

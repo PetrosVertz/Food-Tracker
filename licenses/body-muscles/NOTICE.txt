@@ -1,0 +1,10 @@
+Body Muscles
+Copyright Ivan Vulović
+https://github.com/vulovix/body-muscles
+
+Licensed under the Apache License, Version 2.0 (see LICENSE.txt in this folder).
+
+This app uses modified versions of the Body Muscles shapes: every muscle shape
+was rounded (corner-cutting), the figure was rescaled, left and right shapes
+were grouped per muscle, and the colours were changed to the app's own.
+The modified shapes are in js/data/gym-anatomy.js.

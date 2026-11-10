@@ -100,3 +100,35 @@ function claudeText(){
   }
   return out.join('\n');
 }
+
+// ---------- 0.7.2: text that doesn't fit in a pill or bubble scrolls sideways like a news ticker ----------
+// Only when it overflows; off with Reduce Motion. The text is wrapped in <span class="tk"><span class="tki" data-tk="…">, the repeat is a CSS ::after (so textContent stays the same).
+(() => {
+  const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.rchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button';
+  const GAP = 32, SPEED = 32, rm = matchMedia('(prefers-reduced-motion: reduce)');
+  const unwrap = el => { const i = el.querySelector(':scope>.tk>.tki'); if(!i) return; const k = i.parentNode; while(i.firstChild) el.insertBefore(i.firstChild, k); k.remove(); el.classList.remove('tkon'); };
+  function tick(el){
+    if(el.closest('.tk') || !el.isConnected) return;
+    if(el.querySelector(':scope>.tk')){ const k = el.querySelector(':scope>.tk'), i = k.firstChild;   // already scrolling: stop if it fits now
+      if(rm.matches || +i.dataset.w <= k.clientWidth + 1) unwrap(el); return; }
+    if(rm.matches || !el.textContent.trim() || el.clientWidth < 8) return;
+    const ws = getComputedStyle(el).whiteSpace; if(ws !== 'nowrap' && ws !== 'pre') return;
+    if(el.scrollWidth <= el.clientWidth + 1) return;
+    const k = document.createElement('span'), i = document.createElement('span'); k.className = 'tk'; i.className = 'tki';
+    while(el.firstChild) i.appendChild(el.firstChild); k.appendChild(i); el.appendChild(k); el.classList.add('tkon');
+    const w = i.scrollWidth; if(w <= k.clientWidth + 1){ unwrap(el); return; }
+    i.dataset.w = w;
+    if([...i.childNodes].some(n => n.nodeType === 1)){   // an icon or badge inside: glide to the end and back instead of looping
+      i.classList.add('tkalt'); i.style.setProperty('--tkd', -(w - k.clientWidth + 6) + 'px'); i.style.setProperty('--tkt', Math.max(2, (w - k.clientWidth) / SPEED * 1.6).toFixed(2) + 's'); return; }
+    i.dataset.tk = i.textContent.replace(/\s+/g, ' ').trim();
+    i.style.setProperty('--tkd', -(w + GAP) + 'px'); i.style.setProperty('--tkt', ((w + GAP) / SPEED).toFixed(2) + 's'); }
+  const todo = new Set(); let raf = 0;
+  const queue = root => { if(!root || root.nodeType !== 1) return; if(root.matches(SEL)) todo.add(root); root.querySelectorAll(SEL).forEach(e => todo.add(e));
+    const up = root.closest(SEL); if(up) todo.add(up);
+    if(!raf) raf = requestAnimationFrame(() => { raf = 0; const all = [...todo]; todo.clear(); all.forEach(tick); }); };
+  const mo = new MutationObserver(ms => ms.forEach(m => queue(m.target.nodeType === 1 ? m.target : m.target.parentElement)));
+  const start = () => { mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] }); queue(document.body);
+    addEventListener('resize', () => queue(document.body)); if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => queue(document.body));
+    try{ rm.addEventListener('change', () => queue(document.body)); }catch(e){} };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start, 0);
+})();

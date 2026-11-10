@@ -238,8 +238,8 @@ $('gStart').addEventListener('click', () => {
   const pl = planFor(todayKey()), planned = pl && pl.tpl && tpls.find(x => x.id === pl.tpl); if(planned && !pick) return startSession(planned);   // a planned day starts straight away
   if(!tpls.length) return startSession(null);   // nothing saved yet: straight into an empty workout
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
-  // Saved Workouts (0.6.9.3): a cartridge for each, the name in slanted capitals; Start Empty Workout underneath
-  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${svgIcon('cartridge', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span></button>`).join('');
+  // Saved Workouts (0.6.9.3; 0.7.2 memory card): a memory card for each, the name in slanted capitals; Start Empty Workout underneath
+  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${gymIco('card', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span></button>`).join('');
   open('ovStart');
 });
 

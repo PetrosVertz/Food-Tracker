@@ -347,7 +347,7 @@ Object.assign(S, {
   suAi:['AI helper (optional)','Βοηθός AI (προαιρετικό)'], suAiSub:['A free Gemini key unlocks label photos, shopping photos, recipe ideas and Plan my day. Everything else works without it.','Ένα δωρεάν κλειδί Gemini ξεκλειδώνει φωτογραφίες ετικετών και ψωνιών, ιδέες συνταγών και το Πλάνο ημέρας. Όλα τα άλλα δουλεύουν χωρίς αυτό.'],
   suDone:['All set','Έτοιμο'], suDoneSub:['Gym days: {g} kcal · rest days: {r} kcal · protein {p} g. Change them anytime with 🎯 in Today.','Μέρες γυμναστικής: {g} kcal · ξεκούρασης: {r} kcal · πρωτεΐνη {p} g. Αλλάζουν όποτε θες από το 🎯 στο Σήμερα.'],
   suNeedW:['Add your weight first','Βάλε πρώτα το βάρος σου'], suAgain:['↺ Run the first setup again','↺ Ξανά το αρχικό στήσιμο'],
-  remGym:['{n} today at {t}','{n} σήμερα στις {t}'], remGymNoT:['{n} today','{n} σήμερα'], remSetT:['Tap to set a time','Πάτα για να βάλεις ώρα'], remWork:['💼 Work {a}–{b}','💼 Δουλειά {a}–{b}'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
+  remGym:['{n} Today at {t}','{n} σήμερα στις {t}'], remGymNoT:['{n} Today','{n} σήμερα'], remSetT:['Tap to set a time','Πάτα για να βάλεις ώρα'], remWork:['💼 Work {a}–{b}','💼 Δουλειά {a}–{b}'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
   qaBtn:['⚡ Quick add (eating out)','⚡ Γρήγορη καταγραφή (έξω)'], qaT:['Quick add','Γρήγορη καταγραφή'], qaSub:['Don\'t know the exact food? Put rough numbers.','Δεν ξέρεις ακριβώς το φαγητό; Βάλε περίπου νούμερα.'],
   qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaMore:['Carbs and fat (optional)','Υδατάνθρακες και λίπος (προαιρετικά)'], qaNeed:['Add the calories','Βάλε τις θερμίδες'], qaTag:['⚡ quick add','⚡ γρήγορη καταγραφή'],
   usuals:['Your usuals','Τα συνηθισμένα σου'], lastAmt:['last: {a}','τελευταία: {a}'], quickLogged:['Logged {a} {n}','Καταγράφηκε {a} {n}'], grpOnline2:['🌐 Online','🌐 Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
@@ -565,8 +565,11 @@ Object.assign(S, {
   inFridgeTag: ['in the fridge', 'στο ψυγείο'],
   chkTick: ['Checked against online sources', 'Ελέγχθηκε με πηγές στο διαδίκτυο'],
   // ==== branch: gym (new Gym Buddy text goes on the lines below) ====
+  gymBmCredit: ['Body shapes: Body Muscles by Ivan Vulović, Apache License 2.0 (shapes modified).', 'Σχήματα σώματος: Body Muscles του Ivan Vulović, άδεια Apache 2.0 (τροποποιημένα σχήματα).'],
+  gymBmLic: ['Licence', 'Άδεια'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
+  logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
   logQT: ['Quick Log', 'Quick Log'],
   logQPh: ['What did you eat?', 'Τι έφαγες;'],
   logQHi: ['Type everything you ate, with amounts if you know them. The AI splits it into foods, then each one is found: your foods first, then the built-in list, then online.', 'Γράψε ό,τι έφαγες, με ποσότητες αν τις ξέρεις. Το AI το χωρίζει σε τρόφιμα και μετά βρίσκεται το καθένα: πρώτα τα δικά σου, μετά η βασική λίστα, μετά online.'],

@@ -16,6 +16,7 @@ $('amSave').addEventListener('click', () => {
 });
 
 $('dBlocks').addEventListener('click', e => {
+  if(e.target.closest('[data-gymstart]') || e.target.closest('[data-gymresume]')) return gymStartToday();   // Start / Resume on the gym-day card
   if(e.target.closest('[data-skipday]')){ setDay({ type: 'rest', skipped: true }); renderAll(); toast(t('gymSkippedT')); return; }   // skip today: rest-day targets
   if(e.target.closest('[data-unskip]')){ const pl = planFor(curDay) || {}; setDay({ type: 'gym', skipped: false, work: pl.work || 'upper', time: pl.time || profile.gymTime || '18:00' }); renderAll(); return; }
   if(e.target.closest('[data-rmx]')){ ui.remHide = curDay; saveUI(); renderTodayRec(); } if(e.target.closest('[data-gorec]')) go('gym-rec'); });

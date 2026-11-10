@@ -323,7 +323,7 @@ function stepPack(pm){
 
 // Log food sheet: Quick Log (0.7.1, replaces Add Takeaway), yesterday's food
 $('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
-logQWire();
+logQWire(); logCalWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
 $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });
 // old Add Takeaway sheet: still opens to edit takeaway entries logged before 0.7.1

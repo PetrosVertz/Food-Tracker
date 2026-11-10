@@ -111,7 +111,7 @@ $('gBackBtn').addEventListener('click', goBack);
 
 const workFor = d => { const p = gymPlan[new Date(d + 'T12:00:00').getDay()]; return p && p.work ? p.work : null; };
 
-$('gPlanV').addEventListener('change', e => { if(e.target.id === 'wpAdv'){ ui.wpAdv = e.target.checked; saveUI(); renderGymPlan(); } });
+$('gPlanV').addEventListener('click', e => { if(e.target.closest('#wpAdv')){ ui.wpAdv = !ui.wpAdv; saveUI(); renderGymPlan(); } });   // 0.7.2: a pill switch, not a checkbox
 $('gPlanV').addEventListener('click', e => {
   const ws = e.target.closest('[data-wpset]'); if(ws){ const wd = +ws.closest('[data-wd]').dataset.wd, p = { ...(gymPlan[wd] || {}) };
     if(ws.dataset.wpset === 'rest') p.tpl = 'rest'; else { if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || profile.gymTime || '18:00'; }

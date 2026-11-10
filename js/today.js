@@ -377,14 +377,13 @@ function renderToday(){
   const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
   const pill = `<span class="daypill">${t(di.type === 'gym' ? 'gymDay' : 'restDay')}</span>`;
   $('dTotals').innerHTML = `<div class="kchead"><span class="kcnum" style="color:${kcalColor(tot.kcal, tg && tg.k)}">${Math.round(tot.kcal).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB')}<small>${tg ? '/ ' + tg.k.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB') + ' kcal' : 'kcal'}</small></span>${pill}</div>` +
-    (tg ? '' : `<button class="linkbtn" data-targets><b>${t('noTargets')}</b></button>`) +
     mrow('p', t('protein'), tot.p, tg && tg.p, ' g', ms('p')) + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g', ms('c')) + mrow('f', t('fat'), tot.f, tg && tg.f, ' g', ms('f'));
   const fT = fibTarget(tg);
   $('dExtrasBody').innerHTML = mrow('fi', t('fibre'), tot.fib || 0, fT, ' g', Math.round(tot.fib || 0) >= fT ? 'hit' : '') + elecHtml(tot);
   // carb timing
   const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
   const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
-  $('dTiming').innerHTML = !tg ? `<p class="hint">${t('noTargets')}</p>` : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
+  $('dTiming').innerHTML = !tg ? '' : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
       <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
       <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
   // log
@@ -765,4 +764,27 @@ function logQWire(){
     visualViewport.addEventListener('resize', () => { if(!$('ovQLog').classList.contains('open')) return; logQFit(); const l = $('lqList'); l.scrollTop = l.scrollHeight; });
     visualViewport.addEventListener('scroll', () => { if($('ovQLog').classList.contains('open')) logQFit(); });
   }
+}
+
+// ---------- 0.7.2 month calendar: tap the date on Today's Food, tap a day to jump to it ----------
+let logCalM = null;   // the month on show, 'YYYY-MM'
+function logCalOpen(){ logCalM = curDay.slice(0, 7); logCalDraw(); open('ovCal'); }
+function logCalShift(n){ const [y, m] = logCalM.split('-').map(Number), d = new Date(y, m - 1 + n, 1); logCalM = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; logCalDraw(); }
+function logCalDraw(){
+  const [y, m] = logCalM.split('-').map(Number), loc = lang === 'el' ? 'el-GR' : 'en-GB', first = new Date(y, m - 1, 1), n = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7, today = todayKey();
+  const ttl = first.toLocaleDateString(loc, { month: 'long', year: 'numeric' }); $('calT').textContent = ttl.charAt(0).toUpperCase() + ttl.slice(1);
+  $('calWk').innerHTML = [...Array(7)].map((_, i) => `<span>${new Date(2024, 0, 1 + i).toLocaleDateString(loc, { weekday: 'narrow' })}</span>`).join('');   // 1 Jan 2024 was a Monday
+  let h = '<span></span>'.repeat(lead);
+  for(let d = 1; d <= n; d++){ const k = `${logCalM}-${String(d).padStart(2, '0')}`, cls = [k === today ? 'today' : '', k === curDay ? 'on' : '', (dayLog[k] || []).length ? 'has' : ''].join(' ');
+    h += `<button type="button" class="calday ${cls}" data-cald="${k}" aria-label="${new Date(k + 'T12:00:00').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })}"${k === curDay ? ' aria-current="date"' : ''}>${d}</button>`; }
+  $('calDays').innerHTML = h;
+  $('calNow').classList.toggle('hide', curDay === today && logCalM === today.slice(0, 7));
+}
+function logCalGo(k){ curDay = k; close('ovCal'); renderToday(); }
+function logCalWire(){
+  $('dLabel').addEventListener('click', logCalOpen);
+  $('calPrev').addEventListener('click', () => logCalShift(-1));
+  $('calNext').addEventListener('click', () => logCalShift(1));
+  $('calDays').addEventListener('click', e => { const b = e.target.closest('[data-cald]'); if(b) logCalGo(b.dataset.cald); });
+  $('calNow').addEventListener('click', () => logCalGo(todayKey()));
 }

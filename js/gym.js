@@ -475,8 +475,33 @@ function renderRecovery(){
     <p class="hint">${t('recHint')}</p>`;
 }
 
+// 0.7.2: the new body (Body Muscles by Ivan Vulović, Apache 2.0, rounded shapes; data in js/data/gym-anatomy.js).
+// A body-coloured outline sits behind, so the gaps between muscles read as lines. Female users keep the older drawing until there is a female source.
+const gymBmVal = (heads, mu) => Math.max(0, ...heads.map(h => +(mu || {})[h] || 0));
+const gymBmSides = { f: new Set(GYM_BM.f.mus.flatMap(([k]) => GYM_BM_HEADS[k])), b: new Set(GYM_BM.b.mus.flatMap(([k]) => GYM_BM_HEADS[k])) };
+function gymBodySVG(o){
+  const mode = o.mode || 'plain', region = o.region, gcol = o.colors || {}, mu = o.mu || {}, max = o.muMax || 60;
+  const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
+  const shape = ([k, d]) => { const hs = GYM_BM_HEADS[k], h = hs[0], g = ANAT_HEAD_GROUP[h], on = live(h), tap = mode === 'pick' && on;
+    let fill = '', op = 1, cls = '';
+    if(mode === 'rec'){ fill = gcol[g] || ''; if(!fill) cls = 'gbm-off'; else if(fill === REC_COL.low) cls = 'mlow'; }
+    else if(mode === 'mu'){ const v = gymBmVal(hs, mu); if(v > 0){ cls = 'gbm-on'; op = .35 + .65 * Math.min(1, v / max); } else cls = 'gbm-off'; }
+    else if(mode === 'pick'){ if(on) fill = HEAD_COL[h]; else cls = 'gbm-off'; }
+    else fill = HEAD_COL[h];
+    return `<path d="${d}"${cls ? ` class="${cls}"` : ''}${fill ? ` fill="${fill}"` : ''}${op < 1 ? ` fill-opacity="${op.toFixed(2)}"` : ''}${tap ? ` data-hh="${h}" data-g="${g}" style="cursor:pointer"` : ' style="pointer-events:none"'}/>`; };
+  const fig = (side, ox, label) => `<g transform="translate(${ox} 0)"><path class="gbm-base" d="${GYM_BM[side].base}" style="pointer-events:none"/>${GYM_BM[side].mus.map(shape).join('')}
+      ${o.labels === false || o.side ? '' : `<text x="100" y="460" text-anchor="middle" fill="var(--t-muted)" font-size="13" font-family="var(--font)">${label}</text>`}</g>`;
+  if(o.side){
+    const vb1 = o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446';
+    return `<svg viewBox="${vb1}" width="${o.w || 46}" height="${o.h || 56}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${fig(o.side, 0, '')}</svg>`;
+  }
+  const vb = o.half === 'up' ? '22 4 336 262' : o.half === 'low' ? '22 196 336 252' : `0 0 420 ${o.labels === false ? 446 : 468}`;
+  return `<svg viewBox="${vb}" width="100%" style="max-width:${o.max || 380}px;display:block;margin:0 auto" aria-hidden="true">${fig('f', 0, o.front || 'Front')}${fig('b', o.half ? 160 : 220, o.back || 'Back')}</svg>`;
+}
+
 function anatomySVG(o){
   o = o || {};
+  if(!(o.fem !== undefined ? o.fem : profile.sex === 'f')) return gymBodySVG(o);
   const mode = o.mode || 'plain', region = o.region, gcol = o.colors || {}, idp = o.idp || 'an';
   const fill = h => { const g = ANAT_HEAD_GROUP[h];
     if(mode === 'rec') return gcol[g] || '#3a4048';
@@ -524,23 +549,32 @@ function renderGymPlan(){
   const tk = todayKey(), twd = new Date(tk + 'T12:00:00').getDay(), monday = addDays(tk, -((twd + 6) % 7));
   // Advanced off: just GYM or REST per day. On: saved workouts, times and work hours.
   const adv = !!ui.wpAdv;
-  $('gPlanV').innerHTML = `<div class="wphead"><p class="hint" style="margin:0">${t(adv ? 'weekHint' : 'weekHintSimple')}</p><label class="advrow"><span>${t('advancedT')}</span><input type="checkbox" id="wpAdv" ${adv ? 'checked' : ''}></label></div>` + [1, 2, 3, 4, 5, 6, 0].map((wd, i) => { const p = gymPlan[wd] || {}, date = addDays(monday, i), done = sessions.some(s => s.date === date);
+  // 0.7.2: Advanced = a rounded card, label on the left, switch on the right; full day names, no dates
+  $('gPlanV').innerHTML = `<div class="wpadv"><span>${t('advancedT')}</span><button class="switch ${adv ? 'on' : ''}" id="wpAdv" type="button" role="switch" aria-checked="${adv}" aria-label="${t('advancedT')}"><i></i></button></div>` + [1, 2, 3, 4, 5, 6, 0].map((wd, i) => { const p = gymPlan[wd] || {}, date = addDays(monday, i), done = sessions.some(s => s.date === date);
     const head = `<div class="daycard ${wd === twd ? 'today' : ''}" data-wd="${wd}">
-      <div class="dch"><b>${WD()[wd]}</b><small>${fmtDate(date)}</small>${done ? `<span class="chip ok">✓ ${t('trained')}</span>` : ''}</div>`;
+      <div class="dch"><b>${GYM_WD_FULL[wd][lang === 'el' ? 1 : 0]}</b>${done ? `<span class="chip ok">✓ ${t('trained')}</span>` : ''}</div>`;
     if(!adv){ const gym = p.tpl && p.tpl !== 'rest';
       return head + `<div class="seg wpseg"><button data-wpset="gym" class="${gym ? 'on' : ''}">${t('gymL')}</button><button data-wpset="rest" class="${p.tpl === 'rest' ? 'on' : ''}">${t('restDayS')}</button></div></div>`; }
     return head + `
-      <div class="dcrow"><span class="dcl lic">${svgIcon('cartridge', 18, 1.8)}</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+      <div class="dcrow"><span class="dcl lic">${gymIco('card', 18, 1.8)}</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>🏋️ ${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
         <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>
-      ${p.work ? `<div class="dcrow"><span class="dcl">💼</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm>✕</button></div>`
+      ${p.work ? `<div class="dcrow"><span class="dcl lic">${gymIco('work', 18, 1.8)}</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm>✕</button></div>`
         : `<button class="linkbtn" data-wadd>${t('addWork')}</button>`}</div>`; }).join('');
 }
+
+// 0.7.2: full day names (index = getDay(), Sunday first)
+const GYM_WD_FULL = [['Sunday','Κυριακή'],['Monday','Δευτέρα'],['Tuesday','Τρίτη'],['Wednesday','Τετάρτη'],['Thursday','Πέμπτη'],['Friday','Παρασκευή'],['Saturday','Σάββατο']];
+// Gym Buddy's own line icons (same stroke style as svgIcon): card = an old-console memory card (game save), work = a work bag
+const GYM_ICON = {
+  card: '<path d="M7.5 2h7.2L18 5.3v15.2a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5v-17A1.5 1.5 0 0 1 7.5 2z"/><rect x="8.5" y="5" width="6" height="5.5" rx="1"/><path d="M11.5 13.2l1.6 1.8h-3.2z"/><path d="M8.8 18.3v1.7M11 18.3v1.7M13.2 18.3v1.7M15.4 18.3v1.7"/>',
+  work: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/><path d="M10.5 12.5v1.5h3v-1.5"/>' };
+const gymIco = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GYM_ICON[k]}</svg>`;
 
 // ---------- Workout Library: starts empty, pick a type ----------
 let LIBF = { saved: true, past: false };
 function renderTpls(){
   const saved = tpls.length ? `<div class="list" style="margin-top:6px">${tpls.map(x => { const last = sessions.filter(s => s.tplId === x.id).sort((a, b) => b.start.localeCompare(a.start))[0];
-    return `<div class="card" data-tp="${x.id}"><div class="ficon lic">${svgIcon('cartridge', 22, 1.8)}</div><div class="body">
+    return `<div class="card" data-tp="${x.id}"><div class="ficon lic">${gymIco('card', 22, 1.8)}</div><div class="body">
       <div class="name">${esc(x.name)}</div><div class="rmeta">${typeLabel_(x.type)} · ${t('nEx', { n: x.exercises.length })}${last ? ' · ' + t('lastDone', { d: fmtDate(last.start) }) : ''}</div>
       <div class="rmeta" style="margin-top:4px">${x.exercises.slice(0, 4).map(e => esc(exName(e.exId))).join(', ')}${x.exercises.length > 4 ? '…' : ''}</div></div>
       <button class="usebtn" data-go-tp>▶</button></div>`; }).join('')}</div>` : `<div class="empty" style="margin-top:6px">${t('libEmpty')}</div>`;
@@ -569,7 +603,7 @@ function nextSuggestions(){
 const MINI = new Map();
 function miniMap(x){
   const k = x.id + (profile.sex === 'f' ? 'f' : 'm'); if(MINI.has(k)) return MINI.get(k);
-  const mu = x.mu || {}, sideOf = h => ANAT.f.some(([hh]) => hh === h) ? 'f' : 'b';
+  const mu = x.mu || {}, sideOf = h => (profile.sex === 'f' ? ANAT.f.some(([hh]) => hh === h) : gymBmSides.f.has(h)) ? 'f' : 'b';
   let fr = 0, bk = 0, up = 0, low = 0; Object.entries(mu).forEach(([h, v]) => { if(sideOf(h) === 'f') fr += v; else bk += v; const g = (HEADS[h] || [])[2], r = (GROUPS[g] || [])[2]; if(r === 'low') low += v; else up += v; });
   const svg = anatomySVG({ mode: 'mu', mu, side: fr >= bk ? 'f' : 'b', half: low > up ? 'low' : 'up', muMax: Math.max(...Object.values(mu), 1), idp: 'mm' + x.id.replace(/\W/g, '') });
   MINI.set(k, svg); return svg;
@@ -616,8 +650,9 @@ function drawExPick(){
   $('pkBody').innerHTML = h;
 }
 
-// gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); Skip sits on the right on its own.
+// gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); the pills sit on the right.
 // With no gym time set, tapping anywhere else on the card opens the time picker.
+// 0.7.2: the diagonal Workouts icon on the left; Start (today only) next to Skip opens today's planned workout in one tap; Resume while one is running.
 function renderTodayRec(){
   const el = $('dRec'); if(el) el.innerHTML = '';
   const isToday = daysUntil(curDay) === 0, di = dayInfo(curDay), pl = planFor(curDay);
@@ -625,10 +660,21 @@ function renderTodayRec(){
   let skip = '', noTime = false;
   if(di.type === 'gym'){ const tm = (pl && pl.type === 'gym' && pl.time) || (days[curDay] && days[curDay].time) || ''; noTime = !tm;
     lines.push(tm ? `<b>${t('remGym', { n: esc(nm), t: tm })}</b>` : `<b>${t('remGymNoT', { n: esc(nm) })}</b><small class="rmhint">${t('remSetT')}</small>`);
-    if(!active || active.date !== curDay) skip = `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
+    const live = active && active.date === curDay;
+    if(isToday && live) skip = `<button class="gymstartbtn" type="button" data-gymresume>${t('gymResumeP')}</button>`;
+    else if(!live) skip = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gymStartP')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
   else if(days[curDay] && days[curDay].skipped){ lines.push(`<b>${t('gymSkipped')}</b>`); skip = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }   // rest-day calories and macros today
   const ws = isToday ? recoveryWarnings() : [];
-  $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip}</div>` : '';
+  const ic = lines.length ? `<span class="gymdayic">${svgIcon('workouts', 22, 1.8)}</span>` : '';
+  $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}${ic}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip ? `<div class="gymdaybtns">${skip}</div>` : ''}</div>` : '';
+}
+
+// Start on the gym-day card: today's planned workout straight away; no plan → the same Saved Workouts sheet as the Gym tab's Start
+function gymStartToday(){
+  if(active) return openSession();
+  const pl = planFor(todayKey()), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
+  if(tp || !tpls.length) return startSession(tp || null);
+  $('gStart').click();
 }
 
 function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;
@@ -790,9 +836,14 @@ function drawDemo(){
 const FM = { s: 1, x: 0, y: 0 };
 function formMap(exId){
   const st = $('fmStage'); if(!st) return; const x = exById(exId), mu = x.mu || {}, fem = profile.sex === 'f';
-  const sideSum = sd => [...new Set(ANAT[sd].map(a => a[0]))].reduce((s, h) => s + (mu[h] || 0), 0), side = sideSum('b') > sideSum('f') ? 'b' : 'f';
-  const pts = {}; ANAT[side].forEach(([h, d]) => { if(!(mu[h] > 0)) return; const a = d.match(/-?\d+(?:\.\d+)?/g).map(Number);
-    for(let i = 0; i + 1 < a.length; i += 2) (pts[h] = pts[h] || []).push([200 - (fem ? femX(a[i], a[i + 1]) : a[i]), a[i + 1]]); });   // the mirrored (right-hand) copy, so lines run right
+  const sideHeads = sd => fem ? new Set(ANAT[sd].map(a => a[0])) : gymBmSides[sd];
+  const sideSum = sd => [...sideHeads(sd)].reduce((s, h) => s + (mu[h] || 0), 0), side = sideSum('b') > sideSum('f') ? 'b' : 'f';
+  const pts = {}, nums = d => d.match(/-?\d+(?:\.\d+)?/g).map(Number);
+  if(fem) ANAT[side].forEach(([h, d]) => { if(!(mu[h] > 0)) return; const a = nums(d);
+    for(let i = 0; i + 1 < a.length; i += 2) (pts[h] = pts[h] || []).push([200 - femX(a[i], a[i + 1]), a[i + 1]]); });   // the mirrored (right-hand) copy, so lines run right
+  else GYM_BM[side].mus.forEach(([k, d]) => { const a = nums(d), p = []; for(let i = 0; i + 1 < a.length; i += 2) p.push([a[i], a[i + 1]]);
+    if(p.reduce((s, q) => s + q[0], 0) / p.length < 100) return;   // only the right-hand copy, so lines run right
+    GYM_BM_HEADS[k].forEach(h => { if(mu[h] > 0) (pts[h] = pts[h] || []).push(...p); }); });
   const heads = Object.keys(pts).map(h => { const p = pts[h], xs = p.map(q => q[0]), ys = p.map(q => q[1]);
     return { h, v: mu[h], ax: xs.reduce((a, b) => a + b, 0) / xs.length, ay: ys.reduce((a, b) => a + b, 0) / ys.length, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }; })
     .sort((a, b) => b.v - a.v);
