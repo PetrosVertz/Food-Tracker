@@ -20,6 +20,9 @@ const ICON = {
   scale: '<rect x="3" y="3.5" width="18" height="17" rx="4"/><path d="M7.5 9.5a6 6 0 0 1 9 0"/><path d="M12 10.5l1.6-2"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/>',
+  camera: '<path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
+  keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/>',
+  pot: '<path d="M4 11h16v4.5a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5z"/><path d="M2 11h2M20 11h2M8.5 11a3.5 1.5 0 0 1 7 0"/><path d="M10 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5M14 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>',
 };
 const svgIcon = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
@@ -216,6 +219,7 @@ function route(){
   const fab = $('fab');
   fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
   fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
   else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
@@ -281,9 +285,9 @@ function finishSetup(){
 function backupBlob(){ return new Blob([JSON.stringify(Store.snapshot(), null, 2)], { type: 'application/json' }); }
 
 async function backupNow(){
-  const name = `tracker-${todayKey()}.json`, blob = backupBlob();
+  const name = `tracker-backup-${todayKey()}.json`, blob = backupBlob();   // 0.7.3: the date is in the file name
   try{ await Phone.shareFile(blob, name);
-    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); shellBkLast(); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
   }catch(e){ if(e && e.name !== 'AbortError') toast(e.message || 'backup'); }
 }
 
@@ -321,12 +325,12 @@ function fixNum(inp){
 const haptic = () => Phone.haptic();
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open')); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
   if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => el.classList.remove('closing'), 200); } }
 
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open');
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen');
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }

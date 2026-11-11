@@ -471,7 +471,7 @@ Object.assign(S, {
   scanSaved: ['Saved to Food Tracker too, so next time it\'s instant', 'Μπήκε και στο Food Tracker, την επόμενη φορά είναι άμεσο'],
   bkAskOld: ['Your data only lives on this phone. Last backup was {d} days ago. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό. Τελευταίο αντίγραφο πριν {d} μέρες. Αντίγραφο τώρα;'],
   bkAskNever: ['Your data only lives on this phone and you haven\'t backed it up yet. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό και δεν έχεις κρατήσει αντίγραφο. Αντίγραφο τώρα;'],
-  bkYes: ['Back up', 'Αντίγραφο'],
+  bkYes: ['Back Up Now', 'Αντίγραφο τώρα'],
 });
 ['startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
@@ -565,15 +565,16 @@ Object.assign(S, {
   inFridgeTag: ['in the fridge', 'στο ψυγείο'],
   chkTick: ['Checked against online sources', 'Ελέγχθηκε με πηγές στο διαδίκτυο'],
   // ==== branch: gym (new Gym Buddy text goes on the lines below) ====
+  gymStartP: ['Start', 'Έναρξη'], gymResumeP: ['Resume', 'Συνέχεια'],
   gymBmCredit: ['Body shapes: Body Muscles by Ivan Vulović, Apache License 2.0 (shapes modified).', 'Σχήματα σώματος: Body Muscles του Ivan Vulović, άδεια Apache 2.0 (τροποποιημένα σχήματα).'],
   gymBmLic: ['Licence', 'Άδεια'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
+  logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
   logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
   logQT: ['Quick Log', 'Quick Log'],
   logQPh: ['What did you eat?', 'Τι έφαγες;'],
-  logQHi: ['Type everything you ate, with amounts if you know them. The AI splits it into foods, then each one is found: your foods first, then the built-in list, then online.', 'Γράψε ό,τι έφαγες, με ποσότητες αν τις ξέρεις. Το AI το χωρίζει σε τρόφιμα και μετά βρίσκεται το καθένα: πρώτα τα δικά σου, μετά η βασική λίστα, μετά online.'],
-  logQEx: ['e.g. 200g Fage yogurt, 4 scrambled eggs, 100g chicken breast, 210g Domino\'s margarita', 'π.χ. 200g γιαούρτι Fage, 4 αυγά ομελέτα, 100g στήθος κοτόπουλο, 210g μαργαρίτα Domino\'s'],
+  logQHi: ['Type everything you ate, with the amounts if you know them. The AI will find the calories and macros for each food.', 'Γράψε ό,τι έφαγες, με τις ποσότητες αν τις ξέρεις. Το AI θα βρει τις θερμίδες και τα μακρο για κάθε τρόφιμο.'],
   logQNoKey: ['No Gemini key, so it gets split at commas and “and”. A free key in Settings splits it much better.', 'Χωρίς κλειδί Gemini χωρίζεται στα κόμματα και στο «και». Με δωρεάν κλειδί στις Ρυθμίσεις χωρίζεται πολύ καλύτερα.'],
   logQWork: ['Splitting it up…', 'Το χωρίζω…'], logQFind: ['Finding…', 'Ψάχνω…'],
   logQAll: ['Log All', 'Καταγραφή όλων'], logQTotal: ['Total', 'Σύνολο'],
@@ -590,9 +591,24 @@ Object.assign(S, {
   logQSend: ['Send', 'Αποστολή'],
   // ==== end log ====
   // ==== branch: foods (new My Foods & Search text goes on the lines below) ====
+  cookFab: ['Cook a Meal', 'Μαγείρεψε'], cookSuggest: ['✨ Suggest a Recipe', '✨ Πρότεινέ μου συνταγή'], cookOwn: ['My Own Recipe', 'Δική μου συνταγή'],
+  foodsQrOpt: ['✨ Quick Recipe', '✨ Γρήγορη συνταγή'], foodsQrOptSub: ['Type it, the chef builds the meal', 'Γράψ’ την, ο σεφ φτιάχνει το φαγητό'],
+  foodsQrT: ['Quick Recipe', 'Γρήγορη συνταγή'], foodsQrGo: ['✨ Build Meal', '✨ Φτιάξε το φαγητό'],
+  foodsQrPh: ['e.g. 500 g chicken, 300 g rice, 2 tbsp olive oil, 1 onion, 3 portions', 'π.χ. 500 g κοτόπουλο, 300 g ρύζι, 2 κ.σ. ελαιόλαδο, 1 κρεμμύδι, 3 μερίδες'],
+  scanItem: ['✨ Photo of the Whole Item', '✨ Φωτογραφία του προϊόντος'], scanPhoto: ['Scan From a Photo', 'Σάρωση από φωτογραφία'],
+  noBarcodeLabel: ['Label Photo', 'Φωτό ετικέτας'], typeIt: ['Type It', 'Πληκτρολόγηση'],
+  inFridgeToo: ['Saved{i} · In the fridge too', 'Αποθηκεύτηκε{i} · Και στο ψυγείο'],
   // ==== end foods ====
   // ==== branch: shop (new Fridge & Groceries text goes on the lines below) ====
+  shopFFrozenTag: ['FROZEN', 'ΚΑΤΕΨ.'], shopFCooked: ['Cooked', 'Μαγειρεμένο'], shopFRaw: ['Raw', 'Ωμό'], shopFReady: ['Ready', 'Έτοιμο'],
+  shopFPack: ['1 Pack · {s}', '1 συσκευασία · {s}'], shopFToPacks: ['Count in Packs of {s}', 'Μέτρα σε συσκευασίες των {s}'],
+  shopFPackSize: ['Pack Size', 'Μέγεθος συσκευασίας'], shopFAmount: ['Amount', 'Ποσότητα'],
   // ==== end shop ====
   // ==== branch: shell (new App Shell & Settings text goes on the lines below) ====
+  shSearchPh: ['Search Settings', 'Αναζήτηση ρυθμίσεων'],
+  shNone: ['No setting matches', 'Καμία ρύθμιση δεν ταιριάζει'],
+  shBackupNow: ['Back Up Now', 'Αντίγραφο τώρα'],
+  shLast: ['Last: {d}', 'Τελευταίο: {d}'],
+  shSex: ['Sex', 'Φύλο'],
   // ==== end shell ====
 });

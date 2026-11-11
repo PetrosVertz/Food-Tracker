@@ -177,7 +177,10 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
 });
 
 // ---------- finish → summary (ties into food, supplements and the pet) ----------
-$('sesMin').addEventListener('click', () => { close('ovSession'); renderAll(); });
+// 0.7.3: back with no exercises = no workout (the day goes back to how it was, the button stays "Start Workout")
+function gymDropEmpty(){ if(!active || active.exercises.length) return; if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
+  active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); keepAwake(false); }
+$('sesMin').addEventListener('click', () => { close('ovSession'); gymDropEmpty(); renderAll(); });
 
 $('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;
   if(active && active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }   // the day goes back to how it was
@@ -195,6 +198,7 @@ async function finishWorkout(auto){
   const bw = bodyW(), kcal = Math.round(active.exercises.reduce((a, x) => a + x.sets.filter(s => s.done).reduce((b, s) => b + gymSetKcal(x.exId, s, bw), 0), 0) / 5) * 5;
   const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets), 0));
   const ses = { ...active, end: end.toISOString(), mins, kcal, vol, exercises: active.exercises.map(x => ({ ...x, sets: x.sets.filter(s => s.done) })).filter(x => x.sets.length) };
+  if(!ses.name || ses.name === t('emptyWorkout')) ses.name = typeLabel_(inferDayType(ses.exercises));   // unnamed: Push / Pull / Legs… from what was done
   delete ses.last; delete ses.dayBefore; delete ses.cur; if(auto) ses.autoEnded = true;
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   sessions.push(ses); saveG('ses');

@@ -413,3 +413,8 @@ Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = n
     d.source = 'item photo'; openForm(d, t('theItemPhoto'), 'new');
   }catch(err){ if(!err.cancelled) toast(t('itemFail')); }
 });
+
+// 0.7.3 search boxes: the X clears the box (pointerdown keeps the keyboard up)
+logfXInit();
+document.addEventListener('pointerdown', e => { if(e.target.closest('.logfXb')) e.preventDefault(); });
+document.addEventListener('click', logfXTap, true);

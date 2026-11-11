@@ -2,9 +2,9 @@
 html,body{height:100%;overflow:hidden}
 section.page.wrap{position:fixed;inset:0;max-width:none;margin:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;
   padding:0 max(calc(62px + env(safe-area-inset-right)),calc((100vw - 640px) / 2 + 48px)) calc(130px + env(safe-area-inset-bottom)) max(14px,calc((100vw - 640px) / 2))!important}
-/* 0.7.1: every main page header is the same height, so the title never jumps between tabs (--hpad = space above the 56 px title row) */
-:root{--hpad:calc(10px + env(safe-area-inset-top))} html.pwa{--hpad:calc(16px + env(safe-area-inset-top))}
-section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 64px);min-height:0;padding:var(--hpad) 4px 8px;margin:0 -4px;isolation:isolate}
+/* 0.7.3: every page header is the same height (title never jumps between tabs) and sits just under the notch: --hpad = the status bar / notch, then a 48 px title row */
+:root{--hpad:max(8px,env(safe-area-inset-top))}
+section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 52px);min-height:0;padding:var(--hpad) 4px 4px;margin:0 -4px;isolation:isolate}
 .hbtns{display:flex;gap:6px}
 /* side strip */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -87,8 +87,6 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 #cookPickOpts .bigopt{width:100%;margin-top:10px}
 #recipeBox .actions,#pasteBtn{display:none!important}
 #cWeighLink{display:block;margin:14px 0 4px;color:var(--muted)}
-.cquick{margin-top:18px;padding:12px;border-radius:16px;border:1px dashed var(--line)}
-.cquick h3{margin:0 0 6px} .cquick textarea{width:100%;min-height:84px} .cquick .btn{width:100%;margin-top:8px}
 #sgIn{width:100%;margin-top:8px}
 #sgTime{margin-top:4px}
 
@@ -131,7 +129,8 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 /* swipe-to-delete on any list */
 .swipebox .card,.swipebox .exc,.swipebox .tpcard{position:relative;touch-action:pan-y}
 .swipebox .swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
-.swipebox .swiping::after{content:'';position:absolute;right:16px;top:50%;width:22px;height:22px;background:var(--danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;transform:translateY(-50%) scale(.6);opacity:0;transition:opacity .16s ease-out,transform .22s cubic-bezier(.3,1.4,.6,1);pointer-events:none}
+/* 0.7.3: the bin sits in the middle of the space the row reveals (1/6 of the width per unit of --sw), clear of the red glow at the edge */
+.swipebox .swiping::after{content:'';position:absolute;left:calc(100% + 100% * var(--sw,0) / 6 - 11px);top:50%;width:22px;height:22px;background:var(--danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;transform:translateY(-50%) scale(.6);opacity:0;transition:opacity .16s ease-out,transform .22s cubic-bezier(.3,1.4,.6,1);pointer-events:none}
 .swipebox .swready::after{opacity:1;transform:translateY(-50%) scale(1)}
 .swipebox .swready{border-color:var(--danger)!important}
 :root{--trash:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12.2A2 2 0 0 0 8.5 21h7a2 2 0 0 0 2-1.8L18.5 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7'/%3E%3C/svg%3E")}
@@ -201,13 +200,14 @@ html.pwa .toast{top:auto!important;bottom:calc(100% - var(--appH,100vh) + max(24
 /* full width and centred again (the old side strip's space is gone) */
 section.page.wrap{padding-left:max(16px,calc((100vw - 640px) / 2))!important;padding-right:max(16px,calc((100vw - 640px) / 2))!important}
 /* title stays below the status bar on the Home Screen app */
-section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 28px);z-index:2}   /* 0.7.1: fixed spot, drawn above the blur */
+section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 24px);z-index:2;font-size:28px!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.6px;line-height:1.15;padding-right:.08em}   /* 0.7.3: fixed spot above the blur; bold italic, one step up the type scale (20 → 28) */
 section.page>header>:not(.left),section.page>header .left>:not(h1){position:relative;z-index:1}
-/* 0.7.2: with a sheet open the top fade drops behind it (iPhone draws blurred layers on top of later ones, so the blur is switched off under the sheet) */
-body:has(.overlay.open) section.page>header{z-index:0}
-body:has(.overlay.open) section.page>header::before{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* 0.7.3: the title fade is never on top of a window. iPhone can draw a sticky blurred layer above later fixed layers whatever the z-index, so while ANY window
+   is open (open()/close() in ui.js set body.ovopen) the fade is simply not drawn and the header loses its layer. One rule for every sheet, any size, also when it grows. */
+body.ovopen section.page>header,body:has(.overlay.open) section.page>header{z-index:auto;isolation:auto}
+body.ovopen section.page>header::before,body:has(.overlay.open) section.page>header::before{display:none}
 /* top blur fades out softly instead of ending in a line */
-section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-22px;z-index:0;pointer-events:none;
+section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-10px;z-index:0;pointer-events:none;   /* 0.7.3: thinner (was -22px) */
   background:linear-gradient(color-mix(in srgb,var(--t-bg) 94%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent) 62%,color-mix(in srgb,var(--t-bg) 0%,transparent));
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 /* Food Track: two buttons side by side */
@@ -227,7 +227,7 @@ section.page,.sheet{scroll-behavior:smooth}
 
 /* ---------- 0.6.5 ---------- */
 /* My Own Recipe: no quick add, no weighing; workout summary: no post-workout meal button */
-.cquick,#cWeighLink,#cWeighBox{display:none!important}
+#cWeighLink,#cWeighBox{display:none!important}
 #smMeal{display:none!important}
 /* unilateral sets */
 .swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
@@ -239,16 +239,32 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(sa
 :root[data-theme="light"] .aibub .rcore{background:#ffffff;border-color:rgba(0,0,0,.1);box-shadow:0 8px 24px rgba(0,0,0,.14)}
 .aibub .rglow{position:absolute;inset:-10px;border-radius:50%;filter:blur(7px);pointer-events:none;animation:aiSpin 1.6s linear infinite;
   background:conic-gradient(from 0deg,color-mix(in srgb,var(--t-accent) 0%,transparent),color-mix(in srgb,var(--t-accent) 95%,transparent) 70deg,color-mix(in srgb,var(--t-accent) 0%,transparent) 140deg,color-mix(in srgb,var(--t-accent) 0%,transparent))}
-.aibub i{position:absolute;top:-6px;right:-6px;z-index:2;width:22px;height:22px;border-radius:50%;background:#3a3f46;color:var(--text);font-style:normal;font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
 .aibub .rok{position:absolute;top:-4px;right:-4px;z-index:2;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#59d38c;color:#0b1a10}
 :root[data-theme="light"] .aibub .rok{background:#1f9d57;color:#ffffff}
 @keyframes rtilt{0%,40%{transform:rotate(-7deg)}50%,90%{transform:rotate(7deg)}100%{transform:rotate(-7deg)}}
-@keyframes rfa{0%,42%{opacity:1}48%,92%{opacity:0}98%,100%{opacity:1}}
-@keyframes rfb{0%,42%{opacity:0}48%,92%{opacity:1}98%,100%{opacity:0}}
+@keyframes reye{0%,36%{transform:translate(-2px,-1px)}50%,86%{transform:translate(2px,-1px)}100%{transform:translate(-2px,-1px)}}
+@keyframes rgl{0%,36%{transform:translateX(-3px)}50%,86%{transform:translateX(3px)}100%{transform:translateX(-3px)}}
+@keyframes rmo{0%,36%{transform:rotate(-19deg)}50%,86%{transform:rotate(19deg)}100%{transform:rotate(-19deg)}}
 .robot .rtilt{transform-box:view-box;transform-origin:60px 136px;animation:rtilt 2.6s ease-in-out infinite}
-.robot .rfa{animation:rfa 2.6s ease-in-out infinite} .robot .rfb{opacity:0;animation:rfb 2.6s ease-in-out infinite} .robot .rfi{display:none}
-/* Reduce Motion: no sway, no glancing, no spin: the idle face and a still lime ring while it works */
-@media (prefers-reduced-motion: reduce){ .robot .rfa,.robot .rfb{display:none} .robot .rfi{display:inline}
+/* 0.7.3 thinking: the eyes GLIDE up-left ↔ up-right (glints lead the look) and the mouth tilts with them, one smooth loop with the sway; no picture swapping */
+.robot .reye,.robot .rgl,.robot .rmo{transform-box:view-box;animation:2.6s ease-in-out infinite}
+.robot .reye{animation-name:reye} .robot .rgl{animation-name:rgl} .robot .rmo{transform-origin:60px 117.75px;animation-name:rmo}
+.robot .rfi,.robot .rfx{display:none}
+/* dragging (ai.js drag()): follows the finger, snaps to the nearest side; over the trash it glows red and the eyes turn to X's */
+.aibub{touch-action:none;-webkit-user-select:none;user-select:none;transition:left .42s cubic-bezier(.2,1.3,.4,1),top .32s cubic-bezier(.2,.9,.3,1)}
+.aibub.drag .rcore{transform:scale(1.08);box-shadow:0 16px 40px rgba(0,0,0,.55)} .aibub .rcore{transition:transform .15s,box-shadow .15s}
+.aibub.kill .robot .rft,.aibub.kill .robot .rfi,.aibub.kill .robot .rfi0{display:none} .aibub.kill .robot .rfx{display:inline} .aibub.kill .robot .rtilt{animation:none}
+.aibub.kill .rglow{animation:none;background:rgba(255,77,77,.85)} .aibub.kill .rcore{box-shadow:0 0 0 2px #ff4d4d,0 0 26px 8px rgba(255,77,77,.55)}
+.aibub.gone{transition:transform .2s ease-in,opacity .2s ease-in!important;transform:scale(.3);opacity:0}
+.aitrash{position:fixed;left:50%;z-index:149;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;pointer-events:none;color:var(--t-muted);
+  bottom:calc(max(24px,env(safe-area-inset-bottom)) + 84px);background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);
+  opacity:0;transform:translateX(-50%) scale(.6);transition:opacity .18s,transform .22s cubic-bezier(.2,1.3,.4,1),background-color .15s,border-color .15s,color .15s}
+html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-area-inset-bottom)) - 84px - 64px)}
+:root[data-theme="light"] .aitrash{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.16)}
+.aitrash.show{opacity:1;transform:translateX(-50%) scale(1)}
+.aitrash.hot{transform:translateX(-50%) scale(1.15);background:rgba(255,77,77,.18);border-color:#ff4d4d;color:#ff4d4d}
+/* Reduce Motion: no sway, no gliding, no spin, no spring: the idle face and a still lime ring while it works */
+@media (prefers-reduced-motion: reduce){ .robot .rft{display:none} .robot .rfi{display:inline} .aibub,.aitrash,.aibub .rcore{transition:none!important}
   .aibub .rglow{background:color-mix(in srgb,var(--t-accent) 55%,transparent);filter:blur(6px);inset:-6px} }
 /* search windows: top two thirds, fixed size, list drops down under the box */
 .overlay.searchy{align-items:flex-start!important}

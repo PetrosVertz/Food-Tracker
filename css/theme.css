@@ -249,9 +249,10 @@ html{transition:background-color .3s}
 #ovLog .sheet.logwin{position:relative;width:calc(100% - 24px)!important;max-width:520px!important;margin:max(52px,calc(env(safe-area-inset-top) + 8px)) auto 0!important;
   height:min(712px,calc(var(--appH,100vh) - max(52px,calc(env(safe-area-inset-top) + 8px)) - 24px))!important;max-height:none!important;padding:0!important;
   border-radius:28px!important;display:flex;flex-direction:column;overflow:hidden}
-#ovLog .sback{display:none}
+#ovLog .sheet>.sback{display:none}
 .lwtop{padding:16px;display:flex;flex-direction:column;gap:var(--s3);border-bottom:1px solid var(--t-line)}
 .lwrow{display:flex;justify-content:space-between;align-items:center} .lwrow h2{margin:0}
+.lwtl{display:flex;align-items:center;min-width:0} #ovLog .lwback{float:none;margin:0 2px 0 -12px}
 .lwdone{border:0;border-radius:12px;background:var(--t-accent);color:var(--t-on);padding:8px 16px;min-height:36px;font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .lwsearch{display:flex;gap:var(--s2)}
 .lwsearch input{flex:1;min-width:0;padding:12px 16px;border-radius:14px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none;box-shadow:none}
@@ -501,13 +502,19 @@ body.twofab .fab{padding:16px 20px!important}
 .aibadge{display:inline-flex;align-items:center;justify-content:center;height:16px;padding:0 6px;margin-right:6px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:var(--font);font-size:10px;font-weight:800;font-style:italic;letter-spacing:.3px;line-height:1;vertical-align:1px;flex:0 0 auto}
 .btn.primary .aibadge,.pillbtn.primary .aibadge{background:var(--t-on);color:var(--t-accent)}
 /* 0.7.2 new body (Body Muscles, rounded): body colour behind, unworked muscles a step lighter */
-:root{--gym-body:#26282b;--gym-off:#3a3d41}
-:root[data-theme="light"]{--gym-body:#d2d5d9;--gym-off:#b8bcc2}
+:root{--gym-body:#26282b;--gym-off:#3a3d41;--gym-edge:rgba(255,255,255,.1)}
+:root[data-theme="light"]{--gym-body:#d2d5d9;--gym-off:#b8bcc2;--gym-edge:rgba(0,0,0,.12)}
+/* 0.7.3: in the exercise picker the body needs to stand off its grey sheet: lighter base, stronger outline */
+#ovExPick{--gym-body:#3b3e43;--gym-off:#565a61;--gym-edge:rgba(255,255,255,.3)}
+:root[data-theme="light"] #ovExPick{--gym-body:#c3c7cc;--gym-off:#a6abb2;--gym-edge:rgba(0,0,0,.32)}
+.gbm-edge{fill:none;stroke:var(--gym-edge);stroke-width:5.4;stroke-linejoin:round}
 .gbm-base{fill:var(--gym-body);stroke:var(--gym-body);stroke-width:3.3;stroke-linejoin:round}
 .gbm-off{fill:var(--gym-off)} .gbm-on{fill:var(--t-accent)}
 .gymcredit{margin-top:16px} .gymcredit a{color:var(--t-muted);text-decoration:underline}
 /* 0.7.2 Week Planner: Advanced = rounded card, label left, switch right */
 .wpadv{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 12px;padding:12px 14px;border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);font-size:var(--fs-body);font-weight:var(--w-med);color:var(--t-text)}
+/* 0.7.3: room under the Week Planner so it scrolls clear of Start / Resume Workout */
+#pgGym{padding-bottom:calc(210px + env(safe-area-inset-bottom))!important}
 /* ==== end gym ==== */
 /* ==== branch: log (new Today & Logging styles go on the lines below) ==== */
 /* 0.7.1 · the AI badge (canvas "Robots and anatomy"): tiny pill, bold italic AI. On dark: accent pill, dark text; on Light or on an accent button: dark pill, accent text.
@@ -571,15 +578,10 @@ body.twofab .fab{padding:16px 20px!important}
 :root[data-theme="light"] .sttag.est{color:#9a6a06}
 
 /* 0.7.1 · Eaten swipe to delete: only the red glow while you drag; the bin fades in once you're past the delete point */
-#dLog .swiping::after{opacity:0;transform:translateY(-50%) scale(.7);transition:opacity .16s ease,transform .24s cubic-bezier(.3,1.3,.6,1)}
-#dLog .swready::after{opacity:1;transform:translateY(-50%) scale(1)}
 /* 0.7.2 · tap the date on Today's Food → month calendar (glass sheet, round day pills, today in the accent) */
 .daynav .dlabel{flex:1;min-width:0;height:40px;border:0;background:none;color:var(--t-text);font-family:inherit;font-size:16px;font-weight:var(--w-bold);text-align:center;cursor:pointer;border-radius:999px}
 .daynav .dlabel:active{background:var(--t-sel)}
 #ovCal .sheet.calsheet{width:calc(100% - 24px);max-width:420px;border-radius:28px!important;padding:16px 16px 18px!important;min-height:0!important}
-.calhead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-bottom:var(--s3)}
-.calhead h2{margin:0!important;font-size:var(--fs-title);font-weight:var(--w-bold);text-align:center;flex:1}
-.calnav{width:44px;height:44px;flex:0 0 44px;border:0;border-radius:999px;background:var(--t-glass-btn);color:var(--t-text);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;justify-items:center}
 .calwk{margin-bottom:6px} .calwk span{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);text-transform:uppercase}
 .calday{position:relative;width:40px;height:40px;max-width:100%;border:0;border-radius:999px;background:none;color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);cursor:pointer;padding:0;transition:background .15s}
@@ -590,10 +592,61 @@ body.twofab .fab{padding:16px 20px!important}
 .calday.today.has::after{background:var(--t-on)}
 .calnow{display:block;margin:var(--s3) auto 0;padding:10px 18px;border:0;border-radius:999px;background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
 .calnow.hide{display:none}
+/* 0.7.3 · Eaten swipe: the bin sits in the middle of the space the row leaves behind, clear of the red glow, and only shows past the delete point */
+#dLog .card.eatrow.swiping{overflow:visible}
+#dLog .card.eatrow.swiping::after{content:'';right:calc(var(--sw,0) * -16.667% - 13px);width:26px;height:26px;font-size:0;filter:none;background:var(--t-danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;opacity:0;transform:translateY(-50%) scale(.6);transition:opacity .16s ease,transform .24s cubic-bezier(.3,1.3,.6,1)}
+#dLog .card.eatrow.swready::after{opacity:1;transform:translateY(-50%) scale(1)}
+@media(prefers-reduced-motion:reduce){#dLog .card.eatrow.swiping::after{transition:none}}
+/* 0.7.3 · calendar: an X to close (no back arrow), month arrows without circles */
+#ovCal .sheet>.sback{display:none}
+.calhead{display:flex;align-items:center;gap:2px;margin:-6px -6px var(--s3)}
+.calhead h2{margin:0 0 0 4px!important;font-size:var(--fs-title);font-weight:var(--w-bold);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.calx,.calnav{width:44px;height:44px;flex:0 0 44px;border:0;border-radius:999px;background:none;color:var(--t-text);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.calx{color:var(--t-muted)} .calnav:active,.calx:active{background:var(--t-sel)}
+/* 0.7.3 · Carb Timing: slimmer rows */
+#dTiming .win{padding:7px 12px;margin-bottom:6px;align-items:center;gap:8px}
+#dTiming .win .tm{flex-basis:96px;font-size:13px;line-height:1.25} #dTiming .win .bd{font-size:13px;line-height:1.3} #dTiming .win .na{margin-top:1px}
+/* 0.7.3 · Log Food: an X inside each added chip */
+.lchip{display:inline-flex;align-items:center;gap:4px;padding-right:4px}
+.lchipx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -1px -3px 0;border:0;border-radius:999px;background:color-mix(in srgb,var(--t-done) 18%,transparent);color:var(--t-done);padding:0;cursor:pointer;position:relative}
+.lchipx::before{content:'';position:absolute;inset:-8px}
+/* 0.7.3 · the Quick Log pill beside Log Food (placed by logQFabSync) */
+.logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
+.logqfab.hide{display:none}
+body.logqfab #fab{right:var(--lqfr)!important}
 /* ==== end log ==== */
 /* ==== branch: foods (new My Foods & Search styles go on the lines below) ==== */
+/* Cook a Meal button: pot icon + text; Can't scan? buttons: line icon + text */
+.fab svg{vertical-align:-4px;margin-right:8px}
+.csico{display:flex;align-items:center;justify-content:center;gap:8px} .csico svg{flex:0 0 auto}
 /* ==== end foods ==== */
 /* ==== branch: shop (new Fridge & Groceries styles go on the lines below) ==== */
+/* 0.7.3 fridge rows: tag + name + ⌄ left, "300 / 500 g" right; tap = a small menu drops down under the row */
+#fList .fcard{display:block;padding:0;cursor:default}
+.fhead{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:12px 16px;border:0;background:none;color:var(--t-text);font-family:var(--font);text-align:left;cursor:pointer}
+.fnm{display:flex;align-items:center;gap:6px;flex:1;min-width:0} .fnm .sttag{flex:0 0 auto;margin:0}
+.fnt{font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fnm svg{flex:0 0 auto;color:var(--t-muted);transition:transform .2s} .fcard.open .fnm svg{transform:rotate(180deg)}
+.famt{flex:0 0 auto;font-size:var(--fs-body);font-weight:var(--w-med);color:var(--t-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sttag.frozen{background:color-mix(in srgb,var(--t-rest) 16%,transparent);color:var(--t-rest);border:1px solid color-mix(in srgb,var(--t-rest) 45%,transparent)}
+.sttag.lo{background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
+:root[data-theme="light"] .sttag.frozen{color:#2f73b8}
+.fmenu{display:flex;flex-direction:column;gap:10px;padding:2px 16px 16px;border-top:1px solid var(--t-line);padding-top:12px;animation:fmenuIn .18s ease-out}
+@keyframes fmenuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fmenu{animation:none}}
+.fmrow{display:flex;align-items:center;gap:8px}
+.fstep{flex:0 0 44px;height:44px;border:0;border-radius:999px;background:var(--t-sel);color:var(--t-text);font-size:22px;font-weight:var(--w-med);cursor:pointer}
+.fstep:active,.fmode:active{background:var(--t-press)}
+.fmode{flex:1;min-width:0;height:44px;padding:0 12px;border:0;border-radius:999px;background:var(--t-card2);color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.fmode2{flex:0 0 auto;height:32px;align-self:center;font-size:13px;color:var(--t-muted)}
+.fgr{flex:1;display:flex;align-items:center;gap:6px;min-width:0;height:44px;padding:0 14px;border-radius:999px;background:var(--t-card2)}
+.fgr input{flex:1;min-width:0;width:100%;border:0!important;background:none!important;padding:0!important;font-size:16px;color:var(--t-text);text-align:center;font-variant-numeric:tabular-nums}
+.fgr i{font-style:normal;color:var(--t-muted);font-size:var(--fs-label)}
+.fml{flex:0 0 auto;color:var(--t-muted);font-size:var(--fs-label)} .fmrow .fml+.fgr{flex:0 0 140px;margin-left:auto}
+.fseg{margin:0!important} .fseg>button{font-size:14px}
+.ffrz{flex:0 0 auto;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--t-line);background:none;color:var(--t-muted);font-family:var(--font);font-size:13px;font-weight:var(--w-med);cursor:pointer}
+.ffrz.on{background:color-mix(in srgb,var(--t-rest) 16%,transparent);border-color:color-mix(in srgb,var(--t-rest) 45%,transparent);color:var(--t-rest)}
+.frm{margin-left:auto;height:40px;padding:0 16px;border:0;border-radius:999px;background:color-mix(in srgb,var(--t-fail) 14%,transparent);color:var(--t-fail);font-family:var(--font);font-size:13px;font-weight:var(--w-med);cursor:pointer}
 /* ==== end shop ==== */
 /* ==== branch: shell (new App Shell & Settings styles go on the lines below) ==== */
 /* 0.7.2 no zoom: double-tap zoom off everywhere (zero specificity, so any pan-y / none set elsewhere still wins); inputs are 16 px where they live */
@@ -611,4 +664,23 @@ body.twofab .fab{padding:16px 20px!important}
 .tki.tkalt{animation:tkRun var(--tkt,4s) ease-in-out 1.2s infinite alternate}
 @keyframes tkRun{to{transform:translateX(var(--tkd,0))}}
 @media (prefers-reduced-motion: reduce){ .tki,.tki.tkalt{animation:none} .tki[data-tk]::after{content:none} }
+/* 0.7.3 Settings main page: search on top, Back Up Now, then one plain bar per group (name centred, no sub-text, no arrow) */
+.ssearch{position:relative;display:flex;align-items:center;height:44px;margin:var(--s2) 0 var(--s3);padding:0 6px 0 14px;gap:8px;border-radius:999px;background:var(--t-card);border:1px solid var(--t-edge);color:var(--t-muted)}
+.ssearch input{flex:1;min-width:0;height:100%;padding:0;border:0!important;background:none!important;box-shadow:none!important;outline:0;color:var(--t-text);font-family:inherit;font-size:16px;-webkit-appearance:none;appearance:none}
+.ssearch input::-webkit-search-cancel-button{display:none} .ssearch input:focus{outline:0!important}
+.ssx{flex:0 0 32px;height:32px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--t-sel);color:var(--t-muted);padding:0}
+.bknow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:0 0 var(--s3);padding:12px 18px;border:0;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:inherit;font-size:var(--fs-body);cursor:pointer}
+.bknow b{font-weight:var(--w-bold)} .bknow small{margin-left:auto;font-size:var(--fs-label);font-weight:var(--w-med);opacity:.7;white-space:nowrap}
+.prow.pmain{justify-content:center;text-align:center;font-weight:var(--w-bold)} .prow.pmain>span:first-child{flex:0 1 auto}
+.sres .sv{font-size:var(--fs-label)} .snone{margin:var(--s3) 4px;color:var(--t-muted);font-size:var(--fs-body);text-align:center}
+.sfound{border-radius:12px;animation:sfound 1.8s ease-out}
+@keyframes sfound{0%,35%{box-shadow:0 0 0 2px var(--t-accent),0 0 18px 2px color-mix(in srgb,var(--t-accent) 45%,transparent)}100%{box-shadow:0 0 0 2px transparent,0 0 0 0 transparent}}
+@media (prefers-reduced-motion: reduce){ .sfound{animation:none;box-shadow:0 0 0 2px var(--t-accent)} }
+/* 0.7.3 Daily Targets opens as its own full window (like Settings pages / the workout screens), clear of the title fade */
+#ovTargets .sheet{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
+  background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
+  padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
+#ovTargets .sheet>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
+#ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
+html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* ==== end shell ==== */

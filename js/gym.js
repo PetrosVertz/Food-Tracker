@@ -93,7 +93,7 @@ function startSession(tpl){
     const ref = {}; sessions.forEach(s => s.exercises.forEach(x => { const h = exHistory(x.exId); if(h.length) ref[x.exId] = +h[h.length - 1].top.w; }));
     comeback = { at: now.toISOString(), base: cbBase(gap), gap, ref }; saveG('cb');
   }
-  active = { id: uid(), date: todayKey(), start: now.toISOString(), clock0: tpl && tpl.exercises.length ? now.getTime() : null, tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : t('emptyWorkout'), type: tpl ? tpl.type : 'full', prs: [],
+  active = { id: uid(), date: todayKey(), start: now.toISOString(), clock0: tpl && tpl.exercises.length ? now.getTime() : null, tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : '', type: tpl ? tpl.type : 'full', prs: [],
     exercises: tpl ? tpl.exercises.map(e => ({ exId: e.exId, reps: e.reps, rest: e.rest ?? exById(e.exId).rest, sets: Array.from({ length: e.sets || 3 }, () => newSet()), ...(e.ss ? { ss: e.ss } : {}) })) : [] };
   active.exercises.forEach((x, i) => { const e = tpl.exercises[i]; if(e && e.uni !== undefined ? e.uni : isUni(x.exId)) makeUni(x, true); });   // one side at a time: L / R sets
   saveG('act');
@@ -107,7 +107,7 @@ function openSession(){ if(!active) return; renderSession(); open('ovSession'); 
 
 function renderSession(){
   if(!active) return;
-  $('sesName').textContent = active.name; tickClock();
+  $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
   $('sesHg').innerHTML = hourglass('hg5', 20, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
@@ -489,7 +489,7 @@ function gymBodySVG(o){
     else if(mode === 'pick'){ if(on) fill = HEAD_COL[h]; else cls = 'gbm-off'; }
     else fill = HEAD_COL[h];
     return `<path d="${d}"${cls ? ` class="${cls}"` : ''}${fill ? ` fill="${fill}"` : ''}${op < 1 ? ` fill-opacity="${op.toFixed(2)}"` : ''}${tap ? ` data-hh="${h}" data-g="${g}" style="cursor:pointer"` : ' style="pointer-events:none"'}/>`; };
-  const fig = (side, ox, label) => `<g transform="translate(${ox} 0)"><path class="gbm-base" d="${GYM_BM[side].base}" style="pointer-events:none"/>${GYM_BM[side].mus.map(shape).join('')}
+  const fig = (side, ox, label) => `<g transform="translate(${ox} 0)"><path class="gbm-edge" d="${GYM_BM[side].base}" style="pointer-events:none"/><path class="gbm-base" d="${GYM_BM[side].base}" style="pointer-events:none"/>${GYM_BM[side].mus.map(shape).join('')}
       ${o.labels === false || o.side ? '' : `<text x="100" y="460" text-anchor="middle" fill="var(--t-muted)" font-size="13" font-family="var(--font)">${label}</text>`}</g>`;
   if(o.side){
     const vb1 = o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446';
@@ -871,12 +871,12 @@ function openExInfo(id, addCb){
   const x = exById(id), mus = Object.entries(x.mu).sort((a, b) => b[1] - a[1]), L_ = lang === 'el' ? 1 : 0;
   const cues = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[id] ? [SPECIFIC[id][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
   const h = exHistory(id), bestW = h.length ? Math.max(...h.flatMap(s => s.sets.map(z => +z.w))) : null, bestV = h.length ? Math.max(...h.map(s => exVol(id, s.sets.map(z => ({ ...z, done: true }))))) : null;
-  $('eiBody').innerHTML = `<div class="row" style="align-items:center;justify-content:flex-start;gap:12px">${exIcon(x, 64)}<div><h2 style="margin:0">${esc(exName(x))}</h2><small class="rmeta">${EL(x.e)} · ${ML(x.m)}</small></div></div>
+  $('eiBody').innerHTML = `<div class="row" style="align-items:center;justify-content:flex-start;gap:12px"><div><h2 style="margin:0">${esc(exName(x))}</h2><small class="rmeta">${EL(x.e)} · ${ML(x.m)}</small></div></div>
     ${h.length ? `<p class="rmeta" style="margin:10px 0 0">🏋️ ${t('bestW')}: <b>${fmt(bestW)} kg</b> · 📈 ${t('bestV')}: <b>${Math.round(bestV).toLocaleString()} kg</b></p>` : ''}
     <h3>${t('musclesWorked')}</h3>${isCardio(id) ? '' : `<div class="eimap">${anatomySVG({ mode: 'mu', mu: x.mu, muMax: Math.max(...Object.values(x.mu), 1), front: t('front'), back: t('backSide'), idp: 'ei', max: 340 })}</div>`}${mus.map(([k, v]) => `<div class="mrow"><small>${esc(ML(k))}</small><span class="mbar"><i style="width:${v}%;background:${(GROUPS[HEADS[k] ? HEADS[k][2] : 'other'] || GROUPS.other)[3]}"></i></span><b>${v}%</b></div>`).join('')}
     <p class="hint">${t('pctNote')}</p>
     ${cues.length ? `<h3>✅ ${t('howTo')}</h3><ul class="feed">${cues.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
-    ${errs.length ? `<h3>⚠️ ${t('mistakesT')}</h3><ul class="feed warnlist">${errs.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}`;
+    ${errs.length ? `<h3>⚠️ ${t('mistakesT')}</h3><ul class="feed fpx">${errs.map(c => `<li><span>✕</span>${esc(c)}</li>`).join('')}</ul>` : ''}`;
   $('eiAdd').classList.toggle('hide', !addCb);
   $('eiAdd').onclick = () => { close('ovExInfo'); close('ovExPick'); addCb && addCb(id); };
   const fb = document.createElement('button'); fb.className = 'btn formwide'; fb.textContent = t('formBtn') + ' · ' + t('formT'); fb.addEventListener('click', () => openDemo(id)); $('eiBody').prepend(fb);
@@ -945,7 +945,8 @@ function showSummary(ses){
   }).catch(() => { const el = $('smRec'); if(el) el.outerHTML = recBlock(ses, r, t('recAIFail')); });
 }
 
-// ---------- 💡 light bulb in the exercise picker ----------
+// ---------- "what next?" button in the exercise picker (0.7.3: the sweatband robot, was a 💡) ----------
+const gymBulbRobot = () => { const b = $('pkBulb'); if(b && !b.dataset.robot && typeof AI !== 'undefined' && AI.robot){ b.innerHTML = AI.robot('gym', 34); b.dataset.robot = 1; } };
 const DAY_SETS = { push: ['chest_upper','chest_mid','chest_lower','delt_front','delt_side','triceps'], pull: ['lats','upper_back','traps','delt_rear','biceps'],
   legs: ['quads','hamstrings','glutes','calves','adductors','abductors'] };
 function inferDayType(list){
@@ -978,7 +979,7 @@ let BULB = null;
 function openBulb(){
   if(!active) return; BULB = null;
   if(active.exercises.length){ const { ty, picks } = bulbSuggest();
-    $('blTitle').textContent = '💡 ' + t('blNextT');
+    $('blTitle').textContent = t('blNextT');
     $('blBody').innerHTML = `<p class="sub">${t('blLooks', { d: typeLabel_(ty) })}</p>` + (picks.length ? `<div class="blbest"><small>${t('blBest')}</small>${exTiles([picks[0].ex], picks[0].h)}</div>` +
       (picks.length > 1 ? `<h3>${t('blOr')}</h3>${exTiles(picks.slice(1).map(p => p.ex))}` : '') : `<p class="hint">${t('blDone')}</p>`);
   } else drawBulbTypes();

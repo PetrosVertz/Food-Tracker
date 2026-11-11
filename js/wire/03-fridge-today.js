@@ -27,11 +27,10 @@ $('fSearch').addEventListener('input', renderFridge);
 
 $('fLoc').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; ui.floc = b.dataset.v; saveUI(); renderFridge(); });
 
-$('fList').addEventListener('click', e => {
-  const pm = e.target.closest('[data-minus],[data-plus]'); if(pm){ stepPack(pm); return; }
-  const c = e.target.closest('[data-fid]'); if(!c) return; const it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
-  if(e.target.closest('[data-use]')) openAmt({ mode: 'use', item: it }); else openFridgeItem(it);
-});
+// 0.7.3: tap a fridge row = its menu drops down (fridge.js)
+$('fList').addEventListener('click', shopFClick);
+$('fList').addEventListener('change', shopFChange);
+$('fList').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.matches('[data-fpack],[data-fgr]')) e.target.blur(); });
 
 $('faAmt').addEventListener('input', faHint);
 
@@ -312,18 +311,9 @@ $('realStart').addEventListener('change', () => { profile.realStart = $('realSta
     const t_ = profile.realStart ? real : pl && pl.time; if(t_){ d.time = t_; saveDays(); } }
   renderAll(); });
 
-// Fridge − / +: one pack less (the last one goes on Groceries) or one more
-function stepPack(pm){
-  const c = pm.closest('[data-fid]'), it = fridge.find(x => x.id === c.dataset.fid); if(!it) return;
-  if(pm.hasAttribute('data-plus')){ const { id, addedAt, ...rest } = it; fridge.push({ ...rest, qty: it.packSize, id: uid(), addedAt: new Date().toISOString() }); saveFridge(); }
-  else { const twin = [...fridge].reverse().find(x => x !== it && x.foodId === it.foodId && x.mealId === it.mealId && x.loc === it.loc && x.packSize === it.packSize && Math.abs(x.qty - x.packSize) <= 0.5) || it;
-    fridge = fridge.filter(x => x !== twin); saveFridge(); if(it.foodId && checkRestock(it.foodId)) toast(t('toList').trim()); }
-  renderAll();
-}
-
 // Log food sheet: Quick Log (0.7.1, replaces Add Takeaway), yesterday's food
 $('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
-logQWire(); logCalWire();
+logQWire(); logCalWire(); logFabWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
 $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });
 // old Add Takeaway sheet: still opens to edit takeaway entries logged before 0.7.1

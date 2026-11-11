@@ -133,27 +133,94 @@ function stockBadge(f){
   return `<span class="stock">🧊 ${txt}</span>`;
 }
 
+// 0.7.3: one row per food (and per fridge / freezer): tag + name + ⌄ on the left, "300 / 500 g" on the right.
+// Tap the row and a small menu drops down under it: ± a pack (or ± grams for loose buys), pack size, the tag, Frozen, Remove.
+// Fridge items can carry tag (the state shown, when it differs from the food's) and loose (counted in grams, not packs).
+const SHOPF = { open: null };
+function shopFKey(it){ return (it.mealId ? 'm' + it.mealId : 'f' + it.foodId) + '|' + (it.loc || 'fridge'); }
+function shopFList(key){ return fridge.filter(x => shopFKey(x) === key).sort((a, b) => (a.addedAt || '').localeCompare(b.addedAt || '')); }
+function shopFPackOf(list){ const p = list.map(x => x.packSize).filter(v => v > 0); return p.length ? p[p.length - 1] : null; }
+function shopFTagOf(list, info){ const own = list.map(x => x.tag).filter(Boolean).pop(); return own || (info.food ? info.food.state : 'cooked'); }
+function shopFAmt(have, pack, info, loose){
+  const u = info.unit, pc = info.piece && info.pw && info.pw !== 'none' ? info.piece : null;
+  if(!pack || loose) return pc ? `${Math.round(have / pc * 10) / 10} ${WS(info.pw)}` : fmtSize(have, u);
+  const n = Math.max(1, Math.ceil(have / pack - 0.02)), cap = n * pack;
+  if(pc) return `${Math.round(have / pc * 10) / 10} / ${Math.round(cap / pc)} ${WS(info.pw)}`;
+  const a = fmtSize(r1(have), u), b = fmtSize(r1(cap), u), ua = a.split(' ').pop();
+  return ua === b.split(' ').pop() ? `${a.slice(0, -ua.length - 1)} / ${b}` : `${a} / ${b}`;
+}
+
 function renderFridge(){
   const loc = ui.floc || 'all', q = norm($('fSearch').value);
   setSeg('#fLoc', loc);
   const all = liveItems();
   if(!all.length){ $('fList').innerHTML = `<div class="empty">${t('emptyFridge')}</div>`; return; }
-  // 0.7: no dates, no warnings: just what you have, A–Z
-  const items = all.filter(x => loc === 'all' || x.it.loc === loc).filter(x => !q || norm(x.info.name).includes(q))
-    .sort((a, b) => norm(a.info.name).localeCompare(norm(b.info.name)) || (a.it.addedAt || '').localeCompare(b.it.addedAt || ''));
-  if(!items.length){ $('fList').innerHTML = `<div class="empty">${t('nothingHere')}</div>`; return; }
-  $('fList').innerHTML = fridgeGroups(items).map(({ it, info, list }) => { const n = list.length;
-    const amt = n > 1 ? `<b class="stackn">×${n}</b> · ${fmtSize(r1(it.packSize * n), info.unit)}`
-      : it.packSize && Math.abs(it.qty - it.packSize) > 0.5 && it.qty < it.packSize ? t('ofPack', { a: fmtAmt(it.qty, info), b: fmtSize(it.packSize, info.unit) }) : fmtAmt(it.qty, info);
-    const full = it.packSize && Math.abs(it.qty - it.packSize) <= 0.5, guess = list.some(x => x.qtyGuess);
-    return `<div class="card" data-fid="${it.id}">
-      <div class="ficon">${info.icon}</div>
-      <div class="body">
-        <div class="name">${esc(info.name)}${it.loc === 'freezer' ? ` <button class="frz" type="button" data-tip="frozenTip" aria-label="Frozen">❄️</button>` : ''}${it.mealId ? ` <span class="tag">${t('leftovers')}</span>` : ''}</div>
-        <div class="rmeta fmeta">${guess ? '≈ ' : ''}${amt}${guess ? ` · <span class="fixpack">${t('fixPack')}</span>` : ''}</div>
-        ${full ? `<div class="frow2"><div class="stackbtns"><button data-minus aria-label="−1">−</button><button data-plus aria-label="+1">＋</button></div></div>` : ''}
-      </div>
-      <button class="usebtn" data-use>${t('useBtn')}</button></div>`; }).join('');
+  const groups = new Map();
+  all.filter(x => loc === 'all' || x.it.loc === loc).filter(x => !q || norm(x.info.name).includes(q))
+    .forEach(x => { const k = shopFKey(x.it); if(!groups.has(k)) groups.set(k, { key: k, info: x.info, list: [] }); groups.get(k).list.push(x.it); });
+  const rows = [...groups.values()].sort((a, b) => norm(bareName(a.info.name)).localeCompare(norm(bareName(b.info.name))) || a.key.localeCompare(b.key));
+  if(!rows.length){ $('fList').innerHTML = `<div class="empty">${t('nothingHere')}</div>`; return; }
+  $('fList').innerHTML = rows.map(({ key, info, list }) => {
+    const have = r1(list.reduce((s, x) => s + (x.qty || 0), 0)), pack = shopFPackOf(list), loose = list.some(x => x.loose) || !pack;
+    const tag = shopFTagOf(list, info), frozen = list[0].loc === 'freezer', open_ = SHOPF.open === key, guess = list.some(x => x.qtyGuess);
+    const tags = (it => `${stTag(tag)}${frozen ? `<span class="sttag frozen">${t('shopFFrozenTag')}</span>` : ''}${it.mealId ? `<span class="sttag lo">${t('leftovers')}</span>` : ''}`)(list[0]);
+    const amt = `${guess ? '≈ ' : ''}${shopFAmt(have, pack, info, loose)}`;
+    const st = v => `<button type="button" data-ftag="${v}" class="${tag === v ? 'on' : ''}">${t(v === 'uncooked' ? 'shopFRaw' : v === 'cooked' ? 'shopFCooked' : 'shopFReady')}</button>`;
+    const menu = !open_ ? '' : `<div class="fmenu">
+      <div class="fmrow"><button type="button" class="fstep" data-fminus aria-label="−">−</button>${loose
+        ? `<div class="fgr"><input type="number" inputmode="decimal" step="any" min="0" data-fgr placeholder="0" aria-label="${t('shopFAmount')}"><i>${info.unit === 'ml' ? 'ml' : 'g'}</i></div>`
+        : `<button type="button" class="fmode" data-fmode>${t('shopFPack', { s: fmtAmt(pack, info) })}</button>`}<button type="button" class="fstep" data-fplus aria-label="+">+</button></div>
+      ${loose && pack ? `<button type="button" class="fmode fmode2" data-fmode>${t('shopFToPacks', { s: fmtSize(pack, info.unit) })}</button>` : ''}
+      <div class="fmrow"><span class="fml">${t('shopFPackSize')}</span><div class="fgr"><input type="number" inputmode="decimal" step="any" min="0" data-fpack value="${pack || ''}" placeholder="0" aria-label="${t('shopFPackSize')}"><i>${info.unit === 'ml' ? 'ml' : 'g'}</i></div></div>
+      <div class="seg fseg">${st('cooked')}${st('uncooked')}${st('ready')}</div>
+      <div class="fmrow"><button type="button" class="ffrz ${frozen ? 'on' : ''}" data-ffrz aria-pressed="${frozen}">${t('frozen')}</button><button type="button" class="frm" data-frm>${t('remove')}</button></div></div>`;
+    return `<div class="card fcard ${open_ ? 'open' : ''}" data-fkey="${esc(key)}">
+      <button type="button" class="fhead" data-ftog aria-expanded="${open_}"><span class="fnm">${tags}<span class="fnt">${esc(bareName(info.name))}</span>${svgIcon('down', 14, 2.6)}</span><span class="famt">${amt}</span></button>${menu}</div>`;
+  }).join('');
+}
+
+// the menu's own amounts: oldest first, like eating from the fridge; an emptied row can be undone
+function shopFTake(list, amt){
+  let left = amt; list.forEach(it => { if(left <= 0) return; const d = Math.min(it.qty, left); it.qty = r1(it.qty - d); left -= d; });
+}
+function shopFDone(list, key, before, name){
+  fridge = fridge.filter(it => it.qty > 0.05); saveFridge();
+  const gone = !fridge.some(x => shopFKey(x) === key), fid = list[0] && list[0].foodId;
+  const onList = fid && checkRestock(fid);
+  if(gone){ SHOPF.open = null; toast(t('deleted', { n: name }) + (onList ? ' ' + t('toList') : ''), t('undo'), () => { fridge = before; saveFridge(); renderAll(); }); }
+  else if(onList) toast(t('toList').trim());
+  renderAll();
+}
+
+function shopFClick(e){
+  const row = e.target.closest('[data-fkey]'); if(!row) return;
+  const key = row.dataset.fkey, list = shopFList(key); if(!list.length) return;
+  const info = itemInfo(list[0]); if(!info) return;
+  const name = bareName(info.name), pack = shopFPackOf(list), loose = list.some(x => x.loose) || !pack;
+  const before = fridge.map(x => ({ ...x }));
+  if(e.target.closest('[data-ftog]')){ SHOPF.open = SHOPF.open === key ? null : key; haptic(); renderFridge(); return; }
+  if(e.target.closest('[data-fmode]')){ if(!pack) return; list.forEach(x => { if(loose) delete x.loose; else x.loose = true; }); saveFridge(); renderFridge(); return; }
+  const pm = e.target.closest('[data-fplus],[data-fminus]');
+  if(pm){ const plus = pm.hasAttribute('data-fplus'); let amt = pack;
+    if(loose){ const box = row.querySelector('[data-fgr]'), v = parseFloat(box && box.value); if(!(v > 0)){ if(box) box.focus(); return; } amt = v; }
+    if(plus){ if(loose){ const last = list[list.length - 1]; last.qty = r1(last.qty + amt); saveFridge(); }
+      else { const { id, addedAt, qtyGuess, ...rest } = list[list.length - 1]; addToFridge({ ...rest, qty: r1(amt), packSize: r1(amt) }); }
+      haptic(); renderAll(); return; }
+    shopFTake(list, amt); haptic(); shopFDone(list, key, before, name); return; }
+  const tg = e.target.closest('[data-ftag]');
+  if(tg){ const v = tg.dataset.ftag, own = info.food ? info.food.state : 'cooked'; list.forEach(x => { if(v === own) delete x.tag; else x.tag = v; }); saveFridge(); renderFridge(); return; }
+  if(e.target.closest('[data-ffrz]')){ const to = list[0].loc === 'freezer' ? 'fridge' : 'freezer'; list.forEach(x => x.loc = to); SHOPF.open = shopFKey(list[0]); saveFridge(); renderFridge(); return; }
+  if(e.target.closest('[data-frm]')){ fridge = fridge.filter(x => !list.includes(x)); SHOPF.open = null; saveFridge(); renderAll();
+    toast(t('deleted', { n: name }), t('undo'), () => { fridge = before; saveFridge(); renderAll(); }); }
+}
+
+// pack size: saved when the box is left or Enter is pressed; a guessed pack (from a receipt) becomes the real one
+function shopFChange(e){
+  const box = e.target.closest('[data-fpack]'); if(!box) return;
+  const row = box.closest('[data-fkey]'), list = shopFList(row.dataset.fkey), v = r1(parseFloat(box.value)); if(!list.length || !(v > 0)) return;
+  list.forEach(x => { if(x.qtyGuess){ x.qty = v; delete x.qtyGuess; } x.packSize = v; });
+  if(list[0].foodId) learnPack(list[0].foodId, v);
+  saveFridge(); renderAll(); toast(t('updated'));
 }
 
 // Fridge: the main button scans a receipt with the camera

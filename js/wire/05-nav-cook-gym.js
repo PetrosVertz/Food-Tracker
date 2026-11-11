@@ -39,6 +39,9 @@ $('cookSuggestBtn').addEventListener('click', () => { close('ovCookPick'); $('cN
 
 $('cookOwnBtn').addEventListener('click', () => { close('ovCookPick'); openCook(null, 'new'); setTimeout(() => $('cName').focus(), 150); });
 
+$('cookQuickBtn').addEventListener('click', () => { close('ovCookPick'); open('ovQRec'); setTimeout(() => $('foodsQrIn').focus(), 150); });
+$('foodsQrGo').addEventListener('click', foodsQuickRecipe);
+
 $('pasteBtn').addEventListener('click', () => $('ownBtn').click());
 
 // raw / cooked switch on every ingredient that has both versions
@@ -163,17 +166,4 @@ const popBonus = gid => gid in POPI ? 7 * (1 - POPI[gid] / POP.length) + 1 : 0;
 document.querySelectorAll('#sgTime button').forEach(b => b.addEventListener('click', () => { SG.time = SG.time === b.dataset.v ? null : b.dataset.v; setSeg('#sgTime', SG.time || ''); }));
 // My Own Recipe: the cooked weight is worked out from the ingredients; weighing it yourself is optional and folded away
 $('cWeighLink').addEventListener('click', () => $('cWeighBox').classList.toggle('hide'));
-// free-write quick add: the AI turns it into ingredients and amounts (without a key, the built-in reader tries)
-$('cQuickGo').addEventListener('click', async () => {
-  const txt = $('cQuickTxt').value.trim(); if(!txt){ $('cQuickTxt').focus(); return; }
-  let r = null;
-  if(settings.geminiKey){
-    try{ r = await gemini(`Turn this home recipe into structured data. Write names in ${lang === 'el' ? 'Greek' : 'English'}. Text: """${txt}"""
-Return ONLY JSON: {"title":string,"servings":number,"ingredients":[{"name":string,"name_en":string,"grams":number}],"steps":[string]}
-Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to grams; include oil; name_en = plain generic English food name.`); }
-    catch(err){ if(err.cancelled) return; toast(t('cqFail')); }
-  }
-  if(!r){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(settings.geminiKey ? 'cqFail' : 'cqNoKey')); return; } }
-  if(r.title && !$('cName').value.trim()) $('cName').value = r.title;
-  applyRecipe(r, true); $('cQuickTxt').value = ''; toast(t('cqDone', { n: (r.ingredients || []).length }));
-});
+

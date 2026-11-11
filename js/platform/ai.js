@@ -96,26 +96,61 @@ const AI = (() => {
     + '<path d="M109 56 C104 63 104 68 109 69.5 C114 68 114 63 109 56 Z" fill="#5aa9f0" stroke="#0f1113" stroke-width="3" stroke-linejoin="round"/></g>'
     + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/>'
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
-    + '<g id="rFaceA"><ellipse cx="42" cy="99" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="74" cy="99" rx="10" ry="12.5" fill="#0f1113"/><circle cx="39" cy="92.5" r="3.4" fill="#ffffff"/><circle cx="71" cy="92.5" r="3.4" fill="#ffffff"/>'
-    + '<path d="M53 120 Q59 118 66 115.5" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
-    + '<g id="rFaceB"><ellipse cx="46" cy="99" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="78" cy="99" rx="10" ry="12.5" fill="#0f1113"/><circle cx="49" cy="92.5" r="3.4" fill="#ffffff"/><circle cx="81" cy="92.5" r="3.4" fill="#ffffff"/>'
-    + '<path d="M54 115.5 Q61 118 67 120" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
+    + '<g id="rFaceX"><path d="M37 93 L51 107 M51 93 L37 107 M69 93 L83 107 M83 93 L69 107" stroke="#0f1113" stroke-width="5.5" stroke-linecap="round"/>'
+    + '<path d="M53 120 Q60 115 67 120" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
+  // 0.7.3 thinking face, drawn inline so CSS can move its parts: the eyes glide up-left ↔ up-right, the glints lead the look and the mouth tilts one way, then the other (in step with the sway)
+  const FACE_T = '<g class="rft"><g class="reye"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/>'
+    + '<g class="rgl"><circle cx="44" cy="93.5" r="3.4" fill="#ffffff"/><circle cx="76" cy="93.5" r="3.4" fill="#ffffff"/></g></g>'
+    + '<path class="rmo" d="M53 117.75 Q60 118.6 67 117.75" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
   function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
     d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
-  // the robot as an <svg>: kind 'chef' | 'gym'; think = the two glancing looks + sway (Reduce Motion shows the idle face)
+  // the robot as an <svg>: kind 'chef' | 'gym'; think = gliding eyes + sway (Reduce Motion shows the idle face); every robot also carries the X-eyes face for the trash drag
   function robot(kind, size, think){ robotDefs(); const base = kind === 'gym' ? 'rGymBase' : 'rChefBase', w = size || 40, h = Math.round(w * 146 / 120);
-    const face = think ? '<use class="rfa" href="#rFaceA"/><use class="rfb" href="#rFaceB"/><use class="rfi" href="#rFaceIdle"/>' : '<use href="#rFaceIdle"/>';
+    const face = (think ? FACE_T + '<use class="rfi" href="#rFaceIdle"/>' : '<use class="rfi0" href="#rFaceIdle"/>') + '<use class="rfx" href="#rFaceX"/>';
     return `<svg class="robot" width="${w}" height="${h}" viewBox="0 -6 120 146" aria-hidden="true"><g${think ? ' class="rtilt"' : ''}><use href="#${base}"/>${face}</g></svg>`; }
   const OK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function bubble(st){ let b = $('aiBub');
-    if(st === 'hide'){ if(b) b.remove(); return; }
+    if(st === 'hide'){ if(b) b.remove(); bubTrash(false); return; }
     if(!b){ b = document.createElement('button'); b.id = 'aiBub'; b.type = 'button'; b.className = 'aibub'; document.body.appendChild(b);
-      b.addEventListener('click', e => { if(e.target.closest('[data-aix]')){ B.ctls.forEach(c => c.abort()); return; }
-        if(b.classList.contains('ready')){ const ids = B.show; bubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); }); }
+      b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; }
+        if(b.classList.contains('ready')){ const ids = B.show; bubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); });
+      drag(b, () => { if(B.jobs){ B.drop = true; B.ctls.forEach(c => c.abort()); } B.show = []; bubble('hide'); }, 'aiBub'); }
     const run = st === 'run';
     b.className = 'aibub ' + st + ' r' + B.robot;
-    b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '<i data-aix aria-label="Cancel">✕</i>' : `<b class="rok">${OK_SVG}</b>`);
+    b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '' : `<b class="rok">${OK_SVG}</b>`);
     b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+
+  // 0.7.3: any robot bubble can be dragged up and down; let go and it snaps to the nearest side (left / right edge) and remembers the spot (ui[key]).
+  // Dragging shows a faint trash circle at the bottom centre: over it the bubble glows red and the robot's eyes turn to X's; let go there and onGone() runs.
+  const EDGE = 14, BSZ = 64, rmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function bubTrash(on){ let tr = $('aiTrash');
+    if(!tr){ if(!on) return; tr = document.createElement('div'); tr.id = 'aiTrash'; tr.className = 'aitrash'; tr.setAttribute('aria-hidden', 'true');
+      tr.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M18 7l-.9 12.1a2 2 0 0 1-2 1.9H8.9a2 2 0 0 1-2-1.9L6 7M10 11v6M14 11v6"/></svg>';
+      document.body.appendChild(tr); tr.getBoundingClientRect(); }
+    tr.classList.toggle('show', on); if(!on) tr.classList.remove('hot'); return tr; }
+  function bubLimits(){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
+    const top = (hd ? hd.getBoundingClientRect().bottom : 60) + 6, rt = rail && rail.getClientRects().length ? rail.getBoundingClientRect().top : H - 24;
+    return { top, bot: Math.max(top, rt - BSZ - 12) }; }
+  function place(el, key){ const p = typeof ui !== 'undefined' && ui[key]; if(!p){ ['left', 'top', 'right', 'bottom'].forEach(k => el.style.removeProperty(k)); return; }
+    const L = bubLimits(), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
+    el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.top = y + 'px'; el.style.left = (p.s === 'l' ? EDGE : innerWidth - BSZ - EDGE) + 'px'; }
+  function drag(el, onGone, key){ let d = null;
+    place(el, key); addEventListener('resize', () => { if(el.isConnected) place(el, key); });
+    el.addEventListener('pointerdown', e => { if(e.button > 0) return; const r = el.getBoundingClientRect(); d = { x: e.clientX, y: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, id: e.pointerId, on: false, hot: false }; });
+    el.addEventListener('pointermove', e => { if(!d || e.pointerId !== d.id) return;
+      if(!d.on){ if(Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return; d.on = true; try{ el.setPointerCapture(d.id); }catch(x){} el.classList.add('drag'); el.style.transition = 'none'; d.tr = bubTrash(true); }
+      e.preventDefault(); const x = e.clientX - d.ox, y = e.clientY - d.oy;
+      el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.left = x + 'px'; el.style.top = y + 'px';
+      const tr = d.tr.getBoundingClientRect(), hot = Math.hypot(x + BSZ / 2 - (tr.left + tr.width / 2), y + BSZ / 2 - (tr.top + tr.height / 2)) < 56;
+      if(hot !== d.hot){ d.hot = hot; el.classList.toggle('kill', hot); d.tr.classList.toggle('hot', hot); if(hot) haptic(); } });
+    const end = e => { if(!d || e.pointerId !== d.id) return; const was = d; d = null; if(!was.on) return;
+      el._dragged = true; setTimeout(() => { el._dragged = false; }, 60); el.classList.remove('drag'); bubTrash(false);
+      if(was.hot){ el.classList.add('gone'); haptic(); setTimeout(onGone, rmo() ? 0 : 220); return; }
+      const r = el.getBoundingClientRect(), L = bubLimits(), s = r.left + BSZ / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, r.top));
+      el.style.transition = rmo() ? 'none' : 'left .42s cubic-bezier(.2,1.3,.4,1), top .32s cubic-bezier(.2,.9,.3,1)';
+      if(typeof ui !== 'undefined'){ ui[key] = { s, y: y / innerHeight }; saveUI(); } place(el, key); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); }
+
   // the "AI" pill that replaces ✨ on AI buttons; label() turns a '✨ Text' string into 'Text <AI>' (html = the string is already markup)
   const badge = () => '<span class="aibadge">AI</span>';
   function label(s, html){ s = String(s ?? ''); if(!s.includes('✨')) return html ? s : esc(s);
@@ -126,13 +161,13 @@ const AI = (() => {
     count();
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
-    if(!B.jobs){ B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
+    if(!B.jobs){ B.drop = false; B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
     B.robot = opts && opts.robot === 'gym' || (!(opts && opts.robot) && location.hash.startsWith('#gym')) ? 'gym' : 'chef';
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
     try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);
       if(!B.jobs){ B.defer = true; setTimeout(() => { B.defer = false;
-        if(!ok){ bubble('hide'); B.was.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); return; }   // failed or cancelled: put things back
+        if(!ok || B.drop){ bubble('hide'); if(B.drop){ B.drop = false; return; } B.was.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); return; }   // failed or cancelled: put things back
         B.show = [...new Set([...B.was.filter(id => !B.closed.includes(id)), ...B.pending])];
         if(!B.show.length){ bubble('hide'); return; } bubble('ready'); }, 0); } }
   }
@@ -147,7 +182,7 @@ const AI = (() => {
   }
 
   return {
-    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label,
+    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

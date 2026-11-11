@@ -1,7 +1,7 @@
 // App settings: version, storage keys, defaults and small lookup tables.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const VERSION = '0.7.3';
+const VERSION = '0.7.4';
 
 const DEFAULT_MODEL = 'gemini-flash-latest';
 
@@ -128,4 +128,4 @@ let PICKSEL = null;
 
 const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.bubble,#tabbar button,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
 
-const KEYATTR = ['data-eid', 'data-fid', 'data-x', 'data-s', 'data-tid', 'data-gid', 'data-mid', 'data-sid'];
+const KEYATTR = ['data-eid', 'data-fid', 'data-x', 'data-s', 'data-tid', 'data-gid', 'data-mid', 'data-sid', 'data-fkey'];

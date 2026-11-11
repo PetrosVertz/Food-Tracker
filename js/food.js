@@ -30,7 +30,7 @@ function render(){
   const counts = {}; foods.forEach(f => { const k = f.cat || 'none'; counts[k] = (counts[k]||0) + 1; });
   ui.cat = 'all';   // 0.6.1: categories are drop-downs now, no chips
   const chips = [`<button class="fchip ${ui.cat==='all'?'on':''}" data-c="all">${t('all')} ${foods.length||''}</button>`]
-    .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${c.icon} ${esc(L(c))} ${counts[c.id]}</button>`))
+    .concat(CATS.filter(c => counts[c.id]).map(c => `<button class="fchip ${ui.cat===c.id?'on':''}" data-c="${c.id}">${esc(L(c))} ${counts[c.id]}</button>`))
     .concat(counts.none ? [`<button class="fchip ${ui.cat==='none'?'on':''}" data-c="none">${t('noType')} ${counts.none}</button>`] : []);
   $('catChips').innerHTML = '';
   $('sortBtn').innerHTML = foods.length ? t(ui.sort === 'recent' ? 'sortRecent' : 'sortAZ') : '';
@@ -43,10 +43,9 @@ function render(){
   if(!foods.length){ $('list').innerHTML = `<div class="empty">${t('noFoods')}</div>`; return; }
   if(!items.length){ $('list').innerHTML = `<div class="empty">${q ? t('nothingMatches', { q: esc($('search').value) }) : t('nothingHere')}</div>`; return; }
   const cardOf = f => {
-    const ic = iconOf(f), pt = portion(f), x = pt.amt / 100;
+    const pt = portion(f), x = pt.amt / 100;
     const sc = v => (v === null || v === undefined || isNaN(v)) ? null : v * x;
     return `<div class="card" data-id="${f.id}" style="position:relative">${stockBadge(f)}
-      <div class="ficon ${ic?'':'none'}">${ic || '❔'}</div>
       <div class="body">
         <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div></div>
         <div class="name">${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
@@ -62,7 +61,7 @@ function render(){
   const order = [...CATS.map(c => c.id).filter(id => groups[id]), ...(groups.none ? ['none'] : [])];
   const allOpen = !!FCAT.__all;   // 0.6.5.1: everything sits inside one All Foods fold
   $('list').innerHTML = `<button class="foldh catfold allfold ${allOpen ? 'open' : ''}" data-fcat="__all"><b>${t('allFoods')}</b><span class="fn">${items.length}</span><i>⌄</i></button>` + (!allOpen ? '' : '<div class="foldb allbody">' + order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
-    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><span class="e">${c ? c.icon : '❔'}</span><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>⌄</i></button>` +
+    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>⌄</i></button>` +
       (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('') + '</div>');
 
 }
@@ -72,11 +71,11 @@ function mountPicker(el, current, onPick){
   let showCat = current && current.cat ? current.cat : null;
   const draw = () => {
     if(!showCat){
-      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${esc(L(c))}</button>`).join('')}</div>`;
+      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}">${esc(L(c))}</button>`).join('')}</div>`;
     } else {
       const c = CAT[showCat];
       el.innerHTML = `<button class="pback" data-back>${svgIcon('back', 20, 2.4)}${t('allCats')}</button><div class="pgrid">${c.subs.map(s =>
-        `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}"><span class="e">${s.icon}</span>${s.id==='general' ? `${t('general')} · ${esc(L(c))}` : esc(L(s))}</button>`).join('')}</div>`;
+        `<button class="pitem ${current&&current.cat===c.id&&current.sub===s.id?'on':''}" data-s="${s.id}">${s.id==='general' ? `${t('general')} · ${esc(L(c))}` : esc(L(s))}</button>`).join('')}</div>`;
     }
   };
   el.onclick = e => {
@@ -259,9 +258,9 @@ async function commit(){
     if(c === 'fridge') return openFridgeAdd(saved);
     if(c === 'log') return openAmt({ mode: 'log', info: { name: foodName(saved), icon: iconOf(saved) || '🍽️', unit: saved.unit, per: saved, food: saved, piece: saved.pieces !== 'none' ? (saved.piece || saved.serving || null) : null, pw: saved.pieces } }); }
   if(wasEdit) toast(t('updated'));
-  else if(F.fromScan) toast(lastAutoFridge ? t('inFridgeToo', { i: iconOf(rec) || '' }) : t('saved', { i: iconOf(rec) || '' }), t('scanNext'), () => startScan());
-  else if(lastAutoFridge){ const it = lastAutoFridge; toast(t('inFridgeToo', { i: iconOf(rec) || '' }), t('notInFridge'), () => { fridge = fridge.filter(x => x.id !== it.id); saveFridge(); renderAll(); }); }
-  else toast(t('saved', { i: iconOf(rec) || '' }));
+  else if(F.fromScan) toast(lastAutoFridge ? t('inFridgeToo', { i: '' }) : t('saved', { i: '' }), t('scanNext'), () => startScan());
+  else if(lastAutoFridge){ const it = lastAutoFridge; toast(t('inFridgeToo', { i: '' }), t('notInFridge'), () => { fridge = fridge.filter(x => x.id !== it.id); saveFridge(); renderAll(); }); }
+  else toast(t('saved', { i: '' }));
 }
 
 function validGTIN(c){
@@ -364,13 +363,13 @@ function openIngSearch(prefill, cb, opts){
   ING = { cb, online:[], onlineQ:'', timer:null, force: !!opts.force };
   let sb = $('iScanBtn');
   if(!sb){ sb = document.createElement('button'); sb.id = 'iScanBtn'; sb.className = 'btn'; sb.style.cssText = 'width:100%;margin-bottom:8px';
-    $('iSearch').before(sb); sb.addEventListener('click', () => { const c = sb.dataset.ctx; close('ovIng'); startScan(c); }); }
+    $('iSearch').closest('.logfX').before(sb); sb.addEventListener('click', () => { const c = sb.dataset.ctx; close('ovIng'); startScan(c); }); }
   sb.textContent = '▥ ' + t('scanTitle'); sb.dataset.ctx = opts.scanBtn || ''; sb.classList.toggle('hide', !opts.scanBtn);
   $('iSearch').value = prefill || ''; status($('iStatus'), ''); $('iSaveMy').checked = true;
   drawIngResults(); open('ovIng'); setTimeout(() => $('iSearch').focus(), 120);
 }
 
-function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="e">${icon}</span><span class="t"><b>${esc(title)}</b><small>${subline}</small></span></button>`; }
+function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="t"><b>${esc(title)}</b><small>${subline}</small></span></button>`; }
 
 function drawIngResults(){
   const text = $('iSearch').value.trim();
@@ -435,6 +434,25 @@ function parseIngLine(line){
     return { name, grams: w ? r1(n * w[1]) : g ? r1(n * g.piece) : null, count: n };
   }
   return null;
+}
+
+// Cook a Meal › Quick Recipe: type the recipe freely; the AI turns it into a Home-cooked meal (your own foods first: applyRecipe matches them before the built-in list)
+async function foodsQuickRecipe(){
+  const txt = $('foodsQrIn').value.trim(); if(!txt){ $('foodsQrIn').focus(); return; }
+  let r = null;
+  if(settings.geminiKey){
+    try{ const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
+      r = await gemini(`Turn this home recipe into structured data. Write names in ${lang === 'el' ? 'Greek' : 'English'}. Text: """${txt}"""
+Return ONLY JSON: {"title":string,"servings":number,"ingredients":[{"name":string,"name_en":string,"grams":number}],"steps":[string]}
+Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to grams; include oil; servings = the portions the text mentions, else 1; title = a short dish name; name_en = plain generic English food name; steps only if the text has them.
+Foods the user already has (use these names when they fit): ${have || 'none listed'}`, null, null, null, { robot: 'chef' }); }
+    catch(err){ if(err.cancelled) return; toast(t('cqFail')); r = null; }
+  }
+  if(!r || !Array.isArray(r.ingredients) || !r.ingredients.length){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(settings.geminiKey ? 'cqFail' : 'cqNoKey')); return; } }
+  if(!Array.isArray(r.steps)) r.steps = [];
+  close('ovQRec'); openCook(null, 'new');
+  if(r.title) $('cName').value = r.title;
+  applyRecipe(r, true); $('foodsQrIn').value = ''; toast(t('cqDone', { n: r.ingredients.length }));
 }
 
 function parseRecipe(text){

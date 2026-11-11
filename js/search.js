@@ -189,3 +189,12 @@ const Search = (() => {
 const searchLocal = (text, raw, opts) => Search.local(text, raw, opts);
 const searchOnline = text => Search.online(text);
 const searchOnlineAll = text => Search.online(text);
+
+// ---------- 0.7.3 search boxes: an X inside the box when text is typed, one tap clears it ----------
+// Wrap a search input in <div class="logfX">; the X shows only while the box has text (CSS :placeholder-shown).
+function logfXBtn(){ return `<button class="logfXb" type="button" tabindex="-1" aria-label="${t('logfClear')}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`; }
+function logfXInit(){ document.querySelectorAll('.logfX').forEach(w => { if(!w.querySelector('.logfXb')) w.insertAdjacentHTML('beforeend', logfXBtn()); }); }
+function logfXTap(e){
+  const b = e.target.closest('.logfXb'); if(!b) return; const inp = b.parentNode.querySelector('input'); if(!inp) return;
+  e.preventDefault(); e.stopPropagation(); inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true })); inp.focus();
+}

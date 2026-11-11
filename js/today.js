@@ -186,7 +186,7 @@ function lwAdd(st){
   LW.added.push(added); LW.open = null; lwChips(); renderAll(); drawLog();
   toast(t('logged', { n: info.name }) + ` · ${added.kcal} kcal` + extra, t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); LW.added = LW.added.filter(x => x !== added); saveLog(); lwChips(); renderAll(); });
 }
-function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(bareName(e.name))} · ${e.kcal}</span>`).join('') +
+function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(bareName(e.name))} · ${e.kcal}<button class="lchipx" type="button" data-chiprm="${e.id}" aria-label="${t('logChipRm')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>`).join('') +
   (LW.added.length >= 2 ? (LW.naming ? `<span class="lcombo"><input id="lComboName" placeholder="${t('comboPh')}" autocomplete="off"><button type="button" class="lwdone" id="lComboSave">${t('save')}</button></span>` : `<button type="button" class="lsave" id="lComboBtn">${svgIcon('plus', 14, 2.4)}${t('comboSave')}</button>`) : ''); }
 
 // ---------- combos (0.6.9.3): the same few foods you often eat together, logged in one tap ("My breakfast") ----------
@@ -383,9 +383,13 @@ function renderToday(){
   // carb timing
   const wins = carbWindows(d), nowM = diff === 0 ? toMin(nowHM()) : -1;
   const eatenIn = w => entries.filter(e => { const m = toMin(e.time); if(w.k === 'other') return !wins.some(x => x.a !== null && m >= x.a && m <= x.b); return m >= w.a && m <= w.b; }).reduce((s, e) => s + e.c, 0);
-  $('dTiming').innerHTML = !tg ? '' : wins.map(w => `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
+  // 0.7.3: slim rows: carbs + how many meals; water before / during / after the workout (no tips, no sodium / potassium)
+  const bw = (tg && +tg.bw) || latestWeight() || 75, meals = { winMorning: 1, winMidday: 1, winEvening: 2, winPre: 1, winPost: 1, other: 2 };
+  const water = w => w.k === 'winPre' ? rnd50(6 * bw) : w.k === 'winWorkout' ? rnd50(8 * bw * (w.b - w.a + 1) / 60) : w.k === 'winPost' ? rnd50(8 * bw) : 0;
+  $('dTiming').innerHTML = !tg ? '' : wins.map(w => { const n = meals[w.k] || 0, ml = water(w);
+    return `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
       <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
-      <div class="bd">${w.gym ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${w.tip ? `<small>${w.tip}</small>` : ''}<span class="na">${t('winElec', { na: rnd50(NA_T * w.na), k: rnd50(K_T * w.kk) })}</span></div></div>`).join('');
+      <div class="bd">${w.gym ? t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : `${t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${n ? ` · ${t(n === 1 ? 'logTMeal' : 'logTMeals', { n })}` : ''}`}${ml ? `<span class="na">${t('logTWater', { n: ml })}</span>` : ''}</div></div>`; }).join('');
   // log
   // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.
   // The time shows only when you tap the row (the edit sheet).
@@ -622,7 +626,7 @@ async function logQMatch(it){
 // ---- drawing ----
 function logQDraw(){
   const el = $('lqList'); if(!el) return;
-  el.innerHTML = `<div class="lqmsg app"><div class="lqtxt">${t('logQHi')}<small>${t('logQEx')}</small>${AI.hasKey() ? '' : `<small>${t('logQNoKey')}</small>`}</div></div>` +
+  el.innerHTML = `<div class="lqmsg app"><div class="lqtxt">${t('logQHi')}${AI.hasKey() ? '' : `<small>${t('logQNoKey')}</small>`}</div></div>` +
     logQS.msgs.map(m => m.who === 'me' ? `<div class="lqmsg me"><div class="lqtxt">${esc(m.text)}</div></div>` : `<div class="lqmsg app" data-mid="${m.id}">${logQCardHtml(m)}</div>`).join('');
   requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
 }
@@ -646,7 +650,7 @@ function logQRowHtml(m, it, i){
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }
 function logQPanel(it){
-  const sw = `<div class="lqswap"><input class="lqsq" type="search" data-qsq value="${esc(it.sq || '')}" placeholder="${t('logQSwapPh')}" autocomplete="off" enterkeyhint="search" aria-label="${t('logQSwapPh')}"><div class="lqsres">${logQSwapRes(it)}</div></div>`;
+  const sw = `<div class="lqswap"><div class="logfX"><input class="lqsq" type="search" data-qsq value="${esc(it.sq || '')}" placeholder="${t('logQSwapPh')}" autocomplete="off" enterkeyhint="search" aria-label="${t('logQSwapPh')}">${logfXBtn()}</div><div class="lqsres">${logQSwapRes(it)}</div></div>`;
   const st = it.st; if(!st) return `<div class="lpn">${sw}</div>`;
   const r = lwCalc(st);
   return `<div class="lpn"><div class="lamt"><input class="lan" type="number" inputmode="decimal" step="any" min="0" value="${fmt(+st.n || 0)}" aria-label="${t('lwAmount')}">
@@ -787,4 +791,33 @@ function logCalWire(){
   $('calNext').addEventListener('click', () => logCalShift(1));
   $('calDays').addEventListener('click', e => { const b = e.target.closest('[data-cald]'); if(b) logCalGo(b.dataset.cald); });
   $('calNow').addEventListener('click', () => logCalGo(todayKey()));
+}
+
+// ---------- 0.7.3 Log Food: the X on an added chip removes that entry (with Undo) ----------
+function logChipRm(id){
+  const day = Object.keys(dayLog).find(d => (dayLog[d] || []).some(e => e.id === id)); if(!day) return;
+  const list = dayLog[day], i = list.findIndex(e => e.id === id), e = list[i], j = LW.added.findIndex(x => x.id === id);
+  list.splice(i, 1); if(j > -1) LW.added.splice(j, 1); saveLog(); lwChips(); renderAll();
+  toast(t('removedItem', { n: bareName(e.name) }), t('undo'), () => { (dayLog[day] = dayLog[day] || []).splice(i, 0, e); if(j > -1) LW.added.splice(j, 0, e); saveLog(); lwChips(); renderAll(); });
+}
+
+// ---------- 0.7.3 the Quick Log pill beside Log Food (Today only); the two sit centred together ----------
+function logQFabSync(){
+  const b = $('logQFab'), f = $('fab'); if(!b || !f) return;
+  const on = !$('pgToday').classList.contains('hide') && !f.classList.contains('hide') && f.dataset.action === 'today';
+  b.classList.toggle('hide', !on); document.body.classList.remove('logqfab');
+  if(!on) return;
+  const R = parseFloat(getComputedStyle(f).right) || 0;   // where the main button normally stops on the right
+  document.body.style.setProperty('--lqfr', (R + b.offsetWidth + 10) + 'px'); document.body.classList.add('logqfab');
+  requestAnimationFrame(() => { const r = f.getBoundingClientRect(); b.style.left = (r.right + 10) + 'px'; b.style.top = (r.top + (r.height - b.offsetHeight) / 2) + 'px'; b.style.zIndex = getComputedStyle(f).zIndex; });
+}
+function logFabWire(){
+  $('logQFab').addEventListener('click', () => logQOpenSheet());
+  $('ovLog').querySelector('.lwback').addEventListener('click', goBack);
+  $('lAdded').addEventListener('click', e => { const x = e.target.closest('[data-chiprm]'); if(x){ e.stopPropagation(); logChipRm(x.dataset.chiprm); } });
+  let q = 0; const sync = () => { cancelAnimationFrame(q); q = requestAnimationFrame(logQFabSync); };
+  const mo = new MutationObserver(sync);
+  mo.observe($('pgToday'), { attributes: true, attributeFilter: ['class'] });
+  mo.observe($('fab'), { attributes: true, attributeFilter: ['class', 'data-action'], childList: true, characterData: true, subtree: true });
+  window.addEventListener('resize', sync); setTimeout(sync, 300);
 }

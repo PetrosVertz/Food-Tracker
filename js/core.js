@@ -104,7 +104,7 @@ function claudeText(){
 // ---------- 0.7.2: text that doesn't fit in a pill or bubble scrolls sideways like a news ticker ----------
 // Only when it overflows; off with Reduce Motion. The text is wrapped in <span class="tk"><span class="tki" data-tk="…">, the repeat is a CSS ::after (so textContent stays the same).
 (() => {
-  const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.rchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button';
+  const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.rchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button,section.page>header h1';
   const GAP = 32, SPEED = 32, rm = matchMedia('(prefers-reduced-motion: reduce)');
   const unwrap = el => { const i = el.querySelector(':scope>.tk>.tki'); if(!i) return; const k = i.parentNode; while(i.firstChild) el.insertBefore(i.firstChild, k); k.remove(); el.classList.remove('tkon'); };
   function tick(el){
@@ -130,5 +130,63 @@ function claudeText(){
   const start = () => { mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] }); queue(document.body);
     addEventListener('resize', () => queue(document.body)); if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => queue(document.body));
     try{ rm.addEventListener('change', () => queue(document.body)); }catch(e){} };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start, 0);
+})();
+
+// ---------- 0.7.3 Settings: search bar that finds and opens any setting, and the Back Up Now button ----------
+// Each entry: label (string key), group (crumb key), kw (extra words, both languages), go = what to tap in order, hl = what to light up when it opens, run = do it straight away.
+const SHELL_SETS = [
+  { k: 'stCustom', go: ['[data-sp="ovSCustom"]'] },
+  { k: 'themeT', g: 'stCustom', kw: 'dark light automatic auto colour color accent lime mode appearance preset σκούρο ανοιχτό αυτόματο χρώμα εμφάνιση', go: ['[data-sp="ovSCustom"]', '#sThemeBtn'] },
+  { k: 'language', g: 'stCustom', kw: 'english greek ελληνικά αγγλικά', go: ['[data-sp="ovSCustom"]', '[data-sp="ovSLang"]'] },
+  { k: 'unitsT', g: 'stCustom', kw: 'kg lb pounds cm feet inches oz grams metric imperial κιλά λίβρες γραμμάρια', go: ['[data-sp="ovSCustom"]', '[data-sp="ovSUnits"]'] },
+  { k: 'suUse', g: 'stCustom', kw: 'gym first mainly food tabs order start page γυμναστήριο φαγητό', go: ['[data-sp="ovSCustom"]'], hl: '#sUse' },
+  { k: 'stBody', go: ['[data-sp="ovSBody"]'] },
+  { k: 'shSex', g: 'stBody', kw: 'male female man woman άνδρας γυναίκα', go: ['[data-sp="ovSBody"]'], hl: '#sSex' },
+  { k: 'suHeight', g: 'stBody', kw: 'tall cm ft ψηλός', go: ['[data-sp="ovSBody"]'], hl: '#sH' },
+  { k: 'bodyweight', g: 'stBody', kw: 'weight kg lb weigh κιλά ζύγισμα', go: ['[data-sp="ovSBody"]'], hl: '#sW' },
+  { k: 'dailyTargets', g: 'stBody', kw: 'calories kcal protein carbs fat fibre fiber macros goal bulk cut recomp θερμίδες πρωτεΐνη υδατάνθρακες λιπαρά στόχος όγκος γράμμωση', go: ['[data-sp="ovSBody"]', '#sTargetsBtn'] },
+  { k: 'stAI', kw: 'gemini artificial intelligence τεχνητή νοημοσύνη', go: ['[data-sp="ovSAI"]'] },
+  { k: 'geminiKey', g: 'stAI', kw: 'api key password κλειδί', go: ['[data-sp="ovSAI"]'], hl: '#sKey' },
+  { k: 'geminiModel', g: 'stAI', kw: 'flash pro lite μοντέλο', go: ['[data-sp="ovSAI"]'], hl: '#sModel' },
+  { k: 'keyGuideT', g: 'stAI', kw: 'free key how help οδηγίες δωρεάν', go: ['[data-sp="ovSAI"]'], hl: 'details.guide' },
+  { k: 'stData', go: ['[data-sp="ovSData"]'] },
+  { k: 'shBackupNow', g: 'stData', kw: 'backup save export icloud files αντίγραφο ασφαλείας αποθήκευση αρχεία', run: () => backupNow() },
+  { k: 'download', g: 'stData', kw: 'export json αρχείο', go: ['[data-sp="ovSData"]'], hl: '#exportJson' },
+  { k: 'import', g: 'stData', kw: 'restore load new phone επαναφορά', go: ['[data-sp="ovSData"]'], hl: '#importBtn' },
+  { k: 'copyClaude', g: 'stData', kw: 'claude chat export summary αντιγραφή', go: ['[data-sp="ovSData"]'], hl: '#copyClaude' },
+  { k: 'stAbout', kw: 'version credits licence license notice έκδοση άδεια', go: ['[data-sp="ovSAbout"]'] },
+  { k: 'suAgain', g: 'stAbout', kw: 'setup first launch start over reset αρχή ξανά', go: ['[data-sp="ovSAbout"]'], hl: '#suAgainBtn' },
+];
+const shellNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ς/g, 'σ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const shellLbl = k => t(k).replace(/^[↺✨💾\s]+/u, '').replace(/\s*\(.*\)\s*$/, '').replace(/\?$/, '');
+function shellSearch(q){
+  const box = $('sResults'), main = $('sMain'), nq = shellNorm(q); $('sSearchX').classList.toggle('hide', !q);
+  if(!nq){ box.classList.add('hide'); main.classList.remove('hide'); box.innerHTML = ''; return; }
+  const words = nq.split(' '), hits = SHELL_SETS.map((e, i) => { const all = [e.k, e.g].filter(Boolean).map(k => (S[k] || []).join(' ')).join(' ') + ' ' + (e.kw || '');
+    const hw = shellNorm(all).split(' '), lw = shellNorm((S[e.k] || []).join(' ')).split(' ');
+    if(!words.every(w => hw.some(h => h.startsWith(w)))) return null;
+    return { i, sc: (e.g ? 0 : 1) + words.filter(w => lw.some(h => h.startsWith(w))).length * 2 }; }).filter(Boolean).sort((a, b) => b.sc - a.sc);
+  main.classList.add('hide'); box.classList.remove('hide');
+  box.innerHTML = hits.length ? hits.map(h => { const e = SHELL_SETS[h.i];
+    return `<button class="prow sres" type="button" data-si="${h.i}"><span>${esc(shellLbl(e.k))}</span>${e.g ? `<span class="sv">${esc(shellLbl(e.g))}</span>` : ''}</button>`; }).join('')
+    : `<p class="snone">${esc(t('shNone'))}</p>`; }
+function shellGo(i){ const e = SHELL_SETS[i]; if(!e) return; $('sSearch').blur();
+  if(e.run){ e.run(); return; }
+  (e.go || []).forEach(sel => { const el = document.querySelector(sel); if(el) el.click(); });
+  if(!e.hl) return;
+  setTimeout(() => { const el = document.querySelector(e.hl); if(!el) return; if(el.tagName === 'DETAILS') el.open = true;
+    el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    el.classList.remove('sfound'); void el.offsetWidth; el.classList.add('sfound'); setTimeout(() => el.classList.remove('sfound'), 1800); }, 380); }
+function shellBkLast(){ const el = $('sBackupLast'); if(!el) return; const last = typeof ui !== 'undefined' && ui.lastBackup;
+  el.textContent = t('shLast', { d: last ? fmtDate(last) : t('bkNever') }); }
+(() => { const start = () => { const inp = $('sSearch'); if(!inp) return;
+    inp.addEventListener('input', () => shellSearch(inp.value));
+    inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ const f = $('sResults').querySelector('[data-si]'); if(f) shellGo(+f.dataset.si); } });
+    $('sSearchX').addEventListener('click', () => { inp.value = ''; shellSearch(''); inp.focus(); });
+    $('sResults').addEventListener('click', e => { const b = e.target.closest('[data-si]'); if(b) shellGo(+b.dataset.si); });
+    $('sBackupNow').addEventListener('click', () => backupNow());
+    const ver = document.querySelector('#pgSettings .ver'); if(ver) ver.textContent = 'Food Tracker · Gym Buddy · v' + VERSION;
+    shellBkLast(); addEventListener('hashchange', shellBkLast); };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start, 0);
 })();

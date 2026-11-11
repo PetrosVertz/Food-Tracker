@@ -15,7 +15,7 @@ $('copyClaude').addEventListener('click', async () => {
   await Phone.copy(txt); toast(t('copied'));
 });
 
-$('exportJson').addEventListener('click', () => { Phone.download(backupBlob(), `tracker-${todayKey()}.json`); ui.lastBackup = new Date().toISOString(); saveUI(); });
+$('exportJson').addEventListener('click', () => { Phone.download(backupBlob(), `tracker-backup-${todayKey()}.json`); ui.lastBackup = new Date().toISOString(); saveUI(); });
 
 $('importBtn').addEventListener('click', () => { $('importInput').value=''; $('importInput').click(); });
 

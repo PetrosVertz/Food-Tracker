@@ -80,13 +80,13 @@
   </header>
   <div class="mpill" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
   <div id="storeView">
-    <input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off">
+    <div class="logfX"><input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off"></div>
     <div class="chips" id="catChips"></div>
     <div class="bar"><span id="count"></span><span class="barbtns"><button class="chkbtn" type="button" id="checkFoodsBtn" data-t="chkBtn"></button><button class="linkbtn" id="sortBtn"></button></span></div>
     <div class="list" id="list"></div>
   </div>
   <div id="mealsView" class="hide">
-    <input class="search" id="mSearch" type="search" data-tp="searchMeals" autocomplete="off">
+    <div class="logfX"><input class="search" id="mSearch" type="search" data-tp="searchMeals" autocomplete="off"></div>
     <div class="bar"><span id="mCount"></span></div>
     <div class="list" id="mList"></div>
   </div>
@@ -176,7 +176,7 @@
   <div class="list" id="gList" style="margin-top:12px"></div>
   <div id="gDone"></div>
 </div>
-</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><div class="pgroup"><button class="prow" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span><span class="sv" data-t="stCustomSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSBody"><span data-t="stBody"></span><span class="sv" data-t="stBodySub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAI"><span data-t="stAI"></span><span class="sv" data-t="stAISub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSData"><span data-t="stData"></span><span class="sv" data-t="stDataSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><button class="prow" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span><span class="sv" data-t="stAboutSub"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="ver">Food Tracker · Gym Buddy · v0.7</div></section>
+</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><h1 data-t="settings"></h1></div></header><div class="ssearch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input id="sSearch" type="search" autocomplete="off" enterkeyhint="search" data-tp="shSearchPh"><button class="ssx hide" id="sSearchX" type="button" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div><div id="sResults" class="pgroup hide"></div><div id="sMain"><button class="bknow" type="button" id="sBackupNow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg><b data-t="shBackupNow"></b><small id="sBackupLast"></small></button><div class="pgroup"><button class="prow pmain" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span></button><button class="prow pmain" type="button" data-sp="ovSBody"><span data-t="stBody"></span></button><button class="prow pmain" type="button" data-sp="ovSAI"><span data-t="stAI"></span></button><button class="prow pmain" type="button" data-sp="ovSData"><span data-t="stData"></span></button><button class="prow pmain" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span></button></div></div><div class="ver">Food Tracker · Gym Buddy · v0.7</div></section>
 
 
 
@@ -303,10 +303,10 @@
   <div id="cantScan" class="hide">
   <div class="row cscode"><input id="manualCode" inputmode="numeric" data-tp="typeCode" autocomplete="off"><button class="btn primary small" id="lookupBtn" data-t="lookUp"></button></div>
   <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
-  <button class="btn csbtn" id="scanItemBtn" data-t="scanItem"></button><input type="file" id="itemPhoto" accept="image/*" capture="environment" class="hide">
-  <button class="btn csbtn hide" id="scanPhotoBtn" data-t="scanPhoto"></button>
-  <button class="btn csbtn" id="scanLabel" data-t="noBarcodeLabel"></button>
-  <button class="btn csbtn" id="scanManual" data-t="typeIt"></button>
+  <button class="btn csbtn csico" id="scanItemBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="scanItem"></span></button><input type="file" id="itemPhoto" accept="image/*" capture="environment" class="hide">
+  <button class="btn csbtn csico hide" id="scanPhotoBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="scanPhoto"></span></button>
+  <button class="btn csbtn csico" id="scanLabel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="noBarcodeLabel"></span></button>
+  <button class="btn csbtn csico" id="scanManual"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/></svg><span data-t="typeIt"></span></button>
   </div>
   <div class="actions">
     <button class="btn" id="scanCancel" data-t="close"></button>
@@ -431,7 +431,8 @@
 <!-- ============ COOK A MEAL ============ -->
 <div class="overlay" id="ovCookPick"><div class="sheet">
   <h2 data-t="cookMeal"></h2>
-  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button></div>
+  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
+  <button class="opt bigopt" id="cookQuickBtn"><span><b data-t="foodsQrOpt"></b><small data-t="foodsQrOptSub"></small></span></button></div>
 </div></div>
 <div class="overlay" id="ovCook"><div class="sheet tall">
   <h2 id="cookTitle"></h2>
@@ -466,7 +467,6 @@
   
   
   <div class="preview show" id="cResult"></div>
-  <div class="cquick"><h3 data-t="cqT"></h3><textarea id="cQuickTxt" data-tp="cqPh"></textarea><button class="btn" id="cQuickGo" data-t="cqGo"></button></div>
   <label class="check hide" id="cTakeWrap"><input type="checkbox" id="cTake" checked><span id="cTakeTxt"></span></label>
   <label class="check" id="cLeftWrap"><input type="checkbox" id="cLeft"><span data-t="leftoversIn"></span></label>
   <div class="actions">
@@ -480,7 +480,7 @@
 <!-- ============ INGREDIENT SEARCH ============ -->
 <div class="overlay" id="ovIng"><div class="sheet tall">
   <h2 data-t="chooseIngredient"></h2>
-  <input class="search" id="iSearch" type="search" data-tp="ingSearchPh" autocomplete="off">
+  <div class="logfX"><input class="search" id="iSearch" type="search" data-tp="ingSearchPh" autocomplete="off"></div>
   <div id="iResults" class="sres"></div>
   <div class="status" id="iStatus"></div>
   <label class="check hide" id="iSaveWrap"><input type="checkbox" id="iSaveMy" checked><span data-t="alsoSave"></span></label>
@@ -692,7 +692,7 @@
 <!-- ============ LOG FOOD SEARCH ============ -->
 <div class="overlay" id="ovLog"><div class="sheet logwin">
   <div class="lwtop">
-    <div class="lwrow"><h2 data-t="lwTitle"></h2><button class="lwdone" type="button" data-close data-t="done"></button></div>
+    <div class="lwrow"><div class="lwtl"><button class="sback lwback" type="button" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-t="lwTitle"></h2></div><button class="lwdone" type="button" data-close data-t="done"></button></div>
     <div class="lwsearch"><input id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off" aria-label="Search foods"><button class="lwscan" id="lScanIn" type="button" aria-label="Scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
     <div class="lwacts"><button type="button" id="lQuickTop" class="aiafter" data-t="logQT"></button><button type="button" id="planBtn" class="aiafter" data-t="lwFill"></button><button type="button" id="lTrack" class="lwico" aria-label="Food Tracker"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button></div>
     <div class="lwadded" id="lAdded"></div>
@@ -734,7 +734,7 @@
 </div></div>
 
 <!-- ============ SUGGEST A RECIPE ============ -->
-<div class="overlay" id="ovSuggest"><div class="sheet tall">
+<div class="overlay" id="ovSuggest"><div class="sheet">
   <h2 data-t="sgT"></h2>
   <p class="sub" id="sgLeft"></p>
   <input id="sgIn" data-tp="sgPh" autocomplete="off" enterkeyhint="go"><button class="btn small hide" id="sgAdd" data-t="add"></button>
@@ -758,8 +758,9 @@
 <!-- ==== branch: gym (new Gym Buddy sheets go on the lines below) ==== -->
 <!-- ==== end gym ==== -->
 <!-- ==== branch: log (new Today & Logging sheets go on the lines below) ==== -->
+<button class="logqfab hide" id="logQFab" type="button"><span data-t="logQT"></span><span class="aib">AI</span></button>
 <div class="overlay" id="ovCal"><div class="sheet calsheet">
-  <div class="calhead"><button class="calnav" type="button" id="calPrev" aria-label="Previous month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="calT"></h2><button class="calnav" type="button" id="calNext" aria-label="Next month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <div class="calhead"><button class="calx" type="button" data-close aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><h2 id="calT"></h2><button class="calnav" type="button" id="calPrev" aria-label="Previous month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="calnav" type="button" id="calNext" aria-label="Next month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
   <div class="calgrid calwk" id="calWk" aria-hidden="true"></div>
   <div class="calgrid" id="calDays"></div>
   <button class="calnow" type="button" id="calNow" data-t="logCalToday"></button>
@@ -771,6 +772,11 @@
 </div></div>
 <!-- ==== end log ==== -->
 <!-- ==== branch: foods (new My Foods & Search sheets go on the lines below) ==== -->
+<div class="overlay" id="ovQRec"><div class="sheet">
+  <h2 data-t="foodsQrT"></h2>
+  <textarea id="foodsQrIn" class="big" data-tp="foodsQrPh"></textarea>
+  <div class="actions"><button class="btn primary" type="button" id="foodsQrGo" data-t="foodsQrGo"></button></div>
+</div></div>
 <!-- ==== end foods ==== -->
 <!-- ==== branch: shop (new Fridge & Groceries sheets go on the lines below) ==== -->
 <!-- ==== end shop ==== -->

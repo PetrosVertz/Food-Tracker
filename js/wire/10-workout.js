@@ -2,7 +2,7 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // 💡 only when adding to a live workout
-$('sesAddEx').addEventListener('click', () => $('pkBulb').classList.remove('hide'), true);
+$('sesAddEx').addEventListener('click', () => { $('pkBulb').classList.remove('hide'); gymBulbRobot(); }, true);
 $('pkBulb').addEventListener('click', openBulb);
 $('blBody').addEventListener('click', e => {
   const bt = e.target.closest('[data-bt]'); if(bt){ drawBulbPlan(bt.dataset.bt); return; }
