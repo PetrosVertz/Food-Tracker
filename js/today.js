@@ -805,10 +805,10 @@ function logChipRm(id){
 function logQFabSync(){
   const b = $('logQFab'), f = $('fab'); if(!b || !f) return;
   const on = !$('pgToday').classList.contains('hide') && !f.classList.contains('hide') && f.dataset.action === 'today';
-  b.classList.toggle('hide', !on); document.body.classList.remove('logqfab');
+  b.classList.toggle('hide', !on); document.body.classList.remove('has-logqfab');
   if(!on) return;
   const R = parseFloat(getComputedStyle(f).right) || 0;   // where the main button normally stops on the right
-  document.body.style.setProperty('--lqfr', (R + b.offsetWidth + 10) + 'px'); document.body.classList.add('logqfab');
+  document.body.style.setProperty('--lqfr', (R + b.offsetWidth + 10) + 'px'); document.body.classList.add('has-logqfab');
   requestAnimationFrame(() => { const r = f.getBoundingClientRect(); b.style.left = (r.right + 10) + 'px'; b.style.top = (r.top + (r.height - b.offsetHeight) / 2) + 'px'; b.style.zIndex = getComputedStyle(f).zIndex; });
 }
 function logFabWire(){

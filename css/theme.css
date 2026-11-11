@@ -613,7 +613,7 @@ body.twofab .fab{padding:16px 20px!important}
 /* 0.7.3 · the Quick Log pill beside Log Food (placed by logQFabSync) */
 .logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
 .logqfab.hide{display:none}
-body.logqfab #fab{right:var(--lqfr)!important}
+body.has-logqfab #fab{right:var(--lqfr)!important}
 /* ==== end log ==== */
 /* ==== branch: foods (new My Foods & Search styles go on the lines below) ==== */
 /* Cook a Meal button: pot icon + text; Can't scan? buttons: line icon + text */
