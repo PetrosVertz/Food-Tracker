@@ -94,7 +94,9 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .fab:active{opacity:.85}
 
 /* ---------- glass: floating things only ---------- */
-.sheet{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(24px)!important;backdrop-filter:blur(24px)!important;border:1px solid var(--t-glass-edge)!important}
+/* 0.7.8 titles: windows are SOLID, no backdrop-filter. A blur on the window put its title, back arrow and header buttons inside a filtered layer
+   that iPhone draws at low resolution (soft letters). The colour is what the old glass looked like over the dimmed page. */
+.sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
 .overlay{background:var(--t-scrim)}
 
