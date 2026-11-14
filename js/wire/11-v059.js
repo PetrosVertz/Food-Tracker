@@ -48,13 +48,7 @@ $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterd
 // ---------- 0.6.1: AI — spinning loader instead of "model 1 of 10", daily use counter ----------
 function aiCount(){ const d = todayKey(); if(!ui.ai || ui.ai.d !== d) ui.ai = { d, n: 0 }; ui.ai.n++; saveUI();
   const n = ui.ai.n; if(n === 100 || (n > 100 && n % 25 === 0)) setTimeout(() => toast(t('aiMany', { n })), 400); }
-function aiWait(on, cancel){
-  let w = $('aiWait');
-  if(!on){ if(w){ w.classList.add('out'); setTimeout(() => w.remove(), 180); } return; }
-  if(w) w.remove(); w = document.createElement('div'); w.id = 'aiWait'; w.className = 'aiwait';
-  w.innerHTML = `<div class="aibox"><div class="aispin"></div><b>✨ ${t('aiThinking')}</b><p>${t('aiSlow')}</p><button class="btn" type="button">${t('cancel')}</button></div>`;
-  w.querySelector('button').onclick = () => { cancel(); aiWait(false); }; document.body.appendChild(w);
-}
+function aiWait(){}   // the AI works in a bubble in the corner (see below), so there is no loading box
 { const g0 = gemini; gemini = async function(prompt, img, onTry, outer, opts){
     aiCount();
     if(opts && opts.quiet) return g0(prompt, img, onTry, outer);   // background jobs (recovery check) don't block the screen
@@ -297,7 +291,6 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
   saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });
 
 // AI works in a bubble in the corner: keep using the app, tap the bubble when it's ready
-aiWait = function(){};
 const AIB = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [] };
 function aiBubble(st){ let b = $('aiBub');
   if(st === 'hide'){ if(b) b.remove(); return; }

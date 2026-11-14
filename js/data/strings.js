@@ -109,20 +109,17 @@ const S = {
  mealMeta:['Cooked {d} · batch {s}','Μαγειρεύτηκε {d} · σύνολο {s}'], estimated:['≈ not weighed','≈ χωρίς ζύγισμα'],
  timesCooked:['cooked {n}×','μαγειρεύτηκε {n}×'],
  // settings
- settings:['Settings','Ρυθμίσεις'], settingsSub:['Everything is stored on this device only.','Όλα αποθηκεύονται μόνο σε αυτή τη συσκευή.'], language:['Language','Γλώσσα'],
- geminiKey:['Gemini API key (label photos and recipes)','Κλειδί Gemini API (ετικέτες και συνταγές)'], geminiKeyPh:['Paste your key here','Επικόλλησε το κλειδί εδώ'],
+ settings:['Settings','Ρυθμίσεις'], language:['Language','Γλώσσα'],
+ geminiKeyPh:['Paste your key here','Επικόλλησε το κλειδί εδώ'],
  getKey:['Get API Key','Πάρε κλειδί API'],
  getKeyHint:['Opens Google AI Studio. Sign in, tap “Create API key”, copy it and paste it above. Free, with a daily limit. It stays on this phone only.','Ανοίγει το Google AI Studio. Σύνδεση, «Create API key», αντιγραφή και επικόλληση από πάνω. Δωρεάν, με ημερήσιο όριο. Μένει μόνο σε αυτό το κινητό.'],
  geminiModel:['Gemini model','Μοντέλο Gemini'], saveSettings:['Save settings','Αποθήκευση ρυθμίσεων'], settingsSaved:['Settings saved','Οι ρυθμίσεις αποθηκεύτηκαν'],
- yourData:['Your data','Τα δεδομένα σου'], yourDataSub:['Copy for Claude, or move everything between phone and PC.','Αντιγραφή για το Claude, ή μεταφορά όλων μεταξύ κινητού και υπολογιστή.'],
+ yourDataSub:['Copy for Claude, or move everything between phone and PC.','Αντιγραφή για το Claude, ή μεταφορά όλων μεταξύ κινητού και υπολογιστή.'],
  copyClaude:['Copy for Claude','Αντιγραφή για Claude'], download:['Download backup','Λήψη αντιγράφου'], import:['Import backup','Εισαγωγή αντιγράφου'],
  copied:['Copied, paste it to Claude','Αντιγράφηκε, επικόλλησέ το στο Claude'], nothingCopy:['Nothing to copy yet','Τίποτα για αντιγραφή ακόμα'],
  imported:['Imported: {a} new, {u} updated','Εισαγωγή: {a} νέα, {u} ενημερωμένα'], badBackup:['That file isn’t a Tracker backup','Αυτό δεν είναι αντίγραφο του Tracker'],
  saveFail:['Could not save on this device','Δεν έγινε αποθήκευση στη συσκευή'], lightNA:['Light not available','Δεν υπάρχει φως'],
- comingSoon:['Coming in a later version','Έρχεται σε επόμενη έκδοση'],
  // v1.4
- backArrow:['← Back','← Πίσω'],
- tryingModel:['Trying model {i} of {n}…','Δοκιμή μοντέλου {i} από {n}…'], cancelRec:['Cancel · model {i} of {n}','Ακύρωση · μοντέλο {i} από {n}'],
  cancelled:['Cancelled','Ακυρώθηκε'], timedOut:['took too long','άργησε πολύ'],
  allBusy:['Every Gemini model is busy or out of free uses right now ({e}). Try again later, or use “Add my own recipe”.','Όλα τα μοντέλα Gemini είναι απασχολημένα ή τελείωσαν οι δωρεάν χρήσεις ({e}). Δοκίμασε αργότερα ή χρησιμοποίησε «Δική μου συνταγή».'],
  keyBad:['Google rejected the key: {e}. Check it in settings.','Η Google απέρριψε το κλειδί: {e}. Έλεγξέ το στις ρυθμίσεις.'],
@@ -280,7 +277,7 @@ Object.assign(S, {
 // 0.5.3 — FOOD TRACKY · TODAY · GYM BUDDY
 // =====================================================================
 Object.assign(S, {
- tabFood:['Food Tracker','Food Tracker'], tabToday:['Today','Σήμερα'], tabGym:['Gym Buddy','Gym Buddy'],
+ tabToday:['Today','Σήμερα'], tabGym:['Gym Buddy','Gym Buddy'],
  fibre:['Fibre','Φυτ. ίνες'], electrolytes:['Electrolytes','Ηλεκτρολύτες'], sodium:['Sodium','Νάτριο'], potassium:['Potassium','Κάλιο'],
  elecHigh:['high','υψηλό'], fibTarget:['Fibre target (g/day)','Στόχος φυτικών ινών (g/μέρα)'], potMg:['Potassium (mg)','Κάλιο (mg)'],
  raw:['Raw','Ωμό'], cookedS:['Cooked','Μαγειρ.'], tapChangeV:['tap to change','πάτα για αλλαγή'],
@@ -313,7 +310,7 @@ Object.assign(S, {
   remGym:['{n} Today at {t}','{n} σήμερα στις {t}'], remGymNoT:['{n} Today','{n} σήμερα'], remSetT:['Tap to Set a Time','Πάτα για να βάλεις ώρα'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
   qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaTag:['quick add','γρήγορη καταγραφή'],
   usuals:['Your usuals','Τα συνηθισμένα σου'], grpOnline2:['Online','Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
-  rawTag:['RAW','ΩΜΟ'], suUse:['What will you use the app for?','Για τι θα χρησιμοποιείς την εφαρμογή;'], useBoth:['Food + Gym','Φαγητό + Γυμναστήριο'], useGym:['Mainly Gym','Κυρίως Γυμναστήριο'], useGymOn:['Gym Buddy is now the first tab','Το Gym Buddy είναι πλέον η πρώτη καρτέλα'], useBothOn:['Today\'s Food is the first tab again','Το Σημερινό φαγητό είναι ξανά η πρώτη καρτέλα'], comboT:['Your Combos','Οι συνδυασμοί σου'], comboSave:['Save as combo','Αποθήκευση ως συνδυασμός'], comboPh:['Name, e.g. My breakfast','Όνομα, π.χ. Το πρωινό μου'], comboSub:['{n} foods · {k} kcal','{n} τρόφιμα · {k} kcal'], comboLogged:['Logged {n} · {k} kcal','Καταγράφηκε: {n} · {k} kcal'], comboDel:['Delete Combo','Διαγραφή συνδυασμού'], comboSaved:['Combo saved: {n}','Ο συνδυασμός αποθηκεύτηκε: {n}'], startEmpty:['Start Empty Workout','Κενή προπόνηση'], stToday:['planned today','προγραμματισμένη σήμερα'], stCustom:['Customize','Προσαρμογή'], stCustomSub:['Theme · Language · Units','Θέμα · Γλώσσα · Μονάδες'], stBody:['Body and Goals','Σώμα και στόχοι'], stBodySub:['Sex, height, weight, targets','Φύλο, ύψος, βάρος, στόχοι'], stAI:['AI','AI'], stAISub:['Gemini key and model','Κλειδί και μοντέλο Gemini'], stData:['Your Data','Τα δεδομένα σου'], stDataSub:['Back up, import, copy to Claude','Αντίγραφο, εισαγωγή, αντιγραφή για Claude'], stAbout:['About','Σχετικά'], stAboutSub:['Version, setup','Έκδοση, ρύθμιση'], langName:['English','Ελληνικά'], unitsT:['Units','Μονάδες'], unitsSub:['kg · cm · g','kg · cm · g'], unW:['Body weight','Σωματικό βάρος'], unH:['Height','Ύψος'], unF:['Food','Φαγητό'], unNote:['Everything is saved in metric; only what you see and type changes. Lifting weights stay in kg.','Όλα αποθηκεύονται μετρικά· αλλάζει μόνο ό,τι βλέπεις και γράφεις. Τα βάρη στο γυμναστήριο μένουν σε kg.'], dailyTargets:['Daily Targets','Ημερήσιοι στόχοι'], pgLocked:['Unlocks after {n} workouts · {k} to go','Ξεκλειδώνει μετά από {n} προπονήσεις · απομένουν {k}'], ssMade:['Superset made · drag one out to unlink','Έγινε superset · σύρε ένα έξω για να το χωρίσεις'], readyTag:['READY','ΕΤΟΙΜΟ'], cookedTag:['COOKED','ΜΑΓΕΙΡ.'], fromFridge:['Also comes out of your fridge (you have {s})','Βγαίνει και από το ψυγείο (έχεις {s})'], takeOutT:['Take Out: {n}','Βγάλε: {n}'], takeOutSub:['For cooking, or it went off. Eating gets logged in Today.','Για μαγείρεμα ή αν χάλασε. Ό,τι τρως καταγράφεται στο Σήμερα.'],
+  rawTag:['RAW','ΩΜΟ'], suUse:['What will you use the app for?','Για τι θα χρησιμοποιείς την εφαρμογή;'], useBoth:['Food + Gym','Φαγητό + Γυμναστήριο'], useGym:['Mainly Gym','Κυρίως Γυμναστήριο'], useGymOn:['Gym Buddy is now the first tab','Το Gym Buddy είναι πλέον η πρώτη καρτέλα'], useBothOn:['Today\'s Food is the first tab again','Το Σημερινό φαγητό είναι ξανά η πρώτη καρτέλα'], comboT:['Your Combos','Οι συνδυασμοί σου'], comboSave:['Save as combo','Αποθήκευση ως συνδυασμός'], comboPh:['Name, e.g. My breakfast','Όνομα, π.χ. Το πρωινό μου'], comboSub:['{n} foods · {k} kcal','{n} τρόφιμα · {k} kcal'], comboLogged:['Logged {n} · {k} kcal','Καταγράφηκε: {n} · {k} kcal'], comboDel:['Delete Combo','Διαγραφή συνδυασμού'], comboSaved:['Combo saved: {n}','Ο συνδυασμός αποθηκεύτηκε: {n}'], startEmpty:['Start Empty Workout','Κενή προπόνηση'], stToday:['planned today','προγραμματισμένη σήμερα'], stCustom:['Customize','Προσαρμογή'], stBody:['Body and Goals','Σώμα και στόχοι'], stAI:['AI','AI'], stData:['Your Data','Τα δεδομένα σου'], stAbout:['About','Σχετικά'], langName:['English','Ελληνικά'], unitsT:['Units','Μονάδες'], unitsSub:['kg · cm · g','kg · cm · g'], unW:['Body weight','Σωματικό βάρος'], unH:['Height','Ύψος'], unF:['Food','Φαγητό'], unNote:['Everything is saved in metric; only what you see and type changes. Lifting weights stay in kg.','Όλα αποθηκεύονται μετρικά· αλλάζει μόνο ό,τι βλέπεις και γράφεις. Τα βάρη στο γυμναστήριο μένουν σε kg.'], dailyTargets:['Daily Targets','Ημερήσιοι στόχοι'], pgLocked:['Unlocks after {n} workouts · {k} to go','Ξεκλειδώνει μετά από {n} προπονήσεις · απομένουν {k}'], ssMade:['Superset made · drag one out to unlink','Έγινε superset · σύρε ένα έξω για να το χωρίσεις'], readyTag:['READY','ΕΤΟΙΜΟ'], cookedTag:['COOKED','ΜΑΓΕΙΡ.'], fromFridge:['Also comes out of your fridge (you have {s})','Βγαίνει και από το ψυγείο (έχεις {s})'], takeOutT:['Take Out: {n}','Βγάλε: {n}'], takeOutSub:['For cooking, or it went off. Eating gets logged in Today.','Για μαγείρεμα ή αν χάλασε. Ό,τι τρως καταγράφεται στο Σήμερα.'],
   shopT:['Add shopping','Πρόσθεσε ψώνια'], shopSub:['Everything goes into the fridge. Pick the quickest way.','Όλα μπαίνουν στο ψυγείο. Διάλεξε τον πιο γρήγορο τρόπο.'],
   shopScan:['Scan Barcodes','Σάρωση barcode'], shopScanSub:['One by one, exact products','Ένα ένα, ακριβή προϊόντα'], shopSearch:['Search and Add','Αναζήτηση και προσθήκη'], shopSearchSub:['Type a food','Γράψε ένα τρόφιμο'],
   shopAdded:['Added {n} items to the fridge','Μπήκαν {n} προϊόντα στο ψυγείο'], shopNone:['Couldn\'t find any food in the photo.','Δεν βρήκα φαγητά στη φωτογραφία.'], shopFail:['Couldn\'t read it: {e}','Δεν διαβάστηκε: {e}'], shopPick:['tap to pick a food','πάτα για να διαλέξεις'], shopNew:['new','νέο'],
@@ -364,18 +361,6 @@ Object.assign(S, {
   calcNeedW: ['Add your weight in Gym → Progress first.', 'Βάλε πρώτα το βάρος σου στο Γυμναστήριο → Πρόοδος.'],
 });
 
-// ---------- 0.5.9: Title Case on every English title and label (Greek stays normal Greek) ----------
-const TITLE_SMALL = new Set(['a', 'an', 'the', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'per', 'vs', 'from', 'as', 'but', 'nor', 'g', 'kg', 'ml', 'mg', 'kcal', 'min', 'h', 'est.', 'x']);
-function titleCase(str){
-  let first = true;
-  return str.replace(/[A-Za-zÀ-ÿ’'.]+(?:-[A-Za-zÀ-ÿ’'.]+)*/g, w => {
-    const lw = w.toLowerCase(), keep = !first && TITLE_SMALL.has(lw); first = false;
-    if(keep || /[A-Z]/.test(w.slice(1))) return keep ? lw : w;   // small words stay small, API / AI stay as they are
-    return w.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('-');
-  });
-}
-['add', 'addBrand', 'addExercise', 'addFood', 'addIngredient', 'addSuppFab', 'addThis', 'all', 'almost', 'ateAt', 'auto', 'back', 'backArrow', 'barcode', 'bestV', 'bkT', 'blBest', 'blOr', 'bodyMode', 'brand', 'calcStart', 'cancel', 'carbTiming', 'carbs', 'chooseIngredient', 'close', 'comesAs', 'cookAgain', 'cookOwn', 'cookSuggest', 'cooked', 'copyClaude', 'copyYesterday', 'countThem', 'delete', 'discard', 'done', 'download', 'duplicate', 'eaten', 'edit', 'emptyWorkout', 'endWorkout', 'exercises', 'expires', 'extrasT', 'fat', 'fibre', 'finishedIt', 'finishedWeight', 'foodType', 'formNext', 'gBulk', 'gCut', 'gRecomp', 'geminiKey', 'geminiModel', 'getKey', 'goal', 'grpMine', 'grpOnline', 'grpOnline2', 'grpStd', 'gtPlan', 'gtProgress', 'gtRecovery', 'gtWorkouts', 'gymDay', 'gymDayTargets', 'historyT', 'howMuch', 'howTo', 'hubLib', 'hubProg', 'hubProgSub', 'hubRec', 'hubWeek', 'hubWeekSub', 'import', 'ingredients', 'language', 'later', 'light', 'listMode', 'locCupboard', 'locFreezer', 'locFridge', 'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes', 'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe', 'perPack', 'petChoose', 'petHow', 'pieces', 'planT', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog', 'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay', 'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts', 'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt', 'shopReview', 'shopScan', 'shopSearch', 'shopT', 'showOnList', 'skip', 'slices', 'smPRs', 'smTitle', 'steps', 'suAbout', 'suAgain', 'suAi', 'suDone', 'suWeek', 'suWelcome', 'sugar', 'suggestRecipe', 'supDose', 'supLink', 'supName', 'supOften', 'tFoods', 'tFridge', 'tGroc', 'tGym', 'tMeals', 'tScan', 'tSupps', 'tToday', 'tabFood', 'tabFridge', 'tabGym', 'tabMeals', 'tabStore', 'tabToday', 'targetsT', 'testKey', 'typeIt', 'uncooked', 'upper', 'useRecipe', 'useUpT', 'usuals', 'wArms', 'wBack', 'wCardio', 'wChest', 'wCore', 'wFull', 'wGlutes', 'wLegs', 'wLower', 'wPull', 'wPush', 'wShoulders', 'wUpper', 'weighOne', 'whereKept', 'whole', 'wiSave', 'wiT', 'winEvening', 'winMidday', 'winMorning', 'winPost', 'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'yourData', 'planMyDay', 'logFab', 'fridgeFab', 'cookFab', 'addFoodFab', 'shopFab'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
-
 // ---------- 0.6.0 ----------
 Object.assign(S, {
   exDone: ['Done', 'Τέλος'], reopenEx: ['Reopen', 'Ξανά άνοιγμα'],
@@ -387,21 +372,19 @@ Object.assign(S, {
   tipPgVol: ['The % is how much total weight you move per working set (weight × reps, warm-ups left out), compared with your first workout. Doing more sets doesn\'t inflate it; more weight or more reps does. Each exercise is compared only with itself, then a muscle averages its exercises. The grey line is your average sets per week over the last 4 weeks (half a set when the muscle only helps).',
     'Το % δείχνει πόσο συνολικό βάρος κινείς ανά σετ εργασίας (κιλά × επαναλήψεις, χωρίς τα σετ προθέρμανσης), σε σχέση με την πρώτη σου προπόνηση. Τα περισσότερα σετ δεν το φουσκώνουν· τα περισσότερα κιλά ή επαναλήψεις ναι. Κάθε άσκηση συγκρίνεται μόνο με τον εαυτό της και μετά ο μυς βγάζει μέσο όρο. Η γκρι γραμμή είναι τα σετ ανά εβδομάδα τις τελευταίες 4 εβδομάδες (μισό σετ όταν ο μυς απλώς βοηθάει).'],
 });
-['exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'discard', 'endWorkout', 'endEx', 'newSet'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.1 ----------
 Object.assign(S, {
   cantScan: ["Can't scan?", 'Δεν σκανάρει;'],
   createWorkout: ['Create a workout', 'Δημιούργησε προπόνηση'],
 });
-['addFoodFab', 'addYesterday', 'createWorkout'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 Object.assign(S, {
-  aiThinking: ['Thinking…', 'Σκέφτομαι…'], aiSlow: ['This can take up to a minute. Free AI models are often busy, so it tries a few.', 'Μπορεί να πάρει έως ένα λεπτό. Τα δωρεάν μοντέλα AI είναι συχνά απασχολημένα, οπότε δοκιμάζει μερικά.'],
+  aiThinking: ['Thinking…', 'Σκέφτομαι…'],
   aiMany: ['{n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '{n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
   tryingModel: ['Thinking…', 'Σκέφτομαι…'], cancelRec: ['Cancel', 'Ακύρωση'],
   optPhoto: ['<span class="aiafter">Photo of Nutrition Label</span><small>Read by the AI (free Gemini key in Settings)</small>', '<span class="aiafter">Φωτογραφία διατροφικής ετικέτας</span><small>Τη διαβάζει το AI (δωρεάν κλειδί Gemini στις ρυθμίσεις)</small>'],
-  geminiKey: ['Gemini API key (AI = uses it)', 'Κλειδί Gemini API (AI = το χρησιμοποιεί)'],
+  geminiKey: ['Gemini API Key', 'Κλειδί Gemini API'],
   mealName: ['Recipe title', 'Τίτλος συνταγής'],
   sgPh: ['Give food name', 'Δώσε όνομα φαγητού'], sgIngT: ['Ingredients', 'Υλικά'], sgTimeT: ['Time available', 'Διαθέσιμος χρόνος'],
   sgQuick: ['Quick ≤20 min', 'Γρήγορο ≤20′'], sgMid: ['20–60 min', '20–60′'], sgLong: ['60+ min', '60+′'], sgAdult: ['One normal adult portion per serving.', 'Μία κανονική μερίδα ενήλικα ανά μερίδα.'],
@@ -409,7 +392,6 @@ Object.assign(S, {
   cqDone: ['Added {n} ingredients. Check the amounts.', 'Μπήκαν {n} υλικά. Έλεγξε τις ποσότητες.'],
   cqFail: ["Couldn't read it. Try listing each ingredient with an amount.", 'Δεν διαβάστηκε. Γράψε κάθε υλικό με ποσότητα.'], cqNoKey: ['Write each ingredient with grams, or add a free Gemini key (settings) for the AI.', 'Γράψε κάθε υλικό με γραμμάρια, ή βάλε δωρεάν κλειδί Gemini (ρυθμίσεις) για το AI.'],
 });
-['mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.2 ----------
 Object.assign(S, {
@@ -421,7 +403,6 @@ Object.assign(S, {
   bkAskNever: ['Your data only lives on this phone and you haven\'t backed it up yet. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό και δεν έχεις κρατήσει αντίγραφο. Αντίγραφο τώρα;'],
   bkYes: ['Back Up Now', 'Αντίγραφο τώρα'],
 });
-['startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.3 ----------
 Object.assign(S, {
@@ -430,7 +411,6 @@ Object.assign(S, {
   yourBody: ['Your body', 'Το σώμα σου'], bodySaved: ['Saved', 'Αποθηκεύτηκε'],
   recalcQ: ['Recalculate your daily targets from this?', 'Να ξαναϋπολογιστούν οι ημερήσιοι στόχοι σου;'], recalcYes: ['Recalculate', 'Υπολογισμός'], recalcNo: ['Keep mine', 'Κράτα τους δικούς μου'],
 });
-['yourBody', 'recalcYes', 'recalcNo'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.3.1 ----------
 Object.assign(S, {
@@ -438,7 +418,6 @@ Object.assign(S, {
   u_caps: ['C', 'C'], u_tabs: ['T', 'T'], u_scoops: ['S', 'S'], u_drops: ['D', 'D'],
   ul_caps: ['capsules', 'κάψουλες'], ul_tabs: ['tablets', 'ταμπλέτες'], ul_scoops: ['scoops', 'μεζούρες'], ul_drops: ['drops', 'σταγόνες'],
 });
-['tabSupps'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.4 ----------
 Object.assign(S, {
@@ -446,7 +425,6 @@ Object.assign(S, {
   theItemPhoto: ['the item photo', 'τη φωτογραφία του προϊόντος'],
   itemFail: ["Couldn't recognise it. Try a clearer photo of the front, or the label.", 'Δεν αναγνωρίστηκε. Δοκίμασε πιο καθαρή φωτογραφία της μπροστινής πλευράς ή της ετικέτας.'],
 });
-['addFoodFab', 'scanFoodFab'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.5 ----------
 Object.assign(S, {
@@ -456,14 +434,12 @@ Object.assign(S, {
   scanReceipt: ['Scan Receipt', 'Σάρωση απόδειξης'], addFridgeFab: ['Add Food', 'Προσθήκη'],
   frozen: ['Frozen', 'Κατεψυγμένο'], plate: ['plate', 'πιάτο'],
 });
-['scanReceipt'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 // ---------- 0.6.5.1 ----------
 Object.assign(S, {
   planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
   qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
 });
-['planMyDay', 'planT', 'qaBtn', 'qaT', 'allFoods'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
 Object.assign(S, { ateBtn: ['Ate', 'Το έφαγα'] });
 
@@ -573,3 +549,38 @@ Object.assign(S, {
   shSex: ['Sex', 'Φύλο'],
   // ==== end shell ====
 });
+
+// ---------- Title Case on every English title and label (Greek stays normal Greek). Runs LAST, so it sees the final value of every key. ----------
+const TITLE_SMALL = new Set(['a', 'an', 'the', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'per', 'vs', 'from', 'as', 'but', 'nor', 'g', 'kg', 'ml', 'mg', 'kcal', 'min', 'h', 'est.', 'x']);
+function titleCase(str){
+  let first = true;
+  return str.replace(/[A-Za-zÀ-ÿ’'.]+(?:-[A-Za-zÀ-ÿ’'.]+)*/g, w => {
+    const lw = w.toLowerCase(), keep = !first && TITLE_SMALL.has(lw); first = false;
+    if(keep || /[A-Z]/.test(w.slice(1))) return keep ? lw : w;   // small words stay small, API / AI stay as they are
+    return w.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('-');
+  });
+}
+[
+  'add', 'addBrand', 'addExercise', 'addFood', 'addIngredient', 'addSuppFab', 'addThis', 'all', 'almost', 'ateAt', 'auto', 'back',
+  'barcode', 'bestV', 'blBest', 'blOr', 'bodyMode', 'brand', 'calcStart', 'cancel', 'carbTiming', 'carbs', 'chooseIngredient', 'close',
+  'comesAs', 'cookAgain', 'cookOwn', 'cookSuggest', 'cooked', 'copyClaude', 'copyYesterday', 'countThem', 'delete', 'discard', 'done', 'download',
+  'duplicate', 'eaten', 'edit', 'emptyWorkout', 'endWorkout', 'exercises', 'expires', 'extrasT', 'fat', 'fibre', 'finishedIt', 'finishedWeight',
+  'foodType', 'formNext', 'gBulk', 'gCut', 'gRecomp', 'geminiKey', 'geminiModel', 'getKey', 'goal', 'grpMine', 'grpOnline', 'grpOnline2', 'grpStd',
+  'gtPlan', 'gtProgress', 'gtRecovery', 'gtWorkouts', 'gymDay', 'gymDayTargets', 'historyT', 'howMuch', 'howTo', 'hubLib', 'hubProg', 'hubProgSub',
+  'hubRec', 'hubWeek', 'hubWeekSub', 'import', 'ingredients', 'language', 'later', 'light', 'listMode', 'locCupboard', 'locFreezer', 'locFridge',
+  'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
+  'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
+  'perPack', 'petChoose', 'petHow', 'pieces', 'planT', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
+  'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
+  'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
+  'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',
+  'shopReview', 'shopScan', 'shopSearch', 'shopT', 'showOnList', 'skip', 'slices', 'smPRs', 'smTitle', 'steps', 'suAbout', 'suAgain', 'suAi',
+  'suDone', 'suWeek', 'suWelcome', 'sugar', 'suggestRecipe', 'supDose', 'supLink', 'supName', 'supOften', 'tFoods', 'tFridge', 'tGroc', 'tGym',
+  'tMeals', 'tScan', 'tSupps', 'tToday', 'tabFood', 'tabFridge', 'tabGym', 'tabMeals', 'tabStore', 'tabToday', 'targetsT', 'testKey', 'typeIt',
+  'uncooked', 'upper', 'useRecipe', 'useUpT', 'usuals', 'wArms', 'wBack', 'wCardio', 'wChest', 'wCore', 'wFull', 'wGlutes', 'wLegs', 'wLower',
+  'wPull', 'wPush', 'wShoulders', 'wUpper', 'weighOne', 'whereKept', 'whole', 'wiSave', 'wiT', 'winEvening', 'winMidday', 'winMorning', 'winPost',
+  'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'planMyDay', 'logFab', 'fridgeFab', 'cookFab', 'addFoodFab',
+  'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'endEx', 'newSet', 'addYesterday',
+  'createWorkout', 'mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking', 'startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes', 'yourBody',
+  'recalcYes', 'recalcNo', 'tabSupps', 'scanFoodFab', 'scanReceipt', 'allFoods'
+].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });

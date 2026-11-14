@@ -99,7 +99,7 @@ const tabOf = h => h === 'settings' ? 'settings' : h === 'today' ? 'today' : h.s
 })();
 
 document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.parentElement.id; if(ov === 'ovLang' || ov === 'ovSession' || ov === 'ovAsk' || ov === 'ovPick') return;
-  const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
+  const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
 
 $('gHubTiles').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if(b) go(b.dataset.sec); });
 

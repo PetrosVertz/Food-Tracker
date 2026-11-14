@@ -38,7 +38,7 @@
 <!-- ============ MY FOODS ============ -->
 <section class="page wrap hide" id="pgFoods">
   <header>
-    <div class="left"><button class="backarrow hide" id="backBtn" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabFood"></h1></div>
+    <div class="left"><button class="backarrow hide" id="backBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabFood"></h1></div>
     <div class="hbtns"><button class="iconbtn plainic" id="fScanBtn" aria-label="Scan"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
   </header>
   <div class="mpill" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
@@ -64,7 +64,7 @@
 <!-- ============ MY SUPPLEMENTS ============ -->
 <section class="page wrap hide" id="pgSupps">
   <header>
-    <div class="left"><button class="backarrow" id="backBtn2" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tSupps"></h1></div>
+    <div class="left"><button class="backarrow" id="backBtn2" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tSupps"></h1></div>
   </header>
 </section>
 
@@ -95,7 +95,7 @@
 <!-- ============ GYM ============ -->
 <section class="page wrap hide" id="pgGym">
   <header>
-    <div class="left"><button class="backarrow hide" id="gBackBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabGym"></h1></div>
+    <div class="left"><button class="backarrow hide" id="gBackBtn" aria-label="Back" data-ta="back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabGym"></h1></div>
   </header>
   <div id="gBanner"></div>
   <button class="btn primary bigstart" id="gStart"></button><button class="linkbtn gother" id="gOther" data-t="otherWorkout"></button>
@@ -519,7 +519,7 @@
 
 <!-- ============ LIVE WORKOUT ============ -->
 <div class="overlay" id="ovSession"><div class="sheet tall session">
-  <div class="seshead3"><button class="sesback" id="sesMin" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="sesName"></h2><span class="wclock"><span id="sesClock">0:00</span><span id="sesHg"></span></span></div>
+  <div class="seshead3"><button class="sesback" id="sesMin" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="sesName"></h2><span class="wclock"><span id="sesClock">0:00</span><span id="sesHg"></span></span></div>
   <button class="addexbig" id="sesAddEx"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><b data-t="addExercise"></b></button>
   <div id="sesSupps"></div>
   <div id="sesBody"></div>
@@ -648,7 +648,7 @@
 <!-- ============ LOG FOOD SEARCH ============ -->
 <div class="overlay" id="ovLog"><div class="sheet logwin">
   <div class="lwtop">
-    <div class="lwrow"><div class="lwtl"><button class="sback lwback" type="button" data-ta="back" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-t="lwTitle"></h2></div><button class="lwdone" type="button" data-close data-t="done"></button></div>
+    <div class="lwrow"><div class="lwtl"><button class="sback lwback" type="button" data-ta="back" aria-label="Back" data-ta="back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-t="lwTitle"></h2></div><button class="lwdone" type="button" data-close data-t="done"></button></div>
     <div class="lwsearch"><input id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off" data-ta="logQSwapPh" aria-label="Search foods"><button class="lwscan" id="lScanIn" type="button" data-ta="logAScan" aria-label="Scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
     <div class="lwacts"><button type="button" id="lQuickTop" class="aiafter" data-t="logQT"></button><button type="button" id="planBtn" class="aiafter" data-t="lwFill"></button><button type="button" id="lTrack" class="lwico" data-ta="logATrack" aria-label="Food Tracker"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button></div>
     <div class="lwadded" id="lAdded"></div>

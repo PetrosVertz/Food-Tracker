@@ -129,7 +129,7 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
 ['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
-  if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
+  if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 
 $('qaSave').addEventListener('click', saveQuick);
