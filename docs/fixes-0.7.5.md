@@ -1,6 +1,6 @@
 # Fix lists — 0.7.5 (exercises)
 
-One branch: **gym-0.7.5** (Sonnet). Follow CLAUDE.md. Exercise data lives in `js/data/gym.js` (`LIB_RAW`, `HEADS`, `EQ`/`EQUIP`, `REST_BY_PATTERN`, `CUES`, `MISTAKES`, `SPECIFIC`). Today there are ~169 exercises; target ~300.
+Two branches, any order: **gym-0.7.5** (Sonnet) and **food-0.7.5** (Sonnet). Follow CLAUDE.md. Exercise data lives in `js/data/gym.js` (`LIB_RAW`, `HEADS`, `EQ`/`EQUIP`, `REST_BY_PATTERN`, `CUES`, `MISTAKES`, `SPECIFIC`). Today there are ~169 exercises; target ~300.
 
 ## gym
 1. **Data check first.** Add a check to `tools/check.js` for `LIB_RAW`: unique ids; every muscle key exists in `HEADS`; percentages are whole numbers that add up to 100; equipment code exists in `EQ`; pattern exists in `REST_BY_PATTERN`; Greek name present. Fix anything it finds in the current list.
@@ -26,3 +26,11 @@ One branch: **gym-0.7.5** (Sonnet). Follow CLAUDE.md. Exercise data lives in `js
    - Add a few test searches to tools/check.js (e.g. "low row", "RDL", "pec deck" each find the right exercise first).
 5. Check the picker, Create a Workout and the Form page still work and look right with ~300 exercises (scrolling, grouping by muscle and equipment).
 6. Bump VERSION to 0.7.5 and CACHE to match.
+
+## food
+1. **Food Coach: AI and web only, no database matching.** Today Food Coach first matches what you typed against your foods, the built-in list and Open Food Facts (today.js, the lookup chain around "Lookups, in order"), and it picks the wrong food. For Food Coach only:
+   - Skip your foods, the built-in list and Open Food Facts. Every food goes straight to the AI with web search: real macros from the web when it finds the product (tag **From the Web**), else an AI estimate (tag **AI Estimate**).
+   - The AI answers per 100 g plus the amount you said, so amounts and units stay right; it states what it assumed (e.g. "1 slice ≈ 30 g").
+   - The Add button still logs everything to Today. Save each added food to My Foods marked as from Food Coach, but Food Coach never reads them back for matching. Don't create a duplicate in My Foods if the same name and macros are already saved by Food Coach.
+   - Normal search, Log Food and barcode scanning keep using the database as today; only Food Coach changes.
+   - Keep the thinking status lines honest ("Searching the web…", no "Searching your foods…" in Food Coach).
