@@ -620,6 +620,24 @@
 </div></div>
 
 <!-- ============ WORKOUT TEMPLATE ============ -->
+<!-- 0.7.7 gym-qr: a saved workout's QR code, full screen on white so another phone can scan it -->
+<div class="overlay" id="ovWkQR"><div class="sheet wqsheet">
+  <h2 id="wqName"></h2>
+  <small id="wqMeta" class="wqmeta"></small>
+  <div id="wqCode" class="wqcode"></div>
+  <p class="wqhint"><span id="wqSun" aria-hidden="true"></span><span data-t="wqHint"></span></p>
+  <p class="wqhow" data-t="wqHow"></p>
+  <button class="btn wqclose" type="button" data-close data-t="close"></button>
+</div></div>
+<!-- 0.7.7 gym-qr: Scan a Workout (inside the app: a home-screen app on iPhone doesn't share its saved data with Safari) -->
+<div class="overlay" id="ovWkScan"><div class="sheet">
+  <h2 data-t="wsT"></h2>
+  <p class="sub" data-t="wsSub"></p>
+  <div class="cam wscam"><video id="wsVideo" playsinline muted autoplay></video><div class="frame"></div></div>
+  <div class="status" id="wsStatus" aria-live="polite"></div>
+  <button class="btn" type="button" id="wsPhotoBtn" data-t="wsPhoto"></button>
+  <input type="file" id="wsPhoto" accept="image/*" class="hide">
+</div></div>
 <div class="overlay" id="ovTpl"><div class="sheet tall">
   <h2 id="tpTitle"></h2>
   <label for="tpName" data-t="workoutName"></label>
@@ -812,6 +830,8 @@
 <script src="js/shop.js"></script>
 <script src="js/receipt.js"></script>
 <script src="js/gym.js"></script>
+<script src="js/vendor/qrcode.js"></script>
+<script src="js/gym-share.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/wire/01-core.js"></script>

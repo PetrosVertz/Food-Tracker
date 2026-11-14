@@ -700,3 +700,24 @@ Object.assign(S, {
   tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level: Diamond 1', 'Ανώτατο επίπεδο: Διαμαντένιο 1'],
   tierNeedBody: ['Add Body Weight and Sex for Tiers', 'Πρόσθεσε Βάρος και Φύλο για Επίπεδα'],
 });
+
+// ---------- 0.7.7 gym-qr: share a saved workout as a QR code ----------
+Object.assign(S, {
+  wqShowL: ['Show QR Code', 'Εμφάνιση Κωδικού QR'],
+  wqHint: ['Turn your screen brightness up so it scans easily.', 'Ανέβασε τη φωτεινότητα της οθόνης για να σκανάρεται εύκολα.'],
+  wsT: ['Scan a Workout', 'Σκανάρισμα Προπόνησης'],
+  wsSub: ['Point the camera at the workout QR code on the other phone.', 'Στρέψε την κάμερα στον κωδικό QR της προπόνησης στο άλλο κινητό.'],
+  wsPhoto: ['Choose a Photo', 'Επιλογή Φωτογραφίας'],
+  wsNotWk: ['This QR code isn’t a workout.', 'Αυτός ο κωδικός QR δεν είναι προπόνηση.'],
+  wsNoCode: ['No QR code found in this photo.', 'Δεν βρέθηκε κωδικός QR σε αυτή τη φωτογραφία.'],
+  wsNewer: ['This workout comes from a newer version of the app. Update the app, then scan again.', 'Αυτή η προπόνηση είναι από νεότερη έκδοση της εφαρμογής. Ενημέρωσε την εφαρμογή και σκάναρε ξανά.'],
+  wsCamBlocked: ['Camera permission was blocked. Allow it in your phone’s settings, or choose a photo of the code.', 'Η κάμερα μπλοκαρίστηκε. Επίτρεψέ τη στις ρυθμίσεις του κινητού ή διάλεξε φωτογραφία του κωδικού.'],
+  wsCamHttps: ['The camera only works on your https:// link. Choose a photo of the code instead.', 'Η κάμερα δουλεύει μόνο στο https:// link. Διάλεξε φωτογραφία του κωδικού.'],
+  wsCamFail: ['Couldn’t start the camera. Choose a photo of the code instead.', 'Δεν άνοιξε η κάμερα. Διάλεξε φωτογραφία του κωδικού.'],
+  wsNoReader: ['Couldn’t load the QR reader. Check your internet connection and try again.', 'Δεν φόρτωσε ο αναγνώστης QR. Έλεγξε τη σύνδεση στο ίντερνετ και δοκίμασε ξανά.'],
+  wsSavedQ: ['Saved “{n}”. Start it now?', 'Αποθηκεύτηκε το «{n}». Να ξεκινήσει τώρα;'],
+  wsHaveQ: ['You already have “{n}”. Start it now?', 'Έχεις ήδη το «{n}». Να ξεκινήσει τώρα;'],
+  wsStart: ['Start', 'Έναρξη'], wsNotNow: ['Not Now', 'Όχι Τώρα'],
+  wsOwnEx: ['Shared Exercise', 'Κοινή Άσκηση'],
+  wqHow: ['On the other phone, open Food Track · Gym Buddy: Gym › Workouts › Scan a Workout.', 'Στο άλλο κινητό άνοιξε το Food Track · Gym Buddy: Γυμναστήριο › Προπονήσεις › Σκανάρισμα Προπόνησης.'],
+});

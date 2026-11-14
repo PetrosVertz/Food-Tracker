@@ -3,8 +3,9 @@
 
 const Phone = (() => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  let wake = null, detector = null, detectorP = null, ctx = null;
+  let wake = null, detector = null, detectorP = null, qrP = null, ctx = null;
   const BARCODES = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
+  const PONY = 'https://fastly.jsdelivr.net/npm/barcode-detector@3/dist/es/ponyfill.min.js';   // the reader iPhone uses (no BarcodeDetector in Safari)
 
   return {
     isIOS,
@@ -42,9 +43,19 @@ const Phone = (() => {
           try{ const sup = await window.BarcodeDetector.getSupportedFormats();
             if(sup.includes('ean_13')) return detector = new window.BarcodeDetector({ formats: BARCODES.filter(f => sup.includes(f)) }); }catch(e){}
         }
-        const m = await import('https://fastly.jsdelivr.net/npm/barcode-detector@3/dist/es/ponyfill.min.js');
+        const m = await import(PONY);
         return detector = new m.BarcodeDetector({ formats: BARCODES });
       })().catch(e => { detectorP = null; throw e; }));
+    },
+    // QR codes (shared workouts, 0.7.7): the phone's own reader if it reads QR, otherwise the same library as barcodes
+    qrReader(){
+      return qrP || (qrP = (async () => {
+        if('BarcodeDetector' in window){
+          try{ if((await window.BarcodeDetector.getSupportedFormats()).includes('qr_code')) return new window.BarcodeDetector({ formats: ['qr_code'] }); }catch(e){}
+        }
+        const m = await import(PONY);
+        return new m.BarcodeDetector({ formats: ['qr_code'] });
+      })().catch(e => { qrP = null; throw e; }));
     },
 
     async keepScreenOn(on){

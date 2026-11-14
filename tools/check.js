@@ -148,6 +148,45 @@ try {
   if (bad.length) bad.forEach(b => fail('exercise ' + b)); else ok(`exercise library: ${LIB_RAW.length} exercises, all valid`);
 } catch (e) { fail('could not check exercise library: ' + e.message); }
 
+// 9. Shared workout QR codes (js/gym-share.js): a workout with supersets packs, unpacks and imports identically,
+//    a saved version-1 code still reads the same, and the QR maker accepts the code
+try {
+  const q = { console: { log() {} } }; vm.createContext(q);
+  vm.runInContext(read('js/vendor/qrcode.js') + '\n' + read('js/gym-share.js') + '\n;this.__Q = { wkPack, wkUnpack, qrcode };', q);
+  const { wkPack, wkUnpack, qrcode } = q.__Q, bad = [];
+  const own = { c_1: { en: 'Band, Fly; 50%', h: 'chest_mid', e: 'band', p: 'fly', rest: 45 } };
+  const tpl = { name: 'Πόδια ~ Push, A;B 100%', type: 'push', exercises: [
+    { exId: 'bench', sets: 4, reps: '6-8', rest: 180, ss: 'x1' }, { exId: 'c_1', sets: 3, reps: '12,10', rest: 45, ss: 'x1' },
+    { exId: 'ohp', sets: 3, reps: '8', rest: 120 },
+    { exId: 'lateral_raise', sets: 3, reps: '15', rest: 60, ss: 'y9', uni: true }, { exId: 'pushdown', sets: 2, reps: '10-12', rest: 60, ss: 'y9' }, { exId: 'c_1', sets: 2, reps: 'AMRAP', rest: 45 }] };
+  const code = wkPack(tpl, id => own[id] || null), d = wkUnpack(code);
+  // import the way wkImport does: own exercises get new ids, each superset letter gets a new group id
+  const newOwn = d.own.map((o, i) => 'new_' + i), grp = {};
+  const back = d.exercises.map(e => ({ exId: e.own != null ? newOwn[e.own] : e.exId, sets: e.sets, reps: e.reps, rest: e.rest, ss: e.ss ? (grp[e.ss] = grp[e.ss] || 'g' + e.ss) : undefined, uni: !!e.uni }));
+  const ownBack = Object.fromEntries(d.own.map((o, i) => [newOwn[i], o]));
+  if (d.name !== tpl.name) bad.push(`name "${d.name}"`);
+  if (d.type !== tpl.type) bad.push(`type "${d.type}"`);
+  if (back.length !== tpl.exercises.length) bad.push(`${back.length} exercises, expected ${tpl.exercises.length}`);
+  const sameGroup = (l, i, j) => !!l[i].ss && l[i].ss === l[j].ss;
+  tpl.exercises.forEach((e, i) => {
+    const b = back[i] || {}, o = own[e.exId], bo = ownBack[b.exId];
+    if (o ? !(bo && bo.en === o.en && bo.h === o.h && bo.e === o.e && bo.p === o.p && bo.rest === o.rest) : b.exId !== e.exId) bad.push(`exercise ${i + 1} is ${b.exId}`);
+    if (b.sets !== e.sets || b.reps !== e.reps || b.rest !== e.rest || b.uni !== !!e.uni) bad.push(`exercise ${i + 1} sets/reps/rest/one-side changed`);
+    tpl.exercises.forEach((_, j) => { if (j !== i && sameGroup(tpl.exercises, i, j) !== sameGroup(back, i, j)) bad.push(`superset ${i + 1}–${j + 1} changed`); });
+  });
+  if (back[0].exId !== 'bench' || newOwn.length !== 1 || back[1].exId !== back[5].exId) bad.push('own exercise not shared once');
+  // version 1 codes are frozen: this one must keep reading the same forever
+  const v1 = wkUnpack('GB1~legs~Leg Day %7E 1~squat,5,5,180,A;!0,3,12%2C10,60,Au;calf_raise,4,15~Sled%2C Push,quads,machine,press_h,120');
+  if (!v1 || v1.name !== 'Leg Day ~ 1' || v1.type !== 'legs' || v1.exercises.length !== 3 || v1.exercises[1].own !== 0 || v1.exercises[1].reps !== '12,10' || !v1.exercises[1].uni
+    || v1.exercises[0].ss !== 'A' || v1.exercises[1].ss !== 'A' || v1.exercises[2].rest !== undefined || v1.own[0].en !== 'Sled, Push' || v1.own[0].rest !== 120) bad.push('a saved version-1 code no longer reads the same');
+  if (!(wkUnpack('GB2~x') || {}).newer) bad.push('a newer code is not recognised as newer');
+  if (wkUnpack('https://example.com') !== null || wkUnpack('GB1~push~x~') !== null) bad.push('a non-workout code is accepted');
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  const qr = qrcode(0, 'M'); qr.addData(code, 'Byte'); qr.make(); const n = qr.getModuleCount();
+  if (n > 77) bad.push(`QR is ${n}×${n} modules, too dense to scan comfortably`);
+  if (bad.length) bad.forEach(b => fail('workout QR: ' + b)); else ok(`workout QR: supersets round-trip, ${code.length} characters, ${n}×${n} QR`);
+} catch (e) { fail('could not check workout QR codes: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
