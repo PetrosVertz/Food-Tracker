@@ -3,7 +3,7 @@
 
 const Phone = (() => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  let wake = null, detector = null, detectorP = null;
+  let wake = null, detector = null, detectorP = null, ctx = null;
   const BARCODES = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
 
   return {
@@ -11,6 +11,24 @@ const Phone = (() => {
     // a light tap: Android vibrates; iPhone web apps can't vibrate, so a hidden iOS switch gives the tick
     haptic(){ try{ if(navigator.vibrate && !isIOS) navigator.vibrate(8); else { const l = document.getElementById('hapL'); if(l) l.click(); } }catch(_){} },
     vibrate(pattern){ try{ navigator.vibrate?.(pattern); }catch(_){} },
+
+    // sounds made with Web Audio (no sound files). iPhone: Web Audio follows the silent switch, so a muted phone stays quiet.
+    // Call unlockAudio() from a tap once (the browser only lets sound start after one); sound('bell') = boxing-ring bell, sound('done') = soft finish tone.
+    unlockAudio(){ try{ if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if(ctx.state === 'suspended') ctx.resume(); }catch(_){} },
+    sound(kind){
+      try{ this.unlockAudio(); if(!ctx) return; const now = ctx.currentTime, out = ctx.createGain(); out.connect(ctx.destination);
+        // one partial: starts at `at`, rings out over `len` seconds
+        const tone = (f, at, peak, len, type) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(out);
+          g.gain.setValueAtTime(.0001, now + at); g.gain.exponentialRampToValueAtTime(peak, now + at + .006); g.gain.exponentialRampToValueAtTime(.0001, now + at + len); o.start(now + at); o.stop(now + at + len + .05); };
+        if(kind === 'bell'){   // two quick strikes of a metal bell: inharmonic partials, the higher ones die faster
+          out.gain.value = .8;
+          [0, .32].forEach(at => [[1, .34, 1.7], [2.76, .2, 1.1], [5.4, .1, .6], [8.93, .05, .35]].forEach(([k, pk, len]) => tone(660 * k, at, pk, len)));
+        }else if(kind === 'done'){   // quiet, soft, rising: C – E – G – C, long gentle tails
+          out.gain.value = .5;
+          [[523.25, 0], [659.25, .14], [783.99, .28], [1046.5, .44]].forEach(([f, at], i) => { tone(f, at, .16, 1.6 + i * .15); tone(f * 2, at, .02, .9); });
+        }
+      }catch(_){}
+    },
 
     hasCamera: () => !!navigator.mediaDevices?.getUserMedia,
     // hi: as sharp as the camera allows (receipts), otherwise Full HD
