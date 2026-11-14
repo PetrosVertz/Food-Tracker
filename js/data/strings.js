@@ -556,6 +556,7 @@ Object.assign(S, {
   coachPh: ['Message', 'Μήνυμα'], coachSend: ['Send', 'Αποστολή'], coachPhoto: ['Take a Photo', 'Τράβηξε φωτογραφία'],
   coachBubA: ['Open {n}', 'Άνοιγμα: {n}'],
   coachFail: ['Couldn\'t answer just now ({e}). Try again in a moment.', 'Δεν μπόρεσα να απαντήσω τώρα ({e}). Δοκίμασε ξανά σε λίγο.'],
+  aiNeedKey: ['This needs an AI key.', 'Χρειάζεται κλειδί AI.'], aiKeyGo: ['Add Key', 'Βάλε κλειδί'],
   // ==== end shell ====
 });
 

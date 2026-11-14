@@ -196,7 +196,7 @@ const AI = (() => {
     const r = await fetchT(`${GAPI}?pageSize=200`, { headers: { 'x-goog-api-key': k } }, 12000);
     const j = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
-    if(k !== settings.geminiKey){ settings.geminiKey = k; Store.save('settings', settings); Store.save('models', null); }
+    if(k !== settings.geminiKey){ settings.geminiKey = k; Store.save('settings', settings); Store.save('models', null); aiGate(); }
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
 

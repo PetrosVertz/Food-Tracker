@@ -146,6 +146,16 @@ function toast(msg, actLabel, act){
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 5000 : 2200);
 }
 
+// ---------- 0.7.4.3 no AI key: every AI control is greyed out; tapping one says a key is needed, with a button to Settings › AI ----------
+// An AI control = a button / label / link that carries the AI badge (class="aiafter", AI.badge(), .aib) or is a coach pill / bubble (a robot face).
+// Every one of them has a way to do the job without AI, so nothing else changes (see docs/ai-optional-0.7.4.3.md).
+const AI_CTL = '.aiafter,.coachpill,.coachbub,[data-ai]';
+function aiGate(){ document.body.classList.toggle('noai', !AI.hasKey()); }
+function aiCtl(el){ const c = el && el.closest && el.closest('button,label,a,[role="button"]'); if(!c || c.closest('#ovSAI,#ovSetup,#toast')) return null;
+  return c.matches(AI_CTL) || c.querySelector('.aiafter,.aibadge,.aib') ? c : null; }
+function aiNeedKey(){ Phone.haptic(); toast(t('aiNeedKey'), t('aiKeyGo'), () => { openSettings(); setTimeout(() => { fillSettings(); open('ovSAI'); }, 360); }); }
+document.addEventListener('click', e => { if(AI.hasKey() || !aiCtl(e.target)) return; e.preventDefault(); e.stopImmediatePropagation(); aiNeedKey(); }, true);
+
 function go(h){ if(location.hash === '#' + h) route(); else location.hash = h; }
 
 // ---------- cooking: choose first, then the details ----------
@@ -297,7 +307,7 @@ function finishSetup(){
     if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
     if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
-  saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); }
+  saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); aiGate(); }
   ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll();
 }
 

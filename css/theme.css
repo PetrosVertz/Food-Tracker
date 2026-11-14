@@ -752,6 +752,8 @@ html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env
 :root[data-theme="light"] .cpface{background:#eef0f2}
 body.has-coachpill #fab{right:var(--cpr)!important}
 #fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
+/* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
+body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
