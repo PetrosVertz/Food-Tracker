@@ -11,7 +11,7 @@ section.page:not(.hide){animation:pgIn .24s ease-out}
 .enter{animation:rowIn .26s cubic-bezier(.2,.9,.25,1) both} .ghostout{animation:rowOut .24s ease-in forwards}
 .sok.pop{animation:pop .3s ease-out}
 button{transition:transform .12s ease,background-color .15s,opacity .15s} button:active:not(:disabled){transform:scale(.96)}
-.toast{transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.25,1)!important;transform:translateX(-50%) translateY(14px)} .toast.show{transform:translateX(-50%) translateY(0)}
+.toast.show{transform:translateX(-50%) translateY(0)}
 .nsel{display:none!important}
 .selbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:15px;text-align:left;cursor:pointer;min-width:0}
 .selbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .selbtn i{font-style:normal;color:var(--muted);flex:0 0 auto}
