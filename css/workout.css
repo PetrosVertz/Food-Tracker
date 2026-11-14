@@ -309,3 +309,9 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 
 /* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
 .exhead .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
+.tierbadge{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge svg{flex:0 0 auto}
+.tr-bronze{--trc:#e39a62}.tr-silver{--trc:#c3cad6}.tr-gold{--trc:#f5c542}.tr-platinum{--trc:#7fe0d4}.tr-diamond{--trc:#7cc4ff}
+:root[data-theme="light"] .tr-bronze{--trc:#94481a}:root[data-theme="light"] .tr-silver{--trc:#56606d}:root[data-theme="light"] .tr-gold{--trc:#7d5a00}
+:root[data-theme="light"] .tr-platinum{--trc:#0d6e66}:root[data-theme="light"] .tr-diamond{--trc:#1f5fb0}

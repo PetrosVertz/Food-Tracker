@@ -697,5 +697,6 @@ Object.assign(S, {
 // ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
 Object.assign(S, {
   tier_bronze: ['Bronze', 'Χάλκινο'], tier_silver: ['Silver', 'Ασημένιο'], tier_gold: ['Gold', 'Χρυσό'], tier_platinum: ['Platinum', 'Πλατινένιο'], tier_diamond: ['Diamond', 'Διαμαντένιο'],
-  tierNeedBody: ['Add Body Weight and Sex to See Your Tier', 'Πρόσθεσε Βάρος και Φύλο για να Δεις το Επίπεδό σου'],
+  tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level: Diamond 1', 'Ανώτατο επίπεδο: Διαμαντένιο 1'],
+  tierNeedBody: ['Add Body Weight and Sex for Tiers', 'Πρόσθεσε Βάρος και Φύλο για Επίπεδα'],
 });
