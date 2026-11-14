@@ -678,6 +678,7 @@ function renderTodayRec(){
     if(isToday && live) skip = `<button class="gymstartbtn" type="button" data-gymresume>${t('gymResumeP')}</button>`;
     else if(!live) skip = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gymStartP')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
   else if(days[curDay] && days[curDay].skipped){ lines.push(`<b>${t('gymSkipped')}</b>`); skip = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }   // rest-day calories and macros today
+  const sk = di.type === 'gym' && isToday ? gymStreak().n : 0; if(sk) lines.push(`<span class="gymstreak">${flameIcon(sk, 16)}<b>${sk}</b></span>`);
   const ws = isToday ? recoveryWarnings() : [];
   const ic = lines.length ? `<span class="gymdayic">${svgIcon('workouts', 22, 1.8)}</span>` : '';
   $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}${ic}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip ? `<div class="gymdaybtns">${skip}</div>` : ''}</div>` : '';
@@ -690,6 +691,29 @@ function gymStartToday(){
   if(tp || !tpls.length) return startSession(tp || null);
   $('gStart').click();
 }
+
+// ---------- workout streak (0.7.7) ----------
+// Worked out from saved sessions + the plan, never from timers, so it is right after days of the app being closed.
+// Planned gym days count; rest days never break it; a workout on a rest day adds to it; only a skipped (or missed) planned gym day breaks it.
+// A skipped day that used the weekly freeze (days[d].frozen) does not break it.
+function gymPlanned(d){ const o = days[d]; if(o) return o.type === 'gym' || !!o.skipped; const pl = planFor(d); return !!(pl && pl.type === 'gym'); }
+function gymStreak(){
+  const today = todayKey(), counts = {}; sessions.forEach(s => { counts[s.date] = (counts[s.date] || 0) + 1; });
+  const first = Object.keys(counts).sort()[0]; if(!first) return { n: 0 };
+  let n = 0;
+  for(let d = today, i = 0; d >= first && i < 800; d = addDays(d, -1), i++){
+    if(counts[d]){ n += counts[d]; continue; }
+    if(d === today) continue;                                        // today is still open
+    if(gymPlanned(d) && !(days[d] && days[d].frozen)) break;         // a planned gym day with no workout
+  }
+  return { n };
+}
+// the one streak freeze of the week (Monday to Sunday) around a date
+function freezeLeft(d){ const wd = (new Date(d + 'T12:00:00').getDay() + 6) % 7, mon = addDays(d, -wd);
+  return [0, 1, 2, 3, 4, 5, 6].some(i => { const o = days[addDays(mon, i)]; return o && o.frozen; }) ? 0 : 1; }
+// flame colour by workouts in the streak (Light-safe values live in workout.css)
+function flameIcon(n, size){ return `<span class="flame fl-${flameTier(n)}">${svgIcon('flame', size || 22, 2)}</span>`; }
+function flameTier(n){ return n >= 100 ? 'diamond' : n >= 50 ? 'platinum' : n >= 25 ? 'gold' : n >= 10 ? 'silver' : 'orange'; }
 
 function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;
   if(p.tpl === 'rest') return { type: 'rest' };
