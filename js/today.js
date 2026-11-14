@@ -532,14 +532,13 @@ function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0
   if(!(tot > 0) || tot <= k * 1.03) return; const f = Math.max(.3, k / tot);
   r.meals.forEach(m => { (m.items || []).forEach(it => { it.grams = Math.round((+it.grams || 0) * f / 5) * 5; }); ['kcal', 'protein', 'carbs', 'fat'].forEach(q => { m[q] = Math.round((+m[q] || 0) * f); }); }); }
 
-// ---------- 0.7.1 Quick Log (replaces Add Takeaway) ----------
-// A chat box: type what you ate. The AI only splits it into items + amounts (one AI use per message; the same answer carries a
-// per-100 g estimate, used only when a food can't be found). Each item is matched: what you typed before → your foods / meals →
-// the built-in list → online (USDA + Open Food Facts). Not found anywhere → saved as a new food (kcal/P/C/F only, "estimate" tag)
-// when you Log All. Rows reuse the Log Food row: units, your egg size and the cooking slider follow your Log Food settings.
+// ---------- Food Coach (0.7.4.3; was Quick Log, 0.7.1): tell the chef robot what you ate ----------
+// The AI only splits it into items + amounts (one AI use per message; the same answer carries a per-100 g estimate, used only
+// when a food can't be found). Each item is matched: what you typed before → your foods / meals → the built-in list → online
+// (USDA + Open Food Facts). Not found anywhere → saved as a new food (kcal/P/C/F only, "estimate" tag) when you tap Add.
+// Rows reuse the Log Food row: units, your egg size and the cooking slider follow your Log Food settings.
 let logPhr = Store.load('logPhr', {});   // 'p:<typed words>' → { f: foodId } | { m: mealId };  'm:<whole message>' → the AI's split
 const logQSavePhr = () => Store.save('logPhr', logPhr);
-let logQS = { msgs: [], ctl: null };
 function logQEstTag(e){ if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f && f.source === 'estimate' ? `<span class="sttag est">${t('logQEst')}</span>` : ''; }
 
 // the typed words for one food, without amounts: "Fage yogurt 200g" → "fage yogurt"
@@ -556,16 +555,25 @@ function logQFromRef(r){
 }
 
 // the AI: split only (plus a fallback estimate per 100 g)
-function logQPrompt(txt){
-  return `Split this note of what someone ate into separate food items. Text: """${txt}"""
-Rules:
+// Food Coach's answer is structured: the app draws it (a short reply, then the foods as one list with one Add), never guesses from free text
+function logQPrompt(txt, ch){
+  const tg = targetFor(curDay), tot = dayTotals(curDay), conv = ch ? ch.transcript() : '';
+  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Straight to the point, no chatting.
+${conv ? `Conversation so far (last messages):\n${conv}\n` : ''}The user's new message: """${txt}"""
+${tg ? `Today so far: ${Math.round(tot.kcal)} of ${tg.k} kcal, P ${Math.round(tot.p)}/${tg.p} g, C ${Math.round(tot.c)}/${tg.c} g, F ${Math.round(tot.f)}/${tg.f} g.` : ''}
+First decide what the message is:
+- "log": it says what they ate or drank (even one food). Split it into items.
+- "suggest": it asks what to eat next, or how to hit / fill their macros. Leave items empty; the app shows suggestions.
+- "answer": anything else (a question about food or nutrition). Leave items empty.
+reply: one or two short, friendly lines in ${lang === 'el' ? 'Greek' : 'English'}, plain text, no markdown, no emoji, no numbers the app already shows. For "log" just acknowledge it ("Got it, here's what I found."); for "answer" give the answer in at most 60 words.
+Rules for items (only for "log"):
 - One item per food. "granola and nuts 200ml milk" is two items (granola with nuts; milk). Keep every food; never merge or skip one.
 - text: the words for that item as written, without the amount.
 - qty + unit: the amount as written; unit is one of g, ml, kg, l, piece, slice, cup, tbsp, tsp, serving. Counted things ("4 eggs", "a banana") are piece. qty null when no amount is written.
 - name: short plain food name in ${lang === 'el' ? 'Greek' : 'English'}, with how it was cooked when that is said ("scrambled eggs"), without the brand. name_en: the same name in English. brand: the brand or restaurant, "" if none.
 - grams: your best guess of the whole amount eaten, in grams (ml for drinks). ml: true for drinks.
-- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
-Return ONLY JSON: {"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number}]}`;
+- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.${AI.dietRules()}
+Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number}]}`;
 }
 function logQClean(a){
   if(!Array.isArray(a)) return null;
@@ -607,52 +615,90 @@ function logQState(info, it){
 }
 function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
 
-async function logQMatch(it){
+// Lookups, in order: what you typed before → your foods / meals → the built-in list → Open Food Facts (+ USDA) → one web search
+// (Gemini + Google Search) for everything still missing, e.g. a brand of bread → an AI estimate. A food found online or estimated
+// is saved to your foods right away (tagged FROM THE WEB / AI ESTIMATE), so it can always be added and is found next time.
+// A branded item only takes a plain built-in food when the real product can't be found anywhere.
+function logQLocal(it){
   const mem = logQFromRef(logPhr['p:' + logQKey(it.text || it.name)]) || (it.name_en ? logQFromRef(logPhr['p:' + logQKey(it.name_en)]) : null);
-  if(mem) return logQSet(it, mem.info, mem.src);
+  if(mem){ logQSet(it, mem.info, mem.src); return true; }
   const nm = it.name || it.text, en = it.name_en || nm, br = (it.brand || '').trim(), nb = norm(br);
   // a food of yours with another brand isn't the one you typed ("Fage yogurt" ≠ your Olympus yogurt)
   const brandOk = f => !br || !f.brand || norm(f.brand).includes(nb.split(' ')[0]) || nb.includes(norm(f.brand).split(' ')[0]);
   for(const q of [...new Set([br && `${br} ${nm}`, br && `${br} ${en}`, nm, en].filter(Boolean))]){
     const s = searchLocal(q, false, { log: true, meals: true });
-    const f = s.mine.find(brandOk); if(f) return logQSet(it, fInfo_(f), f.source === 'estimate' ? 'est' : 'mine');
-    if(!br && s.meals[0]) return logQSet(it, logQMealInfo(s.meals[0]), 'meal');
+    const f = s.mine.find(brandOk); if(f){ logQSet(it, fInfo_(f), f.source === 'estimate' ? 'est' : 'mine'); return true; }
+    if(!br && s.meals[0]){ logQSet(it, logQMealInfo(s.meals[0]), 'meal'); return true; }
   }
-  for(const q of [...new Set([nm, en])]){ const s = searchLocal(q, false, { log: true }); if(s.std[0]) return logQSet(it, logQGenInfo(s.std[0]), 'std'); }
+  for(const q of [...new Set([nm, en])]){ const s = searchLocal(q, false, { log: true }); if(s.std[0]){
+    if(br){ it.alt = logQGenInfo(s.std[0]); break; }   // kept for the end, in case the real product isn't found
+    logQSet(it, logQGenInfo(s.std[0]), 'std'); return true; } }
+  return false;
+}
+// a food from the web or an estimate: saved to your foods now, remembered for the words you typed
+function logQSaveFound(it, d, src){
+  const f = saveOnlineFood(d), pk = logQKey(it.text || it.name);
+  if(pk){ logPhr['p:' + pk] = { f: f.id }; logQTrim(); logQSavePhr(); }
+  logQSet(it, fInfo_(f), src); it.saved = true;
+}
+async function logQOnline(it){
+  const nm = it.name || it.text, en = it.name_en || nm, br = (it.brand || '').trim();
   try{
     const res = await Promise.race([searchOnlineAll(br ? `${br} ${en}` : en), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 15000))]);
     const d = (res || []).find(x => !x.check && +x.kcal > 0);
-    if(d) return logQSet(it, { name: d.name, icon: '', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }, 'onl');
+    if(d){ logQSaveFound(it, { ...d, source: d.source || 'openfoodfacts' }, 'web'); return true; }
   }catch(e){}
-  if(it.kcal !== null && it.kcal !== undefined){ const nmC = nm.charAt(0).toUpperCase() + nm.slice(1);
-    return logQSet(it, { name: nmC, icon: '', unit: it.ml ? 'ml' : 'g', per: { kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat }, food: null, est: { brand: br, en }, piece: null }, 'est'); }
+  return false;
+}
+async function logQWeb(list, ch){
+  if(!list.length || !AI.hasKey()) return;
+  try{ const r = await ch.ask(`Find these foods online and read their nutrition per 100 g (or 100 ml) as eaten. For a branded product (a brand of bread, yogurt, bar, drink, a restaurant dish) use THAT exact product: the brand's own site, a supermarket listing or Open Food Facts; if you can't find that exact product, set "found": false — never use a similar product. For a plain food, use a reliable nutrition database.
+Carbs as on EU labels (fibre not included). name: short name in ${lang === 'el' ? 'Greek' : 'English'}, without the brand.
+Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml"}]}
+Foods:
+${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}")`).join('\n')}${AI.dietRules()}`, null, { search: true });
+    (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i]; if(!it || !w.found || it.st) return;
+      const d = { name: w.name || it.name, brand: w.brand || it.brand || '', hint: it.name_en || '', kcal: +w.kcal || null, protein: +w.protein || 0, carbs: +w.carbs || 0, fat: +w.fat || 0, fiber: w.fiber != null ? +w.fiber : null, unit: w.unit === 'ml' ? 'ml' : 'g', state: 'ready', source: 'web' };
+      if(Search.quality(d) > 0) logQSaveFound(it, d, 'web'); });
+  }catch(e){ if(e.cancelled) throw e; }
+}
+function logQLast(it){
+  if(it.alt){ logQSet(it, it.alt, 'std'); return; }
+  if(it.kcal !== null && it.kcal !== undefined){ const nm = it.name || it.text;
+    logQSaveFound(it, { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g', kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }, 'est'); return; }
   it.st = null; it.src = 'none';
 }
-
-// ---- drawing ----
-function logQDraw(){
-  const el = $('lqList'); if(!el) return;
-  el.innerHTML = `<div class="lqmsg app"><div class="lqtxt">${t('logQHi')}${AI.hasKey() ? '' : `<small>${t('logQNoKey')}</small>`}</div></div>` +
-    logQS.msgs.map(m => m.who === 'me' ? `<div class="lqmsg me"><div class="lqtxt">${esc(m.text)}</div></div>` : `<div class="lqmsg app" data-mid="${m.id}">${logQCardHtml(m)}</div>`).join('');
-  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+async function logQMatchAll(m, ch){
+  const say = k => { if(ch.status) ch.status(t(k)); }, done = it => { it.busy = false; logQRedraw(m); };
+  say('coachStFoods');
+  m.items.forEach(it => { try{ if(logQLocal(it)) done(it); }catch(e){} });
+  let left = m.items.filter(it => it.busy); if(!left.length) return;
+  say('coachStWeb');
+  await Promise.all(left.map(async it => { if(await logQOnline(it)) done(it); }));
+  left = m.items.filter(it => it.busy);
+  await logQWeb(left, ch);
+  left.forEach(it => { if(!it.st) logQLast(it); done(it); });
 }
-function logQRedraw(m){ const el = document.querySelector(`#lqList [data-mid="${m.id}"]`); if(el) el.innerHTML = logQCardHtml(m); else logQDraw(); }
+
+// ---- 0.7.4.3 Food Coach (was Quick Log): the shared coach chat (js/coach.js) with the chef robot ----
+// Each answer is one card: the foods it understood as a compact list (tap a row to change the amount, unit or food; X removes it)
+// with the total underneath, and ONE Add button that logs every food on the list.
+const FC = {};   // answer id → { m, card, ch }
+const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${logQCardHtml(m)}</div>`;
+function logQRedraw(m){ const x = FC[m.id]; if(x) x.ch.update(x.card, { body: fcHtml(m) }); }
+function logQKeep(m){ const x = FC[m.id]; if(x) x.card.body = fcHtml(m); }   // after an in-place change: the next redraw shows the same thing
 function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, it) => { const r = lwCalc(it.st); return { kcal: a.kcal + r.kcal, p: a.p + r.p, c: a.c + r.c, f: a.f + r.f }; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
 function logQCardHtml(m){
-  if(m.state === 'work') return `<div class="lqtxt lqwork"><span class="lqdots" aria-hidden="true"><i></i><i></i><i></i></span>${t('logQWork')}</div>`;
-  if(m.state === 'fail') return `<div class="lqtxt">${esc(m.err || t('logQFail'))}</div>`;
-  const tot = logQTot(m), done = m.state === 'logged', busy = m.items.some(it => it.busy), n = m.items.filter(it => it.st).length;
-  const foot = done ? `<div class="lqfoot done">${t('logQDone')} · ${m.loggedK} kcal</div>`
-    : `<div class="lqfoot"><div class="lres"><span class="lk">${Math.round(tot.kcal)} kcal</span><span class="lm"><b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b></span></div>
-      <button class="lgo" type="button" data-qall ${busy || !n ? 'disabled' : ''}>${t('logQAll')}</button></div>`;
-  return `<div class="lqcard ${done ? 'logged' : ''}">${m.note ? `<div class="lqnote">${esc(m.note)}</div>` : ''}${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}</div>`;
+  const tot = logQTot(m), done = m.state === 'logged';
+  const foot = done ? '' : `<div class="lqfoot"><div class="lres"><span class="lk">${Math.round(tot.kcal)} kcal</span><span class="lm"><b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b></span></div></div>`;
+  return `<div class="lqcard ${done ? 'logged' : ''}">${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}</div>`;
 }
 function logQRowHtml(m, it, i){
-  const tag = { std: t('logQStd'), onl: t('logQOnl'), est: t('logQEst') }[it.src], done = m.state === 'logged';
+  const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
   const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
   return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
-    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ` <span class="sttag lq ${it.src}">${tag}</span>` : ''}</span><small class="ls">${esc(sub)}</small></button>
-    ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`}</div>
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${esc(sub)}</small></button>
+    ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}">${svgIcon('x', 14, 2.6)}</button>`}</div>
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }
 function logQPanel(it){
@@ -678,52 +724,49 @@ function logQUpd(m, row, it){
   const card = row.closest('.lqcard'), tot = logQTot(m), k = card && card.querySelector('.lqfoot .lk'), mm = card && card.querySelector('.lqfoot .lm');
   if(k) k.textContent = Math.round(tot.kcal) + ' kcal';
   if(mm) mm.innerHTML = `<b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b>`;
+  logQKeep(m);
 }
 
-// ---- send, log ----
+// ---- open, answer, add ----
+// opens Food Coach; q = words to put in the box (from Log Food's "nothing matches" row)
 function logQOpenSheet(q){
-  const last = logQS.msgs[logQS.msgs.length - 1]; if(last && last.state === 'logged') logQS.msgs = [];
-  logQDraw(); open('ovQLog'); logQFit();
-  if(q) $('lqIn').value = q; logQGrow();
-  setTimeout(() => { try{ $('lqIn').focus(); }catch(e){} }, 120);
+  Coach.open('chef');
+  if(q){ const ta = $('coachIn'); ta.value = q; ta.dispatchEvent(new Event('input')); setTimeout(() => { try{ ta.focus(); }catch(e){} }, 120); }
 }
-function logQGrow(){ const ta = $('lqIn'); if(!ta) return; ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; }
-function logQFit(){ const ov = $('ovQLog'), vv = window.visualViewport; if(!ov || !vv) return;   // the chat box stays above the keyboard
-  ov.style.setProperty('--lqvh', vv.height + 'px'); ov.style.setProperty('--lqvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < window.innerHeight * .8); }
 function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return; ks.filter(k => k.startsWith('m:')).slice(0, ks.length - 500).forEach(k => { delete logPhr[k]; }); }
 
-async function logQSend(){
-  const box = $('lqIn'), txt = box.value.trim(); if(!txt) return;
-  if(logQS.ctl){ toast(t('aiStill')); return; }
-  box.value = ''; logQGrow();
-  const last = logQS.msgs[logQS.msgs.length - 1]; if(last && last.state === 'logged') logQS.msgs = [];
-  const me = { id: uid(), who: 'me', text: txt }, rep = { id: uid(), who: 'app', state: 'work', items: [], mk: 'm:' + norm(txt) };
-  logQS.msgs.push(me, rep); logQDraw();
-  let parts = Array.isArray(logPhr[rep.mk]) ? logPhr[rep.mk] : null;   // the same message as before: no AI at all
+async function logQSend(txt, ch){
+  const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready' };
+  let parts = Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all
   if(!parts && AI.hasKey()){
-    const ctl = logQS.ctl = new AbortController();
-    try{ parts = logQClean((await gemini(logQPrompt(txt), null, null, ctl.signal) || {}).items); if(parts && parts.length) rep.parts = parts; else parts = null; }
-    catch(err){ if(err.cancelled){ logQS.msgs = logQS.msgs.filter(x => x !== me && x !== rep); box.value = txt; logQGrow(); logQDraw(); return; }
-      rep.note = t('logQAIFail', { e: err.message }); }
-    finally{ logQS.ctl = null; }
+    try{ const r = await ch.ask(logQPrompt(txt, ch)) || {}, intent = String(r.intent || 'log');
+      reply = String(r.reply || '').trim().slice(0, 400);
+      if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
+      parts = logQClean(r.items);
+      if(intent !== 'log' && !(parts && parts.length)){ ch.say(reply || t('coachFail', { e: '?' })); return; }
+      if(parts && parts.length) m.parts = parts; else parts = null; }
+    catch(err){ if(err.cancelled) throw err; note = t('logQAIFail', { e: err.message }); }
   }
   if(!parts) parts = logQSplit(txt);
-  if(!parts.length){ rep.state = 'fail'; logQRedraw(rep); return; }
-  rep.items = parts.map(p => ({ ...p, busy: true })); rep.state = 'ready'; logQRedraw(rep);
-  await Promise.all(rep.items.map(async it => { try{ await logQMatch(it); }catch(e){ it.st = null; it.src = 'none'; } it.busy = false; logQRedraw(rep); }));
+  if(!parts.length){ ch.say(reply || t('logQFail')); return; }
+  ch.say(note || reply || t('logQGot'));
+  m.items = parts.map(p => ({ ...p, busy: true }));
+  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }] }]);
+  FC[m.id] = { m, card, ch }; logQRedraw(m);
+  try{ await logQMatchAll(m, ch); }
+  finally{ m.items.forEach(it => { if(it.busy){ it.busy = false; if(!it.st) it.src = 'none'; } }); logQRedraw(m); }
 }
-
-function logQEstFood(info){ const p = info.per;   // kcal / P / C / F only, tagged so it can be found and fixed later
-  return saveOnlineFood({ name: info.name, brand: info.est.brand || '', hint: info.est.en || '', unit: info.unit, kcal: Math.round(p.kcal), protein: r1(p.protein), carbs: r1(p.carbs), fat: r1(p.fat), state: 'ready', source: 'estimate' }); }
+// "what should I eat?" in Food Coach (Fill My Macros cards come in the next step; for now the reply)
+async function logQSuggest(ch, reply){ ch.say(reply || t('coachFail', { e: '?' })); }
 
 function logQLogAll(m){
-  const ok = m.items.filter(it => it.st && !it.busy); if(!ok.length){ toast(t('logQNothing')); return; }
-  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], made = [];
+  const x = FC[m.id]; if(!x || m.state === 'logged') return;
+  if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
+  const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
+  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [];
   ok.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
     let info = st.info;
     if(info.gen) info = fInfo_(saveGeneric(info.gen));
-    else if(info.online) info = fInfo_(saveOnlineFood(info.online));
-    else if(info.est){ const f = logQEstFood(info); made.push(f); info = fInfo_(f); }
     info = { ...info, per: lwPer(st) };
     logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]);
     const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
@@ -733,26 +776,25 @@ function logQLogAll(m){
   if(!added.length){ toast(t('needAmount')); return; }
   if(m.parts) logPhr[m.mk] = m.parts;
   logQTrim(); logQSavePhr();
-  const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)); m.state = 'logged'; m.loggedK = k;
-  close('ovQLog'); renderAll(); logQRedraw(m);
-  toast(t('logQLogged', { n: added.length, k }) + (made.length ? ' · ' + t('logQNew', { n: made.length }) : ''), t('undo'), () => {
+  const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k });
+  let undone = false;
+  const undo = () => { if(undone) return; undone = true;
     const ids = new Set(added.map(e => e.id)); dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog();
-    made.forEach(f => { const i = foods.indexOf(f); if(i > -1) foods.splice(i, 1); }); if(made.length) saveFoods();
-    m.state = 'ready'; renderAll(); logQRedraw(m); });
+    m.state = 'ready'; x.card.done = ''; x.card.undo = null; renderAll(); logQRedraw(m); };
+  m.state = 'logged'; x.card.body = fcHtml(m); x.ch.update(x.card, { done: msg, undo }); renderAll();
+  toast(msg, t('undo'), undo);
 }
 
-// wiring (called once from wire/03, where the Log Food sheet is wired)
+// wiring (called once from wire/03, where the Log Food sheet is wired): Food Coach answers with logQSend; the rows inside its cards
 function logQWire(){
-  $('lqForm').addEventListener('submit', e => { e.preventDefault(); logQSend(); });
-  $('lqIn').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); logQSend(); } });
-  $('lqIn').addEventListener('input', logQGrow);
-  const msgOf = el => { const b = el.closest('[data-mid]'); return b ? logQS.msgs.find(x => x.id === b.dataset.mid) : null; };
-  $('lqList').addEventListener('click', e => {
-    const m = msgOf(e.target); if(!m) return;
-    if(e.target.closest('[data-qall]')) return logQLogAll(m);
-    const row = e.target.closest('[data-qi]'); if(!row || m.state === 'logged') return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
+  Coach.setup('chef', { kind: 'chef', title: () => t('coachFood'), first: () => t('coachFoodHi'), send: logQSend });
+  const list = $('coachList');
+  const msgOf = el => { const b = el.closest('[data-mid]'); const x = b && FC[b.dataset.mid]; return x ? x.m : null; };
+  list.addEventListener('click', e => {
+    const m = msgOf(e.target); if(!m || m.state === 'logged') return;
+    const row = e.target.closest('[data-qi]'); if(!row) return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
     if(e.target.closest('[data-qrm]')){ m.items.splice(i, 1); logQRedraw(m); return; }
-    const focusQ = () => setTimeout(() => { const r = document.querySelector(`#lqList [data-mid="${m.id}"] [data-qi="${i}"] .lqsq`); if(r) r.focus(); }, 30);
+    const focusQ = () => setTimeout(() => { const r = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qi="${i}"] .lqsq`); if(r) r.focus(); }, 30);
     if(e.target.closest('[data-qopen]')){ const was = it.open; m.items.forEach(x => { x.open = false; x.swap = false; }); it.open = !was; if(it.open && !it.st){ it.swap = true; focusQ(); } logQRedraw(m); return; }
     if(e.target.closest('[data-qswap]')){ it.swap = true; logQRedraw(m); focusQ(); return; }
     const pk = e.target.closest('[data-qpick]'); if(pk){ const [src, info] = (it.sres || [])[+pk.dataset.qpick] || []; if(!info) return;
@@ -763,17 +805,13 @@ function logQWire(){
     const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size, sz = st.units[j].size;
       st.u = j; st.n = st.units[j].k === 'g' ? r1((g || 100) / sz) : Math.max(.5, Math.round((g || sz) / sz * 2) / 2);
       row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); logQUpd(m, row, it); return; }
-    const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; logQUpd(m, row, it); }
+    const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; row.querySelectorAll('[data-lck]').forEach(b => b.classList.toggle('on', b === ck)); logQUpd(m, row, it); }
   });
-  $('lqList').addEventListener('input', e => {
+  list.addEventListener('input', e => {
     const m = msgOf(e.target), row = e.target.closest('[data-qi]'); if(!m || !row) return; const it = m.items[+row.dataset.qi]; if(!it) return;
-    if(e.target.matches('[data-qsq]')){ it.sq = e.target.value; row.querySelector('.lqsres').innerHTML = logQSwapRes(it); return; }
+    if(e.target.matches('[data-qsq]')){ it.sq = e.target.value; row.querySelector('.lqsres').innerHTML = logQSwapRes(it); logQKeep(m); return; }
     if(e.target.classList.contains('lan') && it.st){ it.st.n = e.target.value; logQUpd(m, row, it); }
   });
-  if(window.visualViewport){
-    visualViewport.addEventListener('resize', () => { if(!$('ovQLog').classList.contains('open')) return; logQFit(); const l = $('lqList'); l.scrollTop = l.scrollHeight; });
-    visualViewport.addEventListener('scroll', () => { if($('ovQLog').classList.contains('open')) logQFit(); });
-  }
 }
 
 // ---------- 0.7.2 month calendar: tap the date on Today's Food, tap a day to jump to it ----------
