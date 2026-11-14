@@ -2,45 +2,68 @@
    Type: Inter · sizes 32 / 28 / 20 / 15 / 12 · weights 700 / 500 / 400 (800 only in the set setter and rest bracket).
    Spacing in steps of 4 and 8 · radii: cards 20, rows 16, inputs 10–12, pills 999.
    Glass only on floating things (bottom bar, sheets, AI bubble); cards are solid. */
-/* ============ one :root (Dark / default) and one Light block — every custom property, last value wins ============ */
+
 :root{
-  --bg:var(--t-bg); --panel:var(--t-card); --panel2:var(--t-card2); --line:var(--t-line); --text:var(--t-text); --muted:var(--t-muted); --accent:var(--t-accent);
-  --accent-ink:var(--t-on); --p:var(--t-p); --c:var(--t-c); --f:var(--t-f); --danger:var(--t-danger); --r:var(--r-card); --orange:#ff8a2a; --ok:var(--t-done);
-  --kc:var(--t-accent); --fi:#d4a86a; --na:#b388ff; --kk:#4dd0e1; --raw:#8fd3ff; --cooked:#9be89b; --glass:var(--t-glass); --hpad:max(8px,env(safe-area-inset-top));
-  --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
-  --trash:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12.2A2 2 0 0 0 8.5 21h7a2 2 0 0 0 2-1.8L18.5 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7'/%3E%3C/svg%3E");
-  --edge:var(--t-edge); --font:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif; --fs-hero:32px; --fs-clock:28px; --fs-title:20px; --fs-body:15px;
-  --fs-label:12px; --w-bold:700; --w-med:500; --w-reg:400; --w-setter:800; --r-card:20px; --r-row:16px; --r-input:10px; --r-input2:12px; --r-pill:999px; --s1:4px;
-  --s2:8px; --s3:12px; --s4:16px; --s6:24px; --t-bg:#000000; --t-card:#161718; --t-card2:#1d1e20; --t-sel:#26282b; --t-press:#2e3034; --t-line:#2c2e31;
-  --t-edge:rgba(255,255,255,.06); --t-track:#242628; --t-off:#27292c; --t-text:#eef0f2; --t-muted:#8d9399; --t-clock:#ffffff; --t-glass:rgba(26,27,29,.72);
-  --t-glass-edge:rgba(255,255,255,.08); --t-scrim:rgba(0,0,0,.5); --t-glass-btn:rgba(255,255,255,.07); --t-glass-btn-edge:rgba(255,255,255,.10); --t-tick-idle:#6b7178;
-  --t-tick-edge:#3a3d41; --t-shadow:none; --t-accent:#c6f432; --t-on:#0f1113; --t-accent-ink:var(--t-accent); --t-done:#59d38c; --t-done-soft:rgba(89,211,140,.16);
-  --t-done-ink:#0b1a10; --t-rest:#5fa8f5; --t-rest-box:#1b1c1e; --t-warm:#f2b84b; --t-drop:#b39bff; --t-fail:#ff7a7a; --t-danger:#ff7a7a;
-  --t-danger-soft:rgba(255,107,107,.14); --t-p:#5aa9f0; --t-c:#f0c35a; --t-f:#f0846f; --t-sore:#ff6b5c; --t-mid:#e8b04a;
+  /* type */
+  --font:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --fs-hero:32px; --fs-clock:28px; --fs-title:20px; --fs-body:15px; --fs-label:12px;
+  --w-bold:700; --w-med:500; --w-reg:400; --w-setter:800;
+  /* shape + spacing */
+  --r-card:20px; --r-row:16px; --r-input:10px; --r-input2:12px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px;
+
+  /* elevation, dark (Phones.dc.html BASE.dark) */
+  --t-bg:#000000; --t-card:#161718; --t-card2:#1d1e20; --t-sel:#26282b; --t-press:#2e3034;
+  --t-line:#2c2e31; --t-edge:rgba(255,255,255,.06); --t-track:#242628; --t-off:#27292c;
+  --t-text:#eef0f2; --t-muted:#8d9399; --t-clock:#ffffff;
+  --t-glass:rgba(26,27,29,.72); --t-glass-edge:rgba(255,255,255,.08); --t-scrim:rgba(0,0,0,.5);
+  --t-glass-btn:rgba(255,255,255,.07); --t-glass-btn-edge:rgba(255,255,255,.10);
+  --t-tick-idle:#6b7178; --t-tick-edge:#3a3d41; --t-shadow:none;
+
+  /* colour roles (fixed in every theme) */
+  --t-accent:#c6f432; --t-on:#0f1113; --t-accent-ink:var(--t-accent);   /* accent used as text (Light gets a darker ink per preset, set in applyTheme) */
+  --t-done:#59d38c; --t-done-soft:rgba(89,211,140,.16); --t-done-ink:#0b1a10;
+  --t-rest:#5fa8f5; --t-rest-box:#1b1c1e;
+  --t-warm:#f2b84b; --t-drop:#b39bff; --t-fail:#ff7a7a;
+  --t-danger:#ff7a7a; --t-danger-soft:rgba(255,107,107,.14);
+  --t-p:#7fa6c9; --t-c:#d6b679; --t-f:#d98b80;
+  --t-sore:#ff6b5c; --t-mid:#e8b04a;
+
+  /* main selector pill (dark: white pill, accent italic letters with a thin dark outline) */
   --t-mp-bg:linear-gradient(180deg,#ffffff 0%,#eceef0 100%);
-  --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.3); --t-mp-text:var(--t-accent);
-  --t-mp-stroke:2.4px #0b0d0f; --t-sp-bg:#34373b; --t-sp-shadow:inset 0 0 0 1px #44484d; --t-sp-text:#ffffff; --t-bar-ink:#0b0d0f; --t-ready:var(--t-accent);
-  --t-accent-soft:color-mix(in srgb,var(--t-accent) 50%,transparent); --t-bar:rgba(26,27,29,.55); --gym-body:#26282b; --gym-off:#3a3d41; --gym-edge:rgba(255,255,255,.1);
-  --t-alert-bg:#2a1a08; --t-alert-edge:#6b3f12; --t-alert-ink:#ffcf9e; --t-alert-red-bg:#2a0e0e; --t-alert-red-edge:#6b1f1f; --t-alert-red-ink:#ffb3b3;
-  --t-alert-ok-bg:#12261a; --t-alert-ok-edge:#2a5a3a; --t-alert-ok-ink:#bff0d0; --topfade:14px; --topP:calc(8px + env(safe-area-inset-top));
+  --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.3);
+  --t-mp-text:var(--t-accent); --t-mp-stroke:2.4px #0b0d0f;
+  /* secondary selector (quiet grey) */
+  --t-sp-bg:#34373b; --t-sp-shadow:inset 0 0 0 1px #44484d; --t-sp-text:#ffffff;
+
+  /* the app's older names → the new values */
+  --bg:var(--t-bg); --panel:var(--t-card); --panel2:var(--t-card2); --line:var(--t-line);
+  --text:var(--t-text); --muted:var(--t-muted); --accent:var(--t-accent); --accent-ink:var(--t-on);
+  --p:var(--t-p); --c:var(--t-c); --f:var(--t-f); --ok:var(--t-done); --danger:var(--t-danger);
+  --glass:var(--t-glass); --edge:var(--t-edge); --kc:var(--t-accent); --r:var(--r-card);
 }
-:root[data-theme="light"]{
-  --t-bg:#e2e3e6; --t-card:#ffffff; --t-card2:#ebecee; --t-sel:#e6e7ea; --t-press:#dcdde0; --t-line:#d3d5d9; --t-edge:rgba(0,0,0,.08); --t-track:#d9dbdf; --t-off:#d0d3d7;
-  --t-text:#16181b; --t-muted:#596067; --t-clock:#000000; --t-glass:rgba(244,244,245,.75); --t-glass-edge:rgba(0,0,0,.06); --t-scrim:rgba(20,22,25,.28);
-  --t-glass-btn:rgba(0,0,0,.05); --t-glass-btn-edge:rgba(0,0,0,.08); --t-tick-idle:#8a9097; --t-tick-edge:#c3c6cb; --t-shadow:0 1px 2px rgba(0,0,0,.04);
-  --t-accent:#8fbb12; --t-on:#0f1113; --t-accent-ink:#4a6600; --t-done:#167a43; --t-done-soft:rgba(31,157,87,.12); --t-done-ink:#ffffff; --t-rest-box:#f0f1f3;
-  --t-danger:#c93a3a; --t-danger-soft:rgba(201,58,58,.10); --t-p:#2f73b8; --t-c:#8a6100; --t-f:#c4553f; --t-sore:#dc4436; --t-mid:#8a5a00; --t-warm:#8a5a00;
-  --t-rest:#1f64b0; --t-drop:#6a4fd6; --t-fail:#b3261e; --t-mp-bg:linear-gradient(180deg,#2a2c30 0%,#16181b 100%);
-  --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.22); --t-mp-text:#c6f432; --t-mp-stroke:0; --t-sp-bg:#ffffff;
-  --t-sp-shadow:0 1px 3px rgba(0,0,0,.15); --t-sp-text:#16181b; --t-bar-ink:#ffffff; --t-bar:rgba(244,244,245,.6); --gym-body:#d2d5d9; --gym-off:#b8bcc2;
-  --gym-edge:rgba(0,0,0,.12); --t-alert-bg:#fbefd9; --t-alert-edge:#e8c891; --t-alert-ink:#6b4200; --t-alert-red-bg:#fbe4e2; --t-alert-red-edge:#ebb0aa;
-  --t-alert-red-ink:#8f1d17; --t-alert-ok-bg:#e1f3e8; --t-alert-ok-edge:#a6d6b8; --t-alert-ok-ink:#0f5a31;
-}
+
 /* Light mode (not on canvas yet): soft grey background, white cards, hairline + a barely-there shadow; never pure white backgrounds */
+:root[data-theme="light"]{
+  --t-bg:#e2e3e6; --t-card:#ffffff; --t-card2:#ebecee; --t-sel:#e6e7ea; --t-press:#dcdde0;
+  --t-line:#d3d5d9; --t-edge:rgba(0,0,0,.08); --t-track:#d9dbdf; --t-off:#d0d3d7;
+  --t-text:#16181b; --t-muted:#596067; --t-clock:#000000;
+  --t-glass:rgba(244,244,245,.75); --t-glass-edge:rgba(0,0,0,.06); --t-scrim:rgba(20,22,25,.28);
+  --t-glass-btn:rgba(0,0,0,.05); --t-glass-btn-edge:rgba(0,0,0,.08);
+  --t-tick-idle:#8a9097; --t-tick-edge:#c3c6cb; --t-shadow:0 1px 2px rgba(0,0,0,.04);
+  --t-accent:#8fbb12; --t-on:#0f1113; --t-accent-ink:#4a6600;
+  --t-done:#167a43; --t-done-soft:rgba(31,157,87,.12); --t-done-ink:#ffffff; --t-rest-box:#f0f1f3;
+  --t-danger:#c93a3a; --t-danger-soft:rgba(201,58,58,.10);
+  --t-p:#3f6f9c; --t-c:#8a6100; --t-f:#ad5548; --t-sore:#dc4436; --t-mid:#8a5a00;
+  /* 0.7.4.0.5: status colours readable as text on the Light page (≥ 4.5:1) */
+  --t-warm:#8a5a00; --t-rest:#1f64b0; --t-drop:#6a4fd6; --t-fail:#b3261e;
+  --t-mp-bg:linear-gradient(180deg,#2a2c30 0%,#16181b 100%); --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.22);
+  --t-mp-text:#c6f432; --t-mp-stroke:0;
+  --t-sp-bg:#ffffff; --t-sp-shadow:0 1px 3px rgba(0,0,0,.15); --t-sp-text:#16181b;
+}
 
 /* ---------- base ---------- */
-html,body{margin:0;height:100%;overflow:hidden;line-height:1.4;-webkit-tap-highlight-color:transparent;background:var(--t-bg)!important;color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-reg)}
-body{padding:env(safe-area-inset-top) 0 0;padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
+html,body{background:var(--t-bg)!important;color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-reg)}
 body::before{display:none!important}   /* no coloured blobs behind the app: plain black / soft grey */
 button,input,select,textarea{font-family:inherit}
 h1,h2{font-size:var(--fs-title)!important;font-weight:var(--w-bold)!important;letter-spacing:-.4px}
@@ -50,7 +73,8 @@ label{font-size:var(--fs-label);font-weight:var(--w-med)}
 
 /* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.pgrow{
-  background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important}
+  background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard{border-radius:var(--r-card)!important}
 .exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
 .tile.big{background:var(--t-accent)!important;color:var(--t-on)}
@@ -58,13 +82,12 @@ label{font-size:var(--fs-label);font-weight:var(--w-med)}
 .kcnum{font-size:var(--fs-hero)!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.5px}
 
 /* ---------- inputs / inner ---------- */
-input,select,textarea{width:100%;padding:11px 12px;font-size:16px;transition:border-color .18s,box-shadow .18s;background:var(--t-card2);border:1px solid var(--t-line);border-radius:var(--r-input2);color:var(--t-text)}
+input,select,textarea{background:var(--t-card2);border:1px solid var(--t-line);border-radius:var(--r-input2);color:var(--t-text)}
 .mbar,.hbar{background:var(--t-track)!important}
 
 /* ---------- buttons ---------- */
-.btn{flex:1;padding:13px;font-size:15px;cursor:pointer;white-space:nowrap;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s,box-shadow .18s;background:var(--t-sel);border:0;color:var(--t-text);font-weight:var(--w-med);border-radius:var(--r-input2)}
+.btn{background:var(--t-sel);border:0;color:var(--t-text);font-weight:var(--w-med);border-radius:var(--r-input2)}
 .btn.primary,.fab{background:var(--t-accent)!important;color:var(--t-on)!important;font-weight:var(--w-bold)!important;font-size:var(--fs-body)!important}
-.btn.primary{box-shadow:0 6px 20px color-mix(in srgb,var(--t-accent) 18%,transparent)}
 .btn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
 /* press feedback: scale and dim while pressed, spring back */
 button:not(.fab){transition:transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
@@ -72,10 +95,9 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .fab:active{opacity:.85}
 
 /* ---------- glass: floating things only ---------- */
-.sheet{width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:26px 26px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.4);background:var(--t-glass)!important;-webkit-backdrop-filter:blur(24px)!important;backdrop-filter:blur(24px)!important;border:1px solid var(--t-glass-edge)!important}
+.sheet{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(24px)!important;backdrop-filter:blur(24px)!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
-.overlay{position:fixed;inset:0;background:var(--t-scrim);display:none;z-index:10;align-items:flex-end;justify-content:center}
-@media(min-width:700px){.overlay{align-items:center}}
+.overlay{background:var(--t-scrim)}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
@@ -130,7 +152,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .daynav .backarrow{margin:0;color:var(--t-muted)!important}
 
 /* ---------- Today's Food (Phones.dc.html screen 1) ---------- */
-
+:root{--t-bar-ink:#0b0d0f} :root[data-theme="light"]{--t-bar-ink:#ffffff}
 .macrocard{padding:var(--s4)!important}
 .mrow.hero{display:grid;grid-template-columns:64px 1fr;gap:var(--s2);align-items:center;margin:var(--s3) 0 0}
 .mrow.hero>small{font-size:var(--fs-label);font-weight:var(--w-reg);color:var(--t-muted)}
@@ -192,7 +214,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .swm{flex:0 0 auto;font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;color:var(--t-text)} .swm.top{color:var(--t-accent-ink,var(--t-accent))}
 
 /* ---------- Recovery (Phones.dc.html screen 3) ---------- */
-
+:root{--t-ready:var(--t-accent)}
 .reccard{background:var(--t-card);border-radius:var(--r-card);padding:var(--s4);display:flex;justify-content:center;margin-bottom:var(--s4)}
 .reccard svg{width:200px;height:auto;max-height:420px}
 .legend2{display:flex;justify-content:center;gap:var(--s4);margin-bottom:var(--s4)}
@@ -223,7 +245,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 html{transition:background-color .3s}
 
 /* ---------- Log Food window (Phones.dc.html screen 4 + mockup v1/v2) ---------- */
-
+:root{--t-accent-soft:color-mix(in srgb,var(--t-accent) 50%,transparent)}
 #ovLog{align-items:flex-start}
 #ovLog .sheet.logwin{position:relative;width:calc(100% - 24px)!important;max-width:520px!important;margin:max(52px,calc(env(safe-area-inset-top) + 8px)) auto 0!important;
   height:min(712px,calc(var(--appH,100vh) - max(52px,calc(env(safe-area-inset-top) + 8px)) - 24px))!important;max-height:none!important;padding:0!important;
@@ -269,8 +291,7 @@ html{transition:background-color .3s}
 .lmore{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;padding:12px 16px;border-radius:var(--r-row);border:1px dashed var(--t-line);background:none;color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);text-align:left;cursor:pointer}
 .lmore small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-reg)}
 /* + Log Food button (Phones.dc.html): centred, 24 above the bottom bar, 16/32 padding, soft accent glow */
-.fab{position:fixed;left:0!important;right:0!important;margin:0 auto;width:max-content;transform:none;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s;border:0;cursor:pointer;z-index:5;white-space:nowrap;bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 88px)!important;padding:16px 32px!important;border-radius:999px!important;box-shadow:0 8px 24px color-mix(in srgb,var(--t-accent) 30%,transparent)!important}
-.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(14px);background:var(--text);color:var(--bg);border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.25,1)!important;bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 150px)!important;width:min(calc(100vw - 32px),440px);padding:7px 8px 7px 18px;justify-content:space-between;white-space:normal;text-align:left;line-height:1.3;min-height:38px}   /* 0.7.2: wide and slim, above the main button (Log Food / Start Workout), never on it */
+.fab{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 88px)!important;padding:16px 32px!important;border-radius:999px!important;box-shadow:0 8px 24px color-mix(in srgb,var(--t-accent) 30%,transparent)!important}
 html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - max(24px,calc(env(safe-area-inset-bottom) - 10px)) - 64px - 24px - 50px)!important}
 body.twofab .fab{padding:16px 20px!important}
 #ovLog .lwlist{flex:1 1 auto;min-height:0}
@@ -308,6 +329,7 @@ body.twofab .fab{padding:16px 20px!important}
 #dBlocks .rmrec{position:relative;z-index:2}
 .remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
 .fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
+.fab2{background:var(--t-glass)!important;color:var(--t-text)!important;border:1px solid var(--t-glass-edge)!important}
 /* superset by holding one exercise over another (0.6.9) */
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
 .exc.ssarm::after,.tpcard.ssarm::after{content:attr(data-ssl);position:absolute;right:12px;top:10px;padding:4px 10px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold);font-style:italic}
@@ -400,10 +422,12 @@ body.twofab .fab{padding:16px 20px!important}
 .seg.wrapseg,#dWork,#fDisplay,#sLang{border-radius:24px!important}
 
 /* bottom bar: a bit more see-through (blur kept). 0.7.1: always one size (no shrink on scroll). */
-
+:root{--t-bar:rgba(26,27,29,.55)} :root[data-theme="light"]{--t-bar:rgba(244,244,245,.6)}
 .rail{background:var(--t-bar)!important;-webkit-backdrop-filter:blur(24px) saturate(160%)!important;backdrop-filter:blur(24px) saturate(160%)!important}
 
 /* macro colours a step more vibrant (not neon) */
+:root{--t-p:#5aa9f0;--t-c:#f0c35a;--t-f:#f0846f}
+:root[data-theme="light"]{--t-p:#2f73b8;--t-c:#8a6100;--t-f:#c4553f}
 
 /* Scan Food / Scan Receipt: no underglow; clear edge so they stand off the black */
 .fab2{box-shadow:none!important;background:#2b2d31!important;border:1px solid rgba(255,255,255,.16)!important;color:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -474,7 +498,8 @@ body.twofab .fab{padding:16px 20px!important}
 
 /* ==== branch: gym (new Gym Buddy styles go on the lines below) ==== */
 /* 0.7.2 new body (Body Muscles, rounded): body colour behind, unworked muscles a step lighter */
-
+:root{--gym-body:#26282b;--gym-off:#3a3d41;--gym-edge:rgba(255,255,255,.1)}
+:root[data-theme="light"]{--gym-body:#d2d5d9;--gym-off:#b8bcc2;--gym-edge:rgba(0,0,0,.12)}
 /* 0.7.3: in the exercise picker the body needs to stand off its grey sheet: lighter base, stronger outline */
 #ovExPick{--gym-body:#3b3e43;--gym-off:#565a61;--gym-edge:rgba(255,255,255,.3)}
 :root[data-theme="light"] #ovExPick{--gym-body:#c3c7cc;--gym-off:#a6abb2;--gym-edge:rgba(0,0,0,.32)}
@@ -641,7 +666,7 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 .aibadge{margin:0 2px}
 .aiafter::after{content:'AI';margin-left:6px}
 :root[data-theme="light"] .aibadge,:root[data-theme="light"] .aib,:root[data-theme="light"] .aiafter::after,
-.fab .aibadge,.btn.primary .aibadge,.pillbtn.primary .aibadge,.lgo .aib,.lwdone .aib,.fab.aiafter::after,.btn.primary.aiafter::after{background:#0f1113;color:var(--t-mp-text)}
+.fab .aibadge,.btn.primary .aibadge,.pillbtn.primary .aibadge,.aibadge.onacc,.lgo .aib,.lwdone .aib,.fab.aiafter::after,.btn.primary.aiafter::after{background:#0f1113;color:var(--t-mp-text)}
 /* 0.7.2 ticker: text too long for its pill scrolls sideways, smooth and endless (js/core.js adds .tk/.tki only when it overflows) */
 .tkon{text-overflow:clip!important}
 .tk{display:block;flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent);mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent)}
@@ -670,7 +695,8 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
-
+:root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
+:root[data-theme="light"]{--t-alert-bg:#fbefd9;--t-alert-edge:#e8c891;--t-alert-ink:#6b4200;--t-alert-red-bg:#fbe4e2;--t-alert-red-edge:#ebb0aa;--t-alert-red-ink:#8f1d17;--t-alert-ok-bg:#e1f3e8;--t-alert-ok-edge:#a6d6b8;--t-alert-ok-ink:#0f5a31}
 /* 0.7.4.0.5 Light mode: the grey secondary button vanished on the grey page; white with a hairline (zero-specificity :where, so .btn.primary / .btn.danger still win) */
 :where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
 
@@ -679,7 +705,7 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
    (no blur: scrolled content can't show through the letters). --topfade is the fade height.
    Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
-
+:root{--topfade:14px;--topP:calc(8px + env(safe-area-inset-top))}
 section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
   background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 .overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
