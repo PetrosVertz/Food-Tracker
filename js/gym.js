@@ -362,9 +362,6 @@ function celebrate(){
   Phone.vibrate([40, 30, 60]);
 }
 
-// the old home page's Gym tile is gone (0.7.4.0.5). renderHome() in food.js still calls this until the foods branch removes it; it does nothing.
-function homeGymTile(){}
-
 // ---------- recovery model: hard sets per muscle × time since, with your soreness on top ----------
 // Each done set adds load to its muscles by the exercise's muscle %, weighted for effort:
 // failure ×1.35, drop set ×1.2, heavy (≤5 reps) ×1.1, very light (≥20 reps) ×0.85, lowering-heavy moves (hinge/squat/lunge) ×1.2.
