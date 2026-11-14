@@ -226,17 +226,35 @@ function route(){
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
+// ---------- Food Preferences (setup step + Settings): allergies and foods you don't eat, saved in profile.foodPrefs (optional field) ----------
+const FP_ALLERGY = ['peanuts', 'tree_nuts', 'milk', 'eggs', 'fish', 'shellfish', 'soy', 'gluten', 'sesame'];
+const FP_AVOID = ['vegetarian', 'vegan', 'pescatarian', 'pork', 'beef', 'lamb', 'alcohol', 'mushrooms'];
+function foodPrefsHtml(fp){
+  fp = fp || {}; const chips = (list, pre, on) => `<div class="tchips fpchips">${list.map(k => `<button type="button" data-fp="${k}" class="${(on || []).includes(k) ? 'on' : ''}">${esc(t(pre + k))}</button>`).join('')}</div>`;
+  return `<p class="sub">${t('fpSub')}</p><label>${t('fpAllergies')}</label>${chips(FP_ALLERGY, 'fpA_', fp.allergies)}
+    <input class="fpAx" autocomplete="off" value="${esc(fp.allergyText || '')}" placeholder="${esc(t('fpOtherPh'))}" style="margin-top:8px">
+    <div class="fpwarn">${svgIcon('warn', 16, 2.2)}<span>${t('fpWarn')}</span></div>
+    <label>${t('fpAvoid')}</label>${chips(FP_AVOID, 'fpD_', fp.avoid)}
+    <input class="fpDx" autocomplete="off" value="${esc(fp.avoidText || '')}" placeholder="${esc(t('fpOtherPh'))}" style="margin-top:8px">`;
+}
+function readFoodPrefs(root){
+  const on = pre => [...root.querySelectorAll('.fpchips button.on')].map(b => b.dataset.fp).filter(k => (pre === 'a' ? FP_ALLERGY : FP_AVOID).includes(k));
+  const tx = sel => (root.querySelector(sel) || {}).value || '';
+  return { allergies: on('a'), allergyText: tx('.fpAx').trim(), avoid: on('d'), avoidText: tx('.fpDx').trim() };
+}
+function saveFoodPrefs(fp){ if(fp.allergies.length || fp.allergyText || fp.avoid.length || fp.avoidText) profile.foodPrefs = fp; else delete profile.foodPrefs; saveProfile(); }
+
 function openSetup(){
   const tg = targets || {}; const gymDays = Object.entries(gymPlan).filter(([, p]) => p && p.tpl && p.tpl !== 'rest').map(([wd]) => +wd);
   const workDays = Object.entries(gymPlan).filter(([, p]) => p && p.work).map(([wd]) => +wd), w0 = workDays.length ? gymPlan[workDays[0]].work : { from: '09:00', to: '17:00' };
   SUP = { step: 0, lang: lang, use: ui.gymFirst ? 'gym' : 'both', bw: tg.bw || '', goal: tg.goal || 'bulk', gym: new Set(gymDays.length ? gymDays : [1, 3, 5]), time: profile.gymTime || '18:00',
-    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: profile.sex || null, h: profile.height || '' };
+    work: workDays.length > 0, workDays: new Set(workDays.length ? workDays : [1, 2, 3, 4, 5]), from: w0.from, to: w0.to, key: settings.geminiKey || '', sex: profile.sex || null, h: profile.height || '', fp: profile.foodPrefs || null };
   drawSetup(); open('ovSetup');
 }
 
 function drawSetup(){
   const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
-  let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
+  let h = `<div class="sudots">${[0, 1, 2, 3, 4, 5].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
   const useSeg = `<label style="margin-top:16px">${t('suUse')}</label><div class="seg" id="suUse"><button data-v="both" class="${SUP.use !== 'gym' ? 'on' : ''}">${t('useBoth')}</button><button data-v="gym" class="${SUP.use === 'gym' ? 'on' : ''}">${t('useGym')}</button></div>`;
   if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}">English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}">Ελληνικά</button></div>` + useSeg;
   if(s === 1) h += `<h2>${t('suAbout')}</h2><label>${t('suSex')}</label><div class="seg" id="suSex"><button data-v="m" class="${SUP.sex === 'm' ? 'on' : ''}">${t('suMale')}</button><button data-v="f" class="${SUP.sex === 'f' ? 'on' : ''}">${t('suFemale')}</button></div>
@@ -247,14 +265,15 @@ function drawSetup(){
     <label class="check" style="margin-top:14px"><input type="checkbox" id="suWork" ${SUP.work ? 'checked' : ''}><span>${t('suWorkQ')}</span></label>
     <div id="suWorkBox" class="${SUP.work ? '' : 'hide'}"><label>${t('suWorkDays')}</label>${dayChips(SUP.workDays, 'suwd')}
       <div class="grid" style="margin-top:8px"><div><label for="suFrom">${t('suFrom')}</label><input id="suFrom" type="time" value="${SUP.from}"></div><div><label for="suTo">${t('suTo')}</label><input id="suTo" type="time" value="${SUP.to}"></div></div></div>`;
-  if(s === 3) h += `<h2>${t('suAi')}</h2><p class="sub">${t('suAiSub')}</p><input id="suKey" type="password" autocomplete="off" value="${esc(SUP.key)}" placeholder="AIza…"><div class="actions" style="margin-top:8px"><button class="btn" id="suGetKey">${t('getKey')}</button></div>`;
-  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="text-align:center;margin:10px 0;color:var(--t-accent-ink,var(--t-accent))">${svgIcon('check', 54, 2)}</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
-  h += `<div class="actions">${s > 0 ? `<button class="btn" data-sunav="-1">${t('suBack')}</button>` : `<button class="btn" data-suskip>${t('suSkip')}</button>`}${s === 3 ? `<button class="btn" data-sunav="1" data-skipkey>${t('suSkip')}</button>` : ''}<button class="btn primary" data-sunav="${s === 4 ? 'done' : 1}">${s === 4 ? t('suFinish') : t('suNext')}</button></div>`;
+  if(s === 3) h += `<h2>${t('stFoodPrefs')}</h2>${foodPrefsHtml(SUP.fp)}`;
+  if(s === 4) h += `<h2>${t('suAi')}</h2><p class="sub">${t('suAiSub')}</p><input id="suKey" type="password" autocomplete="off" value="${esc(SUP.key)}" placeholder="AIza…"><div class="actions" style="margin-top:8px"><button class="btn" id="suGetKey">${t('getKey')}</button></div>`;
+  if(s === 5){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="text-align:center;margin:10px 0;color:var(--t-accent-ink,var(--t-accent))">${svgIcon('check', 54, 2)}</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
+  h += `<div class="actions">${s > 0 ? `<button class="btn" data-sunav="-1">${t('suBack')}</button>` : `<button class="btn" data-suskip>${t('suSkip')}</button>`}${s === 4 ? `<button class="btn" data-sunav="1" data-skipkey>${t('suSkip')}</button>` : ''}<button class="btn primary" data-sunav="${s === 5 ? 'done' : 1}">${s === 5 ? t('suFinish') : t('suNext')}</button></div>`;
   $('suBody').innerHTML = h;
 }
 
 function readSetup(){ const v = id => $(id) ? $(id).value : null;
-  if($('suBw')) SUP.bw = num('suBw') || ''; if($('suH')) SUP.h = num('suH') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); }
+  if($('suBw')) SUP.bw = num('suBw') || ''; if($('suH')) SUP.h = num('suH') || ''; if($('suTime')) SUP.time = v('suTime') || '18:00'; if($('suFrom')) SUP.from = v('suFrom') || '09:00'; if($('suTo')) SUP.to = v('suTo') || '17:00'; if($('suKey')) SUP.key = v('suKey').trim(); if(SUP.step === 3) SUP.fp = readFoodPrefs($('suBody')); }
 
 function calcTargets(bw, goal, sex, hcm){
   sex = sex || profile.sex; hcm = hcm || profile.height;
@@ -272,6 +291,7 @@ function calcTargets(bw, goal, sex, hcm){
 function finishSetup(){
   if(SUP.sex) profile.sex = SUP.sex; if(SUP.h > 120) profile.height = SUP.h; if(SUP.bw > 30 && !Object.keys(weights || {}).length){ weights[todayKey()] = SUP.bw; Store.save('weights', weights); }
   const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets);
+  if(SUP.fp) saveFoodPrefs(SUP.fp);
   profile.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
     if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;

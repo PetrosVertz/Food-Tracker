@@ -146,6 +146,7 @@ const SHELL_SETS = [
   { k: 'suHeight', g: 'stBody', kw: 'tall cm ft ψηλός', go: ['[data-sp="ovSBody"]'], hl: '#sH' },
   { k: 'bodyweight', g: 'stBody', kw: 'weight kg lb weigh κιλά ζύγισμα', go: ['[data-sp="ovSBody"]'], hl: '#sW' },
   { k: 'dailyTargets', g: 'stBody', kw: 'calories kcal protein carbs fat fibre fiber macros goal bulk cut recomp θερμίδες πρωτεΐνη υδατάνθρακες λιπαρά στόχος όγκος γράμμωση', go: ['[data-sp="ovSBody"]', '#sTargetsBtn'] },
+  { k: 'stFoodPrefs', kw: 'allergy allergies diet vegetarian vegan dislike avoid αλλεργία διατροφή χορτοφάγος', go: ['[data-sp="ovSFood"]'] },
   { k: 'stAI', kw: 'gemini artificial intelligence τεχνητή νοημοσύνη', go: ['[data-sp="ovSAI"]'] },
   { k: 'geminiKey', g: 'stAI', kw: 'api key password κλειδί', go: ['[data-sp="ovSAI"]'], hl: '#sKey' },
   { k: 'geminiModel', g: 'stAI', kw: 'flash pro lite μοντέλο', go: ['[data-sp="ovSAI"]'], hl: '#sModel' },

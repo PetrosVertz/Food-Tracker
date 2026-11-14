@@ -726,3 +726,9 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 :root[data-theme="light"] .cantscan{color:#8f4300!important;border-color:rgba(176,86,0,.55)!important}
 :root[data-theme="light"] .addexbig{color:color-mix(in srgb,var(--t-accent-ink,var(--t-accent)) 70%,#000)}
 :root[data-theme="light"] .pillbtn.danger{color:#9e1f19}
+
+/* 0.7.4.2 Food Preferences: the allergy warning line (amber; darker in Light so it reads at 4.5:1) */
+.fpwarn{display:flex;gap:8px;align-items:flex-start;margin:8px 0 4px;font-size:var(--fs-label);line-height:1.35;color:#e6b44c}
+.fpwarn svg{flex:none;margin-top:1px}
+:root[data-theme="light"] .fpwarn{color:#8a5a00}
+.fpchips{margin-bottom:2px} #suBody label,#sFoodBody label{margin-top:14px}

@@ -25,6 +25,7 @@ const WD1 = () => [1, 2, 3, 4, 5, 6, 0];
 
 $('suBody').addEventListener('click', e => {
   const L2 = e.target.closest('[data-sulang]'); if(L2){ lang = L2.dataset.sulang; ui.lang = lang; saveUI(); applyLang(); route(); drawSetup(); return; }
+  const fc = e.target.closest('.fpchips button'); if(fc){ fc.classList.toggle('on'); Phone.haptic(); return; }
   const g = e.target.closest('#suGoal [data-v]'); if(g){ SUP.goal = g.dataset.v; setSeg('#suGoal', SUP.goal); return; }
   const us = e.target.closest('#suUse [data-v]'); if(us){ SUP.use = us.dataset.v; setSeg('#suUse', SUP.use); return; }
   const gd = e.target.closest('[data-sugym]'); if(gd){ readSetup(); const d = +gd.dataset.sugym; SUP.gym.has(d) ? SUP.gym.delete(d) : SUP.gym.add(d); drawSetup(); return; }
@@ -35,7 +36,7 @@ $('suBody').addEventListener('click', e => {
   if(nv.dataset.skipkey !== undefined) SUP.key = settings.geminiKey || '';
   if(nv.dataset.sunav === 'done') return finishSetup();
   const d = +nv.dataset.sunav; if(d > 0 && SUP.step === 1 && !(SUP.bw > 30)){ toast(t('suNeedW')); $('suBw').focus(); return; }
-  SUP.step = Math.max(0, Math.min(4, SUP.step + d)); drawSetup();
+  SUP.step = Math.max(0, Math.min(5, SUP.step + d)); drawSetup();
 });
 
 $('suBody').addEventListener('change', e => { if(e.target.id === 'suWork'){ readSetup(); SUP.work = e.target.checked; drawSetup(); } });
