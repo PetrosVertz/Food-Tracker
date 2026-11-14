@@ -267,7 +267,12 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .gsnote{margin:0}
 
 /* 0.7.7 Exercise Settings + per-set extras */
-.pill2.gear{width:34px;padding:0}
+/* gear top right of the live exercise card; .extop is a right-aligned row, so gym-tiers can put its badge just left of the gear */
+.exc.open{position:relative}
+.extop{position:absolute;top:4px;right:4px;display:flex;flex-direction:row-reverse;align-items:center;gap:4px;z-index:2}
+.exgear{width:44px;height:44px;padding:0;border:0;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.exgear:active{color:var(--t-text)}
+.exc.open .exhead{padding:0 52px}
 .exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--t-line)}
 .exsrow b{display:block;font-weight:var(--w-med)} .exsrow small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
 .exsh{margin:16px 0 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
