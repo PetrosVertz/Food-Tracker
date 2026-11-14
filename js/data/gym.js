@@ -401,3 +401,24 @@ const EQ_ICON = {   // 0.6.9.3: detailed line drawings; bodyweight is just "BW"
 const SYN = { db: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', ohp: 'overhead press', 'pull-up': 'pullup', 'pull-ups': 'pullup', 'chin-up': 'chinup', pullups: 'pullup', rdl: 'romanian deadlift', 'push-up': 'pushup', 'push-ups': 'pushup', pushups: 'pushup', 'sit-up': 'situp', flyes: 'fly', flye: 'fly', flies: 'fly', raises: 'raise', curls: 'curl', presses: 'press', rows: 'row', extensions: 'extension', 'skull': 'skullcrusher', lunges: 'lunge', squats: 'squat', dips: 'dip', 'kickbacks': 'kickback', 'pulldown': 'pulldown', 'pull-down': 'pulldown' };
 
 const EQ_FE = { barbell: 'barbell', dumbbell: 'dumbbell', machine: 'machine', cable: 'cable', bodyweight: 'body only', kettlebell: 'kettlebells', band: 'bands' };
+
+// ---------- Form photos: hand-picked free-exercise-db photo per exercise (null = no photo is better than a wrong one) ----------
+// exerciseId: 'fedbId' (checked by eye against the photos), or null when nothing in the photo set is the same movement.
+const FORM_PICK = {
+  // chest
+  bench: 'Barbell_Bench_Press_-_Medium_Grip',
+  incline_bench: 'Barbell_Incline_Bench_Press_-_Medium_Grip',
+  decline_bench: 'Decline_Barbell_Bench_Press',
+  db_bench: 'Dumbbell_Bench_Press',
+  incline_db: 'Incline_Dumbbell_Press',
+  decline_db: 'Decline_Dumbbell_Bench_Press',
+  machine_press: 'Machine_Bench_Press',
+  incline_machine: 'Leverage_Incline_Chest_Press',
+  smith_bench: 'Smith_Machine_Bench_Press',
+  cable_fly: null,
+  pec_deck: 'Butterfly',
+  db_fly: 'Dumbbell_Flyes',
+  incline_db_fly: 'Incline_Dumbbell_Flyes',
+  pushup: 'Pushups',
+  dips: 'Dips_-_Chest_Version',
+};
