@@ -457,14 +457,14 @@ Object.assign(S, {
 
 // ---------- 0.6.8 ----------
 Object.assign(S, {
-  superset: ['Superset', 'Υπερσετ'], formPill: ['Form', 'Τεχνική'], swapPill: ['Swap', 'Αλλαγή'], newSetPill: ['+ New Set', '+ Νέο σετ'], endExPill: ['End Exercise', 'Τέλος άσκησης'],
+  superset: ['Superset', 'Υπερσετ'], ssHint: ['Hold an exercise and drop it on another to make a superset. Drop it past the top or bottom of the list to unlink it.', 'Κράτα μια άσκηση και άφησέ τη πάνω σε άλλη για υπερσετ. Άφησέ τη πέρα από την αρχή ή το τέλος της λίστας για να τη χωρίσεις.'], ssOut: ['Taken out of the superset', 'Βγήκε από το υπερσετ'], formPill: ['Form', 'Τεχνική'], swapPill: ['Swap', 'Αλλαγή'], newSetPill: ['+ New Set', '+ Νέο σετ'], endExPill: ['End Exercise', 'Τέλος άσκησης'],
   setDoneL: ['Set done', 'Σετ ολοκληρώθηκε'], markDoneL: ['Mark set done', 'Σημείωσε το σετ'], add15: ['Add 15 seconds', 'Πρόσθεσε 15 δευτερόλεπτα'], sub15: ['Subtract 15 seconds', 'Αφαίρεσε 15 δευτερόλεπτα'],
   discardQ2: ['Discard this workout?', 'Απόρριψη αυτής της προπόνησης;'], discardBtn: ['Discard', 'Απόρριψη'], keepBtn: ['Keep', 'Κράτησέ τη'], endWorkoutPill: ['End Workout', 'Τέλος προπόνησης'], skipGym: ['Skip', 'Παράλειψη'], gymSkipped: ['Gym skipped today · rest-day calories', 'Χωρίς γυμναστήριο σήμερα · θερμίδες ημέρας ξεκούρασης'],
   gymSkippedT: ['Skipped: today uses your rest-day targets', 'Παράλειψη: σήμερα ισχύουν οι στόχοι ημέρας ξεκούρασης'],
   gymL: ['Gym', 'Γυμναστήριο'], restDayS: ['Rest', 'Ξεκούραση'], muUse: ['Muscle Usage {p}%', 'Χρήση μυός {p}%'], sortByMu: ['Sort by muscle usage', 'Ταξινόμηση κατά χρήση μυός'], estNew: ['Based on your other exercises, try {w} kg for {r} reps', 'Με βάση τις άλλες σου ασκήσεις, δοκίμασε {w} kg για {r} επαναλήψεις'],
-  autoEnded: ['Workout saved. It ended by itself at {t} (no taps for 15 min).', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t} (15 λεπτά χωρίς πάτημα).'],
+  autoEnded: ['Workout saved. It ended by itself at {t}, your last set.', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t}, στο τελευταίο σου σετ.'], aeQ: ['Finished Your Workout?', 'Τελείωσες την προπόνηση;'], aeFinish: ['Finish', 'Τέλος'], aeResume: ['Resume', 'Συνέχεια'],
   idleQ: ['Your workout has been open with no taps for {m} min. Go back to it?', 'Η προπόνηση είναι ανοιχτή χωρίς πάτημα εδώ και {m} λεπτά. Επιστροφή σε αυτή;'],
-  idleBack: ['Back to workout', 'Επιστροφή'], idleEnd: ['End it', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['Drop','Πτωτικό'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
+  idleBack: ['Back to Workout', 'Επιστροφή'], idleEnd: ['End It', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['Drop','Πτωτικό'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
 });
 
 // ---------- 0.7: shopping in, Groceries → fridge, Check My Foods ----------
