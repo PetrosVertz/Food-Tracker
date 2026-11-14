@@ -11,8 +11,7 @@ document.addEventListener('click', e => {
 addEventListener('scroll', hideTip, true);
 addEventListener('hashchange', hideTip);
 
-// Log food sheet: Quick add + Plan my day
-$('lQuickTop').addEventListener('click', () => { close('ovLog'); openQuick(); });
+// Log food sheet: Plan my day
 $('planShow').addEventListener('click', e => { if(e.target.closest('#planCancel') && planCtl){ planCtl.abort(); renderPlan(); } });
 
 // Quick add: one box, Small / Normal / Big

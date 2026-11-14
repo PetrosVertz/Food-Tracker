@@ -177,7 +177,7 @@ const S = {
  // plan my day
  planning:['Planning…','Σχεδιάζω…'], planFail:['Couldn’t plan: {e}','Δεν έγινε το πλάνο: {e}'],
  planNeedTargets:['Set your targets first (Targets, at the top).','Βάλε πρώτα τους στόχους σου (Στόχοι, πάνω).'],
- planLogged:['Logged {n} foods','Καταγράφηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
+ planLogged:['Added {n} foods','Προστέθηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
  // fridge
  locFridge:['Fridge','Ψυγείο'], locFreezer:['Freezer','Κατάψυξη'], locCupboard:['Cupboard','Ντουλάπι'], searchFridge:['Search the fridge…','Αναζήτηση στο ψυγείο…'],
  emptyFridge:['<b>Your fridge is empty</b>Tap Scan Receipt after shopping, or Add Food. Ticked groceries can go straight in too.','<b>Το ψυγείο είναι άδειο</b>Σκάναρε ό,τι αγόρασες ή τσέκαρε από τη λίστα για ψώνια και βάλ’ τα μέσα.'],
@@ -439,11 +439,9 @@ Object.assign(S, {
 
 // ---------- 0.6.5.1 ----------
 Object.assign(S, {
-  planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
   qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
 });
 
-Object.assign(S, { ateBtn: ['Ate', 'Το έφαγα'] });
 
 // ---------- 0.6.6 ----------
 Object.assign(S, {
@@ -518,23 +516,18 @@ Object.assign(S, {
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
   logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
-  logQT: ['Quick Log', 'Γρήγορη καταγραφή'],
-  logQPh: ['What did you eat?', 'Τι έφαγες;'],
-  logQHi: ['Type everything you ate, with the amounts if you know them. The AI will find the calories and macros for each food.', 'Γράψε ό,τι έφαγες, με τις ποσότητες αν τις ξέρεις. Το AI θα βρει τις θερμίδες και τα μακρο για κάθε τρόφιμο.'],
-  logQNoKey: ['No Gemini key, so it gets split at commas and “and”. A free key in Settings splits it much better.', 'Χωρίς κλειδί Gemini χωρίζεται στα κόμματα και στο «και». Με δωρεάν κλειδί στις Ρυθμίσεις χωρίζεται πολύ καλύτερα.'],
-  logQWork: ['Splitting it up…', 'Το χωρίζω…'], logQFind: ['Finding…', 'Ψάχνω…'],
-  logQAll: ['Log All', 'Καταγραφή όλων'],
-  logQLogged: ['Logged {n} foods · {k} kcal', 'Καταγράφηκαν {n} τρόφιμα · {k} kcal'], logQDone: ['Logged', 'Καταγράφηκε'],
-  logQNew: ['{n} new estimated foods saved', '{n} νέα τρόφιμα με εκτίμηση αποθηκεύτηκαν'],
-  logQStd: ['built-in', 'βασικό'], logQOnl: ['online', 'διαδίκτυο'], logQEst: ['estimate', 'εκτίμηση'],
+  logQFind: ['Finding…', 'Ψάχνω…'], logQSugg: ['Here are a few ideas to fill your macros.', 'Μερικές ιδέες για να συμπληρώσεις τα μακρο σου.'],
+  planAddedOne: ['Added', 'Προστέθηκε'], planDropped: ['Suggestion removed', 'Η πρόταση αφαιρέθηκε'], logQGot: ['Got it, here\'s what I found.', 'Έγινε, να τι βρήκα.'],
+  logQLogged: ['Added {n} foods · {k} kcal', 'Προστέθηκαν {n} τρόφιμα · {k} kcal'],
+  logQStd: ['built-in', 'βασικό'], logQEst: ['estimate', 'εκτίμηση'],
+  logQWebTag: ['FROM THE WEB', 'ΑΠΟ ΤΟ ΔΙΑΔΙΚΤΥΟ'], logQEstTag: ['AI ESTIMATE', 'ΕΚΤΙΜΗΣΗ AI'],
   logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
   logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
   logQNoMatch: ['Nothing matches “{q}”', 'Τίποτα για «{q}»'],
   logQFail: ['Couldn’t split that. Put commas between the foods and try again.', 'Δεν χωρίστηκε. Βάλε κόμματα ανάμεσα στα τρόφιμα και ξαναδοκίμασε.'],
   logQAIFail: ['The AI didn’t answer ({e}), so it was split at commas instead.', 'Το AI δεν απάντησε ({e}), οπότε χωρίστηκε στα κόμματα.'],
-  logQNothing: ['Nothing to log yet', 'Δεν υπάρχει κάτι για καταγραφή'],
-  logQOpen: ['Quick Log “{q}”', 'Γρήγορη καταγραφή «{q}»'], logQOpenSub: ['The AI splits it and finds each food', 'Το AI το χωρίζει και βρίσκει κάθε τρόφιμο'],
-  logQSend: ['Send', 'Αποστολή'],
+  logQNothing: ['Nothing to add yet', 'Δεν υπάρχει κάτι για προσθήκη'],
+  logQOpen: ['Ask Food Coach: “{q}”', 'Ρώτα τον Κόουτς Διατροφής: «{q}»'], logQOpenSub: ['It finds each food and its macros', 'Βρίσκει κάθε τρόφιμο και τα μακρο του'],
   // 0.7.4.0.5: units, labels and screen-reader names that used to sit in the code
   logUSlice: ['Slice', 'Φέτα'], logUPiece: ['Piece', 'Τεμάχιο'], logUPack: ['Pack', 'Συσκευασία'], logUPlate: ['Plate', 'Πιάτο'],
   logUOz: ['Ounces', 'Ουγγιές'], logUMl: ['Millilitres', 'Χιλιοστόλιτρα'], logUG: ['Grams', 'Γραμμάρια'],
@@ -597,7 +590,7 @@ function titleCase(str){
   'hubRec', 'hubWeek', 'hubWeekSub', 'import', 'ingredients', 'language', 'later', 'light', 'listMode', 'locCupboard', 'locFreezer', 'locFridge',
   'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
   'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
-  'perPack', 'petChoose', 'petHow', 'pieces', 'planT', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
+  'perPack', 'petChoose', 'petHow', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
   'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
   'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
   'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',

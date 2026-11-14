@@ -220,55 +220,20 @@ $('tgSave').addEventListener('click', () => {
 
 $('planShow').addEventListener('click', e => {
   if(e.target.closest('#planCancel')){ if(planCtl){ planCtl.abort(); renderPlan(); } return; }
-  if(e.target.closest('#dropPlan')){ delete plans[curDay]; Store.save('plans', plans); renderPlan(); return; }
   const b = e.target.closest('[data-plog]'); if(!b) return;
-  const m = plans[curDay].meals[+b.dataset.plog]; let n = 0, miss = 0;
-  (m.items || []).forEach(it => {
-    const g = Number(it.grams); if(!(g > 0)) return;
-    const meal = meals.find(x => norm(x.name) === norm(it.name));
-    let info = null;
-    if(meal) info = { name: meal.name, icon: mealIcon(meal), unit: 'g', per: meal, meal };
-    else { const ref = matchIng([it.name, it.name_en]); let f = null;
-      if(ref && ref.type === 'my') f = foods.find(x => x.id === ref.id); else if(ref && ref.type === 'gen') f = saveGeneric(GENBY[ref.id]);
-      if(f) info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; }
-    if(!info){ miss++; return; }
-    logEntry(curDay, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM());
-    if(it.from === 'fridge') takeFromFridge(info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }, g);
-    n++;
-  });
-  m.logged = true; Store.save('plans', plans); renderAll();
-  toast(t('planLogged', { n }) + (miss ? ' · ' + t('planUnmatched', { n: miss }) : ''));
+  planAdd(+b.dataset.plog);
 });
 
 $('planBtn').addEventListener('click', async () => {
   if(planCtl){ planCtl.abort(); return; }
   const tg = targetFor(curDay); if(!tg){ toast(t('planNeedTargets')); openTargets(); return; }
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
-  const btn = $('planBtn'), di = dayInfo(curDay), tot = dayTotals(curDay), isToday = daysUntil(curDay) === 0;
+  const btn = $('planBtn');
   planCtl = new AbortController(); const ctl = planCtl; btn.textContent = t('planning'); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
-  const fr = liveItems().map(x => `${x.info.name}: ${fmtSize(x.it.qty, x.info.unit)}`).join('; ');
-  const fl = foods.slice(0, 70).map(f => `${foodName(f)} (${f.kcal}kcal P${f.protein} C${f.carbs} F${f.fat} per 100${f.unit}${f.state === 'uncooked' ? ', weighed raw' : ''})`).join('; ');
-  const ml = meals.map(m => `${m.name} (per 100 g cooked: ${m.kcal}kcal P${m.protein} C${m.carbs} F${m.fat})`).join('; ');
-  const eaten = (dayLog[curDay] || []).map(e => `${e.time} ${e.name} ${e.amt}${e.unit}`).join('; ');
   try{
-    const r = await gemini(`You plan a day of eating for someone who lifts weights. Write all text in ${lang === 'el' ? 'Greek' : 'English'}.
-Day: ${di.type === 'gym' ? `GYM DAY, ${di.work || 'upper'} workout at ${di.time || '18:00'}` : 'REST DAY'}. Goal: ${targets.goal}.
-Targets for the whole day: ${tg.k} kcal, protein ${tg.p} g, carbs ${tg.c} g, fat ${tg.f} g, fibre ${fibTarget(tg)} g.
-Electrolytes so far: sodium ${Math.round(tot.na || 0)} mg (guideline ~2300), potassium ${Math.round(tot.k || 0)} mg (aim ~3400): include potassium-rich foods${di.type === 'gym' ? ', and a potassium-rich carb such as a banana 30-60 min before training' : ''}.
-${workFor(curDay) ? `They are at WORK ${workFor(curDay).from}-${workFor(curDay).to}: meals in that window must be portable and simple; plan a solid meal before and after work.` : 'No work today: proper meals at home are fine.'}
-Already eaten today: ${eaten || 'nothing'} (totals ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)}, C ${Math.round(tot.c)}, F ${Math.round(tot.f)}).
-${isToday ? `Time now: ${nowHM()}. Only plan meals from now on.` : 'Plan the whole day.'}
-In the fridge/cupboard (use these FIRST): ${fr || 'nothing logged'}.
-Their saved foods: ${fl || 'none'}.
-Their home-cooked meals: ${ml || 'none'}.
-Carb timing: ${di.type !== 'gym' ? 'spread carbs evenly; protein every 3-4 h.' : di.work === 'legs' || di.work === 'full' ? 'put most carbs in the meals 2-3 h before and within 2 h after the workout.' : di.work === 'cardio' ? 'light carb snack 1-2 h before, normal carbs after; remind to hydrate.' : 'moderate carbs before and after, rest spread out.'}
-REMAINING for the rest of today (plan exactly this, NEVER more): ${Math.max(0, Math.round(tg.k - tot.kcal))} kcal, protein ${Math.max(0, Math.round(tg.p - tot.p))} g, carbs ${Math.max(0, Math.round(tg.c - tot.c))} g, fat ${Math.max(0, Math.round(tg.f - tot.f))} g.
-Rules: land a little under the REMAINING numbers, never over. Use the exact food and meal names from the lists above. Grams are as weighed (raw for foods marked weighed raw, cooked weight for home-cooked meals). 1–3 meals or snacks: easy food combos or one simple plate each. Keep it realistic and simple.
-Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":string,"name_en":string,"grams":number,"from":"fridge"|"foods"|"meal"}],"kcal":number,"protein":number,"carbs":number,"fat":number,"why":string}],"tip":string}${AI.dietRules()}`,
+    const r = await gemini(planPrompt(),
       null, (i, n) => { if(planCtl === ctl){ btn.textContent = t('cancelRec', { i, n }); planStat(t('cancelRec', { i, n })); } }, ctl.signal);
-    if(!r || !Array.isArray(r.meals) || !r.meals.length) throw new Error('empty plan');
-    planFit(r, { k: tg.k - tot.kcal, p: tg.p - tot.p, c: tg.c - tot.c, f: tg.f - tot.f });   // 0.6.5: never over what's left
-    plans[curDay] = r; Store.save('plans', plans); renderPlan();
+    planKeep(r);
     setTimeout(() => $('planShow').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
   finally{ planCtl = null; btn.textContent = t('lwFill'); }
@@ -294,7 +259,7 @@ $('realStart').addEventListener('change', () => { profile.realStart = $('realSta
     const t_ = profile.realStart ? real : pl && pl.time; if(t_){ d.time = t_; saveDays(); } }
   renderAll(); });
 
-// Log food sheet: Quick Log (0.7.1, replaces Add Takeaway), yesterday's food
+// Log food sheet: Food Coach (0.7.4.3, was Quick Log), yesterday's food
 $('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
 logQWire(); logCalWire(); logFabWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
@@ -310,6 +275,7 @@ $('advSw').checked = false;
 $('advSw').addEventListener('change', () => { const b = $('advBody'); b.classList.toggle('hide', !$('advSw').checked); if($('advSw').checked) b.animate && b.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1)' }); });
 // Eaten: swipe to delete
 makeSwipeDelete($('dLog'), '.card[data-eid]', c => delEntry(c.dataset.eid));
+makeSwipeDelete($('planShow'), '.card[data-pi]', c => planDrop(+c.dataset.pi));   // 0.7.4.3: swipe a Fill My Macros suggestion away
 // Daily Targets: padlocks
 $('ovTargets').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
   MXL[P] = MXL[P] === k ? null : k; MXLG[P] = +$('tg' + P + k).value || 0; drawLocks(); });
