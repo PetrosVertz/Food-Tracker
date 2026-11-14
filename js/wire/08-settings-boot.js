@@ -3,7 +3,7 @@
 
 $('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
 
-$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); });
+$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });
 
 document.querySelectorAll('#sLang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.v)));
 
@@ -106,3 +106,6 @@ applyTabOrder();
 
 $('sFoodBody').addEventListener('click', e => { const c = e.target.closest('.fpchips button'); if(c){ c.classList.toggle('on'); Phone.haptic(); } });
 $('sFoodSave').addEventListener('click', () => { saveFoodPrefs(readFoodPrefs($('sFoodBody'))); toast(t('fpSaved')); close('ovSFood'); });
+
+// 0.7.4.3: the shared coach chat (js/coach.js)
+Coach.init(); aiGate();   // and greys out the AI controls when there is no key

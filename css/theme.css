@@ -604,10 +604,6 @@ body.twofab .fab{padding:16px 20px!important}
 .lchip{display:inline-flex;align-items:center;gap:4px;padding-right:4px}
 .lchipx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -1px -3px 0;border:0;border-radius:0;background:none;color:var(--t-done);padding:0;cursor:pointer;position:relative}
 .lchipx::before{content:'';position:absolute;inset:-11px}   /* tap area ≥ 44px */
-/* 0.7.3 · the Quick Log pill beside Log Food (placed by logQFabSync) */
-.logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
-.logqfab.hide{display:none}
-body.has-logqfab #fab{right:var(--lqfr)!important}
 /* 0.7.4.0.5 · line icons where the old glyphs were: padlocks, the fridge tag in the plan, a supplement's taken times */
 .mxlock{display:inline-flex;align-items:center;color:inherit}
 .src-f{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}
@@ -696,6 +692,69 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
 #ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
 html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
+/* 0.7.4.3 · the shared coach chat (js/coach.js), styled like the Claude app's chat: full window, plain robot answers on the left,
+   your messages as round bubbles on the right, one big round box pinned at the bottom with a round accent send button */
+#ovCoach{align-items:flex-start!important;top:var(--cvt,0px)!important;bottom:auto!important;height:var(--cvh,var(--appH,100vh))!important;transition:background-color .22s}
+#ovCoach .sheet.coachwin{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;padding:env(safe-area-inset-top) 0 0!important;
+  border:0!important;border-radius:0!important;background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:700px){ #ovCoach{align-items:center!important} #ovCoach .sheet.coachwin{max-width:640px!important;height:min(820px,calc(100% - 48px))!important;border-radius:28px!important;border:1px solid var(--t-line)!important;padding-top:0!important} }
+#ovCoach .sback{display:none}
+/* Back: the window shrinks into the robot bubble (transform-origin = where the bubble sits, set by coach.js) */
+#ovCoach.shrink{background:transparent!important}
+#ovCoach.shrink .sheet.coachwin{transform:scale(.08);opacity:0;border-radius:400px!important;animation:none!important;transition:transform .24s cubic-bezier(.4,0,.7,1),opacity .2s ease-in .04s,border-radius .24s}
+.chead{flex:0 0 auto;display:flex;align-items:center;gap:4px;min-height:56px;padding:6px 16px 6px 4px;border-bottom:1px solid var(--t-line)}
+.cback{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--t-text);display:grid;place-items:center;padding:0;cursor:pointer}
+.cface{display:inline-flex;margin-right:4px} .cface .robot,.cav .robot{display:block}
+.chead h2{margin:0;font-size:var(--fs-title)!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clist{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:16px 16px 8px;display:flex;flex-direction:column;gap:14px}
+.clist::-webkit-scrollbar{display:none}
+.cmsg{display:flex;gap:10px;align-items:flex-start} .cmsg.me{justify-content:flex-end}
+.cme{max-width:82%;display:flex;flex-direction:column;gap:8px;padding:10px 16px;border-radius:22px;background:var(--t-sel);color:var(--t-text);font-size:var(--fs-body);line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.cimg{display:block;max-width:220px;max-height:220px;border-radius:14px;object-fit:cover}
+.cav{flex:0 0 28px;width:28px;display:flex;justify-content:center}
+.ctext{flex:1;min-width:0;padding-top:4px;font-size:var(--fs-body);line-height:1.55;color:var(--t-text);white-space:pre-wrap;overflow-wrap:anywhere}
+.cwork{display:flex;align-items:center;padding-top:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ccards{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ccard{display:flex;flex-direction:column;gap:10px;padding:14px 14px 12px;border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-edge);box-shadow:var(--t-shadow)}
+.ccard.dim>:not(.ccacts){opacity:.55}
+.cchead{display:flex;flex-direction:column;gap:2px}
+.cchead b{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-weight:var(--w-med)} .cchead small{color:var(--t-muted);font-size:var(--fs-label)}
+.ctag{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;font-size:10px;font-weight:var(--w-bold);letter-spacing:.3px;background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
+.ctag.web{color:var(--t-rest);background:color-mix(in srgb,var(--t-rest) 14%,transparent);border-color:color-mix(in srgb,var(--t-rest) 45%,transparent)}
+.ctag.est{color:var(--t-warm);background:none;border:1px dashed color-mix(in srgb,var(--t-warm) 70%,transparent)}
+.ccacts{display:flex;justify-content:flex-end;gap:8px}
+.ccbtn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
+.ccbtn.pri{background:var(--t-accent);color:var(--t-on);border-color:transparent}
+.ccdone{display:flex;align-items:center;gap:6px;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-done)}
+.ccundo{margin-left:auto;min-height:36px;padding:0 6px;border:0;background:none;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);cursor:pointer}
+.cbar{flex:0 0 auto;padding:8px 12px calc(12px + env(safe-area-inset-bottom))} #ovCoach.kb .cbar{padding-bottom:10px}
+.cprev{display:flex;padding:4px 6px 10px} .cprev.hide{display:none}
+.cpimg{position:relative;display:inline-block} .cpimg img{display:block;width:64px;height:64px;object-fit:cover;border-radius:12px}
+.cpimg button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:var(--t-text);color:var(--t-bg);display:grid;place-items:center;cursor:pointer}
+.cbox{display:flex;align-items:flex-end;gap:6px;padding:6px 6px 6px 18px;border-radius:24px;background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.cbar.cam .cbox{padding-left:6px}
+.cbox:focus-within{border-color:color-mix(in srgb,var(--t-text) 30%,var(--t-line))}
+.cbox textarea{flex:1;width:auto;min-width:0;min-height:40px;max-height:148px;resize:none;margin:0;padding:9px 0;border:0!important;border-radius:0;background:none!important;box-shadow:none!important;outline:0!important;color:var(--t-text);font-size:16px;line-height:21px;overflow-y:auto;scrollbar-width:none}
+.cbox textarea::-webkit-scrollbar{display:none}
+.csend{flex:0 0 40px;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:var(--t-accent);color:var(--t-on);display:grid;place-items:center;cursor:pointer;transition:opacity .15s}
+.csend:disabled{opacity:.35;cursor:default}
+.ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
+/* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
+.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:left .42s cubic-bezier(.2,1.3,.4,1),top .32s cubic-bezier(.2,.9,.3,1),opacity .18s}
+html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
+.coachbub.pre{opacity:0;animation:none}
+.coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}
+/* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
+.coachpill{position:fixed;z-index:20;height:44px;padding:0 16px 0 8px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;animation:tipIn .25s ease-out}
+.coachpill.hide{display:none}
+.cpface{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;overflow:hidden;background:#26282b} .cpface .robot{display:block;margin-top:2px}
+:root[data-theme="light"] .cpface{background:#eef0f2}
+body.has-coachpill #fab{right:var(--cpr)!important}
+#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
+/* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
+body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
+@media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}

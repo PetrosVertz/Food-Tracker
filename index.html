@@ -717,7 +717,6 @@
 <!-- ==== branch: gym (new Gym Buddy sheets go on the lines below) ==== -->
 <!-- ==== end gym ==== -->
 <!-- ==== branch: log (new Today & Logging sheets go on the lines below) ==== -->
-<button class="logqfab hide" id="logQFab" type="button"><span data-t="logQT"></span><span class="aib">AI</span></button>
 <div class="overlay" id="ovCal"><div class="sheet calsheet">
   <div class="calhead"><button class="calx" type="button" data-close data-ta="close" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><h2 id="calT"></h2><button class="calnav" type="button" id="calPrev" data-ta="logAPrevMonth" aria-label="Previous month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="calnav" type="button" id="calNext" data-ta="logANextMonth" aria-label="Next month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
   <div class="calgrid calwk" id="calWk" aria-hidden="true"></div>
@@ -740,6 +739,11 @@
 <!-- ==== branch: shop (new Fridge & Groceries sheets go on the lines below) ==== -->
 <!-- ==== end shop ==== -->
 <!-- ==== branch: shell (new App Shell & Settings sheets go on the lines below) ==== -->
+<div class="overlay" id="ovCoach"><div class="sheet coachwin">
+  <div class="chead"><button class="cback" type="button" id="coachBack" data-ta="back" aria-label="Back"></button><span class="cface" id="coachFace" aria-hidden="true"></span><h2 id="coachT"></h2></div>
+  <div class="clist" id="coachList" aria-live="polite"></div>
+  <form class="cbar" id="coachForm"><div class="cprev hide" id="coachPrev"></div><div class="cbox"><button class="ccam hide" type="button" id="coachCam" data-ta="coachPhoto" aria-label="Photo"></button><textarea id="coachIn" rows="1" enterkeyhint="send" autocomplete="off"></textarea><button class="csend" type="submit" id="coachSend" data-ta="coachSend" aria-label="Send" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button></div><input type="file" id="coachFile" accept="image/*" capture="environment" hidden></form>
+</div></div>
 <!-- ==== end shell ==== -->
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
@@ -762,6 +766,7 @@
 <script src="js/data/gym-anatomy.js"></script>
 <script src="js/core.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/coach.js"></script>
 <script src="js/food.js"></script>
 <script src="js/search.js"></script>
 <script src="js/supplements.js"></script>

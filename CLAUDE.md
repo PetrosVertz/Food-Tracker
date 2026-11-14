@@ -19,7 +19,7 @@ The owner (Petros) is not a programmer: explain results in plain words, no code 
 - **log**: today.js, supplements.js, Today/Log/supplement parts of wire/02, wire/03 and wire/06.
 - **foods**: food.js, search.js, data/foods.js, data/foods-more.js, wire/01-core.js, food/cook parts of wire/02 and wire/05.
 - **shop**: fridge.js, shop.js, fridge parts of wire/03, wire/07.
-- **shell**: ui.js, core.js, platform/*, config.js, sw.js, base/glass/motion/layout.css, wire/08, wire/09, theme tokens.
+- **shell**: ui.js, core.js, coach.js, platform/*, config.js, sw.js, base/glass/motion/layout.css, wire/08, wire/09, theme tokens.
 - **Shared files** (strings.js, index.html, theme.css): edit only the keys, markup and theme.css block for your own topic.
 
 ## Style rules

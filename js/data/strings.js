@@ -549,6 +549,14 @@ Object.assign(S, {
   shBackupNow: ['Back Up Now', 'Αντίγραφο τώρα'],
   shLast: ['Last: {d}', 'Τελευταίο: {d}'],
   shSex: ['Sex', 'Φύλο'],
+  // 0.7.4.3 the shared coach chat (Food Coach + Gym Coach)
+  coachFood: ['Food Coach', 'Κόουτς Διατροφής'], coachGym: ['Gym Coach', 'Κόουτς Γυμναστηρίου'],
+  coachFoodHi: ['Tell me everything you ate, with the amounts if you know them, and I\'ll find the calories and macros for each food. Or ask me what to eat next, and I\'ll help you hit your macros.', 'Πες μου ό,τι έφαγες, με τις ποσότητες αν τις ξέρεις, και θα βρω τις θερμίδες και τα μακροθρεπτικά για κάθε τρόφιμο. Ή ρώτα με τι να φας μετά, και θα σε βοηθήσω να πιάσεις τους στόχους σου.'],
+  coachGymHi: ['I\'m your Gym Coach, here to help with your workouts. I can suggest a full workout, or look at one of yours and help you get more out of it.', 'Είμαι ο Κόουτς Γυμναστηρίου σου, εδώ για να βοηθήσω με τις προπονήσεις σου. Μπορώ να σου προτείνω μια ολόκληρη προπόνηση ή να δω μία δική σου και να σε βοηθήσω να βγάλεις περισσότερα από αυτήν.'],
+  coachPh: ['Message', 'Μήνυμα'], coachSend: ['Send', 'Αποστολή'], coachPhoto: ['Take a Photo', 'Τράβηξε φωτογραφία'],
+  coachBubA: ['Open {n}', 'Άνοιγμα: {n}'],
+  coachFail: ['Couldn\'t answer just now ({e}). Try again in a moment.', 'Δεν μπόρεσα να απαντήσω τώρα ({e}). Δοκίμασε ξανά σε λίγο.'],
+  aiNeedKey: ['This needs an AI key.', 'Χρειάζεται κλειδί AI.'], aiKeyGo: ['Add Key', 'Βάλε κλειδί'],
   // ==== end shell ====
 });
 
