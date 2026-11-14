@@ -605,10 +605,9 @@ function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0
 
 // ---------- Food Coach (0.7.4.3; was Quick Log, 0.7.1): tell the chef robot what you ate ----------
 // The AI only splits it into items + amounts (one AI use per message; the same answer carries a per-100 g estimate, used only
-// when a food can't be found). Each item is matched: what you typed before → your foods / meals → the built-in list → online
-// (USDA + Open Food Facts). Not found anywhere → saved as a new food (kcal/P/C/F only, "estimate" tag) when you tap Add.
+// when the web can't find a food). 0.7.5: no database matching; each item goes to the AI with web search (see logQWeb below).
 // Rows reuse the Log Food row: units, your egg size and the cooking slider follow your Log Food settings.
-let logPhr = Store.load('logPhr', {});   // 'p:<typed words>' → { f: foodId } | { m: mealId };  'm:<whole message>' → the AI's split
+let logPhr = Store.load('logPhr', {});   // 'm:<whole message>' → the AI's split
 const logQSavePhr = () => Store.save('logPhr', logPhr);
 function logQEstTag(e){ if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f && f.source === 'estimate' ? `<span class="sttag est">${t('logQEst')}</span>` : ''; }
 
@@ -618,12 +617,6 @@ function logQKey(s){ return norm(s).replace(/(\d)([^\d\s.,])/gu, '$1 $2').split(
 
 const logQMealInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
 const logQGenInfo = g => ({ ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g });
-function logQFromRef(r){
-  if(!r) return null;
-  if(r.m){ const m = meals.find(x => x.id === r.m); return m ? { info: logQMealInfo(m), src: 'meal' } : null; }
-  if(r.f){ const f = foods.find(x => x.id === r.f); return f ? { info: fInfo_(f), src: f.source === 'estimate' ? 'est' : 'mine' } : null; }
-  return null;
-}
 
 // the AI: split only (plus a fallback estimate per 100 g)
 // Food Coach's answer is structured: the app draws it (a short reply, then the foods as one list with one Add), never guesses from free text
@@ -686,69 +679,44 @@ function logQState(info, it){
 }
 function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
 
-// Lookups, in order: what you typed before → your foods / meals → the built-in list → Open Food Facts (+ USDA) → one web search
-// (Gemini + Google Search) for everything still missing, e.g. a brand of bread → an AI estimate. A food found online or estimated
-// is saved to your foods right away (tagged FROM THE WEB / AI ESTIMATE), so it can always be added and is found next time.
-// A branded item only takes a plain built-in food when the real product can't be found anywhere.
-function logQLocal(it){
-  const mem = logQFromRef(logPhr['p:' + logQKey(it.text || it.name)]) || (it.name_en ? logQFromRef(logPhr['p:' + logQKey(it.name_en)]) : null);
-  if(mem){ logQSet(it, mem.info, mem.src); return true; }
-  const nm = it.name || it.text, en = it.name_en || nm, br = (it.brand || '').trim(), nb = norm(br);
-  // a food of yours with another brand isn't the one you typed ("Fage yogurt" ≠ your Olympus yogurt)
-  const brandOk = f => !br || !f.brand || norm(f.brand).includes(nb.split(' ')[0]) || nb.includes(norm(f.brand).split(' ')[0]);
-  for(const q of [...new Set([br && `${br} ${nm}`, br && `${br} ${en}`, nm, en].filter(Boolean))]){
-    const s = searchLocal(q, false, { log: true, meals: true });
-    const f = s.mine.find(brandOk); if(f){ logQSet(it, fInfo_(f), f.source === 'estimate' ? 'est' : 'mine'); return true; }
-    if(!br && s.meals[0]){ logQSet(it, logQMealInfo(s.meals[0]), 'meal'); return true; }
-  }
-  for(const q of [...new Set([nm, en])]){ const s = searchLocal(q, false, { log: true }); if(s.std[0]){
-    if(br){ it.alt = logQGenInfo(s.std[0]); break; }   // kept for the end, in case the real product isn't found
-    logQSet(it, logQGenInfo(s.std[0]), 'std'); return true; } }
-  return false;
-}
-// a food from the web or an estimate: saved to your foods now, remembered for the words you typed
+// Food Coach (0.7.5): AI and web only. Every food goes to the AI with web search, which reads the real product's nutrition per 100 g
+// (tag FROM THE WEB) or, when it can't find it, gives an estimate (tag AI ESTIMATE). Your foods, the built-in list and Open Food
+// Facts are NOT used for matching here. Each food is saved to My Foods marked via:'coach' (never read back by Food Coach).
+function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
+// saved to My Foods, marked as from Food Coach; the same name + macros already saved by Food Coach isn't saved twice
 function logQSaveFound(it, d, src){
-  const f = saveOnlineFood(d), pk = logQKey(it.text || it.name);
-  if(pk){ logPhr['p:' + pk] = { f: f.id }; logQTrim(); logQSavePhr(); }
+  const key = x => [norm(x.name || ''), norm(x.brand || ''), Math.round(+x.kcal || 0), r1(+x.protein || 0), r1(+x.carbs || 0), r1(+x.fat || 0), x.unit === 'ml' ? 'ml' : 'g'].join('|');
+  let f = foods.find(x => x.via === 'coach' && key(x) === key(d));
+  if(!f){ f = saveOnlineFood(d); f.via = 'coach'; saveFoods(); }
   logQSet(it, fInfo_(f), src); it.saved = true;
 }
-async function logQOnline(it){
-  const nm = it.name || it.text, en = it.name_en || nm, br = (it.brand || '').trim();
-  try{
-    const res = await Promise.race([searchOnlineAll(br ? `${br} ${en}` : en), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 15000))]);
-    const d = (res || []).find(x => !x.check && +x.kcal > 0);
-    if(d){ logQSaveFound(it, { ...d, source: d.source || 'openfoodfacts' }, 'web'); return true; }
-  }catch(e){}
-  return false;
-}
+// one AI call with web search for the foods still waiting; a food it can't find stays for the estimate
 async function logQWeb(list, ch){
   if(!list.length || !AI.hasKey()) return;
-  try{ const r = await ch.ask(`Find these foods online and read their nutrition per 100 g (or 100 ml) as eaten. For a branded product (a brand of bread, yogurt, bar, drink, a restaurant dish) use THAT exact product: the brand's own site, a supermarket listing or Open Food Facts; if you can't find that exact product, set "found": false — never use a similar product. For a plain food, use a reliable nutrition database.
+  try{ const r = await ch.ask(`Find these foods online and read their nutrition per 100 g (or 100 ml) as eaten. For a branded product (a brand of bread, yogurt, bar, drink, a restaurant dish) use THAT exact product: the brand's own site, a supermarket listing or Open Food Facts; if you can't find that exact product, set "found": false — never use a similar product. For a plain food, use a reliable source (USDA, a national food table).
 Carbs as on EU labels (fibre not included). name: short name in ${lang === 'el' ? 'Greek' : 'English'}, without the brand.
-Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml"}]}
-Foods:
-${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}")`).join('\n')}${AI.dietRules()}`, null, { search: true });
-    (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i]; if(!it || !w.found || it.st) return;
+assumed: one short phrase in ${lang === 'el' ? 'Greek' : 'English'} saying what you assumed about the amount or the food, e.g. "1 slice ≈ 30 g"; "" if nothing was assumed.
+Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml","assumed":string}]}
+Foods (with the amount the person said):
+${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}"${it.qty ? `, amount: ${it.qty} ${it.unit || ''}`.trimEnd() : ''})`).join('\n')}${AI.dietRules()}`, null, { search: true });
+    (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i]; if(!it || it.st) return;
+      if(w.assumed) it.assumed = String(w.assumed).slice(0, 80);
+      if(!w.found) return;
       const d = { name: w.name || it.name, brand: w.brand || it.brand || '', hint: it.name_en || '', kcal: +w.kcal || null, protein: +w.protein || 0, carbs: +w.carbs || 0, fat: +w.fat || 0, fiber: w.fiber != null ? +w.fiber : null, unit: w.unit === 'ml' ? 'ml' : 'g', state: 'ready', source: 'web' };
       if(Search.quality(d) > 0) logQSaveFound(it, d, 'web'); });
   }catch(e){ if(e.cancelled) throw e; }
 }
+// not found on the web: the AI's own estimate per 100 g from the first answer
 function logQLast(it){
-  if(it.alt){ logQSet(it, it.alt, 'std'); return; }
   if(it.kcal !== null && it.kcal !== undefined){ const nm = it.name || it.text;
     logQSaveFound(it, { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g', kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }, 'est'); return; }
   it.st = null; it.src = 'none';
 }
 async function logQMatchAll(m, ch){
-  const say = k => { if(ch.status) ch.status(t(k)); }, done = it => { it.busy = false; logQRedraw(m); };
-  say('coachStFoods');
-  m.items.forEach(it => { try{ if(logQLocal(it)) done(it); }catch(e){} });
-  let left = m.items.filter(it => it.busy); if(!left.length) return;
-  say('coachStWeb');
-  await Promise.all(left.map(async it => { if(await logQOnline(it)) done(it); }));
-  left = m.items.filter(it => it.busy);
-  await logQWeb(left, ch);
-  left.forEach(it => { if(!it.st) logQLast(it); done(it); });
+  const done = it => { it.busy = false; logQRedraw(m); };
+  if(ch.status) ch.status(t('coachStWeb'));
+  await logQWeb(m.items.filter(it => it.busy), ch);
+  m.items.filter(it => it.busy).forEach(it => { if(!it.st) logQLast(it); done(it); });
 }
 
 // ---- 0.7.4.3 Food Coach (was Quick Log): the shared coach chat (js/coach.js) with the chef robot ----
@@ -768,7 +736,7 @@ function logQRowHtml(m, it, i){
   const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
   const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
   return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
-    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${esc(sub)}</small></button>
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}</button>
     ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}">${svgIcon('x', 14, 2.6)}</button>`}</div>
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }
@@ -849,7 +817,6 @@ function logQLogAll(m){
     logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]);
     const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
     try{ if(key.foodId ? stockOf(key.foodId) > 0 : mealStock(key.mealId) > 0) takeFromFridge(key, r.g); }catch(e){}
-    const pk = logQKey(it.text || it.name); if(pk) logPhr['p:' + pk] = info.meal ? { m: info.meal.id } : { f: info.food.id };
   });
   if(!added.length){ toast(t('needAmount')); return; }
   if(m.parts) logPhr[m.mk] = m.parts;
