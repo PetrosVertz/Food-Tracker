@@ -82,7 +82,7 @@
   <div id="storeView">
     <div class="logfX"><input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off"></div>
     <div class="chips" id="catChips"></div>
-    <div class="bar"><span id="count"></span><span class="barbtns"><button class="chkbtn" type="button" id="checkFoodsBtn" data-t="chkBtn"></button><button class="linkbtn" id="sortBtn"></button></span></div>
+    <div class="bar"><span id="count"></span><span class="barbtns"><button class="chkbtn aiafter" type="button" id="checkFoodsBtn" data-t="chkBtn"></button><button class="linkbtn" id="sortBtn"></button></span></div>
     <div class="list" id="list"></div>
   </div>
   <div id="mealsView" class="hide">
@@ -172,7 +172,6 @@
   <div id="pgGroc" class="hide">
   <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
   <div id="gSugg" class="sres"></div>
-  <div class="hide"><button id="gSend" type="button"></button><button id="gShare" type="button"></button><div id="gSendHint"></div></div>
   <div class="list" id="gList" style="margin-top:12px"></div>
   <div id="gDone"></div>
 </div>
@@ -209,7 +208,7 @@
 <div class="overlay" id="ovShop"><div class="sheet">
   <h2 data-t="shopT"></h2><p class="sub" data-t="shopSub"></p>
   <div id="shopOpts">
-    <button class="opt camopt" data-shop="camera"><span><b data-t="shopCam"></b><small data-t="shopCamSub"></small></span></button>
+    <button class="opt camopt" data-shop="camera"><span><b class="aiafter" data-t="shopCam"></b><small data-t="shopCamSub"></small></span></button>
     <button class="opt" data-shop="scan"><span><b data-t="shopScan"></b><small data-t="shopScanSub"></small></span></button>
     <button class="opt" data-shop="search"><span><b data-t="shopSearch"></b><small data-t="shopSearchSub"></small></span></button>
   </div>
@@ -659,7 +658,7 @@
   </div>
   <div class="hint" id="faHint"></div>
   <label data-t="whereKept" class="hide"></label>
-  <div class="seg hide" id="faLoc"><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div><label class="advrow frzrow"><span>❄️ <span data-t="frozen"></span></span><input type="checkbox" id="faFrozen"></label>
+  <div class="seg hide" id="faLoc"><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div><label class="advrow frzrow"><span data-t="frozen"></span><input type="checkbox" id="faFrozen"></label>
   <div id="faStockBox">
     <label for="faMin" data-t="rebuyBelow"></label>
     <div class="brandrow"><input id="faMin" type="number" inputmode="decimal" step="any" min="0" placeholder="0" style="flex:1"><span id="faMinUnit" style="color:var(--muted)">g</span></div>
@@ -722,15 +721,6 @@
   </div>
   <div class="hint" id="tgCheck"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="tgSave" data-t="save"></button></div>
-</div></div>
-
-<!-- ============ REMINDERS SHORTCUT SETUP ============ -->
-<div class="overlay" id="ovShortcut"><div class="sheet tall">
-  <h2 data-t="scTitle"></h2>
-  <p class="sub" data-t="scSub"></p>
-  <ol class="steps" id="scSteps"></ol>
-  <label class="check"><input type="checkbox" id="scDone"><span data-t="scDoneLbl"></span></label>
-  <div class="actions"><button class="btn" data-close data-t="close"></button><button class="btn primary" id="scTry" data-t="scTry"></button></div>
 </div></div>
 
 <!-- ============ SUGGEST A RECIPE ============ -->

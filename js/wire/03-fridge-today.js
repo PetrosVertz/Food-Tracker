@@ -17,8 +17,6 @@ const fromMin = m => { m = Math.max(0, Math.min(1439, Math.round(m))); return `$
 
 const nowHM = () => fromMin(new Date().getHours() * 60 + new Date().getMinutes());
 
-const isIOS = Phone.isIOS;
-
 const stockOf = foodId => r1(fridge.filter(it => it.foodId === foodId).reduce((s, it) => s + it.qty, 0));
 
 const mealStock = mealId => r1(fridge.filter(it => it.mealId === mealId).reduce((s, it) => s + it.qty, 0));
@@ -50,7 +48,7 @@ $('faSave').addEventListener('click', () => {
     // 0.7: n packs are n separate packs (they stack into one row), and the pack size + count are remembered for next time
     for(let i = 0; i < n; i++) addToFridge({ foodId: FA.food.id, qty: r1(amt), packSize: r1(amt), unit: FA.food.unit, loc: FA.loc });
     learnPack(FA.food.id, amt, n); close('ovFAdd'); renderAll();
-    toast(t('addedFridge', { l: t(LOC_KEY[FA.loc]).toLowerCase(), i: iconOf(FA.food) || '' }), t('scanNext'), () => startScan('fridge'));
+    toast(t('addedFridge', { l: t(LOC_KEY[FA.loc]).toLowerCase() }), t('scanNext'), () => startScan('fridge'));
   } else {
     const it = fridge.find(x => x.id === FA.item.id);
     if(it){ if(it.qtyGuess && it.foodId){ fridge.filter(x => x.foodId === it.foodId && x.qtyGuess).forEach(x => { x.qty = x.packSize = r1(amt); delete x.qtyGuess; }); learnPack(it.foodId, amt); }   // fixing a guessed pack fixes it for next time too
@@ -111,9 +109,9 @@ $('amFinish').addEventListener('click', () => {
 $('gIn').addEventListener('input', () => {
   const q = $('gIn').value.trim(); if(!q){ $('gSugg').innerHTML = ''; return; }
   GS = searchLocal(q); GS.mine = GS.mine.slice(0, 4); GS.std = GS.std.slice(0, 3);
-  $('gSugg').innerHTML = GS.mine.map((f, i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), f.brand && !f.noBrand ? esc(f.brand) : t('grpMine'))).join('') +
-    GS.std.map((g, i) => itemHtml('s', i, subOf(g.cat, g.sub).icon, L(g), t('grpStd'))).join('') +
-    `<button class="sitem" data-k="t"><span class="e">✏️</span><span class="t"><b>${t('addAsText', { q: esc(q) })}</b></span></button>`;
+  $('gSugg').innerHTML = GS.mine.map((f, i) => itemHtml('m', i, '', foodName(f), f.brand && !f.noBrand ? esc(f.brand) : t('grpMine'))).join('') +
+    GS.std.map((g, i) => itemHtml('s', i, '', L(g), t('grpStd'))).join('') +
+    `<button class="sitem" data-k="t"><span class="t"><b>${t('addAsText', { q: esc(q) })}</b></span></button>`;
 });
 
 $('gIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('gAdd').click(); } });
@@ -138,14 +136,6 @@ document.getElementById('pgGroc').addEventListener('click', e => {
     toast(t('deleted', { n: g.name }), t('undo'), () => { groc.splice(i, 0, g); saveGroc(); renderAll(); }); return; }
   if(e.target.closest('#gClear')){ groc = groc.filter(x => !x.done); saveGroc(); renderAll(); return; }
 });
-
-$('gSend').addEventListener('click', () => { if(!isIOS) return shareList(); if(!ui.scDone) return openShortcutGuide(); runShortcut(); });
-
-$('gShare').addEventListener('click', shareList);
-
-$('scDone').addEventListener('change', () => { ui.scDone = $('scDone').checked; saveUI(); renderGroc(); });
-
-$('scTry').addEventListener('click', () => { ui.scDone = true; saveUI(); close('ovShortcut'); renderGroc(); runShortcut(); });
 
 // ---------- today's food ----------
 let curDay = todayKey();
@@ -287,10 +277,6 @@ Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":stri
 $('homeAlerts').addEventListener('click', e => { const a = e.target.closest('[data-go]'); if(a) go(a.dataset.go); });
 
 $('tToday').addEventListener('click', () => { curDay = todayKey(); go('today'); });
-
-$('tFridge').addEventListener('click', () => go('fridge'));
-
-$('tGroc').addEventListener('click', () => go('groc'));
 
 document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goBack()));
 

@@ -276,10 +276,9 @@ html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-are
 /* other short windows: a steady, bigger size */
 .overlay.center .sheet{min-height:min(440px,60vh)}
 #ovAsk .sheet,#ovPick .sheet{min-height:0!important}
-/* Fridge: tidier spacing; no Fridge/Freezer tabs; ❄️ for frozen */
+/* Fridge: tidier spacing; no Fridge/Freezer tabs */
 #fLoc{display:none!important}
 #pgFridge .fgseg{margin:6px 0 12px} #pgFridge .search{margin:0 0 12px} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
-.frz{border:0;background:none;padding:0 2px;font-size:15px;cursor:pointer;vertical-align:middle}
 .frzrow{margin:10px 0}
 /* Home Screen app: everything a little lower */
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
