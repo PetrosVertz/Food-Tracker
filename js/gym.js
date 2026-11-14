@@ -675,7 +675,7 @@ function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
-  if(!isOpenEx(i)){   // short card: tap to open
+  if(!x.ended && !isOpenEx(i)){   // short card: tap to open (0.7.4.2: a finished exercise stays open with its sets)
     const n = x.ended ? doneN : x.sets.filter(z => isMainSet(z) && !(z.auto && !z.done)).length;   // the waiting auto set doesn't count
     return `<div class="exc mini ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}" data-openex${ssStyle}>${ssl}<div class="mtxt"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)} · ${t('nSets', { n })}</small></div>${fresh ? `<button class="swapq" data-replace aria-label="${t('swapEx')}">${ICO_SWAP.replace(/width="12" height="12"/, 'width="16" height="16"')}</button>` : ''}</div>`;
   }
