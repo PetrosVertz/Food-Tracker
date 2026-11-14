@@ -8,6 +8,7 @@ Each AI job also has a way to do it by hand:
 |---|---|---|
 | Food Coach chat | pill beside Log Food | Log Food: search, "Usually at this time", barcode |
 | Gym Coach chat | pill beside Create a Workout | Create a Workout, the exercise picker, Form pages |
+| Gym Coach on the live workout (machine photo, questions) | robot bubble by End Workout | Add Exercise picker (search by name or muscle), each exercise's Form page, the light bulb's built-in workout builder |
 | Quick Log | Log Food sheet | Log Food search (one food at a time) |
 | Fill My Macros | Log Food sheet | Today's bars show what's left; Log Food lists your usual foods for this time of day |
 | Photo of Nutrition Label | Add Food | Type the label in, or scan the barcode |

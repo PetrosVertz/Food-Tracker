@@ -222,7 +222,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 
 /* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
 .fph{display:flex;align-items:center;gap:6px}
-.fph svg{flex:0 0 auto;color:var(--t-done-ink,var(--t-done))} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
+.fph svg{flex:0 0 auto;color:var(--t-done)} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
 #eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
 #eiBody .mrow small{white-space:nowrap}
 #eiBody .mrow b{text-align:right}
@@ -245,3 +245,22 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 /* 0.7.4.1 gym: Saved Workouts — names in capitals, bigger plain memory-card icon */
 #gTplV .svname{text-transform:uppercase;letter-spacing:.3px}
 #gTplV .ficon.svic{background:none!important;width:44px;height:44px;flex:0 0 44px}
+
+/* 0.7.4.3 Gym Coach cards in the shared chat: a workout (numbered exercises with sets × reps · rest) */
+.gcwk{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column;gap:6px}
+.gcwk li{padding-left:2px} .gcwk li::marker{color:var(--t-muted);font-size:var(--fs-label)}
+.gcwk b{display:block;font-weight:var(--w-med)} .gcwk small{color:var(--t-muted);font-size:var(--fs-label)}
+/* machine card: how it works, How to do it, Common mistakes (like the Form page), the first-time weight */
+.gchow{margin:0;color:var(--t-text)}
+.gcblk{display:flex;flex-direction:column;gap:6px} .gcblk ol,.gcblk ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px} .gcblk ul.fpx{padding-left:0;list-style:none}
+.gcw{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--t-sel)} .gcw small{color:var(--t-muted);font-size:var(--fs-label)}
+/* the live workout's robot bubble: only on the workout screen, starting just above End Workout on the right; other coach bubbles step aside there */
+body:not(.inses) #cb-gymlive,body.inses .coachbub:not(#cb-gymlive){display:none!important}
+#cb-gymlive{bottom:calc(92px + env(safe-area-inset-bottom))}
+html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-inset-bottom))}
+/* the coach chat box gets class "cam" when it has a camera button, which also matches the barcode camera frame (base.css .cam): undo that here */
+#coachForm.cam{aspect-ratio:auto;width:auto;border-radius:0;overflow:visible;background:none}
+/* training style card: four small numbers, a note */
+.gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gsrow{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
+.gsnote{margin:0}

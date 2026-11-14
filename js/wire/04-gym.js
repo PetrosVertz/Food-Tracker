@@ -168,6 +168,7 @@ $('nxBody').addEventListener('click', async e => {
     const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false), wkTxt = Object.entries(wk).map(([h, v]) => `${HEADS[h][0]} ${Math.round(v)} sets`).join(', ');
     const names = EX().filter(x => x.m !== 'cardio').map(x => x.en).join('; ');
     const r = await gemini(`You are a gym coach. Today's workout type: ${active.type}. Done so far: ${done || 'nothing yet'}. Hard sets per muscle in the last 7 days: ${wkTxt || 'none'}. Goal: ${targets ? targets.goal : 'build muscle'}.
+${gymStyleRule()}
 Suggest the 3 best next exercises to balance this session (fill muscles that are missing, avoid overdoing ones already hit). Pick ONLY from this list, using the exact English names: ${names}.
 Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON: {"picks":[{"name":string,"why":string,"sets":number,"reps":string}]}`, null, (i, n) => { ai.textContent = `${t('gThinking')} ${i}/${n}`; });
     const picks = (r.picks || []).map(p => ({ ...p, ex: EX().find(x => norm(x.en) === norm(p.name)) || EX().find(x => norm(x.en).includes(norm(p.name)) || norm(p.name).includes(norm(x.en))) })).filter(p => p.ex);
@@ -354,3 +355,8 @@ makeSwipeDelete($('tpList'), '.tpcard', c => { const i = +c.dataset.i, gone = TP
 makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data-x]').dataset.x, si = +row.dataset.s, x = active.exercises[xi]; if(!x) return; const gone = x.sets.splice(si, 1)[0];
   if(REST && REST.xi === xi){ if(REST.si === si){ REST = null; $('restBar').classList.add('hide'); } else if(REST.si > si) REST.si--; }
   saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });
+
+// ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
+Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
+// the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
+Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });

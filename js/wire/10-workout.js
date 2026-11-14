@@ -42,3 +42,10 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     const tx = $('restTxt2'); if(tx){ tx.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'); tx.classList.toggle('last', secs <= 10 && left > 0); }
     if(!left) tickRest(); }
   requestAnimationFrame(restLoop); })();
+
+// 0.7.4.3: on the live workout screen the Gym Coach robot bubble is always there (starts at the bottom right, by End Workout).
+// Off the workout screen it hides; when the workout ends its chat ends with it (the next workout starts a fresh chat).
+{ let was = false; new MutationObserver(() => { const on = $('ovSession').classList.contains('open'); if(on === was) return; was = on;
+    document.body.classList.toggle('inses', on);
+    if(on){ if(!Coach.has('gymlive') && !$('ovCoach').classList.contains('open')) Coach.minimize('gymlive'); }
+    else if(!active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
