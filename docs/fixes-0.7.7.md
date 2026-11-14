@@ -48,7 +48,11 @@ Petros's earlier requests (first written in an old branch that was never merged;
    - Show a smooth colour gradient instead of stages, and only how much more rest each muscle needs (never "time since last workout"). Keep the 0.7.4.2 rule for the label (Needs Rest / Recovering / Ready).
    - Also look at the food eaten since the workout (protein and calories vs targets, read through the existing Store helpers) and say in one line whether it was enough for recovery.
 4. **Sounds** (through `Phone.*`; add a small sound helper there if missing): the rest timer ends with a boxing-ring bell; the finished-workout sound is a quieter, softer, satisfying tone. Generate them with Web Audio (no sound files from the web), respect the phone's silent mode where possible, and add an on/off switch in the Exercise Settings menu.
-5. **Sleep for recovery:** a web app can't read a smartwatch directly. Add an optional manual "Hours Slept" entry on the Recovery page that recovery uses if filled in; in the pull request, explain what a watch link would need later (the Capacitor app + Apple Health).
+5. **Exercise names: no machine or brand names on screen.** Brand and machine names (Matrix, Technogym, Hammer Strength, Life Fitness, Cybex, Panatta, Gym80, "Iso-Lateral", "Low Row"…) are hidden search names only, never an exercise's visible name.
+   - Rename the visible names of the 0.7.5 entries that use one, keeping their ids so saved workouts still work: e.g. iso_chest_press → "Plate-Loaded Chest Press", iso_incline_press → "Plate-Loaded Incline Press", iso_row → "Plate-Loaded Row", iso_pulldown → "Plate-Loaded Pulldown" (EN + GR), and move "iso-lateral" into their hidden search names. Smith machine is normal equipment and stays.
+   - Search result when it matched a hidden name: show the app's exercise name, and under it a small grey **"Same Exercise"** tag with the name you typed (e.g. "Same Exercise · Low Row"), replacing today's "also: …" line (string exAlso, EN + GR).
+   - Add to tools/check.js: no visible exercise name (EN or GR) contains a brand name from that list.
+6. **Sleep for recovery:** a web app can't read a smartwatch directly. Add an optional manual "Hours Slept" entry on the Recovery page that recovery uses if filled in; in the pull request, explain what a watch link would need later (the Capacitor app + Apple Health).
 Strings EN + GR, Title Case, line icons only.
 
 ## food-scan (Sonnet)
