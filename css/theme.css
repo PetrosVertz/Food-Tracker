@@ -212,7 +212,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 #swList{display:flex;flex-direction:column;gap:var(--s3)}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);text-align:left;min-height:64px;padding:12px 16px;border-radius:var(--r-row);border:0;background:var(--t-card);color:var(--t-text);font-family:inherit;cursor:pointer;width:100%}
 .swt{display:flex;flex-direction:column;gap:4px;min-width:0} .swn{font-size:var(--fs-body);font-weight:var(--w-med)} .swt small{font-size:var(--fs-label);color:var(--t-muted)}
-.swm{flex:0 0 auto;font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;color:var(--t-text)} .swm.top{color:var(--t-accent)}
+.swm{flex:0 0 auto;font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;color:var(--t-text)} .swm.top{color:var(--t-accent-ink,var(--t-accent))}
 
 /* ---------- Recovery (Phones.dc.html screen 3) ---------- */
 :root{--t-ready:var(--t-accent)}
@@ -371,7 +371,7 @@ body.twofab .fab{padding:16px 20px!important}
 #stList{display:flex;flex-direction:column;gap:var(--s2)}
 .strow{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:64px;padding:12px 16px;border-radius:var(--r-row);border:1px solid var(--t-edge);background:var(--t-card);color:var(--t-text);font-family:inherit;text-align:left;cursor:pointer}
 .strow.today{border-color:var(--t-accent-soft)}
-.strow .stic{flex:0 0 auto;display:flex;color:var(--t-accent)}
+.strow .stic{flex:0 0 auto;display:flex;color:var(--t-accent-ink,var(--t-accent))}
 .strow .t{display:flex;flex-direction:column;gap:4px;min-width:0}
 .strow b{font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;letter-spacing:.4px}
 .strow small{font-size:var(--fs-label);color:var(--t-muted)}
@@ -499,9 +499,6 @@ body.twofab .fab{padding:16px 20px!important}
 .chkbtns{display:flex;gap:8px;margin-top:8px} .chkbtns .btn{flex:1;border-radius:999px}
 
 /* ==== branch: gym (new Gym Buddy styles go on the lines below) ==== */
-/* 0.7.1 "AI" badge (replaces ✨): tiny pill, bold italic. On dark/grey: accent pill + dark text; on an accent button: dark pill + accent text */
-.aibadge{display:inline-flex;align-items:center;justify-content:center;height:16px;padding:0 6px;margin-right:6px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:var(--font);font-size:10px;font-weight:800;font-style:italic;letter-spacing:.3px;line-height:1;vertical-align:1px;flex:0 0 auto}
-.btn.primary .aibadge,.pillbtn.primary .aibadge{background:var(--t-on);color:var(--t-accent)}
 /* 0.7.2 new body (Body Muscles, rounded): body colour behind, unworked muscles a step lighter */
 :root{--gym-body:#26282b;--gym-off:#3a3d41;--gym-edge:rgba(255,255,255,.1)}
 :root[data-theme="light"]{--gym-body:#d2d5d9;--gym-off:#b8bcc2;--gym-edge:rgba(0,0,0,.12)}

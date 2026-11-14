@@ -87,8 +87,6 @@ let SW = null;
 
 let TP = null;
 
-let SO = { g: null };
-
 // ---------- fridge: a food you add for the first time goes straight into the fridge ----------
 let lastAutoFridge = null;
 

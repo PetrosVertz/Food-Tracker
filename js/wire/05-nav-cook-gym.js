@@ -1,8 +1,6 @@
 // Wiring that runs at start-up, in order: state, event listeners, first render.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const WT_ICON = Object.fromEntries([...WTYPES.map(w => [w[0], w[1]]), ['chest','🫁'],['back','🔙'],['shoulders','🤷'],['arms','💪'],['core','🎯'],['glutes','🍑']]);
-
 const workKind = ty => ['legs','lower','glutes'].includes(ty) ? 'legs' : ty === 'full' ? 'full' : ty === 'cardio' ? 'cardio' : 'upper';
 
 const typeLabel_ = ty => t(({ upper:'wUpper', lower:'wLower', full:'wFull', push:'wPush', pull:'wPull', legs:'wLegs', cardio:'wCardio', chest:'wChest', back:'wBack', shoulders:'wShoulders', arms:'wArms', core:'wCore', glutes:'wGlutes' })[ty] || 'wUpper');
@@ -141,7 +139,7 @@ if(!ui.seedClean053){
   tpls = tpls.filter(x => !(seedNames.has(x.name) && !used.has(x.id))); saveG('tpl'); ui.seedClean053 = true; saveUI();
 }
 
-const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${EQ_COL[e] || '#8b949c'}" style="color:${EQ_COL[e] || '#8b949c'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
+const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${gymInk(EQ_COL[e]) || 'currentColor'}" style="color:${gymInk(EQ_COL[e]) || 'inherit'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
 
 $('pkBody').addEventListener('click', e => {
   const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopPropagation(); PK.group = HEADS[hh.dataset.hh][2]; PK.head = hh.dataset.hh; PK.eq = null; drawExPick(); return; }

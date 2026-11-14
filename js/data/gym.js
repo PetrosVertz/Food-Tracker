@@ -290,8 +290,6 @@ const PETS = {
 
 const FAV_KEY = { pr: 'pfPR', kcal: 'pfKcal', supps: 'pfSupps' };
 
-const SORE = ['😎', '🙂', '😬', '😵', '💀'];
-
 // Needs Rest / Recovering / Ready are always red / yellow / green (0.6.9, whatever the accent); read from the CSS variables
 // so Light mode gets its own shades.
 const cssVar = (n, fb) => { try{ return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb; }catch(e){ return fb; } };
@@ -364,7 +362,6 @@ const ANAT_FIBRES = {
 };
 
 // ---------- workout types ----------
-const WTYPES = [['upper','💪','wUpper'],['lower','🦵','wLower'],['full','🏋️','wFull'],['push','🫸','wPush'],['pull','🫷','wPull'],['legs','🦵','wLegs'],['cardio','🏃','wCardio'],['bro','🧱','broSplit']];
 
 const BRO = [['chest','wChest'],['back','wBack'],['shoulders','wShoulders'],['arms','wArms'],['core','wCore'],['glutes','wGlutes']];
 
@@ -379,6 +376,16 @@ const GSEC = { 'gym-week': 'plan', 'gym-lib': 'tpl', 'gym-prog': 'prog', 'gym-re
 
 // ---------- exercise picker: real body figure, muscle colours, equipment bubbles ----------
 const EQ_COL = { barbell:'#ff5c5c', dumbbell:'#5ab0ff', machine:'#b388ff', cable:'#4dd0e1', bodyweight:'#59d38c', kettlebell:'#ffb547', band:'#f48fb1' };
+// 0.7.4.0.5: one of the colours above (or HEAD_COL, superset colours) used as TEXT. Dark mode keeps it; Light mode gets a darker
+// shade of the same hue that reads at ≥ 4.5:1 on the light page (#e2e3e6, so white cards pass too).
+const GYM_INK = new Map();
+function gymInk(hex){
+  if(!hex || document.documentElement.getAttribute('data-theme') !== 'light' || !/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+  if(GYM_INK.has(hex)) return GYM_INK.get(hex);
+  const ch = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)), lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
+  let k = 1, c = ch; while(k > .05 && (.7712 + .05) / (lum(c) + .05) < 4.6){ k -= .02; c = ch.map(v => Math.round(v * k)); }
+  const out = '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); GYM_INK.set(hex, out); return out;
+}
 
 const EQ_ORDER = ['barbell','dumbbell','machine','cable','bodyweight','kettlebell','band'];
 

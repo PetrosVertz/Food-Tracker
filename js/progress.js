@@ -58,8 +58,8 @@ function renderProgress(){
     const sub = hs.length > 1 ? () => hs.map(h => { const sh = muscleStats([h]); return sh.any ? row('h:' + h, HEADS[h][lang === 'el' ? 1 : 0], sh, () => exRows(sh), 2) : ''; }).join('') + exRows(st) : () => exRows(st);
     return row('g:' + g, GROUPS[g][lang === 'el' ? 1 : 0], st, sub, 1); }).join('');
   const fold = (side, label) => { const body = half(side), op = !!PG.open[side];
-    return `<button class="foldh ${op ? 'open' : ''}" data-pg="${side}"><b>${label}</b><i>▾</i></button>${op ? `<div class="foldb pglist">${body || `<p class="hint">${t('pgNone')}</p>`}</div>` : ''}`; };
-  el.innerHTML = `<h3 class="sect" style="margin-bottom:0"><span>${t('pgStrength')}</span> <button class="ibtn" type="button" data-tip="tipPgVol" aria-label="Info">ⓘ</button></h3>` +
+    return `<button class="foldh ${op ? 'open' : ''}" data-pg="${side}"><b>${label}</b><i>${svgIcon('down', 18, 2)}</i></button>${op ? `<div class="foldb pglist">${body || `<p class="hint">${t('pgNone')}</p>`}</div>` : ''}`; };
+  el.innerHTML = `<h3 class="sect" style="margin-bottom:0"><span>${t('pgStrength')}</span> <button class="ibtn" type="button" data-tip="tipPgVol" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</button></h3>` +
     fold('up', t('pgUpper')) + fold('low', t('pgLower'));
 }
 

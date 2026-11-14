@@ -71,7 +71,7 @@ header [data-settings]{display:none!important}
 body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 .fab{bottom:calc(76px + env(safe-area-inset-bottom))!important;right:0!important}
 /* stronger glass on tabs and tiles */
-.tile,.foldh,.hubtabs button{-webkit-backdrop-filter:blur(26px) saturate(200%);backdrop-filter:blur(26px) saturate(200%)}
+.tile,.foldh{-webkit-backdrop-filter:blur(26px) saturate(200%);backdrop-filter:blur(26px) saturate(200%)}
 .tile{background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04))!important;border-color:rgba(255,255,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.25)!important}
 /* 0.6.1 · Food Track categories, Can't scan?, yesterday */
 .catfold{margin-top:8px} .catfold .e{font-size:20px}
