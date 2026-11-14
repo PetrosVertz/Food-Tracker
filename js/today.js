@@ -807,23 +807,8 @@ function logChipRm(id){
   toast(t('removedItem', { n: bareName(e.name) }), t('undo'), () => { (dayLog[day] = dayLog[day] || []).splice(i, 0, e); if(j > -1) LW.added.splice(j, 0, e); saveLog(); lwChips(); renderAll(); });
 }
 
-// ---------- 0.7.3 the Quick Log pill beside Log Food (Today only); the two sit centred together ----------
-function logQFabSync(){
-  const b = $('logQFab'), f = $('fab'); if(!b || !f) return;
-  const on = !$('pgToday').classList.contains('hide') && !f.classList.contains('hide') && f.dataset.action === 'today';
-  b.classList.toggle('hide', !on); document.body.classList.remove('has-logqfab');
-  if(!on) return;
-  const R = parseFloat(getComputedStyle(f).right) || 0;   // where the main button normally stops on the right
-  document.body.style.setProperty('--lqfr', (R + b.offsetWidth + 10) + 'px'); document.body.classList.add('has-logqfab');
-  requestAnimationFrame(() => { const r = f.getBoundingClientRect(); b.style.left = (r.right + 10) + 'px'; b.style.top = (r.top + (r.height - b.offsetHeight) / 2) + 'px'; b.style.zIndex = getComputedStyle(f).zIndex; });
-}
+// ---------- Log Food sheet wiring (0.7.4.3: the pill beside Log Food is now the Food Coach pill, js/coach.js) ----------
 function logFabWire(){
-  $('logQFab').addEventListener('click', () => logQOpenSheet());
   $('ovLog').querySelector('.lwback').addEventListener('click', goBack);
   $('lAdded').addEventListener('click', e => { const x = e.target.closest('[data-chiprm]'); if(x){ e.stopPropagation(); logChipRm(x.dataset.chiprm); } });
-  let q = 0; const sync = () => { cancelAnimationFrame(q); q = requestAnimationFrame(logQFabSync); };
-  const mo = new MutationObserver(sync);
-  mo.observe($('pgToday'), { attributes: true, attributeFilter: ['class'] });
-  mo.observe($('fab'), { attributes: true, attributeFilter: ['class', 'data-action'], childList: true, characterData: true, subtree: true });
-  window.addEventListener('resize', sync); setTimeout(sync, 300);
 }

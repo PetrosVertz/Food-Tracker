@@ -152,11 +152,31 @@ Return ONLY JSON: {"reply": string}`, img);
   }
 
   // ---- the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout) ----
-  // filled in by the next commit; while a coach's bubble is on screen its pill steps aside
-  function pillSync(){}
+  // the pills show the robot's face instead of the AI badge: a robot face means a chat, the AI badge means a one-tap AI action
+  const PILLS = [['chef', 'today'], ['gym', 'gymlib']];   // [chat id, the main button's data-action it sits beside]
+  function pills(){ PILLS.forEach(([id]) => { if($('cp-' + id)) return;
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'cp-' + id; b.className = 'coachpill hide'; b.dataset.coachPill = id;
+    b.innerHTML = `<span class="cpface" aria-hidden="true">${AI.robot(kindOf(id), 24)}</span><span class="cpl"></span>`;
+    b.addEventListener('click', () => { Phone.haptic(); open_(id); }); document.body.appendChild(b); }); }
+  let pq = 0; const pillSync = () => { cancelAnimationFrame(pq); pq = requestAnimationFrame(pillPlace); };
+  function pillPlace(){
+    const f = $('fab'); if(!f) return; let shown = null;
+    PILLS.forEach(([id, act]) => { const b = $('cp-' + id); if(!b) return;
+      const on = !f.classList.contains('hide') && f.dataset.action === act && cur !== id;
+      b.classList.toggle('hide', !on); if(on){ shown = b; b.querySelector('.cpl').textContent = title(id); } });
+    document.body.classList.remove('has-coachpill'); if(!shown) return;
+    // the main button and the pill sit centred together: the button's right edge moves in by the pill's width
+    const cs = getComputedStyle(f), L = parseFloat(cs.left) || 0, R = parseFloat(cs.right) || 0, W = document.documentElement.clientWidth, cpr = R + shown.offsetWidth + 10;
+    document.body.style.setProperty('--cpr', cpr + 'px'); document.body.classList.add('has-coachpill');
+    const fr = f.getBoundingClientRect(), right = (L + W - cpr) / 2 + f.offsetWidth / 2;
+    shown.style.left = (right + 10) + 'px'; shown.style.top = (fr.top + (fr.height - shown.offsetHeight) / 2) + 'px'; shown.style.zIndex = cs.zIndex;
+  }
 
   // ---- wiring (called once from wire/08) ----
   function init(){
+    pills(); const mo = new MutationObserver(pillSync);
+    mo.observe($('fab'), { attributes: true, attributeFilter: ['class', 'data-action'], childList: true, characterData: true, subtree: true });
+    addEventListener('resize', pillSync); addEventListener('hashchange', pillSync); setTimeout(pillSync, 300);
     $('coachBack').innerHTML = BACK_SVG;
     $('coachBack').addEventListener('click', () => minimize());
     $('coachForm').addEventListener('submit', e => { e.preventDefault(); send(); });

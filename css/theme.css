@@ -604,10 +604,6 @@ body.twofab .fab{padding:16px 20px!important}
 .lchip{display:inline-flex;align-items:center;gap:4px;padding-right:4px}
 .lchipx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -1px -3px 0;border:0;border-radius:0;background:none;color:var(--t-done);padding:0;cursor:pointer;position:relative}
 .lchipx::before{content:'';position:absolute;inset:-11px}   /* tap area ≥ 44px */
-/* 0.7.3 · the Quick Log pill beside Log Food (placed by logQFabSync) */
-.logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
-.logqfab.hide{display:none}
-body.has-logqfab #fab{right:var(--lqfr)!important}
 /* 0.7.4.0.5 · line icons where the old glyphs were: padlocks, the fridge tag in the plan, a supplement's taken times */
 .mxlock{display:inline-flex;align-items:center;color:inherit}
 .src-f{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}
@@ -749,7 +745,13 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
 .coachbub.pre{opacity:0;animation:none}
 .coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}
-@media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} }
+/* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
+.coachpill{position:fixed;z-index:20;height:44px;padding:0 16px 0 8px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;animation:tipIn .25s ease-out}
+.coachpill.hide{display:none}
+.cpface{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;overflow:hidden;background:#26282b} .cpface .robot{display:block;margin-top:2px}
+:root[data-theme="light"] .cpface{background:#eef0f2}
+body.has-coachpill #fab{right:var(--cpr)!important}
+@media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} }
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
