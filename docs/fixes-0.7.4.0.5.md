@@ -121,7 +121,7 @@ Order: **shell-1** (shell items 1, 2, 3, the data-ta part of 7, and the AI-badge
    1. Recovery should also look at the food eaten and say whether it was enough for recovery (protein, calories). Reads today's log with the existing Store helpers; don't change the log files. If a sleep source exists (see shell item 10), include sleep in the recovery result too.
    2. Recovery shows a gradient instead of stages. It must NOT show time since the last workout, only how much more rest the muscle needs.
    3. Rest timer plays a boxing-ring bell. The finished-workout sound is a quieter, softer, satisfying tone. (Sound playing goes through Phone.*; if there is no helper yet, ask shell.)
-   4. One universal settings menu on every exercise card (same menu for all exercises). Put these in it:
+   4. A gear icon (svgIcon) on every exercise card opens ONE settings sheet. The settings are global: they apply to every exercise in the active workout and any added later (e.g. turn off warm-up sets once and no exercise gets them). Save them through Store. Put these in it:
       - toggle: finishing a set on a one-sided (unilateral) exercise ties both sides together
       - toggle: turn off warm-up, failure and drop-set markers
       - add half reps, negatives and RIR (reps in reserve) to a set
