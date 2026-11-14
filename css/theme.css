@@ -597,8 +597,8 @@ body.twofab .fab{padding:16px 20px!important}
 #dTiming .win .tm{flex-basis:96px;font-size:13px;line-height:1.25} #dTiming .win .bd{font-size:13px;line-height:1.3} #dTiming .win .na{margin-top:1px}
 /* 0.7.3 · Log Food: an X inside each added chip */
 .lchip{display:inline-flex;align-items:center;gap:4px;padding-right:4px}
-.lchipx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -1px -3px 0;border:0;border-radius:999px;background:color-mix(in srgb,var(--t-done) 18%,transparent);color:var(--t-done);padding:0;cursor:pointer;position:relative}
-.lchipx::before{content:'';position:absolute;inset:-8px}
+.lchipx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -1px -3px 0;border:0;border-radius:0;background:none;color:var(--t-done);padding:0;cursor:pointer;position:relative}
+.lchipx::before{content:'';position:absolute;inset:-11px}   /* tap area ≥ 44px */
 /* 0.7.3 · the Quick Log pill beside Log Food (placed by logQFabSync) */
 .logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
 .logqfab.hide{display:none}
@@ -715,3 +715,9 @@ section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;
 /* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: same fade under its sticky head */
 #ovExPick .sheet{background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .seshead3::after{content:'';position:absolute;left:0;right:0;top:100%;height:var(--topfade);pointer-events:none;background:linear-gradient(var(--t-bg),color-mix(in srgb,var(--t-bg) 0%,transparent))}
+
+/* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
+.kcalcol{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.card .stock{position:static;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--t-done-soft);border:0;color:var(--t-done)}
+.card .stock.warn{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration,input[type=search]::-webkit-search-results-button{-webkit-appearance:none;appearance:none;display:none}

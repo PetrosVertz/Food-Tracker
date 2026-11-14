@@ -488,7 +488,7 @@ Object.assign(S, {
   inFridgeTag: ['in the fridge', 'στο ψυγείο'],
   chkTick: ['Checked against online sources', 'Ελέγχθηκε με πηγές στο διαδίκτυο'],
   // ==== branch: gym (new Gym Buddy text goes on the lines below) ====
-  gymStartP: ['Start', 'Έναρξη'], gymResumeP: ['Resume', 'Συνέχεια'],
+  gymStartP: ['Workout', 'Προπόνηση'], gymResumeP: ['Resume Workout', 'Συνέχεια Προπόνησης'],
   gymBmCredit: ['Body shapes: Body Muscles by Ivan Vulović, Apache License 2.0 (shapes modified).', 'Σχήματα σώματος: Body Muscles του Ivan Vulović, άδεια Apache 2.0 (τροποποιημένα σχήματα).'],
   gymBmLic: ['Licence', 'Άδεια'],
   // 0.7.4.0.5: aria-labels, weekday names, AI button
