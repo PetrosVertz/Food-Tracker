@@ -176,7 +176,6 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 #ovDemo .sheet{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
   background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto}
-.formpage>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
 .formpage>h2{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0 44px var(--s4);font-size:var(--fs-title);font-weight:var(--w-bold);letter-spacing:-.4px}
 .fpphoto{position:relative;height:196px;border-radius:var(--r-card);overflow:hidden;background:var(--t-card2);margin-bottom:var(--s4)}
 .fpphoto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease-in-out}
@@ -230,8 +229,8 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .prow>span:first-child{flex:1} .prow .sv{color:var(--t-muted);font-weight:var(--w-reg)} .prow svg{color:var(--t-muted)}
 #ovTheme .sheet{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
   background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
-  padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto;display:flex;flex-direction:column;gap:var(--s4)}
-.themepage>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
+  padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto;display:flex;flex-direction:column}
+.themepage>:not(.sback):not(h2){margin-top:var(--s4)}
 .themepage>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px}
 .thl{font-size:var(--fs-label);color:var(--t-muted);padding:0 4px;margin-bottom:calc(-1 * var(--s2))}
 #thMode,#thNote{margin-bottom:0}
@@ -348,7 +347,6 @@ body.twofab .fab{padding:16px 20px!important}
 .overlay .sheet.setpage,.overlay.center .sheet.setpage{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
   background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;animation-name:none;
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
-.setpage>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
 .setpage>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
 .setpage .bodybox{background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);padding:var(--s4)}
 .setpage .bodybox h3{display:none}
@@ -693,7 +691,6 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 #ovTargets .sheet{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
   background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
-#ovTargets .sheet>.sback{position:absolute;left:16px;top:calc(8px + env(safe-area-inset-top));float:none;margin:0}
 #ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
 html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* ==== end shell ==== */
@@ -702,3 +699,21 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 :root[data-theme="light"]{--t-alert-bg:#fbefd9;--t-alert-edge:#e8c891;--t-alert-ink:#6b4200;--t-alert-red-bg:#fbe4e2;--t-alert-red-edge:#ebb0aa;--t-alert-red-ink:#8f1d17;--t-alert-ok-bg:#e1f3e8;--t-alert-ok-edge:#a6d6b8;--t-alert-ok-ink:#0f5a31}
 /* 0.7.4.0.5 Light mode: the grey secondary button vanished on the grey page; white with a hairline (zero-specificity :where, so .btn.primary / .btn.danger still win) */
 :where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
+
+/* ============================================================================================
+   ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), then a short soft fade below
+   (no blur: scrolled content can't show through the letters). --topfade is the fade height.
+   Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
+   a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
+:root{--topfade:14px;--topP:calc(8px + env(safe-area-inset-top))}
+section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
+  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
+.overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
+.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{content:'';display:block;flex:0 0 auto;position:sticky;top:0;z-index:2;pointer-events:none;
+  height:calc(var(--topP) + 44px + var(--topfade));margin:0 -16px calc(-44px - var(--topfade));
+  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
+.setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
+.setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
+/* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: same fade under its sticky head */
+#ovExPick .sheet{background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.seshead3::after{content:'';position:absolute;left:0;right:0;top:100%;height:var(--topfade);pointer-events:none;background:linear-gradient(var(--t-bg),color-mix(in srgb,var(--t-bg) 0%,transparent))}
