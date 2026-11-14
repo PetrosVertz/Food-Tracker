@@ -43,19 +43,12 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     if(!left) tickRest(); }
   requestAnimationFrame(restLoop); })();
 
-// 0.7.7: the Gym Coach robot lives in the live workout header (top right). Tap it → the chat. Closing the chat turns it into the floating bubble;
-// dismissing the bubble brings it back to the header (CSS swaps them, see .sescoach). No bubble until the robot has been tapped.
-// Off the workout screen the bubble hides; when the workout ends its chat ends with it (the next workout starts a fresh chat).
+// 0.7.7: the Gym Coach robot lives in the live workout header (top right). Tap it → the chat. 0.7.8: closing the chat makes no floating bubble (coach.js NOBUB).
+// When the workout ends its chat ends with it (the next workout starts a fresh chat).
 $('sesCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymlive'); });
 { let was = false; new MutationObserver(() => { const on = $('ovSession').classList.contains('open'); if(on === was) return; was = on;
     document.body.classList.toggle('inses', on);
     if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
-
-// Hours Slept (Recovery page): saved per day in the profile; recovery reads it
-$('gRecV').addEventListener('change', e => { if(e.target.id !== 'recSleep') return; const v = parseFloat(String(e.target.value).replace(',', '.')), k = todayKey();
-  profile.sleep = profile.sleep || {}; if(v > 0 && v <= 16) profile.sleep[k] = Math.round(v * 10) / 10; else delete profile.sleep[k];
-  Object.keys(profile.sleep).sort().slice(0, -30).forEach(d => delete profile.sleep[d]);   // keep the last 30 days
-  saveProfile(); renderRecovery(); renderGym(); });
 
 // Exercise Settings sheet: switches save at once and the open workout redraws
 $('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });

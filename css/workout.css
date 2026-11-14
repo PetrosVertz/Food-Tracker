@@ -110,9 +110,11 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .seshead3 h2:empty{display:none}
 .wmid{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
 .wclock{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--t-clock)}
-/* 0.7.7: the Gym Coach robot, top right; it steps aside while its bubble is out or the chat is open */
+/* 0.7.7: the Gym Coach robot, top right; it steps aside while the chat is open */
 .sescoach{justify-self:end;width:44px;height:44px;margin-right:-4px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-body:has(#cb-gymlive) .sescoach,body:has(#ovCoach.open) .sescoach{visibility:hidden}
+body:has(#ovCoach.open) .sescoach{visibility:hidden}
+/* 0.7.8: Start Workout window: title on the left, the Gym Coach robot at the right end of the title bar */
+.sthead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)} .sthead h2{margin:0;min-width:0} .sthead .sescoach{margin-right:-8px;flex:0 0 auto}
 body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesClock{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
 #sesHg{display:flex}
@@ -267,10 +269,8 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .gchow{margin:0;color:var(--t-text)}
 .gcblk{display:flex;flex-direction:column;gap:6px} .gcblk ol,.gcblk ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px} .gcblk ul.fpx{padding-left:0;list-style:none}
 .gcw{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--t-sel)} .gcw small{color:var(--t-muted);font-size:var(--fs-label)}
-/* the live workout's robot bubble: appears when the chat is closed (the header robot opens it); only on the workout screen, just above End Workout on the right; other coach bubbles step aside there */
-body:not(.inses) #cb-gymlive,body.inses .coachbub:not(#cb-gymlive){display:none!important}
-#cb-gymlive{bottom:calc(92px + env(safe-area-inset-bottom))}
-html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-inset-bottom))}
+/* 0.7.8: the live workout has no robot bubble (the header robot is the only way in); other coach bubbles step aside there */
+body.inses .coachbub{display:none!important}
 /* the coach chat box gets class "cam" when it has a camera button, which also matches the barcode camera frame (base.css .cam): undo that here */
 #coachForm.cam{aspect-ratio:auto;width:auto;border-radius:0;overflow:visible;background:none}
 /* training style card: four small numbers, a note */

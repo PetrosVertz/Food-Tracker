@@ -274,7 +274,7 @@ $('gStart').addEventListener('click', () => {
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
   // Saved Workouts (0.6.9.3; 0.7.2 memory card): a memory card for each, the name in slanted capitals; Start Empty Workout underneath
   $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${gymIco('card', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span></button>`).join('');
-  open('ovStart');
+  gymHeadRobot('stCoach'); open('ovStart');
 });
 
 $('stList').addEventListener('click', e => { const b = e.target.closest('[data-st]'); if(b) startSession(tpls.find(x => x.id === b.dataset.st) || null); });
@@ -378,6 +378,9 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 // ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
 Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
 // the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
+// 0.7.8: the Start Workout window's own chat: opened from the robot in its title bar, no floating bubble
+Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend });
+$('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymstart'); });
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
 
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
