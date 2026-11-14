@@ -14,7 +14,8 @@ Everything here works offline, on this phone only. Friends, live status and frie
    - Leaderboards area: one row per board lift with **your** best estimated 1RM and tier badge (tier from gym-tiers; until then just the number). Board lifts: bench (chest), overhead press (shoulders), pull-up (back), barbell row (upper back), squat (quads), Romanian deadlift (hamstrings), hip thrust (glutes), barbell curl (arms); deadlift as a bonus board. Petros may still change this list.
    - Stats: PRs count, body weight trend (small line chart from weigh-ins), totals (workouts, sets, volume, days logged food).
    - One shared helper `profileData()` the gym branches fill in, so they don't edit the page markup.
-3. Strings EN + GR, Light and Dark, iPhone 13 mini width. Bump VERSION to 0.7.7 and CACHE to match.
+3. **Bottom pills animate on page switch:** when you switch tabs, the action pills above the bottom bar (Log Food, Food Coach, Search, Create a Workout, Gym Coach, Start Workout, Add Shopping…) slide down out of view, then the new page's pills rise up from the bottom with a short fade and a slight spring (about 250 ms, staggered by ~40 ms when there are two). No jump or flash of the old pill's text; the glow moves with the pill. Off with Reduce Motion (just swap). Must stay smooth on iPhone (transform and opacity only).
+4. Strings EN + GR, Light and Dark, iPhone 13 mini width. Bump VERSION to 0.7.7 and CACHE to match.
 
 ## gym-tiers (Opus)
 1. **Per-exercise tiers:** Bronze, Silver, Gold, Platinum, Diamond, each with levels 3 → 1 (Bronze 3 is lowest, Diamond 1 highest).
