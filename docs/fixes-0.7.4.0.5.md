@@ -253,7 +253,7 @@ Order: **shell-1** (shell items 1, 2, 3, the data-ta part of 7, and the AI-badge
    - Dead CSS (grep first): glass.css .searchrow, .scanin, .srow 44–47.
    - food.js:342 (Open Food Facts by barcode) uses a raw fetch() → fetchT() with a time limit.
 
-6. New request (added later by Petros): when you scan a food to check it, show its macros (kcal, protein, carbs, fat) in the scan result. Code: food.js scan flow near Phone.barcodeReader().
+6. New request (added later by Petros): after a barcode scan, before adding, show the food's name, then its calories AND macros (P / C / F per 100 g) right under the name, before any amount is typed. Today amRes() (food.js:530) only shows them once an amount is entered, so the sheet shows just name + calories. Cover both paths: the amount sheet after a log-scan (openAmt in today.js, log branch owns that file: add one line under amTitle only) and the new-food form after a normal scan (openForm with fromScan).
 
 
 ## shop
