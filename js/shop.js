@@ -221,7 +221,7 @@ async function shopPhoto(file){
   SHOP.scan = null; SHOP.items = []; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
   let lines;
   try{
-    const img = await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT, img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true });
+    const img = await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT, img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
     lines = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el || x.line));
   }catch(err){ SHOP.busy = false; status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); drawShop(); return; }
   if(!lines.length){ SHOP.busy = false; status($('shopStatus'), t('shopNone'), true); drawShop(); return; }
@@ -248,7 +248,7 @@ async function shopPhoto(file){
 Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"packSize":number|null,"unit":"g"|"ml","state":"uncooked"|"ready","source":string}]}
 Carbs as on EU labels (fibre not included). packSize = net size of one pack in g/ml. state "uncooked" for raw meat/fish and dry rice/pasta/oats.
 Products:
-${part.map((x, j) => `${j}) "${x.line}" = ${x.brand ? x.brand + ' ' : ''}${x.name_en || x.name}`).join('\n')}`, null, null, null, { quiet: true, search: true });
+${part.map((x, j) => `${j}) "${x.line}" = ${x.brand ? x.brand + ' ' : ''}${x.name_en || x.name}`).join('\n')}`, null, null, null, { quiet: true, search: true, robot: 'fridge' });
         (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const x = part[+w.i]; if(!x || !w.found) return;
           const d = { name: w.name || x.name, brand: w.brand || x.brand || '', kcal: +w.kcal || null, protein: +w.protein, carbs: +w.carbs, fat: +w.fat, fiber: w.fiber != null ? +w.fiber : null, unit: w.unit === 'ml' ? 'ml' : 'g', state: w.state === 'uncooked' ? 'uncooked' : 'ready', packs: +w.packSize > 0 ? [Math.round(+w.packSize)] : [], usualPack: +w.packSize > 0 ? Math.round(+w.packSize) : null };
           if(!(Search.quality(d) > 0)) return;
@@ -282,7 +282,7 @@ Carbs as on EU labels (fibre not included).
 Return ONLY JSON: {"foods":[{"i":number,"status":"ok"|"off"|"notfound","kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"source":string|null}]}
 Foods:
 ${batch.map((f, j) => JSON.stringify({ i: j, name: f.name, brand: f.noBrand ? null : f.brand || null, barcode: f.barcode || null, state: f.state, unit: f.unit, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat }, notes: f.notes || undefined })).join('\n')}`,
-        null, null, CHK.ctl.signal, { quiet: true, search: true });
+        null, null, CHK.ctl.signal, { quiet: true, search: true, robot: 'fridge' });
       const seen = new Set();
       (r && Array.isArray(r.foods) ? r.foods : []).forEach(a => { const f = batch[+a.i]; if(!f || seen.has(f.id)) return; seen.add(f.id);
         if(a.status === 'ok'){ f.checked = { at: todayKey(), how: 'ok' }; CHK.ok++; return; }
