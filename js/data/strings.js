@@ -684,6 +684,8 @@ Object.assign(S, {
 Object.assign(S, {
   tabProfile: ['Profile', 'Προφίλ'],
   pfYou: ['You', 'Εσύ'], pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
+  frzUse: ['1 Streak Freeze Left This Week, Use It?', 'Απομένει 1 Πάγωμα Σερί Αυτή την Εβδομάδα. Να Χρησιμοποιηθεί;'], frzEnd: ['This Will End Your {n}-Day Streak', 'Αυτό Θα Τερματίσει το Σερί {n} Προπονήσεων'],
+  frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
   pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfLatestPR: ['Latest PR', 'Τελευταίο Ρεκόρ'], pfNoPR: ['No PRs yet. Your next record shows up here.', 'Κανένα ρεκόρ ακόμα. Το επόμενο θα εμφανιστεί εδώ.'],
   pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your best estimated 1RM per lift. With friends soon.', 'Το καλύτερο εκτιμώμενο 1RM σου ανά άσκηση. Με φίλους σύντομα.'],
   pfMChest: ['Chest', 'Στήθος'], pfMShoulders: ['Shoulders', 'Ώμοι'], pfMBack: ['Back', 'Πλάτη'], pfMUpperBack: ['Upper Back', 'Άνω Πλάτη'], pfMQuads: ['Quads', 'Τετρακέφαλοι'],

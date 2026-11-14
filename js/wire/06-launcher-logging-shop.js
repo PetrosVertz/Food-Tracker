@@ -15,10 +15,20 @@ $('amSave').addEventListener('click', () => {
   const m = macrosFor(AM.info.per, e.amt); Object.assign(e, m); saveLog();
 });
 
+// Skip on the Gym Today card (0.7.7): with a streak running, the weekly freeze keeps it; without one left, skipping ends it
+async function skipGymDay(){
+  const n = gymStreak().n; let frozen = false;
+  if(n > 0){
+    if(freezeLeft(curDay)){ if(!(await ask(t('frzUse'), t('frzUseBtn')))) return; frozen = true; }
+    else if(!(await ask(t('frzEnd', { n }), t('frzSkipBtn'), t('frzGoBtn')))){ if(daysUntil(curDay) === 0) gymStartToday(); else go('gym'); return; }
+  }
+  setDay({ type: 'rest', skipped: true, frozen }); renderAll(); toast(t(frozen ? 'frzUsedT' : 'gymSkippedT'));
+}
+
 $('dBlocks').addEventListener('click', e => {
   if(e.target.closest('[data-gymstart]') || e.target.closest('[data-gymresume]')) return gymStartToday();   // Start / Resume on the gym-day card
-  if(e.target.closest('[data-skipday]')){ setDay({ type: 'rest', skipped: true }); renderAll(); toast(t('gymSkippedT')); return; }   // skip today: rest-day targets
-  if(e.target.closest('[data-unskip]')){ const pl = planFor(curDay) || {}; setDay({ type: 'gym', skipped: false, work: pl.work || 'upper', time: pl.time || profile.gymTime || '18:00' }); renderAll(); return; }
+  if(e.target.closest('[data-skipday]')){ skipGymDay(); return; }   // skip: freeze prompt first when a streak is running
+  if(e.target.closest('[data-unskip]')){ const pl = planFor(curDay) || {}; setDay({ type: 'gym', skipped: false, frozen: false, work: pl.work || 'upper', time: pl.time || profile.gymTime || '18:00' }); renderAll(); return; }
   if(e.target.closest('[data-rmx]')){ ui.remHide = curDay; saveUI(); renderTodayRec(); } if(e.target.closest('[data-gorec]')) go('gym-rec'); });
 
 const WD1 = () => [1, 2, 3, 4, 5, 6, 0];
