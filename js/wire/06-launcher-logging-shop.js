@@ -81,6 +81,8 @@ new ResizeObserver(() => syncWheels()).observe($('shopList'));
 $('shopAddBtn').addEventListener('click', shopAddAll);
 $('shopDone').addEventListener('click', e => { if(e.target.closest('#shopUndoSure')){ takeBack(SHOP.sureIds || []); SHOP.items.forEach(x => { if(x.sure){ x.done = false; x.on = true; } }); SHOP.sureIds = []; renderAll(); drawShop(); } });
 
+$('shopSkip').addEventListener('click', e => { const b = e.target.closest('[data-rescue]'); if(b) shopRescue(+b.dataset.rescue); });
+
 // the scanner's "More items?" (after the first scan)
 $('scanQMore').addEventListener('click', () => { if(!SHOP.scan) return; SHOP.scan.cont = true; SHOP.scan.ask = false; scanUI(); });
 $('scanQClose').addEventListener('click', () => close('ovScan'));

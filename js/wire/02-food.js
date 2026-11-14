@@ -394,8 +394,11 @@ $('itemPhoto').addEventListener('change', async () => {
   try{
     const img = await shrink(file);
     const d = await gemini(`This is a photo of a food or drink product (often from a Greek supermarket). Identify it from the packaging (brand, product name, flavour/variant). If a nutrition table is visible, read it; otherwise give typical values for that exact product. Return ONLY JSON:
-{"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null}
-Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml.`, img);
+{"food":boolean,"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null}
+Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml. food = false if it is not something people eat or drink (then only name is needed).`, img);
+    if(d && d.food === false && d.name){ close('ovScan'); scanCtx = null;   // not food: it never goes in the fridge, but can be rescued from the skipped list
+      if(ctx === 'fridge'){ (SHOP.skipped = SHOP.skipped || []).push({ name: d.name, l: { line: d.name, name_en: d.name, name_el: d.name, brand: d.brand, count: 1 } }); SHOP.scan = null; shopReview(); } else toast(t('notFoodToast', { n: d.name }));
+      return; }
     if(!d || !d.name || d.protein == null) throw new Error('not recognised');
     if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; } if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
     if(ctx === 'fridge' && SHOP.scan){ const f = saveOnlineFood({ ...d, source: 'item photo' }), x = shopItem({ scans: 1 }); shopSetFood(x, f); SHOP.items.push(x);

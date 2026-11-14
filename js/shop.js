@@ -81,6 +81,8 @@ function shopVisible(){ return SHOP.items.map((x, i) => ({ x, i })).filter(({ x 
 function drawShop(){
   const vis = shopVisible(), n = vis.filter(({ x }) => x.on).length, done = SHOP.items.filter(x => x.done);
   $('shopDone').innerHTML = done.length ? `<div class="shopdone"><span>${svgIcon('check', 15, 3)}</span><div><b>${t('wentIn', { n: done.length })}</b><small>${esc(done.map(shopName).join(', '))}</small></div><button class="linkbtn" type="button" id="shopUndoSure">${t('undo')}</button></div>` : '';
+  const sk = SHOP.skipped || [];
+  $('shopSkip').innerHTML = sk.length ? `<details class="shopskip"><summary>${t('notFoodT', { n: sk.length })}</summary>${sk.map((k, i) => `<div class="skiprow"><span>${esc(k.name)}</span><button class="linkbtn" type="button" data-rescue="${i}">${t('rescue')}</button></div>`).join('')}</details>` : '';
   $('shopList').innerHTML = vis.map(({ x, i }) => shopRow(x, i)).join('') || (SHOP.busy ? '' : done.length ? `<div class="empty">${t('allIn')}</div>` : '');
   $('shopAddBtn').textContent = n ? t('shopAddAll', { n }) : t('done'); $('shopAddBtn').disabled = !!SHOP.busy && !n;
   syncWheels();
@@ -117,7 +119,7 @@ function shopAddAll(){
 }
 
 // ---------- barcode scanning into the fridge: first scan asks "More items?", then it keeps scanning quietly ----------
-function shopScanStart(){ SHOP.scan = { cont: false, ask: false, last: null, gate: null }; SHOP.items = []; SHOP.busy = false; const fl = $('scanFlash'); fl.classList.remove('show'); fl.innerHTML = ''; scanUI(); }
+function shopScanStart(){ SHOP.scan = { cont: false, ask: false, last: null, gate: null }; SHOP.items = []; SHOP.skipped = []; SHOP.busy = false; const fl = $('scanFlash'); fl.classList.remove('show'); fl.innerHTML = ''; scanUI(); }
 // called for every camera frame while scanning for the fridge (hit = a valid barcode or null)
 function shopSeen(hit){
   const S_ = SHOP.scan; if(!S_) return; const now = Date.now();
@@ -143,7 +145,18 @@ async function shopLookup(x){
     const d = j && j.status === 1 && j.product ? offToFood(j.product, x.code) : null;
     if(d && d.name && (d.protein !== null || d.carbs !== null || d.fat !== null)){ x.data = { ...d, protein: d.protein ?? 0, carbs: d.carbs ?? 0, fat: d.fat ?? 0 }; x.name = d.name; x.brand = d.brand || ''; x.unit = d.unit || 'g'; x.size = x.size || d.usualPack || null; }
   }catch(e){}
+  if(!x.data && settings.geminiKey) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
   x.look = ''; scanUI(); shopRedrawRow(x);
+}
+// a barcode with no food data: the AI says if it is food or something else; "not food" goes to the Not food, skipped list
+async function shopFoodCheck(x){
+  try{
+    const r = await gemini(`Barcode ${x.code} (sold in Greece or the EU). What product is it? Look it up online. Return ONLY JSON: {"known":boolean,"food":boolean,"name":string|null,"brand":string|null}
+food = true only if people eat or drink it. If you can't find the product, known = false and food = true.`, null, null, null, { quiet: true, search: true });
+    if(!r || !r.known) return;
+    if(r.food === false){ const i = SHOP.items.indexOf(x); if(i >= 0) SHOP.items.splice(i, 1); (SHOP.skipped = SHOP.skipped || []).push({ name: r.name || x.code, item: x }); x.look = ''; if($('ovShopRev').classList.contains('open')) drawShop(); return; }
+    if(r.name){ x.name = String(r.name); x.brand = r.brand || ''; }
+  }catch(e){}
 }
 function scanUI(){
   const S_ = SHOP.scan, n = SHOP.items.reduce((a, x) => a + (x.scans || 1), 0), fr = scanCtx === 'fridge' && S_;   // how many packs went past the camera
@@ -207,7 +220,7 @@ async function shopOff(x){
 }
 
 const RCPT_PROMPT = `This photo is a supermarket receipt (usually Greek, with short abbreviated product names) OR groceries laid out on a table. Read every line carefully.
-Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","loose":boolean}]}
+Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","loose":boolean,"food":boolean}]}
 - line: the product text exactly as printed (receipt), or a short description of the item (photo).
 - name_en / name_el: what the product is, in plain English and in Greek, abbreviations expanded, keeping the product line and variant (fat %, flavour, light/zero), e.g. "ΦΑΓΕ ΤΟΤΑΛ 2% 1ΚΓ" → "Total 2% strained yoghurt" / "Total 2% στραγγιστό γιαούρτι". No brand and no size in these.
 - brand: the brand if printed or obvious (ΦΑΓΕ → Fage, ΔΕΛΤΑ → Delta, ΜΕΒΓΑΛ → Mevgal), else null.
@@ -215,10 +228,28 @@ Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en
 - packSize: the size of ONE pack in g or ml ONLY if printed in the line ("500ΓΡ", "1LT" = 1000, "1Κ"/"1ΚΓ" = 1000), else null. Never guess.
 - unit: "ml" for drinks, milk and oil, else "g".
 - loose: true for unbranded fresh food (fruit, vegetables, butcher meat, fish, bakery bread, deli by weight), else false.
-Skip bags, deposits (ΕΓΓΥΗΣΗ), discounts (ΕΚΠΤΩΣΗ), totals, VAT and non-food (cleaning, toiletries). Do NOT give nutrition values.`;
+- food: true only for something people eat or drink (food, drinks, supplements). false for anything else (scissors, paper towels, shampoo, cleaning, bags, batteries, pet food…). Still list the non-food lines, marked false, so the user can rescue a wrong guess.
+Skip deposits (ΕΓΓΥΗΣΗ), discounts (ΕΚΠΤΩΣΗ), totals and VAT. Do NOT give nutrition values.`;
+
+// one line read by the AI → a review card, matched against your foods and the built-in list
+function rcptItem(l){
+  const x = shopItem({ src: 'receipt', line: String(l.line || '').trim(), name_en: l.name_en, name_el: l.name_el, brand: l.brand || '', loose: !!l.loose,
+    count: Math.max(1, Math.round(+l.count || 1)), size: +l.packSize > 0 ? Math.round(+l.packSize) : null, unit: l.unit === 'ml' ? 'ml' : 'g' });
+  x.sizeFixed = !!x.size; x.name = (lang === 'el' ? l.name_el : l.name_en) || l.name_en || l.name_el || x.line;
+  const m = shopMatch(x);
+  if(m && m.foodId){ const f = foods.find(y => y.id === m.foodId); const nm = x.name; shopSetFood(x, f); if(!m.sure) x.name = foodName(f) || nm; }
+  else if(m && m.gid){ x.gid = m.gid; x.name = L(GENBY[m.gid]); }
+  x.sure = !!(m && m.sure); x.on = !!m; return x;
+}
+// a line the AI called "not food" that the user wants after all
+function shopRescue(i){
+  const k = (SHOP.skipped || [])[i]; if(!k) return; SHOP.skipped.splice(i, 1);
+  const x = k.item || rcptItem(k.l); x.on = true; SHOP.items.push(x); drawShop();
+  if(!x.foodId && !x.gid && !x.data) shopPickFor(x);
+}
 
 async function shopPhoto(file){
-  SHOP.scan = null; SHOP.items = []; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
+  SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
   let lines;
   try{
     const img = await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT, img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
@@ -226,13 +257,8 @@ async function shopPhoto(file){
   }catch(err){ SHOP.busy = false; status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); drawShop(); return; }
   if(!lines.length){ SHOP.busy = false; status($('shopStatus'), t('shopNone'), true); drawShop(); return; }
   // 1) your foods and the built-in list
-  SHOP.items = lines.map(l => { const x = shopItem({ src: 'receipt', line: String(l.line || '').trim(), name_en: l.name_en, name_el: l.name_el, brand: l.brand || '', loose: !!l.loose,
-      count: Math.max(1, Math.round(+l.count || 1)), size: +l.packSize > 0 ? Math.round(+l.packSize) : null, unit: l.unit === 'ml' ? 'ml' : 'g' });
-    x.sizeFixed = !!x.size; x.name = (lang === 'el' ? l.name_el : l.name_en) || l.name_en || l.name_el || x.line;
-    const m = shopMatch(x);
-    if(m && m.foodId){ const f = foods.find(y => y.id === m.foodId); const nm = x.name; shopSetFood(x, f); if(!m.sure) x.name = foodName(f) || nm; }
-    else if(m && m.gid){ x.gid = m.gid; x.name = L(GENBY[m.gid]); }
-    x.sure = !!(m && m.sure); x.on = !!m; return x; });
+  SHOP.skipped = lines.filter(l => l.food === false).map(l => ({ l, name: String(l.name_en || l.name_el || l.line || '?').trim() }));
+  SHOP.items = lines.filter(l => l.food !== false).map(rcptItem);
   // every line is shown as a card for you to check: sure matches first (pre-ticked), unsure ones marked
   SHOP.items = SHOP.items.map((x, i) => [x, i]).sort((a, b) => (b[0].sure - a[0].sure) || a[1] - b[1]).map(r => r[0]); SHOP.sureIds = []; drawShop();
   // 2) branded lines you don't have: Open Food Facts

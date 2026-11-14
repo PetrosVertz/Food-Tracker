@@ -608,3 +608,9 @@ Object.assign(S, {
   fpD_vegetarian: ['Vegetarian', 'Χορτοφαγία'], fpD_vegan: ['Vegan', 'Βίγκαν'], fpD_pescatarian: ['Pescatarian', 'Πεσκετάριαν'], fpD_pork: ['Pork', 'Χοιρινό'],
   fpD_beef: ['Beef', 'Μοσχάρι'], fpD_lamb: ['Lamb', 'Αρνί'], fpD_alcohol: ['Alcohol', 'Αλκοόλ'], fpD_mushrooms: ['Mushrooms', 'Μανιτάρια'],
 });
+
+// 0.7.4.3 fridge-a: not food, table photo, verified tags
+Object.assign(S, {
+  notFoodT: ['Not food, skipped ({n})', 'Όχι τρόφιμα, παραλείφθηκαν ({n})'], rescue: ['Add Anyway', 'Πρόσθεσέ το'],
+  notFoodToast: ['{n} is not food, so it was skipped.', 'Το «{n}» δεν είναι τρόφιμο, παραλείφθηκε.'],
+});
