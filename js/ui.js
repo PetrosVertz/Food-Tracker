@@ -24,6 +24,15 @@ const ICON = {
   keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/>',
   pot: '<path d="M4 11h16v4.5a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5z"/><path d="M2 11h2M20 11h2M8.5 11a3.5 1.5 0 0 1 7 0"/><path d="M10 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5M14 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>',
+  // 0.7.4.0.5: shared line icons for every branch (they replace the old text glyphs)
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  unlock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/>',
+  trash: '<path d="M4 7h16M9 7V4.5h6V7M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M10 11v6M14 11v6"/>',
+  star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  starOn: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor"/>',
+  play: '<path d="M7.5 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.7 4.1a.8.8 0 0 0-1.2.7z"/>',
+  snow: '<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4l2.5 2.5L14.5 4M9.5 20l2.5-2.5 2.5 2.5M4 10.4l3.4.9-.9 3.4M20 13.6l-3.4-.9.9-3.4M4 13.6l3.4-.9-.9-3.4M20 10.4l-3.4.9.9 3.4"/>',
 };
 const svgIcon = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain arrow (no box)
@@ -42,20 +51,21 @@ const hOut = cm => { if(!cm) return ''; if(UN().h !== 'ft') return cm; const inc
 const hIn = v => { if(UN().h !== 'ft') return +v; const m = String(v).match(/(\d+)\D+(\d+)/); if(m) return (+m[1] * 12 + +m[2]) * 2.54; const n = +v; return n > 0 && n < 9 ? n * 12 * 2.54 : n * 2.54; };
 
 // ---------- Settings › Theme (canvas ThemeMenu.dc.html): Dark / Light / Automatic + nine accent presets on one neutral grey base ----------
-// [id, name, dark accent, dark text-on-accent, light accent, light text-on-accent]. A device setting (ui.theme), not synced.
+// [id, name, dark accent, dark text-on-accent, light accent, light text-on-accent, light accent-as-text (≥ 4.5:1 on the Light page)]. A device setting (ui.theme), not synced.
 const THEMES = [
-  ['lime', 'Lime', '#c6f432', '#0f1113', '#8fbb12', '#0f1113'], ['ocean', 'Ocean', '#3fd5e0', '#061316', '#0f9aa6', '#ffffff'],
-  ['sunset', 'Sunset', '#ff8c4a', '#1a0d06', '#e8692a', '#1a0d06'], ['violet', 'Violet', '#b39bff', '#120d22', '#7457ea', '#ffffff'],
-  ['mono', 'Mono', '#f1f3f5', '#0a0a0b', '#1d1f22', '#f4f4f5'], ['red', 'Racing Red', '#ff4d4d', '#1a0606', '#d42c2c', '#ffffff'],
-  ['gold', 'Gold', '#f2c14e', '#1a1306', '#c08c0c', '#1a1306'], ['mint', 'Mint', '#5fe3b0', '#04170f', '#16a673', '#04170f'],
-  ['pink', 'Soft Pink', '#ff9ec7', '#2a0a18', '#db4f8c', '#ffffff'] ];
+  ['lime', 'Lime', '#c6f432', '#0f1113', '#8fbb12', '#0f1113', '#4a6600'], ['ocean', 'Ocean', '#3fd5e0', '#061316', '#0f9aa6', '#ffffff', '#0a6670'],
+  ['sunset', 'Sunset', '#ff8c4a', '#1a0d06', '#e8692a', '#1a0d06', '#a8420f'], ['violet', 'Violet', '#b39bff', '#120d22', '#7457ea', '#ffffff', '#5a3fd0'],
+  ['mono', 'Mono', '#f1f3f5', '#0a0a0b', '#1d1f22', '#f4f4f5', '#1d1f22'], ['red', 'Racing Red', '#ff4d4d', '#1a0606', '#d42c2c', '#ffffff', '#b01f1f'],
+  ['gold', 'Gold', '#f2c14e', '#1a1306', '#c08c0c', '#1a1306', '#7f5a00'], ['mint', 'Mint', '#5fe3b0', '#04170f', '#16a673', '#04170f', '#0a6e4a'],
+  ['pink', 'Soft Pink', '#ff9ec7', '#2a0a18', '#db4f8c', '#ffffff', '#a8285f'] ];
 const THEME_WARM = ['sunset', 'red', 'gold', 'pink'];   // "Ready" muscles use green in these so they don't look like "Sore"
 function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'auto', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
   return { mode, p, look: mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode }; }
 function applyTheme(){
   const { p, look } = themeNow(), L = look === 'light', mono = p[0] === 'mono', r = document.documentElement, set = (k, v) => r.style.setProperty(k, v);
   r.setAttribute('data-theme', look);
-  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]);
+  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-accent-ink', L ? p[6] : p[2]);
+  set('--t-toast-act', L ? (mono ? '#ffffff' : p[2]) : p[6]);              // toast is near-black in Light (bright accent), near-white in Dark (dark ink)
   set('--t-mp-text', mono ? (L ? '#ffffff' : '#0a0a0b') : p[2]);                 // the main pill keeps the bright accent (on black in Light)
   set('--t-mp-stroke', !L && !mono ? '2.4px #0b0d0f' : '0');
   set('--t-ready', THEME_WARM.includes(p[0]) ? 'var(--t-done)' : 'var(--t-accent)');
@@ -80,6 +90,11 @@ const homeHash = () => '#' + TAB_ROOT[TABS3[0]];
 function setTheme(ch){ ui.theme = { ...(ui.theme || {}), ...ch }; saveUI(); applyTheme(); drawTheme(); if(location.hash.slice(1) === 'gym-rec' && typeof renderRecovery === 'function') renderRecovery(); }
 try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if(themeNow().mode === 'auto') setTheme({}); }); }catch(e){}
 
+// 0.7.4.0.5: every .ibtn (info button) shows the info line icon in a round chip (layout.css .ibtn); a leftover text glyph is replaced
+function ibtnFill(root){ (root.matches && root.matches('.ibtn') ? [root] : []).concat([...(root.querySelectorAll ? root.querySelectorAll('.ibtn') : [])])
+  .forEach(b => { if(!b.querySelector('svg')) b.innerHTML = svgIcon('info', 18); }); }
+document.addEventListener('DOMContentLoaded', () => ibtnFill(document));
+
 const PILL_SEL = '.mpill,.seg,.rail';
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
@@ -100,7 +115,7 @@ new MutationObserver(recs => { for(const r of recs){
     const t = r.target; if(t.nodeType !== 1) continue;
     if(r.type === 'attributes'){ if(t.matches(PILL_SEL)) pillQueue(t); else if(t.parentElement && t.parentElement.matches(PILL_SEL)) pillQueue(t.parentElement); continue; }   // a hidden selector that appears is caught by the ResizeObserver
     if(t.matches(PILL_SEL)) pillQueue(t);
-    r.addedNodes.forEach(n => { if(n.nodeType !== 1) return; if(n.matches(PILL_SEL)) pillQueue(n); n.querySelectorAll && n.querySelectorAll(PILL_SEL).forEach(pillQueue); });
+    r.addedNodes.forEach(n => { if(n.nodeType !== 1) return; ibtnFill(n); if(n.matches(PILL_SEL)) pillQueue(n); n.querySelectorAll && n.querySelectorAll(PILL_SEL).forEach(pillQueue); });
   } }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 addEventListener('resize', pillsAll); document.addEventListener('DOMContentLoaded', pillsAll); if(document.fonts) document.fonts.ready.then(pillsAll);
 
@@ -114,6 +129,7 @@ function applyLang(){
   document.querySelectorAll('[data-t]').forEach(el => { const s = t(el.dataset.t); if(s.includes('✨')) el.innerHTML = AI.label(s); else el.textContent = s; });
   document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = AI.label(t(el.dataset.th), true));
   document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp).replace(/✨\s?/g, ''));
+  document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', t(el.dataset.ta).replace(/\u2728\s?/g, '')));   // 0.7.4.0.5: translated aria-labels
   setSeg('#sLang', lang);
 }
 
