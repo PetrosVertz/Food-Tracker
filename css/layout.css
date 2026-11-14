@@ -61,9 +61,6 @@ details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 .ibtn svg{box-sizing:content-box;width:16px;height:16px;padding:4px;border-radius:999px;background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line)}
 .tippop{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 32px));background:#22272c;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;color:var(--text);box-shadow:0 12px 34px rgba(0,0,0,.45);animation:tipIn .18s ease-out}
 @keyframes tipIn{from{opacity:0;transform:translateY(4px)}}
-/* log sheet: Quick add + Plan my day side by side */
-.logacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px}
-.logacts .btn{width:100%;font-size:14px;padding:11px 8px}
 #qaOut{min-height:18px;margin-top:8px}
 .planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
 
@@ -113,7 +110,7 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 /* swipe to delete */
 #dLog .card{position:relative;touch-action:pan-y}
 #dLog .card.swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
-#dLog .card.swiping::after{content:'🗑';position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));font-size:22px;opacity:var(--sw,0);filter:hue-rotate(-30deg) saturate(3)}
+#dLog .card.swiping::after{content:'';position:absolute;right:14px;top:50%;width:22px;height:22px;background:var(--danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;transform:translateY(-50%) scale(calc(.6 + .5 * var(--sw,0)));opacity:var(--sw,0)}
 #dLog .card.swready{border-color:var(--danger)!important}
 /* recovery: red muscles breathe */
 path.mlow{animation:mBreathe 3.4s ease-in-out infinite}
@@ -135,6 +132,7 @@ header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate
 .swipebox .swiping::after{content:'';position:absolute;left:calc(100% + 100% * var(--sw,0) / 6 - 11px);top:50%;width:22px;height:22px;background:var(--danger);-webkit-mask:var(--trash) center/contain no-repeat;mask:var(--trash) center/contain no-repeat;transform:translateY(-50%) scale(.6);opacity:0;transition:opacity .16s ease-out,transform .22s cubic-bezier(.3,1.4,.6,1);pointer-events:none}
 .swipebox .swready::after{opacity:1;transform:translateY(-50%) scale(1)}
 .swipebox .swready{border-color:var(--danger)!important}
+:root{--check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
 :root{--trash:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12.2A2 2 0 0 0 8.5 21h7a2 2 0 0 0 2-1.8L18.5 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7'/%3E%3C/svg%3E")}
 @media(prefers-reduced-motion:reduce){.swipebox .swiping::after{transition:none}}
 /* End Workout higher, Discard = a smaller red pill */
@@ -305,7 +303,7 @@ html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area
 
 /* 0.6.7 · search: did you mean, add as takeaway, amount unit */
 .dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;color:var(--muted);font-size:14px;cursor:pointer}
-.dym b{color:var(--accent)}
+.dym b{color:var(--t-accent-ink,var(--t-accent))}
 .sitem.takeaway{margin-top:10px;border:1px dashed color-mix(in srgb,var(--t-accent) 35%,transparent)}
 #ovAmt .amrow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
 #ovAmt .amrow input{flex:1 1 0;min-width:0;font-size:20px;font-weight:700;text-align:center}

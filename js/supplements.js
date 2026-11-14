@@ -15,7 +15,7 @@ function renderSupps(){
   $('sList').innerHTML = supps.map(s => { const tk = takesOf(d, s.id);
     return `<div class="card supcard" data-sid="${s.id}"><div class="body">
       <div class="row"><div class="name"><span class="sic">${svgIcon('capsule', 18, 2)}</span>${esc(suppName(s))}</div><span class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}</span></div>
-      <div class="takes">${tk.map((tm, i) => `<span class="take"><span>✓</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="Time taken"><button data-tkx="${i}" aria-label="Remove">✕</button></span>`).join('')}
+      <div class="takes">${tk.map((tm, i) => `<span class="take"><span>${svgIcon('check', 14, 2.4)}</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="${t('logATime')}"><button data-tkx="${i}" aria-label="${t('logATakeRm')}">${svgIcon('x', 14, 2.4)}</button></span>`).join('')}
         <button class="btn small takebtn" data-take>${tk.length ? t('takeAgain') : t('takeIt')}</button></div></div></div>`; }).join('');
 }
 
@@ -24,11 +24,12 @@ function openSupp(s){
   $('supTitle').textContent = s ? t('editSupp') : t('addSupp');
   $('supQuick').classList.toggle('hide', !!s);
   const have = new Set(supps.map(x => x.qid).filter(Boolean));
-  $('supQuickList').innerHTML = QUICK.filter(q => !have.has(q.id)).map(q => `<button data-q="${q.id}">${q.icon} ${esc(L(q))}</button>`).join('');
+  $('supQuickList').innerHTML = QUICK.filter(q => !have.has(q.id)).map(q => `<button data-q="${q.id}">${esc(L(q))}</button>`).join('');
   $('supName').value = s ? suppName(s) : ''; $('supDose').value = s ? s.dose : ''; $('supNotes').value = s ? s.notes || '' : '';
-  $('supUnit').innerHTML = SUNITS.map(u => { const long = t('ul_' + u); return `<option value="${u}">${esc(unitLabel(u))}${long && long !== 'ul_' + u ? ' · ' + esc(long) : ''}</option>`; }).join('');   // C = capsules, T = tablets, S = scoops, D = drops $('supUnit').value = s ? s.unit : 'mg';
+  $('supUnit').innerHTML = SUNITS.map(u => { const long = t('ul_' + u); return `<option value="${u}">${esc(unitLabel(u))}${long && long !== 'ul_' + u ? ' · ' + esc(long) : ''}</option>`; }).join('');   // C = capsules, T = tablets, S = scoops, D = drops
+  $('supUnit').value = s ? s.unit : 'mg';
   const opts = foods.slice().sort((a,b) => (b.cat === 'supps') - (a.cat === 'supps') || norm(foodName(a)).localeCompare(norm(foodName(b))));
-  $('supFood').innerHTML = `<option value="">${t('supLinkNone')}</option>` + opts.map(f => `<option value="${f.id}">${iconOf(f) || ''} ${esc(foodName(f))}${f.brand ? ' · ' + esc(f.brand) : ''}</option>`).join('');
+  $('supFood').innerHTML = `<option value="">${t('supLinkNone')}</option>` + opts.map(f => `<option value="${f.id}">${esc(foodName(f))}${f.brand ? ' · ' + esc(f.brand) : ''}</option>`).join('');
   $('supFood').value = s && s.foodId ? s.foodId : '';
   $('supLinkHint').textContent = t('supLinkHint');
   drawSupTimes(); setSeg('#supOften', SU.often);

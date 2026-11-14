@@ -145,7 +145,7 @@ const S = {
  ownTag:['your recipe','δική σου συνταγή'],
  // supplements
  tSupps:['My supplements','Τα συμπληρώματά μου'], nSupps:['{n} supplements','{n} συμπληρώματα'], nSupp:['1 supplement','1 συμπλήρωμα'],
- addSuppFab:['＋ Add supplement','＋ Προσθήκη'], addSupp:['Add supplement','Νέο συμπλήρωμα'], editSupp:['Edit supplement','Επεξεργασία'],
+ addSuppFab:['Add Supplement','Προσθήκη'], addSupp:['Add supplement','Νέο συμπλήρωμα'], editSupp:['Edit supplement','Επεξεργασία'],
  supQuickSub:['Pick a common one or type your own below.','Διάλεξε ένα συνηθισμένο ή γράψε το δικό σου από κάτω.'],
  supName:['Name','Όνομα'], supNamePh:['e.g. Magnesium bisglycinate','π.χ. Μαγνήσιο δισγλυκινικό'],
  supDose:['Dose each time','Δόση κάθε φορά'], supDoseHint:['Use the dose on your label or what your doctor told you.','Βάλε τη δόση της ετικέτας ή αυτή που σου είπε ο γιατρός.'],
@@ -154,22 +154,20 @@ const S = {
  supLink:['Linked food (for macros)','Σύνδεση με τρόφιμο (για μακρο)'], supLinkNone:['— None —','— Κανένα —'],
  supLinkHint:['Link whey or anything with calories so its macros count later.','Σύνδεσε την πρωτεΐνη ή ό,τι έχει θερμίδες, για να μετράνε τα μακρο αργότερα.'],
  supNotesPh:['e.g. take with food','π.χ. με φαγητό'],
- supNeedName:['Give it a name','Δώσε όνομα'], supNeedDose:['Add the dose','Βάλε τη δόση'], supNeedTime:['Pick when you take it','Διάλεξε πότε το παίρνεις'],
- todayLabel:['Today','Σήμερα'], todayTaken:['{a} of {b} taken','{a} από {b}'], allTaken:['All done today 💪','Όλα έτοιμα για σήμερα 💪'],
+ supNeedName:['Give it a name','Δώσε όνομα'], supNeedDose:['Add the dose','Βάλε τη δόση'],
+ todayLabel:['Today','Σήμερα'], todayTaken:['{a} of {b} taken','{a} από {b}'],
  noSupps:['<b>No supplements yet</b>Tap “Add supplement” to list what you take.','<b>Δεν έχεις συμπληρώματα ακόμα</b>Πάτα «Προσθήκη» για να βάλεις ό,τι παίρνεις.'],
- tagTraining:['training days','μέρες προπόνησης'], tagNeeded:['when needed','όταν χρειάζεται'],
  slot_morning:['Morning','Πρωί'], slot_breakfast:['With breakfast','Με το πρωινό'], slot_pre:['Pre-workout','Πριν την προπόνηση'], slot_post:['Post-workout','Μετά την προπόνηση'],
  slot_lunch:['With lunch','Με το μεσημεριανό'], slot_dinner:['With dinner','Με το βραδινό'], slot_bed:['Before bed','Πριν τον ύπνο'], slot_any:['Any time','Οποτεδήποτε'],
  // ---- v1.5 ----
- tToday:['Today’s food','Το φαγητό της μέρας'], remaining:['{n} kcal left','απομένουν {n} kcal'], over:['{n} kcal over','{n} kcal πάνω'], noTargets:['Set your targets 🎯','Βάλε τους στόχους σου 🎯'],
+ tToday:['Today’s food','Το φαγητό της μέρας'], remaining:['{n} kcal left','απομένουν {n} kcal'], over:['{n} kcal over','{n} kcal πάνω'],
  gymDay:['Gym Day','Μέρα Γυμναστηρίου'], restDay:['Rest Day','Μέρα Ξεκούρασης'],
  wLegs:['Legs','Πόδια'], wUpper:['Upper','Πάνω σώμα'], wFull:['Full body','Όλο το σώμα'], wCardio:['Cardio','Cardio'], workoutAt:['Workout at','Ώρα προπόνησης'],
- carbTiming:['Carb timing','Κατανομή υδατανθράκων'], eaten:['Eaten','Έφαγα'], copyYesterday:['↺ Same as yesterday','↺ Όπως χθες'],
- todayD:['Today','Σήμερα'], yesterdayD:['Yesterday','Χθες'], tomorrowD:['Tomorrow','Αύριο'],
- logFab:['＋ Log food','＋ Καταγραφή'], logFood:['Log food','Καταγραφή φαγητού'], logSearchPh:['Search foods and meals…','Αναζήτηση τροφίμων και φαγητών…'],
- scanToLog:['Scan','Σάρωση'], recent:['Recent','Πρόσφατα'], leftovers:['leftovers','περισσεύματα'],
- nothingLogged:['<b>Nothing logged yet</b>Tap ＋ Log Food after you eat. Search, then ＋ logs your usual amount in one tap.','<b>Δεν έχεις καταγράψει τίποτα</b>Πάτα ＋ Καταγραφή αφού φας. Ψάξε και το ＋ καταγράφει τη συνηθισμένη ποσότητα με ένα πάτημα.'],
- ateAt:['Eaten at','Ώρα'], alsoLog:['Also add to Today’s food','Πρόσθεσέ το και στο φαγητό της μέρας'], takeFromFridge:['Take it out of the fridge ({s} there)','Βγάλ’ το από το ψυγείο (υπάρχουν {s})'],
+ carbTiming:['Carb timing','Κατανομή υδατανθράκων'], eaten:['Eaten','Έφαγα'], copyYesterday:['Same as Yesterday','Όπως χθες'],
+ logFab:['Log Food','Καταγραφή'], logFood:['Log food','Καταγραφή φαγητού'], logSearchPh:['Search foods and meals…','Αναζήτηση τροφίμων και φαγητών…'],
+ recent:['Recent','Πρόσφατα'], leftovers:['leftovers','περισσεύματα'],
+ nothingLogged:['<b>Nothing logged yet</b>Tap Log Food after you eat. Search, then the plus button logs your usual amount in one tap.','<b>Δεν έχεις καταγράψει τίποτα</b>Πάτα Καταγραφή αφού φας. Ψάξε και το κουμπί συν καταγράφει τη συνηθισμένη ποσότητα με ένα πάτημα.'],
+ ateAt:['Eaten at','Ώρα'], alsoLog:['Also Add to Today’s Food','Πρόσθεσέ το και στο φαγητό της μέρας'], takeFromFridge:['Take it out of the fridge ({s} there)','Βγάλ’ το από το ψυγείο (υπάρχουν {s})'],
  logged:['Logged {n}','Καταγράφηκε: {n}'], copiedDay:['Copied {n} items from yesterday','Αντιγράφηκαν {n} από χθες'], nothingYesterday:['Nothing logged yesterday','Δεν υπάρχει τίποτα από χθες'],
  needAmount:['Type an amount','Γράψε ποσότητα'],
  // windows
@@ -184,15 +182,15 @@ const S = {
  tipRest:['Carbs spread evenly; protein every 3–4 h.','Υδατάνθρακες μοιρασμένοι· πρωτεΐνη κάθε 3–4 ώρες.'], tipSpread:['Spread across your other meals.','Μοίρασέ τους στα υπόλοιπα γεύματα.'],
  // targets
  targetsT:['Daily targets','Ημερήσιοι στόχοι'], targetsSub:['Gym days and rest days get their own numbers. Same protein, fewer carbs on rest days is a common setup.','Οι μέρες γυμναστηρίου και ξεκούρασης έχουν δικούς τους στόχους. Συνήθως ίδια πρωτεΐνη, λιγότεροι υδατάνθρακες στην ξεκούραση.'],
- goal:['Goal','Στόχος'], gBulk:['Bulk','Όγκος'], gRecomp:['Recomp','Recomp'], gCut:['Cut','Γράμμωση'], bodyweight:['Body weight','Βάρος'],
- calcStart:['Calculate','Υπολογισμός'], calcHint:['Gives a starting point (protein ~2 g/kg). Adjust after 2 weeks based on the scale.','Δίνει ένα σημείο εκκίνησης (πρωτεΐνη ~2 g/kg). Προσάρμοσε μετά από 2 εβδομάδες ανάλογα με τη ζυγαριά.'],
+ goal:['Goal','Στόχος'], gBulk:['Bulk','Όγκος'], gRecomp:['Recomp','Ανασύνθεση'], gCut:['Cut','Γράμμωση'], bodyweight:['Body Weight','Βάρος'],
+ calcStart:['Calculate','Υπολογισμός'],
  gymDayTargets:['Gym Day','Μέρα Γυμναστηρίου'], restDayTargets:['Rest Day','Μέρα Ξεκούρασης'],
  tgMismatch:['{d}: macros add up to {n} kcal, not {k}.','{d}: τα μακρο βγάζουν {n} kcal, όχι {k}.'], tgOk:['Macros and calories match.','Τα μακρο ταιριάζουν με τις θερμίδες.'], targetsSaved:['Targets saved','Οι στόχοι αποθηκεύτηκαν'],
  // plan my day
- planMyDay:['✨ Plan my day','✨ Σχεδίασε τη μέρα μου'], planning:['Planning…','Σχεδιάζω…'], planFail:['Couldn’t plan: {e}','Δεν έγινε το πλάνο: {e}'],
- planNeedTargets:['Set your targets first (🎯 at the top).','Βάλε πρώτα τους στόχους σου (🎯 πάνω).'], planT:['Plan for the day','Πλάνο ημέρας'], logThis:['Log this','Καταγραφή'],
- planLogged:['Logged {n} foods','Καταγράφηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['✕ Clear plan','✕ Διαγραφή πλάνου'],
- fromFridge:['fridge','ψυγείο'], // fridge
+ planning:['Planning…','Σχεδιάζω…'], planFail:['Couldn’t plan: {e}','Δεν έγινε το πλάνο: {e}'],
+ planNeedTargets:['Set your targets first (Targets, at the top).','Βάλε πρώτα τους στόχους σου (Στόχοι, πάνω).'],
+ planLogged:['Logged {n} foods','Καταγράφηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
+ // fridge
  locFridge:['Fridge','Ψυγείο'], locFreezer:['Freezer','Κατάψυξη'], locCupboard:['Cupboard','Ντουλάπι'], searchFridge:['Search the fridge…','Αναζήτηση στο ψυγείο…'],
  emptyFridge:['<b>Your fridge is empty</b>Tap Scan Receipt after shopping, or Add Food. Ticked groceries can go straight in too.','<b>Το ψυγείο είναι άδειο</b>Σκάναρε ό,τι αγόρασες ή τσέκαρε από τη λίστα για ψώνια και βάλ’ τα μέσα.'],
  addFridgeHow:['Add to fridge','Προσθήκη στο ψυγείο'],
@@ -220,7 +218,7 @@ const S = {
  keyFail:['✗ That key didn’t work: {e}','✗ Το κλειδί δεν δούλεψε: {e}'], keyEmpty:['Paste a key first','Επικόλλησε πρώτα ένα κλειδί'],
  keyGuideT:['How to get a free key (2 minutes)','Πώς παίρνεις δωρεάν κλειδί (2 λεπτά)'],
  keyNoNeed:['No key? Everything still works except label photos, recipe ideas and Plan my day.','Χωρίς κλειδί; Όλα δουλεύουν εκτός από φωτογραφίες ετικέτας, προτάσεις συνταγών και Σχεδίασε τη μέρα μου.'],
- u_mg:['mg','mg'], u_g:['g','g'], u_mcg:['mcg','mcg'], u_IU:['IU','IU'], u_ml:['ml','ml'], u_caps:['capsules','κάψουλες'], u_tabs:['tablets','ταμπλέτες'], u_scoops:['scoops','μεζούρες'], u_drops:['drops','σταγόνες'],
+ u_mg:['mg','mg'], u_g:['g','g'], u_mcg:['mcg','mcg'], u_IU:['IU','IU'], u_ml:['ml','ml'],
 };
 
 // =====================================================================
@@ -305,7 +303,6 @@ Object.assign(S, {
  tabFood:['Food Tracker','Food Tracker'], tabToday:['Today','Σήμερα'], tabGym:['Gym Buddy','Gym Buddy'],
  homeHello:['Your food, fridge and shopping.','Το φαγητό, το ψυγείο και τα ψώνια σου.'],
  fibre:['Fibre','Φυτ. ίνες'], electrolytes:['Electrolytes','Ηλεκτρολύτες'], sodium:['Sodium','Νάτριο'], potassium:['Potassium','Κάλιο'],
- elecHint:['% of a daily guideline (sodium 2,300 mg, potassium 3,400 mg). Tap to see milligrams.','% μιας ημερήσιας οδηγίας (νάτριο 2.300 mg, κάλιο 3.400 mg). Πάτα για milligrams.'],
  elecHigh:['high','υψηλό'], fibTarget:['Fibre target (g/day)','Στόχος φυτικών ινών (g/μέρα)'], potMg:['Potassium (mg)','Κάλιο (mg)'],
  raw:['Raw','Ωμό'], cookedS:['Cooked','Μαγειρ.'], tapChangeV:['tap to change','πάτα για αλλαγή'],
  cookHow:['How do you want to cook it?','Πώς θες να το φτιάξεις;'], cookSuggest:['✨ Suggest a recipe','✨ Πρότεινέ μου συνταγή'], cookSuggestSub:['Tell it what you fancy; it fits what’s left of your day.','Πες τι σου κάνει όρεξη· ταιριάζει με ό,τι σου μένει για σήμερα.'],
@@ -340,29 +337,24 @@ Object.assign(S, {
   suDone:['All set','Έτοιμο'], suDoneSub:['Gym days: {g} kcal · rest days: {r} kcal · protein {p} g. Change them anytime with 🎯 in Today.','Μέρες γυμναστικής: {g} kcal · ξεκούρασης: {r} kcal · πρωτεΐνη {p} g. Αλλάζουν όποτε θες από το 🎯 στο Σήμερα.'],
   suNeedW:['Add your weight first','Βάλε πρώτα το βάρος σου'], suAgain:['↺ Run the first setup again','↺ Ξανά το αρχικό στήσιμο'],
   remGym:['{n} Today at {t}','{n} σήμερα στις {t}'], remGymNoT:['{n} Today','{n} σήμερα'], remSetT:['Tap to set a time','Πάτα για να βάλεις ώρα'], remWork:['💼 Work {a}–{b}','💼 Δουλειά {a}–{b}'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
-  qaBtn:['⚡ Quick add (eating out)','⚡ Γρήγορη καταγραφή (έξω)'], qaT:['Quick add','Γρήγορη καταγραφή'], qaSub:['Don\'t know the exact food? Put rough numbers.','Δεν ξέρεις ακριβώς το φαγητό; Βάλε περίπου νούμερα.'],
-  qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaMore:['Carbs and fat (optional)','Υδατάνθρακες και λίπος (προαιρετικά)'], qaNeed:['Add the calories','Βάλε τις θερμίδες'], qaTag:['⚡ quick add','⚡ γρήγορη καταγραφή'],
-  usuals:['Your usuals','Τα συνηθισμένα σου'], lastAmt:['last: {a}','τελευταία: {a}'], quickLogged:['Logged {a} {n}','Καταγράφηκε {a} {n}'], grpOnline2:['🌐 Online','🌐 Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
-  rawTag:['RAW','ΩΜΟ'], suUse:['What will you use the app for?','Για τι θα χρησιμοποιείς την εφαρμογή;'], useBoth:['Food + Gym','Φαγητό + Γυμναστήριο'], useGym:['Mainly Gym','Κυρίως Γυμναστήριο'], useGymOn:['Gym Buddy is now the first tab','Το Gym Buddy είναι πλέον η πρώτη καρτέλα'], useBothOn:['Today\'s Food is the first tab again','Το Σημερινό φαγητό είναι ξανά η πρώτη καρτέλα'], comboT:['Your Combos','Οι συνδυασμοί σου'], comboSave:['Save as combo','Αποθήκευση ως συνδυασμός'], comboPh:['Name, e.g. My breakfast','Όνομα, π.χ. Το πρωινό μου'], comboSub:['{n} foods · {k} kcal','{n} τρόφιμα · {k} kcal'], comboLogged:['Logged {n} · {k} kcal','Καταγράφηκε: {n} · {k} kcal'], comboDel:['Delete combo','Διαγραφή συνδυασμού'], comboSaved:['Combo saved: {n}','Ο συνδυασμός αποθηκεύτηκε: {n}'], startEmpty:['Start Empty Workout','Κενή προπόνηση'], stToday:['planned today','προγραμματισμένη σήμερα'], stCustom:['Customize','Προσαρμογή'], stCustomSub:['Theme · Language · Units','Θέμα · Γλώσσα · Μονάδες'], stBody:['Body and Goals','Σώμα και στόχοι'], stBodySub:['Sex, height, weight, targets','Φύλο, ύψος, βάρος, στόχοι'], stAI:['AI','AI'], stAISub:['Gemini key and model','Κλειδί και μοντέλο Gemini'], stData:['Your Data','Τα δεδομένα σου'], stDataSub:['Back up, import, copy to Claude','Αντίγραφο, εισαγωγή, αντιγραφή για Claude'], stAbout:['About','Σχετικά'], stAboutSub:['Version, setup','Έκδοση, ρύθμιση'], langName:['English','Ελληνικά'], unitsT:['Units','Μονάδες'], unitsSub:['kg · cm · g','kg · cm · g'], unW:['Body weight','Σωματικό βάρος'], unH:['Height','Ύψος'], unF:['Food','Φαγητό'], unNote:['Everything is saved in metric; only what you see and type changes. Lifting weights stay in kg.','Όλα αποθηκεύονται μετρικά· αλλάζει μόνο ό,τι βλέπεις και γράφεις. Τα βάρη στο γυμναστήριο μένουν σε kg.'], dailyTargets:['Daily Targets','Ημερήσιοι στόχοι'], pgLocked:['Unlocks after {n} workouts · {k} to go','Ξεκλειδώνει μετά από {n} προπονήσεις · απομένουν {k}'], ssMade:['Superset made · drag one out to unlink','Έγινε superset · σύρε ένα έξω για να το χωρίσεις'], readyTag:['READY','ΕΤΟΙΜΟ'], cookedTag:['COOKED','ΜΑΓΕΙΡ.'], fromFridge:['🧊 Also comes out of your fridge (you have {s})','🧊 Βγαίνει και από το ψυγείο (έχεις {s})'], takeOutT:['Take Out: {n}','Βγάλε: {n}'], takeOutSub:['For cooking, or it went off. Eating gets logged in Today.','Για μαγείρεμα ή αν χάλασε. Ό,τι τρως καταγράφεται στο Σήμερα.'],
+  qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaTag:['quick add','γρήγορη καταγραφή'],
+  usuals:['Your usuals','Τα συνηθισμένα σου'], grpOnline2:['Online','Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
+  rawTag:['RAW','ΩΜΟ'], suUse:['What will you use the app for?','Για τι θα χρησιμοποιείς την εφαρμογή;'], useBoth:['Food + Gym','Φαγητό + Γυμναστήριο'], useGym:['Mainly Gym','Κυρίως Γυμναστήριο'], useGymOn:['Gym Buddy is now the first tab','Το Gym Buddy είναι πλέον η πρώτη καρτέλα'], useBothOn:['Today\'s Food is the first tab again','Το Σημερινό φαγητό είναι ξανά η πρώτη καρτέλα'], comboT:['Your Combos','Οι συνδυασμοί σου'], comboSave:['Save as combo','Αποθήκευση ως συνδυασμός'], comboPh:['Name, e.g. My breakfast','Όνομα, π.χ. Το πρωινό μου'], comboSub:['{n} foods · {k} kcal','{n} τρόφιμα · {k} kcal'], comboLogged:['Logged {n} · {k} kcal','Καταγράφηκε: {n} · {k} kcal'], comboDel:['Delete Combo','Διαγραφή συνδυασμού'], comboSaved:['Combo saved: {n}','Ο συνδυασμός αποθηκεύτηκε: {n}'], startEmpty:['Start Empty Workout','Κενή προπόνηση'], stToday:['planned today','προγραμματισμένη σήμερα'], stCustom:['Customize','Προσαρμογή'], stCustomSub:['Theme · Language · Units','Θέμα · Γλώσσα · Μονάδες'], stBody:['Body and Goals','Σώμα και στόχοι'], stBodySub:['Sex, height, weight, targets','Φύλο, ύψος, βάρος, στόχοι'], stAI:['AI','AI'], stAISub:['Gemini key and model','Κλειδί και μοντέλο Gemini'], stData:['Your Data','Τα δεδομένα σου'], stDataSub:['Back up, import, copy to Claude','Αντίγραφο, εισαγωγή, αντιγραφή για Claude'], stAbout:['About','Σχετικά'], stAboutSub:['Version, setup','Έκδοση, ρύθμιση'], langName:['English','Ελληνικά'], unitsT:['Units','Μονάδες'], unitsSub:['kg · cm · g','kg · cm · g'], unW:['Body weight','Σωματικό βάρος'], unH:['Height','Ύψος'], unF:['Food','Φαγητό'], unNote:['Everything is saved in metric; only what you see and type changes. Lifting weights stay in kg.','Όλα αποθηκεύονται μετρικά· αλλάζει μόνο ό,τι βλέπεις και γράφεις. Τα βάρη στο γυμναστήριο μένουν σε kg.'], dailyTargets:['Daily Targets','Ημερήσιοι στόχοι'], pgLocked:['Unlocks after {n} workouts · {k} to go','Ξεκλειδώνει μετά από {n} προπονήσεις · απομένουν {k}'], ssMade:['Superset made · drag one out to unlink','Έγινε superset · σύρε ένα έξω για να το χωρίσεις'], readyTag:['READY','ΕΤΟΙΜΟ'], cookedTag:['COOKED','ΜΑΓΕΙΡ.'], fromFridge:['Also comes out of your fridge (you have {s})','Βγαίνει και από το ψυγείο (έχεις {s})'], takeOutT:['Take Out: {n}','Βγάλε: {n}'], takeOutSub:['For cooking, or it went off. Eating gets logged in Today.','Για μαγείρεμα ή αν χάλασε. Ό,τι τρως καταγράφεται στο Σήμερα.'],
   shopT:['Add shopping','Πρόσθεσε ψώνια'], shopSub:['Everything goes into the fridge. Pick the quickest way.','Όλα μπαίνουν στο ψυγείο. Διάλεξε τον πιο γρήγορο τρόπο.'],
   shopScan:['Scan Barcodes','Σάρωση barcode'], shopScanSub:['One by one, exact products','Ένα ένα, ακριβή προϊόντα'], shopSearch:['Search and Add','Αναζήτηση και προσθήκη'], shopSearchSub:['Type a food','Γράψε ένα τρόφιμο'],
   shopAdded:['Added {n} items to the fridge','Μπήκαν {n} προϊόντα στο ψυγείο'], shopNone:['Couldn\'t find any food in the photo.','Δεν βρήκα φαγητά στη φωτογραφία.'], shopFail:['Couldn\'t read it: {e}','Δεν διαβάστηκε: {e}'], shopPick:['tap to pick a food','πάτα για να διαλέξεις'], shopNew:['new','νέο'],
   scanNext:['Scan next','Επόμενο'], needKeyFirst:['This needs a free Gemini key (settings).','Χρειάζεται δωρεάν κλειδί Gemini (ρυθμίσεις).'],
-  formBtn:['▶ Form','▶ Τεχνική'], formT:['Correct form','Σωστή τεχνική'], lwUsual:['Log usual amount','Καταγραφή της συνηθισμένης ποσότητας'], lwHour:['Usually at this time','Συνήθως αυτή την ώρα'], lwResults:['Results','Αποτελέσματα'], lwAmount:['Amount','Ποσότητα'], lwTake:['Add Takeaway','Φαγητό απ\' έξω'], lwFill:['Fill My Macros','Γέμισε τα μακρο'], lwTrack:['Food Tracker','Food Tracker'], lwTitle:['Log Food','Καταγραφή'], themeT:['Theme','Θέμα'], thAppearance:['Appearance','Εμφάνιση'], thDark:['Dark','Σκούρο'], thLight:['Light','Ανοιχτό'], thAuto:['Automatic','Αυτόματο'], thColour:['Colour','Χρώμα'], thPreview:['Preview','Προεπισκόπηση'], thAutoNote:['Follows your iPhone','Ακολουθεί το iPhone σου'], thLightNote:['Light uses a soft grey, not pure white','Το ανοιχτό είναι απαλό γκρι, όχι κάτασπρο'], formPct:['Percentages','Ποσοστά'], formZoomHint:['Pinch to zoom · double-tap to reset','Τσίμπημα για ζουμ · διπλό πάτημα για επαναφορά'], formPhoto:['Photo {a} of {b}','Φωτογραφία {a} από {b}'], formNext:['Not this one ›','Δεν είναι αυτό ›'], formLoading:['Loading the demo…','Φορτώνει η επίδειξη…'],
+  formBtn:['▶ Form','▶ Τεχνική'], formT:['Correct form','Σωστή τεχνική'], lwUsual:['Log usual amount','Καταγραφή της συνηθισμένης ποσότητας'], lwHour:['Usually at this time','Συνήθως αυτή την ώρα'], lwResults:['Results','Αποτελέσματα'], lwAmount:['Amount','Ποσότητα'], lwFill:['Fill My Macros','Γέμισε τα μακρο'], lwTitle:['Log Food','Καταγραφή'], themeT:['Theme','Θέμα'], thAppearance:['Appearance','Εμφάνιση'], thDark:['Dark','Σκούρο'], thLight:['Light','Ανοιχτό'], thAuto:['Automatic','Αυτόματο'], thColour:['Colour','Χρώμα'], thPreview:['Preview','Προεπισκόπηση'], thAutoNote:['Follows your iPhone','Ακολουθεί το iPhone σου'], thLightNote:['Light uses a soft grey, not pure white','Το ανοιχτό είναι απαλό γκρι, όχι κάτασπρο'], formPct:['Percentages','Ποσοστά'], formZoomHint:['Pinch to zoom · double-tap to reset','Τσίμπημα για ζουμ · διπλό πάτημα για επαναφορά'], formPhoto:['Photo {a} of {b}','Φωτογραφία {a} από {b}'], formNext:['Not this one ›','Δεν είναι αυτό ›'], formLoading:['Loading the demo…','Φορτώνει η επίδειξη…'],
   formFail:['Couldn\'t load the demo (needs internet).','Δεν φόρτωσε η επίδειξη (θέλει ίντερνετ).'], formCredit:['Photos: free-exercise-db (public domain). Steps in English.','Φωτογραφίες: free-exercise-db (ελεύθερες). Βήματα στα αγγλικά.'], formNone:['No demo found for this one.','Δεν βρέθηκε επίδειξη γι\' αυτό.'],
   setsL:['Sets','Σετ'], repsL:['Reps','Επαναλήψεις'], restL:['Rest','Διάλειμμα'], typeChange:['change','αλλαγή'], otherWorkout:['or pick another workout','ή διάλεξε άλλη προπόνηση'], tapNum:['Tap the set number for warm-up / drop / failure','Πάτα τον αριθμό του σετ για ζέσταμα / drop / αποτυχία'],
-  wiT:['Weigh-in','Ζύγισμα'], wiSave:['Save','Αποθήκευση'], wiSaved:['Weight saved','Το βάρος αποθηκεύτηκε'], wiRate:['{r} kg/week over the last {d} days','{r} kg/εβδομάδα τις τελευταίες {d} μέρες'],
-  wiNeed:['Weigh in a few times a week (same time, morning). The trend shows after a week.','Ζυγίσου μερικές φορές την εβδομάδα (ίδια ώρα, πρωί). Η τάση φαίνεται μετά από μια εβδομάδα.'],
-  wiOk:['On track 👍','Είσαι στον στόχο 👍'], wiSlowBulk:['Gaining slower than a lean bulk (+0.25–0.5% a week).','Παίρνεις πιο αργά από ένα καθαρό bulk (+0,25–0,5% την εβδομάδα).'], wiFastBulk:['Gaining faster than a lean bulk, so some of it is fat.','Παίρνεις πιο γρήγορα από ένα καθαρό bulk, άρα ένα μέρος είναι λίπος.'],
-  wiSlowCut:['Losing slower than planned (−0.5–1% a week).','Χάνεις πιο αργά από το πλάνο (−0,5–1% την εβδομάδα).'], wiFastCut:['Losing fast, so you might lose muscle too.','Χάνεις γρήγορα, μπορεί να χάνεις και μυ.'], wiRecomp:['A recomp should keep weight about the same.','Στο recomp το βάρος μένει περίπου ίδιο.'],
-  wiApply:['Apply {d} kcal','Εφάρμοσε {d} kcal'], wiApplied:['Targets changed by {d} kcal','Οι στόχοι άλλαξαν κατά {d} kcal'],
+  wiT:['Weigh-in','Ζύγισμα'], wiSave:['Save','Αποθήκευση'], wiSaved:['Weight saved','Το βάρος αποθηκεύτηκε'],
   bkT:['💾 Back up your data (1 tap)','💾 Αντίγραφο των δεδομένων (1 πάτημα)'], bkSub:['Last backup: {d}. Save it to iCloud Drive / Files.','Τελευταίο: {d}. Αποθήκευσέ το στο iCloud Drive / Αρχεία.'], bkNever:['never','ποτέ'], bkDone:['Backup saved','Το αντίγραφο αποθηκεύτηκε'],
   potOther:['Weigh it in the pot instead ›','Ζύγισε με την κατσαρόλα ›'], cookedW:['Cooked food weight (g)','Βάρος μαγειρεμένου φαγητού (g)'],
 });
 
 Object.assign(S, {
   tabFridge: ['Fridge', 'Ψυγείο'],
-  fibSug: ['Suggested: {g} g', 'Προτείνεται: {g} g'], fibCutX: [' (more on a cut keeps you full)', ' (στη γράμμωση το παραπάνω σε κρατάει χορτάτο)'], fibUse: ['Use it', 'Χρήση'],
+  fibUse: ['Use it', 'Χρήση'],
   recEstT: ['Recovery estimate', 'Εκτίμηση αποκατάστασης'], recAIwait: ['The AI is checking your sets…', 'Το AI ελέγχει τα σετ σου…'],
   recOffline: ['From your sets, failure sets and heavy lowering moves. Add a Gemini key for an AI check.', 'Από τα σετ, τα σετ μέχρι αποτυχία και τις βαριές εκκεντρικές. Βάλε κλειδί Gemini για έλεγχο AI.'],
   recAIFail: ['Couldn\'t reach the AI, so this is the built-in estimate.', 'Δεν απάντησε το AI, άρα αυτή είναι η ενσωματωμένη εκτίμηση.'], recAIdone: ['Checked by AI', 'Ελέγχθηκε από AI'], recReadyChip: ['ready ✓', 'έτοιμο ✓'], recEstSub: ['Hours until you can train it hard again', 'Ώρες μέχρι να το ξαναδουλέψεις δυνατά'],
@@ -383,15 +375,12 @@ Object.assign(S, {
 
 // ---------- 0.5.9 ----------
 Object.assign(S, {
-  extrasT: ['Extras · Fibre, Sodium, Potassium', 'Επιπλέον · Φυτικές ίνες, νάτριο, κάλιο'],
-  winElec: ['Sodium ~{na} mg · Potassium ~{k} mg', 'Νάτριο ~{na} mg · Κάλιο ~{k} mg'],
   tipCarbT: ['Carb timing means eating more of your carbs around your workout: some a few hours before for fuel, and more in the two hours after to refill your muscles. Your total for the day matters most; timing is a small extra edge. The sodium and potassium numbers are a rough guide, with a bit more sodium around training because you lose it in sweat.',
     'Κατανομή υδατανθράκων σημαίνει να τρως περισσότερους υδατάνθρακες γύρω από την προπόνηση: λίγους μερικές ώρες πριν για ενέργεια, και περισσότερους τις δύο ώρες μετά για να γεμίσουν ξανά οι μύες. Το σύνολο της μέρας μετράει πιο πολύ· η κατανομή είναι ένα μικρό έξτρα. Τα νούμερα για νάτριο και κάλιο είναι πρόχειρος οδηγός, με λίγο παραπάνω νάτριο γύρω από την προπόνηση γιατί το χάνεις με τον ιδρώτα.'],
   tipElec: ['Sodium and potassium help your muscles work and keep you hydrated. You lose sodium in sweat, so on gym days a bit more is fine. Most people get too little potassium: potatoes, bananas, yoghurt, beans and leafy greens are good sources. Tap the box to switch between % and mg.',
     'Το νάτριο και το κάλιο βοηθούν τους μύες να δουλεύουν και σε κρατούν ενυδατωμένο. Το νάτριο το χάνεις με τον ιδρώτα, οπότε τις μέρες γυμναστηρίου λίγο παραπάνω είναι οκ. Οι περισσότεροι παίρνουν λίγο κάλιο: πατάτες, μπανάνες, γιαούρτι, όσπρια και πράσινα φυλλώδη είναι καλές πηγές. Πάτα το κουτί για αλλαγή ανάμεσα σε % και mg.'],
   tipMacroSl: ['Calories stay fixed. Move one slider and the other two adjust, so protein, carbs and fat always add up to 100% of your calories.',
     'Οι θερμίδες μένουν ίδιες. Κουνάς ένα ρυθμιστικό και τα άλλα δύο προσαρμόζονται, ώστε πρωτεΐνη, υδατάνθρακες και λίπος να κάνουν πάντα το 100% των θερμίδων.'],
-  qaBtn: ['⚡ Quick add', '⚡ Γρήγορη καταγραφή'],
   qaSub: ['Type what you ate. It logs a normal plate\'s worth.', 'Γράψε τι έφαγες. Καταγράφεται μια κανονική μερίδα.'],
   qaPh: ['e.g. souvlaki pita, pasta bolognese', 'π.χ. πίτα σουβλάκι, μακαρονάδα με κιμά'],
   qaSmall: ['Small', 'Μικρή'], qaNormal: ['Normal', 'Κανονική'], qaBig: ['Big', 'Μεγάλη'], qaLog: ['Log it', 'Καταγραφή'],
@@ -429,7 +418,7 @@ Object.assign(S, {
 
 // ---------- 0.6.1 ----------
 Object.assign(S, {
-  addFoodFab: ['▥ Add food', '▥ Προσθήκη'], cantScan: ["Can't scan?", 'Δεν σκανάρει;'], addYesterday: ["↺ Add yesterday's food", '↺ Πρόσθεσε το χθεσινό φαγητό'],
+  addFoodFab: ['▥ Add food', '▥ Προσθήκη'], cantScan: ["Can't scan?", 'Δεν σκανάρει;'],
   createWorkout: ['Create a workout', 'Δημιούργησε προπόνηση'],
 });
 ['addFoodFab', 'addYesterday', 'createWorkout'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
@@ -453,9 +442,7 @@ Object.assign(S, {
 
 // ---------- 0.6.2 ----------
 Object.assign(S, {
-  advancedT: ['Advanced · Fibre, Electrolytes, Carb Timing', 'Για προχωρημένους · Ίνες, ηλεκτρολύτες, υδατάνθρακες'],
   startWk: ['Start workout', 'Έναρξη προπόνησης'], entryDel: ['Deleted {n}', 'Διαγράφηκε: {n}'],
-  usualHour: ['Usually this hour you have:', 'Συνήθως αυτή την ώρα τρως:'],
   suSex: ['Sex (calories and macros differ)', 'Φύλο (οι θερμίδες διαφέρουν)'], suMale: ['Male', 'Άνδρας'], suFemale: ['Female', 'Γυναίκα'], suHeight: ['Height', 'Ύψος'],
   shopCam: ['Camera', 'Κάμερα'], shopCamSub: ['Lay all the items out and take a picture, or picture the receipt (more accurate)', 'Άπλωσε όλα τα προϊόντα και βγάλε φωτογραφία, ή φωτογράφισε την απόδειξη (πιο ακριβές)'],
   scanSaved: ['Saved to Food Tracker too, so next time it\'s instant', 'Μπήκε και στο Food Tracker, την επόμενη φορά είναι άμεσο'],
@@ -502,8 +489,8 @@ Object.assign(S, {
 
 // ---------- 0.6.5.1 ----------
 Object.assign(S, {
-  planMyDay: ['✨ Fill my food', '✨ Συμπλήρωσε τα υπόλοιπα'], planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
-  qaBtn: ['🥡 Add takeaway', '🥡 Φαγητό απ\' έξω'], qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
+  planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
+  qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
 });
 ['planMyDay', 'planT', 'qaBtn', 'qaT', 'allFoods'].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
 
@@ -516,8 +503,7 @@ Object.assign(S, {
 
 // ---------- 0.6.7 ----------
 Object.assign(S, {
-  didYouMean: ['Did you mean', 'Μήπως εννοείς'], addAsTakeaway: ['Add “{q}” as Takeaway', 'Πρόσθεσε «{q}» ως φαγητό απ\' έξω'],
-  takeawaySub: ['✨ The AI estimates it', '✨ Το υπολογίζει η AI'], checkVals: ['check the numbers', 'έλεγξε τις τιμές'],
+  didYouMean: ['Did you mean', 'Μήπως εννοείς'],
   uPacks: ['packs', 'συσκ.'], uPlates: ['plates', 'πιάτα'],
 });
 
@@ -562,23 +548,31 @@ Object.assign(S, {
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
   logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
-  logQT: ['Quick Log', 'Quick Log'],
+  logQT: ['Quick Log', 'Γρήγορη καταγραφή'],
   logQPh: ['What did you eat?', 'Τι έφαγες;'],
   logQHi: ['Type everything you ate, with the amounts if you know them. The AI will find the calories and macros for each food.', 'Γράψε ό,τι έφαγες, με τις ποσότητες αν τις ξέρεις. Το AI θα βρει τις θερμίδες και τα μακρο για κάθε τρόφιμο.'],
   logQNoKey: ['No Gemini key, so it gets split at commas and “and”. A free key in Settings splits it much better.', 'Χωρίς κλειδί Gemini χωρίζεται στα κόμματα και στο «και». Με δωρεάν κλειδί στις Ρυθμίσεις χωρίζεται πολύ καλύτερα.'],
   logQWork: ['Splitting it up…', 'Το χωρίζω…'], logQFind: ['Finding…', 'Ψάχνω…'],
-  logQAll: ['Log All', 'Καταγραφή όλων'], logQTotal: ['Total', 'Σύνολο'],
+  logQAll: ['Log All', 'Καταγραφή όλων'],
   logQLogged: ['Logged {n} foods · {k} kcal', 'Καταγράφηκαν {n} τρόφιμα · {k} kcal'], logQDone: ['Logged', 'Καταγράφηκε'],
   logQNew: ['{n} new estimated foods saved', '{n} νέα τρόφιμα με εκτίμηση αποθηκεύτηκαν'],
-  logQStd: ['built-in', 'βασικό'], logQOnl: ['online', 'online'], logQEst: ['estimate', 'εκτίμηση'],
+  logQStd: ['built-in', 'βασικό'], logQOnl: ['online', 'διαδίκτυο'], logQEst: ['estimate', 'εκτίμηση'],
   logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
   logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
   logQNoMatch: ['Nothing matches “{q}”', 'Τίποτα για «{q}»'],
   logQFail: ['Couldn’t split that. Put commas between the foods and try again.', 'Δεν χωρίστηκε. Βάλε κόμματα ανάμεσα στα τρόφιμα και ξαναδοκίμασε.'],
   logQAIFail: ['The AI didn’t answer ({e}), so it was split at commas instead.', 'Το AI δεν απάντησε ({e}), οπότε χωρίστηκε στα κόμματα.'],
   logQNothing: ['Nothing to log yet', 'Δεν υπάρχει κάτι για καταγραφή'],
-  logQOpen: ['Quick Log “{q}”', 'Quick Log «{q}»'], logQOpenSub: ['The AI splits it and finds each food', 'Το AI το χωρίζει και βρίσκει κάθε τρόφιμο'],
+  logQOpen: ['Quick Log “{q}”', 'Γρήγορη καταγραφή «{q}»'], logQOpenSub: ['The AI splits it and finds each food', 'Το AI το χωρίζει και βρίσκει κάθε τρόφιμο'],
   logQSend: ['Send', 'Αποστολή'],
+  // 0.7.4.0.5: units, labels and screen-reader names that used to sit in the code
+  logUSlice: ['Slice', 'Φέτα'], logUPiece: ['Piece', 'Τεμάχιο'], logUPack: ['Pack', 'Συσκευασία'], logUPlate: ['Plate', 'Πιάτο'],
+  logUOz: ['Ounces', 'Ουγγιές'], logUMl: ['Millilitres', 'Χιλιοστόλιτρα'], logUG: ['Grams', 'Γραμμάρια'],
+  logAll: ['All', 'Όλο'], logRestDay: ['Rest of Day', 'Υπόλοιπη μέρα'], logPlanFridge: ['fridge', 'ψυγείο'],
+  logAInfo: ['Info', 'Πληροφορίες'], logALock: ['Lock', 'Κλείδωμα'], logATime: ['Time taken', 'Ώρα λήψης'], logATakeRm: ['Remove', 'Αφαίρεση'],
+  logAPrevDay: ['Previous day', 'Προηγούμενη μέρα'], logANextDay: ['Next day', 'Επόμενη μέρα'],
+  logAPrevMonth: ['Previous month', 'Προηγούμενος μήνας'], logANextMonth: ['Next month', 'Επόμενος μήνας'],
+  logAAmount: ['Amount', 'Ποσότητα'], logAScan: ['Scan a barcode', 'Σάρωση barcode'], logATrack: ['Food Tracker', 'Food Tracker'],
   // ==== end log ====
   // ==== branch: foods (new My Foods & Search text goes on the lines below) ====
   cookFab: ['Cook a Meal', 'Μαγείρεψε'], cookSuggest: ['✨ Suggest a Recipe', '✨ Πρότεινέ μου συνταγή'], cookOwn: ['My Own Recipe', 'Δική μου συνταγή'],

@@ -2,7 +2,7 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ---------- logging: your usuals first, last amounts remembered, one-tap re-log, barcode in the bar ----------
-const fInfo_ = f => ({ name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces });
+const fInfo_ = f => ({ name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces });
 
 $('lSearch').addEventListener('input', () => { clearTimeout(LOGON.timer); const q = $('lSearch').value.trim(); if(LOGON.q !== q){ LOGON.res = []; LOGON.busy = false; }
   if(q.length >= 3) LOGON.timer = setTimeout(() => { if($('lSearch').value.trim() === q) runLogOnline(q); }, 550); });   // online results load as you type
