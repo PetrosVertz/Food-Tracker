@@ -357,3 +357,5 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 
 // ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
 Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
+// the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
+Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });

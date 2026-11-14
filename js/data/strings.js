@@ -501,6 +501,11 @@ Object.assign(S, {
   // 0.7.4.3 Gym Coach
   gcStLook: ['Looking at your workouts…', 'Κοιτάζω τις προπονήσεις σου…'],
   gcImproved: ['Improved', 'Βελτιωμένη'], gcSaved: ['Saved: {n}', 'Αποθηκεύτηκε: {n}'],
+  gcLiveHi: ['Snap a photo of a machine you\'re not sure about, and I\'ll help you use it. Or text me any questions about your workout.', 'Βγάλε φωτογραφία ένα μηχάνημα που δεν ξέρεις, και θα σε βοηθήσω να το χρησιμοποιήσεις. Ή γράψε μου ό,τι θες να ρωτήσεις για την προπόνησή σου.'],
+  gcAddWk: ['Add to Workout', 'Προσθήκη στην προπόνηση'], gcAddedWk: ['Added: {n}', 'Προστέθηκε: {n}'],
+  gcWFirst: ['First Time', 'Πρώτη φορά'], gcWEst: ['Start with about {w} kg × {r}, from your other lifts', 'Ξεκίνα με περίπου {w} kg × {r}, από τις άλλες ασκήσεις σου'],
+  gcWLast: ['You\'ve done this: try {w} kg × {r} today', 'Το έχεις κάνει: δοκίμασε {w} kg × {r} σήμερα'],
+  gcWNone: ['Start light: a weight you can lift 15 times with good form', 'Ξεκίνα ελαφριά: ένα βάρος που σηκώνεις 15 φορές σωστά'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],

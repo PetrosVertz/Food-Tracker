@@ -1124,3 +1124,51 @@ function gcShow(r, ch){
   if(w) ch.cards([gcWorkoutCard(w.tpl, w.base)]);
 }
 async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }
+
+// ---- live workout: the sweatband robot bubble ('gymlive'); a photo of a machine → what it is, how to use it, a first-time weight ----
+function gcActive(){
+  if(!active) return 'No workout running.';
+  return `Workout running now: ${active.name || active.type || 'workout'}, ${Math.round(sesMs() / 60000)} min in. Exercises so far: ${active.exercises.map(x => {
+    const d = x.sets.filter(z => z.done && isMainSet(z)); return `${gcEx(x.exId)} (${d.length}/${x.sets.filter(isMainSet).length} sets done${d.length ? `, last ${d[d.length - 1].w}kg x ${d[d.length - 1].r}` : ''})`; }).join(', ') || 'none yet'}.`;
+}
+const GC_MACHINE = '"machine": null, or (only when the photo shows gym equipment) {"name": the machine\'s usual name, "exercise": the exact English name from the exercise list that this machine is used for (the main one), or null, "how": one or two sentences on how the machine works (what moves, what to adjust), "steps": 3 to 5 short steps to do the exercise, "mistakes": 2 to 4 short common mistakes}';
+function gcLivePrompt(ch, img){
+  return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. The user is in the middle of a workout. Answer their last message in ${gcLang()}.
+${GC_REPLY}
+${img ? 'They sent a photo, most likely of a gym machine they are not sure about: name it and explain how to use it safely. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer questions about this workout: technique, what to do next, weights, rest.'}${AI.dietRules()}
+${gcActive()}
+${gcContext()}
+Exercise list (use these exact English names): ${gcNames()}.
+Conversation so far (latest last):
+${ch.transcript()}
+Return ONLY JSON: {"reply": string, ${GC_MACHINE}}`;
+}
+const gcList = (a, n) => (Array.isArray(a) ? a : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, n);
+// a first-time weight: your history on this exercise, else the app's estimate from your other lifts (estimateNew)
+function gcWeight(exId){
+  const ex = exById(exId); if(isCardio(exId) || ex.e === 'bodyweight') return '';
+  const reps = usualReps(exId) || repRange(defReps(ex.rest))[1], s = suggestFor(exId, String(reps));
+  if(!s) return '';
+  if(s.w && !s.first) return t('gcWLast', { w: fmt(s.w), r: s.r });
+  if(s.w) return t('gcWEst', { w: fmt(s.w), r: s.r });
+  return t('gcWNone');
+}
+function gcMachineCard(m){
+  const x = exByName(m.exercise), steps = gcList(m.steps, 6), errs = gcList(m.mistakes, 5), w = x ? gcWeight(x.id) : '';
+  const acts = x ? [
+    ...(active ? [{ label: t('gcAddWk'), primary: true, run(card, ch){ addToSession(x.id); const add = active.exercises[active.exercises.length - 1];
+      ch.update(card, { done: t('gcAddedWk', { n: exName(x) }), undo(){ const i = active ? active.exercises.indexOf(add) : -1; if(i > -1){ active.exercises.splice(i, 1); if(active.cur >= active.exercises.length) active.cur = null; saveG('act'); renderSession(); } } }); } }] : []),
+    { label: t('formPill'), run(){ openDemo(x.id); } } ] : [];
+  return { title: String(m.name || (x && exName(x)) || '').trim().slice(0, 60), sub: x ? `${exName(x)} · ${EL(x.e)}` : '',
+    body: `${m.how ? `<p class="gchow">${esc(String(m.how).slice(0, 300))}</p>` : ''}
+      ${steps.length ? `<div class="gcblk"><b class="fph">${svgIcon('check', 16, 2.4)}${t('howTo')}</b><ol>${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>` : ''}
+      ${errs.length ? `<div class="gcblk"><b class="fph warn">${svgIcon('warn', 16, 2.2)}${t('mistakesT')}</b><ul class="fpx">${errs.map(s => `<li><span class="xred">${svgIcon('x', 14, 2.6)}</span>${esc(s)}</li>`).join('')}</ul></div>` : ''}
+      ${w ? `<div class="gcw"><small>${t('gcWFirst')}</small><b>${esc(w)}</b></div>` : ''}`,
+    actions: acts };
+}
+async function gymLiveSend(text, ch, img){
+  ch.status(t(img ? 'coachStPhoto' : 'aiThinking'));
+  const r = await ch.ask(gcLivePrompt(ch, img), img), m = r && r.machine && (r.machine.name || r.machine.exercise) ? r.machine : null, reply = String((r && r.reply) || '').trim();
+  if(reply || !m) ch.say(reply || t('coachFail', { e: '?' }));
+  if(m) ch.cards([gcMachineCard(m)]);
+}
