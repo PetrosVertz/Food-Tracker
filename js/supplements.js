@@ -4,6 +4,8 @@
 // Supplements: name + dose; a Take button logs the time (change it if you took it earlier); take it again later the same day
 const takesOf = (d, id) => ((suppLog[d] || {}).takes || {})[id] || [];
 function setTakes(d, id, arr){ const day = suppLog[d] = suppLog[d] || {}; day.takes = day.takes || {}; if(arr.length) day.takes[id] = arr; else delete day.takes[id]; Store.save('suppLog', suppLog); }
+// supplements in day order: by Usual Time, those without a time at the end (stable)
+const suppsByTime = () => supps.map((s, i) => [s, i]).sort((a, b) => (a[0].usualTime || '99:99').localeCompare(b[0].usualTime || '99:99') || a[1] - b[1]).map(x => x[0]);
 function todayProgress(){ const d = todayKey(); return { total: supps.length, done: supps.filter(s => takesOf(d, s.id).length).length }; }
 
 function renderSupps(){
@@ -12,7 +14,7 @@ function renderSupps(){
   $('sTodayN').textContent = tp.total ? t('todayTaken', { a: tp.done, b: tp.total }) : '';
   $('sProg').style.width = tp.total ? `${Math.round(tp.done / tp.total * 100)}%` : '0';
   if(!supps.length){ $('sList').innerHTML = `<div class="empty">${t('noSupps')}</div>`; return; }
-  $('sList').innerHTML = supps.map(s => { const tk = takesOf(d, s.id);
+  $('sList').innerHTML = suppsByTime().map(s => { const tk = takesOf(d, s.id);
     return `<div class="card supcard" data-sid="${s.id}"><div class="body">
       <div class="row"><div class="name"><span class="sic">${svgIcon('capsule', 18, 2)}</span>${esc(suppName(s))}</div><span class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}</span></div>
       <div class="takes">${tk.map((tm, i) => `<span class="take"><span>${svgIcon('check', 14, 2.4)}</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="${t('logATime')}"><button data-tkx="${i}" aria-label="${t('logATakeRm')}">${svgIcon('x', 14, 2.4)}</button></span>`).join('')}
@@ -25,7 +27,7 @@ function openSupp(s){
   $('supQuick').classList.toggle('hide', !!s);
   const have = new Set(supps.map(x => x.qid).filter(Boolean));
   $('supQuickList').innerHTML = QUICK.filter(q => !have.has(q.id)).map(q => `<button data-q="${q.id}">${esc(L(q))}</button>`).join('');
-  $('supName').value = s ? suppName(s) : ''; $('supDose').value = s ? s.dose : ''; $('supNotes').value = s ? s.notes || '' : '';
+  $('supName').value = s ? suppName(s) : ''; $('supDose').value = s ? s.dose : ''; $('supNotes').value = s ? s.notes || '' : ''; $('supTime').value = s && s.usualTime || '';
   $('supUnit').innerHTML = SUNITS.map(u => { const long = t('ul_' + u); return `<option value="${u}">${esc(unitLabel(u))}${long && long !== 'ul_' + u ? ' · ' + esc(long) : ''}</option>`; }).join('');   // C = capsules, T = tablets, S = scoops, D = drops
   $('supUnit').value = s ? s.unit : 'mg';
   const opts = foods.slice().sort((a,b) => (b.cat === 'supps') - (a.cat === 'supps') || norm(foodName(a)).localeCompare(norm(foodName(b))));

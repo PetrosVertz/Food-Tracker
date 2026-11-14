@@ -58,11 +58,18 @@ $('shopFile').addEventListener('change', () => { const file = $('shopFile').file
 $('shopList').addEventListener('click', e => {
   const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si]; if(!x) return;
   if(e.target.closest('[data-son]')){ if(!x.on && !x.foodId && !x.gid && !x.data) return shopPickFor(x); x.on = !x.on; shopRedrawRow(x); drawShopBtn(); return; }
-  if(e.target.closest('[data-sname]')) return shopPickFor(x);
   const wn = e.target.closest('[data-wn]'); if(wn){ const w = wn.closest('.wheel'); w.scrollTo({ top: (+wn.dataset.wn - 1) * WH, behavior: 'smooth' }); }
+  if(!e.target.closest('.wheelw,.spack')) shopEdit(x);
 });
 function shopPickFor(x){ openIngSearch(x.name_en || x.name || '', ref => { if(ref.type === 'my'){ const f = foods.find(y => y.id === ref.id); if(f) shopSetFood(x, f); } else if(ref.type === 'gen'){ x.gid = ref.id; x.foodId = null; x.data = null; x.web = false; x.name = ref.name; }
-  x.on = true; open('ovShopRev'); drawShop(); }, { force: true }); }
+  x.on = true; open('ovShopRev'); drawShop(); if(SHED === x) shopEdit(x); }, { force: true }); }
+makeSwipeDelete($('shopList'), '.shoprow', c => { const x = SHOP.items[+c.dataset.si]; if(x) shopRemove(x); else drawShop(); }, { buttons: true });
+$('shedName').addEventListener('input', () => { const x = SHED; x.name = $('shedName').value; if(x.data) x.data.name = x.name; });
+$('shedSize').addEventListener('input', () => { SHED.size = +$('shedSize').value.replace(',', '.') || null; SHED.sizeFixed = true; });
+$('shedFoodBtn').addEventListener('click', () => { const x = SHED; shopPickFor(x); });
+$('shedTags').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; if(b.dataset.sfrz !== undefined) SHED.frozen = !SHED.frozen; else SHED.tag = b.dataset.stag; drawShedTags(); });
+document.querySelectorAll('[data-shedn]').forEach(b => b.addEventListener('click', () => { SHED.count = Math.max(1, Math.min(30, SHED.count + +b.dataset.shedn)); SHED.userCount = true; $('shedCount').textContent = SHED.count; }));
+$('shedDone').addEventListener('click', () => { close('ovShopEd'); const x = SHED; x.on = true; SHED = null; drawShop(); });
 function drawShopBtn(){ const n = shopVisible().filter(({ x }) => x.on).length; $('shopAddBtn').textContent = n ? t('shopAddAll', { n }) : t('done'); }
 $('shopList').addEventListener('input', e => { const r = e.target.closest('[data-si]'); if(!r) return; const x = SHOP.items[+r.dataset.si];
   if(e.target.matches('[data-ssize]')){ x.size = +e.target.value.replace(',', '.') || null; x.sizeFixed = true; } });
@@ -129,7 +136,7 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
-['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
+['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovShopEd', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
   if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 

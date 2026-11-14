@@ -367,7 +367,7 @@ $('supSave').addEventListener('click', () => {
   if(!SU.times.length) SU.times = ['any']; SU.often = 'daily';   // name + dose only
   const now = new Date().toISOString();
   const rec = { name, qid: SU.qid, icon: SU.icon, dose, unit: $('supUnit').value, times: SLOTS.filter(x => SU.times.includes(x)), often: SU.often,
-    foodId: $('supFood').value || null, notes: $('supNotes').value.trim(), updatedAt: now };
+    usualTime: $('supTime').value || null, foodId: $('supFood').value || null, notes: $('supNotes').value.trim(), updatedAt: now };
   if(SU.id){ const i = supps.findIndex(x => x.id === SU.id); supps[i] = { ...supps[i], ...rec }; }
   else supps.push({ id: uid(), createdAt: now, ...rec });
   if(!saveSupps()) return;
