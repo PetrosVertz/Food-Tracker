@@ -555,16 +555,25 @@ function logQFromRef(r){
 }
 
 // the AI: split only (plus a fallback estimate per 100 g)
-function logQPrompt(txt){
-  return `Split this note of what someone ate into separate food items. Text: """${txt}"""
-Rules:
+// Food Coach's answer is structured: the app draws it (a short reply, then the foods as one list with one Add), never guesses from free text
+function logQPrompt(txt, ch){
+  const tg = targetFor(curDay), tot = dayTotals(curDay), conv = ch ? ch.transcript() : '';
+  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Straight to the point, no chatting.
+${conv ? `Conversation so far (last messages):\n${conv}\n` : ''}The user's new message: """${txt}"""
+${tg ? `Today so far: ${Math.round(tot.kcal)} of ${tg.k} kcal, P ${Math.round(tot.p)}/${tg.p} g, C ${Math.round(tot.c)}/${tg.c} g, F ${Math.round(tot.f)}/${tg.f} g.` : ''}
+First decide what the message is:
+- "log": it says what they ate or drank (even one food). Split it into items.
+- "suggest": it asks what to eat next, or how to hit / fill their macros. Leave items empty; the app shows suggestions.
+- "answer": anything else (a question about food or nutrition). Leave items empty.
+reply: one or two short, friendly lines in ${lang === 'el' ? 'Greek' : 'English'}, plain text, no markdown, no emoji, no numbers the app already shows. For "log" just acknowledge it ("Got it, here's what I found."); for "answer" give the answer in at most 60 words.
+Rules for items (only for "log"):
 - One item per food. "granola and nuts 200ml milk" is two items (granola with nuts; milk). Keep every food; never merge or skip one.
 - text: the words for that item as written, without the amount.
 - qty + unit: the amount as written; unit is one of g, ml, kg, l, piece, slice, cup, tbsp, tsp, serving. Counted things ("4 eggs", "a banana") are piece. qty null when no amount is written.
 - name: short plain food name in ${lang === 'el' ? 'Greek' : 'English'}, with how it was cooked when that is said ("scrambled eggs"), without the brand. name_en: the same name in English. brand: the brand or restaurant, "" if none.
 - grams: your best guess of the whole amount eaten, in grams (ml for drinks). ml: true for drinks.
-- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
-Return ONLY JSON: {"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number}]}`;
+- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.${AI.dietRules()}
+Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number}]}`;
 }
 function logQClean(a){
   if(!Array.isArray(a)) return null;
@@ -685,19 +694,26 @@ function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return
 
 async function logQSend(txt, ch){
   const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready' };
-  let parts = Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '';   // the same message as before: no AI at all
+  let parts = Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all
   if(!parts && AI.hasKey()){
-    try{ parts = logQClean((await ch.ask(logQPrompt(txt)) || {}).items); if(parts && parts.length) m.parts = parts; else parts = null; }
+    try{ const r = await ch.ask(logQPrompt(txt, ch)) || {}, intent = String(r.intent || 'log');
+      reply = String(r.reply || '').trim().slice(0, 400);
+      if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
+      parts = logQClean(r.items);
+      if(intent !== 'log' && !(parts && parts.length)){ ch.say(reply || t('coachFail', { e: '?' })); return; }
+      if(parts && parts.length) m.parts = parts; else parts = null; }
     catch(err){ if(err.cancelled) throw err; note = t('logQAIFail', { e: err.message }); }
   }
   if(!parts) parts = logQSplit(txt);
-  if(!parts.length){ ch.say(t('logQFail')); return; }
-  if(note) ch.say(note);
+  if(!parts.length){ ch.say(reply || t('logQFail')); return; }
+  ch.say(note || reply || t('logQGot'));
   m.items = parts.map(p => ({ ...p, busy: true }));
   const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }] }]);
   FC[m.id] = { m, card, ch }; logQRedraw(m);
   await Promise.all(m.items.map(async it => { try{ await logQMatch(it); }catch(e){ it.st = null; it.src = 'none'; } it.busy = false; logQRedraw(m); }));
 }
+// "what should I eat?" in Food Coach (Fill My Macros cards come in the next step; for now the reply)
+async function logQSuggest(ch, reply){ ch.say(reply || t('coachFail', { e: '?' })); }
 
 function logQEstFood(info){ const p = info.per;   // kcal / P / C / F only, tagged so it can be found and fixed later
   return saveOnlineFood({ name: info.name, brand: info.est.brand || '', hint: info.est.en || '', unit: info.unit, kcal: Math.round(p.kcal), protein: r1(p.protein), carbs: r1(p.carbs), fat: r1(p.fat), state: 'ready', source: 'estimate' }); }
