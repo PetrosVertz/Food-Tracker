@@ -86,7 +86,7 @@ function drawTheme(){
 function applyTabOrder(){
   const order = ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge'];
   TABS3.splice(0, TABS3.length, ...order);
-  const bar = $('rail'); if(bar){ const set = bar.querySelector('[data-tab="settings"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, set); }); }
+  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); }); }
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if(typeof pillsAll === 'function') pillsAll();
 }
@@ -191,8 +191,8 @@ function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySele
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
 function switchTab(dir, toTab){
-  const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Settings sits below Fridge
-  const tab = toTab || [...TABS3, 'settings'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
+  const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
+  const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
@@ -213,8 +213,8 @@ function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
-  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings','profile'].includes(h) ? h : 'foods';
+  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
@@ -226,14 +226,14 @@ function route(){
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
   { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
-  renderAll();
+  renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
@@ -365,15 +365,16 @@ function open(id){
 }
 
 // ======================= settings + data =======================
-// Settings is a page under Fridge (tap ⚙︎ to slide down; pull up to go back to Fridge)
+// 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
 function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); }
-function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); if(location.hash.slice(1) !== 'settings') switchTab(1, 'settings'); }
+function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
+  if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
-function tabIdx(tab){ return tab === 'settings' ? TABS3.length : TABS3.indexOf(tab); }   // 0.6.3.1: Settings is a page under Fridge
+function tabIdx(tab){ return tab === 'profile' ? TABS3.length : TABS3.indexOf(tab); }   // 0.7.7: Profile is the last tab (Settings lives inside it)
 
 // swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
 function makeSwipeDelete(box, itemSel, onDelete, opts){

@@ -74,6 +74,8 @@ $('sBodySave').addEventListener('click', async () => {
   if(bw && await ask(t('recalcQ'), t('recalcYes'), t('recalcNo'))){ const tg = calcTargets(bw, (targets && targets.goal) || 'bulk'); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets); renderAll(); toast(t('targetsSaved')); }
 });
 addEventListener('hashchange', () => { if(location.hash === '#settings') fillSettings(); });
+$('pfGear').addEventListener('click', () => { Phone.haptic(); go('settings'); });   // 0.7.7: Settings opens from the gear on Profile
+$('sBackBtn').addEventListener('click', goBack);
 addEventListener('hashchange', () => setTimeout(syncFab2, 0));
 
 // Backup reminder when the app opens (iPhone can't show anything when a web app closes)

@@ -678,4 +678,8 @@ Object.assign(S, {
 // ---------- 0.7.7: hours slept ----------
 Object.assign(S, {
   sleepL: ['Hours Slept', 'Ώρες Ύπνου'], sleepS: ['Last night. Optional: short sleep means more rest is needed.', 'Χθες βράδυ. Προαιρετικό: λίγος ύπνος σημαίνει περισσότερη ξεκούραση.'],
+
+// 0.7.7 shell: Profile tab (Settings now opens from the gear on Profile)
+Object.assign(S, {
+  tabProfile: ['Profile', 'Προφίλ'],
 });
