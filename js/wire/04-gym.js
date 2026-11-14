@@ -11,7 +11,7 @@ const ML = k => (MUSCLES[k] || MUSCLES.other)[lang === 'el' ? 1 : 0], EL = k => 
 const HEAVY = new Set(['bench','incline_bench','squat','front_squat','deadlift','sumo_deadlift','trap_bar_dl','ohp']);
 
 const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), th = topHead(m_);
-  return { id, en, el, e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
+  return { id, en, el, al: ALSO[id] || [], e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
 
 let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null), pet = Store.load('pet', null);
 

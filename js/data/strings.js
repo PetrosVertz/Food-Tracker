@@ -215,7 +215,7 @@ const S = {
 Object.assign(S, {
  tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'], gtPartner:['Partner','Συνεργάτης'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
- exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
+ exAlso:['also: {n}','επίσης: {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
  workoutType:['Type (sets up Today’s food)','Τύπος (ρυθμίζει το φαγητό της μέρας)'], exercises:['Exercises','Ασκήσεις'],
  newWorkout:['New workout','Νέα προπόνηση'], editWorkout:['Edit workout','Επεξεργασία προπόνησης'], emptyWorkout:['Empty workout','Κενή προπόνηση'],

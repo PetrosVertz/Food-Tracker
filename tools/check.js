@@ -117,6 +117,22 @@ try {
     if (sum !== 100) p(`percentages add up to ${sum}, not 100`);
     else if (parts.length > 1 && Math.max(...parts.map(x => +x[1])) !== +parts[0][1]) p('main mover is not listed first');
   }
+  // 4. other names (ALSO) and search
+  const normSrc = (read('js/core.js').match(/function norm\(s\)\{[^\n]*\}/) || [])[0];
+  vm.runInContext(normSrc + '\n;this.__N = norm;', gctx);
+  const norm = gctx.__N, { ALSO, exMatch } = gctx.__G2 = vm.runInContext('({ ALSO, exMatch })', gctx);
+  const ids = new Set(LIB_RAW.map(r => r[0])), names = new Map(LIB_RAW.map(r => [norm(r[1]), r[0]]));
+  for (const [id, al] of Object.entries(ALSO)) {
+    if (!ids.has(id)) bad.push(`${id}: other names given for an exercise that doesn't exist`);
+    for (const a of al) { const o = names.get(norm(a)); if (o && o !== id) bad.push(`${id}: other name "${a}" is the real name of ${o} (would look like a duplicate)`); }
+  }
+  const noAlso = LIB_RAW.filter(r => !(r[0] in ALSO) || !ALSO[r[0]].length).map(r => r[0]);
+  if (noAlso.length) bad.push('no other names: ' + noAlso.join(', '));
+  const lib = LIB_RAW.map(r => ({ id: r[0], en: r[1], el: r[2], al: ALSO[r[0]] || [] }));
+  const find = q => lib.map((x, i) => ({ x, i, r: exMatch(x, norm(q), '') })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || a.i - b.i).map(o => o.x.id);
+  const tests = { 'low row': 'machine_row', 'rdl': 'rdl', 'pec deck': 'pec_deck', 'ohp': 'ohp', 'skull crusher': 'skullcrusher', 'bss': 'bulgarian', 'outer thigh': 'abductor', 'inner thigh': 'adductor', 'power squat': 'pendulum_squat',
+    'reverse pec deck': 'reverse_pec', 'rear delt machine': 'reverse_pec', 'leg curl': 'lying_curl', 'quad extension': 'leg_ext', 'vertical chest press': 'machine_press', 'iso lateral pulldown': 'iso_pulldown', 'κωπηλατικη': 'machine_row', 'βυθισεις': 'dips', 'ροδακι': 'ab_wheel', 'tgu': 'kb_tgu', 'stairmaster': 'stairs' };
+  for (const [q, want] of Object.entries(tests)) { const got = find(q)[0]; if (got !== want) bad.push(`search "${q}" finds ${got} first, expected ${want}`); }
   if (bad.length) bad.forEach(b => fail('exercise ' + b)); else ok(`exercise library: ${LIB_RAW.length} exercises, all valid`);
 } catch (e) { fail('could not check exercise library: ' + e.message); }
 

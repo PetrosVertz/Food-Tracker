@@ -597,10 +597,10 @@ function miniMap(x){
   const svg = anatomySVG({ mode: 'mu', mu, side: fr >= bk ? 'f' : 'b', half: low > up ? 'low' : 'up', muMax: Math.max(...Object.values(mu), 1), idp: 'mm' + x.id.replace(/\W/g, '') });
   MINI.set(k, svg); return svg;
 }
-function exTiles(list, key){
+function exTiles(list, key, vias){
   return `<div class="exrows">${list.map(x => { const pct = key ? exScore(x, key) : (x.mu || {})[x.h] || 0;
     return `<button class="exrow" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="mm">${isCardio(x.id) ? exIcon(x, 40) : miniMap(x)}</span>
-      <span class="exn"><b>${esc(exName(x))}</b><small>${eqIcon(x.e, 13)} ${EL(x.e)}${isCardio(x.id) ? '' : ` · ${t('muUse', { p: pct })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`; }).join('')}</div>`;
+      <span class="exn"><b>${esc(exName(x))}</b>${vias && vias[x.id] ? `<small class="exalso">${t('exAlso', { n: esc(exTitle(vias[x.id])) })}</small>` : ''}<small>${eqIcon(x.e, 13)} ${EL(x.e)}${isCardio(x.id) ? '' : ` · ${t('muUse', { p: pct })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`; }).join('')}</div>`;
 }
 
 function exTilesByEq(list, key){
@@ -613,8 +613,9 @@ function drawExPick(){
   $('pkModeRow').classList.toggle('hide', !!q || PK.region === 'cardio' || !!PK.group);
   let h = '';
   if(q){
-    const list = EX().filter(x => tokens.every(tk => norm(`${x.en} ${x.el} ${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`).includes(tk)));
-    h = exTilesByEq(list.slice(0, 80)) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
+    const vias = {};   // 0.7.5: best matches first; an "also: …" line shows when it matched another name
+    const list = EX().map((x, i) => ({ x, i, r: exMatch(x, q, `${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`) })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || a.i - b.i).slice(0, 80).map(o => { if(o.r.via) vias[o.x.id] = o.r.via; return o.x; });
+    h = exTiles(list, null, vias) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
   } else if(PK.region === 'cardio'){
     h = exTiles(EX().filter(x => x.m === 'cardio'));
   } else if(!PK.group){
