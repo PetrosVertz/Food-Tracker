@@ -21,7 +21,7 @@
   --t-tick-idle:#6b7178; --t-tick-edge:#3a3d41; --t-shadow:none;
 
   /* colour roles (fixed in every theme) */
-  --t-accent:#c6f432; --t-on:#0f1113;
+  --t-accent:#c6f432; --t-on:#0f1113; --t-accent-ink:var(--t-accent);   /* accent used as text (Light gets a darker ink per preset, set in applyTheme) */
   --t-done:#59d38c; --t-done-soft:rgba(89,211,140,.16); --t-done-ink:#0b1a10;
   --t-rest:#5fa8f5; --t-rest-box:#1b1c1e;
   --t-warm:#f2b84b; --t-drop:#b39bff; --t-fail:#ff7a7a;
@@ -51,10 +51,12 @@
   --t-glass:rgba(244,244,245,.75); --t-glass-edge:rgba(0,0,0,.06); --t-scrim:rgba(20,22,25,.28);
   --t-glass-btn:rgba(0,0,0,.05); --t-glass-btn-edge:rgba(0,0,0,.08);
   --t-tick-idle:#8a9097; --t-tick-edge:#c3c6cb; --t-shadow:0 1px 2px rgba(0,0,0,.04);
-  --t-accent:#8fbb12; --t-on:#0f1113;
-  --t-done:#1f9d57; --t-done-soft:rgba(31,157,87,.12); --t-rest-box:#f0f1f3;
+  --t-accent:#8fbb12; --t-on:#0f1113; --t-accent-ink:#4a6600;
+  --t-done:#167a43; --t-done-soft:rgba(31,157,87,.12); --t-done-ink:#ffffff; --t-rest-box:#f0f1f3;
   --t-danger:#c93a3a; --t-danger-soft:rgba(201,58,58,.10);
-  --t-p:#3f6f9c; --t-c:#9c7424; --t-f:#ad5548; --t-sore:#dc4436; --t-mid:#c28414;
+  --t-p:#3f6f9c; --t-c:#8a6100; --t-f:#ad5548; --t-sore:#dc4436; --t-mid:#8a5a00;
+  /* 0.7.4.0.5: status colours readable as text on the Light page (≥ 4.5:1) */
+  --t-warm:#8a5a00; --t-rest:#1f64b0; --t-drop:#6a4fd6; --t-fail:#b3261e;
   --t-mp-bg:linear-gradient(180deg,#2a2c30 0%,#16181b 100%); --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.22);
   --t-mp-text:#c6f432; --t-mp-stroke:0;
   --t-sp-bg:#ffffff; --t-sp-shadow:0 1px 3px rgba(0,0,0,.15); --t-sp-text:#16181b;
@@ -297,7 +299,7 @@ body.twofab .fab{padding:16px 20px!important}
 
 /* ======================= 0.6.9 ======================= */
 /* info bubbles and tips follow the theme (were dark grey on Light) */
-.ibtn{color:var(--t-text)!important;opacity:.7}
+.ibtn{color:var(--t-muted)!important}
 .tippop{background:var(--t-card)!important;border:1px solid var(--t-line)!important;color:var(--t-text)!important;box-shadow:0 12px 34px rgba(0,0,0,.25)!important}
 :root[data-theme="light"] .tippop{box-shadow:0 8px 24px rgba(0,0,0,.12)!important}
 /* hero card: only the eaten number is italic; "/ 2,900 kcal" upright. Bars 16 tall, labels 15 so they sit level */
@@ -427,7 +429,7 @@ body.twofab .fab{padding:16px 20px!important}
 
 /* macro colours a step more vibrant (not neon) */
 :root{--t-p:#5aa9f0;--t-c:#f0c35a;--t-f:#f0846f}
-:root[data-theme="light"]{--t-p:#2f73b8;--t-c:#b07d0a;--t-f:#c4553f}
+:root[data-theme="light"]{--t-p:#2f73b8;--t-c:#8a6100;--t-f:#c4553f}
 
 /* Scan Food / Scan Receipt: no underglow; clear edge so they stand off the black */
 .fab2{box-shadow:none!important;background:#2b2d31!important;border:1px solid rgba(255,255,255,.16)!important;color:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -651,11 +653,13 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 /* ==== branch: shell (new App Shell & Settings styles go on the lines below) ==== */
 /* 0.7.2 no zoom: double-tap zoom off everywhere (zero specificity, so any pan-y / none set elsewhere still wins); inputs are 16 px where they live */
 :where(html,body,section.page,.overlay,.sheet,button,a,input,select,textarea,label){touch-action:manipulation}
-/* "AI" badge (replaces ✨): tiny bold italic pill. On dark: accent pill + dark text; on an accent button or in Light: dark pill + bright accent text */
-/* 0.7.2: one shape for every AI badge in the app (.aibadge here, .aib / .aiafter from Today & Logging): the letters sit in the exact middle (no letter-spacing tail, italic nudged half a pixel left) */
-.aibadge,.aib,.aiafter::after{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:16px;min-width:24px;padding:0 7px 0 6px;border-radius:999px;font-family:inherit;font-size:11px;line-height:1;font-weight:800;font-style:italic;letter-spacing:0;text-align:center;vertical-align:-2px;white-space:nowrap;flex:0 0 auto}
-.aibadge{margin:0 2px;background:var(--t-accent);color:var(--t-on)}
-:root[data-theme="light"] .aibadge,.fab .aibadge,.btn.primary .aibadge,.aibadge.onacc{background:#0f1113;color:var(--t-mp-text)}
+/* "AI" badge (replaces the old sparkle glyph): tiny bold italic pill after the text. THE one badge style for the app (0.7.4.0.5): .aibadge (AI.badge()), .aib, and class="aiafter" on any element.
+   On dark: accent pill + dark text. In Light, or sitting on an accent button: dark pill + bright accent text. Letters sit in the exact middle (no letter-spacing tail). */
+.aibadge,.aib,.aiafter::after{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:16px;min-width:24px;padding:0 7px 0 6px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:inherit;font-size:11px;line-height:1;font-weight:800;font-style:italic;letter-spacing:0;text-align:center;vertical-align:-2px;white-space:nowrap;flex:0 0 auto}
+.aibadge{margin:0 2px}
+.aiafter::after{content:'AI';margin-left:6px}
+:root[data-theme="light"] .aibadge,:root[data-theme="light"] .aib,:root[data-theme="light"] .aiafter::after,
+.fab .aibadge,.btn.primary .aibadge,.pillbtn.primary .aibadge,.aibadge.onacc,.lgo .aib,.lwdone .aib,.fab.aiafter::after,.btn.primary.aiafter::after{background:#0f1113;color:var(--t-mp-text)}
 /* 0.7.2 ticker: text too long for its pill scrolls sideways, smooth and endless (js/core.js adds .tk/.tki only when it overflows) */
 .tkon{text-overflow:clip!important}
 .tk{display:block;flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent);mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent)}
@@ -684,3 +688,8 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 #ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
 html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* ==== end shell ==== */
+/* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
+:root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
+:root[data-theme="light"]{--t-alert-bg:#fbefd9;--t-alert-edge:#e8c891;--t-alert-ink:#6b4200;--t-alert-red-bg:#fbe4e2;--t-alert-red-edge:#ebb0aa;--t-alert-red-ink:#8f1d17;--t-alert-ok-bg:#e1f3e8;--t-alert-ok-edge:#a6d6b8;--t-alert-ok-ink:#0f5a31}
+/* 0.7.4.0.5 Light mode: the grey secondary button vanished on the grey page; white with a hairline (zero-specificity :where, so .btn.primary / .btn.danger still win) */
+:where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
