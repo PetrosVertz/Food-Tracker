@@ -306,3 +306,15 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 :root[data-theme="light"] .flame.fl-gold{--fc:#876000}:root[data-theme="light"] .flame.fl-platinum{--fc:#2f6b7a}
 :root[data-theme="light"] .flame.fl-diamond{--fc:#0a64a8;filter:drop-shadow(0 0 4px rgba(10,100,168,.45))}
 .gymstreak{display:inline-flex;align-items:center;gap:4px;margin-top:2px}.gymstreak b{font-size:var(--fs-label);color:var(--t-text)}
+
+/* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
+.tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
+.tierbadge{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge svg{flex:0 0 auto}
+:root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
+:root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
+.tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}
+/* Profile › Leaderboards: the tier badge text takes the tier colour too; the prompt when body weight or sex is missing */
+.pftier[style*="--tier-"]{color:var(--tc)}
+.pfneed{display:block;margin:0 0 var(--s3);padding:0;text-align:left}

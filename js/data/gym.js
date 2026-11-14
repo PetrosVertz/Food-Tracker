@@ -1023,3 +1023,34 @@ const FORM_PICK = {
   hip_thrust: 'Barbell_Hip_Thrust',
   cable_pullthrough: 'Pull_Through',
 };
+
+// ---------- 0.7.7 tiers: strength standards (estimated 1RM ÷ body weight) ----------
+// Source: Strength Level (strengthlevel.com) published standards — Beginner, Novice, Intermediate, Advanced, Elite —
+// as body-weight ratios, rounded to the nearest 0.05. Pull-ups count body weight + any added weight (so 1.0 = one clean rep).
+// Only these lifts (the Profile board lifts) and the close variants in TIER_VARIANT get tiers; every other exercise shows none.
+const TIER_STD = {
+  //            Beginner Novice Intermediate Advanced Elite
+  bench:      { m: [0.50, 0.75, 1.25, 1.75, 2.00], f: [0.25, 0.50, 0.75, 1.00, 1.50] },
+  ohp:        { m: [0.35, 0.55, 0.80, 1.05, 1.35], f: [0.20, 0.35, 0.50, 0.75, 1.00] },
+  pullup:     { m: [1.00, 1.15, 1.35, 1.60, 1.85], f: [0.75, 1.00, 1.15, 1.35, 1.60] },
+  bb_row:     { m: [0.50, 0.75, 1.00, 1.50, 1.75], f: [0.25, 0.40, 0.65, 0.90, 1.20] },
+  squat:      { m: [0.75, 1.25, 1.50, 2.25, 2.75], f: [0.50, 0.75, 1.25, 1.50, 2.00] },
+  rdl:        { m: [0.75, 1.00, 1.50, 2.00, 2.50], f: [0.50, 0.75, 1.00, 1.50, 2.00] },
+  hip_thrust: { m: [0.50, 1.00, 1.50, 2.25, 3.00], f: [0.50, 1.00, 1.50, 2.00, 2.75] },
+  bb_curl:    { m: [0.20, 0.40, 0.60, 0.85, 1.15], f: [0.10, 0.20, 0.40, 0.60, 0.85] },
+  deadlift:   { m: [1.00, 1.50, 2.00, 2.50, 3.00], f: [0.50, 1.00, 1.25, 1.75, 2.50] },
+};
+// close variants: [the lift whose standard they use, how strong they are next to it] (e.g. incline bench ≈ 85 % of flat bench)
+const TIER_VARIANT = {
+  smith_bench: ['bench', 1], close_bench: ['bench', 0.9], incline_bench: ['bench', 0.85],
+  smith_ohp: ['ohp', 1],
+  chinup: ['pullup', 1], neutral_pullup: ['pullup', 1], wide_pullup: ['pullup', 0.95],
+  pendlay_row: ['bb_row', 0.95], underhand_bb_row: ['bb_row', 1], smith_row: ['bb_row', 1],
+  front_squat: ['squat', 0.85], smith_squat: ['squat', 1], box_squat: ['squat', 1], pause_squat: ['squat', 0.9], safety_bar_squat: ['squat', 0.95], hack_squat_bb: ['squat', 0.8],
+  stiff_leg: ['rdl', 1], smith_rdl: ['rdl', 1],
+  smith_hip_thrust: ['hip_thrust', 1],
+  ez_curl: ['bb_curl', 1],
+  sumo_deadlift: ['deadlift', 1], trap_bar_dl: ['deadlift', 1.05],
+};
+// tiers low → high; each has levels 3 → 1 (Bronze 3 lowest, Diamond 1 highest). Colours live in workout.css (--tier-*).
+const TIERS = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];

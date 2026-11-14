@@ -90,6 +90,9 @@ $('sesBody').addEventListener('click', e => {
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
+  const tb = e.target.closest('[data-tierinfo]'); if(tb){ Phone.haptic(); return showTierGap(tb); }
+  // tiers need body weight + sex: open Settings › Body on top of the workout; after Save the cards redraw with their tier
+  if(e.target.closest('[data-tierbody]')){ Phone.haptic(); fillSettings(); open('ovSBody'); $('sBodySave').addEventListener('click', () => { if(active) renderSession(); }, { once: true }); return; }
   const rr = e.target.closest('[data-rir]'); if(rr){ const rx = exAt(rr), rw = rr.closest('[data-sxrow]'), rs2 = rx && rw && rx.sets[+rw.dataset.sxrow]; if(rs2){ const k = +rr.dataset.rir; if(rs2.rir === k) delete rs2.rir; else rs2.rir = k; saveG('act'); renderSession(); } return; }
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
@@ -366,3 +369,6 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
 // the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
+
+// Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
+$('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });
