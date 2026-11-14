@@ -73,8 +73,7 @@ label{font-size:var(--fs-label);font-weight:var(--w-med)}
 
 /* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.pgrow{
-  background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important;
-  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important}
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard{border-radius:var(--r-card)!important}
 .exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
 .tile.big{background:var(--t-accent)!important;color:var(--t-on)}
@@ -329,7 +328,6 @@ body.twofab .fab{padding:16px 20px!important}
 #dBlocks .rmrec{position:relative;z-index:2}
 .remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
 .fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
-.fab2{background:var(--t-glass)!important;color:var(--t-text)!important;border:1px solid var(--t-glass-edge)!important}
 /* superset by holding one exercise over another (0.6.9) */
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
 .exc.ssarm::after,.tpcard.ssarm::after{content:attr(data-ssl);position:absolute;right:12px;top:10px;padding:4px 10px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold);font-style:italic}
@@ -666,7 +664,7 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 .aibadge{margin:0 2px}
 .aiafter::after{content:'AI';margin-left:6px}
 :root[data-theme="light"] .aibadge,:root[data-theme="light"] .aib,:root[data-theme="light"] .aiafter::after,
-.fab .aibadge,.btn.primary .aibadge,.pillbtn.primary .aibadge,.aibadge.onacc,.lgo .aib,.lwdone .aib,.fab.aiafter::after,.btn.primary.aiafter::after{background:#0f1113;color:var(--t-mp-text)}
+.fab .aibadge,.btn.primary .aibadge,.pillbtn.primary .aibadge,.lgo .aib,.lwdone .aib,.fab.aiafter::after,.btn.primary.aiafter::after{background:#0f1113;color:var(--t-mp-text)}
 /* 0.7.2 ticker: text too long for its pill scrolls sideways, smooth and endless (js/core.js adds .tk/.tki only when it overflows) */
 .tkon{text-overflow:clip!important}
 .tk{display:block;flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent);mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 12px),transparent)}
