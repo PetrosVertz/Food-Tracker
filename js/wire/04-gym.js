@@ -76,8 +76,10 @@ const exVol = (exId, sets) => sets.filter(s => s.done && s.type !== 'W').reduce(
 
 const exAt = el => { const c = el.closest('[data-x]'); return c ? active.exercises[+c.dataset.x] : null; };
 
+const setOpt = (s, k, v) => { v = String(v).replace(/\D/g, ''); if(v === '') delete s[k]; else s[k] = +v; };   // optional fields: absent when empty
 $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
+  if(e.target.matches('[data-xh]')) setOpt(s, 'h', e.target.value); if(e.target.matches('[data-xn]')) setOpt(s, 'neg', e.target.value);
   if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; saveG('act');
 });
 
@@ -88,6 +90,8 @@ $('sesBody').addEventListener('click', e => {
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
+  if(e.target.closest('[data-exset-open]')){ drawExSet(); open('ovExSet'); return; }
+  const rb = e.target.closest('[data-rir]'); if(rb && s){ const k = +rb.dataset.rir; if(s.rir === k) delete s.rir; else s.rir = k; Phone.haptic(); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
@@ -360,3 +364,6 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
 // the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
+
+$('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-exset]'); if(!b) return; const k = b.dataset.exset, on = !exSet()[k];
+  ui.exSet = { ...exSet(), [k]: on }; saveUI(); Phone.haptic(); b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if(active && $('ovSession').classList.contains('open')) renderSession(); });

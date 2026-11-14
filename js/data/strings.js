@@ -641,3 +641,13 @@ Object.assign(S, {
   formWrong: ['Wrong Photo?', 'Λάθος Φωτογραφία;'],
   rcptFail: ['Couldn\'t process the photo. Try again.', 'Δεν ήταν δυνατή η επεξεργασία της φωτογραφίας. Δοκίμασε ξανά.'],
 });
+Object.assign(S, {
+  exsT: ['Exercise Settings', 'Ρυθμίσεις Άσκησης'], exsSub: ['These apply to every exercise.', 'Ισχύουν για όλες τις ασκήσεις.'],
+  exsSets: ['Sets', 'Σετ'], exsExtras: ['Extras On Each Set', 'Έξτρα σε Κάθε Σετ'],
+  exsUni: ['Tick Both Sides Together', 'Και οι Δύο Πλευρές Μαζί'], exsUniS: ['On one-sided exercises, finishing the left set also finishes the right.', 'Στις ασκήσεις με μία πλευρά, το αριστερό σετ ολοκληρώνει και το δεξί.'],
+  exsMarks: ['Hide Set Markers', 'Απόκρυψη Σημαδιών Σετ'], exsMarksS: ['Hides the warm-up, failure and drop-set markers.', 'Κρύβει τα σημάδια προθέρμανσης, αποτυχίας και drop set.'],
+  exsHalf: ['Half Reps', 'Μισές Επαναλήψεις'], exsHalfS: ['A box on each set for half reps.', 'Ένα πεδίο σε κάθε σετ για μισές επαναλήψεις.'],
+  exsNeg: ['Negatives', 'Αρνητικές'], exsNegS: ['A box on each set for slow lowering reps.', 'Ένα πεδίο σε κάθε σετ για αργές αρνητικές επαναλήψεις.'],
+  exsRir: ['Reps In Reserve', 'Εφεδρικές Επαναλήψεις'], exsRirS: ['Pick 0 to 5 on each set: how many more reps you had left.', 'Διάλεξε 0 έως 5 σε κάθε σετ: πόσες επαναλήψεις σου έμειναν.'],
+  halfLbl: ['Half', 'Μισές'], negLbl: ['Neg', 'Αρν.'], rirLbl: ['RIR', 'RIR'],
+});

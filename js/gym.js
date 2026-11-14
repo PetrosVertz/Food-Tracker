@@ -82,6 +82,14 @@ function warmupFor(exId, w){
 }
 
 // ---------- live session ----------
+// 0.7.7: Exercise Settings — one set of switches for every exercise (saved with the device settings, ui.exSet)
+const EXSET_DEF = { uniBoth: false, hideMarks: false, half: false, neg: false, rir: false, sound: true };
+const exSet = () => ({ ...EXSET_DEF, ...(ui.exSet || {}) });
+function drawExSet(){
+  const o = exSet(), row = (k, title, sub) => `<div class="exsrow"><div><b>${t(title)}</b><small>${t(sub)}</small></div><button class="switch ${o[k] ? 'on' : ''}" type="button" role="switch" data-exset="${k}" aria-checked="${o[k]}" aria-label="${t(title)}"><i></i></button></div>`;
+  $('exsBody').innerHTML = `<h4 class="exsh">${t('exsSets')}</h4>${row('uniBoth', 'exsUni', 'exsUniS')}${row('hideMarks', 'exsMarks', 'exsMarksS')}
+    <h4 class="exsh">${t('exsExtras')}</h4>${row('half', 'exsHalf', 'exsHalfS')}${row('neg', 'exsNeg', 'exsNegS')}${row('rir', 'exsRir', 'exsRirS')}`;
+}
 function newSet(type){ return { id: uid(), type: type || 'N', w: '', r: '', done: false }; }
 
 function startSession(tpl){
@@ -139,6 +147,7 @@ function tickSet(x, s, row, xi, si){
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; s.at = Date.now(); ensureAudio(); if(!x.t0) x.t0 = Date.now();
+  const mate = x.uni && s.side === 'L' && exSet().uniBoth ? x.sets[si + 1] : null;   // 0.7.7: tick both sides together
   if(!card && s.type !== 'W'){
     const hist = exHistory(x.exId, active.id), same = active.exercises.filter(z => z.exId === x.exId);
     if(hist.length){
@@ -151,6 +160,7 @@ function tickSet(x, s, row, xi, si){
       else if(x.volPR){ const p = active.prs.find(p => p.exId === x.exId && p.kind === 'v'); if(p) p.vol = Math.round(curVol); }
     }
   }
+  if(mate && mate.side === 'R' && !mate.done){ mate.w = mate.w === '' ? s.w : mate.w; mate.r = mate.r === '' ? s.r : mate.r; mate.done = true; mate.at = Date.now(); s = mate; si++; }
   saveG('act');
   SSNEXT = null; const nxt = x.sets[si + 1], moreDrop = nxt && nxt.drop && !nxt.done;   // no rest between drops
   if(!card && !(x.uni && s.side === 'L') && !moreDrop){
@@ -690,25 +700,27 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const head = `<div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
+      <button class="exgear" data-exset-open aria-label="${t('exsT')}">${svgIcon('settings', 18, 2)}</button>
       <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
   const hasWarm = x.sets.some(s => s.type === 'W'), wu = !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
+  const XS = exSet();
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
     let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
     const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
-    const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
+    const ty = s.drop ? 'D' : s.type, hm = XS.hideMarks && !card, base = s.drop ? 'D' : ty === 'N' || hm ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     return `<div class="setrow t-${ty} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
-        <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${box('r')}
+        <button class="snum ${ty === 'N' || hm ? 'tn' : 'tb'}" ${hm ? 'disabled' : 'data-type'} aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` +
-      (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
+      (!card ? setExtras(s, XS) : '') + (lastDrop && !XS.hideMarks ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
@@ -717,6 +729,13 @@ function cardHtml(x, i){
     ${rows}
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
       : `<button class="newset" data-addset>${t('newSetPill')}</button><button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
+}
+
+// per-set extras (half reps, negatives, RIR) — only drawn when switched on in Exercise Settings; the fields are optional on each set
+function setExtras(s, XS){
+  if(!(XS.half || XS.neg || XS.rir)) return '';
+  const num = (k, lbl, v) => `<label class="sxf"><span>${t(lbl)}</span><input data-${k} inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${t(lbl)}"></label>`;
+  return `<div class="setx ${s.done ? 'done' : ''}">${XS.half ? num('xh', 'halfLbl', s.h) : ''}${XS.neg ? num('xn', 'negLbl', s.neg) : ''}${XS.rir ? `<div class="sxr"><span>${t('rirLbl')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button type="button" data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`;
 }
 
 // rest bracket: a thin blue box under the set just finished; the outline draws in, then burns from the left to meet on the right at 0:00

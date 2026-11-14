@@ -265,3 +265,19 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .gsrow{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
 .gsnote{margin:0}
+
+/* 0.7.7 Exercise Settings: gear on the card, the sheet, per-set extras */
+.exc{position:relative}
+.exgear{position:absolute;top:0;right:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--t-muted);padding:0}
+.exgear:active{color:var(--t-text)}
+.exsh{margin:14px 0 4px;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);text-transform:uppercase;letter-spacing:.04em}
+.exsrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--t-line)}
+.exsrow b{display:block;font-weight:var(--w-med)} .exsrow small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
+.setx{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:-2px 0 6px}
+.sxf{display:flex;align-items:center;gap:6px;font-size:var(--fs-label);color:var(--t-muted)}
+.sxf input{width:54px;padding:6px 4px;text-align:center;font-size:16px}
+.sxr{display:flex;align-items:center;gap:4px;font-size:var(--fs-label);color:var(--t-muted)}
+.sxr span{margin-right:2px}
+.sxr button{width:28px;height:28px;padding:0;border-radius:var(--r-pill);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-text);font-size:var(--fs-label)}
+.sxr button.on{background:var(--t-accent);border-color:var(--t-accent);color:#0b0d0f;font-weight:var(--w-bold,700)}
+.snum[disabled]{opacity:1}
