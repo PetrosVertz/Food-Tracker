@@ -221,7 +221,7 @@ const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|spl
 const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && UNI_RE.test(ex.en || ''); };
 const uniPair = s => [{ ...newSet(s && s.type), side: 'L' }, { ...newSet(s && s.type), side: 'R' }];
 function makeUni(x, on){ x.uni = on;
-  if(on) x.sets = x.sets.flatMap(s => s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R', w: s.w, r: s.r }]);
+  if(on) x.sets = x.sets.flatMap(s => s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R' }]);
   else x.sets = x.sets.filter(s => s.side !== 'R').map(s => { const c = { ...s }; delete c.side; return c; }); }
 
 // ---------- Swap (canvas Gym.dc.html): frosted bottom sheet, every exercise ranked by how alike its muscle use is ----------
