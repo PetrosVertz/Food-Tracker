@@ -13,6 +13,7 @@ Robot designs: `docs/design/robots-and-anatomy/Main.dc.html` (the "Robots and an
 - No AI key: every AI feature is greyed out; tapping one shows a short message that an AI key is needed, with a button to Settings › AI.
 - Every AI feature is optional: each job also has a non-AI way to do it, and nothing in the app needs AI to work.
 - Main button glow (Log Food, Start Workout, Add Food…): the underglow isn't centred behind the button. Today it's theme.css .fab box-shadow `0 8px 24px` (pushed 8px down), and it can drift when the button sits beside another pill or slides. Make it one soft glow centred under the button in every state (alone, next to the coach pill, while moving, Light and Dark). Check with a screenshot.
+- Chat thinking animation: while the AI is working, show the robot's thinking face (already in ai.js: `AI.robot(kind, size, true)`, the gliding eyes and sway; keyframes in the canvas) as the robot's reply placeholder, with a short status line that says what it's doing: "Thinking…", "Searching your foods…", "Searching the web…", "Reading the photo…" (EN + GR). It's replaced by the answer when it arrives. Reduce Motion shows the still face. Food Coach and Gym Coach must update the status at each lookup step.
 - Add the Fridge clerk robot from the canvas to `AI.robot` (same style and size as Chef / Gym), and use it for fridge AI jobs (receipts, table photo, Check My Foods) in the AI bubble. Add the Tour guide drawing too, unused for now, so it's ready.
 - Bump VERSION to 0.7.4.3 and CACHE to match.
 
