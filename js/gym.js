@@ -85,6 +85,14 @@ function warmupFor(exId, w){
 // 0.7.7: Exercise Settings (one global menu, saved with the device settings): both sides together, hidden markers, per-set extras, sounds
 const gx = () => settings.gx || (settings.gx = {});
 function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
+// 0.7.7 cardio: no sets / reps. Time (min, stored in r) and distance (km, stored in w) like before, plus calories and level where the machine has them (optional fields cal, lvl).
+const CARDIO_NODIST = /^(burpee|jumping_jacks|jump_rope|battle_ropes)$/, CARDIO_LVL = /bike|elliptical|stair|rower|ski_erg|spin|treadmill|incline/;
+const cardioFields = id => { const ex = exById(id); return ['r', ...(CARDIO_NODIST.test(id) ? [] : ['w']), ...(ex.e === 'm' ? ['cal'] : []), ...(CARDIO_LVL.test(id) && ex.e === 'm' ? ['lvl'] : [])]; };
+const CARDIO_LBL = { r: 'cardTime', w: 'cardDist', cal: 'cardCal', lvl: 'cardLvl' };
+function cardioRow(x, s, j){
+  const box = k => `<div class="cardf"><span>${t(CARDIO_LBL[k])}</span><div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k] ?? ''}" aria-label="${t(CARDIO_LBL[k])}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div></div>`;
+  return `<div class="cardrow ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''}" data-s="${j}">${cardioFields(x.exId).map(box).join('')}<button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>`; }
+
 function newSet(type){ return { id: uid(), type: type || 'N', w: '', r: '', done: false }; }
 
 function startSession(tpl){
@@ -136,12 +144,17 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ s.done = false; s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
+  if(s.done){ s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
-  if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
+  if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; s.at = Date.now(); ensureAudio(); if(!x.t0) x.t0 = Date.now();
+  if(card){   // cardio records: longest time, farthest distance (only against earlier workouts)
+    const hist = exHistory(x.exId, active.id);
+    if(hist.length){ [['t', 'r'], ['d', 'w']].forEach(([kind, k]) => { const prev = Math.max(...hist.flatMap(h => h.sets.map(z => +z[k] || 0))), cur = +s[k] || 0;
+      if(cur > prev && !active.prs.some(p => p.exId === x.exId && p.kind === kind && p.v >= cur)){ active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === kind)); active.prs.push({ exId: x.exId, kind, v: cur }); s.pr = kind; celebrate(); toast(t(kind === 't' ? 'prT' : 'prD', { n: exName(x.exId), v: fmt(cur) })); } }); }
+  }
   let both = false;   // one-sided exercise + the setting: finishing L finishes R too
   if(gx().uniBoth && x.uni && s.side === 'L'){ const o = x.sets[si + 1]; if(o && o.side === 'R' && !o.done){ if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); both = true; si++; } }
   if(!card && s.type !== 'W'){
@@ -720,6 +733,7 @@ function cardHtml(x, i){
     const ty = G.hideMarks ? 'N' : s.drop ? 'D' : s.type, base = G.hideMarks ? j + 1 : s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = !G.hideMarks && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
+    if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     return `<div class="setrow t-${ty} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + extrasHtml(s, j) +
@@ -728,10 +742,10 @@ function cardHtml(x, i){
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    ${x.sets.length ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span></span></div>` : ''}
+    ${x.sets.length && !card ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span></span></div>` : ''}
     ${rows}
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
-      : `<button class="newset" data-addset>${t('newSetPill')}</button><button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
+      : `${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
 }
 
 // rest bracket: a thin blue box under the set just finished; the outline draws in, then burns from the left to meet on the right at 0:00
@@ -932,7 +946,7 @@ function showSummary(ses){
     <div class="statgrid"><div><b>${ses.mins}</b><small>${t('smDur')}</small></div><div><b>${ses.vol.toLocaleString()}</b><small>${t('smVol')}</small></div>
       <div><b>${ses.exercises.reduce((a, x) => a + x.sets.filter(isMainSet).length, 0)}</b><small>${t('smSets')}</small></div><div><b>≈${ses.kcal}</b><small>${t('smKcal')}</small></div></div>
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
-      : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
+      : p.kind === 't' || p.kind === 'd' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.kind === 't' ? 'prTLine' : 'prDLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.v)} ${p.kind === 't' ? 'min' : 'km'}</b></li>` : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
     ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}`;
   if(ses.prs.length) celebrate();
   open('ovSummary');

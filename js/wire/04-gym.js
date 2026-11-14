@@ -64,7 +64,7 @@ const loadOf = (exId, w) => gymIsAssist(exId) ? Math.max(0, bodyW() - (+w || 0))
 // 0.7.1 calories: counted from the sets you did, not the time (rest and a forgotten open workout don't add any).
 // About a third of a kcal per kg of body weight per working set, more for big muscles and more reps; warm-ups, drops and single sides count less.
 function gymSetKcal(exId, s, bw){
-  if(isCardio(exId)) return bw * 7 * (+s.r || 0) / 60;
+  if(isCardio(exId)) return +s.cal > 0 ? +s.cal : bw * 7 * (+s.r || 0) / 60;   // calories typed from the machine win
   const mu = exById(exId).mu || {}, big = Object.entries(mu).reduce((a, [h, v]) => a + (BIG_HEADS.has(h) ? v : 0), 0) / 100;
   const reps = Math.min(1.4, Math.max(.7, Math.sqrt((+s.r || 8) / 10)));
   return bw * .33 * (.75 + .45 * big) * reps * (s.type === 'W' ? .5 : 1) * (s.drop ? .6 : 1) * (s.side ? .6 : 1); }
@@ -78,7 +78,7 @@ const exAt = el => { const c = el.closest('[data-x]'); return c ? active.exercis
 
 $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
-  if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; saveG('act');
+  if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; if(e.target.matches('[data-cal]')) s.cal = e.target.value; if(e.target.matches('[data-lvl]')) s.lvl = e.target.value; saveG('act');
 });
 $('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-sx]'); if(!i) return; const x = exAt(i), row = i.closest('[data-sxrow]'); if(!x || !row) return; const s = x.sets[+row.dataset.sxrow]; if(!s) return;
   const v = i.value.replace(/\D/g, ''); if(v === '') delete s[i.dataset.sx]; else s[i.dataset.sx] = Math.min(99, +v); saveG('act');

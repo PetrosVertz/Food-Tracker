@@ -278,3 +278,11 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .sxr span{margin-right:2px}
 .sxr button{width:28px;height:28px;border-radius:var(--r-pill);border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font-size:var(--fs-label);cursor:pointer;padding:0}
 .sxr button.on{background:var(--t-accent);border-color:var(--t-accent);color:#0b0d0f;font-weight:var(--w-bold,700)}
+
+/* 0.7.7 cardio card: labelled fields, one tick */
+.cardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr)) 38px;gap:8px;align-items:end;margin:6px 0}
+.cardf{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cardf>span{font-size:var(--fs-label);color:var(--t-muted)}
+.cardrow.done .sok{background:var(--t-done);border:0;color:var(--t-done-ink)}
+.cardrow.done .gymsbox{background:var(--t-done-soft);border-color:var(--t-done);color:var(--t-done)}
+.cardrow.done .gymsbox button{color:var(--t-done)}

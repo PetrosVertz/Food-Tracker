@@ -652,3 +652,11 @@ Object.assign(S, {
   negReps: ['Negatives', 'Αρνητικές'], exsNegS: ['Adds a Negatives box under each set.', 'Προσθέτει ένα πλαίσιο αρνητικών κάτω από κάθε γύρο.'],
   exsRir: ['Reps In Reserve', 'Εφεδρικές Επαναλήψεις'], exsRirS: ['Adds a 0 to 5 choice under each set.', 'Προσθέτει επιλογή 0 έως 5 κάτω από κάθε γύρο.'], rirL: ['RIR', 'RIR'],
 });
+
+// ---------- 0.7.7: cardio cards ----------
+Object.assign(S, {
+  cardTime: ['Time (min)', 'Χρόνος (λεπτά)'], cardDist: ['Distance (km)', 'Απόσταση (km)'], cardCal: ['Calories', 'Θερμίδες'], cardLvl: ['Level', 'Επίπεδο'],
+  needCardio: ['Enter the time first.', 'Βάλε πρώτα τον χρόνο.'],
+  prT: ['New Record! {n}: {v} min', 'Νέο Ρεκόρ! {n}: {v} λεπτά'], prD: ['New Record! {n}: {v} km', 'Νέο Ρεκόρ! {n}: {v} km'],
+  prTLine: ['Longest Time', 'Μεγαλύτερος Χρόνος'], prDLine: ['Longest Distance', 'Μεγαλύτερη Απόσταση'],
+});

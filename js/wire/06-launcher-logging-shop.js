@@ -102,14 +102,15 @@ $('chkList').addEventListener('click', e => { const r = e.target.closest('[data-
 $('gOther').addEventListener('click', () => { forcePick = true; $('gStart').click(); });
 
 // ---------- gym: big, labelled − / + steppers instead of empty boxes ----------
-const stepOf = (exId, k) => isCardio(exId) ? (k === 'w' ? .5 : 1) : k === 'r' ? 1 : ({ dumbbell: 2, kettlebell: 4, bodyweight: 2.5, band: 1 }[exById(exId).e] || 2.5);
+const stepOf = (exId, k) => isCardio(exId) ? (k === 'w' ? .5 : k === 'cal' ? 10 : 1) : k === 'r' ? 1 : ({ dumbbell: 2, kettlebell: 4, bodyweight: 2.5, band: 1 }[exById(exId).e] || 2.5);
 
 // − / + steppers: the first tap on an empty box starts from a sensible number (or takes the suggestion)
 function stepSet(b){
   const x = exAt(b), row = b.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s], k = b.dataset.step, inp = row.querySelector(`[data-${k}]`);
+  if(s[k] === undefined) s[k] = '';
   const hasPh = inp.placeholder && !isNaN(+inp.placeholder), st = stepOf(x.exId, k);
   if(s[k] === '' && !hasPh){ // nothing to go on yet: start from a sensible number instead of 0
-    const e0 = exById(x.exId).e, start = k === 'r' ? (isCardio(x.exId) ? 20 : (parseInt(String(x.reps || '').split('-')[0], 10) || 8)) : isCardio(x.exId) ? 1 : ({ barbell: 20, dumbbell: 10, machine: 20, cable: 10, kettlebell: 8, bodyweight: 0, band: 0 }[e0] ?? 10);
+    const e0 = exById(x.exId).e, start = k === 'r' ? (isCardio(x.exId) ? 20 : (parseInt(String(x.reps || '').split('-')[0], 10) || 8)) : isCardio(x.exId) ? (k === 'cal' ? 100 : 1) : ({ barbell: 20, dumbbell: 10, machine: 20, cable: 10, kettlebell: 8, bodyweight: 0, band: 0 }[e0] ?? 10);
     s[k] = String(start); inp.value = s[k]; saveG('act'); return; }
   const cur = s[k] !== '' ? +s[k] : (hasPh ? +inp.placeholder : 0);
   let v = Math.max(0, r1(cur + st * +b.dataset.d)); if(s[k] === '' && inp.placeholder && !isNaN(+inp.placeholder) && +b.dataset.d > 0 && cur === +inp.placeholder) v = cur; // first tap takes the suggestion
