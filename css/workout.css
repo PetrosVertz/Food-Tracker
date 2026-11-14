@@ -228,3 +228,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 #eiBody .mrow b{text-align:right}
 /* 0.7.4.1 gym: Form page stays phone-wide and centred on a computer */
 #ovDemo .sheet.formpage{max-width:480px!important;margin:0 auto!important}
+/* 0.7.4.1 gym: workout summary — record lines and a filled Done button */
+.feed li.prv{color:var(--t-warm)} .feed li.prv .ric{color:var(--t-warm)} .feed li.prw .ric{color:var(--t-accent-ink,var(--t-accent))}
+:root[data-theme="light"] .feed li.prv,:root[data-theme="light"] .feed li.prv .ric{color:#7a4c00}
+#ovSummary .btn.fillbtn{background:var(--t-text)!important;color:var(--t-bg)!important;border:0!important;box-shadow:none!important;font-weight:var(--w-bold)}
