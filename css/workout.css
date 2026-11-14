@@ -242,3 +242,6 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .tpcard .stepper button{background:var(--t-sel);color:var(--t-text)}
 .tpcard .stepper b,.tpcard .stepper input{flex:1;text-align:center;justify-content:center;color:var(--t-text);font-variant-numeric:tabular-nums}
 .tpcard .tps small{color:var(--t-muted)}
+/* 0.7.4.1 gym: Saved Workouts — names in capitals, bigger plain memory-card icon */
+#gTplV .svname{text-transform:uppercase;letter-spacing:.3px}
+#gTplV .ficon.svic{background:none!important;width:44px;height:44px;flex:0 0 44px}

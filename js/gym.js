@@ -557,8 +557,8 @@ const gymIco = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22
 let LIBF = { saved: true, past: false };
 function renderTpls(){
   const saved = tpls.length ? `<div class="list" style="margin-top:6px">${tpls.map(x => { const last = sessions.filter(s => s.tplId === x.id).sort((a, b) => b.start.localeCompare(a.start))[0];
-    return `<div class="card" data-tp="${x.id}"><div class="ficon lic">${gymIco('card', 22, 1.8)}</div><div class="body">
-      <div class="name">${esc(x.name)}</div><div class="rmeta">${typeLabel_(x.type)} · ${t('nEx', { n: x.exercises.length })}${last ? ' · ' + t('lastDone', { d: fmtDate(last.start) }) : ''}</div>
+    return `<div class="card" data-tp="${x.id}"><div class="ficon lic svic">${gymIco('card', 34, 1.7)}</div><div class="body">
+      <div class="name svname">${esc(x.name)}</div><div class="rmeta">${typeLabel_(x.type)} · ${t('nEx', { n: x.exercises.length })}${last ? ' · ' + t('lastDone', { d: fmtDate(last.start) }) : ''}</div>
       <div class="rmeta" style="margin-top:4px">${x.exercises.slice(0, 4).map(e => esc(exName(e.exId))).join(', ')}${x.exercises.length > 4 ? '…' : ''}</div></div>
       <button class="usebtn" data-go-tp aria-label="${t('gStartL')}">${svgIcon('play', 18, 2)}</button></div>`; }).join('')}</div>` : `<div class="empty" style="margin-top:6px">${t('libEmpty')}</div>`;
   const past = sessions.slice().sort((a, b) => b.start.localeCompare(a.start));
