@@ -660,3 +660,11 @@ Object.assign(S, {
   prT: ['New Record! {n}: {v} min', 'Νέο Ρεκόρ! {n}: {v} λεπτά'], prD: ['New Record! {n}: {v} km', 'Νέο Ρεκόρ! {n}: {v} km'],
   prTLine: ['Longest Time', 'Μεγαλύτερος Χρόνος'], prDLine: ['Longest Distance', 'Μεγαλύτερη Απόσταση'],
 });
+
+// ---------- 0.7.7: recovery ----------
+Object.assign(S, {
+  recMoreH: ['{h} h more rest', '{h} ώρες ξεκούραση ακόμα'],
+  recFoodNone: ['No food logged since your workout. Eat some protein to help recovery.', 'Δεν έχεις καταγράψει φαγητό από την προπόνηση. Φάε λίγη πρωτεΐνη για την ανάρρωση.'],
+  recFoodOk: ['Enough food since your workout for recovery: {p} g protein, {k} kcal.', 'Αρκετό φαγητό από την προπόνηση για ανάρρωση: {p} g πρωτεΐνη, {k} kcal.'],
+  recFoodLow: ['Not enough food yet for recovery. About {p} g more protein would help.', 'Δεν αρκεί ακόμα το φαγητό για ανάρρωση. Περίπου {p} g ακόμα πρωτεΐνη θα βοηθούσε.'],
+});

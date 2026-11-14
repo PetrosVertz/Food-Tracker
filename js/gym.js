@@ -447,7 +447,11 @@ const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
 function recMap(){
   const gs = Object.keys(groupReadiness(Date.now())), hrs = {};
   for(let h = 0; h <= 120 && Object.keys(hrs).length < gs.length; h += 2){ const rd = groupReadiness(Date.now() + h * 3.6e6); gs.forEach(g => { if(!(g in hrs) && rd[g] >= .8) hrs[g] = h; }); }
-  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h) }]; })); }
+  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h), col: recColor(h) }]; })); }
+// 0.7.7: a smooth gradient instead of stages: green (ready) → yellow (24 h left) → red (3 days or more left). The label still follows recStateH.
+const recMix = (a, b, p) => `color-mix(in srgb, ${b} ${Math.round(Math.max(0, Math.min(1, p)) * 100)}%, ${a})`;
+const recColor = h => h <= 0 ? REC_COL.ok : h <= 24 ? recMix(REC_COL.ok, REC_COL.mid, h / 24) : recMix(REC_COL.mid, REC_COL.low, (h - 24) / 48);
+const recFill = m => Object.fromEntries(Object.entries(m).map(([g, v]) => [g, v.col])), recLows = m => new Set(Object.entries(m).filter(([, v]) => v.st === 'low').map(([g]) => g));
 
 function tplGroups(tp){ const s = new Set(); tp.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h] && HEADS[h][2] !== 'cardio') s.add(HEADS[h][2]); })); return [...s]; }
 
@@ -471,15 +475,26 @@ function sessionRecoveryWarn(){
 
 // Recovery (0.7.4.2): an information screen — front and back side by side, nothing on it reacts to taps.
 // Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
-function recFigure(){ const m = recMap(), colors = Object.fromEntries(Object.entries(m).map(([g, v]) => [g, REC_COL[v.st]]));
-  return anatomySVG({ mode: 'rec', colors, w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
+function recFigure(){ const m = recMap();
+  return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
+// 0.7.7: was the food since the last workout enough for recovery? Reads the food log and targets (dayLog / targets), nothing new is stored.
+function recFoodLine(){
+  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return '';
+  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return '';
+  const day = last.date, tg = targetFor(day); if(!tg || !tg.p || !tg.k) return '';
+  const hm = new Date(endTs).toTimeString().slice(0, 5), today = todayKey();
+  const list = [day, ...(today > day ? [today] : [])].flatMap(d => (dayLog[d] || []).filter(e => d !== day || (e.time || '') >= hm));
+  const p = list.reduce((a, e) => a + (+e.p || 0), 0), k = list.reduce((a, e) => a + (+e.kcal || 0), 0);
+  const msg = !list.length ? t('recFoodNone') : p >= tg.p * .5 && k >= tg.k * .5 ? t('recFoodOk', { p: Math.round(p), k: Math.round(k) }) : t('recFoodLow', { p: Math.round(Math.max(0, tg.p * .5 - p)) });
+  return `<div class="alert" style="cursor:default;margin-bottom:12px">${msg}</div>`; }
 function renderRecovery(){
   const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
   const notReady = Object.entries(m).filter(([, v]) => v.h > 0).sort((a, b) => b[1].h - a[1].h);
-  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h <= 24 ? t('recIn', { h: v.h }) : t('recDays', { n: Math.ceil(v.h / 24) })}</span></div>`;
+  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h <= 24 ? t('recMoreH', { h: v.h }) : t('recDays', { n: Math.ceil(v.h / 24) })}</span></div>`;
   $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-bottom:12px">${w}</div>`).join('') +
     `<div class="reccard" id="recFig">${recFigure()}</div>
-    <div class="legend2"><span><i style="background:${C.low}"></i>${t('recLow')}</span><span><i style="background:${C.mid}"></i>${t('recMid')}</span><span><i style="background:${C.ok}"></i>${t('recReady')}</span></div>
+    <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small>${t('recReady')}</small><small>${t('recLow')}</small></span></div>
+    ${recFoodLine()}
     <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
     <p class="hint">${t('recHint')}</p>`;
 }
@@ -493,7 +508,7 @@ function gymBodySVG(o){
   const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
   const shape = ([k, d]) => { const hs = GYM_BM_HEADS[k], h = hs[0], g = ANAT_HEAD_GROUP[h], on = live(h), tap = mode === 'pick' && on;
     let fill = '', op = 1, cls = '';
-    if(mode === 'rec'){ fill = gcol[g] || ''; if(!fill) cls = 'gbm-off'; else if(fill === REC_COL.low) cls = 'mlow'; }
+    if(mode === 'rec'){ fill = gcol[g] || ''; if(!fill) cls = 'gbm-off'; else if(o.lows && o.lows.has(g)) cls = 'mlow'; }
     else if(mode === 'mu'){ const v = gymBmVal(hs, mu); if(v > 0){ cls = 'gbm-on'; op = .35 + .65 * Math.min(1, v / max); } else cls = 'gbm-off'; }
     else if(mode === 'pick'){ if(on) fill = HEAD_COL[h]; else cls = 'gbm-off'; }
     else fill = HEAD_COL[h];
@@ -519,7 +534,7 @@ function anatomySVG(o){
     return HEAD_COL[h]; };
   const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
   const fem = o.fem !== undefined ? o.fem : profile.sex === 'f', W_ = d => fem ? femWarp(d) : d;
-  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && fill(h) === REC_COL.low ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${mode === 'mu' && (o.mu || {})[h] > 0 ? 'fill:var(--t-accent);' : ''}${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
+  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && o.lows && o.lows.has(ANAT_HEAD_GROUP[h]) ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${mode === 'mu' && (o.mu || {})[h] > 0 ? 'fill:var(--t-accent);' : ''}${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
       `<path d="${d}" fill="url(#${idp}shade)" style="pointer-events:none"/>`).join('') +
     `<path d="${W_(ANAT_FIBRES[side])}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
   const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${W_(d)}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${fem ? femX(cx, cy) : cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
@@ -926,8 +941,8 @@ function renderGym(){
   $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
   if(!sec){
-    const rm = recMap(), colors = Object.fromEntries(Object.entries(rm).map(([g, v]) => [g, REC_COL[v.st]])), low = Object.values(rm).filter(v => v.h > 0).length;
-    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
+    const rm = recMap(), colors = recFill(rm), lows = recLows(rm), low = Object.values(rm).filter(v => v.h > 0).length;
+    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, lows, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
     $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
   }
   renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
