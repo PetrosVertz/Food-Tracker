@@ -113,7 +113,10 @@ path.mlow{animation:mBreathe 3.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){path.mlow{animation:none}}
 /* titles in the top middle */
 header{position:relative;min-height:56px}
-header .left h1,header>h1{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;max-width:62%;overflow:hidden;text-overflow:ellipsis;text-align:center;font-size:20px}
+/* 0.7.8 titles: centred by layout, never by transform:translate(-50%,-50%) — a transform puts the letters on half pixels and iPhone draws them soft.
+   The box spans the whole header (left:0;right:0) and the text is centred inside it; the 19% side padding keeps the old 62% width.
+   It lets taps through to the back arrow and header buttons under it. */
+header .left h1,header>h1{position:absolute;left:0;right:0;top:0;bottom:0;margin:auto 0;height:max-content;padding:0 19%;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-size:20px}
 /* selected segment / tab: dark letters */
 /* no cupboard */
 #fLoc [data-v="cupboard"],#faLoc [data-v="cupboard"]{display:none!important}
@@ -195,7 +198,7 @@ html.pwa .toast{top:auto!important;bottom:calc(100% - var(--appH,100vh) + max(24
 /* full width and centred again (the old side strip's space is gone) */
 section.page.wrap{padding-left:max(16px,calc((100vw - 640px) / 2))!important;padding-right:max(16px,calc((100vw - 640px) / 2))!important}
 /* title stays below the status bar on the Home Screen app */
-section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 24px);z-index:2;font-size:28px!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.6px;line-height:1.15;padding-right:.08em}   /* 0.7.3: fixed spot above the blur; bold italic, one step up the type scale (20 → 28) */
+section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 8px);bottom:auto;margin:0;height:auto;z-index:2;font-size:28px!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.6px;line-height:32px;padding:0 calc(19% + .08em) 0 19%}   /* 0.7.3: fixed spot above the blur; bold italic, one step up the type scale (20 → 28) */
 section.page>header>:not(.left),section.page>header .left>:not(h1){position:relative;z-index:1}
 /* 0.7.3: the title fade is never on top of a window. iPhone can draw a sticky blurred layer above later fixed layers whatever the z-index, so while ANY window
    is open (open()/close() in ui.js set body.ovopen) the fade is simply not drawn and the header loses its layer. One rule for every sheet, any size, also when it grows. */
