@@ -17,6 +17,12 @@ One branch: **gym-0.7.5** (Sonnet). Follow CLAUDE.md. Exercise data lives in `js
    - Cardio / conditioning: assault bike, rower, stair climber, sled push, battle ropes.
    - Bands and bodyweight versions where common.
    Rules: snake_case ids; equipment from `EQ` (if Smith machine, trap bar, landmine or sled are needed, add them to `EQ` / `EQUIP` with EN + GR names and an equipment line icon); a pattern from `REST_BY_PATTERN` so rest, cues and mistakes come automatically; muscle % as a rough, sensible biomechanics split (whole numbers, sum 100).
-4. **Find them easily:** check the exercise picker search finds new ones by common other names (e.g. "RDL", "skull crusher", "pec deck"); if the picker has no alias support, add a small alias list for the most common ones.
+4. **Find them by any name (synonyms).** People search with the name on the machine or what their gym calls it, so every exercise gets a list of other names, and search matches any of them (both ways, partial words, EN + GR):
+   - Gym slang and short forms: "RDL" → Romanian deadlift, "skull crusher" → lying triceps extension, "pec deck" → machine fly, "OHP" → overhead press, "BSS" → Bulgarian split squat.
+   - **Machine names from the big brands** (Matrix, Technogym, Life Fitness, Hammer Strength, Cybex, Panatta, Gym80): e.g. machine row ↔ **low row** (Matrix) ↔ seated row machine; chest press ↔ vertical chest press ↔ iso-lateral chest press; lat pulldown ↔ pulldown machine ↔ iso-lateral pulldown; leg extension ↔ quad extension; leg curl ↔ seated / lying leg curl; hip abduction ↔ outer thigh; hip adduction ↔ inner thigh; pendulum squat ↔ power squat; shoulder press machine ↔ overhead press machine; rear delt machine ↔ reverse pec deck ↔ rear delt fly.
+   - Common Greek names lifters use (e.g. κωπηλατική, πιέσεις, έλξεις, βυθίσεις, βαθύ κάθισμα).
+   - The result shows the app's exercise name, with the matched other name in small grey text under it ("also: Low Row"), so the user knows it's the same exercise.
+   - Synonyms must not create duplicate exercises: one exercise, many names.
+   - Add a few test searches to tools/check.js (e.g. "low row", "RDL", "pec deck" each find the right exercise first).
 5. Check the picker, Create a Workout and the Form page still work and look right with ~300 exercises (scrolling, grouping by muscle and equipment).
 6. Bump VERSION to 0.7.5 and CACHE to match.
