@@ -99,10 +99,7 @@ const tabOf = h => h === 'settings' ? 'settings' : h === 'today' ? 'today' : h.s
 })();
 
 document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.parentElement.id; if(ov === 'ovLang' || ov === 'ovSession' || ov === 'ovAsk' || ov === 'ovPick') return;
-  const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', 'Back'); b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
-
-$('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(!b) return; const tab = b.dataset.tab, h = location.hash.slice(1);
-  if(tabOf(h) === tab && h !== TAB_ROOT[tab]) go(TAB_ROOT[tab]); else if(tabOf(h) !== tab) go(ui['lastIn_' + tab] && tab !== 'today' ? ui['lastIn_' + tab] : TAB_ROOT[tab]); else window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
 
 $('gHubTiles').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if(b) go(b.dataset.sec); });
 

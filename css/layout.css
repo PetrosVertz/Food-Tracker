@@ -67,7 +67,6 @@ details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 /* ---------- 0.6.0: back buttons are grey, and flash orange while pressed ---------- */
 
 /* ---------- 0.6.1: the icon strip is a bar along the bottom (Settings last); Log Food floats above it; stronger frosted glass ---------- */
-header [data-settings]{display:none!important}
 body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 .fab{bottom:calc(76px + env(safe-area-inset-bottom))!important;right:0!important}
 /* stronger glass on tabs and tiles */
@@ -204,12 +203,8 @@ section.page>header .left h1,section.page>header>h1{top:calc(var(--hpad) + 24px)
 section.page>header>:not(.left),section.page>header .left>:not(h1){position:relative;z-index:1}
 /* 0.7.3: the title fade is never on top of a window. iPhone can draw a sticky blurred layer above later fixed layers whatever the z-index, so while ANY window
    is open (open()/close() in ui.js set body.ovopen) the fade is simply not drawn and the header loses its layer. One rule for every sheet, any size, also when it grows. */
-body.ovopen section.page>header,body:has(.overlay.open) section.page>header{z-index:auto;isolation:auto}
-body.ovopen section.page>header::before,body:has(.overlay.open) section.page>header::before{display:none}
-/* top blur fades out softly instead of ending in a line */
-section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:-10px;z-index:0;pointer-events:none;   /* 0.7.3: thinner (was -22px) */
-  background:linear-gradient(color-mix(in srgb,var(--t-bg) 94%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent) 62%,color-mix(in srgb,var(--t-bg) 0%,transparent));
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+body.ovopen section.page>header,body:has(.overlay.open,.overlay.closing) section.page>header{z-index:auto;isolation:auto}
+body.ovopen section.page>header::before,body:has(.overlay.open,.overlay.closing) section.page>header::before{display:none}
 /* Food Track: two buttons side by side */
 .fab2{background:rgba(255,255,255,.12)!important;color:var(--text)!important;border:1px solid rgba(255,255,255,.2)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 body.twofab .fab{margin:0!important;width:auto!important;min-width:0;padding-left:14px;padding-right:14px;font-size:16px}
@@ -232,7 +227,7 @@ section.page,.sheet{scroll-behavior:smooth}
 /* unilateral sets */
 .swipebox .setrow{position:relative;touch-action:pan-y;border-radius:12px}
 /* AI bubble (0.7.1): the robot in a round glass button; while it works a lime glow circles BEHIND it and the robot thinks (canvas "Robots and anatomy" v2) */
-.aibub{position:fixed;right:14px;z-index:150;width:64px;height:64px;padding:0;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;color:var(--text);
+.aibub{position:fixed;right:14px;z-index:90000;width:64px;height:64px;padding:0;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;color:var(--text);
   bottom:calc(150px + env(safe-area-inset-bottom));animation:tipIn .25s ease-out;-webkit-tap-highlight-color:transparent}
 html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 140px)}
 .aibub .rcore{position:relative;grid-area:1/1;width:64px;height:64px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#26282b;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.5)}
@@ -256,7 +251,7 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(sa
 .aibub.kill .robot .rft,.aibub.kill .robot .rfi,.aibub.kill .robot .rfi0{display:none} .aibub.kill .robot .rfx{display:inline} .aibub.kill .robot .rtilt{animation:none}
 .aibub.kill .rglow{animation:none;background:rgba(255,77,77,.85)} .aibub.kill .rcore{box-shadow:0 0 0 2px #ff4d4d,0 0 26px 8px rgba(255,77,77,.55)}
 .aibub.gone{transition:transform .2s ease-in,opacity .2s ease-in!important;transform:scale(.3);opacity:0}
-.aitrash{position:fixed;left:50%;z-index:149;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;pointer-events:none;color:var(--t-muted);
+.aitrash{position:fixed;left:50%;z-index:89999;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;pointer-events:none;color:var(--t-muted);
   bottom:calc(max(24px,env(safe-area-inset-bottom)) + 84px);background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);
   opacity:0;transform:translateX(-50%) scale(.6);transition:opacity .18s,transform .22s cubic-bezier(.2,1.3,.4,1),background-color .15s,border-color .15s,color .15s}
 html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-area-inset-bottom)) - 84px - 64px)}
@@ -315,7 +310,7 @@ html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area
 
 /* 0.6.8 · faint outline on the cards */
 :root{--edge:rgba(255,255,255,.11)}
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard,.foldh,.exrow{border-color:var(--edge)!important}
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow{border-color:var(--edge)!important}
 .exrow{border-left-color:var(--eq)!important} .exc.ss,.tpcard.ss{border-left-color:var(--ssc)!important}
 .toast{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 150px)!important;width:min(calc(100vw - 32px),440px);padding:7px 8px 7px 18px;justify-content:space-between;white-space:normal;text-align:left;line-height:1.3;min-height:38px}   /* 0.7.2: wide and slim, above the main button (Log Food / Start Workout), never on it */
 .toast:has(#toastAct.hide){justify-content:center;text-align:center;padding-right:18px}

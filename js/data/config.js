@@ -70,8 +70,8 @@ let planCtl = null;
 
 // ---------- key guide ----------
 const KEY_STEPS = {
-  en: ['Tap <b>🔑 Get API key</b> above.', 'Sign in with any Google account (Gmail works) and accept the terms.', 'Tap <b>Create API key</b>. If it asks for a project, the default one is fine.', 'Copy the key. It starts with <code>AIza</code>.', 'Paste it in the box above, tap <b>Save settings</b>, then <b>✓ Test key</b>.'],
-  el: ['Πάτα <b>🔑 Πάρε κλειδί API</b> από πάνω.', 'Συνδέσου με οποιονδήποτε λογαριασμό Google (και Gmail) και αποδέξου τους όρους.', 'Πάτα <b>Create API key</b>. Αν ζητήσει project, το προεπιλεγμένο είναι μια χαρά.', 'Αντέγραψε το κλειδί. Ξεκινάει με <code>AIza</code>.', 'Επικόλλησέ το στο κουτί από πάνω, πάτα <b>Αποθήκευση ρυθμίσεων</b> και μετά <b>✓ Έλεγχος κλειδιού</b>.']
+  en: ['Tap <b>Get API key</b> above.', 'Sign in with any Google account (Gmail works) and accept the terms.', 'Tap <b>Create API key</b>. If it asks for a project, the default one is fine.', 'Copy the key. It starts with <code>AIza</code>.', 'Paste it in the box above, tap <b>Save settings</b>, then <b>Test key</b>.'],
+  el: ['Πάτα <b>Πάρε κλειδί API</b> από πάνω.', 'Συνδέσου με οποιονδήποτε λογαριασμό Google (και Gmail) και αποδέξου τους όρους.', 'Πάτα <b>Create API key</b>. Αν ζητήσει project, το προεπιλεγμένο είναι μια χαρά.', 'Αντέγραψε το κλειδί. Ξεκινάει με <code>AIza</code>.', 'Επικόλλησέ το στο κουτί από πάνω, πάτα <b>Αποθήκευση ρυθμίσεων</b> και μετά <b>Έλεγχος κλειδιού</b>.']
 };
 
 let _exc = null;
@@ -124,6 +124,6 @@ let ASK = null;
 // ---------- in-app picker for every dropdown ----------
 let PICKSEL = null;
 
-const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.bubble,#tabbar button,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
+const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
 
 const KEYATTR = ['data-eid', 'data-fid', 'data-x', 'data-s', 'data-tid', 'data-gid', 'data-mid', 'data-sid', 'data-fkey'];

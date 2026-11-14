@@ -86,6 +86,7 @@ function applyTabOrder(){
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if(typeof pillsAll === 'function') pillsAll();
 }
+const fabBtn = (icon, label) => `<span class="fabic">${svgIcon(icon, 18, 2.4)}</span>${esc(label)}`;   // main button: line icon before the text
 const homeHash = () => '#' + TAB_ROOT[TABS3[0]];
 function setTheme(ch){ ui.theme = { ...(ui.theme || {}), ...ch }; saveUI(); applyTheme(); drawTheme(); if(location.hash.slice(1) === 'gym-rec' && typeof renderRecovery === 'function') renderRecovery(); }
 try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if(themeNow().mode === 'auto') setTheme({}); }); }catch(e){}
@@ -169,28 +170,6 @@ function goForward(){
   if(NAVI < NAV.length - 1 && tabOf(NAV[NAVI + 1]) === tabOf(location.hash.slice(1))){ NAVI++; navTo(NAV[NAVI]); }
 }
 
-function renderLaunch(){
-  const hr = new Date().getHours(); $('lHello').textContent = t(hr < 12 ? 'hiMorning' : hr < 18 ? 'hiDay' : 'hiEvening') + ' 👋';
-  const tk = todayKey(), tg = targetFor(tk), tot = dayTotals(tk), pl = planFor(tk), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
-  $('lbFood').textContent = t('lFoodSub', { n: foods.length, f: liveItems().length });
-  $('lbToday').textContent = tg ? t('lTodaySub', { a: Math.round(tot.kcal).toLocaleString(), b: tg.k.toLocaleString() }) : t('lTodayNo', { a: Math.round(tot.kcal) });
-  $('lbGym').textContent = sessions.some(s => s.date === tk) ? t('lGymDone') : pl && pl.type === 'gym' ? t('lGymPlan', { n: tp ? tp.name : t('gymAny'), t: pl.time || '' }) : pl && pl.type === 'rest' ? t('lGymRest') : t('lGymNone');
-  $('lBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0'; renderBackupCard($('lBackup'));
-}
-
-function launchTo(tab, btn){
-  const target = () => { if(tab === 'today') curDay = todayKey(); go(TAB_ROOT[tab]); };
-  const bubbles = [...document.querySelectorAll('#pgLaunch .bubble')], bar = $('tabbar');
-  if(!btn || matchMedia('(prefers-reduced-motion: reduce)').matches || !bubbles[0].animate){ target(); return; }
-  bar.classList.remove('hide'); bar.style.opacity = '0';
-  const tabs = TABS3.map(k => bar.querySelector(`[data-tab="${k}"]`));
-  const anims = bubbles.map((b, i) => { const r = b.getBoundingClientRect(), tr = tabs[i].getBoundingClientRect();
-    const dx = tr.left + tr.width / 2 - (r.left + r.width / 2), dy = tr.top + tr.height / 2 - (r.top + r.height / 2), s = Math.min(tr.width / r.width, tr.height / r.height);
-    return b.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: b === btn ? 1 : .5 }], { duration: 430, easing: 'cubic-bezier(.55,0,.2,1)', fill: 'forwards', delay: b === btn ? 0 : 40 }); });
-  bar.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260, fill: 'forwards' });
-  setTimeout(() => { bar.style.opacity = ''; bar.getAnimations().forEach(a => a.cancel()); target(); anims.forEach(a => a.cancel()); }, 470);
-}
-
 // ---------- tabs: Today → Gym → Food → Fridge, switched from the side strip or a short pull past the end ----------
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
@@ -218,10 +197,9 @@ function switchTab(dir, toTab){
 function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
-  $('pgLaunch').classList.add('hide'); $('tabbar').classList.add('hide');
-  h = location.hash.replace('#','');   // re-read: the start page may have just switched it
+  h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
   const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
@@ -234,11 +212,12 @@ function route(){
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
   fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+    if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
-  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
-  else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
+  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
+  else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   renderAll();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
@@ -255,7 +234,7 @@ function drawSetup(){
   const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
   let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
   const useSeg = `<label style="margin-top:16px">${t('suUse')}</label><div class="seg" id="suUse"><button data-v="both" class="${SUP.use !== 'gym' ? 'on' : ''}">${t('useBoth')}</button><button data-v="gym" class="${SUP.use === 'gym' ? 'on' : ''}">${t('useGym')}</button></div>`;
-  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>` + useSeg;
+  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}">English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}">Ελληνικά</button></div>` + useSeg;
   if(s === 1) h += `<h2>${t('suAbout')}</h2><label>${t('suSex')}</label><div class="seg" id="suSex"><button data-v="m" class="${SUP.sex === 'm' ? 'on' : ''}">${t('suMale')}</button><button data-v="f" class="${SUP.sex === 'f' ? 'on' : ''}">${t('suFemale')}</button></div>
     <label for="suH">${t('suHeight')}</label><div class="brandrow"><input id="suH" type="number" inputmode="numeric" value="${SUP.h || ''}" placeholder="178" style="flex:1"><span style="color:var(--muted)">cm</span></div><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
     <label>${t('suGoal')}</label><div class="seg" id="suGoal">${['bulk', 'recomp', 'cut'].map(g => `<button data-v="${g}" class="${SUP.goal === g ? 'on' : ''}">${t({ bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[g])}</button>`).join('')}</div>`;
@@ -265,7 +244,7 @@ function drawSetup(){
     <div id="suWorkBox" class="${SUP.work ? '' : 'hide'}"><label>${t('suWorkDays')}</label>${dayChips(SUP.workDays, 'suwd')}
       <div class="grid" style="margin-top:8px"><div><label for="suFrom">${t('suFrom')}</label><input id="suFrom" type="time" value="${SUP.from}"></div><div><label for="suTo">${t('suTo')}</label><input id="suTo" type="time" value="${SUP.to}"></div></div></div>`;
   if(s === 3) h += `<h2>${t('suAi')}</h2><p class="sub">${t('suAiSub')}</p><input id="suKey" type="password" autocomplete="off" value="${esc(SUP.key)}" placeholder="AIza…"><div class="actions" style="margin-top:8px"><button class="btn" id="suGetKey">${t('getKey')}</button></div>`;
-  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="font-size:54px;text-align:center;margin:10px 0">✅</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
+  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="text-align:center;margin:10px 0;color:var(--t-accent-ink,var(--t-accent))">${svgIcon('check', 54, 2)}</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
   h += `<div class="actions">${s > 0 ? `<button class="btn" data-sunav="-1">${t('suBack')}</button>` : `<button class="btn" data-suskip>${t('suSkip')}</button>`}${s === 3 ? `<button class="btn" data-sunav="1" data-skipkey>${t('suSkip')}</button>` : ''}<button class="btn primary" data-sunav="${s === 4 ? 'done' : 1}">${s === 4 ? t('suFinish') : t('suNext')}</button></div>`;
   $('suBody').innerHTML = h;
 }
@@ -294,7 +273,7 @@ function finishSetup(){
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
     if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
   saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); }
-  ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+  ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll();
 }
 
 // ---------- weekly backup, one tap to the share sheet (iCloud Drive / Files) ----------
@@ -303,14 +282,8 @@ function backupBlob(){ return new Blob([JSON.stringify(Store.snapshot(), null, 2
 async function backupNow(){
   const name = `tracker-backup-${todayKey()}.json`, blob = backupBlob();   // 0.7.3: the date is in the file name
   try{ await Phone.shareFile(blob, name);
-    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); shellBkLast(); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); shellBkLast(); renderAll();
   }catch(e){ if(e && e.name !== 'AbortError') toast(e.message || 'backup'); }
-}
-
-function renderBackupCard(el){
-  if(!el) return; const has = foods.length + Object.keys(dayLog).length + sessions.length > 0, last = ui.lastBackup ? new Date(ui.lastBackup) : null;
-  const due = has && (!last || (Date.now() - last) / 864e5 >= 7);
-  el.innerHTML = due ? `<button class="bkcard" data-backup><b>${t('bkT')}</b><small>${t('bkSub', { d: last ? fmtDate(last.toISOString()) : t('bkNever') })}</small></button>` : '';
 }
 
 function ask(msg, yes, no){
@@ -321,13 +294,13 @@ function syncSel(s){ const b = s.nextElementSibling; if(b && b.classList.contain
 
 function enhanceSel(s){
   if(s.dataset.enh) { syncSel(s); return; } s.dataset.enh = '1'; s.classList.add('nsel');
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'selbtn'; b.innerHTML = '<span></span><i>⌄</i>'; b.firstChild.textContent = selLabel(s);
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'selbtn'; b.innerHTML = `<span></span><i>${svgIcon('down', 18, 2.2)}</i>`; b.firstChild.textContent = selLabel(s);
   if(s.style.flex) b.style.flex = s.style.flex;
   s.after(b);
   b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); PICKSEL = s;
     const lbl = s.id && document.querySelector(`label[for="${s.id}"]`);
     $('pickT').textContent = lbl ? lbl.textContent : '';
-    $('pickList').innerHTML = [...s.options].map((o, i) => `<button class="pickopt ${i === s.selectedIndex ? 'on' : ''}" data-pi="${i}" ${o.disabled ? 'disabled' : ''}>${esc(o.textContent)}${i === s.selectedIndex ? '<b>✓</b>' : ''}</button>`).join('');
+    $('pickList').innerHTML = [...s.options].map((o, i) => `<button class="pickopt ${i === s.selectedIndex ? 'on' : ''}" data-pi="${i}" ${o.disabled ? 'disabled' : ''}>${esc(o.textContent)}${i === s.selectedIndex ? `<b>${svgIcon('check', 18, 2.4)}</b>` : ''}</button>`).join('');
     open('ovPick'); });
 }
 
@@ -337,12 +310,13 @@ function fixNum(inp){
   const im = inp.getAttribute('inputmode'); inp.type = 'text'; inp.setAttribute('inputmode', im === 'numeric' ? 'numeric' : 'decimal'); inp.setAttribute('autocomplete', 'off');
 }
 
-// ---------- tiny haptic taps (iPhone: hidden switch trick, Android: vibrate) ----------
-const haptic = () => Phone.haptic();
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open')); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
-  if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => el.classList.remove('closing'), 200); } }
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide');
+  // body.ovopen stays on until the 200 ms close animation ends, so a sliding-out sheet never passes under the title bar
+  const sync = () => document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open,.overlay.closing'));
+  if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => { el.classList.remove('closing'); sync(); }, 200); }
+  sync(); }
 
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
@@ -376,7 +350,7 @@ function makeSwipeDelete(box, itemSel, onDelete, opts){
     if(!S.claim) return false; ev.stopPropagation(); if(ev.cancelable) ev.preventDefault();
     S.dx = Math.min(0, dx); const pr = Math.min(1, -S.dx / (S.c.offsetWidth / 3));
     S.c.classList.add('swiping'); S.c.style.transform = `translateX(${S.dx}px)`; S.c.style.setProperty('--sw', pr.toFixed(2));
-    if(pr >= 1 && !S.c.classList.contains('swready')) haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
+    if(pr >= 1 && !S.c.classList.contains('swready')) Phone.haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
   const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
     if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
     else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
