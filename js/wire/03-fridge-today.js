@@ -294,7 +294,7 @@ $('realStart').addEventListener('change', () => { profile.realStart = $('realSta
     const t_ = profile.realStart ? real : pl && pl.time; if(t_){ d.time = t_; saveDays(); } }
   renderAll(); });
 
-// Log food sheet: Quick Log (0.7.1, replaces Add Takeaway), yesterday's food
+// Log food sheet: Food Coach (0.7.4.3, was Quick Log), yesterday's food
 $('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
 logQWire(); logCalWire(); logFabWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
