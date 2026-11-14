@@ -776,17 +776,29 @@ function inferType(list){
 
 async function loadFedb(){ if(FEDB) return FEDB; let err; for(const u of FEDB_URLS){ try{ const r = await fetchT(u, {}, 20000); if(r.ok){ FEDB = await r.json(); return FEDB; } }catch(e){ err = e; } } throw err || new Error('load'); }
 
+// Strong matches only: same equipment and the photo's name is the exercise's name (at most one extra word).
+// Anything weaker shows no photo: no picture is better than a wrong one.
 function demoMatches(exId){
-  const ex = exById(exId), mine = tokz(ex.en), eq = EQ_FE[ex.e];
-  return FEDB.map(d => { const th = tokz(d.name), hit = mine.filter(w => th.includes(w)).length; if(!hit) return null;
-    let s = hit * 3 - (th.length - hit) * .6 - (mine.length - hit) * 1.2; if(eq && d.equipment === eq) s += 2; if(norm(d.name) === norm(ex.en)) s += 6; return { d, s }; })
-    .filter(Boolean).sort((a, b) => b.s - a.s).slice(0, 6).map(x => x.d);
+  const ex = exById(exId), mine = tokz(ex.en).split(' ').filter(Boolean), eq = EQ_FE[ex.e]; if(!eq || !mine.length) return [];
+  return FEDB.map(d => { if(d.equipment !== eq) return null; const th = tokz(d.name).split(' ').filter(Boolean), extra = th.length - mine.length;
+    if(!mine.every(w => th.includes(w)) || extra > 1) return null; return { d, s: -extra }; })
+    .filter(Boolean).sort((a, b) => b.s - a.s).slice(0, 3).map(x => x.d);
+}
+
+// the photos to offer for one exercise: our hand-picked one (or none), else a strong guess; the user's own pick wins, "Wrong Photo?" hides it
+function demoList(exId){
+  const saved = (ui.demoPick || {})[exId], mine = saved && FEDB.find(z => z.id === saved);
+  const hasPick = Object.prototype.hasOwnProperty.call(FORM_PICK, exId), pick = hasPick && FORM_PICK[exId] && FEDB.find(z => z.id === FORM_PICK[exId]);
+  let list = hasPick ? (pick ? [pick] : []) : demoMatches(exId);
+  if((ui.formWrong || {})[exId]) list = [];
+  if(mine) list = [mine].concat(list.filter(d => d.id !== mine.id));
+  return list;
 }
 
 // ---------- Form page (canvas Gym.dc.html): crossfading photos · How to do it + Common mistakes · fixed muscle map ----------
 async function openDemo(exId){
   DEMO.exId = exId; clearInterval(DEMO.timer); const x = exById(exId), L_ = lang === 'el' ? 1 : 0;
-  $('dmTitle').textContent = exName(exId); $('dmNext').classList.add('hide');
+  $('dmTitle').textContent = exName(exId); $('dmNext').classList.add('hide'); $('dmWrong').classList.add('hide');
   $('dmPhoto').innerHTML = `<span class="fpcap">${t('formLoading')}</span>`;
   const steps = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[exId] ? [SPECIFIC[exId][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
   const left = `<div class="fpl">${steps.length || lang !== 'el' ? `<div class="fpblk"><b class="fph">${svgIcon('check', 16, 2.4)}${t('howTo')}</b><ol id="dmSteps">${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>` : ''}
@@ -798,15 +810,13 @@ async function openDemo(exId){
   if(map) requestAnimationFrame(() => formMap(exId));
   try{ await loadFedb(); }catch(e){ $('dmPhoto').innerHTML = `<span class="fpcap">${t('formFail')}</span>`; return; }
   if(DEMO.exId !== exId) return;
-  DEMO.list = demoMatches(exId); const saved = (ui.demoPick || {})[exId], si = saved ? DEMO.list.findIndex(d => d.id === saved) : -1;
-  if(saved && si === -1){ const d = FEDB.find(z => z.id === saved); if(d) DEMO.list.unshift(d); }
-  DEMO.i = Math.max(0, si); drawDemo();
+  DEMO.list = demoList(exId); DEMO.i = 0; drawDemo();
 }
 
 function drawDemo(){
   clearInterval(DEMO.timer); const d = DEMO.list[DEMO.i];
-  if(!d){ $('dmPhoto').innerHTML = `<span class="fpcap">${t('formNone')}</span>`; $('dmNext').classList.add('hide'); return; }
-  $('dmNext').classList.toggle('hide', DEMO.list.length < 2);
+  if(!d){ $('dmPhoto').innerHTML = `<span class="fpcap">${t('formNone')}</span>`; $('dmNext').classList.add('hide'); $('dmWrong').classList.add('hide'); return; }
+  $('dmNext').classList.toggle('hide', DEMO.list.length < 2); $('dmWrong').classList.remove('hide');
   const imgs = (d.images || []).map(FEDB_IMG);
   $('dmPhoto').innerHTML = imgs.map((u, i) => `<img src="${u}" alt="" class="${i ? '' : 'on'}" loading="eager">`).join('') +
     (imgs.length > 1 ? `<span class="fpdots">${imgs.map((u, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : '');

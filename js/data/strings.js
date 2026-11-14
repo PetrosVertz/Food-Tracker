@@ -638,5 +638,6 @@ Object.assign(S, {
   rcptBlurry: ['Too blurry to read. Retake it a little closer, holding steady.', 'Πολύ θολή για να διαβαστεί. Ξαναβγάλ\' την λίγο πιο κοντά, κρατώντας σταθερά.'],
   rcptNoEdges: ['Couldn\'t find the receipt\'s edges, so the frame was used. Retake on a darker surface if text is cut off.', 'Δεν βρέθηκαν οι άκρες της απόδειξης, οπότε κρατήθηκε το πλαίσιο. Αν κόπηκε κείμενο, ξαναβγάλ\' την σε πιο σκούρα επιφάνεια.'],
   rcptUnreadable: ['The receipt is too blurry to read. Please retake it.', 'Η απόδειξη είναι πολύ θολή για να διαβαστεί. Βγάλε τη ξανά.'],
+  formWrong: ['Wrong Photo?', 'Λάθος Φωτογραφία;'],
   rcptFail: ['Couldn\'t process the photo. Try again.', 'Δεν ήταν δυνατή η επεξεργασία της φωτογραφίας. Δοκίμασε ξανά.'],
 });

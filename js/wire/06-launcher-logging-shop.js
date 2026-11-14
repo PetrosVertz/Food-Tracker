@@ -127,6 +127,8 @@ const FEDB_IMG = p => `https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main
 const tokz = s => norm(s).replace(/[()/,]/g, ' ').split(' ').filter(Boolean).map(w => SYN[w] || w).join(' ').split(' ').filter(w => w.length > 1 && !['the', 'with', 'and', 'on', 'to', 'of', 'grip'].includes(w));
 
 $('dmNext').addEventListener('click', () => { if(!DEMO.list || DEMO.list.length < 2) return; DEMO.i = (DEMO.i + 1) % DEMO.list.length; ui.demoPick = { ...(ui.demoPick || {}), [DEMO.exId]: DEMO.list[DEMO.i].id }; saveUI(); drawDemo(); });
+$('dmWrong').addEventListener('click', () => { if(!DEMO.exId) return; Phone.haptic();
+  ui.formWrong = { ...(ui.formWrong || {}), [DEMO.exId]: true }; if(ui.demoPick) delete ui.demoPick[DEMO.exId]; saveUI(); DEMO.list = []; DEMO.i = 0; drawDemo(); });
 $('dmBody').addEventListener('click', e => { const b = e.target.closest('#dmPct'); if(!b) return; const on = !b.classList.contains('on');
   b.classList.toggle('on', on); b.setAttribute('aria-checked', on); ui.formPct = on; saveUI(); const g = $('fmLbl'); if(g) g.style.opacity = on ? 1 : 0; });
 
