@@ -188,48 +188,68 @@ $('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discar
 
 $('sesFinish').addEventListener('click', () => finishWorkout());
 
-// save the workout; auto = ended by itself after 15 min without a tap (end time = the last tap, no questions)
+// save the workout. auto = true: ended by itself (no questions, no summary); 'asked': you answered Finish to "Finished Your Workout?".
+// Both end at your last logged set.
 async function finishWorkout(auto){
   const doneSets = active.exercises.flatMap(x => x.sets.filter(s => s.done));
   if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
   const filled = active.exercises.some(x => x.sets.some(s => !s.done && (s.w !== '' || s.r !== '')));
   if(!auto && filled && !(await ask(t('unfinished')))) return false;
-  const end = auto && active.last ? new Date(active.last) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
+  const end = auto ? new Date(lastSetAt()) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
   const bw = bodyW(), kcal = Math.round(active.exercises.reduce((a, x) => a + x.sets.filter(s => s.done).reduce((b, s) => b + gymSetKcal(x.exId, s, bw), 0), 0) / 5) * 5;
   const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets), 0));
   const ses = { ...active, end: end.toISOString(), mins, kcal, vol, exercises: active.exercises.map(x => ({ ...x, sets: x.sets.filter(s => s.done) })).filter(x => x.sets.length) };
   if(!ses.name || ses.name === t('emptyWorkout')) ses.name = typeLabel_(inferDayType(ses.exercises));   // unnamed: Push / Pull / Legs… from what was done
-  delete ses.last; delete ses.dayBefore; delete ses.cur; if(auto) ses.autoEnded = true;
+  delete ses.last; delete ses.dayBefore; delete ses.cur; delete ses.idleFrom; delete ses.askedAt; delete ses.idleAsked; if(auto === true) ses.autoEnded = true;
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   sessions.push(ses); saveG('ses');
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
   petAward('workout', 1);
   close('ovSession');
-  if(auto){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
+  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
   showSummary(ses); renderAll();
   if(!ses.tplId) askSaveTpl(ses);
   return true;
 }
 
-// ---------- abandoned workouts (iPhone web apps don't run in the background, so this is checked when the app opens) ----------
-const IDLE_MS = 15 * 60000;
-let lastMark = 0;
+// ---------- 0.7.4.2 auto-end, any number of exercises (replaces the 4-exercise rule) ----------
+// 5 min after the last rest ends or is skipped with nothing new logged: "Finished Your Workout?" (Finish / Resume), over whatever page is open.
+// No answer for 10 more min: saved to past workouts, ending at the last logged set. iPhone web apps don't run in the background,
+// so with the app closed it's worked out from the saved times when the app opens again.
+// A workout with nothing ticked keeps the old check: after 15 min without a tap, Back to Workout / End It (discards it).
+const AE_ASK = 5 * 60000, AE_END = 10 * 60000, IDLE_MS = 15 * 60000;
+let lastMark = 0, AEQ = null;   // AEQ: our question's answer slot, while it's on screen
 function markActive(){ if(!active) return; const now = Date.now(); active.last = now; if(now - lastMark > 15000){ lastMark = now; saveG('act'); } }
 $('ovSession').addEventListener('pointerdown', markActive, true); $('ovSession').addEventListener('input', markActive, true);
+// the time of the last logged set (sets from before 0.7.4.2 have no time: the last tap instead)
+function lastSetAt(){ const ts = active.exercises.flatMap(x => x.sets.filter(s => s.done && s.at).map(s => s.at)); return ts.length ? Math.max(...ts) : active.last || Date.now(); }
 async function checkAbandoned(){
-  if(!active) return; if(!active.last){ active.last = Date.now(); saveG('act'); return; }
-  if(Date.now() - active.last < IDLE_MS || active.askedAt === active.last) return;
-  const n = active.exercises.filter(x => x.sets.some(s => s.done)).length;   // only exercises with a finished set count
-  if(n >= 4){ await finishWorkout(true); return; }
-  active.askedAt = active.last; saveG('act');
-  if(await ask(t('idleQ', { m: Math.round((Date.now() - active.last) / 60000) }), t('idleBack'), t('idleEnd'))){ markActive(); saveG('act'); openSession(); return; }
-  if(active.exercises.some(x => x.sets.some(s => s.done))){ if(await finishWorkout(true)) return; }
+  if(!active) return; const now = Date.now();
+  if(!active.last){ active.last = now; saveG('act'); }
+  if(!active.exercises.some(x => x.sets.some(s => s.done))) return checkEmptyIdle(now);
+  const askAt = (active.idleFrom || lastSetAt()) + AE_ASK; if(now < askAt) return;
+  const due = Math.max(askAt, active.askedAt || 0) + AE_END;   // a question on screen always gets its 10 minutes
+  if(now >= due){ if(AEQ && ASK === AEQ){ askDone('timeout'); return; }   // still on screen: close it
+    AEQ = null; await finishWorkout(true); return; }                     // never shown, or another question took its place
+  if(AEQ || $('ovAsk').classList.contains('open')) return;   // already asking, or another question is open: try again next check
+  active.askedAt = now; saveG('act'); Phone.haptic();
+  const q = ask(t('aeQ'), t('aeFinish'), t('aeResume')); AEQ = ASK; const a = await q; AEQ = null;
+  if(!active) return;
+  if(a === 'timeout') return finishWorkout(true);
+  if(a) return finishWorkout('asked');
+  autoEndMark(0); if(!$('ovSession').classList.contains('open')) openSession();   // Resume: the 5 minutes start again
+}
+async function checkEmptyIdle(now){
+  if(now - active.last < IDLE_MS || active.idleAsked === active.last || $('ovAsk').classList.contains('open')) return;
+  active.idleAsked = active.last; saveG('act');
+  if(await ask(t('idleQ', { m: Math.round((now - active.last) / 60000) }), t('idleBack'), t('idleEnd'))){ markActive(); saveG('act'); openSession(); return; }
+  if(!active) return;
   if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); renderAll(); toast(t('idleDiscarded'));
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') setTimeout(checkAbandoned, 600); });
-setInterval(checkAbandoned, 60000);
+setInterval(checkAbandoned, 15000);
 
 
 $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });

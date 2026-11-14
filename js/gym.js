@@ -133,12 +133,12 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ s.done = false; s.pr = null; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
+  if(s.done){ s.done = false; s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
-  s.done = true; ensureAudio(); if(!x.t0) x.t0 = Date.now();
+  s.done = true; s.at = Date.now(); ensureAudio(); if(!x.t0) x.t0 = Date.now();
   if(!card && s.type !== 'W'){
     const hist = exHistory(x.exId, active.id), same = active.exercises.filter(z => z.exId === x.exId);
     if(hist.length){
@@ -158,6 +158,7 @@ function tickSet(x, s, row, xi, si){
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
+  autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
   if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L') && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true); x.sets.push(...add); saveG('act'); }
   renderSession(); tickRest();
@@ -211,8 +212,11 @@ function tickRest(){
     setTimeout(() => { const w = $('rbWrap'); if(w) w.classList.add('fold'); setTimeout(() => { if(REST && REST.rang){ REST = null; if(active && $('ovSession').classList.contains('open')) renderSession(); } }, 360); }, 900); }
 }
 
-function restAdjust(v){ if(!REST) return; if(v === 'skip'){ REST = null; renderSession(); return; }
-  REST.end = Math.max(Date.now() + 1000, REST.end + +v * 1000); REST.total = Math.max(REST.total, Math.round((REST.end - Date.now()) / 1000)); REST.rang = false; tickRest(); }   // the bracket updates itself every frame
+function restAdjust(v){ if(!REST) return; if(v === 'skip'){ REST = null; autoEndMark(0); renderSession(); return; }
+  REST.end = Math.max(Date.now() + 1000, REST.end + +v * 1000); REST.total = Math.max(REST.total, Math.round((REST.end - Date.now()) / 1000)); REST.rang = false; autoEndMark(REST.end); tickRest(); }
+// 0.7.4.2 auto-end: saved with the workout, so it also works out right after the app was closed. idleFrom = when the last rest ends or
+// was skipped (or the last set, with no rest); a new set, a rest change or Resume starts the wait again.
+function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now(), t || 0); delete active.askedAt; saveG('act'); }   // the bracket updates itself every frame
 
 function openExPick(cb){ PK = { cb, region: ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: null, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); }
 

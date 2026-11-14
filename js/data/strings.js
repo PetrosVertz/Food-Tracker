@@ -462,9 +462,9 @@ Object.assign(S, {
   discardQ2: ['Discard this workout?', 'Απόρριψη αυτής της προπόνησης;'], discardBtn: ['Discard', 'Απόρριψη'], keepBtn: ['Keep', 'Κράτησέ τη'], endWorkoutPill: ['End Workout', 'Τέλος προπόνησης'], skipGym: ['Skip', 'Παράλειψη'], gymSkipped: ['Gym skipped today · rest-day calories', 'Χωρίς γυμναστήριο σήμερα · θερμίδες ημέρας ξεκούρασης'],
   gymSkippedT: ['Skipped: today uses your rest-day targets', 'Παράλειψη: σήμερα ισχύουν οι στόχοι ημέρας ξεκούρασης'],
   gymL: ['Gym', 'Γυμναστήριο'], restDayS: ['Rest', 'Ξεκούραση'], muUse: ['Muscle Usage {p}%', 'Χρήση μυός {p}%'], sortByMu: ['Sort by muscle usage', 'Ταξινόμηση κατά χρήση μυός'], estNew: ['Based on your other exercises, try {w} kg for {r} reps', 'Με βάση τις άλλες σου ασκήσεις, δοκίμασε {w} kg για {r} επαναλήψεις'],
-  autoEnded: ['Workout saved. It ended by itself at {t} (no taps for 15 min).', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t} (15 λεπτά χωρίς πάτημα).'],
+  autoEnded: ['Workout saved. It ended by itself at {t}, your last set.', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t}, στο τελευταίο σου σετ.'], aeQ: ['Finished Your Workout?', 'Τελείωσες την προπόνηση;'], aeFinish: ['Finish', 'Τέλος'], aeResume: ['Resume', 'Συνέχεια'],
   idleQ: ['Your workout has been open with no taps for {m} min. Go back to it?', 'Η προπόνηση είναι ανοιχτή χωρίς πάτημα εδώ και {m} λεπτά. Επιστροφή σε αυτή;'],
-  idleBack: ['Back to workout', 'Επιστροφή'], idleEnd: ['End it', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['Drop','Πτωτικό'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
+  idleBack: ['Back to Workout', 'Επιστροφή'], idleEnd: ['End It', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['Drop','Πτωτικό'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
 });
 
 // ---------- 0.7: shopping in, Groceries → fridge, Check My Foods ----------
