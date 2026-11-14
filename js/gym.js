@@ -149,7 +149,7 @@ function tickSet(x, s, row, xi, si){
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
-  s.done = true; s.at = Date.now(); ensureAudio(); if(!x.t0) x.t0 = Date.now();
+  s.done = true; s.at = Date.now(); Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
   if(card){   // cardio records: longest time, farthest distance (only against earlier workouts)
     const hist = exHistory(x.exId, active.id);
     if(hist.length){ [['t', 'r'], ['d', 'w']].forEach(([kind, k]) => { const prev = Math.max(...hist.flatMap(h => h.sets.map(z => +z[k] || 0))), cur = +s[k] || 0;
@@ -211,22 +211,9 @@ function dropWeight(x, w){
   return w > 0 ? String(Math.max(0, r25(w * ratio, e))) : ''; }
 function addDrop(x, j){ const s = x.sets[j]; x.sets.splice(j + 1, 0, { ...newSet('D'), drop: true, w: dropWeight(x, s.w || (s.done ? s.w : '')), side: s.side }); if(!x.sets[j + 1].side) delete x.sets[j + 1].side; }
 
-function ensureAudio(){ try{ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); }catch(e){} }
-
-// rest is over: a soft, rising three-note chime with a gentle echo
-function bell(){
-  try{ ensureAudio(); const now = audioCtx.currentTime, out = audioCtx.createGain(); out.gain.value = .9; out.connect(audioCtx.destination);
-    const note = (f, at, peak, len) => [[1, 1], [2, .18], [3, .05]].forEach(([k, m]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = 'sine'; o.frequency.value = f * k; o.connect(g); g.connect(out);
-      g.gain.setValueAtTime(.0001, now + at); g.gain.exponentialRampToValueAtTime(peak * m, now + at + .012); g.gain.exponentialRampToValueAtTime(.0001, now + at + len / k);
-      o.start(now + at); o.stop(now + at + len + .05); });
-    [[880, 0], [1108.73, .13], [1318.51, .26]].forEach(([f, at]) => { note(f, at, .32, 1.8); note(f, at + .2, .07, 1.4); });   // A major arpeggio + soft echo
-  }catch(e){}
-}
-
 function tickRest(){
   if(!REST) return; const left = REST.end - Date.now();
-  if(left <= 0 && !REST.rang){ REST.rang = true; bell(); Phone.vibrate([300, 120, 300]); if(!$('ovSession').classList.contains('open')) toast(t('restDone'));
+  if(left <= 0 && !REST.rang){ REST.rang = true; if(gx().sound !== false) Phone.sound('bell'); Phone.vibrate([300, 120, 300]); if(!$('ovSession').classList.contains('open')) toast(t('restDone'));
     setTimeout(() => { const w = $('rbWrap'); if(w) w.classList.add('fold'); setTimeout(() => { if(REST && REST.rang){ REST = null; if(active && $('ovSession').classList.contains('open')) renderSession(); } }, 360); }, 900); }
 }
 
@@ -719,7 +706,7 @@ function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.t
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
 function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
-  $('exsBody').innerHTML = row('uniBoth', 'exsUni', 'exsUniS') + row('hideMarks', 'exsMarks', 'exsMarksS') + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS'); }
+  $('exsBody').innerHTML = row('uniBoth', 'exsUni', 'exsUniS') + row('hideMarks', 'exsMarks', 'exsMarksS') + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;

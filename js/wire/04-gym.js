@@ -214,6 +214,7 @@ async function finishWorkout(auto){
   petAward('workout', 1);
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
+  if(gx().sound !== false) Phone.sound('done');
   showSummary(ses); renderAll();
   if(!ses.tplId) askSaveTpl(ses);
   return true;

@@ -668,3 +668,9 @@ Object.assign(S, {
   recFoodOk: ['Enough food since your workout for recovery: {p} g protein, {k} kcal.', 'Αρκετό φαγητό από την προπόνηση για ανάρρωση: {p} g πρωτεΐνη, {k} kcal.'],
   recFoodLow: ['Not enough food yet for recovery. About {p} g more protein would help.', 'Δεν αρκεί ακόμα το φαγητό για ανάρρωση. Περίπου {p} g ακόμα πρωτεΐνη θα βοηθούσε.'],
 });
+
+// ---------- 0.7.7: sounds ----------
+Object.assign(S, {
+  exsSoundH: ['Sounds', 'Ήχοι'], exsSound: ['Workout Sounds', 'Ήχοι Προπόνησης'],
+  exsSoundS: ['A boxing bell when the rest ends and a soft tone when the workout is finished. A silent phone stays silent.', 'Καμπάνα του μποξ όταν τελειώνει η ξεκούραση και απαλός ήχος στο τέλος της προπόνησης. Σε σίγαση το κινητό δεν παίζει ήχο.'],
+});

@@ -77,7 +77,7 @@ const KEY_STEPS = {
 let _exc = null;
 
 // ---------- rest timer (under the set) with a boxing-bell sound ----------
-let REST = null, audioCtx = null;
+let REST = null;
 
 // ---------- exercise picker: Upper / Lower → body map or list → muscle head → big tiles ----------
 let PK = { cb: null, region: 'up', mode: 'map', group: null, head: null };
