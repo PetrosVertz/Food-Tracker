@@ -498,6 +498,9 @@ Object.assign(S, {
   gThinking: ['Thinking…', 'Σκέφτομαι…'],
   wdShort: ['Sun Mon Tue Wed Thu Fri Sat', 'Κυρ Δευ Τρί Τετ Πέμ Παρ Σάβ'],
   wdFull: ['Sunday Monday Tuesday Wednesday Thursday Friday Saturday', 'Κυριακή Δευτέρα Τρίτη Τετάρτη Πέμπτη Παρασκευή Σάββατο'],
+  // 0.7.4.3 Gym Coach
+  gcStLook: ['Looking at your workouts…', 'Κοιτάζω τις προπονήσεις σου…'],
+  gcImproved: ['Improved', 'Βελτιωμένη'], gcSaved: ['Saved: {n}', 'Αποθηκεύτηκε: {n}'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],

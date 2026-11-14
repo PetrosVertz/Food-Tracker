@@ -762,8 +762,8 @@ function drawTpl(){
 
 function openTpl(x, type){
   TP = x ? JSON.parse(JSON.stringify(x)) : { id: null, name: type ? typeLabel_(type) : '', type: type || 'full', exercises: [] };
-  $('tpTitle').textContent = x ? t('editWorkout') : t('newWorkout'); $('tpName').value = TP.name; setSeg('#tpType', TP.type); $('tpType').classList.add('hide');
-  $('tpDel').classList.toggle('hide', !x); drawTpl(); open('ovTpl');
+  $('tpTitle').textContent = x && x.id ? t('editWorkout') : t('newWorkout'); $('tpName').value = TP.name; setSeg('#tpType', TP.type); $('tpType').classList.add('hide');
+  $('tpDel').classList.toggle('hide', !(x && x.id)); drawTpl(); open('ovTpl');   // 0.7.4.3: a Gym Coach workout opens here unsaved (no id)
   if(!x && !type) setTimeout(() => $('tpName').focus(), 150);
 }
 
@@ -1061,12 +1061,66 @@ function femWarp(d){ return d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g,
 // Every answer is one or two short friendly lines ("reply"), then the result as a card (a workout, a machine). No long chat.
 const GC_REPLY = 'Reply style: straight to the point. "reply" is one or two short, friendly sentences (at most 35 words), plain text: no lists, no markdown, no greetings or sign-offs, no long explanations. A result (a workout, a machine) never goes inside "reply": it goes in its own field and the app shows it as a card.';
 const gcLang = () => lang === 'el' ? 'Greek' : 'English';
+// the AI names exercises in English; find ours (exact name first, then the longest name it contains or is part of)
+function exByName(n){
+  const q = norm(n); if(!q) return null; const L = EX().filter(x => x.en);
+  return L.find(x => norm(x.en) === q) || L.find(x => norm(x.el || '') === q)
+    || L.filter(x => { const e = norm(x.en); return e.length > 4 && (q.includes(e) || e.includes(q)); }).sort((a, b) => Math.abs(norm(a.en).length - q.length) - Math.abs(norm(b.en).length - q.length))[0] || null;
+}
+const gcEx = id => { const x = exById(id); return x.en || x.id; };
+// what the coach knows: your saved workouts, recent history, sets per muscle this week, recovery and the equipment you use
+function gcContext(){
+  const recent = sessions.slice().sort((a, b) => b.start.localeCompare(a.start)), eq = new Set();
+  [...tpls.flatMap(tp => tp.exercises), ...recent.slice(0, 20).flatMap(s => s.exercises)].forEach(x => { const e = exById(x.exId).e; if(e) eq.add(e); });
+  const saved = tpls.slice(0, 12).map(tp => `- "${tp.name}" (${tp.type}): ${tp.exercises.map(e => `${gcEx(e.exId)} ${e.sets}x${e.reps}${e.rest ? ` rest ${e.rest}s` : ''}`).join(', ')}`).join('\n');
+  const hist = recent.slice(0, 6).map(s => `- ${s.date} ${s.name || s.type || ''}: ${s.exercises.map(x => { const w = x.sets.filter(z => z.done && isMainSet(z));
+    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}` : ''}`; }).join(', ')}`).join('\n');
+  const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false);
+  const rec = Object.entries(recMap()).map(([g, v]) => `${g} ${v.st === 'ok' ? 'ready' : `${v.h} h to recover`}`).join(', ');
+  return `Today: ${todayKey()}. Lifter: ${bodyW()} kg, goal ${(targets && targets.goal) || 'build muscle'}.
+Equipment they use: ${[...eq].join(', ') || 'unknown (assume a normal gym)'}.
+Saved workouts:
+${saved || '- none yet'}
+Recent workouts (newest first):
+${hist || '- none yet'}
+Hard sets per muscle in the last 7 days: ${Object.entries(wk).map(([h, v]) => `${HEADS[h][0]} ${Math.round(v)}`).join(', ') || 'none'}.
+Recovery now: ${rec}.`;
+}
+const gcNames = () => EX().filter(x => x.m !== 'cardio' && x.en).map(x => x.en).join('; ');
+const GC_WORKOUT = '"workout": null, or (only when you suggest a full workout or an improved version of one of theirs) {"name": string, "type": "push"|"pull"|"legs"|"upper"|"lower"|"full", "based_on": the exact name of their saved workout you improved, or null, "exercises": [{"name": exact English name from the exercise list, "sets": number, "reps": string like "8-12", "rest": seconds}]}';
 function gcPrompt(ch, img){
   return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. Answer the user's last message in ${gcLang()}.
-${GC_REPLY}${AI.dietRules()}
+${GC_REPLY}
+You can suggest a full workout, or look at one of their saved workouts and improve it (better exercise choice and order, balance between muscles, sets, reps, rest). Respect recovery: avoid muscles that still need rest. Use only equipment they use.${AI.dietRules()}
+${gcContext()}
+Exercise list (use these exact English names): ${gcNames()}.
 Conversation so far (latest last):
 ${ch.transcript()}
-${img ? 'The user also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string}`;
+${img ? 'The user also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string, ${GC_WORKOUT}}`;
 }
-function gcShow(r, ch){ ch.say(String((r && r.reply) || '').trim() || t('coachFail', { e: '?' })); }
-async function gymCoachSend(text, ch, img){ gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }
+// the AI's workout → a workout in the app's shape (exercises it named that we don't have are left out)
+function gcWorkout(w){
+  if(!w || !Array.isArray(w.exercises)) return null;
+  const list = w.exercises.map(e => { const x = exByName(e && e.name); if(!x) return null;
+    const sets = Math.max(1, Math.min(8, Math.round(+e.sets) || 3)), reps = /^\d+(\s*[-–]\s*\d+)?$/.test(String(e.reps || '').trim()) ? String(e.reps).trim().replace(/\s*[-–]\s*/, '-') : defReps(x.rest);
+    return { exId: x.id, sets, reps, rest: rest30(+e.rest || x.rest), ...(isUni(x.id) ? { uni: true } : {}) }; }).filter(Boolean)
+    .filter((e, i, a) => a.findIndex(z => z.exId === e.exId) === i);
+  if(!list.length) return null;
+  const base = w.based_on ? tpls.find(tp => norm(tp.name) === norm(w.based_on)) : null;
+  const type = inferType(list) === 'cardio' ? 'cardio' : inferDayType(list);   // push / pull / legs / upper / full, like the rest of Gym
+  return { tpl: { id: null, name: String(w.name || '').trim().slice(0, 40) || (base ? base.name : typeLabel_(type)), type, exercises: list }, base };
+}
+function gcWorkoutCard(tpl, base){
+  return { title: tpl.name, sub: `${typeLabel_(tpl.type)} · ${t('nEx', { n: tpl.exercises.length })}`, tag: base ? t('gcImproved') : '',
+    body: `<ol class="gcwk">${tpl.exercises.map(e => `<li><b>${esc(exName(e.exId))}</b><small>${e.sets} × ${esc(e.reps)} · ${fmtRest(e.rest)}</small></li>`).join('')}</ol>`,
+    actions: [
+      { label: t('save'), primary: true, run(card, ch){ const tp = { ...JSON.parse(JSON.stringify(tpl)), id: uid() }; tpls.push(tp); saveG('tpl'); renderAll();
+        ch.update(card, { done: t('gcSaved', { n: tp.name }), undo(){ const i = tpls.findIndex(x => x.id === tp.id); if(i > -1){ tpls.splice(i, 1); saveG('tpl'); renderAll(); } } }); } },
+      { label: t('edit'), run(){ Coach.minimize(); setTimeout(() => openTpl(tpl), 260); } } ] };
+}
+function gcShow(r, ch){
+  const reply = String((r && r.reply) || '').trim(), w = gcWorkout(r && r.workout);
+  if(reply || !w) ch.say(reply || t('coachFail', { e: '?' }));
+  if(w) ch.cards([gcWorkoutCard(w.tpl, w.base)]);
+}
+async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }

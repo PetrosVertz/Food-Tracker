@@ -245,3 +245,8 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 /* 0.7.4.1 gym: Saved Workouts — names in capitals, bigger plain memory-card icon */
 #gTplV .svname{text-transform:uppercase;letter-spacing:.3px}
 #gTplV .ficon.svic{background:none!important;width:44px;height:44px;flex:0 0 44px}
+
+/* 0.7.4.3 Gym Coach cards in the shared chat: a workout (numbered exercises with sets × reps · rest) */
+.gcwk{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column;gap:6px}
+.gcwk li{padding-left:2px} .gcwk li::marker{color:var(--t-muted);font-size:var(--fs-label)}
+.gcwk b{display:block;font-weight:var(--w-med)} .gcwk small{color:var(--t-muted);font-size:var(--fs-label)}
