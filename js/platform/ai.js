@@ -94,6 +94,11 @@ const AI = (() => {
     + '<path d="M27 78.5 H40 M80 78.5 H93" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".4"/></g>'
     + '<rect x="18" y="62" width="84" height="72" rx="30" fill="none" stroke="#0f1113" stroke-width="4"/>'
     + '<path d="M109 56 C104 63 104 68 109 69.5 C114 68 114 63 109 56 Z" fill="#5aa9f0" stroke="#0f1113" stroke-width="3" stroke-linejoin="round"/></g>'
+    + '<g id="rTourBase"><line x1="60" y1="62" x2="60" y2="44" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="39" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/></g>'
+    + '<g id="rClerkBase"><line x1="60" y1="46" x2="60" y2="30" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="24" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/>'
+    + '<path d="M26 71 L31 49 Q60 38 89 49 L94 71 Z" fill="#ffffff" fill-opacity=".35" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/><path d="M60 42 V63" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".3"/>'
+    + '<rect x="22" y="62" width="76" height="12" rx="4" fill="#59d38c" fill-opacity=".9" stroke="#0f1113" stroke-width="4"/>'
+    + '<g transform="rotate(6 30 128)"><rect x="16" y="119" width="28" height="17" rx="4.5" fill="#ffffff" stroke="#0f1113" stroke-width="3.5"/><rect x="20.5" y="123.5" width="12" height="3" rx="1.5" fill="#0f1113" opacity=".55"/><rect x="20.5" y="129" width="19" height="3.5" rx="1.5" fill="#c6f432"/></g></g>'
     + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/>'
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
     + '<g id="rFaceX"><path d="M37 93 L51 107 M51 93 L37 107 M69 93 L83 107 M83 93 L69 107" stroke="#0f1113" stroke-width="5.5" stroke-linecap="round"/>'
@@ -115,8 +120,8 @@ const AI = (() => {
   }, { capture: true, passive: true });
   function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
     d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
-  // the robot as an <svg>: kind 'chef' | 'gym'; think = gliding eyes + sway (Reduce Motion shows the idle face); every robot also carries the X-eyes face for the trash drag
-  function robot(kind, size, think){ robotDefs(); const base = kind === 'gym' ? 'rGymBase' : 'rChefBase', w = size || 40, h = Math.round(w * 146 / 120);
+  // the robot as an <svg>: kind 'chef' | 'gym' | 'fridge' | 'tour'; think = gliding eyes + sway (Reduce Motion shows the idle face); every robot also carries the X-eyes face for the trash drag
+  function robot(kind, size, think){ robotDefs(); const base = { gym: 'rGymBase', fridge: 'rClerkBase', tour: 'rTourBase' }[kind] || 'rChefBase', w = size || 40, h = Math.round(w * 146 / 120);
     const face = (think ? FACE_T + '<use class="rfi" href="#rFaceIdle"/>' : FACE_I) + '<use class="rfx" href="#rFaceX"/>';
     return `<svg class="robot" width="${w}" height="${h}" viewBox="0 -6 120 146" aria-hidden="true"><g${think ? ' class="rtilt"' : ''}><use href="#${base}"/>${face}</g></svg>`; }
   const OK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -181,7 +186,7 @@ const AI = (() => {
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
     if(!B.jobs){ B.drop = false; B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
-    B.robot = opts && opts.robot === 'gym' || (!(opts && opts.robot) && location.hash.startsWith('#gym')) ? 'gym' : 'chef';
+    B.robot = (opts && opts.robot) || (location.hash.startsWith('#gym') ? 'gym' : 'chef');
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
     try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);

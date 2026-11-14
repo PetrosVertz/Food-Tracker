@@ -17,6 +17,7 @@
 //   chat.say(text)            the robot answers with plain text
 //   chat.cards(list)          the robot answers with result cards; returns the cards so you can change them later
 //   chat.update(card, patch)  change a card (e.g. { done: 'Added', dim: false }) and redraw it
+//   chat.status(text)         changes the robot's "working" line while it thinks: Thinking… / Searching your foods… / Searching the web… / Reading the photo… (t('coachSt…'))
 //   chat.ask(prompt, img, o)  the AI call for this chat (gemini, quiet: the chat shows its own typing dots; Back cancels nothing)
 //   chat.transcript()         the last few messages as plain lines, to put in a prompt (kept short to save AI use)
 //   chat.history()            the same as a list: [{ who: 'me' | 'bot', text }]
@@ -40,6 +41,7 @@ const Coach = (() => {
       id: c.id,
       say: text => { push({ who: 'bot', text: String(text || '') }); },
       cards: list => { const cs = (list || []).map(x => ({ ...x, cid: uid() })); push({ who: 'bot', cards: cs }); return cs; },
+      status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = w.status; },
       update(card, patch){ Object.assign(card, patch || {}); draw(); },
       ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController(); return gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
       history: () => hist(c),
@@ -74,7 +76,7 @@ Return ONLY JSON: {"reply": string}`, img);
   function msgHtml(m, prev, k){
     if(m.who === 'me') return `<div class="cmsg me"><div class="cme">${m.img ? `<img class="cimg" src="data:image/jpeg;base64,${m.img}" alt="">` : ''}${m.text ? `<span>${esc(m.text)}</span>` : ''}</div></div>`;
     const lead = !prev || prev.who !== 'bot' ? face(k) : '<span class="cav"></span>';
-    if(m.work) return `<div class="cmsg bot">${lead}<div class="ctext cwork"><span class="lqdots" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr">${t('aiThinking')}</span></div></div>`;
+    if(m.work) return `<div class="cmsg bot"><span class="cav" aria-hidden="true">${AI.robot(k, 26, true)}</span><div class="ctext cwork" role="status"><span class="cst">${esc(m.status || t('aiThinking'))}</span></div></div>`;
     if(m.cards) return `<div class="cmsg bot">${lead}<div class="ccards">${m.cards.map(cardHtml).join('')}</div></div>`;
     return `<div class="cmsg bot">${lead}<div class="ctext">${esc(m.text)}</div></div>`;
   }
@@ -102,11 +104,11 @@ Return ONLY JSON: {"reply": string}`, img);
     if(!text && !img) return;
     if(c.busy){ toast(t('aiStill')); return; }
     ta.value = ''; c.draft = ''; c.img = null; preview();
-    c.msgs.push({ who: 'me', text, img }); const w = { who: 'bot', work: true }; c.msgs.push(w); c.busy = true; draw();
+    c.msgs.push({ who: 'me', text, img }); const w = { who: 'bot', work: true, status: t(img ? 'coachStPhoto' : 'aiThinking') }; c.work = w; c.msgs.push(w); c.busy = true; draw();
     const ch = api(c), f = cfg(id);
     try{ await (f.send || talk)(text, ch, img); }
     catch(err){ if(!(err && err.cancelled)) ch.say(t('coachFail', { e: (err && err.message) || '?' })); }
-    finally{ c.busy = false; c.ctl = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
+    finally{ c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
       if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } }   // answered while shrunk: a dot on the bubble
   }
 

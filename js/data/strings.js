@@ -382,6 +382,7 @@ Object.assign(S, {
 
 Object.assign(S, {
   aiThinking: ['Thinking…', 'Σκέφτομαι…'],
+  coachStFoods: ['Searching your foods…', 'Ψάχνω στα φαγητά σου…'], coachStWeb: ['Searching the web…', 'Ψάχνω στο διαδίκτυο…'], coachStPhoto: ['Reading the photo…', 'Διαβάζω τη φωτογραφία…'],
   aiMany: ['{n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '{n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
   tryingModel: ['Thinking…', 'Σκέφτομαι…'], cancelRec: ['Cancel', 'Ακύρωση'],
   optPhoto: ['<span class="aiafter">Photo of Nutrition Label</span><small>Read by the AI (free Gemini key in Settings)</small>', '<span class="aiafter">Φωτογραφία διατροφικής ετικέτας</span><small>Τη διαβάζει το AI (δωρεάν κλειδί Gemini στις ρυθμίσεις)</small>'],
