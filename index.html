@@ -278,9 +278,9 @@
 <div class="overlay" id="ovAdd"><div class="sheet">
   <h2 data-t="addFood"></h2>
   <p class="sub" data-t="addSub"></p>
-  <button class="opt" id="optScan"><span class="ic">▥</span><span data-th="optScan"></span></button>
-  <button class="opt" id="optPhoto"><span class="ic">📷</span><span data-th="optPhoto"></span></button>
-  <button class="opt" id="optManual"><span class="ic">✎</span><span data-th="optManual"></span></button>
+  <button class="opt" id="optScan"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></span><span data-th="optScan"></span></button>
+  <button class="opt" id="optPhoto"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></span><span data-th="optPhoto"></span></button>
+  <button class="opt" id="optManual"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/></svg></span><span data-th="optManual"></span></button>
   <input type="file" id="photoInput" accept="image/*" capture="environment" class="hide">
   <div class="status" id="addStatus"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
@@ -302,7 +302,7 @@
   <div id="cantScan" class="hide">
   <div class="row cscode"><input id="manualCode" inputmode="numeric" data-tp="typeCode" autocomplete="off"><button class="btn primary small" id="lookupBtn" data-t="lookUp"></button></div>
   <input type="file" id="barcodePhoto" accept="image/*" capture="environment" class="hide">
-  <button class="btn csbtn csico" id="scanItemBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="scanItem"></span></button><input type="file" id="itemPhoto" accept="image/*" capture="environment" class="hide">
+  <button class="btn csbtn csico" id="scanItemBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="aiafter" data-t="scanItem"></span></button><input type="file" id="itemPhoto" accept="image/*" capture="environment" class="hide">
   <button class="btn csbtn csico hide" id="scanPhotoBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="scanPhoto"></span></button>
   <button class="btn csbtn csico" id="scanLabel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-t="noBarcodeLabel"></span></button>
   <button class="btn csbtn csico" id="scanManual"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/></svg><span data-t="typeIt"></span></button>
@@ -430,8 +430,8 @@
 <!-- ============ COOK A MEAL ============ -->
 <div class="overlay" id="ovCookPick"><div class="sheet">
   <h2 data-t="cookMeal"></h2>
-  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
-  <button class="opt bigopt" id="cookQuickBtn"><span><b data-t="foodsQrOpt"></b><small data-t="foodsQrOptSub"></small></span></button></div>
+  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b class="aiafter" data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
+  <button class="opt bigopt" id="cookQuickBtn"><span><b class="aiafter" data-t="foodsQrOpt"></b><small data-t="foodsQrOptSub"></small></span></button></div>
 </div></div>
 <div class="overlay" id="ovCook"><div class="sheet tall">
   <h2 id="cookTitle"></h2>
@@ -445,7 +445,7 @@
   </div>
   <div id="cookMain">
   <div id="recipeBox">
-    <div class="actions" style="margin-top:10px"><button class="btn" id="suggestBtn" data-t="suggestRecipe"></button><button class="btn" id="ownBtn" data-t="ownRecipe"></button></div>
+    <div class="actions" style="margin-top:10px"><button class="btn aiafter" id="suggestBtn" data-t="suggestRecipe"></button><button class="btn" id="ownBtn" data-t="ownRecipe"></button></div>
     <div class="hint" id="suggestHint"></div>
   </div>
   <div id="recipeShow" class="hide"></div>
@@ -732,7 +732,7 @@
   <div class="wrapchips" id="sgChips"></div>
   <div class="sgroup" data-t="sgTimeT"></div>
   <div class="seg" id="sgTime"><button data-v="quick" data-t="sgQuick"></button><button data-v="mid" data-t="sgMid"></button><button data-v="long" data-t="sgLong"></button></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="sgGo" data-t="sgGo"></button></div>
+  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary aiafter" id="sgGo" data-t="sgGo"></button></div>
 </div></div>
 
 <!-- ============ WORKOUT TYPE ============ -->
@@ -765,7 +765,7 @@
 <div class="overlay" id="ovQRec"><div class="sheet">
   <h2 data-t="foodsQrT"></h2>
   <textarea id="foodsQrIn" class="big" data-tp="foodsQrPh"></textarea>
-  <div class="actions"><button class="btn primary" type="button" id="foodsQrGo" data-t="foodsQrGo"></button></div>
+  <div class="actions"><button class="btn primary aiafter" type="button" id="foodsQrGo" data-t="foodsQrGo"></button></div>
 </div></div>
 <!-- ==== end foods ==== -->
 <!-- ==== branch: shop (new Fridge & Groceries sheets go on the lines below) ==== -->

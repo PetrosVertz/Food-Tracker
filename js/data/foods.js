@@ -448,4 +448,3 @@ const POP = ['chicken_breast','chicken_breast_c','egg','rice_white','rice_cooked
   'milk_whole','orange','strawberry','avocado','walnuts','spinach','lettuce','onion','carrot','sweetpotato','lentils','chickpeas','boiled_egg','bread_toast','ham','gouda','mozzarella','dark_choc','pita_gyros',
   'pita_souvlaki','horiatiki','turkey_breast','pork_chop','cod','shrimp','tsipoura','sardines','skyr','kefir','protein_bar','quinoa','bulgur','beef_mince5','chicken_drum','chicken_wing','chicken_gyros','pork_gyros'];
 
-const LOC_IC = { fridge: '🧊', freezer: '❄️', cupboard: '🗄️' };
