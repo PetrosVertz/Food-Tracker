@@ -306,3 +306,6 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 :root[data-theme="light"] .flame.fl-gold{--fc:#876000}:root[data-theme="light"] .flame.fl-platinum{--fc:#2f6b7a}
 :root[data-theme="light"] .flame.fl-diamond{--fc:#0a64a8;filter:drop-shadow(0 0 4px rgba(10,100,168,.45))}
 .gymstreak{display:inline-flex;align-items:center;gap:4px;margin-top:2px}.gymstreak b{font-size:var(--fs-label);color:var(--t-text)}
+
+/* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
+.exhead .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}

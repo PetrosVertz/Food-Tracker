@@ -721,6 +721,29 @@ function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gy
   if(p.tpl === 'gym') return { type: 'gym', work: 'upper', time: p.time || profile.gymTime || '18:00' };
   const tp = tpls.find(x => x.id === p.tpl); return tp ? { type: 'gym', work: workKind(tp.type), time: p.time || profile.gymTime || '18:00', tpl: tp.id } : null; }
 
+// ---------- 0.7.7 tiers: Bronze 3 … Diamond 1 per exercise, from your best estimated 1RM vs body weight and sex (TIER_STD in data/gym.js) ----------
+const tierBody = () => { const bw = (typeof latestWeight === 'function' && latestWeight()) || (targets && +targets.bw) || 0, sex = profile && profile.sex;
+  return bw > 30 && (sex === 'm' || sex === 'f') ? { bw, sex } : null; };
+// the standard an exercise is measured against: [Beginner…Elite ratios, strength next to the board lift] or null (no tiers)
+function tierStd(exId){ const v = TIER_VARIANT[exId], base = v ? v[0] : exId, s = TIER_STD[base]; return s ? { s, k: v ? v[1] : 1 } : null; }
+// best estimated 1RM: finished normal sets (no warm-ups, drops or the right side of L/R), 12 reps or fewer; saved workouts + the live one
+function tierBest(exId){ let best = 0;
+  const scan = x => { if(x.exId !== exId) return; x.sets.forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1 || +st.r > 12) return; const v = e1rm(+st.w, +st.r, exId); if(v > best) best = v; }); };
+  sessions.forEach(s => s.exercises.forEach(scan)); if(active) active.exercises.forEach(scan); return best; }
+// the 15 level starts in kg of this exercise: Bronze 3 at 0, then each tier's band (Beginner→Novice → … → Elite→Elite+one step) split in thirds
+function tierSteps(exId, body){ const st = tierStd(exId); if(!st) return null; const r = st.s[body.sex], out = [];
+  for(let i = 0; i < 5; i++){ const lo = r[i], hi = i < 4 ? r[i + 1] : r[4] + (r[4] - r[3]);
+    for(let j = 0; j < 3; j++) out.push(i + j ? (lo + (hi - lo) * j / 3) * body.bw / st.k : 0); }
+  return out; }
+const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${3 - n % 3}`;
+// → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { n, tier, label, next?: { label, kg } } (n 0–14) · { none: true } (no sets yet)
+function tierFor(exId, e1){ if(!tierStd(exId)) return null; const body = tierBody(); if(!body) return { need: true };
+  e1 = e1 == null ? tierBest(exId) : e1; if(!(e1 > 0)) return { none: true };
+  const steps = tierSteps(exId, body); let n = 0; while(n < 14 && e1 >= steps[n + 1]) n++;
+  const res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n) };
+  if(n < 14) res.next = { label: tierName(n + 1), kg: Math.max(0.5, Math.ceil((steps[n + 1] - e1) * 2) / 2) };
+  return res; }
+
 // ---------- live workout (canvas: Phones.dc.html / Gym.dc.html) ----------
 // one exercise is open at a time (plus its superset partners); the others are short cards: name, muscle · equipment · N sets
 const ICO_EYE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -750,10 +773,11 @@ function cardHtml(x, i){
     return `<div class="exc mini ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}" data-openex${ssStyle}>${ssl}<div class="mtxt"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)} · ${t('nSets', { n })}</small></div>${fresh ? `<button class="swapq" data-replace aria-label="${t('swapEx')}">${ICO_SWAP.replace(/width="12" height="12"/, 'width="16" height="16"')}</button>` : ''}</div>`;
   }
   const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
+  const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
   const head = `<div class="extop"><span class="extier" data-tier></span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
-      <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
+      <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';

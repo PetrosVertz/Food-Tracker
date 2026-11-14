@@ -693,3 +693,9 @@ Object.assign(S, {
   pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
   pfPRs: ['PRs', 'Ρεκόρ'], pfWorkouts: ['Workouts', 'Προπονήσεις'], pfSets: ['Sets', 'Σετ'], pfVolume: ['Volume', 'Όγκος'], pfFoodDays: ['Days Logged Food', 'Μέρες με Καταγραφή'],
 });
+
+// ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
+Object.assign(S, {
+  tier_bronze: ['Bronze', 'Χάλκινο'], tier_silver: ['Silver', 'Ασημένιο'], tier_gold: ['Gold', 'Χρυσό'], tier_platinum: ['Platinum', 'Πλατινένιο'], tier_diamond: ['Diamond', 'Διαμαντένιο'],
+  tierNeedBody: ['Add Body Weight and Sex to See Your Tier', 'Πρόσθεσε Βάρος και Φύλο για να Δεις το Επίπεδό σου'],
+});
