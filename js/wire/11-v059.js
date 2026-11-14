@@ -278,7 +278,7 @@ const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|spl
 const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && UNI_RE.test(ex.en || ''); };
 const uniPair = s => [{ ...newSet(s && s.type), side: 'L' }, { ...newSet(s && s.type), side: 'R' }];
 function makeUni(x, on){ x.uni = on;
-  if(on) x.sets = x.sets.flatMap(s => s.type === 'W' || s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R', w: s.w, r: s.r }]);
+  if(on) x.sets = x.sets.flatMap(s => s.type === 'W' || s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R' }]);
   else x.sets = x.sets.filter(s => s.side !== 'R').map(s => { const c = { ...s }; delete c.side; return c; }); }
 { const ats = addToSession; addToSession = function(id){ const r = ats(id); const x = active.exercises[active.exercises.length - 1]; if(x && isUni(id)){ makeUni(x, true); saveG('act'); renderSession(); } return r; }; }
 { const ss = startSession; startSession = function(tpl){ const r = ss(tpl); if(active){ active.exercises.forEach((x, i) => { const e = tpl && tpl.exercises[i], on = e && e.uni !== undefined ? e.uni : isUni(x.exId); if(on && !x.uni) makeUni(x, true); }); saveG('act'); if($('ovSession').classList.contains('open')) renderSession(); } return r; }; }
