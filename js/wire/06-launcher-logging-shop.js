@@ -48,11 +48,17 @@ $('shopOpts').addEventListener('click', e => {
   if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
   if(k === 'scan'){ close('ovShop'); startScan('fridge'); return; }
   if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
+  if(k === 'table'){ $('tableFile').value = ''; $('tableFile').click(); return; }
   $('shopFile').value = ''; $('shopFile').click();
 });
 
 // 0.7: receipts and grocery photos: the best model reads the lines at full sharpness, the app finds the foods (shop.js)
 $('shopFile').addEventListener('change', () => { const file = $('shopFile').files[0]; if(!file) return; close('ovShop'); shopPhoto(file); });
+
+// table photo: after a receipt (when unsure), from the scan menu, or from the review list
+$('tableFile').addEventListener('change', () => { const file = $('tableFile').files[0]; if(!file) return; close('ovTable'); close('ovShop'); shopTable(file); });
+$('tableTake').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
+$('shopTableBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
 
 // the review list: tick, change the food, pack size, the count wheel, Add all
 $('shopList').addEventListener('click', e => {
@@ -80,6 +86,8 @@ $('shopList').addEventListener('scroll', e => { const w = e.target; if(!w.classL
 new ResizeObserver(() => syncWheels()).observe($('shopList'));
 $('shopAddBtn').addEventListener('click', shopAddAll);
 $('shopDone').addEventListener('click', e => { if(e.target.closest('#shopUndoSure')){ takeBack(SHOP.sureIds || []); SHOP.items.forEach(x => { if(x.sure){ x.done = false; x.on = true; } }); SHOP.sureIds = []; renderAll(); drawShop(); } });
+
+$('shopSkip').addEventListener('click', e => { const b = e.target.closest('[data-rescue]'); if(b) shopRescue(+b.dataset.rescue); });
 
 // the scanner's "More items?" (after the first scan)
 $('scanQMore').addEventListener('click', () => { if(!SHOP.scan) return; SHOP.scan.cont = true; SHOP.scan.ask = false; scanUI(); });
@@ -136,7 +144,7 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
-['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovShopEd', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
+['ovSetup', 'ovQuick', 'ovShop', 'ovTable', 'ovShopRev', 'ovShopEd', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
   if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 

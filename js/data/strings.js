@@ -608,3 +608,14 @@ Object.assign(S, {
   fpD_vegetarian: ['Vegetarian', 'Χορτοφαγία'], fpD_vegan: ['Vegan', 'Βίγκαν'], fpD_pescatarian: ['Pescatarian', 'Πεσκετάριαν'], fpD_pork: ['Pork', 'Χοιρινό'],
   fpD_beef: ['Beef', 'Μοσχάρι'], fpD_lamb: ['Lamb', 'Αρνί'], fpD_alcohol: ['Alcohol', 'Αλκοόλ'], fpD_mushrooms: ['Mushrooms', 'Μανιτάρια'],
 });
+
+// 0.7.4.3 fridge-a: not food, table photo, verified tags
+Object.assign(S, {
+  notFoodT: ['Not food, skipped ({n})', 'Όχι τρόφιμα, παραλείφθηκαν ({n})'], rescue: ['Add Anyway', 'Πρόσθεσέ το'],
+  tableT: ['Want it more accurate?', 'Θες πιο ακριβές αποτέλεσμα;'],
+  tableSub: ["Lay your shopping out on a table and snap one photo. I'll combine it with your receipt to get exactly what you bought and how much.", 'Άπλωσε τα ψώνια σε ένα τραπέζι και βγάλε μία φωτογραφία. Θα την συνδυάσω με την απόδειξη για να βρω ακριβώς τι αγόρασες και πόσο.'],
+  tableTake: ['Take Photo', 'Βγάλε Φωτογραφία'], tableReading: ['Reading your table photo…', 'Διαβάζω τη φωτογραφία του τραπεζιού…'],
+  shopTable: ['Table Photo', 'Φωτογραφία Τραπεζιού'], shopTableSub: ['Lay your shopping on a table, one photo; combined with your receipt if you just scanned one', 'Άπλωσε τα ψώνια σε τραπέζι, μία φωτογραφία· συνδυάζεται με την απόδειξη αν μόλις σκάναρες μία'],
+  shopCodeLook: ['Looking up {n} barcodes…', 'Ψάχνω {n} barcode…'], verBarcode: ['Verified from barcode', 'Επαληθεύτηκε από barcode'], verPhoto: ['Verified from grocery photo', 'Επαληθεύτηκε από φωτογραφία'],
+  notFoodToast: ['{n} is not food, so it was skipped.', 'Το «{n}» δεν είναι τρόφιμο, παραλείφθηκε.'],
+});
