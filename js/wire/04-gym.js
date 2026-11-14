@@ -79,7 +79,7 @@ const exAt = el => { const c = el.closest('[data-x]'); return c ? active.exercis
 const setOpt = (s, k, v) => { v = String(v).replace(/\D/g, ''); if(v === '') delete s[k]; else s[k] = +v; };   // optional fields: absent when empty
 $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
-  if(e.target.matches('[data-xh]')) setOpt(s, 'h', e.target.value); if(e.target.matches('[data-xn]')) setOpt(s, 'neg', e.target.value);
+  if(e.target.matches('[data-xc]')) setOpt(s, 'cal', e.target.value); if(e.target.matches('[data-xl]')) setOpt(s, 'lvl', e.target.value); if(e.target.matches('[data-xh]')) setOpt(s, 'h', e.target.value); if(e.target.matches('[data-xn]')) setOpt(s, 'neg', e.target.value);
   if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; saveG('act');
 });
 
@@ -90,6 +90,7 @@ $('sesBody').addEventListener('click', e => {
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
+  if(e.target.closest('[data-cdone]')){ cardioDone(x); return; }
   if(e.target.closest('[data-exset-open]')){ drawExSet(); open('ovExSet'); return; }
   const rb = e.target.closest('[data-rir]'); if(rb && s){ const k = +rb.dataset.rir; if(s.rir === k) delete s.rir; else s.rir = k; Phone.haptic(); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time

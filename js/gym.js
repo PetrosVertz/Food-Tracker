@@ -29,7 +29,7 @@ function exIcon(x, size){
 // ---------- history helpers ----------
 function exHistory(exId, excludeId){
   return sessions.filter(s => s.id !== excludeId).map(s => { const x = s.exercises.find(e => e.exId === exId); if(!x) return null;
-    const work = x.sets.filter(st => st.done && st.type !== 'W' && st.w !== '' && st.r !== '');
+    const work = x.sets.filter(st => st.done && st.type !== 'W' && st.r !== '' && (st.w !== '' || isCardio(exId)));
     if(!work.length) return null;
     const top = work.reduce((b, st) => (+st.w > +b.w || (+st.w === +b.w && +st.r > +b.r)) ? st : b, work[0]);
     return { date: s.date, start: s.start, sets: work, top, e1: Math.max(...work.map(st => e1rm(+st.w, +st.r, exId))) }; }).filter(Boolean).sort((a, b) => a.start.localeCompare(b.start));
@@ -89,6 +89,30 @@ function drawExSet(){
   const o = exSet(), row = (k, title, sub) => `<div class="exsrow"><div><b>${t(title)}</b><small>${t(sub)}</small></div><button class="switch ${o[k] ? 'on' : ''}" type="button" role="switch" data-exset="${k}" aria-checked="${o[k]}" aria-label="${t(title)}"><i></i></button></div>`;
   $('exsBody').innerHTML = `<h4 class="exsh">${t('exsSets')}</h4>${row('uniBoth', 'exsUni', 'exsUniS')}${row('hideMarks', 'exsMarks', 'exsMarksS')}
     <h4 class="exsh">${t('exsExtras')}</h4>${row('half', 'exsHalf', 'exsHalfS')}${row('neg', 'exsNeg', 'exsNegS')}${row('rir', 'exsRir', 'exsRirS')}`;
+}
+// 0.7.7 cardio: one entry per exercise — time (r, minutes), distance (w, km), and calories (cal) or level (lvl) where the machine has them
+const CARDIO_DIST = /^(treadmill|incline_walk|running|walking|hiking|cycling_outdoor|bike|spin_bike|recumbent_bike|rower|ski_erg|elliptical|swimming|sprint_intervals)$/;
+const CARDIO_CAL = /^(bike|spin_bike|recumbent_bike|assault_bike|rower|ski_erg|elliptical|treadmill|stairs|battle_ropes|jump_rope|burpee|jumping_jacks|sled_push|sled_pull)$/;
+const CARDIO_LVL = /^(bike|spin_bike|recumbent_bike|elliptical|stairs|incline_walk|treadmill)$/;
+function cardioHtml(x){
+  const s = x.sets[0], id = x.exId, h = exHistory(id, active && active.id), last = h.length ? h[h.length - 1].top : null;
+  const f = (k, lbl, v, ph, dec) => `<label class="cdf"><span>${t(lbl)}</span><input data-${k} inputmode="${dec ? 'decimal' : 'numeric'}" value="${v ?? ''}" placeholder="${ph ?? ''}" aria-label="${t(lbl)}"></label>`;
+  const calOrLvl = CARDIO_CAL.test(id) ? f('xc', 'calLbl', s.cal, '', false) : '';
+  const lvl = CARDIO_LVL.test(id) ? f('xl', 'lvlLbl', s.lvl, '', false) : '';
+  return `<div class="cdrow ${s.done ? 'done' : ''}" data-s="0"><div class="cdgrid">${f('r', 'timeLbl', s.r, last ? last.r : '', true)}${CARDIO_DIST.test(id) ? f('w', 'distLbl', s.w, last && last.w !== '' ? last.w : '', true) : ''}${calOrLvl}${lvl}</div>
+    <button class="newset cdone ${s.done ? 'on' : ''}" data-cdone>${s.done ? t('cdDone') : t('cdFinish')}</button></div>`;
+}
+function cardioDone(x){
+  const s = x.sets[0];
+  if(s.done){ s.done = false; s.pr = null; delete s.at; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'c')); saveG('act'); renderSession(); return; }
+  if(!(+s.r > 0)){ toast(t('cdNeedTime')); const el = document.querySelector(`.exc[data-x="${active.exercises.indexOf(x)}"] [data-r]`); if(el) el.focus(); return; }
+  s.done = true; s.at = Date.now(); if(!x.t0) x.t0 = Date.now();
+  const h = exHistory(x.exId, active.id);
+  if(h.length){ const bd = Math.max(0, ...h.flatMap(z => z.sets.map(q => +q.w || 0))), bt = Math.max(0, ...h.flatMap(z => z.sets.map(q => +q.r || 0)));
+    const by = +s.w > 0 && +s.w > bd ? 'd' : +s.r > bt ? 't' : '';
+    if(by){ s.pr = 'c'; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'c')); active.prs.push({ exId: x.exId, kind: 'c', by, w: +s.w || 0, r: +s.r });
+      celebrate(); toast(t(by === 'd' ? 'prDist' : 'prTime', { n: exName(x.exId), v: by === 'd' ? fmt(+s.w) : fmt(+s.r) })); petAward('pr', 1); } }
+  saveG('act'); renderSession();
 }
 function newSet(type){ return { id: uid(), type: type || 'N', w: '', r: '', done: false }; }
 
@@ -708,7 +732,8 @@ function cardHtml(x, i){
   const hasWarm = x.sets.some(s => s.type === 'W'), wu = !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const XS = exSet();
-  const rows = x.sets.map((s, j) => {
+  if(card){ if(!x.sets.length) x.sets.push(newSet()); x.sets.length = 1; }   // cardio is one entry, not sets and reps
+  const rows = card ? '' : x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
     let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
@@ -725,10 +750,11 @@ function cardHtml(x, i){
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    ${x.sets.length ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span></span></div>` : ''}
+    ${card ? cardioHtml(x) : ''}
+    ${x.sets.length && !card ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span></span></div>` : ''}
     ${rows}
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
-      : `<button class="newset" data-addset>${t('newSetPill')}</button><button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
+      : `${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
 }
 
 // per-set extras (half reps, negatives, RIR) — only drawn when switched on in Exercise Settings; the fields are optional on each set
@@ -936,7 +962,7 @@ function showSummary(ses){
     <div class="statgrid"><div><b>${ses.mins}</b><small>${t('smDur')}</small></div><div><b>${ses.vol.toLocaleString()}</b><small>${t('smVol')}</small></div>
       <div><b>${ses.exercises.reduce((a, x) => a + x.sets.filter(isMainSet).length, 0)}</b><small>${t('smSets')}</small></div><div><b>≈${ses.kcal}</b><small>${t('smKcal')}</small></div></div>
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
-      : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
+      : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : p.kind === 'c' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.by === 'd' ? 'prDistLine' : 'prTimeLine')} · ${esc(exName(p.exId))}: <b>${p.by === 'd' ? fmt(p.w) + ' km' : fmt(p.r) + ' min'}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
     ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}`;
   if(ses.prs.length) celebrate();
   open('ovSummary');

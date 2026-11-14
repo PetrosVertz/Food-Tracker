@@ -281,3 +281,7 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .sxr button{width:28px;height:28px;padding:0;border-radius:var(--r-pill);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-text);font-size:var(--fs-label)}
 .sxr button.on{background:var(--t-accent);border-color:var(--t-accent);color:#0b0d0f;font-weight:var(--w-bold,700)}
 .snum[disabled]{opacity:1}
+.cdrow{margin:6px 0}.cdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.cdf{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-label);color:var(--t-muted)}
+.cdf input{padding:10px 8px;text-align:center;font-size:16px;width:100%;box-sizing:border-box}
+.cdrow.done .cdf input{border-color:var(--ok)}

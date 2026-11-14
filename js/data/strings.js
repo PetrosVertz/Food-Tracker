@@ -651,3 +651,9 @@ Object.assign(S, {
   exsRir: ['Reps In Reserve', 'Εφεδρικές Επαναλήψεις'], exsRirS: ['Pick 0 to 5 on each set: how many more reps you had left.', 'Διάλεξε 0 έως 5 σε κάθε σετ: πόσες επαναλήψεις σου έμειναν.'],
   halfLbl: ['Half', 'Μισές'], negLbl: ['Neg', 'Αρν.'], rirLbl: ['RIR', 'RIR'],
 });
+Object.assign(S, {
+  timeLbl: ['Time (min)', 'Χρόνος (λεπτά)'], distLbl: ['Distance (km)', 'Απόσταση (km)'], calLbl: ['Calories', 'Θερμίδες'], lvlLbl: ['Level', 'Επίπεδο'],
+  cdFinish: ['Finish', 'Τέλος'], cdDone: ['Done', 'Έτοιμο'], cdNeedTime: ['Add the time first.', 'Βάλε πρώτα τον χρόνο.'],
+  prDist: ['Longest distance on {n}: {v} km', 'Μεγαλύτερη απόσταση στο {n}: {v} km'], prTime: ['Longest time on {n}: {v} min', 'Μεγαλύτερος χρόνος στο {n}: {v} λεπτά'],
+  prDistLine: ['Longest Distance', 'Μεγαλύτερη Απόσταση'], prTimeLine: ['Longest Time', 'Μεγαλύτερος Χρόνος'],
+});
