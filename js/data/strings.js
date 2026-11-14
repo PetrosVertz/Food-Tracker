@@ -457,7 +457,7 @@ Object.assign(S, {
 
 // ---------- 0.6.8 ----------
 Object.assign(S, {
-  superset: ['Superset', 'Υπερσετ'], formPill: ['Form', 'Τεχνική'], swapPill: ['Swap', 'Αλλαγή'], newSetPill: ['+ New Set', '+ Νέο σετ'], endExPill: ['End Exercise', 'Τέλος άσκησης'],
+  superset: ['Superset', 'Υπερσετ'], ssHint: ['Hold an exercise and drop it on another to make a superset. Drop it past the top or bottom of the list to unlink it.', 'Κράτα μια άσκηση και άφησέ τη πάνω σε άλλη για υπερσετ. Άφησέ τη πέρα από την αρχή ή το τέλος της λίστας για να τη χωρίσεις.'], ssOut: ['Taken out of the superset', 'Βγήκε από το υπερσετ'], formPill: ['Form', 'Τεχνική'], swapPill: ['Swap', 'Αλλαγή'], newSetPill: ['+ New Set', '+ Νέο σετ'], endExPill: ['End Exercise', 'Τέλος άσκησης'],
   setDoneL: ['Set done', 'Σετ ολοκληρώθηκε'], markDoneL: ['Mark set done', 'Σημείωσε το σετ'], add15: ['Add 15 seconds', 'Πρόσθεσε 15 δευτερόλεπτα'], sub15: ['Subtract 15 seconds', 'Αφαίρεσε 15 δευτερόλεπτα'],
   discardQ2: ['Discard this workout?', 'Απόρριψη αυτής της προπόνησης;'], discardBtn: ['Discard', 'Απόρριψη'], keepBtn: ['Keep', 'Κράτησέ τη'], endWorkoutPill: ['End Workout', 'Τέλος προπόνησης'], skipGym: ['Skip', 'Παράλειψη'], gymSkipped: ['Gym skipped today · rest-day calories', 'Χωρίς γυμναστήριο σήμερα · θερμίδες ημέρας ξεκούρασης'],
   gymSkippedT: ['Skipped: today uses your rest-day targets', 'Παράλειψη: σήμερα ισχύουν οι στόχοι ημέρας ξεκούρασης'],

@@ -92,6 +92,7 @@ function startSession(tpl){
   }
   active = { id: uid(), date: todayKey(), start: now.toISOString(), clock0: tpl && tpl.exercises.length ? now.getTime() : null, tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : '', type: tpl ? tpl.type : 'full', prs: [],
     exercises: tpl ? tpl.exercises.map(e => ({ exId: e.exId, reps: e.reps, rest: e.rest ?? exById(e.exId).rest, sets: Array.from({ length: e.sets || 3 }, () => newSet()), ...(e.ss ? { ss: e.ss } : {}) })) : [] };
+  normalizeSS(active.exercises);   // only neighbours stay linked
   active.exercises.forEach((x, i) => { const e = tpl.exercises[i]; if(e && e.uni !== undefined ? e.uni : isUni(x.exId)) makeUni(x, true); });   // one side at a time: L / R sets
   saveG('act');
   // today becomes a gym day; discarding the workout puts the day back as it was
@@ -178,6 +179,10 @@ function normalizeSS(list){ list.forEach((z, i) => { if(z.ss && !((list[i - 1] |
 function ssMerge(list, from, to){ const a = list[from], b = list[to]; if(!a || !b || a === b) return false;
   const id = b.ss || uid(); b.ss = id; list.splice(from, 1); let j = list.indexOf(b); while(list[j + 1] && list[j + 1].ss === id) j++;
   list.splice(j + 1, 0, a); a.ss = id; normalizeSS(list); return true; }
+// 0.7.4.2: a plain move (Create a Workout + live workout). Dropped past the top or bottom of the list (out) = taken out of its superset,
+// so the first or last exercise of a group can be unlinked too. Tells you when a move unlinked it.
+function ssMove(list, from, to, out){ const it = list[from]; if(!it) return; const had = it.ss;
+  list.splice(to, 0, list.splice(from, 1)[0]); if(out) delete it.ss; normalizeSS(list); if(had && !it.ss) toast(t('ssOut')); }
 
 // ---------- drop sets: the next row starts lighter (your last drop for this exercise, else ~22% less) ----------
 function dropWeight(x, w){
@@ -748,6 +753,7 @@ function drawTpl(){
       <div class="tpsteps"><div class="tps"><small>${t('setsL')}</small><div class="stepper"><button data-sd aria-label="${t('gMinusL')}">−</button><b>${e.sets}</b><button data-su aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>
       ${card ? `<div class="tps"><small>${t('minLbl')}</small><div class="stepper"><button data-rd aria-label="${t('gMinusL')}">−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>`
         : `<div class="tps"><small>${t('restL')}</small><div class="stepper"><button data-rsd aria-label="${t('gMinusL')}">−</button><b>${fmtRest(rest30(e.rest))}</b><button data-rsu aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
+  if(TP.exercises.filter(e => !isCardio(e.exId)).length > 1) $('tpList').insertAdjacentHTML('beforeend', `<p class="hint">${t('ssHint')}</p>`);
 }
 
 function openTpl(x, type){
@@ -1019,6 +1025,8 @@ function makeSortable(box, itemSel, onMove, onMerge, canMerge){
     if(!drag) return; e.preventDefault();
     const d = drag, ds = d.sc.scrollTop - d.st0, y = e.clientY;
     let over = -1, to = d.to;
+    { const r = d.rects[d.from], top = r.top + y - d.y0, m = Math.min(r.height * .4, 70);   // the card itself pulled past the top or bottom of the whole list
+      d.out = d.list.length > 1 && (top + r.height > d.rects[d.rects.length - 1].bottom - ds + m || top < d.rects[0].top - ds - m); }
     d.list.forEach((el, i) => { if(i === d.from) return;
       const r = d.rects[i], top = r.top - ds + shift(d, i), f = (y - top) / r.height; if(f < 0 || f > 1) return;
       if(onMerge && f > .25 && f < .75 && (!canMerge || canMerge(d.from, i))){ over = i; return; }   // the middle: link
@@ -1029,10 +1037,10 @@ function makeSortable(box, itemSel, onMove, onMerge, canMerge){
     d.it.style.transform = `translateY(${(y - d.y0 + ds).toFixed(1)}px) scale(1.02)`;
     d.list.forEach((el, i) => { if(i === d.from) return; const sh = shift(d, i); el.style.transform = sh ? `translateY(${sh}px)` : ''; });
   }, { passive: false });
-  const end = commit => { stop(); if(!drag) return; const { from, to, list, over } = drag; drag = null; quiet = Date.now() + 400; document.body.classList.remove('sorting');
+  const end = commit => { stop(); if(!drag) return; const { from, to, list, over, out } = drag; drag = null; quiet = Date.now() + 400; document.body.classList.remove('sorting');
     list.forEach(el => { el.style.transform = ''; el.classList.remove('dragging', 'ssarm'); });
     if(!commit) return;   // pointercancel (iOS took the touch for a scroll): never commit a move
-    if(over > -1) onMerge(from, over); else if(from !== to) onMove(from, to); };
+    if(over > -1) onMerge(from, over); else if(from !== to || out) onMove(from, to, !!out); };
   window.addEventListener('pointerup', () => end(true)); window.addEventListener('pointercancel', () => end(false));
   box.addEventListener('click', e => { if(Date.now() < quiet){ e.stopPropagation(); e.preventDefault(); } }, true);   // no tap on the card you just let go
   document.addEventListener('touchmove', e => { if(drag) e.preventDefault(); }, { passive: false });   // no page scroll while dragging

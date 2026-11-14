@@ -315,12 +315,12 @@ $('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-p
 $('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
 
 // long press to reorder exercises (workout editor + live workout)
-makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); normalizeSS(TP.exercises); drawTpl(); },
+makeSortable($('tpList'), '.tpcard', (a, b, out) => { ssMove(TP.exercises, a, b, out); drawTpl(); },
   (a, b) => { ssMerge(TP.exercises, a, b); drawTpl(); toast(t('ssMade')); },
   (a, b) => !isCardio(TP.exercises[a].exId) && !isCardio(TP.exercises[b].exId));   // cardio doesn't superset
-makeSortable($('sesBody'), '.exc', (a, b) => { const ex = active.exercises; ex.splice(b, 0, ex.splice(a, 1)[0]);
+makeSortable($('sesBody'), '.exc', (a, b, out) => { const ex = active.exercises; ssMove(ex, a, b, out);
   if(REST && typeof REST.xi === 'number') REST.xi = REST.xi === a ? b : REST.xi > a && REST.xi <= b ? REST.xi - 1 : REST.xi < a && REST.xi >= b ? REST.xi + 1 : REST.xi;
-  normalizeSS(ex); saveG('act'); renderSession(); },
+  saveG('act'); renderSession(); },
   (a, b) => { const ex = active.exercises, rx = REST && typeof REST.xi === 'number' ? ex[REST.xi] : null;
     ssMerge(ex, a, b); if(rx) REST.xi = ex.indexOf(rx); saveG('act'); renderSession(); toast(t('ssMade')); },
   (a, b) => !isCardio(active.exercises[a].exId) && !isCardio(active.exercises[b].exId));
