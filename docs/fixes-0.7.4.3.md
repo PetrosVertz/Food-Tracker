@@ -3,7 +3,7 @@
 Each branch session does only its own section. Follow CLAUDE.md. Start after 0.7.4.2 is fully merged.
 Order: **shell first, merge it** (the others build on its chat window) → **food, gym, fridge-a, fridge-b** (any order, can run together).
 AI calls go through `gemini()` / `AI.*` only, and every AI prompt must include the Food Preferences helper from 0.7.4.2.
-The robot designs ("Robots and anatomy" canvas) are not in the repo: use the existing robot drawings in the app; Petros may paste the canvas link.
+Robot designs: `docs/design/robots-and-anatomy/Main.dc.html` (the "Robots and anatomy" canvas: Chef, Gym, Tour guide, Fridge clerk, with the bubble and AI badge in Dark and Light). The app has Chef and Gym already (`AI.robot` in ai.js); use the canvas drawings as the reference for any robot you add or change. Anatomy: `docs/design/robots-and-anatomy/Anatomy.dc.html` describes the direction already built in `js/data/gym-anatomy.js`.
 
 ## shell
 - Build one shared coach chat window that Food Coach and Gym Coach both use (a function the other parts call with the robot type and the first message). Style it like the Claude app's chat: a big rounded input pinned at the bottom (radius about 24), no scroll bar or arrows, grows with the text up to about 6 lines; a round send button with an up arrow in the theme accent, dimmed until you type. Your messages as rounded bubbles on the right; the robot's replies on the left as plain text with its small icon. Results show as cards with Add and Edit buttons. A back arrow next to the title; back or a left-to-right swipe shrinks it into that robot's bubble (draggable, snaps to a side); tapping the bubble reopens the chat where you left it. Keep the history short behind the scenes to save AI use. App colours and Inter, both modes.
@@ -13,6 +13,7 @@ The robot designs ("Robots and anatomy" canvas) are not in the repo: use the exi
 - No AI key: every AI feature is greyed out; tapping one shows a short message that an AI key is needed, with a button to Settings › AI.
 - Every AI feature is optional: each job also has a non-AI way to do it, and nothing in the app needs AI to work.
 - Main button glow (Log Food, Start Workout, Add Food…): the underglow isn't centred behind the button. Today it's theme.css .fab box-shadow `0 8px 24px` (pushed 8px down), and it can drift when the button sits beside another pill or slides. Make it one soft glow centred under the button in every state (alone, next to the coach pill, while moving, Light and Dark). Check with a screenshot.
+- Add the Fridge clerk robot from the canvas to `AI.robot` (same style and size as Chef / Gym), and use it for fridge AI jobs (receipts, table photo, Check My Foods) in the AI bubble. Add the Tour guide drawing too, unused for now, so it's ready.
 - Bump VERSION to 0.7.4.3 and CACHE to match.
 
 ## food
