@@ -49,14 +49,14 @@ if(!tpls){
 }
 
 // ---------- weekly plan feeds Today's food ----------
-const WD = () => lang === 'el' ? ['Κυρ','Δευ','Τρί','Τετ','Πέμ','Παρ','Σάβ'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WD = () => t('wdShort').split(' ');   // index = getDay(), Sunday first
 
 $('gPlanV').addEventListener('change', e => {
   const row = e.target.closest('[data-wd]'); if(!row) return; const wd = +row.dataset.wd; const p = gymPlan[wd] || {};
   if(e.target.matches('[data-ptpl]')){ p.tpl = e.target.value || null; if(p.tpl && p.tpl !== 'rest' && !p.time) p.time = '18:00'; }
   if(e.target.matches('[data-ptime]')) p.time = e.target.value;
   if(p.tpl || p.work) gymPlan[wd] = p; else delete gymPlan[wd];
-  saveG('plan'); renderGymPlan(); renderHome(); renderToday(); toast(t('planSaved'));
+  saveG('plan'); renderGymPlan(); renderToday(); toast(t('planSaved'));
 });
 
 // the weight a set really moved: body weight + belt on bodyweight moves, body weight − assistance on assisted machines
@@ -111,7 +111,7 @@ $('sesBody').addEventListener('click', e => {
 
 $('sesSupps').addEventListener('click', e => {
   const b = e.target.closest('[data-ssup]'); if(!b) return; const k = todayKey(); suppLog[k] = suppLog[k] || {};
-  if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderHome(); renderSupps();
+  if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderSupps();
 });
 
 const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); return h.length ? Math.max(...h.map(z => exVol(exId, z.sets.map(s => ({ ...s, done: true }))))) : 0; };
@@ -162,18 +162,18 @@ $('nxBody').addEventListener('click', async e => {
   const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); openExInfo(inf.dataset.exinfo, addToSession); return; }
   const b = e.target.closest('[data-ex]'); if(b){ close('ovNext'); addToSession(b.dataset.ex); return; }
   const ai = e.target.closest('#nxAI'); if(!ai || ai.disabled) return;
-  ai.disabled = true; ai.textContent = t('thinking');
+  ai.disabled = true; ai.textContent = t('gThinking');
   try{
     const done = active.exercises.map(x => `${exById(x.exId).en}: ${x.sets.filter(s => s.done && s.type !== 'W').map(s => `${s.w}x${s.r}`).join(', ') || 'planned'}`).join('; ');
     const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false), wkTxt = Object.entries(wk).map(([h, v]) => `${HEADS[h][0]} ${Math.round(v)} sets`).join(', ');
     const names = EX().filter(x => x.m !== 'cardio').map(x => x.en).join('; ');
     const r = await gemini(`You are a gym coach. Today's workout type: ${active.type}. Done so far: ${done || 'nothing yet'}. Hard sets per muscle in the last 7 days: ${wkTxt || 'none'}. Goal: ${targets ? targets.goal : 'build muscle'}.
 Suggest the 3 best next exercises to balance this session (fill muscles that are missing, avoid overdoing ones already hit). Pick ONLY from this list, using the exact English names: ${names}.
-Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON: {"picks":[{"name":string,"why":string,"sets":number,"reps":string}]}`, null, (i, n) => { ai.textContent = t('cancelRec', { i, n }).replace(/^✕\s*\S+\s*·\s*/, ''); });
+Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON: {"picks":[{"name":string,"why":string,"sets":number,"reps":string}]}`, null, (i, n) => { ai.textContent = `${t('gThinking')} ${i}/${n}`; });
     const picks = (r.picks || []).map(p => ({ ...p, ex: EX().find(x => norm(x.en) === norm(p.name)) || EX().find(x => norm(x.en).includes(norm(p.name)) || norm(p.name).includes(norm(x.en))) })).filter(p => p.ex);
-    $('nxAIOut').innerHTML = picks.map(p => `<div class="nxrow"><small class="rmeta">${gymAIB}${esc(p.why || '')}${p.sets ? ` · ${p.sets}×${esc(p.reps || '')}` : ''}</small>${exTiles([p.ex])}</div>`).join('') || `<p class="hint">${t('nothingHere')}</p>`;
+    $('nxAIOut').innerHTML = picks.map(p => `<div class="nxrow"><small class="rmeta">${esc(p.why || '')}${p.sets ? ` · ${p.sets}×${esc(p.reps || '')}` : ''} ${AI.badge()}</small>${exTiles([p.ex])}</div>`).join('') || `<p class="hint">${t('nothingHere')}</p>`;
     ai.remove();
-  }catch(err){ ai.disabled = false; ai.innerHTML = gymAIB + t('nxAI'); $('nxAIOut').innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
+  }catch(err){ ai.disabled = false; ai.innerHTML = t('nxAI') + ' ' + AI.badge(); $('nxAIOut').innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
 });
 
 // ---------- finish → summary (ties into food, supplements and the pet) ----------
@@ -291,13 +291,11 @@ const petLevel = xp => Math.floor(xp / 5) + 1, petStage = lv => lv >= 12 ? 2 : l
 
 $('ppList').addEventListener('click', e => { const b = e.target.closest('[data-pp]'); if(!b) return;
   pet = { species: b.dataset.pp, name: PETS[b.dataset.pp].names[0], xp: 0, lastFed: todayKey(), createdAt: new Date().toISOString(), awards: {}, log: [] };
-  saveG('pet'); close('ovPetPick'); celebrate('🥚'); renderAll(); setTimeout(openPet, 250); });
+  saveG('pet'); close('ovPetPick'); celebrate(); renderAll(); setTimeout(openPet, 250); });
 
 $('petBody').addEventListener('change', e => { if(e.target.id === 'petName'){ pet.name = e.target.value.trim() || PETS[pet.species].names[0]; saveG('pet'); renderPetTile(); } });
 
 $('tPet').addEventListener('click', openPet);
-
-$('tGym').addEventListener('click', () => { if(active) openSession(); else go('gym'); });
 
 // ---------- swipe from the left edge = back ----------
 (() => {
@@ -322,8 +320,6 @@ $('gRecV').addEventListener('click', e => {
     const n = fig.querySelector('svg'); if(n) n.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 180, easing: 'cubic-bezier(.25,1,.5,1)' }); };
 });
 
-$('homeAlerts').addEventListener('click', e => { if(e.target.closest('[data-rec]')){ ui.gtab = 'rec'; saveUI(); } }, true);
-
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
 
 // Progress: folds; weight chart Day / Week / Month
@@ -332,12 +328,14 @@ $('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-w
 
 // long press to reorder exercises (workout editor + live workout)
 makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); normalizeSS(TP.exercises); drawTpl(); },
-  (a, b) => { const L = TP.exercises; if(isCardio(L[a].exId) || isCardio(L[b].exId)) return; ssMerge(L, a, b); drawTpl(); toast(t('ssMade')); });
+  (a, b) => { ssMerge(TP.exercises, a, b); drawTpl(); toast(t('ssMade')); },
+  (a, b) => !isCardio(TP.exercises[a].exId) && !isCardio(TP.exercises[b].exId));   // cardio doesn't superset
 makeSortable($('sesBody'), '.exc', (a, b) => { const ex = active.exercises; ex.splice(b, 0, ex.splice(a, 1)[0]);
   if(REST && typeof REST.xi === 'number') REST.xi = REST.xi === a ? b : REST.xi > a && REST.xi <= b ? REST.xi - 1 : REST.xi < a && REST.xi >= b ? REST.xi + 1 : REST.xi;
   normalizeSS(ex); saveG('act'); renderSession(); },
-  (a, b) => { const ex = active.exercises; if(isCardio(ex[a].exId) || isCardio(ex[b].exId)) return; const rx = REST && typeof REST.xi === 'number' ? ex[REST.xi] : null;
-    ssMerge(ex, a, b); if(rx) REST.xi = ex.indexOf(rx); saveG('act'); renderSession(); toast(t('ssMade')); });
+  (a, b) => { const ex = active.exercises, rx = REST && typeof REST.xi === 'number' ? ex[REST.xi] : null;
+    ssMerge(ex, a, b); if(rx) REST.xi = ex.indexOf(rx); saveG('act'); renderSession(); toast(t('ssMade')); },
+  (a, b) => !isCardio(active.exercises[a].exId) && !isCardio(active.exercises[b].exId));
 
 // swipe to delete: exercises (live workout + workout editor) and sets, with Undo
 makeSwipeDelete($('sesBody'), '.exc', c => { const i = +c.dataset.x, gone = active.exercises.splice(i, 1)[0]; if(!gone) return;
