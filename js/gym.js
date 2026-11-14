@@ -746,8 +746,8 @@ function drawTpl(){
   normalizeSS(TP.exercises);
   $('tpList').innerHTML = TP.exercises.map((e, i, all) => { const ex = exById(e.exId), card = isCardio(e.exId), sc = e.ss ? ssColor(all, e.ss) : null;
     const reps = String(e.reps);
-    return `<div class="tpcard ${sc ? 'ss' : ''}" data-i="${i}"${sc ? ` style="--ssc:${sc}"` : ''}>${sc ? `<div class="sslbl">${t('superset')}</div>` : ''}<div class="tph">${exIcon(ex, 40)}<div class="ttl"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)}</small></div>
-      <div class="tpb"><button data-demo2 class="formb" aria-label="${t('formBtn')}">${svgIcon('eye', 18, 2)}</button><button data-rm aria-label="${t('remove')}">${svgIcon('x', 18, 2)}</button></div></div>
+    return `<div class="tpcard ${sc ? 'ss' : ''}" data-i="${i}"${sc ? ` style="--ssc:${sc}"` : ''}>${sc ? `<div class="sslbl">${t('superset')}</div>` : ''}<div class="tph"><div class="ttl"><b class="tpname">${esc(exName(ex))}</b><small>${ML(ex.h)} · ${eqIcon(ex.e, 13)} ${EL(ex.e)}</small></div>
+      <div class="tpb"><button data-demo2 class="pill2 formb" aria-label="${t('formBtn')}">${ICO_EYE}${t('formPill')}</button><button data-rm class="tprm" aria-label="${t('remove')}">${svgIcon('x', 18, 2)}</button></div></div>
       <div class="tpsteps"><div class="tps"><small>${t('setsL')}</small><div class="stepper"><button data-sd aria-label="${t('gMinusL')}">−</button><b>${e.sets}</b><button data-su aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>
       ${card ? `<div class="tps"><small>${t('minLbl')}</small><div class="stepper"><button data-rd aria-label="${t('gMinusL')}">−</button><input data-reps value="${esc(reps)}" inputmode="numeric"><button data-ru aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>`
         : `<div class="tps"><small>${t('restL')}</small><div class="stepper"><button data-rsd aria-label="${t('gMinusL')}">−</button><b>${fmtRest(rest30(e.rest))}</b><button data-rsu aria-label="${t('gPlusL')}">${svgIcon('plus', 16, 2.2)}</button></div></div>`}</div></div>`; }).join('') || `<p class="hint">${t('nothingHere')}</p>`;
