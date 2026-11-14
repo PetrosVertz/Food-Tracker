@@ -16,7 +16,8 @@ Titles still look smudged on iPhone (page titles like Gym Buddy, some open windo
 1. **Food Coach pill:** remove the circle around the chef robot; just the robot, same size, no ring or background disc. Same for the Gym Coach pill.
 2. **Live workout: no floating robot bubble.** In an active workout the AI is reached only from the robot at the top right. Closing the Gym Coach chat there does not create a bubble; the robot stays in the header. (Outside the live workout, coach bubbles work as today.)
 3. **Start Workout window: Gym Coach at the top right too.** In the Start Workout window (the list of saved workouts with Start Empty Workout), the Gym Coach is a small sweatband robot at the top right of the window's title bar, same as the live workout; tapping it opens the Gym Coach chat; no floating bubble appears from it.
-4. **Sleep only with a watch:** remove the manual "Hours Slept" entry from Recovery. Recovery uses sleep only when a smartwatch or band is connected (later, in the Capacitor app via Apple Health); until then sleep is ignored and nothing about sleep shows. Keep a small hook (one function returning `null` today) where watch sleep data will plug in. Remove the unused strings.
+4. **Bigger workout timer:** in the live workout, the timer in the middle of the top bar is bigger and easy to read at a glance (about 28 px, bold, tabular numbers so the digits don't jump), still fitting next to the robot and End Workout on the iPhone 13 mini.
+5. **Sleep only with a watch:** remove the manual "Hours Slept" entry from Recovery. Recovery uses sleep only when a smartwatch or band is connected (later, in the Capacitor app via Apple Health); until then sleep is ignored and nothing about sleep shows. Keep a small hook (one function returning `null` today) where watch sleep data will plug in. Remove the unused strings.
 
 ## spacing (Sonnet, last)
 Spacing should feel premium: today some things sit on top of each other.
