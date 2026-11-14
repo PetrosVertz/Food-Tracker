@@ -23,7 +23,7 @@ function bestE1(exId){
 //   tierOf : (exId, e1) => null | { label, color? }   — the tier badge for a board row (none until gym-tiers)
 function profileData(){
   const me = Account.current(), today = todayKey();
-  const streak = { n: 0 };                                // gym-streak: replace with the real streak
+  const streak = gymStreak();                              // gym-streak (gym.js)
   const tierOf = (exId, e1) => null;                      // gym-tiers: replace with the real tier
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
@@ -71,7 +71,7 @@ function renderProfile(){
   const stat = (v, k) => `<div><b>${v}</b><small>${esc(t(k))}</small></div>`;
   box.innerHTML = circles
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
-    + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${svgIcon('flame', 26, 2)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
+    + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
         <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfLatestPR'))}</small>${pr}</div></div>`
     + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p><div class="pfcard pfboards">${rows}</div>`
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`

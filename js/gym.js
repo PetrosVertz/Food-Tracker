@@ -678,6 +678,7 @@ function renderTodayRec(){
     if(isToday && live) skip = `<button class="gymstartbtn" type="button" data-gymresume>${t('gymResumeP')}</button>`;
     else if(!live) skip = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gymStartP')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
   else if(days[curDay] && days[curDay].skipped){ lines.push(`<b>${t('gymSkipped')}</b>`); skip = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }   // rest-day calories and macros today
+  const sk = di.type === 'gym' && isToday ? gymStreak().n : 0; if(sk) lines.push(`<span class="gymstreak">${flameIcon(sk, 16)}<b>${sk}</b></span>`);
   const ws = isToday ? recoveryWarnings() : [];
   const ic = lines.length ? `<span class="gymdayic">${svgIcon('workouts', 22, 1.8)}</span>` : '';
   $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}${ic}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip ? `<div class="gymdaybtns">${skip}</div>` : ''}</div>` : '';
