@@ -215,7 +215,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 /* ---------- Recovery (Phones.dc.html screen 3) ---------- */
 :root{--t-ready:var(--t-accent)}
 .reccard{background:var(--t-card);border-radius:var(--r-card);padding:var(--s4);display:flex;justify-content:center;margin-bottom:var(--s4)}
-.reccard svg{width:200px;height:auto;max-height:420px}
+.reccard svg{width:100%;max-width:340px;height:auto}   /* front + back side by side; fits 375 px */
 .legend2{display:flex;justify-content:center;gap:var(--s4);margin-bottom:var(--s4)}
 .legend2 span{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-label);color:var(--t-muted)}
 .legend2 i{width:12px;height:12px;border-radius:4px}
@@ -338,6 +338,8 @@ body.twofab .fab{padding:16px 20px!important}
 .reccard svg,.reccard svg *{pointer-events:none;cursor:default!important}
 .reccard svg{transform-origin:50% 50%}
 .recrow{cursor:default}
+.recrow .rs.ok{color:var(--t-done)} .recrow .rs.mid{color:var(--t-mid)} .recrow .rs.low{color:var(--t-sore)}
+:root[data-theme="light"] .recrow .rs.low{color:var(--t-fail)}   /* red text ≥ 4.5:1 in Light */
 .pglock{margin-top:var(--s3);padding:16px;border-radius:var(--r-row);background:var(--t-card);border:1px solid var(--t-edge);color:var(--t-muted);font-size:var(--fs-body);text-align:center}
 /* ---------- Settings (0.6.9): grouped rows; each opens its own full page with the back arrow ---------- */
 .pgroup{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s3) 0}

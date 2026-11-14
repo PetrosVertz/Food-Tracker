@@ -414,7 +414,13 @@ function groupReadiness(atTs){
   return out;
 }
 
-function hoursUntilReady(g){ for(let h = 0; h <= 120; h += 2){ if(groupReadiness(Date.now() + h * 3.6e6)[g] >= .8) return h; } return 120; }
+// 0.7.4.2: ONE function decides the recovery state, from the hours left, so the colour and the hours text always agree:
+// more than 24 h left = low (red, Needs Rest) · 1-24 h = mid (yellow, Recovering) · recovered = ok (green, Ready)
+const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
+function recMap(){
+  const gs = Object.keys(groupReadiness(Date.now())), hrs = {};
+  for(let h = 0; h <= 120 && Object.keys(hrs).length < gs.length; h += 2){ const rd = groupReadiness(Date.now() + h * 3.6e6); gs.forEach(g => { if(!(g in hrs) && rd[g] >= .8) hrs[g] = h; }); }
+  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h) }]; })); }
 
 function tplGroups(tp){ const s = new Set(); tp.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h] && HEADS[h][2] !== 'cardio') s.add(HEADS[h][2]); })); return [...s]; }
 
@@ -436,25 +442,16 @@ function sessionRecoveryWarn(){
   return bad.length ? t('recWarnToday', { m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) }) : '';
 }
 
-// Recovery (canvas Phones.dc.html screen 3): Front / Back main pill, one body in a card, legend, then a row per muscle that isn't ready
-function hoursSinceTrained(g){
-  let last = 0; sessions.concat(active ? [{ ...active, end: new Date().toISOString() }] : []).forEach(s => { const end = new Date(s.end || s.start).getTime();
-    if(end > last && s.exercises.some(x => x.sets.some(z => z.done) && Object.entries(exById(x.exId).mu || {}).some(([h, v]) => v >= 40 && HEADS[h] && HEADS[h][2] === g))) last = end; });
-  return last ? Math.max(1, Math.round((Date.now() - last) / 3.6e6)) : null; }
-// Recovery (0.6.9): an information screen — nothing on it reacts to taps except Front / Back, and the body turns when you switch.
+// Recovery (0.7.4.2): an information screen — front and back side by side, nothing on it reacts to taps.
 // Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
-function recFigure(){ const rd = groupReadiness(Date.now()), side = ui.recSide === 'b' ? 'b' : 'f';
-  const colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, REC_COL[recState(r)]]));
-  return anatomySVG({ mode: 'rec', colors, side, w: 200, h: 446, idp: 'rec' + side }); }
+function recFigure(){ const m = recMap(), colors = Object.fromEntries(Object.entries(m).map(([g, v]) => [g, REC_COL[v.st]]));
+  return anatomySVG({ mode: 'rec', colors, w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
 function renderRecovery(){
-  const rd = groupReadiness(Date.now()), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
-  const notReady = Object.entries(rd).filter(([, r]) => r < .8).sort((a, b) => a[1] - b[1]), side = ui.recSide === 'b' ? 'b' : 'f';
-  const row = ([g, r]) => { const st = recState(r), h = hoursUntilReady(g), ago = hoursSinceTrained(g);
-    const txt = st === 'low' ? t('recLow') + (ago ? ' · ' + t('recAgo', { h: ago }) : '') : t('recMid') + ' · ' + (h < 24 ? t('recIn', { h }) : Math.round(h / 24) === 1 ? t('recDay1') : t('recDays', { n: Math.round(h / 24) }));
-    return `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs" style="color:${C[st]}">${txt}</span></div>`; };
+  const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
+  const notReady = Object.entries(m).filter(([, v]) => v.h > 0).sort((a, b) => b[1].h - a[1].h);
+  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h <= 24 ? t('recIn', { h: v.h }) : t('recDays', { n: Math.ceil(v.h / 24) })}</span></div>`;
   $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-bottom:12px">${w}</div>`).join('') +
-    `<div class="mpill" id="recSide"><button data-side="f" class="${side === 'f' ? 'on' : ''}">${t('front')}</button><button data-side="b" class="${side === 'b' ? 'on' : ''}">${t('backSide')}</button></div>
-    <div class="reccard" id="recFig">${recFigure()}</div>
+    `<div class="reccard" id="recFig">${recFigure()}</div>
     <div class="legend2"><span><i style="background:${C.low}"></i>${t('recLow')}</span><span><i style="background:${C.mid}"></i>${t('recMid')}</span><span><i style="background:${C.ok}"></i>${t('recReady')}</span></div>
     <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
     <p class="hint">${t('recHint')}</p>`;
@@ -879,7 +876,7 @@ function renderGym(){
   $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
   if(!sec){
-    const rd = groupReadiness(Date.now()), colors = Object.fromEntries(Object.entries(rd).map(([g, r]) => [g, REC_COL[recState(r)]])), low = Object.values(rd).filter(r => r < .8).length;
+    const rm = recMap(), colors = Object.fromEntries(Object.entries(rm).map(([g, v]) => [g, REC_COL[v.st]])), low = Object.values(rm).filter(v => v.h > 0).length;
     $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
     $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
   }

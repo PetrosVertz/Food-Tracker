@@ -308,18 +308,6 @@ $('tPet').addEventListener('click', openPet);
   }, { passive: true });
 })();
 
-const recState = r => r >= .8 ? 'ok' : r >= .5 ? 'mid' : 'low';
-
-$('gRecV').addEventListener('click', e => {
-  const sd = e.target.closest('[data-side]'); if(!sd || ui.recSide === sd.dataset.side) return; ui.recSide = sd.dataset.side; saveUI();
-  document.querySelectorAll('#recSide [data-side]').forEach(b => b.classList.toggle('on', b === sd));   // the pill glides…
-  const fig = $('recFig'), sv = fig && fig.querySelector('svg'), swap = () => { fig.innerHTML = recFigure(); };
-  if(!sv || !sv.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return swap();
-  // …and the body turns around: it narrows to a line, swaps sides, opens back out (~⅓ s)
-  sv.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 150, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }).onfinish = () => { swap();
-    const n = fig.querySelector('svg'); if(n) n.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 180, easing: 'cubic-bezier(.25,1,.5,1)' }); };
-});
-
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
 
 // Progress: folds; weight chart Day / Week / Month
