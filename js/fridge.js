@@ -207,5 +207,5 @@ function shopFChange(e){
   saveFridge(); renderAll(); toast(t('updated'));
 }
 
-// Fridge: the main button scans a receipt with the camera
-function shopCamera(){ if(!settings.geminiKey){ open('ovShop'); toast(t('needKeyFirst')); return; } $('shopFile').value = ''; $('shopFile').click(); }
+// Fridge: the Scan Receipt button opens the receipt camera (receipt.js)
+function shopCamera(){ if(!settings.geminiKey){ open('ovShop'); toast(t('needKeyFirst')); return; } Rcpt.begin(); }

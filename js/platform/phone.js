@@ -13,7 +13,8 @@ const Phone = (() => {
     vibrate(pattern){ try{ navigator.vibrate?.(pattern); }catch(_){} },
 
     hasCamera: () => !!navigator.mediaDevices?.getUserMedia,
-    camera(){ return navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } }); },
+    // hi: as sharp as the camera allows (receipts), otherwise Full HD
+    camera(hi){ return navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: hi ? 3840 : 1920 }, height: { ideal: hi ? 2160 : 1080 } } }); },
 
     // the phone's own barcode reader if it has one, otherwise a small library loaded once
     barcodeReader(){

@@ -77,3 +77,15 @@ document.addEventListener('click', e => {
   const key = ['data-pg', 'data-fcat', 'data-fold'].find(a => b.hasAttribute(a)), sel = key ? `[${key}="${b.getAttribute(key)}"]` : null;
   setTimeout(() => { const el = (sel && document.querySelector(sel)) || (document.contains(b) ? b : null); if(el && el.offsetParent) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
 });
+
+// 0.7.4.3: the receipt camera (receipt.js)
+$('rcptShut').addEventListener('click', () => Rcpt.shoot());
+$('rcptTorch').addEventListener('click', () => Rcpt.torch());
+$('rcptRetake').addEventListener('click', () => Rcpt.retake());
+$('rcptNext').addEventListener('click', () => Rcpt.next());
+$('rcptUse').addEventListener('click', () => Rcpt.use());
+$('rcptFile').addEventListener('change', () => { const f = $('rcptFile').files[0]; if(f) Rcpt.fromFile(f); });
+// the camera turns off whenever the window closes (back, another window)
+new MutationObserver(() => { if(!$('ovRcpt').classList.contains('open')) Rcpt.stop(); }).observe($('ovRcpt'), { attributes: true, attributeFilter: ['class'] });
+// the AI couldn't read the scan: take it again
+$('shopDone').addEventListener('click', e => { if(e.target.closest('#shopRetake')){ close('ovShopRev'); Rcpt.begin(); } });

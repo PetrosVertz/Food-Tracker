@@ -39,7 +39,7 @@ const AI = (() => {
   // the one network call
   async function call(prompt, imageB64, onTry, outer, opts){
     opts = opts || {};
-    const parts = [{ text: prompt }]; if(imageB64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: imageB64 } });
+    const parts = [{ text: prompt }]; [].concat(imageB64 || []).forEach(d => parts.push({ inline_data: { mime_type: 'image/jpeg', data: d } }));   // one photo, or several (a long receipt in parts)
     const all = await listModels();
     const chain = opts.best ? [...new Set([...bestModels(all).slice(0, 4), settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest'])].slice(0, 7)
       : [...new Set([settings.model || DEFAULT_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...all])].slice(0, 10);

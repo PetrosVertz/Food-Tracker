@@ -635,3 +635,15 @@ Object.assign(S, {
   shopCodeLook: ['Looking up {n} barcodes…', 'Ψάχνω {n} barcode…'], verBarcode: ['Verified from barcode', 'Επαληθεύτηκε από barcode'], verPhoto: ['Verified from grocery photo', 'Επαληθεύτηκε από φωτογραφία'],
   notFoodToast: ['{n} is not food, so it was skipped.', 'Το «{n}» δεν είναι τρόφιμο, παραλείφθηκε.'],
 });
+
+// 0.7.4.3 fridge-b: the receipt camera
+Object.assign(S, {
+  rcptHold: ['Hold steady', 'Κράτα σταθερά'], rcptCloser: ['Move closer', 'Πλησίασε'], rcptLight: ['More light', 'Χρειάζεται περισσότερο φως'],
+  rcptNoCam: ['Can\'t open the camera here. Tap the button to take a photo.', 'Δεν ανοίγει η κάμερα εδώ. Πάτα το κουμπί για να βγάλεις φωτογραφία.'],
+  rcptShoot: ['Take Photo', 'Λήψη φωτογραφίας'], rcptPartN: ['Part {n}', 'Μέρος {n}'], rcptParts: ['{n} Parts', '{n} μέρη'],
+  rcptCheckT: ['Check the Scan', 'Έλεγξε τη σάρωση'], rcptRetake: ['Retake', 'Ξανά'], rcptNext: ['Add Next Part', 'Επόμενο μέρος'], rcptUse: ['Use', 'Χρήση'],
+  rcptBlurry: ['Too blurry to read. Retake it a little closer, holding steady.', 'Πολύ θολή για να διαβαστεί. Ξαναβγάλ\' την λίγο πιο κοντά, κρατώντας σταθερά.'],
+  rcptNoEdges: ['Couldn\'t find the receipt\'s edges, so the frame was used. Retake on a darker surface if text is cut off.', 'Δεν βρέθηκαν οι άκρες της απόδειξης, οπότε κρατήθηκε το πλαίσιο. Αν κόπηκε κείμενο, ξαναβγάλ\' την σε πιο σκούρα επιφάνεια.'],
+  rcptUnreadable: ['The receipt is too blurry to read. Please retake it.', 'Η απόδειξη είναι πολύ θολή για να διαβαστεί. Βγάλε τη ξανά.'],
+  rcptFail: ['Couldn\'t process the photo. Try again.', 'Δεν ήταν δυνατή η επεξεργασία της φωτογραφίας. Δοκίμασε ξανά.'],
+});

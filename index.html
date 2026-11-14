@@ -174,6 +174,25 @@
   <input type="file" id="shopFile" accept="image/*" capture="environment" class="hide">
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
 </div></div>
+<div class="overlay rcptov" id="ovRcpt"><div class="sheet rcptsheet">
+  <div class="rcptcam" id="rcptCam">
+    <video id="rcptVideo" playsinline muted autoplay></video>
+    <div class="rcptguide" id="rcptGuide"></div>
+    <div class="rcpthint" id="rcptHint" aria-live="polite"></div>
+    <div class="rcptpart hide" id="rcptPart"></div>
+    <div class="rcptbar">
+      <button class="rcptshut" type="button" id="rcptShut" data-ta="rcptShoot"><i></i></button>
+      <button class="rcptbtn hide" type="button" id="rcptTorch" data-ta="light"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></svg></button>
+    </div>
+  </div>
+  <div class="rcptview hide" id="rcptView">
+    <div class="row"><h2 data-t="rcptCheckT"></h2><span class="chip" id="rcptCount"></span></div>
+    <div class="rcptimg" id="rcptImg"></div>
+    <div class="status" id="rcptStatus"></div>
+    <div class="actions rcptacts"><button class="btn" type="button" id="rcptRetake" data-t="rcptRetake"></button><button class="btn" type="button" id="rcptNext" data-t="rcptNext"></button><button class="btn primary" type="button" id="rcptUse" data-t="rcptUse"></button></div>
+  </div>
+  <input type="file" id="rcptFile" accept="image/*" capture="environment" class="hide">
+</div></div>
 <div class="overlay" id="ovShopRev"><div class="sheet tall">
   <h2 data-t="shopReview"></h2><p class="sub" data-t="shopReviewSub"></p>
   <div class="status" id="shopStatus"></div>
@@ -781,6 +800,7 @@
 <script src="js/today.js"></script>
 <script src="js/fridge.js"></script>
 <script src="js/shop.js"></script>
+<script src="js/receipt.js"></script>
 <script src="js/gym.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/wire/01-core.js"></script>
