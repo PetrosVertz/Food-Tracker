@@ -751,7 +751,8 @@ html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env
 .cpface{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;overflow:hidden;background:#26282b} .cpface .robot{display:block;margin-top:2px}
 :root[data-theme="light"] .cpface{background:#eef0f2}
 body.has-coachpill #fab{right:var(--cpr)!important}
-@media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} }
+#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
+@media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}

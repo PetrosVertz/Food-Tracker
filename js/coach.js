@@ -162,7 +162,7 @@ Return ONLY JSON: {"reply": string}`, img);
   function pillPlace(){
     const f = $('fab'); if(!f) return; let shown = null;
     PILLS.forEach(([id, act]) => { const b = $('cp-' + id); if(!b) return;
-      const on = !f.classList.contains('hide') && f.dataset.action === act && cur !== id;
+      const on = !f.classList.contains('hide') && f.dataset.action === act && cur !== id && !has(id);   // while its bubble is out, the pill steps aside
       b.classList.toggle('hide', !on); if(on){ shown = b; b.querySelector('.cpl').textContent = title(id); } });
     document.body.classList.remove('has-coachpill'); if(!shown) return;
     // the main button and the pill sit centred together: the button's right edge moves in by the pill's width
