@@ -17,7 +17,6 @@ $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
 $('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ shopCamera(); return; } pendingBarcode = null; startScan(); });
 
-document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', openSettings));
 
 $('search').addEventListener('input', render);
 

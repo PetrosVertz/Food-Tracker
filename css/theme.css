@@ -72,10 +72,10 @@ small,.rmeta,.hint,.sub{font-size:var(--fs-label);font-weight:var(--w-reg)}
 label{font-size:var(--fs-label);font-weight:var(--w-med)}
 
 /* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard,.foldh,.exrow,.opt,.pgrow{
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.pgrow{
   background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important;
   -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.bkcard,.bubble,.wtcard{border-radius:var(--r-card)!important}
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard{border-radius:var(--r-card)!important}
 .exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
 .tile.big{background:var(--t-accent)!important;color:var(--t-on)}
 .card .name,.sitem .t b,.exrow .exn b{font-size:var(--fs-body);font-weight:var(--w-med)}

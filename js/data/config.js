@@ -124,6 +124,6 @@ let ASK = null;
 // ---------- in-app picker for every dropdown ----------
 let PICKSEL = null;
 
-const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.bubble,#tabbar button,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
+const HAPTIC_SEL = '.rail button,[data-fg],[data-step],[data-ok],[data-plus],[data-minus],[data-addset],[data-endex],#amSave,#qaSave,#shopAddBtn,#tpSave,#wiSave,.sitem,.extile,.exrow,.eqchip,.hchip,.pickopt,#askYes,#gStart,#sesFinish,.btn.primary,.snum,.usebtn';
 
 const KEYATTR = ['data-eid', 'data-fid', 'data-x', 'data-s', 'data-tid', 'data-gid', 'data-mid', 'data-sid', 'data-fkey'];

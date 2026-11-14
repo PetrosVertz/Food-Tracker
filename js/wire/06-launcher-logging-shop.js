@@ -119,7 +119,6 @@ $('dmBody').addEventListener('click', e => { const b = e.target.closest('#dmPct'
 $('wiSave').addEventListener('click', () => { const w = r1(bwIn(num('wiIn'))); if(!(w > 30)) { $('wiIn').focus(); return; } weights[todayKey()] = w; Store.save('weights', weights);
   if(targets){ targets.bw = w; Store.save('targets', targets); } $('tgBw').value = w; drawWeigh(); toast(t('wiSaved')); });
 
-document.addEventListener('click', e => { if(e.target.closest('[data-backup]')) backupNow(); });
 
 
 // ---------- cooking: just weigh the food; the pot method hides behind a link ----------
@@ -136,8 +135,6 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 $('qaSave').addEventListener('click', saveQuick);
 
  $('qaDel').addEventListener('click', delQuick);
-
-document.querySelectorAll('#pgLaunch .bubble').forEach(b => b.addEventListener('click', () => launchTo(b.dataset.tab, b)));
 
 $('suAgainBtn').addEventListener('click', () => { close('ovSettings'); openSetup(); });
 

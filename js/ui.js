@@ -169,28 +169,6 @@ function goForward(){
   if(NAVI < NAV.length - 1 && tabOf(NAV[NAVI + 1]) === tabOf(location.hash.slice(1))){ NAVI++; navTo(NAV[NAVI]); }
 }
 
-function renderLaunch(){
-  const hr = new Date().getHours(); $('lHello').textContent = t(hr < 12 ? 'hiMorning' : hr < 18 ? 'hiDay' : 'hiEvening') + ' 👋';
-  const tk = todayKey(), tg = targetFor(tk), tot = dayTotals(tk), pl = planFor(tk), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
-  $('lbFood').textContent = t('lFoodSub', { n: foods.length, f: liveItems().length });
-  $('lbToday').textContent = tg ? t('lTodaySub', { a: Math.round(tot.kcal).toLocaleString(), b: tg.k.toLocaleString() }) : t('lTodayNo', { a: Math.round(tot.kcal) });
-  $('lbGym').textContent = sessions.some(s => s.date === tk) ? t('lGymDone') : pl && pl.type === 'gym' ? t('lGymPlan', { n: tp ? tp.name : t('gymAny'), t: pl.time || '' }) : pl && pl.type === 'rest' ? t('lGymRest') : t('lGymNone');
-  $('lBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0'; renderBackupCard($('lBackup'));
-}
-
-function launchTo(tab, btn){
-  const target = () => { if(tab === 'today') curDay = todayKey(); go(TAB_ROOT[tab]); };
-  const bubbles = [...document.querySelectorAll('#pgLaunch .bubble')], bar = $('tabbar');
-  if(!btn || matchMedia('(prefers-reduced-motion: reduce)').matches || !bubbles[0].animate){ target(); return; }
-  bar.classList.remove('hide'); bar.style.opacity = '0';
-  const tabs = TABS3.map(k => bar.querySelector(`[data-tab="${k}"]`));
-  const anims = bubbles.map((b, i) => { const r = b.getBoundingClientRect(), tr = tabs[i].getBoundingClientRect();
-    const dx = tr.left + tr.width / 2 - (r.left + r.width / 2), dy = tr.top + tr.height / 2 - (r.top + r.height / 2), s = Math.min(tr.width / r.width, tr.height / r.height);
-    return b.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: b === btn ? 1 : .5 }], { duration: 430, easing: 'cubic-bezier(.55,0,.2,1)', fill: 'forwards', delay: b === btn ? 0 : 40 }); });
-  bar.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260, fill: 'forwards' });
-  setTimeout(() => { bar.style.opacity = ''; bar.getAnimations().forEach(a => a.cancel()); target(); anims.forEach(a => a.cancel()); }, 470);
-}
-
 // ---------- tabs: Today → Gym → Food → Fridge, switched from the side strip or a short pull past the end ----------
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
@@ -218,10 +196,9 @@ function switchTab(dir, toTab){
 function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
-  $('pgLaunch').classList.add('hide'); $('tabbar').classList.add('hide');
-  h = location.hash.replace('#','');   // re-read: the start page may have just switched it
+  h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
   const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgHome','home'],['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgLaunch','start'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
@@ -294,7 +271,7 @@ function finishSetup(){
     if(SUP.work && SUP.workDays.has(d)) p.work = { from: SUP.from, to: SUP.to }; else delete p.work;
     if(p.tpl || p.work) gymPlan[d] = p; else delete gymPlan[d]; });
   saveG('plan'); if(SUP.key !== settings.geminiKey){ settings.geminiKey = SUP.key; Store.save('settings', settings); }
-  ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+  ui.gymFirst = SUP.use === 'gym'; applyTabOrder(); ui.setupDone = true; ui.lang = lang; saveUI(); saveProfile(); close('ovSetup'); renderAll();
 }
 
 // ---------- weekly backup, one tap to the share sheet (iCloud Drive / Files) ----------
@@ -303,14 +280,8 @@ function backupBlob(){ return new Blob([JSON.stringify(Store.snapshot(), null, 2
 async function backupNow(){
   const name = `tracker-backup-${todayKey()}.json`, blob = backupBlob();   // 0.7.3: the date is in the file name
   try{ await Phone.shareFile(blob, name);
-    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); shellBkLast(); renderAll(); if(location.hash.slice(1) === 'start') renderLaunch();
+    ui.lastBackup = new Date().toISOString(); saveUI(); toast(t('bkDone')); shellBkLast(); renderAll();
   }catch(e){ if(e && e.name !== 'AbortError') toast(e.message || 'backup'); }
-}
-
-function renderBackupCard(el){
-  if(!el) return; const has = foods.length + Object.keys(dayLog).length + sessions.length > 0, last = ui.lastBackup ? new Date(ui.lastBackup) : null;
-  const due = has && (!last || (Date.now() - last) / 864e5 >= 7);
-  el.innerHTML = due ? `<button class="bkcard" data-backup><b>${t('bkT')}</b><small>${t('bkSub', { d: last ? fmtDate(last.toISOString()) : t('bkNever') })}</small></button>` : '';
 }
 
 function ask(msg, yes, no){

@@ -35,43 +35,6 @@
 </head>
 <body>
 
-<!-- ============ HOME ============ -->
-<!-- ============ LAUNCHER ============ -->
-<section class="page wrap hide" id="pgLaunch">
-  <header>
-    <div class="left"><h1 id="lHello"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
-  </header>
-  <p class="hello" data-t="launchSub"></p>
-  <div class="bubbles">
-    <button class="bubble b-food" data-tab="food"><span class="bi">🥗</span><b data-t="tabFood"></b><small id="lbFood"></small></button>
-    <button class="bubble b-today" data-tab="today"><span class="bi">📅</span><b data-t="tabToday"></b><small id="lbToday"></small><span class="mbar"><i id="lBar"></i></span></button>
-    <button class="bubble b-gym" data-tab="gym"><span class="bi">🏋️</span><b data-t="tabGym"></b><small id="lbGym"></small></button>
-  </div>
-  <div id="lBackup"></div>
-</section>
-
-<section class="page wrap" id="pgHome">
-  <header>
-    <div class="left"><h1 data-t="tabFood"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
-  </header>
-  <p class="hello" data-t="homeHello"></p>
-  <div class="tiles">
-    <button class="tile big" id="tScan"><span class="e">▥</span><span><b data-t="tScan"></b><small data-t="tScanSub"></small></span></button>
-    <button class="tile wide today hide" id="tToday"><span class="e">📅</span><span style="flex:1;min-width:0"><b data-t="tToday"></b><small id="tTodaySub"></small><span class="mbar" style="margin-top:8px"><i id="tTodayBar"></i></span></span></button>
-    <button class="tile wide hide" id="tGym"><span class="e">🏋️</span><span style="flex:1;min-width:0"><b data-t="tGym"></b><small id="tGymSub"></small></span><span class="badge hide" id="tGymBadge" style="position:static"></span></button>
-    <button class="tile" id="tFoods"><span class="e">🗂️</span><span><b data-t="tFoods"></b><small id="tFoodsSub"></small></span></button>
-    <button class="tile" id="tMeals"><span class="e">🍲</span><span><b data-t="tMeals"></b><small id="tMealsSub"></small></span></button>
-    <button class="tile" id="tFridge"><span class="badge hide" id="tFridgeBadge"></span><span class="e">🧊</span><span><b data-t="tFridge"></b><small id="tFridgeSub"></small></span></button>
-    <button class="tile" id="tGroc"><span class="badge hide" id="tGrocBadge"></span><span class="e">🛒</span><span><b data-t="tGroc"></b><small id="tGrocSub"></small></span></button>
-    <button class="tile wide" id="tSupps"><span class="e">💊</span><span><b data-t="tSupps"></b><small id="tSuppsSub"></small></span></button>
-  </div>
-  <div id="homeAlerts" style="margin-top:12px"></div>
-  <div id="homeBackup"></div>
-  <div style="height:20px"></div>
-</section>
-
 <!-- ============ MY FOODS ============ -->
 <section class="page wrap hide" id="pgFoods">
   <header>
@@ -102,7 +65,6 @@
 <section class="page wrap hide" id="pgSupps">
   <header>
     <div class="left"><button class="backarrow" id="backBtn2" aria-label="Back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tSupps"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
 </section>
 
@@ -134,7 +96,6 @@
 <section class="page wrap hide" id="pgGym">
   <header>
     <div class="left"><button class="backarrow hide" id="gBackBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabGym"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
   <div id="gBanner"></div>
   <button class="btn primary bigstart" id="gStart"></button><button class="linkbtn gother" id="gOther" data-t="otherWorkout"></button>
@@ -160,7 +121,6 @@
 <section class="page wrap hide" id="pgFridge">
   <header>
     <div class="left"><h1 data-t="tabFridge"></h1></div>
-    <button class="iconbtn" data-settings aria-label="Settings">⚙︎</button>
   </header>
 <div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
   <div id="fridgeView">
@@ -186,7 +146,6 @@
   <button data-tab="fridge" class="r-fridge"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/></svg></span><span class="sr" data-t="tabFridge"></span></button>
   <button data-tab="settings" class="r-settings"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sr" data-t="settings"></span></button>
 </nav>
-<nav class="tabbar hide" id="tabbar"><button data-tab="food"><span>🥗</span><b data-t="tabFood"></b></button><button data-tab="today"><span>📅</span><b data-t="tabToday"></b></button><button data-tab="gym"><span>🏋️</span><b data-t="tabGym"></b></button></nav>
 
 <div class="overlay" id="ovAsk"><div class="sheet askbox"><p id="askMsg"></p><div class="actions"><button class="btn" id="askNo"></button><button class="btn primary" id="askYes"></button></div></div></div>
 <div class="overlay" id="ovPick"><div class="sheet"><h2 id="pickT"></h2><div id="pickList" class="picklist"></div><div class="actions"><button class="btn" data-close data-t="cancel"></button></div></div></div>

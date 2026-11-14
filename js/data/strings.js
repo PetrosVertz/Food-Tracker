@@ -3,11 +3,8 @@
 
 // ======================= text in both languages =======================
 const S = {
- homeHello:['What are we doing today?','Τι κάνουμε σήμερα;'],
- tScan:['Food tracker','Food tracker'], tScanSub:['Scan a barcode to add a food','Σκάναρε barcode για να προσθέσεις τρόφιμο'],
- tFoods:['My foods','Τα τρόφιμά μου'], tMeals:['Home-cooked','Σπιτικά φαγητά'],
- tFridge:['Fridge','Ψυγείο'], tFridgeSub:['What you have at home','Τι έχεις στο σπίτι'],
- tGroc:['Groceries','Ψώνια'], tGrocSub:['Your shopping list','Η λίστα για ψώνια'], soon:['soon','σύντομα'],
+ tFridge:['Fridge','Ψυγείο'],
+ tGroc:['Groceries','Ψώνια'], soon:['soon','σύντομα'],
  nFoods:['{n} foods','{n} τρόφιμα'], nFood:['1 food','1 τρόφιμο'], nMeals:['{n} meals','{n} φαγητά'], nMeal:['1 meal','1 φαγητό'],
  tabStore:['Store-bought','Από το μαγαζί'], tabMeals:['Home-cooked','Σπιτικά'],
  searchFoods:['Search food, brand or category…','Αναζήτηση τροφίμου, μάρκας ή κατηγορίας…'], searchMeals:['Search your meals…','Αναζήτηση φαγητών…'],
@@ -284,7 +281,6 @@ Object.assign(S, {
 // =====================================================================
 Object.assign(S, {
  tabFood:['Food Tracker','Food Tracker'], tabToday:['Today','Σήμερα'], tabGym:['Gym Buddy','Gym Buddy'],
- homeHello:['Your food, fridge and shopping.','Το φαγητό, το ψυγείο και τα ψώνια σου.'],
  fibre:['Fibre','Φυτ. ίνες'], electrolytes:['Electrolytes','Ηλεκτρολύτες'], sodium:['Sodium','Νάτριο'], potassium:['Potassium','Κάλιο'],
  elecHigh:['high','υψηλό'], fibTarget:['Fibre target (g/day)','Στόχος φυτικών ινών (g/μέρα)'], potMg:['Potassium (mg)','Κάλιο (mg)'],
  raw:['Raw','Ωμό'], cookedS:['Cooked','Μαγειρ.'], tapChangeV:['tap to change','πάτα για αλλαγή'],
@@ -306,9 +302,6 @@ Object.assign(S, {
 // ======================= 0.5.4 =======================
 Object.assign(S, {
   ok_:['OK','OK'], tabFood:['Food Tracker','Food Tracker'], fridgeFab:['Add Shopping','Πρόσθεσε ψώνια'],
-  hiMorning:['Good morning','Καλημέρα'], hiDay:['Hey','Γεια'], hiEvening:['Good evening','Καλησπέρα'], launchSub:['What are we doing?','Τι κάνουμε;'],
-  lFoodSub:['{n} foods · {f} in the fridge','{n} τρόφιμα · {f} στο ψυγείο'], lTodaySub:['{a} / {b} kcal','{a} / {b} kcal'], lTodayNo:['{a} kcal so far','{a} kcal μέχρι τώρα'],
-  lGymPlan:['{n} today · {t}','{n} σήμερα · {t}'], lGymRest:['Rest day 😴','Μέρα ξεκούρασης 😴'], lGymNone:['Nothing planned today','Τίποτα για σήμερα'], lGymDone:['Trained today ✓','Προπόνηση σήμερα ✓'],
   suWelcome:['Welcome 👋','Καλώς ήρθες 👋'], suWelcomeSub:['A quick setup, only once. You can change everything later.','Γρήγορο στήσιμο, μόνο μία φορά. Όλα αλλάζουν αργότερα.'],
   suNext:['Next','Επόμενο'], suBack:['Back','Πίσω'], suSkip:['Skip','Παράλειψη'], suFinish:['Let\'s go','Πάμε'],
   suAbout:['About you','Για σένα'], suWeight:['Body weight','Βάρος σώματος'], suGoal:['Goal','Στόχος'],
@@ -329,7 +322,7 @@ Object.assign(S, {
   formFail:['Couldn\'t load the demo (needs internet).','Δεν φόρτωσε η επίδειξη (θέλει ίντερνετ).'], formCredit:['Photos: free-exercise-db (public domain).','Φωτογραφίες: free-exercise-db (ελεύθερες).'], formNone:['No demo found for this one.','Δεν βρέθηκε επίδειξη γι\' αυτό.'],
   setsL:['Sets','Σετ'], restL:['Rest','Διάλειμμα'], typeChange:['Change','Αλλαγή'], otherWorkout:['Or Pick Another Workout','Ή διάλεξε άλλη προπόνηση'], tapNum:['Tap the set number for warm-up / drop / failure','Πάτα τον αριθμό του σετ για ζέσταμα / drop / αποτυχία'],
   wiT:['Weigh-in','Ζύγισμα'], wiSave:['Save','Αποθήκευση'], wiSaved:['Weight saved','Το βάρος αποθηκεύτηκε'],
-  bkT:['💾 Back up your data (1 tap)','💾 Αντίγραφο των δεδομένων (1 πάτημα)'], bkSub:['Last backup: {d}. Save it to iCloud Drive / Files.','Τελευταίο: {d}. Αποθήκευσέ το στο iCloud Drive / Αρχεία.'], bkNever:['never','ποτέ'], bkDone:['Backup saved','Το αντίγραφο αποθηκεύτηκε'],
+  bkNever:['never','ποτέ'], bkDone:['Backup saved','Το αντίγραφο αποθηκεύτηκε'],
   potOther:['Weigh It in the Pot Instead','Ζύγισε με την κατσαρόλα'], cookedW:['Cooked Food Weight (g)','Βάρος μαγειρεμένου φαγητού (g)'],
 });
 
