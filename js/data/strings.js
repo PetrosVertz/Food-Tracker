@@ -141,6 +141,7 @@ const S = {
  supLink:['Linked food (for macros)','Σύνδεση με τρόφιμο (για μακρο)'], supLinkNone:['— None —','— Κανένα —'],
  supLinkHint:['Link whey or anything with calories so its macros count later.','Σύνδεσε την πρωτεΐνη ή ό,τι έχει θερμίδες, για να μετράνε τα μακρο αργότερα.'],
  supNotesPh:['e.g. take with food','π.χ. με φαγητό'],
+ supUsualTime:['Usual Time (optional)','Συνηθισμένη Ώρα (προαιρετικό)'], supUsualTimeHint:['The list is ordered by this time through the day.','Η λίστα ταξινομείται με αυτή την ώρα μέσα στη μέρα.'],
  supNeedName:['Give it a name','Δώσε όνομα'], supNeedDose:['Add the dose','Βάλε τη δόση'],
  todayLabel:['Today','Σήμερα'], todayTaken:['{a} of {b} taken','{a} από {b}'],
  noSupps:['<b>No supplements yet</b>Tap “Add supplement” to list what you take.','<b>Δεν έχεις συμπληρώματα ακόμα</b>Πάτα «Προσθήκη» για να βάλεις ό,τι παίρνεις.'],
