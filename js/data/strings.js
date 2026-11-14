@@ -584,3 +584,16 @@ function titleCase(str){
   'createWorkout', 'mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking', 'startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes', 'yourBody',
   'recalcYes', 'recalcNo', 'tabSupps', 'scanFoodFab', 'scanReceipt', 'allFoods'
 ].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
+
+// 0.7.4.2: Food Preferences (setup step + Settings bar)
+Object.assign(S, {
+  stFoodPrefs: ['Food Preferences', 'Διατροφικές προτιμήσεις'], fpSub: ['Tell the AI what to leave out of its suggestions.', 'Πες στο AI τι να αποκλείει από τις προτάσεις του.'],
+  fpAllergies: ['Allergies', 'Αλλεργίες'], fpAvoid: ['Foods You Don\'t Eat', 'Τρόφιμα που δεν τρως'],
+  fpOtherPh: ['Anything else, separated by commas', 'Κάτι άλλο, χωρισμένο με κόμμα'],
+  fpWarn: ['AI suggestions may contain errors. If you have allergies or dietary restrictions, always check labels and ingredients before eating.', 'Οι προτάσεις του AI μπορεί να έχουν λάθη. Αν έχεις αλλεργίες ή διατροφικούς περιορισμούς, έλεγχε πάντα τις ετικέτες και τα συστατικά πριν φας.'],
+  fpSaved: ['Food preferences saved', 'Οι διατροφικές προτιμήσεις αποθηκεύτηκαν'],
+  fpA_peanuts: ['Peanuts', 'Φιστίκια'], fpA_tree_nuts: ['Tree Nuts', 'Ξηροί καρποί'], fpA_milk: ['Milk', 'Γάλα'], fpA_eggs: ['Eggs', 'Αυγά'], fpA_fish: ['Fish', 'Ψάρι'],
+  fpA_shellfish: ['Shellfish', 'Οστρακοειδή'], fpA_soy: ['Soy', 'Σόγια'], fpA_gluten: ['Gluten', 'Γλουτένη'], fpA_sesame: ['Sesame', 'Σουσάμι'],
+  fpD_vegetarian: ['Vegetarian', 'Χορτοφαγία'], fpD_vegan: ['Vegan', 'Βίγκαν'], fpD_pescatarian: ['Pescatarian', 'Πεσκετάριαν'], fpD_pork: ['Pork', 'Χοιρινό'],
+  fpD_beef: ['Beef', 'Μοσχάρι'], fpD_lamb: ['Lamb', 'Αρνί'], fpD_alcohol: ['Alcohol', 'Αλκοόλ'], fpD_mushrooms: ['Mushrooms', 'Μανιτάρια'],
+});

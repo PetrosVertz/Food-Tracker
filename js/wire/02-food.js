@@ -276,7 +276,7 @@ $('suggestBtn').addEventListener('click', async () => {
 Dish: "${name}". Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
 Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
 Rules: amounts in grams for the whole batch (liquids: 1 ml = 1 g), weighed raw as they go in (dry pasta and rice, raw meat). Include cooking oil explicitly. 3–10 ingredients, 4–10 short clear steps. name_en is a plain generic English food name (e.g. "chicken breast", "olive oil", "onion", "beef mince").
-Foods the user already has (prefer them when they fit): ${have || 'none listed'}`, null, onTry, ctl.signal);
+Foods the user already has (prefer them when they fit): ${have || 'none listed'}${AI.dietRules()}`, null, onTry, ctl.signal);
     if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
     pendingRecipe = r;
     $('rBody').innerHTML = recipeHtml(r, false);

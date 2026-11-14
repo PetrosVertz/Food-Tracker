@@ -157,6 +157,14 @@ const AI = (() => {
     const plain = s.replace(/✨\s?/g, '').trim(); if(!html) return `${esc(plain)} ${badge()}`;
     const i = plain.indexOf('<'); return i > 0 ? `${plain.slice(0, i).trim()} ${badge()}${plain.slice(i)}` : `${plain} ${badge()}`; }
 
+  // Food Preferences (profile.foodPrefs) as one rule for every prompt that suggests food; '' when nothing is set
+  function dietRules(){
+    const fp = (typeof profile !== 'undefined' && profile.foodPrefs) || {}, extra = s => String(s || '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
+    const al = [...(fp.allergies || []).map(k => t('fpA_' + k)), ...extra(fp.allergyText)], av = [...(fp.avoid || []).map(k => t('fpD_' + k)), ...extra(fp.avoidText)];
+    if(!al.length && !av.length) return '';
+    return '\nFood rules (strict, never break them): ' + (al.length ? `the user is ALLERGIC to: ${al.join(', ')}; never suggest or include these or anything made with them. ` : '') + (av.length ? `The user does not eat / avoids: ${av.join(', ')}; never suggest or include these.` : '');
+  }
+
   async function ask(prompt, img, onTry, outer, opts){
     count();
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
@@ -182,7 +190,7 @@ const AI = (() => {
   }
 
   return {
-    ask, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
+    ask, dietRules, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

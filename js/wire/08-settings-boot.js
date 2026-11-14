@@ -92,7 +92,7 @@ $('thMode').addEventListener('click', e => { const b = e.target.closest('[data-v
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
-document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
+document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
 $('sTargetsBtn').addEventListener('click', () => openTargets());
 function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
   document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
@@ -103,3 +103,6 @@ drawUnits();
 // 0.6.9.3: Customize › Use the app for (also asked at first launch)
 $('sUse').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return; ui.gymFirst = b.dataset.v === 'gym'; saveUI(); applyTabOrder(); toast(t(ui.gymFirst ? 'useGymOn' : 'useBothOn')); });
 applyTabOrder();
+
+$('sFoodBody').addEventListener('click', e => { const c = e.target.closest('.fpchips button'); if(c){ c.classList.toggle('on'); Phone.haptic(); } });
+$('sFoodSave').addEventListener('click', () => { saveFoodPrefs(readFoodPrefs($('sFoodBody'))); toast(t('fpSaved')); close('ovSFood'); });
