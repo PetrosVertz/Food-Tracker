@@ -215,7 +215,7 @@ const S = {
 Object.assign(S, {
  tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'], gtPartner:['Partner','Συνεργάτης'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
- exAlso:['also: {n}','επίσης: {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
+ exAlso:['Same Exercise · {n}','Ίδια Άσκηση · {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
  workoutType:['Type (sets up Today’s food)','Τύπος (ρυθμίζει το φαγητό της μέρας)'], exercises:['Exercises','Ασκήσεις'],
  newWorkout:['New workout','Νέα προπόνηση'], editWorkout:['Edit workout','Επεξεργασία προπόνησης'], emptyWorkout:['Empty workout','Κενή προπόνηση'],
@@ -565,6 +565,7 @@ Object.assign(S, {
   coachGymHi: ['I\'m your Gym Coach, here to help with your workouts. I can suggest a full workout, or look at one of yours and help you get more out of it.', 'Είμαι ο Κόουτς Γυμναστηρίου σου, εδώ για να βοηθήσω με τις προπονήσεις σου. Μπορώ να σου προτείνω μια ολόκληρη προπόνηση ή να δω μία δική σου και να σε βοηθήσω να βγάλεις περισσότερα από αυτήν.'],
   coachPh: ['Message', 'Μήνυμα'], coachSend: ['Send', 'Αποστολή'], coachPhoto: ['Take a Photo', 'Τράβηξε φωτογραφία'],
   coachBubA: ['Open {n}', 'Άνοιγμα: {n}'],
+  coachGymOpen: ['Open Gym Coach', 'Άνοιγμα Κόουτς Γυμναστηρίου'],
   coachFail: ['Couldn\'t answer just now ({e}). Try again in a moment.', 'Δεν μπόρεσα να απαντήσω τώρα ({e}). Δοκίμασε ξανά σε λίγο.'],
   aiNeedKey: ['This needs an AI key.', 'Χρειάζεται κλειδί AI.'], aiKeyGo: ['Add Key', 'Βάλε κλειδί'],
   // ==== end shell ====

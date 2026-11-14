@@ -43,11 +43,11 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     if(!left) tickRest(); }
   requestAnimationFrame(restLoop); })();
 
-// 0.7.4.3: on the live workout screen the Gym Coach robot bubble is always there (starts at the bottom right, by End Workout).
+// Live workout: the Gym Coach robot sits in the header (top right); tap it for the chat, closing the chat leaves the floating bubble, dismissing the bubble puts the robot back in the header.
 // Off the workout screen it hides; when the workout ends its chat ends with it (the next workout starts a fresh chat).
 { let was = false; new MutationObserver(() => { const on = $('ovSession').classList.contains('open'); if(on === was) return; was = on;
     document.body.classList.toggle('inses', on);
-    if(on){ if(!Coach.has('gymlive') && !$('ovCoach').classList.contains('open')) Coach.minimize('gymlive'); }
+    if(on){ const r = $('sesRobot'); if(r && !r.dataset.robot){ r.dataset.robot = 1; r.innerHTML = AI.robot('gym', 34); } }   // no bubble until the header robot is tapped
     else if(!active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
 // Hours Slept (Recovery page): saved per day in the profile; recovery reads it
@@ -58,3 +58,5 @@ $('gRecV').addEventListener('change', e => { if(e.target.id !== 'recSleep') retu
 
 // Exercise Settings sheet: switches save at once and the open workout redraws
 $('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });
+
+$('sesRobot').addEventListener('click', () => { Phone.haptic(); Coach.open('gymlive'); });

@@ -135,6 +135,9 @@ try {
     if (!ids.has(id)) bad.push(`${id}: other names given for an exercise that doesn't exist`);
     for (const a of al) { const o = names.get(norm(a)); if (o && o !== id) bad.push(`${id}: other name "${a}" is the real name of ${o} (would look like a duplicate)`); }
   }
+  // Brand and machine names are hidden search names only, never a visible exercise name (EN or GR)
+  const BRANDS = /\b(matrix|technogym|hammer strength|life fitness|cybex|panatta|gym80|iso-?lateral|low row)\b/i;
+  for (const r of LIB_RAW) for (const n of [r[1], r[2]]) if (BRANDS.test(n)) bad.push(`${r[0]}: visible name "${n}" contains a brand or machine name (move it to other names)`);
   const noAlso = LIB_RAW.filter(r => !(r[0] in ALSO) || !ALSO[r[0]].length).map(r => r[0]);
   if (noAlso.length) bad.push('no other names: ' + noAlso.join(', '));
   const lib = LIB_RAW.map(r => ({ id: r[0], en: r[1], el: r[2], al: ALSO[r[0]] || [] }));
