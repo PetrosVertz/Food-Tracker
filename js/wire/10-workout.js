@@ -50,5 +50,11 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     if(on){ if(!Coach.has('gymlive') && !$('ovCoach').classList.contains('open')) Coach.minimize('gymlive'); }
     else if(!active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
+// Hours Slept (Recovery page): saved per day in the profile; recovery reads it
+$('gRecV').addEventListener('change', e => { if(e.target.id !== 'recSleep') return; const v = parseFloat(String(e.target.value).replace(',', '.')), k = todayKey();
+  profile.sleep = profile.sleep || {}; if(v > 0 && v <= 16) profile.sleep[k] = Math.round(v * 10) / 10; else delete profile.sleep[k];
+  Object.keys(profile.sleep).sort().slice(0, -30).forEach(d => delete profile.sleep[d]);   // keep the last 30 days
+  saveProfile(); renderRecovery(); renderGym(); });
+
 // Exercise Settings sheet: switches save at once and the open workout redraws
 $('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });

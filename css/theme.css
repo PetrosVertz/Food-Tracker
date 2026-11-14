@@ -820,3 +820,6 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* 0.7.7 recovery gradient legend */
 .recgrad{max-width:240px;margin:0 auto var(--s4)} .recgrad i{display:block;height:10px;border-radius:var(--r-pill)}
 .recgrad span{display:flex;justify-content:space-between;margin-top:4px;font-size:var(--fs-label);color:var(--t-muted)}
+.sleepbox{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 12px;padding:12px;border-radius:var(--r-card,16px);background:var(--t-card2);border:1px solid var(--t-line)}
+.sleepbox label b{display:block;font-weight:var(--w-med)} .sleepbox label small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
+.sleepbox .gymsbox{width:84px;flex:0 0 84px}

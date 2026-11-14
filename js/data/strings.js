@@ -674,3 +674,8 @@ Object.assign(S, {
   exsSoundH: ['Sounds', 'Ήχοι'], exsSound: ['Workout Sounds', 'Ήχοι Προπόνησης'],
   exsSoundS: ['A boxing bell when the rest ends and a soft tone when the workout is finished. A silent phone stays silent.', 'Καμπάνα του μποξ όταν τελειώνει η ξεκούραση και απαλός ήχος στο τέλος της προπόνησης. Σε σίγαση το κινητό δεν παίζει ήχο.'],
 });
+
+// ---------- 0.7.7: hours slept ----------
+Object.assign(S, {
+  sleepL: ['Hours Slept', 'Ώρες Ύπνου'], sleepS: ['Last night. Optional: short sleep means more rest is needed.', 'Χθες βράδυ. Προαιρετικό: λίγος ύπνος σημαίνει περισσότερη ξεκούραση.'],
+});

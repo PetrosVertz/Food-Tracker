@@ -388,6 +388,10 @@ function headLoads(ses){
       Object.entries(ex.mu).forEach(([h, v]) => { if(HEADS[h] && h !== 'cardio') per[h] = (per[h] || 0) + v / 100 * e; }); }); });
   return per;
 }
+// 0.7.7: hours slept (typed by hand on the Recovery page, kept per day in profile.sleep). Short sleep stretches the rest a muscle needs, long sleep trims it a little.
+// Uses the average of the nights since the workout; with no entry it changes nothing.
+const sleepFactor = endTs => { const sl = profile.sleep || {}, from = new Date(endTs).toISOString().slice(0, 10), v = Object.entries(sl).filter(([d]) => d >= from).map(([, h]) => +h).filter(h => h > 0);
+  if(!v.length) return 1; const h = v.reduce((a, b) => a + b, 0) / v.length; return h < 5 ? 1.3 : h < 6 ? 1.2 : h < 7 ? 1.1 : h <= 9 ? 1 : .95; };
 const headHours = (h, load) => Math.round(Math.min(96, (BIG_HEADS.has(h) ? 48 : 36) + 7 * Math.max(0, load - 3)));
 // hours until each trained muscle group is ready to train hard again (≥80 %, same rule as the recovery map)
 const readyHours = (h, l) => { const f = Math.min(1, l / 6); return f > .2 ? Math.round(headHours(h, l) * (1 - .2 / f)) : 0; };
@@ -400,7 +404,8 @@ function headFatigue(atTs){
     const end = new Date(s.end || s.start).getTime(), hrs = (atTs - end) / 3.6e6; if(hrs < 0 || hrs > 144) return;
     Object.entries(headLoads(s)).forEach(([h, l]) => { const gr = HEADS[h][2], base = headHours(h, l);
       const est = (s.recovEst || {})[gr], rh = s.recov && s.recov[gr] && est > 0 ? Math.max(base * .5, Math.min(144, base * s.recov[gr] / est)) : base;
-      out[h] = Math.min(1, (out[h] || 0) + Math.min(1, l / 6) * Math.max(0, 1 - hrs / rh)); });
+      const rhs = rh * sleepFactor(end);
+      out[h] = Math.min(1, (out[h] || 0) + Math.min(1, l / 6) * Math.max(0, 1 - hrs / rhs)); });
   });
   return out;
 }
@@ -474,6 +479,8 @@ function recFoodLine(){
   const p = list.reduce((a, e) => a + (+e.p || 0), 0), k = list.reduce((a, e) => a + (+e.kcal || 0), 0);
   const msg = !list.length ? t('recFoodNone') : p >= tg.p * .5 && k >= tg.k * .5 ? t('recFoodOk', { p: Math.round(p), k: Math.round(k) }) : t('recFoodLow', { p: Math.round(Math.max(0, tg.p * .5 - p)) });
   return `<div class="alert" style="cursor:default;margin-bottom:12px">${msg}</div>`; }
+function sleepBox(){ const v = (profile.sleep || {})[todayKey()] || '';
+  return `<div class="sleepbox"><label for="recSleep"><b>${t('sleepL')}</b><small>${t('sleepS')}</small></label><div class="gymsbox"><input id="recSleep" inputmode="decimal" value="${v}" placeholder="–" aria-label="${t('sleepL')}"></div></div>`; }
 function renderRecovery(){
   const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
   const notReady = Object.entries(m).filter(([, v]) => v.h > 0).sort((a, b) => b[1].h - a[1].h);
@@ -482,6 +489,7 @@ function renderRecovery(){
     `<div class="reccard" id="recFig">${recFigure()}</div>
     <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small>${t('recReady')}</small><small>${t('recLow')}</small></span></div>
     ${recFoodLine()}
+    ${sleepBox()}
     <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
     <p class="hint">${t('recHint')}</p>`;
 }
