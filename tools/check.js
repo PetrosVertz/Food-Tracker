@@ -79,6 +79,15 @@ const dupIds = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
 if (dupIds.length) fail('duplicate ids in index.html: ' + dupIds.join(', '));
 else ok(`ids: ${ids.length}, no duplicates`);
 
+// 5b. Every FORM_PICK key is a real exercise id (data/gym.js)
+try {
+  const gctx = { console: { log() {}, warn() {} } }; vm.createContext(gctx);
+  vm.runInContext(read('js/data/gym.js') + '\n;this.__G = { FORM_PICK, LIB_RAW };', gctx);
+  const libIds = new Set(gctx.__G.LIB_RAW.map(r => r[0])), badPick = Object.keys(gctx.__G.FORM_PICK).filter(k => !libIds.has(k));
+  if (badPick.length) fail('FORM_PICK has keys that are not exercise ids: ' + badPick.join(', '));
+  else ok(`FORM_PICK: ${Object.keys(gctx.__G.FORM_PICK).length} exercises, all real ids`);
+} catch (e) { fail('could not check FORM_PICK: ' + e.message); }
+
 // 6. Emoji left on screen (information only)
 const emo = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{2190}-\u{21FF}\u{24D8}\u{FF0B}\u{2305}\u{25A5}\u{25B6}\u{25BE}\u{25B8}]/u;
 const files = ['index.html', ...styles, ...scripts.filter(f => fs.existsSync(path.join(root, f)))];
