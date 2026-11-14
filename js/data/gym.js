@@ -71,9 +71,9 @@ const LIB_RAW = [
  ['band_pull_apart','Band pull-apart','Ανοίγματα με λάστιχο','e','raise','delt_rear:55 upper_back:45'],
  ['y_raise','Incline Y-raise','Y-raise σε πάγκο','d','raise','traps:50 delt_rear:30 delt_side:20'],
  // back
- ['deadlift','Deadlift','Άρσεις θανάτου','b','hinge','lower_back:30 glutes:25 hamstrings:25 quads:10 traps:10'],
- ['sumo_deadlift','Sumo deadlift','Sumo άρσεις θανάτου','b','hinge','glutes:30 quads:25 lower_back:20 adductors:15 hamstrings:10'],
- ['trap_bar_dl','Trap bar deadlift','Άρσεις με εξάγωνη μπάρα','b','hinge','quads:30 glutes:25 lower_back:20 hamstrings:15 traps:10'],
+ ['deadlift','Deadlift','Άρσεις θανάτου','b','hinge','lower_back:30 glutes:25 hamstrings:30 traps:15'],
+ ['sumo_deadlift','Sumo deadlift','Sumo άρσεις θανάτου','b','hinge','glutes:30 quads:25 lower_back:25 adductors:20'],
+ ['trap_bar_dl','Trap bar deadlift','Άρσεις με εξάγωνη μπάρα','b','hinge','quads:30 glutes:25 lower_back:25 hamstrings:20'],
  ['rack_pull','Rack pull','Rack pull','b','hinge','lower_back:35 traps:30 glutes:20 hamstrings:15'],
  ['bb_row','Barbell row','Κωπηλατική με μπάρα','b','row','upper_back:35 lats:35 delt_rear:15 biceps:15'],
  ['pendlay_row','Pendlay row','Pendlay row','b','row','upper_back:40 lats:30 delt_rear:15 biceps:15'],

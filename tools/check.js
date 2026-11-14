@@ -91,6 +91,35 @@ const total = Object.values(hits).reduce((a, b) => a + b, 0);
 if (total) note(`lines with emoji/glyph icons: ${total} (${Object.entries(hits).map(([f, n]) => `${f} ${n}`).join(', ')})`);
 else ok('no emoji/glyph icons');
 
+// 8. Exercise library (LIB_RAW in js/data/gym.js)
+try {
+  const gctx = { console: { log() {}, warn() {} } };
+  vm.createContext(gctx);
+  vm.runInContext(read('js/data/gym.js').replace(/^const /gm, 'var ') + '\n;this.__G = { LIB_RAW, HEADS, EQ, REST_BY_PATTERN };', gctx);
+  const { LIB_RAW, HEADS, EQ, REST_BY_PATTERN } = gctx.__G;
+  const seen = new Set(), bad = [];
+  for (const row of LIB_RAW) {
+    const [id, en, el, eq, pat, mu] = row, p = m => bad.push(`${id}: ${m}`);
+    if (seen.has(id)) p('duplicate id'); seen.add(id);
+    if (!/^[a-z0-9_]+$/.test(id)) p('id is not snake_case');
+    if (!en) p('no English name');
+    if (!el || !String(el).trim()) p('no Greek name');
+    if (!(eq in EQ)) p(`equipment code "${eq}" not in EQ`);
+    if (!(pat in REST_BY_PATTERN)) p(`pattern "${pat}" not in REST_BY_PATTERN`);
+    const parts = String(mu).trim().split(/\s+/).map(x => x.split(':'));
+    let sum = 0;
+    if (parts.length > 4) p('more than 4 muscles');
+    for (const [k, v] of parts) {
+      if (!(k in HEADS)) p(`muscle "${k}" not in HEADS`);
+      if (!/^\d+$/.test(v || '')) p(`"${k}" percentage "${v}" is not a whole number`);
+      sum += +v || 0;
+    }
+    if (sum !== 100) p(`percentages add up to ${sum}, not 100`);
+    else if (parts.length > 1 && Math.max(...parts.map(x => +x[1])) !== +parts[0][1]) p('main mover is not listed first');
+  }
+  if (bad.length) bad.forEach(b => fail('exercise ' + b)); else ok(`exercise library: ${LIB_RAW.length} exercises, all valid`);
+} catch (e) { fail('could not check exercise library: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
