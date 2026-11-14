@@ -161,12 +161,23 @@ food = true only if people eat or drink it. If you can't find the product, known
     if(r.name){ x.name = String(r.name); x.brand = r.brand || ''; }
   }catch(e){}
 }
+// macros of a scanned item, under its name: per 100 g/ml, and per pack / per serving when the size is known
+function scanMacros(x){
+  const f = x.foodId && foods.find(y => y.id === x.foodId), d = x.data || f; if(!d || d.kcal == null && d.protein == null && d.carbs == null && d.fat == null) return '';
+  const u = d.unit || x.unit || 'g', line = k => `${Math.round((d.kcal ?? 0) * k)} kcal · P ${fmt((d.protein ?? 0) * k)} · C ${fmt((d.carbs ?? 0) * k)} · F ${fmt((d.fat ?? 0) * k)}`;
+  const row = (lab, txt) => `<small class="scanmac">${esc(lab)}: ${txt}</small>`;
+  let h = row(t('per100Label', { u }).replace(/^./, c => c.toUpperCase()), line(1));
+  const pack = x.size || d.usualPack, sv = Number(d.serving) > 0 ? Number(d.serving) : 0;
+  if(pack > 0) h += row(t('perPack'), line(pack / 100));
+  if(sv > 0 && sv !== pack) h += row(t('perWLabel', { w: sv + ' ' + u }).replace(/^./, c => c.toUpperCase()), line(sv / 100));
+  return h;
+}
 function scanUI(){
   const S_ = SHOP.scan, n = SHOP.items.reduce((a, x) => a + (x.scans || 1), 0), fr = scanCtx === 'fridge' && S_;   // how many packs went past the camera
   $('scanBasket').classList.toggle('hide', !fr || !SHOP.items.length); $('scanBasket').textContent = t('scanBasket', { n });
   $('scanCancel').textContent = fr && SHOP.items.length ? t('scanDone', { n }) : t('close');
   const q = fr && S_.ask; $('scanQ').classList.toggle('hide', !q);
-  if(q){ const x = S_.askFor; $('scanQT').innerHTML = `<small>${t('addedOne')}</small><b>${esc(x.look === 'busy' ? t('lookingUp1') : shopName(x))}</b>`; }
+  if(q){ const x = S_.askFor; $('scanQT').innerHTML = `<small>${t('addedOne')}</small><b>${esc(x.look === 'busy' ? t('lookingUp1') : shopName(x))}</b>${x.look === 'busy' ? '' : scanMacros(x)}`; }
 }
 function scanFlash(x){ const el = $('scanFlash'); el.innerHTML = `${svgIcon('check', 16, 3)} ${esc(x.look === 'busy' ? t('addedOne') : shopName(x))}${x.scans > 1 ? ` <b>×${x.scans}</b>` : ''}`;
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); Phone.haptic(); }
