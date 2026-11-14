@@ -663,6 +663,7 @@ function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gy
 
 // ---------- live workout (canvas: Phones.dc.html / Gym.dc.html) ----------
 // one exercise is open at a time (plus its superset partners); the others are short cards: name, muscle · equipment · N sets
+const ICO_GEAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON.settings + '</svg>';
 const ICO_EYE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const ICO_SWAP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3M19 4v5h-5M5 20v-5h5"/></svg>';
 const ICO_TICK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
@@ -683,7 +684,7 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const head = `<div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
-      <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
+      <div class="expills">${uniPill}<button class="pill2 gear" data-exset aria-label="${t('exSetT')}">${ICO_GEAR}</button><button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });

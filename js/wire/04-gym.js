@@ -86,6 +86,7 @@ $('sesBody').addEventListener('click', e => {
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
+  if(e.target.closest('[data-exset]')){ Phone.haptic(); open('ovExSet'); return; }   // gear: one settings sheet for every exercise
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time

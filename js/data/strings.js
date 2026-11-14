@@ -560,6 +560,12 @@ function titleCase(str){
     return w.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('-');
   });
 }
+// ---------- exercise settings (gear on every exercise card) ----------
+Object.assign(S, {
+  exSetT: ['Exercise Settings', 'Ρυθμίσεις Ασκήσεων'],
+  exSetSub: ['These settings apply to every exercise in your workout.', 'Αυτές οι ρυθμίσεις ισχύουν για κάθε άσκηση στην προπόνηση.'],
+  exSetSoon: ['More options are coming here soon.', 'Σύντομα θα προστεθούν κι άλλες επιλογές.']
+});
 [
   'add', 'addBrand', 'addExercise', 'addFood', 'addIngredient', 'addSuppFab', 'addThis', 'all', 'almost', 'ateAt', 'auto', 'back',
   'barcode', 'bestV', 'blBest', 'blOr', 'bodyMode', 'brand', 'calcStart', 'cancel', 'carbTiming', 'carbs', 'chooseIngredient', 'close',

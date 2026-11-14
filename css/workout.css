@@ -123,6 +123,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .exhead .xt{color:var(--t-text);font-weight:var(--w-med);font-variant-numeric:tabular-nums}
 .expills{display:flex;justify-content:center;gap:8px;margin-top:8px}
 .pill2{width:72px;height:28px;box-sizing:border-box;padding:0;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-med);display:flex;align-items:center;justify-content:center;gap:4px;border:0;background:var(--t-sel);color:var(--t-text);cursor:pointer}
+.pill2.gear{width:28px}
 .pill2.uni{letter-spacing:.5px;background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);transition:background .2s,color .2s,border-color .2s}
 .pill2.uni.on{background:#eef0f2;border-color:#eef0f2;color:#0b0d0f;font-style:italic}
 .exinfo{font-size:var(--fs-label);color:var(--t-muted);text-align:center;line-height:1.4}
