@@ -225,7 +225,7 @@ Object.assign(S, {
  warmupS:['Warm-up: {s}','Ζέσταμα: {s}'], addWarm:['Add','Προσθήκη'],
  needSetVals:['Type the weight and reps','Γράψε βάρος και επαναλήψεις'],
  suppsNow:['Supplements today:','Συμπληρώματα σήμερα:'],
- smTitle:['Workout done','Η προπόνηση τελείωσε'], smDur:['minutes','λεπτά'], smVol:['kg volume','kg όγκος'], smSets:['sets','σετ'], smKcal:['kcal burned (est.)','kcal (εκτίμηση)'],
+ smTitle:['Workout Done','Η προπόνηση τελείωσε'], smDur:['minutes','λεπτά'], smVol:['kg volume','kg όγκος'], smSets:['sets','σετ'], smKcal:['kcal burned (est.)','kcal (εκτίμηση)'],
  smPRs:['Records','Ρεκόρ'], smNoPR:['No new records this time. Consistency beats records.','Χωρίς νέα ρεκόρ αυτή τη φορά. Η συνέπεια μετράει περισσότερο.'],
  smFood:['Your post-workout window is open until {t}: ~{c} g carbs + 30–40 g protein.','Το παράθυρο μετά την προπόνηση είναι ανοιχτό ως τις {t}: ~{c} g υδατ. + 30–40 g πρωτεΐνη.'],
  noSets:['Log at least one set first','Κατέγραψε πρώτα τουλάχιστον ένα σετ'], unfinished:['Some sets aren’t ticked. Finish anyway?','Κάποια σετ δεν έχουν τσεκαριστεί. Τέλος έτσι κι αλλιώς;'],

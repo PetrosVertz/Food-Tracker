@@ -219,3 +219,29 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 
 #tpAdd{display:flex;align-items:center;justify-content:center;gap:8px} #tpAdd b{font-weight:inherit} .tpaddi{display:flex}
 .adddrop svg{vertical-align:-1px}
+
+/* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
+.fph{display:flex;align-items:center;gap:6px}
+.fph svg{flex:0 0 auto;color:var(--t-done-ink,var(--t-done))} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
+#eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
+#eiBody .mrow small{white-space:nowrap}
+#eiBody .mrow b{text-align:right}
+/* 0.7.4.1 gym: Form page stays phone-wide and centred on a computer */
+#ovDemo .sheet.formpage{max-width:480px!important;margin:0 auto!important}
+/* 0.7.4.1 gym: workout summary — record lines and a filled Done button */
+.feed li.prv{color:var(--t-warm)} .feed li.prv .ric{color:var(--t-warm)} .feed li.prw .ric{color:var(--t-accent-ink,var(--t-accent))}
+:root[data-theme="light"] .feed li.prv,:root[data-theme="light"] .feed li.prv .ric{color:#7a4c00}
+#ovSummary .btn.fillbtn{background:var(--t-text)!important;color:var(--t-bg)!important;border:0!important;box-shadow:none!important;font-weight:var(--w-bold)}
+/* 0.7.4.1 gym: Create a Workout cards */
+.tpcard .tpname{font-weight:var(--w-bold);font-style:italic}
+.tpcard .tph .ttl small{display:flex;align-items:center;gap:4px}
+.tpb{align-items:center}
+.tpb .formb{width:auto;height:28px;padding:0 12px;border-radius:var(--r-pill);background:var(--t-sel)!important;border:0!important;color:var(--t-accent-ink,var(--t-accent))!important;font-size:var(--fs-label)}
+.tpb .tprm{background:none!important;border:0!important;width:32px;height:32px;color:var(--t-muted)!important}
+.tpcard .stepper{background:var(--t-rest-box);border:1px solid var(--t-line);height:42px}
+.tpcard .stepper button{background:var(--t-sel);color:var(--t-text)}
+.tpcard .stepper b,.tpcard .stepper input{flex:1;text-align:center;justify-content:center;color:var(--t-text);font-variant-numeric:tabular-nums}
+.tpcard .tps small{color:var(--t-muted)}
+/* 0.7.4.1 gym: Saved Workouts — names in capitals, bigger plain memory-card icon */
+#gTplV .svname{text-transform:uppercase;letter-spacing:.3px}
+#gTplV .ficon.svic{background:none!important;width:44px;height:44px;flex:0 0 44px}
