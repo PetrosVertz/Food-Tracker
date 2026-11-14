@@ -1056,3 +1056,17 @@ const FEM_K = [[0, 1], [70, 1], [92, .9], [150, .9], [178, .88], [200, .93], [23
 function femS(y){ for(let i = 1; i < FEM_K.length; i++){ const [y1, s1] = FEM_K[i], [y0, s0] = FEM_K[i - 1]; if(y <= y1) return s0 + (s1 - s0) * (y - y0) / (y1 - y0); } return 1; }
 const femX = (x, y) => +(100 - (100 - x) * femS(y)).toFixed(1);
 function femWarp(d){ return d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g, (m, x, y) => `${femX(+x, +y)} ${y}`); }
+
+// ---------- 0.7.4.3 Gym Coach: the shared coach chat (coach.js) with the sweatband robot ----------
+// Every answer is one or two short friendly lines ("reply"), then the result as a card (a workout, a machine). No long chat.
+const GC_REPLY = 'Reply style: straight to the point. "reply" is one or two short, friendly sentences (at most 35 words), plain text: no lists, no markdown, no greetings or sign-offs, no long explanations. A result (a workout, a machine) never goes inside "reply": it goes in its own field and the app shows it as a card.';
+const gcLang = () => lang === 'el' ? 'Greek' : 'English';
+function gcPrompt(ch, img){
+  return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. Answer the user's last message in ${gcLang()}.
+${GC_REPLY}${AI.dietRules()}
+Conversation so far (latest last):
+${ch.transcript()}
+${img ? 'The user also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string}`;
+}
+function gcShow(r, ch){ ch.say(String((r && r.reply) || '').trim() || t('coachFail', { e: '?' })); }
+async function gymCoachSend(text, ch, img){ gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }

@@ -354,3 +354,6 @@ makeSwipeDelete($('tpList'), '.tpcard', c => { const i = +c.dataset.i, gone = TP
 makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data-x]').dataset.x, si = +row.dataset.s, x = active.exercises[xi]; if(!x) return; const gone = x.sets.splice(si, 1)[0];
   if(REST && REST.xi === xi){ if(REST.si === si){ REST = null; $('restBar').classList.add('hide'); } else if(REST.si > si) REST.si--; }
   saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });
+
+// ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
+Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
