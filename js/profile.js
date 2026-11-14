@@ -20,11 +20,12 @@ function bestE1(exId){
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
 //   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
-//   tierOf : (exId, e1) => null | { label, color? }   — the tier badge for a board row (none until gym-tiers)
+//   tierOf : (exId, e1) => null | { label, color? }   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
 function profileData(){
   const me = Account.current(), today = todayKey();
   const streak = gymStreak();                              // gym-streak (gym.js)
-  const tierOf = (exId, e1) => null;                      // gym-tiers: replace with the real tier
+  // gym-tiers: Bronze 3 … Diamond 1 from tierFor() (gym.js); colour = the tier's theme-aware colour (workout.css --tier-*)
+  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, color: `var(--tier-${tf.tier})` } : null; };
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
   const latestPR = prs.filter(p => p.kind === 'w').sort((a, b) => b.start.localeCompare(a.start))[0] || null;
@@ -33,6 +34,7 @@ function profileData(){
     initial: (me.name || '').trim().charAt(0).toUpperCase(),
     live: !!active, trainedToday: sessions.some(s => s.date === today),
     streak, latestPR, prCount: prs.length,
+    tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
     boards: BOARD_LIFTS.map(b => { const e1 = bestE1(b.id); return { ...b, e1, tier: e1 ? tierOf(b.id, e1) : null }; }),
     weights: wts,
     totals: {
@@ -73,7 +75,7 @@ function renderProfile(){
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
         <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfLatestPR'))}</small>${pr}</div></div>`
-    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p><div class="pfcard pfboards">${rows}</div>`
+    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows}</div>`
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`
     + wCard
     + `<div class="pfstats">${stat(num(d.prCount), 'pfPRs')}${stat(num(d.totals.workouts), 'pfWorkouts')}${stat(num(d.totals.sets), 'pfSets')}${stat(`${num(d.totals.volume)} <small>kg</small>`, 'pfVolume')}${stat(num(d.totals.foodDays), 'pfFoodDays')}</div>`;
