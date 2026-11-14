@@ -260,3 +260,7 @@ body:not(.inses) #cb-gymlive,body.inses .coachbub:not(#cb-gymlive){display:none!
 html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-inset-bottom))}
 /* the coach chat box gets class "cam" when it has a camera button, which also matches the barcode camera frame (base.css .cam): undo that here */
 #coachForm.cam{aspect-ratio:auto;width:auto;border-radius:0;overflow:visible;background:none}
+/* training style card: four small numbers, a note */
+.gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gsrow{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
+.gsnote{margin:0}

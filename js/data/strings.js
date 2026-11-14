@@ -506,6 +506,14 @@ Object.assign(S, {
   gcWFirst: ['First Time', 'Πρώτη φορά'], gcWEst: ['Start with about {w} kg × {r}, from your other lifts', 'Ξεκίνα με περίπου {w} kg × {r}, από τις άλλες ασκήσεις σου'],
   gcWLast: ['You\'ve done this: try {w} kg × {r} today', 'Το έχεις κάνει: δοκίμασε {w} kg × {r} σήμερα'],
   gcWNone: ['Start light: a weight you can lift 15 times with good form', 'Ξεκίνα ελαφριά: ένα βάρος που σηκώνεις 15 φορές σωστά'],
+  gcStyleT: ['Your Training Style', 'Το στυλ προπόνησής σου'],
+  gsLow: ['Low Volume, High Intensity', 'Λίγος όγκος, υψηλή ένταση'], gsMid: ['In Between', 'Ενδιάμεσο'], gsHigh: ['High Volume, Lower Intensity', 'Πολύς όγκος, χαμηλότερη ένταση'],
+  gsLowS: ['Low', 'Χαμηλό'], gsMidS: ['Medium', 'Μεσαίο'], gsHighS: ['High', 'Υψηλό'],
+  gsSets: ['Sets per Muscle a Week', 'Σετ ανά μυ την εβδομάδα'], gsReps: ['Usual Reps', 'Συνήθεις επαναλήψεις'], gsFail: ['Sets to Failure', 'Σετ μέχρι αποτυχία'],
+  gsFrom: ['Read from your last {n} workouts. Every suggestion fits it. Not right? Pick yours below.', 'Από τις τελευταίες {n} προπονήσεις σου. Κάθε πρόταση ταιριάζει σε αυτό. Δεν είναι σωστό; Διάλεξε το δικό σου παρακάτω.'],
+  gsMine: ['You chose this. Every suggestion fits it.', 'Το διάλεξες εσύ. Κάθε πρόταση ταιριάζει σε αυτό.'],
+  gsFew: ['Not enough workouts yet to tell. Pick the one that fits you.', 'Δεν υπάρχουν ακόμα αρκετές προπονήσεις για να φανεί. Διάλεξε αυτό που σου ταιριάζει.'],
+  gsSet: ['Training style: {n}', 'Στυλ προπόνησης: {n}'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
