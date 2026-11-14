@@ -233,7 +233,11 @@ Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en
 - loose: true for unbranded fresh food (fruit, vegetables, butcher meat, fish, bakery bread, deli by weight), else false.
 - code: the product's barcode digits (EAN, 8 or 13 digits) if the line prints one, else null. Copy the digits exactly, never guess.
 - food: true only for something people eat or drink (food, drinks, supplements). false for anything else (scissors, paper towels, shampoo, cleaning, bags, batteries, pet food…). Still list the non-food lines, marked false, so the user can rescue a wrong guess.
-Skip deposits (ΕΓΓΥΗΣΗ), discounts (ΕΚΠΤΩΣΗ), totals and VAT. Do NOT give nutrition values.`;
+Skip deposits (ΕΓΓΥΗΣΗ), discounts (ΕΚΠΤΩΣΗ), totals and VAT. Do NOT give nutrition values.
+If the photo is too blurry, dark or cut off to read the product lines, return {"kind":"unreadable","items":[]}. Never guess a line you can't read.`;
+// a long receipt photographed in parts (receipt camera, receipt.js)
+const RCPT_PARTS = `\nThese photos are ONE long receipt photographed in parts, top to bottom. Neighbouring parts may overlap: a line that appears at the bottom of one part and the top of the next is ONE line, list it once.`;
+
 
 // one line read by the AI → a review card, matched against your foods and the built-in list
 function rcptItem(l, noMatch){
@@ -259,11 +263,14 @@ function shopRescue(i){
   if(!x.foodId && !x.gid && !x.data) shopPickFor(x);
 }
 
+// file: a photo, or { imgs: [cleaned scans] } from the receipt camera (sent at full size, one receipt)
 async function shopPhoto(file){
   SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.rcpt = false; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
   let lines;
   try{
-    const img = await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT, img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
+    const parts = file.imgs, img = parts || await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT + (parts && parts.length > 1 ? RCPT_PARTS : ''), img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
+    if(d && d.kind === 'unreadable'){ SHOP.busy = false; status($('shopStatus'), t('rcptUnreadable'), true);
+      drawShop(); if(parts) $('shopDone').innerHTML = `<button class="btn primary" type="button" id="shopRetake">${t('rcptRetake')}</button>`; return; }
     SHOP.rcpt = !!d && d.kind !== 'groceries';
     lines = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el || x.line));
   }catch(err){ SHOP.busy = false; status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); drawShop(); return; }
