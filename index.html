@@ -167,6 +167,7 @@
   <h2 data-t="shopT"></h2><p class="sub" data-t="shopSub"></p>
   <div id="shopOpts">
     <button class="opt camopt" data-shop="camera"><span><b class="aiafter" data-t="shopCam"></b><small data-t="shopCamSub"></small></span></button>
+    <button class="opt camopt" data-shop="table"><span><b class="aiafter" data-t="shopTable"></b><small data-t="shopTableSub"></small></span></button>
     <button class="opt" data-shop="scan"><span><b data-t="shopScan"></b><small data-t="shopScanSub"></small></span></button>
     <button class="opt" data-shop="search"><span><b data-t="shopSearch"></b><small data-t="shopSearchSub"></small></span></button>
   </div>
@@ -179,7 +180,13 @@
   <div id="shopDone"></div>
   <div id="shopList"></div>
   <div id="shopSkip"></div>
+  <button class="linkbtn hide" type="button" id="shopTableBtn"><span class="aiafter" data-t="shopTable"></span></button>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="shopAddBtn"></button></div>
+</div></div>
+<div class="overlay" id="ovTable"><div class="sheet">
+  <h2 data-t="tableT"></h2><p class="sub" data-t="tableSub"></p>
+  <input type="file" id="tableFile" accept="image/*" capture="environment" class="hide">
+  <div class="actions"><button class="btn" data-close data-t="skip"></button><button class="btn primary" id="tableTake" data-t="tableTake"></button></div>
 </div></div>
 <div class="overlay" id="ovShopEd"><div class="sheet">
   <h2 data-t="shopEditT"></h2>

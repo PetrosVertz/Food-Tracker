@@ -49,7 +49,8 @@ function shopTags(x){
   else if(x.web) tags.push(`<span class="stag web">${t('fromWeb')}</span>`);
   else if(x.data) tags.push(`<span class="stag">${t('shopNew')}</span>`);
   else if(x.gid) tags.push(`<span class="stag">${t('stdValues')}</span>`);
-  if(x.verified) tags.push(`<span class="stag ok">${t(x.verified === 'barcode' ? 'verBarcode' : 'verPhoto')}</span>`);
+  if(x.verified) tags.push(`<span class="stag ok">${t('verBarcode')}</span>`);
+  if(x.photo) tags.push(`<span class="stag ok">${t('verPhoto')}</span>`);
   if(x.src === 'receipt' && !x.sure && x.look !== 'busy' && (x.foodId || x.gid || x.data)) tags.push(`<span class="stag warn">${t('shopUnsure')}</span>`);
   if(x.brand) tags.push(esc(x.brand));
   if(x.line && x.src !== 'scan') tags.push(`<span class="sline">${esc(x.line)}</span>`);
@@ -82,6 +83,7 @@ function shopVisible(){ return SHOP.items.map((x, i) => ({ x, i })).filter(({ x 
 function drawShop(){
   const vis = shopVisible(), n = vis.filter(({ x }) => x.on).length, done = SHOP.items.filter(x => x.done);
   $('shopDone').innerHTML = done.length ? `<div class="shopdone"><span>${svgIcon('check', 15, 3)}</span><div><b>${t('wentIn', { n: done.length })}</b><small>${esc(done.map(shopName).join(', '))}</small></div><button class="linkbtn" type="button" id="shopUndoSure">${t('undo')}</button></div>` : '';
+  $('shopTableBtn').classList.toggle('hide', !(SHOP.rcpt && shopTableItems().length && !SHOP.busy));
   const sk = SHOP.skipped || [];
   $('shopSkip').innerHTML = sk.length ? `<details class="shopskip"><summary>${t('notFoodT', { n: sk.length })}</summary>${sk.map((k, i) => `<div class="skiprow"><span>${esc(k.name)}</span><button class="linkbtn" type="button" data-rescue="${i}">${t('rescue')}</button></div>`).join('')}</details>` : '';
   $('shopList').innerHTML = vis.map(({ x, i }) => shopRow(x, i)).join('') || (SHOP.busy ? '' : done.length ? `<div class="empty">${t('allIn')}</div>` : '');
@@ -258,10 +260,11 @@ function shopRescue(i){
 }
 
 async function shopPhoto(file){
-  SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
+  SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.rcpt = false; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
   let lines;
   try{
     const img = await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT, img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
+    SHOP.rcpt = !!d && d.kind !== 'groceries';
     lines = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el || x.line));
   }catch(err){ SHOP.busy = false; status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); drawShop(); return; }
   if(!lines.length){ SHOP.busy = false; status($('shopStatus'), t('shopNone'), true); drawShop(); return; }
@@ -299,6 +302,7 @@ ${part.map((x, j) => `${j}) "${x.line}" = ${x.brand ? x.brand + ' ' : ''}${x.nam
     web.forEach(x => { x.look = ''; });
   }
   SHOP.busy = false; status($('shopStatus'), ''); drawShop();
+  if(shopTableWanted()) open('ovTable');   // the receipt read left doubts: offer the table photo
 }
 
 // ---------- Check My Foods (AI): every saved food against online sources, in batches of 20; only the ones that look off are shown ----------
@@ -358,4 +362,32 @@ function checkDecide(i, accept){
   if(f){ if(accept){ ['kcal', 'protein', 'carbs', 'fat'].forEach(k => { f[k] = r.sug[k]; }); if(r.sug.fiber != null) f.fiber = r.sug.fiber; f.updatedAt = new Date().toISOString(); }
     f.checked = { at: todayKey(), how: accept ? 'fixed' : 'kept' }; saveFoods(); }
   CHK.rows.splice(i, 1); drawCheck(); render(); if(accept) toast(t('updated'));
+}
+
+// ---------- table photo: shopping laid out on a table, combined with the receipt ----------
+const shopTableItems = () => SHOP.items.filter(x => !x.done && x.src === 'receipt');
+// worth offering by itself only when the receipt read is unsure: a line with no barcode match, or no pack size
+const shopTableWanted = () => !!SHOP.rcpt && shopTableItems().some(x => !x.verified && (!x.sure || !x.size));
+async function shopTable(file){
+  const list = shopTableItems(); if(!SHOP.rcpt || !list.length){ shopPhoto(file); return; }   // no receipt to combine with: read it as a plain grocery photo
+  SHOP.busy = true; status($('shopStatus'), t('tableReading')); open('ovShopRev'); drawShop();
+  try{
+    const img = await shrink(file, 3072, .92);
+    const d = await gemini(`This photo shows shopping laid out on a table (Greek supermarket). Identify every product, read pack sizes and weights from the packaging, and count how many of each there are. Then match each product to the receipt line it belongs to.
+Receipt lines (i = number):
+${list.map((x, i) => JSON.stringify({ i, line: x.line, name: x.name_en || x.name, brand: x.brand || null, count: x.count, packSize: x.size, unit: x.unit })).join('\n')}
+Return ONLY JSON: {"products":[{"match":number|null,"name_en":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml"}]}
+- match: the i of the receipt line this product is, or null if none fits.
+- packSize: size of ONE pack in g or ml, only if you can read it on the packaging, else null. Never guess.
+- count: how many of that product you can see (several of one product = one entry).`, img, (i, n) => status($('shopStatus'), t('tableReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
+    (d && Array.isArray(d.products) ? d.products : []).forEach(p => { const x = list[+p.match]; if(!p || p.match == null || !x) return; let ch = false;
+      const n = Math.max(1, Math.round(+p.count || 0)); if(+p.count > 0 && n !== x.count && !x.userCount){ x.count = n; ch = true; }
+      const sz = +p.packSize > 0 ? Math.round(+p.packSize) : null, u = p.unit === 'ml' ? 'ml' : 'g';
+      if(sz && sz !== x.size && !(x.verified && x.size)){ x.size = sz; x.unit = u; x.sizeFixed = true; ch = true; }
+      if(p.brand && !x.brand){ x.brand = String(p.brand); ch = true; }
+      if(p.name_en && !x.foodId && !x.data){ x.name_en = p.name_en; const was = x.foodId || x.gid; rcptMatch(x); if(!was && (x.foodId || x.gid)) ch = true; }
+      if(ch){ x.photo = true; x.on = x.on || !!(x.foodId || x.gid || x.data); } });
+    status($('shopStatus'), '');
+  }catch(err){ status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); }
+  SHOP.busy = false; drawShop();
 }

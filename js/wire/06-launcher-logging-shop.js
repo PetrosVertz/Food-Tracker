@@ -48,11 +48,17 @@ $('shopOpts').addEventListener('click', e => {
   if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
   if(k === 'scan'){ close('ovShop'); startScan('fridge'); return; }
   if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
+  if(k === 'table'){ $('tableFile').value = ''; $('tableFile').click(); return; }
   $('shopFile').value = ''; $('shopFile').click();
 });
 
 // 0.7: receipts and grocery photos: the best model reads the lines at full sharpness, the app finds the foods (shop.js)
 $('shopFile').addEventListener('change', () => { const file = $('shopFile').files[0]; if(!file) return; close('ovShop'); shopPhoto(file); });
+
+// table photo: after a receipt (when unsure), from the scan menu, or from the review list
+$('tableFile').addEventListener('change', () => { const file = $('tableFile').files[0]; if(!file) return; close('ovTable'); close('ovShop'); shopTable(file); });
+$('tableTake').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
+$('shopTableBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
 
 // the review list: tick, change the food, pack size, the count wheel, Add all
 $('shopList').addEventListener('click', e => {
@@ -138,7 +144,7 @@ $('potOther').addEventListener('click', () => $('cPotFull').closest('.grid').cla
 
 
 // new sheets get the back arrow and tap-outside-to-close, like the others
-['ovSetup', 'ovQuick', 'ovShop', 'ovShopRev', 'ovShopEd', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
+['ovSetup', 'ovQuick', 'ovShop', 'ovTable', 'ovShopRev', 'ovShopEd', 'ovDemo', 'ovCheck'].forEach(id => { const ov = $(id), sh = ov.querySelector('.sheet');
   if(id !== 'ovSetup' && !sh.querySelector('.sback')){ const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); }
   if(id !== 'ovSetup') ov.addEventListener('click', e => { if(e.target === ov) close(id); }); });
 
