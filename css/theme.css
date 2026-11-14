@@ -279,7 +279,7 @@ html{transition:background-color .3s}
 .ldb{width:100%;height:44px;border-radius:12px;border:0;background:var(--t-sel);color:var(--t-text);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:0 12px;font-family:inherit;font-size:var(--fs-body);cursor:pointer}
 .ldb .ldl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .ldb svg{color:var(--t-muted);flex:0 0 auto}
 .ldm{position:absolute;left:0;right:0;top:48px;z-index:3;background:var(--t-card2);border:1px solid var(--t-glass-edge);border-radius:var(--r-row);padding:4px;display:flex;flex-direction:column;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.ldm.hide{display:none}
+.ldm.hide{display:none} .ldm.up{top:auto;bottom:48px}   /* 0.7.4.0.5: opens upward when there's no room below */
 .ldo{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);min-height:44px;padding:0 12px;border:0;border-radius:12px;background:none;color:var(--t-text);font-family:inherit;font-size:var(--fs-body);text-align:left;cursor:pointer}
 .ldo span:last-child{color:var(--t-muted);font-size:var(--fs-label);white-space:nowrap} .ldo.on{background:var(--t-sel)}
 .seg.lck{background:var(--t-bg)!important;border-radius:14px!important;grid-auto-columns:minmax(0,1fr);margin:0}
@@ -326,7 +326,7 @@ body.twofab .fab{padding:16px 20px!important}
 #dBlocks .rmhint{display:block;font-size:var(--fs-label);color:var(--t-muted)}
 #dBlocks .gymdaybtns{position:relative;z-index:2;flex:0 0 auto;display:flex;align-items:center;gap:6px}
 #dBlocks .gymdaybtns .skipbtn{margin:0}
-#dBlocks .gymdayic{flex:0 0 auto;display:inline-flex;color:var(--t-accent)}
+#dBlocks .gymdayic{flex:0 0 auto;display:inline-flex;color:var(--t-accent-ink,var(--t-accent))}
 #dBlocks .rmrec{position:relative;z-index:2}
 .remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
 .fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
@@ -386,7 +386,7 @@ body.twofab .fab{padding:16px 20px!important}
 #dEatenFold>summary{display:flex;align-items:center}
 #dEatenN{margin-right:auto}
 #dEatenFold>summary::after{margin-left:8px!important}
-.eyest{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;border-radius:12px;background:var(--t-sel);color:var(--t-accent);cursor:pointer}
+.eyest{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;border-radius:12px;background:var(--t-sel);color:var(--t-accent-ink,var(--t-accent));cursor:pointer}
 .eyest.hide{display:none}
 /* Groceries checklist (0.6.9.3) */
 #gList,.glist{display:flex;flex-direction:column;background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);overflow:hidden}
@@ -413,7 +413,7 @@ body.twofab .fab{padding:16px 20px!important}
 #amQuick button,.tchips button,.blchip{border-radius:999px!important;border:0!important;background:var(--t-sel)!important;color:var(--t-text)!important;padding:8px 14px!important;font-size:var(--fs-label)!important;font-weight:var(--w-med)!important}
 #ovAmt #amSave{border-radius:14px}
 /* combos (0.6.9.3) */
-.lsave{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-label);font-weight:var(--w-med);padding:4px 10px;border-radius:999px;border:1px dashed var(--t-accent-soft);background:none;color:var(--t-accent);cursor:pointer;font-family:inherit}
+.lsave{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-label);font-weight:var(--w-med);padding:4px 10px;border-radius:999px;border:1px dashed var(--t-accent-soft);background:none;color:var(--t-accent-ink,var(--t-accent));cursor:pointer;font-family:inherit}
 .lcombo{display:flex;gap:var(--s2);width:100%} .lcombo input{flex:1;min-width:0;height:36px;border-radius:12px;padding:0 12px}
 .lrow.combo .lrn .nm{font-style:italic;font-weight:var(--w-bold)}
 .cmlist{display:flex;flex-direction:column;gap:6px} .cmlist div{display:flex;justify-content:space-between;gap:var(--s2);font-size:var(--fs-label)} .cmlist small{color:var(--t-muted)}
@@ -518,15 +518,10 @@ body.twofab .fab{padding:16px 20px!important}
 #pgGym{padding-bottom:calc(210px + env(safe-area-inset-bottom))!important}
 /* ==== end gym ==== */
 /* ==== branch: log (new Today & Logging styles go on the lines below) ==== */
-/* 0.7.1 · the AI badge (canvas "Robots and anatomy"): tiny pill, bold italic AI. On dark: accent pill, dark text; on Light or on an accent button: dark pill, accent text.
-   Any part can use it: <span class="aib">AI</span>, or class="aiafter" on a button whose text comes from data-t. */
-.aib,.aiafter::after{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:17px;padding:0 6px 0 5px;font-size:10.5px;font-weight:800;font-style:italic;line-height:1;letter-spacing:0;border-radius:999px;background:var(--t-accent);color:var(--t-on);vertical-align:middle;white-space:nowrap;flex:0 0 auto}
-.aiafter::after{content:'AI';margin-left:6px}
-:root[data-theme="light"] .aib,:root[data-theme="light"] .aiafter::after,.lgo .aib,.lwdone .aib{background:#0f1113;color:var(--t-accent)}
+/* 0.7.1 · AI badge tweaks inside Log Food (the badge itself is the one shared rule further down) */
 .lwacts .aiafter::after{height:16px;font-size:10px;margin-left:5px}
 .lwacts .aiafter{display:inline-flex;align-items:center;justify-content:center}
 .lwacts .lwico{display:flex;align-items:center;justify-content:center;padding:0}
-.lmore>span .aib{margin-left:2px}
 
 /* 0.7.1 · Quick Log: a chat window like Log Food's; the chat box sits at the bottom and stays above the keyboard */
 #ovQLog{align-items:flex-start!important;top:var(--lqvt,0px)!important;bottom:auto!important;height:var(--lqvh,var(--appH,100vh))!important}
@@ -557,7 +552,8 @@ body.twofab .fab{padding:16px 20px!important}
 .lqrow.miss .ls{color:var(--t-danger)}
 .lqx{flex:0 0 36px;width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .lqrow .lan{background:var(--t-bg)}
-.lqswapbtn{align-self:flex-start;border:0;background:none;padding:4px 0;color:var(--t-accent);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
+.lqswapbtn{align-self:flex-start;display:inline-flex;align-items:center;min-height:36px;border:0;border-radius:999px;background:var(--t-sel);padding:0 14px;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
+.lqswapbtn:active{background:var(--t-press,var(--t-sel))}
 .lqswap{display:flex;flex-direction:column;gap:6px}
 .lqsq{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none}
 .lqsres{display:flex;flex-direction:column;gap:4px} .lqsres:empty{display:none}
@@ -566,7 +562,7 @@ body.twofab .fab{padding:16px 20px!important}
 .lqfoot{display:flex;flex-direction:column;gap:var(--s3);padding-top:12px}
 .lqfoot .lgo:disabled{opacity:.4;cursor:default}
 .lqfoot.done{flex-direction:row;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-done)}
-.lqfoot.done::before{content:'✓'}
+.lqfoot.done::before{content:'';flex:0 0 16px;width:16px;height:16px;background:currentColor;-webkit-mask:var(--check) center/contain no-repeat;mask:var(--check) center/contain no-repeat}
 .lqbar{display:flex;align-items:flex-end;gap:var(--s2);padding:10px 12px 12px;border-top:1px solid var(--t-line)}
 .lqbar textarea{flex:1;min-width:0;min-height:44px;max-height:120px;resize:none;padding:11px 16px;border-radius:22px;border:1.5px solid var(--t-line);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;line-height:1.35;outline:none;box-shadow:none}
 .lqbar textarea:focus{border-color:var(--t-accent)}
@@ -576,7 +572,6 @@ body.twofab .fab{padding:16px 20px!important}
 .sttag.lq.std{background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
 .sttag.lq.onl{background:color-mix(in srgb,var(--t-rest) 16%,transparent);color:var(--t-rest);border:1px solid color-mix(in srgb,var(--t-rest) 45%,transparent)}
 .sttag.est{background:none;color:var(--t-warm);border:1px dashed color-mix(in srgb,var(--t-warm) 70%,transparent)}
-:root[data-theme="light"] .sttag.est{color:#9a6a06}
 
 /* 0.7.1 · Eaten swipe to delete: only the red glow while you drag; the bin fades in once you're past the delete point */
 /* 0.7.2 · tap the date on Today's Food → month calendar (glass sheet, round day pills, today in the accent) */
@@ -615,6 +610,10 @@ body.twofab .fab{padding:16px 20px!important}
 .logqfab{position:fixed;height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
 .logqfab.hide{display:none}
 body.has-logqfab #fab{right:var(--lqfr)!important}
+/* 0.7.4.0.5 · line icons where the old glyphs were: padlocks, the fridge tag in the plan, a supplement's taken times */
+.mxlock{display:inline-flex;align-items:center;color:inherit}
+.src-f{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}
+.take>span{display:inline-flex} .take button{display:inline-flex;align-items:center}
 /* ==== end log ==== */
 /* ==== branch: foods (new My Foods & Search styles go on the lines below) ==== */
 /* Cook a Meal button: pot icon + text; Can't scan? buttons: line icon + text */

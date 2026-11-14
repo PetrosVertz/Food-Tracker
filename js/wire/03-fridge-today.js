@@ -188,7 +188,7 @@ $('lResults').addEventListener('click', e => {
   const row = e.target.closest('.lrow'); if(!row) return; const st = lwState(row.dataset.k, +row.dataset.i); if(!st) return;
   if(e.target.closest('[data-lplus]')) return lwAdd(st);                                  // ＋ = the usual amount, one tap
   if(e.target.closest('[data-ladd]')) return lwAdd(st);
-  const dd = e.target.closest('[data-ldd]'); if(dd){ const m = row.querySelector('.ldm'); m.classList.toggle('hide'); dd.setAttribute('aria-expanded', !m.classList.contains('hide')); return; }
+  const dd = e.target.closest('[data-ldd]'); if(dd){ lddToggle(row, dd); return; }
   const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size;
     st.u = j; st.n = st.units[j].k === 'g' ? r1((g || 100) / st.units[j].size) : 1; row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); lwUpdate(row, st); return; }
   const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; lwUpdate(row, st); return; }
@@ -230,7 +230,7 @@ $('planShow').addEventListener('click', e => {
     if(meal) info = { name: meal.name, icon: mealIcon(meal), unit: 'g', per: meal, meal };
     else { const ref = matchIng([it.name, it.name_en]); let f = null;
       if(ref && ref.type === 'my') f = foods.find(x => x.id === ref.id); else if(ref && ref.type === 'gen') f = saveGeneric(GENBY[ref.id]);
-      if(f) info = { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f }; }
+      if(f) info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; }
     if(!info){ miss++; return; }
     logEntry(curDay, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM());
     if(it.from === 'fridge') takeFromFridge(info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }, g);
@@ -274,9 +274,6 @@ Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":stri
   finally{ planCtl = null; btn.textContent = t('lwFill'); }
 });
 
-$('homeAlerts').addEventListener('click', e => { const a = e.target.closest('[data-go]'); if(a) go(a.dataset.go); });
-
-$('tToday').addEventListener('click', () => { curDay = todayKey(); go('today'); });
 
 document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goBack()));
 

@@ -7,7 +7,6 @@ $('backBtn').addEventListener('click', () => goBack());
 
 $('backBtn2').addEventListener('click', () => goBack());
 
-$('tSupps').addEventListener('click', () => go('supps'));
 
 $('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : b.dataset.v === 'supps' ? 'supps' : 'foods')), route(); });
 
@@ -320,12 +319,12 @@ $('mdEdit').addEventListener('click', () => { const m = meals.find(x => x.id ===
 
 // [id, English, Greek, dose, unit, times, icon]  — typical label doses, always editable
 const QUICK = [
-  ['creatine','Creatine','Κρεατίνη',5,'g',['any'],'💪'], ['whey','Whey protein','Πρωτεΐνη whey',30,'g',['post'],'🥛'],
-  ['magnesium','Magnesium','Μαγνήσιο',300,'mg',['bed'],'🌙'], ['melatonin','Melatonin','Μελατονίνη',1,'mg',['bed'],'😴'],
-  ['vitd','Vitamin D3','Βιταμίνη D3',2000,'IU',['breakfast'],'☀️'], ['omega3','Omega-3','Ωμέγα-3',1,'caps',['dinner'],'🐟'],
-  ['zinc','Zinc','Ψευδάργυρος',15,'mg',['dinner'],'🔩'], ['multi','Multivitamin','Πολυβιταμίνη',1,'tabs',['breakfast'],'💊'],
-  ['caffeine','Caffeine','Καφεΐνη',200,'mg',['pre'],'⚡'], ['electrolytes','Electrolytes','Ηλεκτρολύτες',1,'scoops',['pre'],'💧'],
-  ['vitc','Vitamin C','Βιταμίνη C',500,'mg',['breakfast'],'🍊'], ['ashwa','Ashwagandha','Ασβαγκάντα',600,'mg',['bed'],'🌿'],
+  ['creatine','Creatine','Κρεατίνη',5,'g',['any'],''], ['whey','Whey protein','Πρωτεΐνη whey',30,'g',['post'],''],
+  ['magnesium','Magnesium','Μαγνήσιο',300,'mg',['bed'],''], ['melatonin','Melatonin','Μελατονίνη',1,'mg',['bed'],''],
+  ['vitd','Vitamin D3','Βιταμίνη D3',2000,'IU',['breakfast'],''], ['omega3','Omega-3','Ωμέγα-3',1,'caps',['dinner'],''],
+  ['zinc','Zinc','Ψευδάργυρος',15,'mg',['dinner'],''], ['multi','Multivitamin','Πολυβιταμίνη',1,'tabs',['breakfast'],''],
+  ['caffeine','Caffeine','Καφεΐνη',200,'mg',['pre'],''], ['electrolytes','Electrolytes','Ηλεκτρολύτες',1,'scoops',['pre'],''],
+  ['vitc','Vitamin C','Βιταμίνη C',500,'mg',['breakfast'],''], ['ashwa','Ashwagandha','Ασβαγκάντα',600,'mg',['bed'],''],
 ].map(([id,en,el,dose,unit,times,icon]) => ({ id, en, el, dose, unit, times, icon }));
 
 const QBY = Object.fromEntries(QUICK.map(q => [q.id, q]));
@@ -339,7 +338,7 @@ const suppIcon = s => `<span class="sic">${svgIcon('capsule', 14, 2)}</span>`;  
 const unitLabel = u => t('u_' + u);
 
 $('sList').addEventListener('click', e => { const c = e.target.closest('[data-sid]'); if(!c) return; const id = c.dataset.sid, d = todayKey();
-  if(e.target.closest('[data-take]')){ setTakes(d, id, [...takesOf(d, id), nowHM()].sort()); haptic(); renderAll(); return; }
+  if(e.target.closest('[data-take]')){ setTakes(d, id, [...takesOf(d, id), nowHM()].sort()); Phone.haptic(); renderAll(); return; }
   const x = e.target.closest('[data-tkx]'); if(x){ const a = takesOf(d, id).slice(); a.splice(+x.dataset.tkx, 1); setTakes(d, id, a); renderAll(); return; }
   if(e.target.closest('.take,input')) return;
   const s = supps.find(x => x.id === id); if(s) openSupp(s); });
