@@ -502,7 +502,7 @@ Object.assign(S, {
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
   logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
-  logQFind: ['Finding…', 'Ψάχνω…'],
+  logQFind: ['Finding…', 'Ψάχνω…'], logQGot: ['Got it, here\'s what I found.', 'Έγινε, να τι βρήκα.'],
   logQLogged: ['Added {n} foods · {k} kcal', 'Προστέθηκαν {n} τρόφιμα · {k} kcal'],
   logQNew: ['{n} new estimated foods saved', '{n} νέα τρόφιμα με εκτίμηση αποθηκεύτηκαν'],
   logQStd: ['built-in', 'βασικό'], logQOnl: ['online', 'διαδίκτυο'], logQEst: ['estimate', 'εκτίμηση'],
