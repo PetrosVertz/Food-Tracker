@@ -2,13 +2,13 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ---------- where things go (0.7: no expiry dates at all; the fridge is just what you have) ----------
-function defaultLoc(f){ return 'fridge'; }   // everything starts in the fridge (no cupboard since 0.6.2); ❄️ Frozen is a switch when adding
+function defaultLoc(f){ return 'fridge'; }   // everything starts in the fridge (no cupboard since 0.6.2); Frozen is a switch when adding
 
 // ---------- fridge items ----------
 function itemInfo(it){
   if(it.mealId){ const m = meals.find(x => x.id === it.mealId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, piece: null, meal: m } : null; }
   const f = foods.find(x => x.id === it.foodId); if(!f) return null;
-  return { name: foodName(f), icon: iconOf(f) || '📦', unit: f.unit, per: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces, food: f };
+  return { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces, food: f };
 }
 
 function fmtAmt(qty, info){
@@ -44,19 +44,10 @@ function openFridgeAdd(food, preset){
   preset = preset || {};
   const loc = preset.loc || defaultLoc(food);
   FA = { mode: 'new', food, loc };
-  $('faTitle').textContent = t('addFridgeHow'); $('faFood').textContent = `${iconOf(food) || '📦'} ${foodName(food)}`;
+  $('faTitle').textContent = t('addFridgeHow'); $('faFood').textContent = foodName(food);
   const amt = preset.amt || food.usualPack || (food.piece ? food.piece * (food.cat === 'eggs' ? 6 : 1) : 100);
   $('faAmt').value = r1(amt); $('faCount').value = preset.count || food.usualCount || 1; $('faCount').parentElement.querySelector('span:nth-of-type(2)').classList.remove('hide'); $('faCount').classList.remove('hide');
   fillFA(food, loc); $('faDel').classList.add('hide'); $('faFrozen').checked = loc === 'freezer'; open('ovFAdd');
-}
-
-function openFridgeItem(it){
-  const info = itemInfo(it); if(!info) return;
-  FA = { mode: 'edit', item: it, food: info.food || null, meal: info.meal || null, loc: it.loc };
-  $('faTitle').textContent = info.name; $('faFood').textContent = `${info.icon} ${t(LOC_KEY[it.loc])}`;
-  $('faAmt').value = it.qty; $('faCount').value = 1; $('faCount').classList.add('hide'); $('faCount').parentElement.querySelector('span:nth-of-type(2)').classList.add('hide');
-  fillFA(info.food || { unit: 'g', cat: 'ready', sub: 'meal', packs: [] }, it.loc);
-  $('faDel').classList.remove('hide'); $('faFrozen').checked = it.loc === 'freezer'; open('ovFAdd');
 }
 
 function fillFA(food, loc){
@@ -102,13 +93,6 @@ function grocText(){
     return `${f ? foodName(f) : g.name}${f && f.brand && !f.noBrand ? ' (' + f.brand + ')' : ''}${g.size ? ' ' + fmtSize(g.size, g.unit) : ''}${g.count > 1 ? ' ×' + g.count : ''}`; }).join('\n');
 }
 
-function runShortcut(){
-  const text = grocText(); if(!text){ toast(t('nothingToSend')); return; }
-  location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SC_NAME)}&input=text&text=${encodeURIComponent(text)}`;
-}
-
-function openShortcutGuide(){ $('scSteps').innerHTML = SC_STEPS[lang === 'el' ? 'el' : 'en'].map(s => `<li>${s}</li>`).join(''); $('scDone').checked = !!ui.scDone; open('ovShortcut'); }
-
 // ---------- cooking ↔ fridge ----------
 function fridgeKeyForRef(ref){
   if(!ref) return null;
@@ -130,7 +114,7 @@ function stockBadge(f){
   let txt;
   if(pw){ const n = Math.round(st / pw), tot = f.usualPack ? Math.round(f.usualPack / pw) : null; txt = tot && n <= tot ? `${n}/${tot} ${WS(f.pieces)}` : `${n} ${WS(f.pieces)}`; }
   else txt = f.usualPack && st <= f.usualPack && Math.abs(st - f.usualPack) > .5 ? `${fmtSize(st, f.unit)} / ${fmtSize(f.usualPack, f.unit)}` : fmtSize(st, f.unit);
-  return `<span class="stock">🧊 ${txt}</span>`;
+  return `<span class="stock">${txt}</span>`;
 }
 
 // 0.7.3: one row per food (and per fridge / freezer): tag + name + ⌄ on the left, "300 / 500 g" on the right.
@@ -198,15 +182,15 @@ function shopFClick(e){
   const info = itemInfo(list[0]); if(!info) return;
   const name = bareName(info.name), pack = shopFPackOf(list), loose = list.some(x => x.loose) || !pack;
   const before = fridge.map(x => ({ ...x }));
-  if(e.target.closest('[data-ftog]')){ SHOPF.open = SHOPF.open === key ? null : key; haptic(); renderFridge(); return; }
+  if(e.target.closest('[data-ftog]')){ SHOPF.open = SHOPF.open === key ? null : key; Phone.haptic(); renderFridge(); return; }
   if(e.target.closest('[data-fmode]')){ if(!pack) return; list.forEach(x => { if(loose) delete x.loose; else x.loose = true; }); saveFridge(); renderFridge(); return; }
   const pm = e.target.closest('[data-fplus],[data-fminus]');
   if(pm){ const plus = pm.hasAttribute('data-fplus'); let amt = pack;
     if(loose){ const box = row.querySelector('[data-fgr]'), v = parseFloat(box && box.value); if(!(v > 0)){ if(box) box.focus(); return; } amt = v; }
     if(plus){ if(loose){ const last = list[list.length - 1]; last.qty = r1(last.qty + amt); saveFridge(); }
       else { const { id, addedAt, qtyGuess, ...rest } = list[list.length - 1]; addToFridge({ ...rest, qty: r1(amt), packSize: r1(amt) }); }
-      haptic(); renderAll(); return; }
-    shopFTake(list, amt); haptic(); shopFDone(list, key, before, name); return; }
+      Phone.haptic(); renderAll(); return; }
+    shopFTake(list, amt); Phone.haptic(); shopFDone(list, key, before, name); return; }
   const tg = e.target.closest('[data-ftag]');
   if(tg){ const v = tg.dataset.ftag, own = info.food ? info.food.state : 'cooked'; list.forEach(x => { if(v === own) delete x.tag; else x.tag = v; }); saveFridge(); renderFridge(); return; }
   if(e.target.closest('[data-ffrz]')){ const to = list[0].loc === 'freezer' ? 'fridge' : 'freezer'; list.forEach(x => x.loc = to); SHOPF.open = shopFKey(list[0]); saveFridge(); renderFridge(); return; }

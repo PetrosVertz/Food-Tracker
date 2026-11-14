@@ -1,5 +1,5 @@
 // Shopping in (0.7): Groceries → fridge, remembered packs, continuous barcode scanning, the review list with a count wheel,
-// receipts (the AI only reads the lines; the app finds the foods) and ✨ Check My Foods. (functions only)
+// receipts (the AI only reads the lines; the app finds the foods) and Check My Foods (AI). (functions only)
 // Food Tracker · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ---------- packs: remembered per food (size of one pack + how many you usually buy) ----------
@@ -137,7 +137,7 @@ function scanUI(){
   if(q){ const x = S_.askFor; $('scanQT').innerHTML = `<small>${t('addedOne')}</small><b>${esc(x.look === 'busy' ? t('lookingUp1') : shopName(x))}</b>`; }
 }
 function scanFlash(x){ const el = $('scanFlash'); el.innerHTML = `${svgIcon('check', 16, 3)} ${esc(x.look === 'busy' ? t('addedOne') : shopName(x))}${x.scans > 1 ? ` <b>×${x.scans}</b>` : ''}`;
-  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); haptic(); }
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); Phone.haptic(); }
 // the scanner closed: what you scanned goes to the review list
 function shopScanClosed(){
   if(!SHOP.scan) return;
@@ -245,7 +245,7 @@ ${part.map((x, j) => `${j}) "${x.line}" = ${x.brand ? x.brand + ' ' : ''}${x.nam
   if(!shopVisible().length) toast(t('shopAdded', { n: SHOP.items.length }), t('undo'), () => { takeBack(SHOP.sureIds || []); renderAll(); });
 }
 
-// ---------- ✨ Check My Foods: every saved food against online sources, in batches of 20; only the ones that look off are shown ----------
+// ---------- Check My Foods (AI): every saved food against online sources, in batches of 20; only the ones that look off are shown ----------
 let CHK = null;
 function checkTodo(){ return foods.filter(f => !f.checked && !f.gid && f.protein != null); }   // built-in foods come from the curated list already
 async function checkFoods(){

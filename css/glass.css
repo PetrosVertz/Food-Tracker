@@ -19,7 +19,6 @@ input,select,textarea{background:rgba(0,0,0,.28);border-color:var(--line)}
 .page.slideL{animation:slL .28s ease-out} .page.slideR{animation:slR .28s ease-out}
 @keyframes slL{from{opacity:.3;transform:translateX(40px)}to{opacity:1;transform:none}} @keyframes slR{from{opacity:.3;transform:translateX(-40px)}to{opacity:1;transform:none}}
 /* launcher */
-.stackbtns{display:flex;gap:4px}.stackbtns button{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:18px;font-weight:700;cursor:pointer}.fmeta{margin-top:4px;display:block}.frow2{display:flex;align-items:center;gap:6px;margin-top:6px;min-height:0}.frow2:empty{display:none}.frow2 .stackbtns{margin-left:auto}.stackn{color:var(--accent,#d4f53c)}
 #pgLaunch header{padding-top:28px}
 .page:not(#pgLaunch){padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 #pgLaunch h1{font-size:30px}

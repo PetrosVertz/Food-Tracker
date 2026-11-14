@@ -447,7 +447,7 @@ body.twofab .fab{padding:16px 20px!important}
 .sname b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:var(--w-med);line-height:1.25;word-break:break-word}
 .sname small{display:block;color:var(--t-muted);font-size:var(--fs-label);line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .sname .sline{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:-.2px}
-.stag{display:inline-block;font-size:11px;font-weight:var(--w-bold);text-transform:uppercase;letter-spacing:.3px;color:var(--t-accent)}
+.stag{display:inline-block;font-size:11px;font-weight:var(--w-bold);text-transform:uppercase;letter-spacing:.3px;color:var(--t-accent-ink,var(--t-accent))}
 .stag.warn{color:var(--t-f)} .stag.web{color:var(--t-c)}
 .spin1{display:inline-block;width:10px;height:10px;margin-right:5px;border:2px solid var(--t-muted);border-top-color:transparent;border-radius:999px;animation:spin .8s linear infinite;vertical-align:-1px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -480,10 +480,9 @@ body.twofab .fab{padding:16px 20px!important}
 .scanq p{margin:6px 0 10px;color:var(--t-muted)}
 .sqbtns{display:flex;gap:8px} .sqbtns .btn{flex:1;border-radius:999px}
 #scanBasket{margin-left:auto}
-/* fridge: a guessed pack size to fix later; Groceries: bought = in the fridge */
+/* Groceries: bought = in the fridge */
 .gitem2 .infr{color:var(--t-done);font-weight:var(--w-med)}
-.fixpack{color:var(--t-c)}
-/* Food Tracker: ✨ Check My Foods + the ✓ on checked foods */
+/* Food Tracker: Check My Foods (AI) + the tick on checked foods */
 .barbtns{display:inline-flex;gap:14px;align-items:center}
 .chkbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:0;border-radius:999px;background:var(--t-sel);color:var(--t-text);font-family:var(--font);font-size:13px;font-weight:var(--w-med);white-space:nowrap;cursor:pointer;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s}
 .chkbtn:active{transform:scale(.96);background:var(--t-press)} .chkbtn .aibadge{margin:0} .chkbtn.busy{opacity:.6}
@@ -495,7 +494,7 @@ body.twofab .fab{padding:16px 20px!important}
 .chkrow:last-child{border-bottom:0}
 .chkname b{display:block;font-weight:var(--w-med)} .chkname small{color:var(--t-muted);font-size:var(--fs-label)}
 .chkvals{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px;font-variant-numeric:tabular-nums}
-.chkvals i{font-style:normal;color:var(--t-muted);font-size:var(--fs-label)} .chkvals .chg b{color:var(--t-accent);font-weight:var(--w-bold)}
+.chkvals i{font-style:normal;color:var(--t-muted);font-size:var(--fs-label)} .chkvals .chg b{color:var(--t-accent-ink,var(--t-accent));font-weight:var(--w-bold)}
 .chksrc{display:block;color:var(--t-muted);font-size:var(--fs-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chkbtns{display:flex;gap:8px;margin-top:8px} .chkbtns .btn{flex:1;border-radius:999px}
 
@@ -623,7 +622,7 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 .csico{display:flex;align-items:center;justify-content:center;gap:8px} .csico svg{flex:0 0 auto}
 /* ==== end foods ==== */
 /* ==== branch: shop (new Fridge & Groceries styles go on the lines below) ==== */
-/* 0.7.3 fridge rows: tag + name + ⌄ left, "300 / 500 g" right; tap = a small menu drops down under the row */
+/* 0.7.3 fridge rows: tag + name + arrow left, "300 / 500 g" right; tap = a small menu drops down under the row */
 #fList .fcard{display:block;padding:0;cursor:default}
 .fhead{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:12px 16px;border:0;background:none;color:var(--t-text);font-family:var(--font);text-align:left;cursor:pointer}
 .fnm{display:flex;align-items:center;gap:6px;flex:1;min-width:0} .fnm .sttag{flex:0 0 auto;margin:0}
@@ -632,7 +631,6 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 .famt{flex:0 0 auto;font-size:var(--fs-body);font-weight:var(--w-med);color:var(--t-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sttag.frozen{background:color-mix(in srgb,var(--t-rest) 16%,transparent);color:var(--t-rest);border:1px solid color-mix(in srgb,var(--t-rest) 45%,transparent)}
 .sttag.lo{background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
-:root[data-theme="light"] .sttag.frozen{color:#2f73b8}
 .fmenu{display:flex;flex-direction:column;gap:10px;padding:2px 16px 16px;border-top:1px solid var(--t-line);padding-top:12px;animation:fmenuIn .18s ease-out}
 @keyframes fmenuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.fmenu{animation:none}}
@@ -649,6 +647,8 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 .ffrz{flex:0 0 auto;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--t-line);background:none;color:var(--t-muted);font-family:var(--font);font-size:13px;font-weight:var(--w-med);cursor:pointer}
 .ffrz.on{background:color-mix(in srgb,var(--t-rest) 16%,transparent);border-color:color-mix(in srgb,var(--t-rest) 45%,transparent);color:var(--t-rest)}
 .frm{margin-left:auto;height:40px;padding:0 16px;border:0;border-radius:999px;background:color-mix(in srgb,var(--t-fail) 14%,transparent);color:var(--t-fail);font-family:var(--font);font-size:13px;font-weight:var(--w-med);cursor:pointer}
+/* Check My Foods: the AI badge sits in the button's own gap */
+.chkbtn.aiafter::after{margin-left:0}
 /* ==== end shop ==== */
 /* ==== branch: shell (new App Shell & Settings styles go on the lines below) ==== */
 /* 0.7.2 no zoom: double-tap zoom off everywhere (zero specificity, so any pan-y / none set elsewhere still wins); inputs are 16 px where they live */
