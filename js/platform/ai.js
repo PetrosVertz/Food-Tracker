@@ -118,7 +118,7 @@ const AI = (() => {
     const run = st === 'run';
     b.className = 'aibub ' + st + ' r' + B.robot;
     b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '' : `<b class="rok">${OK_SVG}</b>`);
-    b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+    b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') Phone.haptic(); }
 
   // 0.7.3: any robot bubble can be dragged up and down; let go and it snaps to the nearest side (left / right edge) and remembers the spot (ui[key]).
   // Dragging shows a faint trash circle at the bottom centre: over it the bubble glows red and the robot's eyes turn to X's; let go there and onGone() runs.
@@ -142,10 +142,10 @@ const AI = (() => {
       e.preventDefault(); const x = e.clientX - d.ox, y = e.clientY - d.oy;
       el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.left = x + 'px'; el.style.top = y + 'px';
       const tr = d.tr.getBoundingClientRect(), hot = Math.hypot(x + BSZ / 2 - (tr.left + tr.width / 2), y + BSZ / 2 - (tr.top + tr.height / 2)) < 56;
-      if(hot !== d.hot){ d.hot = hot; el.classList.toggle('kill', hot); d.tr.classList.toggle('hot', hot); if(hot) haptic(); } });
+      if(hot !== d.hot){ d.hot = hot; el.classList.toggle('kill', hot); d.tr.classList.toggle('hot', hot); if(hot) Phone.haptic(); } });
     const end = e => { if(!d || e.pointerId !== d.id) return; const was = d; d = null; if(!was.on) return;
       el._dragged = true; setTimeout(() => { el._dragged = false; }, 60); el.classList.remove('drag'); bubTrash(false);
-      if(was.hot){ el.classList.add('gone'); haptic(); setTimeout(onGone, rmo() ? 0 : 220); return; }
+      if(was.hot){ el.classList.add('gone'); Phone.haptic(); setTimeout(onGone, rmo() ? 0 : 220); return; }
       const r = el.getBoundingClientRect(), L = bubLimits(), s = r.left + BSZ / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, r.top));
       el.style.transition = rmo() ? 'none' : 'left .42s cubic-bezier(.2,1.3,.4,1), top .32s cubic-bezier(.2,.9,.3,1)';
       if(typeof ui !== 'undefined'){ ui[key] = { s, y: y / innerHeight }; saveUI(); } place(el, key); };

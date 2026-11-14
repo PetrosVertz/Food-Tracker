@@ -132,7 +132,7 @@ function makeSwipeDelete(box, itemSel, onDelete, opts){
     if(!S.claim) return false; ev.stopPropagation(); if(ev.cancelable) ev.preventDefault();
     S.dx = Math.min(0, dx); const pr = Math.min(1, -S.dx / (S.c.offsetWidth / 3));
     S.c.classList.add('swiping'); S.c.style.transform = `translateX(${S.dx}px)`; S.c.style.setProperty('--sw', pr.toFixed(2));
-    if(pr >= 1 && !S.c.classList.contains('swready')) haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
+    if(pr >= 1 && !S.c.classList.contains('swready')) Phone.haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
   const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
     if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
     else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
@@ -222,7 +222,7 @@ renderSupps = function(){
         <button class="btn small takebtn" data-take>${tk.length ? t('takeAgain') : t('takeIt')}</button></div></div></div>`; }).join('');
 };
 $('sList').addEventListener('click', e => { const c = e.target.closest('[data-sid]'); if(!c) return; const id = c.dataset.sid, d = todayKey();
-  if(e.target.closest('[data-take]')){ e.stopImmediatePropagation(); setTakes(d, id, [...takesOf(d, id), nowHM()].sort()); haptic(); renderAll(); return; }
+  if(e.target.closest('[data-take]')){ e.stopImmediatePropagation(); setTakes(d, id, [...takesOf(d, id), nowHM()].sort()); Phone.haptic(); renderAll(); return; }
   const x = e.target.closest('[data-tkx]'); if(x){ e.stopImmediatePropagation(); const a = takesOf(d, id).slice(); a.splice(+x.dataset.tkx, 1); setTakes(d, id, a); renderAll(); return; }
   if(e.target.closest('.take,input')) e.stopImmediatePropagation(); }, true);
 $('sList').addEventListener('change', e => { const i = e.target.closest('[data-tkt]'); if(!i) return; const id = i.closest('[data-sid]').dataset.sid, d = todayKey(), a = takesOf(d, id).slice();
@@ -233,7 +233,7 @@ $('sList').addEventListener('change', e => { const i = e.target.closest('[data-t
 $('supSave').addEventListener('click', () => { if(!SU.times.length) SU.times = ['any']; SU.often = 'daily'; }, true);
 
 // ---------- Settings as a page under Fridge (tap ⚙︎ to slide down; pull up to go back to Fridge; never pulled into) ----------
-TAB_ROOT.settings = 'settings'; RAIL_IC.settings = '⚙︎'; TAB_LBL.settings = 'settings';
+TAB_ROOT.settings = 'settings'; RAIL_IC.settings = '⚙︎';
 (() => { const sh = $('ovSettings').querySelector('.sheet'), pg = document.createElement('section'); pg.className = 'page wrap hide'; pg.id = 'pgSettings';
   pg.innerHTML = `<header><div class="left"><h1 data-t="settings"></h1></div></header>`;
   [...sh.children].forEach(el => { if(el.classList.contains('sheethead') || el.classList.contains('sback')) return; pg.appendChild(el); });
@@ -305,7 +305,7 @@ function aiBubble(st){ let b = $('aiBub');
     b.addEventListener('click', e => { if(e.target.closest('[data-aix]')){ AIB.ctls.forEach(c => c.abort()); return; }
       if(b.classList.contains('ready')){ const ids = AIB.show; aiBubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); }); }
   b.className = 'aibub ' + st; b.innerHTML = st === 'run' ? `<span class="aispin2"></span><span class="aist">✨</span><i data-aix aria-label="Cancel">✕</i>` : `<span class="aist">✨</span><b>✓</b>`;
-  b.setAttribute('aria-label', st === 'run' ? t('aiThinking') : t('aiReady')); if(st === 'ready') haptic(); }
+  b.setAttribute('aria-label', st === 'run' ? t('aiThinking') : t('aiReady')); if(st === 'ready') Phone.haptic(); }
 { const g1 = gemini; gemini = async function(prompt, img, onTry, outer, opts){
     if(opts && opts.quiet) return g1(prompt, img, onTry, outer, opts);
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }

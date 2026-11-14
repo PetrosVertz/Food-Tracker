@@ -23,7 +23,7 @@ $('pickList').addEventListener('click', e => { const o = e.target.closest('[data
 
 document.addEventListener('input', e => { const el = e.target; if(el.dataset && el.dataset.nfix && el.value.includes(',')){ const p = el.selectionStart; el.value = el.value.replace(/,/g, '.'); try{ el.setSelectionRange(p, p); }catch(_){} } }, true);
 
-document.addEventListener('click', e => { if(e.target.closest && e.target.closest('#hapL')) return; const b = e.target.closest && e.target.closest(HAPTIC_SEL); if(b) haptic(); }, true);
+document.addEventListener('click', e => { if(e.target.closest && e.target.closest('#hapL')) return; const b = e.target.closest && e.target.closest(HAPTIC_SEL); if(b) Phone.haptic(); }, true);
 
 const keyOf = el => { for(const a of KEYATTR) if(el.hasAttribute(a)) return a + '=' + el.getAttribute(a); return null; };
 

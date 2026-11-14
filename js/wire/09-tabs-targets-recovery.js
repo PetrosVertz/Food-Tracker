@@ -1,7 +1,6 @@
 // Wiring for 0.5.7: side tab strip, pull-to-switch tabs, Fridge/Groceries switch, supplements in Food, linked macro sliders.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const TAB_LBL = { today: 'tabToday', gym: 'tabGym', food: 'tabFood', fridge: 'tabFridge', settings: 'settings' };
 
 // ---------- side strip ----------
 $('rail').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(!b) return;
