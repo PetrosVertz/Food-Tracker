@@ -97,7 +97,7 @@ Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to g
 // Gym: the floating button starts (or resumes) a workout, like Log Food / Add Food
 $('fab').addEventListener('click', e => { if($('fab').dataset.action === 'gym'){ e.stopImmediatePropagation(); $('gStart').click(); } }, true);
 { const ra = renderAll; renderAll = function(...a){ const r = ra.apply(this, a); const fab = $('fab');
-    if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk'); return r; }; }
+    if(fab.dataset.action === 'gym'){ if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); } return r; }; }
 // Daily Targets from the calorie card
 $('tgCardBtn').addEventListener('click', openTargets);
 // Eaten: a drop-down with a count; swipe a food right-to-left (past 1/3) to delete it

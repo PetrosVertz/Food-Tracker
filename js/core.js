@@ -159,7 +159,7 @@ const SHELL_SETS = [
   { k: 'suAgain', g: 'stAbout', kw: 'setup first launch start over reset αρχή ξανά', go: ['[data-sp="ovSAbout"]'], hl: '#suAgainBtn' },
 ];
 const shellNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ς/g, 'σ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-const shellLbl = k => t(k).replace(/^[↺✨💾\s]+/u, '').replace(/\s*\(.*\)\s*$/, '').replace(/\?$/, '');
+const shellLbl = k => t(k).replace(/^[✨\s]+/u, '').replace(/\s*\(.*\)\s*$/, '').replace(/\?$/, '');
 function shellSearch(q){
   const box = $('sResults'), main = $('sMain'), nq = shellNorm(q); $('sSearchX').classList.toggle('hide', !q);
   if(!nq){ box.classList.add('hide'); main.classList.remove('hide'); box.innerHTML = ''; return; }

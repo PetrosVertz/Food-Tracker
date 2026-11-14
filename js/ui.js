@@ -86,6 +86,7 @@ function applyTabOrder(){
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if(typeof pillsAll === 'function') pillsAll();
 }
+const fabBtn = (icon, label) => `<span class="fabic">${svgIcon(icon, 18, 2.4)}</span>${esc(label)}`;   // main button: line icon before the text
 const homeHash = () => '#' + TAB_ROOT[TABS3[0]];
 function setTheme(ch){ ui.theme = { ...(ui.theme || {}), ...ch }; saveUI(); applyTheme(); drawTheme(); if(location.hash.slice(1) === 'gym-rec' && typeof renderRecovery === 'function') renderRecovery(); }
 try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if(themeNow().mode === 'auto') setTheme({}); }); }catch(e){}
@@ -211,11 +212,12 @@ function route(){
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
   fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  fab.textContent = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+    if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
-  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.textContent = '＋ ' + t('createWorkout'); }
-  else if(page === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
+  if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
+  else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   renderAll();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
@@ -232,7 +234,7 @@ function drawSetup(){
   const s = SUP.step, wdn = WD(), dayChips = (set, attr) => `<div class="tchips daychips">${WD1().map(d => `<button data-${attr}="${d}" class="${set.has(d) ? 'on' : ''}">${wdn[d].slice(0, 3)}</button>`).join('')}</div>`;
   let h = `<div class="sudots">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
   const useSeg = `<label style="margin-top:16px">${t('suUse')}</label><div class="seg" id="suUse"><button data-v="both" class="${SUP.use !== 'gym' ? 'on' : ''}">${t('useBoth')}</button><button data-v="gym" class="${SUP.use === 'gym' ? 'on' : ''}">${t('useGym')}</button></div>`;
-  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}"><span style="font-size:26px">🇬🇧</span> English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}"><span style="font-size:26px">🇬🇷</span> Ελληνικά</button></div>` + useSeg;
+  if(s === 0) h += `<h2>${t('suWelcome')}</h2><p class="sub">${t('suWelcomeSub')}</p><div class="langpick"><button data-sulang="en" class="${lang === 'en' ? 'on' : ''}">English</button><button data-sulang="el" class="${lang === 'el' ? 'on' : ''}">Ελληνικά</button></div>` + useSeg;
   if(s === 1) h += `<h2>${t('suAbout')}</h2><label>${t('suSex')}</label><div class="seg" id="suSex"><button data-v="m" class="${SUP.sex === 'm' ? 'on' : ''}">${t('suMale')}</button><button data-v="f" class="${SUP.sex === 'f' ? 'on' : ''}">${t('suFemale')}</button></div>
     <label for="suH">${t('suHeight')}</label><div class="brandrow"><input id="suH" type="number" inputmode="numeric" value="${SUP.h || ''}" placeholder="178" style="flex:1"><span style="color:var(--muted)">cm</span></div><label for="suBw">${t('suWeight')}</label><div class="brandrow"><input id="suBw" type="number" inputmode="decimal" step="any" value="${SUP.bw}" placeholder="75" style="flex:1"><span style="color:var(--muted)">kg</span></div>
     <label>${t('suGoal')}</label><div class="seg" id="suGoal">${['bulk', 'recomp', 'cut'].map(g => `<button data-v="${g}" class="${SUP.goal === g ? 'on' : ''}">${t({ bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[g])}</button>`).join('')}</div>`;
@@ -242,7 +244,7 @@ function drawSetup(){
     <div id="suWorkBox" class="${SUP.work ? '' : 'hide'}"><label>${t('suWorkDays')}</label>${dayChips(SUP.workDays, 'suwd')}
       <div class="grid" style="margin-top:8px"><div><label for="suFrom">${t('suFrom')}</label><input id="suFrom" type="time" value="${SUP.from}"></div><div><label for="suTo">${t('suTo')}</label><input id="suTo" type="time" value="${SUP.to}"></div></div></div>`;
   if(s === 3) h += `<h2>${t('suAi')}</h2><p class="sub">${t('suAiSub')}</p><input id="suKey" type="password" autocomplete="off" value="${esc(SUP.key)}" placeholder="AIza…"><div class="actions" style="margin-top:8px"><button class="btn" id="suGetKey">${t('getKey')}</button></div>`;
-  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="font-size:54px;text-align:center;margin:10px 0">✅</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
+  if(s === 4){ const tg = calcTargets(SUP.bw, SUP.goal); h += `<div style="text-align:center;margin:10px 0;color:var(--t-accent-ink,var(--t-accent))">${svgIcon('check', 54, 2)}</div><h2 style="text-align:center">${t('suDone')}</h2><p class="sub" style="text-align:center">${t('suDoneSub', { g: tg.gym.k.toLocaleString(), r: tg.rest.k.toLocaleString(), p: tg.gym.p })}</p>`; }
   h += `<div class="actions">${s > 0 ? `<button class="btn" data-sunav="-1">${t('suBack')}</button>` : `<button class="btn" data-suskip>${t('suSkip')}</button>`}${s === 3 ? `<button class="btn" data-sunav="1" data-skipkey>${t('suSkip')}</button>` : ''}<button class="btn primary" data-sunav="${s === 4 ? 'done' : 1}">${s === 4 ? t('suFinish') : t('suNext')}</button></div>`;
   $('suBody').innerHTML = h;
 }
@@ -292,13 +294,13 @@ function syncSel(s){ const b = s.nextElementSibling; if(b && b.classList.contain
 
 function enhanceSel(s){
   if(s.dataset.enh) { syncSel(s); return; } s.dataset.enh = '1'; s.classList.add('nsel');
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'selbtn'; b.innerHTML = '<span></span><i>⌄</i>'; b.firstChild.textContent = selLabel(s);
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'selbtn'; b.innerHTML = `<span></span><i>${svgIcon('down', 18, 2.2)}</i>`; b.firstChild.textContent = selLabel(s);
   if(s.style.flex) b.style.flex = s.style.flex;
   s.after(b);
   b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); PICKSEL = s;
     const lbl = s.id && document.querySelector(`label[for="${s.id}"]`);
     $('pickT').textContent = lbl ? lbl.textContent : '';
-    $('pickList').innerHTML = [...s.options].map((o, i) => `<button class="pickopt ${i === s.selectedIndex ? 'on' : ''}" data-pi="${i}" ${o.disabled ? 'disabled' : ''}>${esc(o.textContent)}${i === s.selectedIndex ? '<b>✓</b>' : ''}</button>`).join('');
+    $('pickList').innerHTML = [...s.options].map((o, i) => `<button class="pickopt ${i === s.selectedIndex ? 'on' : ''}" data-pi="${i}" ${o.disabled ? 'disabled' : ''}>${esc(o.textContent)}${i === s.selectedIndex ? `<b>${svgIcon('check', 18, 2.4)}</b>` : ''}</button>`).join('');
     open('ovPick'); });
 }
 

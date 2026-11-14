@@ -14,7 +14,7 @@ function portion(f){
 }
 
 function renderAll(){ render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec();
-  const fab = $('fab'); if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : t('startWk');
+  const fab = $('fab'); if(fab.dataset.action === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   syncFab2(); }
 
 // the second floating button (0.6.9): the same pair on Food Tracker and Fridge — scan first (line scanner icon), then ＋ Add Food

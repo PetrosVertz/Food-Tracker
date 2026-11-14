@@ -111,7 +111,7 @@ const S = {
  // settings
  settings:['Settings','Ρυθμίσεις'], settingsSub:['Everything is stored on this device only.','Όλα αποθηκεύονται μόνο σε αυτή τη συσκευή.'], language:['Language','Γλώσσα'],
  geminiKey:['Gemini API key (label photos and recipes)','Κλειδί Gemini API (ετικέτες και συνταγές)'], geminiKeyPh:['Paste your key here','Επικόλλησε το κλειδί εδώ'],
- getKey:['🔑 Get API key','🔑 Πάρε κλειδί API'],
+ getKey:['Get API Key','Πάρε κλειδί API'],
  getKeyHint:['Opens Google AI Studio. Sign in, tap “Create API key”, copy it and paste it above. Free, with a daily limit. It stays on this phone only.','Ανοίγει το Google AI Studio. Σύνδεση, «Create API key», αντιγραφή και επικόλληση από πάνω. Δωρεάν, με ημερήσιο όριο. Μένει μόνο σε αυτό το κινητό.'],
  geminiModel:['Gemini model','Μοντέλο Gemini'], saveSettings:['Save settings','Αποθήκευση ρυθμίσεων'], settingsSaved:['Settings saved','Οι ρυθμίσεις αποθηκεύτηκαν'],
  yourData:['Your data','Τα δεδομένα σου'], yourDataSub:['Copy for Claude, or move everything between phone and PC.','Αντιγραφή για το Claude, ή μεταφορά όλων μεταξύ κινητού και υπολογιστή.'],
@@ -122,7 +122,7 @@ const S = {
  comingSoon:['Coming in a later version','Έρχεται σε επόμενη έκδοση'],
  // v1.4
  backArrow:['← Back','← Πίσω'],
- tryingModel:['Trying model {i} of {n}…','Δοκιμή μοντέλου {i} από {n}…'], cancelRec:['✕ Cancel · model {i} of {n}','✕ Ακύρωση · μοντέλο {i} από {n}'],
+ tryingModel:['Trying model {i} of {n}…','Δοκιμή μοντέλου {i} από {n}…'], cancelRec:['Cancel · model {i} of {n}','Ακύρωση · μοντέλο {i} από {n}'],
  cancelled:['Cancelled','Ακυρώθηκε'], timedOut:['took too long','άργησε πολύ'],
  allBusy:['Every Gemini model is busy or out of free uses right now ({e}). Try again later, or use “Add my own recipe”.','Όλα τα μοντέλα Gemini είναι απασχολημένα ή τελείωσαν οι δωρεάν χρήσεις ({e}). Δοκίμασε αργότερα ή χρησιμοποίησε «Δική μου συνταγή».'],
  keyBad:['Google rejected the key: {e}. Check it in settings.','Η Google απέρριψε το κλειδί: {e}. Έλεγξέ το στις ρυθμίσεις.'],
@@ -204,8 +204,8 @@ const S = {
  clearBought:['Clear','Καθαρισμός'],
  listCopied:['List copied','Η λίστα αντιγράφηκε'], nothingToSend:['Nothing to send','Τίποτα για αποστολή'], addAsText:['Add “{q}”','Προσθήκη «{q}»'],
  // key guide
- testKey:['✓ Test key','✓ Έλεγχος κλειδιού'], keyTesting:['Checking…','Έλεγχος…'], keyOk:['✓ Key works: {n} models available.','✓ Το κλειδί δουλεύει: {n} διαθέσιμα μοντέλα.'],
- keyFail:['✗ That key didn’t work: {e}','✗ Το κλειδί δεν δούλεψε: {e}'], keyEmpty:['Paste a key first','Επικόλλησε πρώτα ένα κλειδί'],
+ testKey:['Test Key','Έλεγχος κλειδιού'], keyTesting:['Checking…','Έλεγχος…'], keyOk:['Key works: {n} models available.','Το κλειδί δουλεύει: {n} διαθέσιμα μοντέλα.'],
+ keyFail:['That key didn’t work: {e}','Το κλειδί δεν δούλεψε: {e}'], keyEmpty:['Paste a key first','Επικόλλησε πρώτα ένα κλειδί'],
  keyGuideT:['How to get a free key (2 minutes)','Πώς παίρνεις δωρεάν κλειδί (2 λεπτά)'],
  keyNoNeed:['No key? Everything still works except label photos, recipe ideas and Plan my day.','Χωρίς κλειδί; Όλα δουλεύουν εκτός από φωτογραφίες ετικέτας, προτάσεις συνταγών και Σχεδίασε τη μέρα μου.'],
  u_mg:['mg','mg'], u_g:['g','g'], u_mcg:['mcg','mcg'], u_IU:['IU','IU'], u_ml:['ml','ml'],
@@ -302,14 +302,14 @@ Object.assign(S, {
 // ======================= 0.5.4 =======================
 Object.assign(S, {
   ok_:['OK','OK'], tabFood:['Food Tracker','Food Tracker'], fridgeFab:['Add Shopping','Πρόσθεσε ψώνια'],
-  suWelcome:['Welcome 👋','Καλώς ήρθες 👋'], suWelcomeSub:['A quick setup, only once. You can change everything later.','Γρήγορο στήσιμο, μόνο μία φορά. Όλα αλλάζουν αργότερα.'],
+  suWelcome:['Welcome','Καλώς ήρθες'], suWelcomeSub:['A quick setup, only once. You can change everything later.','Γρήγορο στήσιμο, μόνο μία φορά. Όλα αλλάζουν αργότερα.'],
   suNext:['Next','Επόμενο'], suBack:['Back','Πίσω'], suSkip:['Skip','Παράλειψη'], suFinish:['Let\'s go','Πάμε'],
   suAbout:['About you','Για σένα'], suWeight:['Body weight','Βάρος σώματος'], suGoal:['Goal','Στόχος'],
   suWeek:['Your week','Η εβδομάδα σου'], suGymDays:['Which days do you train?','Ποιες μέρες γυμνάζεσαι;'], suGymTime:['Usual gym time','Συνήθης ώρα γυμναστηρίου'],
   suWorkQ:['Do you work?','Δουλεύεις;'], suWorkDays:['Work days','Μέρες δουλειάς'], suFrom:['From','Από'], suTo:['To','Έως'],
   suAi:['AI helper (optional)','Βοηθός AI (προαιρετικό)'], suAiSub:['A free Gemini key unlocks label photos, shopping photos, recipe ideas and Plan my day. Everything else works without it.','Ένα δωρεάν κλειδί Gemini ξεκλειδώνει φωτογραφίες ετικετών και ψωνιών, ιδέες συνταγών και το Πλάνο ημέρας. Όλα τα άλλα δουλεύουν χωρίς αυτό.'],
-  suDone:['All set','Έτοιμο'], suDoneSub:['Gym days: {g} kcal · rest days: {r} kcal · protein {p} g. Change them anytime with 🎯 in Today.','Μέρες γυμναστικής: {g} kcal · ξεκούρασης: {r} kcal · πρωτεΐνη {p} g. Αλλάζουν όποτε θες από το 🎯 στο Σήμερα.'],
-  suNeedW:['Add your weight first','Βάλε πρώτα το βάρος σου'], suAgain:['↺ Run the first setup again','↺ Ξανά το αρχικό στήσιμο'],
+  suDone:['All set','Έτοιμο'], suDoneSub:['Gym days: {g} kcal · rest days: {r} kcal · protein {p} g. Change them anytime with Targets in Today.','Μέρες γυμναστικής: {g} kcal · ξεκούρασης: {r} kcal · πρωτεΐνη {p} g. Αλλάζουν όποτε θες από τους Στόχους στο Σήμερα.'],
+  suNeedW:['Add your weight first','Βάλε πρώτα το βάρος σου'], suAgain:['Run the First Setup Again','Ξανά το αρχικό στήσιμο'],
   remGym:['{n} Today at {t}','{n} σήμερα στις {t}'], remGymNoT:['{n} Today','{n} σήμερα'], remSetT:['Tap to Set a Time','Πάτα για να βάλεις ώρα'], gymAny:['Gym','Γυμναστήριο'], gymAnyOpt:['Gym (any workout)','Γυμναστήριο (οποιαδήποτε)'],
   qaName:['What was it? (optional)','Τι ήταν; (προαιρετικό)'], qaDef:['Quick add','Γρήγορη καταγραφή'], qaTag:['quick add','γρήγορη καταγραφή'],
   usuals:['Your usuals','Τα συνηθισμένα σου'], grpOnline2:['Online','Online'], onlineSearching:['Searching online…','Ψάχνω online…'], onlineMore:['Search online for more','Ψάξε online για περισσότερα'],
@@ -399,7 +399,7 @@ Object.assign(S, {
 Object.assign(S, {
   aiThinking: ['Thinking…', 'Σκέφτομαι…'], aiSlow: ['This can take up to a minute. Free AI models are often busy, so it tries a few.', 'Μπορεί να πάρει έως ένα λεπτό. Τα δωρεάν μοντέλα AI είναι συχνά απασχολημένα, οπότε δοκιμάζει μερικά.'],
   aiMany: ['{n} AI uses today. Free Gemini keys have a daily limit (a few hundred); if the AI stops answering, it resets tomorrow.', '{n} χρήσεις AI σήμερα. Τα δωρεάν κλειδιά Gemini έχουν ημερήσιο όριο (μερικές εκατοντάδες)· αν το AI σταματήσει να απαντά, ξεκινά ξανά αύριο.'],
-  tryingModel: ['Thinking…', 'Σκέφτομαι…'], cancelRec: ['✕ Cancel', '✕ Ακύρωση'],
+  tryingModel: ['Thinking…', 'Σκέφτομαι…'], cancelRec: ['Cancel', 'Ακύρωση'],
   optPhoto: ['<span class="aiafter">Photo of Nutrition Label</span><small>Read by the AI (free Gemini key in Settings)</small>', '<span class="aiafter">Φωτογραφία διατροφικής ετικέτας</span><small>Τη διαβάζει το AI (δωρεάν κλειδί Gemini στις ρυθμίσεις)</small>'],
   geminiKey: ['Gemini API key (AI = uses it)', 'Κλειδί Gemini API (AI = το χρησιμοποιεί)'],
   mealName: ['Recipe title', 'Τίτλος συνταγής'],
