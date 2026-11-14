@@ -366,7 +366,8 @@ body.twofab .fab{padding:16px 20px!important}
 .ficon.lic,.dcl.lic{display:flex;align-items:center;justify-content:center;color:var(--t-text);font-size:0}
 /* Saved Workouts (0.6.9.3) */
 #ovStart .sheet{display:flex;flex-direction:column;gap:var(--s3)}
-#stList{display:flex;flex-direction:column;gap:var(--s2)}
+#stList{display:flex;flex-direction:column;gap:var(--s2);max-height:calc(4 * 64px + 3 * var(--s2));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;min-height:0}   /* 0.7.4.2: never taller than 4 workouts; the rest scrolls inside, Start Empty Workout stays at the bottom */
+#stList .strow{flex:0 0 64px;height:64px;min-height:0;overflow:hidden}
 .strow{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:64px;padding:12px 16px;border-radius:var(--r-row);border:1px solid var(--t-edge);background:var(--t-card);color:var(--t-text);font-family:inherit;text-align:left;cursor:pointer}
 .strow.today{border-color:var(--t-accent-soft)}
 .strow .stic{flex:0 0 auto;display:flex;color:var(--t-accent-ink,var(--t-accent))}
