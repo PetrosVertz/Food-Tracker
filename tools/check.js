@@ -142,6 +142,9 @@ try {
   const tests = { 'low row': 'machine_row', 'rdl': 'rdl', 'pec deck': 'pec_deck', 'ohp': 'ohp', 'skull crusher': 'skullcrusher', 'bss': 'bulgarian', 'outer thigh': 'abductor', 'inner thigh': 'adductor', 'power squat': 'pendulum_squat',
     'reverse pec deck': 'reverse_pec', 'rear delt machine': 'reverse_pec', 'leg curl': 'lying_curl', 'quad extension': 'leg_ext', 'vertical chest press': 'machine_press', 'iso lateral pulldown': 'iso_pulldown', 'κωπηλατικη': 'machine_row', 'βυθισεις': 'dips', 'ροδακι': 'ab_wheel', 'tgu': 'kb_tgu', 'stairmaster': 'stairs' };
   for (const [q, want] of Object.entries(tests)) { const got = find(q)[0]; if (got !== want) bad.push(`search "${q}" finds ${got} first, expected ${want}`); }
+  // no visible exercise name (EN or GR) may carry a brand or machine name; those live only in the hidden search names (ALSO)
+  const BRANDS = /matrix|technogym|hammer strength|life ?fitness|cybex|panatta|gym ?80|iso[- ]?lateral|low row/i;
+  LIB_RAW.forEach(r => { if (BRANDS.test(r[1]) || BRANDS.test(r[2])) bad.push(`${r[0]} shows a brand or machine name: "${r[1]}" / "${r[2]}"`); });
   if (bad.length) bad.forEach(b => fail('exercise ' + b)); else ok(`exercise library: ${LIB_RAW.length} exercises, all valid`);
 } catch (e) { fail('could not check exercise library: ' + e.message); }
 
