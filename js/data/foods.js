@@ -157,10 +157,10 @@ const LOC_KEY = { fridge:'locFridge', freezer:'locFreezer', cupboard:'locCupboar
 const SC_NAME = 'Tracker Groceries';
 
 const SC_STEPS = {
-  en: ['Open the <b>Shortcuts</b> app and tap <b>＋</b> to make a new shortcut.', 'Rename it to exactly <code>Tracker Groceries</code> (tap the name at the top).',
+  en: ['Open the <b>Shortcuts</b> app and tap <b>+</b> to make a new shortcut.', 'Rename it to exactly <code>Tracker Groceries</code> (tap the name at the top).',
        'Add the action <b>Split Text</b>. Set it to split <b>Shortcut Input</b> by <b>New Lines</b>.', 'Add <b>Repeat with Each</b> (it uses the Split Text result).',
        'Inside the repeat, add <b>Add New Reminder</b>: text = <b>Repeat Item</b>, list = your shopping list (e.g. “Groceries”).', 'Tap <b>Done</b>. Come back here, tick the box and tap <b>Send now</b>. The first time, allow Shortcuts to open.'],
-  el: ['Άνοιξε την εφαρμογή <b>Συντομεύσεις (Shortcuts)</b> και πάτα <b>＋</b> για νέα συντόμευση.', 'Μετονόμασέ τη ακριβώς σε <code>Tracker Groceries</code> (πάτα το όνομα πάνω).',
+  el: ['Άνοιξε την εφαρμογή <b>Συντομεύσεις (Shortcuts)</b> και πάτα <b>+</b> για νέα συντόμευση.', 'Μετονόμασέ τη ακριβώς σε <code>Tracker Groceries</code> (πάτα το όνομα πάνω).',
        'Πρόσθεσε την ενέργεια <b>Διαχωρισμός κειμένου (Split Text)</b>: χώρισε την <b>Είσοδο συντόμευσης</b> ανά <b>Νέες γραμμές</b>.', 'Πρόσθεσε <b>Επανάληψη με καθένα (Repeat with Each)</b>.',
        'Μέσα στην επανάληψη, πρόσθεσε <b>Προσθήκη νέας υπενθύμισης</b>: κείμενο = <b>Στοιχείο επανάληψης</b>, λίστα = η λίστα σου για ψώνια.', 'Πάτα <b>Τέλος</b>. Γύρνα εδώ, τσέκαρε το κουτάκι και πάτα <b>Αποστολή τώρα</b>. Την πρώτη φορά επίτρεψε να ανοίξει.']
 };

@@ -188,7 +188,7 @@ const S = {
  left:['{a} left','απομένουν {a}'],
  useT:['Use {n}','Χρήση: {n}'], useSub:['How much did you use?','Πόσο χρησιμοποίησες;'], finishedIt:['Finished it','Τελείωσε'],
  usedToast:['Used {a} of {n}','Χρησιμοποιήθηκαν {a} από {n}'], finishedToast:['{n} is finished','Τελείωσε: {n}'], toList:['→ added to groceries','→ μπήκε στη λίστα'],
- alertSupps:['💊 {n} supplements left for today','💊 Απομένουν {n} συμπληρώματα για σήμερα'],
+ alertSupps:['{n} supplements left for today','Απομένουν {n} συμπληρώματα για σήμερα'],
  fridgeSubOk:['{n} items','{n} προϊόντα'], fridgeSubEmpty:['Empty','Άδειο'],
  grocSub:['{n} to buy','{n} για αγορά'], grocSubEmpty:['Nothing to buy','Τίποτα για ψώνια'],
  // cooking + fridge
