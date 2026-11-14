@@ -487,6 +487,7 @@ body.twofab .fab{padding:16px 20px!important}
 .scanq{position:absolute;left:10px;right:10px;bottom:10px;padding:12px 14px;border-radius:18px;background:var(--t-card);border:1px solid var(--t-edge);box-shadow:var(--t-shadow);color:var(--t-text)}
 .scanq small{display:block;color:var(--t-done);font-weight:var(--w-bold);font-size:var(--fs-label);text-transform:uppercase;letter-spacing:.3px}
 .scanq b{display:block;font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scanq small.scanmac{display:block;margin-top:2px;color:var(--t-muted);font-weight:var(--w-reg,400);font-size:var(--fs-label);text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scanq p{margin:6px 0 10px;color:var(--t-muted)}
 .sqbtns{display:flex;gap:8px} .sqbtns .btn{flex:1;border-radius:999px}
 #scanBasket{margin-left:auto}
