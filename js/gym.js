@@ -117,6 +117,7 @@ function openSession(){ if(!active) return; renderSession(); open('ovSession'); 
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
+  { const cb = $('sesCoach'); cb.innerHTML = AI.robot('gym', 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }   // 0.7.7: the Gym Coach robot, top right of the header
   $('sesHg').innerHTML = hourglass('hg5', 20, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
@@ -750,9 +751,10 @@ function cardHtml(x, i){
   }
   const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
-  const head = `<div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
+  // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
+  const head = `<div class="extop"><span class="extier" data-tier></span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
-      <div class="expills"><button class="pill2 gear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 16, 2)}</button>${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
+      <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });

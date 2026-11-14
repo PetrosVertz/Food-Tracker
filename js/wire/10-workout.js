@@ -43,12 +43,13 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     if(!left) tickRest(); }
   requestAnimationFrame(restLoop); })();
 
-// 0.7.4.3: on the live workout screen the Gym Coach robot bubble is always there (starts at the bottom right, by End Workout).
-// Off the workout screen it hides; when the workout ends its chat ends with it (the next workout starts a fresh chat).
+// 0.7.7: the Gym Coach robot lives in the live workout header (top right). Tap it → the chat. Closing the chat turns it into the floating bubble;
+// dismissing the bubble brings it back to the header (CSS swaps them, see .sescoach). No bubble until the robot has been tapped.
+// Off the workout screen the bubble hides; when the workout ends its chat ends with it (the next workout starts a fresh chat).
+$('sesCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymlive'); });
 { let was = false; new MutationObserver(() => { const on = $('ovSession').classList.contains('open'); if(on === was) return; was = on;
     document.body.classList.toggle('inses', on);
-    if(on){ if(!Coach.has('gymlive') && !$('ovCoach').classList.contains('open')) Coach.minimize('gymlive'); }
-    else if(!active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
+    if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
 // Hours Slept (Recovery page): saved per day in the profile; recovery reads it
 $('gRecV').addEventListener('change', e => { if(e.target.id !== 'recSleep') return; const v = parseFloat(String(e.target.value).replace(',', '.')), k = todayKey();

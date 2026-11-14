@@ -104,16 +104,28 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .hg5{animation:flip 300s ease-in-out infinite} .hg5 .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 300s linear infinite} .hg5 .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 300s linear infinite}
 
 /* header: plain back arrow · centred title · 28 px italic clock + hourglass (flips every 5 min) */
-.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:120px 1fr 120px;align-items:center;padding:8px 0;margin-bottom:8px;background:var(--t-bg)}
+.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:8px 0;margin-bottom:8px;background:var(--t-bg)}
 .seshead3 .sesback{width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;color:var(--t-text);border-radius:0}
-.seshead3 h2{margin:0;text-align:center;font-size:var(--fs-title);font-weight:var(--w-bold);letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wclock{display:flex;align-items:center;justify-content:flex-end;gap:6px;color:var(--t-clock)}
+.seshead3 h2{margin:0;max-width:100%;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);letter-spacing:0;color:var(--t-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seshead3 h2:empty{display:none}
+.wmid{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wclock{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--t-clock)}
+/* 0.7.7: the Gym Coach robot, top right; it steps aside while its bubble is out or the chat is open */
+.sescoach{justify-self:end;width:44px;height:44px;margin-right:-4px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+body:has(#cb-gymlive) .sescoach,body:has(#ovCoach.open) .sescoach{visibility:hidden}
+body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesClock{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
 #sesHg{display:flex}
 
 /* cards */
 #sesBody .exc{margin-bottom:16px;border-radius:var(--r-card)!important;padding:16px}
-.exc.open{display:flex;flex-direction:column;gap:8px}
+.exc.open{position:relative;display:flex;flex-direction:column;gap:8px}
+/* 0.7.7: card top row, pulled into the card's corner: [tier badge slot][settings gear 44 px] */
+.extop{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:44px;margin:-14px -10px -18px 0}
+.extier{display:flex;align-items:center;min-width:0}
+.extier:empty{display:none}
+.exgear{flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.exc.ssarm .exgear{visibility:hidden}
 .exc.mini{display:flex;align-items:center;gap:8px;cursor:pointer}
 .exc.mini .mtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .exc.mini .mtxt b{font-size:var(--fs-body);font-weight:var(--w-med)}
@@ -255,7 +267,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .gchow{margin:0;color:var(--t-text)}
 .gcblk{display:flex;flex-direction:column;gap:6px} .gcblk ol,.gcblk ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px} .gcblk ul.fpx{padding-left:0;list-style:none}
 .gcw{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--t-sel)} .gcw small{color:var(--t-muted);font-size:var(--fs-label)}
-/* the live workout's robot bubble: only on the workout screen, starting just above End Workout on the right; other coach bubbles step aside there */
+/* the live workout's robot bubble: appears when the chat is closed (the header robot opens it); only on the workout screen, just above End Workout on the right; other coach bubbles step aside there */
 body:not(.inses) #cb-gymlive,body.inses .coachbub:not(#cb-gymlive){display:none!important}
 #cb-gymlive{bottom:calc(92px + env(safe-area-inset-bottom))}
 html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-inset-bottom))}
@@ -267,7 +279,6 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .gsnote{margin:0}
 
 /* 0.7.7 Exercise Settings + per-set extras */
-.pill2.gear{width:34px;padding:0}
 .exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--t-line)}
 .exsrow b{display:block;font-weight:var(--w-med)} .exsrow small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
 .exsh{margin:16px 0 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
