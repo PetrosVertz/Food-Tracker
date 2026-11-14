@@ -12,6 +12,7 @@ The robot designs ("Robots and anatomy" canvas) are not in the repo: use the exi
 - Coach pill to bubble: tapping the Food Coach pill (next to Log Food) or the Gym Coach pill (next to Create a Workout) opens the chat; closing it turns it into that robot's bubble, and the pill disappears from the bottom while the bubble exists, so Log Food / Create a Workout slide back to the centre. Dismissing the bubble (drag to the trash circle) brings the pill back.
 - No AI key: every AI feature is greyed out; tapping one shows a short message that an AI key is needed, with a button to Settings › AI.
 - Every AI feature is optional: each job also has a non-AI way to do it, and nothing in the app needs AI to work.
+- Main button glow (Log Food, Start Workout, Add Food…): the underglow isn't centred behind the button. Today it's theme.css .fab box-shadow `0 8px 24px` (pushed 8px down), and it can drift when the button sits beside another pill or slides. Make it one soft glow centred under the button in every state (alone, next to the coach pill, while moving, Light and Dark). Check with a screenshot.
 - Bump VERSION to 0.7.4.3 and CACHE to match.
 
 ## food
