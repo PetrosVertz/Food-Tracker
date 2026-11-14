@@ -84,7 +84,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .exrow .mm{flex:0 0 46px;height:56px;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.25);overflow:hidden}
 .exrow .exn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .exrow .exn b{font-size:14.5px;line-height:1.25}
-.exrow .exn small.exalso{font-size:11.5px}
+.exrow .exn small.exalso{font-size:11.5px;color:var(--t-muted)}
 .exrow .exn small{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
 .exrow .iinfo{flex:0 0 auto;color:var(--muted);font-size:17px;padding:8px}
 .musort{margin:0 0 10px}
