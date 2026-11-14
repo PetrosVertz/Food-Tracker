@@ -36,16 +36,87 @@ function carbWindows(d){
 function openLogSearch(){ $('lSearch').value = ''; LW = { rows: {}, open: null, added: [] }; $('lAdded').innerHTML = ''; drawLog(); open('ovLog'); setTimeout(() => $('lSearch').focus(), 120); }
 
 // ---------- targets ----------
+// ---------- Fill My Macros (0.7.4.3): its 2–3 suggestions wait greyed at the top of Eaten, looking exactly like Eaten cards, each with Add ----------
+// Food Coach's "what should I eat?" gives the same cards in the chat (logQSuggest); adding in either place adds it in both.
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
-  if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // 0.6.5.2: eaten plan meals move into Eaten
-  el.innerHTML = `<h3 class="sect"><span>${t('planT')} ${AI.badge()}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
-    (p.meals || []).map((m, i) => m.logged ? '' : `<div class="planmeal planned"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
-      <div class="rmeta">P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)}</div>
-      <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">${svgIcon('snow', 14, 2)} ${t('logPlanFridge')}</span>` : ''}</li>`).join('')}</ul>
-      ${m.why ? `<div class="hint">${esc(m.why)}</div>` : ''}
-      <div class="actions" style="margin-top:8px"><button class="btn small primary" data-plog="${i}">${t('ateBtn')}</button></div></div>`).join('') +
-    (p.tip ? `<p class="hint">${esc(p.tip)}</p>` : '');
+  if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // added suggestions move into Eaten
+  el.innerHTML = (p.meals || []).map((m, i) => m.logged ? '' : planCardHtml(m, i)).join('');
+}
+const planName = m => m.title || (m.items || []).map(it => it.name).join(', ');
+const planAmt = m => (m.items || []).map(it => `${it.name} ${r1(it.grams || 0)} g`).join(' · ');
+function planRowHtml(m){
+  return `<div class="et"><span class="name"><span class="nmt">${esc(planName(m))}</span></span><small class="esub"><b class="p">P ${fmt(m.protein || 0)}</b> · <b class="c">C ${fmt(m.carbs || 0)}</b> · <b class="f">F ${fmt(m.fat || 0)}</b> · <span class="eamt">${esc(planAmt(m))}</span></small></div><span class="ekc">${Math.round(m.kcal || 0)}<small>kcal</small></span>`;
+}
+function planCardHtml(m, i){
+  return `<div class="card eatrow sugg" data-pi="${i}">${planRowHtml(m)}<button class="sgadd" type="button" data-plog="${i}">${t('add')}</button></div>`;
+}
+function planPrompt(){
+  const tg = targetFor(curDay), di = dayInfo(curDay), tot = dayTotals(curDay), isToday = daysUntil(curDay) === 0;
+  const fr = liveItems().map(x => `${x.info.name}: ${fmtSize(x.it.qty, x.info.unit)}`).join('; ');
+  const fl = foods.slice(0, 70).map(f => `${foodName(f)} (${f.kcal}kcal P${f.protein} C${f.carbs} F${f.fat} per 100${f.unit}${f.state === 'uncooked' ? ', weighed raw' : ''})`).join('; ');
+  const ml = meals.map(m => `${m.name} (per 100 g cooked: ${m.kcal}kcal P${m.protein} C${m.carbs} F${m.fat})`).join('; ');
+  const eaten = (dayLog[curDay] || []).map(e => `${e.time} ${e.name} ${e.amt}${e.unit}`).join('; ');
+  return `You plan a day of eating for someone who lifts weights. Write all text in ${lang === 'el' ? 'Greek' : 'English'}.
+Day: ${di.type === 'gym' ? `GYM DAY, ${di.work || 'upper'} workout at ${di.time || '18:00'}` : 'REST DAY'}. Goal: ${targets.goal}.
+Targets for the whole day: ${tg.k} kcal, protein ${tg.p} g, carbs ${tg.c} g, fat ${tg.f} g, fibre ${fibTarget(tg)} g.
+Electrolytes so far: sodium ${Math.round(tot.na || 0)} mg (guideline ~2300), potassium ${Math.round(tot.k || 0)} mg (aim ~3400): include potassium-rich foods${di.type === 'gym' ? ', and a potassium-rich carb such as a banana 30-60 min before training' : ''}.
+${workFor(curDay) ? `They are at WORK ${workFor(curDay).from}-${workFor(curDay).to}: meals in that window must be portable and simple; plan a solid meal before and after work.` : 'No work today: proper meals at home are fine.'}
+Already eaten today: ${eaten || 'nothing'} (totals ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)}, C ${Math.round(tot.c)}, F ${Math.round(tot.f)}).
+${isToday ? `Time now: ${nowHM()}. Only plan meals from now on.` : 'Plan the whole day.'}
+In the fridge/cupboard (use these FIRST): ${fr || 'nothing logged'}.
+Their saved foods: ${fl || 'none'}.
+Their home-cooked meals: ${ml || 'none'}.
+Carb timing: ${di.type !== 'gym' ? 'spread carbs evenly; protein every 3-4 h.' : di.work === 'legs' || di.work === 'full' ? 'put most carbs in the meals 2-3 h before and within 2 h after the workout.' : di.work === 'cardio' ? 'light carb snack 1-2 h before, normal carbs after; remind to hydrate.' : 'moderate carbs before and after, rest spread out.'}
+REMAINING for the rest of today (plan exactly this, NEVER more): ${Math.max(0, Math.round(tg.k - tot.kcal))} kcal, protein ${Math.max(0, Math.round(tg.p - tot.p))} g, carbs ${Math.max(0, Math.round(tg.c - tot.c))} g, fat ${Math.max(0, Math.round(tg.f - tot.f))} g.
+Rules: land a little under the REMAINING numbers, never over. Use the exact food and meal names from the lists above. Grams are as weighed (raw for foods marked weighed raw, cooked weight for home-cooked meals). 1–3 meals or snacks: easy food combos or one simple plate each. Keep it realistic and simple.
+Return ONLY JSON: {"meals":[{"time":"HH:MM","title":string,"items":[{"name":string,"name_en":string,"grams":number,"from":"fridge"|"foods"|"meal"}],"kcal":number,"protein":number,"carbs":number,"fat":number,"why":string}],"tip":string}${AI.dietRules()}`;
+}
+// a new plan: never over what's left, saved for the day, shown on Today
+function planKeep(r){
+  if(!r || !Array.isArray(r.meals) || !r.meals.length) throw new Error('empty plan');
+  const tg = targetFor(curDay), tot = dayTotals(curDay); r.meals = r.meals.slice(0, 3);
+  if(tg) planFit(r, { k: tg.k - tot.kcal, p: tg.p - tot.p, c: tg.c - tot.c, f: tg.f - tot.f });   // 0.6.5: never over what's left
+  plans[curDay] = r; Store.save('plans', plans); renderPlan(); return r;
+}
+// Add: every food of that suggestion goes into Eaten (with Undo); returns the undo, or null when nothing could be added
+function planLogMeal(day, m){
+  if(!m || m.logged) return null;
+  const added = [], took = []; let miss = 0;
+  (m.items || []).forEach(it => {
+    const g = Number(it.grams); if(!(g > 0)) return;
+    const meal = meals.find(x => norm(x.name) === norm(it.name));
+    let info = null;
+    if(meal) info = { name: meal.name, icon: mealIcon(meal), unit: 'g', per: meal, meal };
+    else { const ref = matchIng([it.name, it.name_en]); let f = null;
+      if(ref && ref.type === 'my') f = foods.find(x => x.id === ref.id); else if(ref && ref.type === 'gen') f = saveGeneric(GENBY[ref.id]);
+      if(f) info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; }
+    if(!info){ miss++; return; }
+    logEntry(day, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM()); const l = dayLog[day]; added.push(l[l.length - 1]);
+    if(it.from === 'fridge'){ const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }; try{ takeFromFridge(key, g); took.push(1); }catch(e){} }
+  });
+  if(!added.length){ toast(t('planUnmatched', { n: miss })); return null; }
+  m.logged = true; Store.save('plans', plans); renderAll();
+  let undone = false;
+  const undo = () => { if(undone) return; undone = true; const ids = new Set(added.map(e => e.id));
+    dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog(); m.logged = false; Store.save('plans', plans); renderAll(); planChatSync(); };
+  PUNDO.set(m, undo);
+  return { undo, n: added.length, miss };
+}
+const PUNDO = new WeakMap(), PLANCH = [];   // a suggestion's Undo; the suggestion cards shown in Food Coach ({ m, card, ch })
+function planAddMeal(day, m){
+  const r = planLogMeal(day, m); if(!r) return; Phone.haptic(); planChatSync();
+  toast(t('planLogged', { n: r.n }) + (r.miss ? ' · ' + t('planUnmatched', { n: r.miss }) : ''), t('undo'), r.undo);
+}
+const planAdd = i => { const p = plans[curDay]; if(p) planAddMeal(curDay, p.meals[i]); };
+// swipe a suggestion away (Undo in the toast)
+function planDrop(i){ const p = plans[curDay], m = p && p.meals[i]; if(!m) return; m.logged = 'dropped'; Store.save('plans', plans); renderPlan(); planChatSync();
+  toast(t('planDropped'), t('undo'), () => { m.logged = false; Store.save('plans', plans); renderPlan(); planChatSync(); }); }
+// the chat's suggestion cards follow what happened on Today (and the other way round)
+function planChatSync(){
+  PLANCH.forEach(x => { const on = !!x.m.logged;
+    if(on && !x.card.done) x.ch.update(x.card, { done: x.m.logged === 'dropped' ? t('planDropped') : t('planAddedOne'), dim: false, undo: x.m.logged === 'dropped' ? null : PUNDO.get(x.m) || null });
+    else if(!on && x.card.done) x.ch.update(x.card, { done: '', dim: true, undo: null }); });
 }
 
 function gapDays(){ const d = lastSessionDate(); return d ? -daysUntil(d) : null; }
@@ -756,8 +827,15 @@ async function logQSend(txt, ch){
   try{ await logQMatchAll(m, ch); }
   finally{ m.items.forEach(it => { if(it.busy){ it.busy = false; if(!it.st) it.src = 'none'; } }); logQRedraw(m); }
 }
-// "what should I eat?" in Food Coach (Fill My Macros cards come in the next step; for now the reply)
-async function logQSuggest(ch, reply){ ch.say(reply || t('coachFail', { e: '?' })); }
+// "what should I eat?" in Food Coach: Fill My Macros, shown as the same greyed suggestion cards (and on Today)
+async function logQSuggest(ch, reply){
+  if(!targetFor(curDay)){ ch.say(t('planNeedTargets')); return; }
+  const day = curDay, r = planKeep(await ch.ask(planPrompt()));
+  ch.say(reply || t('logQSugg'));
+  const cards = ch.cards(r.meals.map(m => ({ body: `<div class="eatrow sugg">${planRowHtml(m)}</div>`, dim: true,
+    actions: [{ label: t('add'), primary: true, run: () => planAddMeal(day, m) }] })));
+  cards.forEach((card, i) => PLANCH.push({ m: r.meals[i], card, ch }));
+}
 
 function logQLogAll(m){
   const x = FC[m.id]; if(!x || m.state === 'logged') return;

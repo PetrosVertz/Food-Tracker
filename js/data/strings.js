@@ -177,7 +177,7 @@ const S = {
  // plan my day
  planning:['Planning…','Σχεδιάζω…'], planFail:['Couldn’t plan: {e}','Δεν έγινε το πλάνο: {e}'],
  planNeedTargets:['Set your targets first (Targets, at the top).','Βάλε πρώτα τους στόχους σου (Στόχοι, πάνω).'],
- planLogged:['Logged {n} foods','Καταγράφηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
+ planLogged:['Added {n} foods','Προστέθηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
  // fridge
  locFridge:['Fridge','Ψυγείο'], locFreezer:['Freezer','Κατάψυξη'], locCupboard:['Cupboard','Ντουλάπι'], searchFridge:['Search the fridge…','Αναζήτηση στο ψυγείο…'],
  emptyFridge:['<b>Your fridge is empty</b>Tap Scan Receipt after shopping, or Add Food. Ticked groceries can go straight in too.','<b>Το ψυγείο είναι άδειο</b>Σκάναρε ό,τι αγόρασες ή τσέκαρε από τη λίστα για ψώνια και βάλ’ τα μέσα.'],
@@ -439,11 +439,9 @@ Object.assign(S, {
 
 // ---------- 0.6.5.1 ----------
 Object.assign(S, {
-  planT: ['Fill my food', 'Συμπλήρωσε τα υπόλοιπα'],
   qaT: ['Add takeaway', 'Φαγητό απ\' έξω'], allFoods: ['All foods', 'Όλα τα τρόφιμα'],
 });
 
-Object.assign(S, { ateBtn: ['Ate', 'Το έφαγα'] });
 
 // ---------- 0.6.6 ----------
 Object.assign(S, {
@@ -518,7 +516,8 @@ Object.assign(S, {
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
   logCalToday: ['Go to Today', 'Πήγαινε στο σήμερα'],
-  logQFind: ['Finding…', 'Ψάχνω…'], logQGot: ['Got it, here\'s what I found.', 'Έγινε, να τι βρήκα.'],
+  logQFind: ['Finding…', 'Ψάχνω…'], logQSugg: ['Here are a few ideas to fill your macros.', 'Μερικές ιδέες για να συμπληρώσεις τα μακρο σου.'],
+  planAddedOne: ['Added', 'Προστέθηκε'], planDropped: ['Suggestion removed', 'Η πρόταση αφαιρέθηκε'], logQGot: ['Got it, here\'s what I found.', 'Έγινε, να τι βρήκα.'],
   logQLogged: ['Added {n} foods · {k} kcal', 'Προστέθηκαν {n} τρόφιμα · {k} kcal'],
   logQStd: ['built-in', 'βασικό'], logQEst: ['estimate', 'εκτίμηση'],
   logQWebTag: ['FROM THE WEB', 'ΑΠΟ ΤΟ ΔΙΑΔΙΚΤΥΟ'], logQEstTag: ['AI ESTIMATE', 'ΕΚΤΙΜΗΣΗ AI'],
@@ -591,7 +590,7 @@ function titleCase(str){
   'hubRec', 'hubWeek', 'hubWeekSub', 'import', 'ingredients', 'language', 'later', 'light', 'listMode', 'locCupboard', 'locFreezer', 'locFridge',
   'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
   'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
-  'perPack', 'petChoose', 'petHow', 'pieces', 'planT', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
+  'perPack', 'petChoose', 'petHow', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
   'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
   'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
   'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',
