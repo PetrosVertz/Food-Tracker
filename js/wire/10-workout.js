@@ -49,3 +49,6 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
     document.body.classList.toggle('inses', on);
     if(on){ if(!Coach.has('gymlive') && !$('ovCoach').classList.contains('open')) Coach.minimize('gymlive'); }
     else if(!active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
+
+// Exercise Settings sheet: switches save at once and the open workout redraws
+$('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });

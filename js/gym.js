@@ -82,6 +82,9 @@ function warmupFor(exId, w){
 }
 
 // ---------- live session ----------
+// 0.7.7: Exercise Settings (one global menu, saved with the device settings): both sides together, hidden markers, per-set extras, sounds
+const gx = () => settings.gx || (settings.gx = {});
+function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
 function newSet(type){ return { id: uid(), type: type || 'N', w: '', r: '', done: false }; }
 
 function startSession(tpl){
@@ -139,6 +142,8 @@ function tickSet(x, s, row, xi, si){
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t('needSetVals')); (s.w === '' ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; s.at = Date.now(); ensureAudio(); if(!x.t0) x.t0 = Date.now();
+  let both = false;   // one-sided exercise + the setting: finishing L finishes R too
+  if(gx().uniBoth && x.uni && s.side === 'L'){ const o = x.sets[si + 1]; if(o && o.side === 'R' && !o.done){ if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); both = true; si++; } }
   if(!card && s.type !== 'W'){
     const hist = exHistory(x.exId, active.id), same = active.exercises.filter(z => z.exId === x.exId);
     if(hist.length){
@@ -153,13 +158,13 @@ function tickSet(x, s, row, xi, si){
   }
   saveG('act');
   SSNEXT = null; const nxt = x.sets[si + 1], moreDrop = nxt && nxt.drop && !nxt.done;   // no rest between drops
-  if(!card && !(x.uni && s.side === 'L') && !moreDrop){
+  if(!card && !(x.uni && s.side === 'L' && !both) && !moreDrop){
     const go = s.type === 'W' ? null : ssNext(xi);   // superset: straight to the partner's next set
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
-  if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L') && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
+  if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true); x.sets.push(...add); saveG('act'); }
   renderSession(); tickRest();
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
@@ -678,6 +683,16 @@ const hourglass = (cls, size, delay) => `<svg class="${cls}" width="${size}" hei
 function curEx(){ const ex = active.exercises; if(active.cur != null && ex[active.cur]) return active.cur; return ex.findIndex(x => !x.ended); }
 function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exercises[c]; return i === c || !!(x && y && x.ss && x.ss === y.ss); }
 
+// per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
+function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W') return '';
+  const num = (k, lbl, v) => `<label class="sxn"><span>${lbl}</span><input data-sx="${k}" inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${lbl}"></label>`;
+  return `<div class="setx" data-sxrow="${j}">${G.half ? num('hr', t('halfReps'), s.hr) : ''}${G.neg ? num('ng', t('negReps'), s.ng) : ''}${G.rir ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
+
+// the one Exercise Settings sheet (same for every exercise)
+function openExSet(){ drawExSet(); open('ovExSet'); }
+function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
+  $('exsBody').innerHTML = row('uniBoth', 'exsUni', 'exsUniS') + row('hideMarks', 'exsMarks', 'exsMarksS') + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS'); }
+
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
@@ -690,11 +705,11 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const head = `<div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
-      <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
+      <div class="expills"><button class="pill2 gear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 16, 2)}</button>${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
-  const hasWarm = x.sets.some(s => s.type === 'W'), wu = !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
+  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !G.hideMarks && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
@@ -702,12 +717,12 @@ function cardHtml(x, i){
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
     const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
-    const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
-    const lastDrop = s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
+    const ty = G.hideMarks ? 'N' : s.drop ? 'D' : s.type, base = G.hideMarks ? j + 1 : s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
+    const lastDrop = !G.hideMarks && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     return `<div class="setrow t-${ty} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${box('r')}
-        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` +
+        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + extrasHtml(s, j) +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}

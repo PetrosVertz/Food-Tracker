@@ -641,3 +641,14 @@ Object.assign(S, {
   formWrong: ['Wrong Photo?', 'Λάθος Φωτογραφία;'],
   rcptFail: ['Couldn\'t process the photo. Try again.', 'Δεν ήταν δυνατή η επεξεργασία της φωτογραφίας. Δοκίμασε ξανά.'],
 });
+
+// ---------- 0.7.7: Exercise Settings ----------
+Object.assign(S, {
+  exSettings: ['Exercise Settings', 'Ρυθμίσεις Άσκησης'],
+  exsUni: ['Both Sides Together', 'Και οι Δύο Πλευρές Μαζί'], exsUniS: ['On one-sided exercises, finishing the left set also finishes the right.', 'Στις ασκήσεις μίας πλευράς, ο αριστερός γύρος ολοκληρώνει και τον δεξιό.'],
+  exsMarks: ['Hide Set Markers', 'Απόκρυψη Σημάτων Γύρων'], exsMarksS: ['Hides the warm-up, failure and drop-set markers.', 'Κρύβει τα σήματα προθέρμανσης, αποτυχίας και drop set.'],
+  exsExtras: ['Extras For Each Set', 'Πρόσθετα Κάθε Γύρου'],
+  halfReps: ['Half Reps', 'Μισές Επαναλήψεις'], exsHalfS: ['Adds a Half Reps box under each set.', 'Προσθέτει ένα πλαίσιο μισών επαναλήψεων κάτω από κάθε γύρο.'],
+  negReps: ['Negatives', 'Αρνητικές'], exsNegS: ['Adds a Negatives box under each set.', 'Προσθέτει ένα πλαίσιο αρνητικών κάτω από κάθε γύρο.'],
+  exsRir: ['Reps In Reserve', 'Εφεδρικές Επαναλήψεις'], exsRirS: ['Adds a 0 to 5 choice under each set.', 'Προσθέτει επιλογή 0 έως 5 κάτω από κάθε γύρο.'], rirL: ['RIR', 'RIR'],
+});

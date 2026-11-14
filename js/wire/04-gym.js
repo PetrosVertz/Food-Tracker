@@ -80,18 +80,23 @@ $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
   if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; saveG('act');
 });
+$('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-sx]'); if(!i) return; const x = exAt(i), row = i.closest('[data-sxrow]'); if(!x || !row) return; const s = x.sets[+row.dataset.sxrow]; if(!s) return;
+  const v = i.value.replace(/\D/g, ''); if(v === '') delete s[i.dataset.sx]; else s[i.dataset.sx] = Math.min(99, +v); saveG('act');
+});
 
 $('sesBody').addEventListener('click', e => {
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
+  if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
+  const rr = e.target.closest('[data-rir]'); if(rr){ const rx = exAt(rr), rw = rr.closest('[data-sxrow]'), rs2 = rx && rw && rx.sets[+rw.dataset.sxrow]; if(rs2){ const k = +rr.dataset.rir; if(rs2.rir === k) delete rs2.rir; else rs2.rir = k; saveG('act'); renderSession(); } return; }
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
+  if(e.target.closest('[data-type]') && s && !gx().hideMarks){ const j = +row.dataset.s;
     if(s.drop){ addDrop(x, j); saveG('act'); renderSession(); return; }   // ↘ on a drop: one more drop
     s.type = { N: 'W', W: 'D', D: 'F', F: 'N' }[s.type];
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
