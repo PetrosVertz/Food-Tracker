@@ -125,12 +125,15 @@ Return ONLY JSON: {"reply": string}`, img);
   }
   function keep(){ const c = cur && CH[cur]; if(c) c.draft = $('coachIn').value; }
   // close() calls this whenever the chat window closes (Back, the phone's back, the edge swipe, opening Settings…): the chat becomes its bubble
-  function closed(){ if(!cur) return; const id = cur, ov = $('ovCoach'); keep(); cur = null; shrinking = false; clearTimeout(ov._sk); ov._sk = setTimeout(() => ov.classList.remove('shrink'), 260); bubble(id); pillSync(); }
+  // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; closing just closes
+  const NOBUB = id => id === 'gymlive' || id === 'gymstart';
+  function closed(){ if(!cur) return; const id = cur, ov = $('ovCoach'); keep(); cur = null; shrinking = false; clearTimeout(ov._sk); ov._sk = setTimeout(() => ov.classList.remove('shrink'), 260); if(!NOBUB(id)) bubble(id); pillSync(); }
   function minimize(id){
+    if(id && NOBUB(id)) return;
     if(id && id !== cur){ chat(id); if(!CH[id].msgs.length) CH[id].msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; bubble(id); pillSync(); return; }
     if(!cur || shrinking) return;
     const ov = $('ovCoach'), sh = ov.querySelector('.sheet');
-    if(rmo()){ close('ovCoach'); return; }
+    if(rmo() || NOBUB(cur)){ close('ovCoach'); return; }
     // shrink toward where the bubble will sit
     const b = bubble(cur); b.classList.add('pre'); const r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
     sh.style.transformOrigin = `${r.left + r.width / 2 - s.left}px ${r.top + r.height / 2 - s.top}px`;
