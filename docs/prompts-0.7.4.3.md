@@ -8,6 +8,11 @@ Order: **shell first, merge it** → **food, gym, fridge-a, fridge-b** (can run 
 Branch shell-0.7.4.3. Do the ## shell section of docs/fixes-0.7.4.3.md, following CLAUDE.md. Commit and push after each item. Run node tools/check.js --boot before every push, open a pull request after the first push.
 ```
 
+## shell-b (Sonnet, before food and gym)
+```
+Branch shell-b-0.7.4.3. Do the ## shell-b section of docs/fixes-0.7.4.3.md, following CLAUDE.md. Run node tools/check.js --boot, push and open a pull request.
+```
+
 ## food (Sonnet)
 ```
 Branch food-0.7.4.3. Do the ## food section of docs/fixes-0.7.4.3.md, following CLAUDE.md. Commit and push after each item. Run node tools/check.js --boot before every push, open a pull request after the first push.
