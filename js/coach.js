@@ -33,6 +33,10 @@ const Coach = (() => {
   const firstMsg = id => val(cfg(id).first) || t(kindOf(id) === 'gym' ? 'coachGymHi' : 'coachFoodHi');
   const chat = id => CH[id] || (CH[id] = { id, msgs: [], ctl: null, draft: '', img: null });
   const has = id => !!$('cb-' + id);
+  // each coach lives on its own pages: Food Coach on Today and Food Tracker, Gym Coach on Gym Buddy. Its bubble only shows there.
+  const pageNow = () => { const h = location.hash.slice(1); return h.startsWith('gym') ? 'gym' : ['fridge', 'groc', 'settings'].includes(h) ? 'other' : 'food'; };
+  const homeOf = id => kindOf(id) === 'gym' ? 'gym' : 'food';
+  const bubSync = () => document.querySelectorAll('.coachbub').forEach(b => b.classList.toggle('hide', homeOf(b.dataset.coach) !== pageNow()));
 
   // ---- the chat object handed to send() ----
   function api(c){
@@ -141,7 +145,7 @@ Return ONLY JSON: {"reply": string}`, img);
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
-    document.body.appendChild(b);
+    document.body.appendChild(b); bubSync();
     b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic(); open_(id); });
     AI.drag(b, () => dismiss(id), 'coachBub_' + id);
     return b;
@@ -162,7 +166,7 @@ Return ONLY JSON: {"reply": string}`, img);
     b.addEventListener('click', () => { Phone.haptic(); open_(id); }); document.body.appendChild(b); }); }
   let pq = 0; const pillSync = () => { cancelAnimationFrame(pq); pq = requestAnimationFrame(pillPlace); };
   function pillPlace(){
-    const f = $('fab'); if(!f) return; let shown = null;
+    bubSync(); const f = $('fab'); if(!f) return; let shown = null;
     PILLS.forEach(([id, act]) => { const b = $('cp-' + id); if(!b) return;
       const on = !f.classList.contains('hide') && f.dataset.action === act && cur !== id && !has(id);   // while its bubble is out, the pill steps aside
       b.classList.toggle('hide', !on); if(on){ shown = b; b.querySelector('.cpl').textContent = title(id); } });
