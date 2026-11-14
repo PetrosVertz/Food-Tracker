@@ -734,8 +734,7 @@ html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env
 /* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
 .coachpill{position:fixed;z-index:20;height:44px;padding:0 16px 0 8px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;animation:tipIn .25s ease-out}
 .coachpill.hide{display:none}
-.cpface{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;overflow:hidden;background:#26282b} .cpface .robot{display:block;margin-top:2px}
-:root[data-theme="light"] .cpface{background:#eef0f2}
+.cpface{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center} .cpface .robot{display:block;margin-top:2px}
 body.has-coachpill #fab{right:var(--cpr)!important}
 #fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
