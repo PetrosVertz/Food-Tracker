@@ -25,6 +25,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/shop.js` | **Shopping in (0.7)**: Groceries tick → fridge, remembered packs (`usualPack` / `usualCount`), continuous barcode scanning + the review list with the count wheel, receipts (best model reads the lines; matched against your foods → built-in → Open Food Facts → one web lookup), ✨ Check My Foods |
 | `js/gym.js` | Gym Buddy: workouts, sessions, L/R sets, picker, recovery, pets, form demos |
 | `js/progress.js` | Gym → Progress |
+| `js/profile.js` | **Profile tab (0.7.7)**: your circle + friends space, Share a Workout, streak, latest PR, leaderboards (best estimated 1RM per board lift), stats. `profileData()` is the one place the gym branches fill in (streak, tiers); `renderProfile()` draws the page. Settings opens from the gear on Profile |
 | `js/wire/01…10-*.js` | Start-up wiring in order: state, button wiring, first render (by topic) |
 | `sw.js` | Offline cache (bump `CACHE` and list new files when adding any) |
 

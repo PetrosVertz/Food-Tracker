@@ -37,6 +37,11 @@ const ICON = {
   starOn: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor"/>',
   play: '<path d="M7.5 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.7 4.1a.8.8 0 0 0-1.2.7z"/>',
   snow: '<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4l2.5 2.5L14.5 4M9.5 20l2.5-2.5 2.5 2.5M4 10.4l3.4.9-.9 3.4M20 13.6l-3.4-.9.9-3.4M4 13.6l3.4-.9-.9-3.4M20 10.4l-3.4.9.9 3.4"/>',
+  // 0.7.7 Profile: you, friends, share, streak flame
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5a8 8 0 0 1 16 0"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
+  share: '<path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/>',
+  flame: '<path d="M12 21.5c-4 0-7-2.8-7-6.6 0-3 1.8-5 3.3-6.6.4 1.6 1.2 2.7 2.4 3.3C10.4 8 11.6 4.8 14.2 2.5c.3 3 1.6 4.8 3 6.6 1.2 1.6 1.8 3.4 1.8 5.4 0 4-3 7-7 7z"/><path d="M12 21.5c-1.7 0-3-1.3-3-3 0-1.8 1.5-3 2.4-4.3.5 1.2 1.3 1.9 2.2 2.3.8.4 1.4 1.2 1.4 2.1 0 1.6-1.3 2.9-3 2.9z"/>',
 };
 const svgIcon = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain arrow (no box)
@@ -86,7 +91,7 @@ function drawTheme(){
 function applyTabOrder(){
   const order = ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge'];
   TABS3.splice(0, TABS3.length, ...order);
-  const bar = $('rail'); if(bar){ const set = bar.querySelector('[data-tab="settings"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, set); }); }
+  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); }); }
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if(typeof pillsAll === 'function') pillsAll();
 }
@@ -190,14 +195,41 @@ let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
+// ---------- 0.7.7: the action pills above the bottom bar (main button, scan button, coach pill) on a tab switch ----------
+// The old pills slide down out of view (copies, so their text never changes mid-way), then the new page's pills rise from the
+// bottom with a short fade and a slight spring, 40 ms apart. Transform and opacity only; with Reduce Motion they just swap.
+const PILL_ACTS = '#fab2,#fab,.coachpill';
+const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
+function pillSwap(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate) return;
+  clearTimeout(pillSwap.t); document.querySelectorAll('.pillghost').forEach(g => g.remove());
+  const olds = [...document.querySelectorAll(PILL_ACTS)].filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);
+    g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.classList.add('pillghost'); g.setAttribute('aria-hidden', 'true'); g.tabIndex = -1;
+    const pin = { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', 'z-index': cs.zIndex };
+    Object.entries(pin).forEach(([k, v]) => g.style.setProperty(k, v, 'important'));   // geometry beats the pills' own !important rules; transform and opacity stay free to animate
+    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity }); document.body.appendChild(g); return g; });
+  document.body.classList.add('pillswap');   // the real pills wait out of sight while the page changes under them
+  const OUT = 150, gap = 40, outEnd = OUT + Math.max(0, ghosts.length - 1) * gap;
+  ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: 'translateY(96px)', opacity: 0 }],
+    { duration: OUT, delay: i * gap, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
+  pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove());
+    const all = [...document.querySelectorAll(PILL_ACTS)]; all.forEach(el => el.style.transition = 'none');   // no CSS fade of their own on the way back
+    document.body.classList.remove('pillswap');
+    const news = all.filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    news.forEach((el, i) => { const op = getComputedStyle(el).opacity;   // a greyed-out AI pill keeps its dimmed look
+      el.animate([{ transform: 'translateY(96px)', opacity: 0 }, { transform: 'translateY(-5px)', opacity: op, offset: .72 }, { transform: 'none', opacity: op }],
+        { duration: 250, delay: i * gap, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
+    requestAnimationFrame(() => all.forEach(el => el.style.transition = '')); }, outEnd + 10);
+}
 function switchTab(dir, toTab){
-  const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Settings sits below Fridge
-  const tab = toTab || [...TABS3, 'settings'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
+  const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
+  const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   // plain slide: this page moves out, the next one moves in (down = next tab slides up from below)
-  SWITCHING = true;
+  SWITCHING = true; pillSwap();
   const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
   const opt = { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' }, target = tabTarget(tab);
@@ -213,8 +245,8 @@ function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
-  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings'].includes(h) ? h : 'foods';
-  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings','profile'].includes(h) ? h : 'foods';
+  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
@@ -226,14 +258,14 @@ function route(){
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
   { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
-  renderAll();
+  renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
@@ -365,15 +397,16 @@ function open(id){
 }
 
 // ======================= settings + data =======================
-// Settings is a page under Fridge (tap ⚙︎ to slide down; pull up to go back to Fridge)
+// 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
 function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); }
-function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); if(location.hash.slice(1) !== 'settings') switchTab(1, 'settings'); }
+function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
+  if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
-function tabIdx(tab){ return tab === 'settings' ? TABS3.length : TABS3.indexOf(tab); }   // 0.6.3.1: Settings is a page under Fridge
+function tabIdx(tab){ return tab === 'profile' ? TABS3.length : TABS3.indexOf(tab); }   // 0.7.7: Profile is the last tab (Settings lives inside it)
 
 // swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
 function makeSwipeDelete(box, itemSel, onDelete, opts){

@@ -20,3 +20,6 @@ button{transition:transform .12s ease,background-color .15s,opacity .15s} button
 .askbox p{font-size:17px;line-height:1.4;margin:6px 2px 4px}
 #ovAsk,#ovPick{z-index:60}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* 0.7.7: action pills on a tab switch (ui.js pillSwap): the real pills wait hidden while copies slide out */
+body.pillswap :is(#fab,#fab2,.coachpill):not(.pillghost){opacity:0!important;transition:none!important;animation:none!important;pointer-events:none}
+.pillghost{pointer-events:none!important}

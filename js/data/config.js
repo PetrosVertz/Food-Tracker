@@ -1,7 +1,7 @@
 // App settings: version, storage keys, defaults and small lookup tables.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-const VERSION = '0.7.6';
+const VERSION = '0.7.7';
 
 const DEFAULT_MODEL = 'gemini-flash-latest';
 
@@ -92,7 +92,7 @@ let lastAutoFridge = null;
 
 let sgCtl = null;
 
-const TAB_ROOT = { today: 'today', gym: 'gym', food: 'foods', fridge: 'fridge', settings: 'settings' };
+const TAB_ROOT = { today: 'today', gym: 'gym', food: 'foods', fridge: 'fridge', profile: 'profile' };   // 0.7.7: Settings is a page inside Profile
 
 let LOGON = { q: '', res: [], busy: false, timer: null };
 
@@ -102,7 +102,7 @@ let QA = null;
    // recovery reminders live only in Today now
 
 // ---------- launcher, tab swipes ----------
-const TABS3 = ['today', 'gym', 'food', 'fridge'];   // top → bottom on the side strip
+const TABS3 = ['today', 'gym', 'food', 'fridge'];   // left → right on the bottom bar; Profile always comes last
 
 // ---------- first-time setup ----------
 let SUP = { step: 0 };
