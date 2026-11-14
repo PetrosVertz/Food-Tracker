@@ -114,7 +114,7 @@ function stockBadge(f){
   let txt;
   if(pw){ const n = Math.round(st / pw), tot = f.usualPack ? Math.round(f.usualPack / pw) : null; txt = tot && n <= tot ? `${n}/${tot} ${WS(f.pieces)}` : `${n} ${WS(f.pieces)}`; }
   else txt = f.usualPack && st <= f.usualPack && Math.abs(st - f.usualPack) > .5 ? `${fmtSize(st, f.unit)} / ${fmtSize(f.usualPack, f.unit)}` : fmtSize(st, f.unit);
-  return `<span class="stock">${txt}</span>`;
+  return `<span class="stock">${svgIcon('fridge', 12, 2.2)}${txt}</span>`;
 }
 
 // 0.7.3: one row per food (and per fridge / freezer): tag + name + ⌄ on the left, "300 / 500 g" on the right.

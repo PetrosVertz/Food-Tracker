@@ -45,9 +45,9 @@ function render(){
   const cardOf = f => {
     const pt = portion(f), x = pt.amt / 100;
     const sc = v => (v === null || v === undefined || isNaN(v)) ? null : v * x;
-    return `<div class="card" data-id="${f.id}" style="position:relative">${stockBadge(f)}
+    return `<div class="card" data-id="${f.id}" style="position:relative">
       <div class="body">
-        <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div></div>
+        <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcalcol"><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div>${stockBadge(f)}</div></div>
         <div class="name">${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
         <div class="row" style="margin-top:2px">
           <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span>${f.fiber != null ? `<span class="m fi">Fi <b>${fmt(sc(f.fiber))}</b></span>` : ''}</div>
