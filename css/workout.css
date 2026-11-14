@@ -226,3 +226,5 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 #eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
 #eiBody .mrow small{white-space:nowrap}
 #eiBody .mrow b{text-align:right}
+/* 0.7.4.1 gym: Form page stays phone-wide and centred on a computer */
+#ovDemo .sheet.formpage{max-width:480px!important;margin:0 auto!important}
