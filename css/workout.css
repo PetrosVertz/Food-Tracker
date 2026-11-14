@@ -88,7 +88,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .exrow .iinfo{flex:0 0 auto;color:var(--muted);font-size:17px;padding:8px}
 .musort{margin:0 0 10px}
 .eimap{margin:6px 0 10px} .eimap svg{max-height:300px}
-.gymstartbtn{border:0;background:var(--t-accent);color:var(--t-on);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.gymstartbtn{border:1px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 14%,transparent);color:var(--t-accent-ink,var(--t-accent));border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer}
 .skipbtn{margin-left:6px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer}
 
 /* ===== 0.6.8.1 · live workout screen (canvas: Phones.dc.html "Live workout", Gym.dc.html rest bracket) ===== */
