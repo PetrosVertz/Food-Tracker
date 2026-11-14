@@ -49,6 +49,7 @@ function shopTags(x){
   else if(x.web) tags.push(`<span class="stag web">${t('fromWeb')}</span>`);
   else if(x.data) tags.push(`<span class="stag">${t('shopNew')}</span>`);
   else if(x.gid) tags.push(`<span class="stag">${t('stdValues')}</span>`);
+  if(x.verified) tags.push(`<span class="stag ok">${t(x.verified === 'barcode' ? 'verBarcode' : 'verPhoto')}</span>`);
   if(x.src === 'receipt' && !x.sure && x.look !== 'busy' && (x.foodId || x.gid || x.data)) tags.push(`<span class="stag warn">${t('shopUnsure')}</span>`);
   if(x.brand) tags.push(esc(x.brand));
   if(x.line && x.src !== 'scan') tags.push(`<span class="sline">${esc(x.line)}</span>`);
@@ -137,7 +138,7 @@ function shopAddCode(code){
   if(SHOP.scan && !SHOP.scan.cont){ SHOP.scan.ask = true; SHOP.scan.askFor = x; } else scanFlash(x);
   scanUI();
 }
-async function shopLookup(x){
+async function shopLookup(x, noCheck){
   const f = foods.find(y => y.barcode === x.code); if(f){ shopSetFood(x, f); return; }
   x.look = 'busy';
   try{
@@ -145,7 +146,7 @@ async function shopLookup(x){
     const d = j && j.status === 1 && j.product ? offToFood(j.product, x.code) : null;
     if(d && d.name && (d.protein !== null || d.carbs !== null || d.fat !== null)){ x.data = { ...d, protein: d.protein ?? 0, carbs: d.carbs ?? 0, fat: d.fat ?? 0 }; x.name = d.name; x.brand = d.brand || ''; x.unit = d.unit || 'g'; x.size = x.size || d.usualPack || null; }
   }catch(e){}
-  if(!x.data && settings.geminiKey) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
+  if(!x.data && !noCheck && settings.geminiKey) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
   x.look = ''; scanUI(); shopRedrawRow(x);
 }
 // a barcode with no food data: the AI says if it is food or something else; "not food" goes to the Not food, skipped list
@@ -220,7 +221,7 @@ async function shopOff(x){
 }
 
 const RCPT_PROMPT = `This photo is a supermarket receipt (usually Greek, with short abbreviated product names) OR groceries laid out on a table. Read every line carefully.
-Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","loose":boolean,"food":boolean}]}
+Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en":string,"name_el":string,"brand":string|null,"count":number,"packSize":number|null,"unit":"g"|"ml","loose":boolean,"food":boolean,"code":string|null}]}
 - line: the product text exactly as printed (receipt), or a short description of the item (photo).
 - name_en / name_el: what the product is, in plain English and in Greek, abbreviations expanded, keeping the product line and variant (fat %, flavour, light/zero), e.g. "ΦΑΓΕ ΤΟΤΑΛ 2% 1ΚΓ" → "Total 2% strained yoghurt" / "Total 2% στραγγιστό γιαούρτι". No brand and no size in these.
 - brand: the brand if printed or obvious (ΦΑΓΕ → Fage, ΔΕΛΤΑ → Delta, ΜΕΒΓΑΛ → Mevgal), else null.
@@ -228,19 +229,27 @@ Return ONLY JSON: {"kind":"receipt"|"groceries","items":[{"line":string,"name_en
 - packSize: the size of ONE pack in g or ml ONLY if printed in the line ("500ΓΡ", "1LT" = 1000, "1Κ"/"1ΚΓ" = 1000), else null. Never guess.
 - unit: "ml" for drinks, milk and oil, else "g".
 - loose: true for unbranded fresh food (fruit, vegetables, butcher meat, fish, bakery bread, deli by weight), else false.
+- code: the product's barcode digits (EAN, 8 or 13 digits) if the line prints one, else null. Copy the digits exactly, never guess.
 - food: true only for something people eat or drink (food, drinks, supplements). false for anything else (scissors, paper towels, shampoo, cleaning, bags, batteries, pet food…). Still list the non-food lines, marked false, so the user can rescue a wrong guess.
 Skip deposits (ΕΓΓΥΗΣΗ), discounts (ΕΚΠΤΩΣΗ), totals and VAT. Do NOT give nutrition values.`;
 
 // one line read by the AI → a review card, matched against your foods and the built-in list
-function rcptItem(l){
-  const x = shopItem({ src: 'receipt', line: String(l.line || '').trim(), name_en: l.name_en, name_el: l.name_el, brand: l.brand || '', loose: !!l.loose,
-    count: Math.max(1, Math.round(+l.count || 1)), size: +l.packSize > 0 ? Math.round(+l.packSize) : null, unit: l.unit === 'ml' ? 'ml' : 'g' });
+function rcptItem(l, noMatch){
+  const code = String(l.code || '').replace(/\D/g, ''), x = shopItem({ src: 'receipt', line: String(l.line || '').trim(), name_en: l.name_en, name_el: l.name_el, brand: l.brand || '', loose: !!l.loose,
+    count: Math.max(1, Math.round(+l.count || 1)), size: +l.packSize > 0 ? Math.round(+l.packSize) : null, unit: l.unit === 'ml' ? 'ml' : 'g', code: eanOk(code) ? code : null });
   x.sizeFixed = !!x.size; x.name = (lang === 'el' ? l.name_el : l.name_en) || l.name_en || l.name_el || x.line;
+  if(!noMatch) rcptMatch(x); return x;
+}
+// by name: your foods, then the built-in list
+function rcptMatch(x){
   const m = shopMatch(x);
   if(m && m.foodId){ const f = foods.find(y => y.id === m.foodId); const nm = x.name; shopSetFood(x, f); if(!m.sure) x.name = foodName(f) || nm; }
   else if(m && m.gid){ x.gid = m.gid; x.name = L(GENBY[m.gid]); }
-  x.sure = !!(m && m.sure); x.on = !!m; return x;
+  x.sure = !!(m && m.sure); x.on = !!m;
 }
+// a printed barcode is only trusted if its check digit adds up (EAN-8 / EAN-13 / UPC-A)
+function eanOk(c){ if(!/^(\d{8}|\d{12}|\d{13})$/.test(c)) return false; const d = c.split('').map(Number), k = d.pop();
+  return (10 - d.reverse().reduce((a, v, i) => a + v * (i % 2 ? 1 : 3), 0) % 10) % 10 === k; }
 // a line the AI called "not food" that the user wants after all
 function shopRescue(i){
   const k = (SHOP.skipped || [])[i]; if(!k) return; SHOP.skipped.splice(i, 1);
@@ -256,17 +265,23 @@ async function shopPhoto(file){
     lines = (d && Array.isArray(d.items) ? d.items : []).filter(x => x && (x.name_en || x.name_el || x.line));
   }catch(err){ SHOP.busy = false; status($('shopStatus'), err.cancelled ? '' : t('shopFail', { e: err.message }), !err.cancelled); drawShop(); return; }
   if(!lines.length){ SHOP.busy = false; status($('shopStatus'), t('shopNone'), true); drawShop(); return; }
-  // 1) your foods and the built-in list
   SHOP.skipped = lines.filter(l => l.food === false).map(l => ({ l, name: String(l.name_en || l.name_el || l.line || '?').trim() }));
-  SHOP.items = lines.filter(l => l.food !== false).map(rcptItem);
+  SHOP.items = lines.filter(l => l.food !== false).map(l => rcptItem(l, true));
+  // 1) barcodes first: a printed barcode is an exact match (your foods by barcode, then Open Food Facts)
+  const coded = SHOP.items.filter(x => x.code);
+  if(coded.length){ status($('shopStatus'), t('shopCodeLook', { n: coded.length })); drawShop();
+    for(let i = 0; i < coded.length; i += 4) await Promise.all(coded.slice(i, i + 4).map(async x => { await shopLookup(x, true);
+      if(x.foodId || x.data){ x.sure = true; x.on = true; x.verified = 'barcode'; } })); }
+  // 2) the rest by name: your foods and the built-in list
+  SHOP.items.forEach(x => { if(!x.verified) rcptMatch(x); });
   // every line is shown as a card for you to check: sure matches first (pre-ticked), unsure ones marked
   SHOP.items = SHOP.items.map((x, i) => [x, i]).sort((a, b) => (b[0].sure - a[0].sure) || a[1] - b[1]).map(r => r[0]); SHOP.sureIds = []; drawShop();
-  // 2) branded lines you don't have: Open Food Facts
-  const offs = SHOP.items.filter(x => !x.done && !x.foodId && x.brand && !x.loose);
+  // 3) branded lines you don't have: Open Food Facts
+  const offs = SHOP.items.filter(x => !x.done && !x.foodId && !x.data && x.brand && !x.loose);
   if(offs.length){ status($('shopStatus'), t('shopOffLook', { n: offs.length })); offs.forEach(x => { x.look = 'busy'; }); drawShop();
     for(let i = 0; i < offs.length; i += 4) await Promise.all(offs.slice(i, i + 4).map(async x => { const d = await shopOff(x); x.look = '';
       if(d){ x.data = d; x.gid = null; x.name = d.name; x.size = x.size || d.usualPack || null; x.unit = d.unit || x.unit; x.on = true; } shopRedrawRow(x); })); }
-  // 3) still nothing exact: one web lookup for all of them (Gemini + Google Search). A branded product that only matched a plain built-in food is looked up too
+  // 4) still nothing exact: one web lookup for all of them (Gemini + Google Search). A branded product that only matched a plain built-in food is looked up too
   const web = SHOP.items.filter(x => !x.done && !x.foodId && !x.data && (!x.gid || (x.brand && !x.loose)));
   if(web.length){ status($('shopStatus'), t('shopWebLook', { n: web.length })); web.forEach(x => { x.look = 'busy'; }); drawShop();
     for(let i = 0; i < web.length; i += 15){ const part = web.slice(i, i + 15);

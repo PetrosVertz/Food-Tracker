@@ -612,5 +612,6 @@ Object.assign(S, {
 // 0.7.4.3 fridge-a: not food, table photo, verified tags
 Object.assign(S, {
   notFoodT: ['Not food, skipped ({n})', 'Όχι τρόφιμα, παραλείφθηκαν ({n})'], rescue: ['Add Anyway', 'Πρόσθεσέ το'],
+  shopCodeLook: ['Looking up {n} barcodes…', 'Ψάχνω {n} barcode…'], verBarcode: ['Verified from barcode', 'Επαληθεύτηκε από barcode'], verPhoto: ['Verified from grocery photo', 'Επαληθεύτηκε από φωτογραφία'],
   notFoodToast: ['{n} is not food, so it was skipped.', 'Το «{n}» δεν είναι τρόφιμο, παραλείφθηκε.'],
 });
