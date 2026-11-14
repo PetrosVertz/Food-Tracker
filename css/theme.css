@@ -183,6 +183,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .fpdots{position:absolute;right:12px;bottom:14px;display:flex;gap:4px}
 .fpdots i{width:6px;height:6px;border-radius:6px;background:var(--t-text);opacity:.35;transition:opacity .4s} .fpdots i.on{opacity:1}
 #dmNext{display:block;margin:-8px 0 var(--s3);font-size:var(--fs-label);color:var(--t-muted)} #dmNext.hide{display:none}
+#dmWrong{display:block;margin:-8px 0 var(--s3);font-size:var(--fs-label);color:var(--t-muted)} #dmWrong.hide{display:none}
 .fpcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);align-items:start} .fpcols.one{grid-template-columns:1fr}
 .fpl{display:flex;flex-direction:column;gap:var(--s3)}
 .fpblk{display:flex;flex-direction:column;gap:var(--s2)} .fpblk>b{font-size:var(--fs-body);font-weight:var(--w-bold)}
