@@ -711,6 +711,7 @@ function gymStreak(){
 function freezeLeft(d){ const wd = (new Date(d + 'T12:00:00').getDay() + 6) % 7, mon = addDays(d, -wd);
   return [0, 1, 2, 3, 4, 5, 6].some(i => { const o = days[addDays(mon, i)]; return o && o.frozen; }) ? 0 : 1; }
 // flame colour by workouts in the streak (Light-safe values live in workout.css)
+function flameIcon(n, size){ return `<span class="flame fl-${flameTier(n)}">${svgIcon('flame', size || 22, 2)}</span>`; }
 function flameTier(n){ return n >= 100 ? 'diamond' : n >= 50 ? 'platinum' : n >= 25 ? 'gold' : n >= 10 ? 'silver' : 'orange'; }
 
 function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gymPlan[wd]; if(!p || !p.tpl) return null;

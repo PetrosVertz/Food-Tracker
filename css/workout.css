@@ -286,3 +286,11 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 .cardrow.done .sok{background:var(--t-done);border:0;color:var(--t-done-ink)}
 .cardrow.done .gymsbox{background:var(--t-done-soft);border-color:var(--t-done);color:var(--t-done)}
 .cardrow.done .gymsbox button{color:var(--t-done)}
+
+/* 0.7.7 streak flame: colour by workouts in the streak (orange, silver 10, gold 25, platinum 50, diamond 100); Light values are ≥ 4.5:1 on white */
+.flame{display:inline-flex;line-height:0;color:var(--fc)}
+.flame.fl-orange{--fc:#ff9a3c}.flame.fl-silver{--fc:#c3cad6}.flame.fl-gold{--fc:#f5c542}.flame.fl-platinum{--fc:#a9e3ee}
+.flame.fl-diamond{--fc:#4cc3ff;filter:drop-shadow(0 0 5px rgba(76,195,255,.85))}
+:root[data-theme="light"] .flame.fl-orange{--fc:#b34700}:root[data-theme="light"] .flame.fl-silver{--fc:#5a6473}
+:root[data-theme="light"] .flame.fl-gold{--fc:#876000}:root[data-theme="light"] .flame.fl-platinum{--fc:#2f6b7a}
+:root[data-theme="light"] .flame.fl-diamond{--fc:#0a64a8;filter:drop-shadow(0 0 4px rgba(10,100,168,.45))}
