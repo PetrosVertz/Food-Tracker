@@ -3,7 +3,7 @@
 
 function infoOfEntry(e){
   if(e.kind === 'meal'){ const m = meals.find(x => x.id === e.refId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null } : null; }
-  const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
+  const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
 }
 
 function dayInfo(d){
@@ -39,13 +39,13 @@ function openLogSearch(){ $('lSearch').value = ''; LW = { rows: {}, open: null, 
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
   if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // 0.6.5.2: eaten plan meals move into Eaten
-  el.innerHTML = `<h3 class="sect"><span>${t('planT')} ${logAIB()}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
+  el.innerHTML = `<h3 class="sect"><span>${t('planT')} ${AI.badge()}</span><button class="linkbtn" id="dropPlan">${t('dropPlan')}</button></h3>` +
     (p.meals || []).map((m, i) => m.logged ? '' : `<div class="planmeal planned"><div class="row"><b>${esc(m.time || '')} · ${esc(m.title || '')}</b><span class="rmeta">${Math.round(m.kcal || 0)} kcal</span></div>
       <div class="rmeta">P ${fmt(m.protein)} · C ${fmt(m.carbs)} · F ${fmt(m.fat)}</div>
-      <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">🧊 ${t('fromFridge')}</span>` : ''}</li>`).join('')}</ul>
+      <ul>${(m.items || []).map(it => `<li>${esc(it.name)} — ${r1(it.grams || 0)} g ${it.from === 'fridge' ? `<span class="src-f">${svgIcon('snow', 14, 2)} ${t('logPlanFridge')}</span>` : ''}</li>`).join('')}</ul>
       ${m.why ? `<div class="hint">${esc(m.why)}</div>` : ''}
-      <div class="actions" style="margin-top:8px"><button class="btn small primary" data-plog="${i}">✓ ${t('ateBtn')}</button></div></div>`).join('') +
-    (p.tip ? `<p class="hint">💡 ${esc(p.tip)}</p>` : '');
+      <div class="actions" style="margin-top:8px"><button class="btn small primary" data-plog="${i}">${t('ateBtn')}</button></div></div>`).join('') +
+    (p.tip ? `<p class="hint">${esc(p.tip)}</p>` : '');
 }
 
 function gapDays(){ const d = lastSessionDate(); return d ? -daysUntil(d) : null; }
@@ -74,7 +74,7 @@ function mealTotals(rows){
 function elecHtml(tot){
   const row = (lbl, v, tgt, col) => { const pct = Math.round(v / tgt * 100), hi = lbl === t('sodium') && pct > 100, hit = lbl === t('potassium') && pct >= 100;
     return `<div class="mrow" style="--bar:${hi ? 'var(--orange)' : hit ? 'var(--ok)' : col}"><small>${lbl}</small><span class="mbar"><i style="width:${Math.min(100, pct)}%;background:var(--bar)"></i></span><span><b>${ui.elecMg ? Math.round(v).toLocaleString() + ' mg' : pct + '%'}</b>${hi ? `<small> ${t('elecHigh')}</small>` : ''}</span></div>`; };
-  return `<div class="elec" data-elec><div class="row"><small class="rmeta">${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="Info">ⓘ</button></small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
+  return `<div class="elec" data-elec><div class="row"><small class="rmeta">${t('electrolytes')} <button class="ibtn" type="button" data-tip="tipElec" aria-label="${t('logAInfo')}">${svgIcon('info', 18, 2)}</button></small></div>${row(t('sodium'), tot.na, NA_T, 'var(--na)')}${row(t('potassium'), tot.k, K_T, 'var(--kk)')}</div>`;
 }
 
 function remainingToday(){ const tg = targetFor(todayKey()); if(!tg) return null; const tot = dayTotals(todayKey());
@@ -118,17 +118,17 @@ function lwInfo(k, i){
   if(k === 'ml') return mInfo(LS.meals[i]);
   if(k === 'm') return fInfo_(LS.mine[i]);
   if(k === 's'){ const g = LS.std[i]; return { ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g }; }
-  if(k === 'o'){ const d = LOGON.res[i]; return { name: d.name, icon: '🌐', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }; }
+  if(k === 'o'){ const d = LOGON.res[i]; return { name: d.name, icon: '', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }; }
   return null;
 }
 function lwRef(info){ return info.meal ? 'm:' + info.meal.id : info.food ? 'f:' + info.food.id : info.gen ? 'g:' + info.gen.gid : info.online ? 'o:' + (info.online.barcode || info.name) : 'n:' + info.name; }
 function lwUnits(info){
   const u = [], name = norm(info.name || ''), f = info.food || info.gen;
   const hint = LW_UNITS.find(([re]) => re.test(name)); if(hint && info.unit !== 'ml') hint[1].forEach(x => u.push({ k: 'h' + x[2], l: lwL(x), size: x[2] }));
-  if(!hint && info.piece && info.pw) u.push({ k: 'pc', l: info.pw === 'slice' ? (lang === 'el' ? 'Φέτα' : 'Slice') : (lang === 'el' ? 'Τεμάχιο' : 'Piece'), size: info.piece });
-  if(f && f.usualPack && f.usualPack <= 1000 && f.usualPack !== info.piece) u.push({ k: 'pack', l: lang === 'el' ? 'Συσκευασία' : 'Pack', size: f.usualPack });
-  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', l: lang === 'el' ? 'Πιάτο' : 'Plate', size: Math.round(info.meal.cookedWeight) });
-  u.push(info.unit !== 'ml' && UN().f === 'oz' ? { k: 'g', l: lang === 'el' ? 'Ουγγιές' : 'Ounces', size: OZ } : { k: 'g', l: info.unit === 'ml' ? (lang === 'el' ? 'ml' : 'Millilitres') : (lang === 'el' ? 'Γραμμάρια' : 'Grams'), size: 1 });
+  if(!hint && info.piece && info.pw) u.push({ k: 'pc', l: info.pw === 'slice' ? t('logUSlice') : t('logUPiece'), size: info.piece });
+  if(f && f.usualPack && f.usualPack <= 1000 && f.usualPack !== info.piece) u.push({ k: 'pack', l: t('logUPack'), size: f.usualPack });
+  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', l: t('logUPlate'), size: Math.round(info.meal.cookedWeight) });
+  u.push(info.unit !== 'ml' && UN().f === 'oz' ? { k: 'g', l: t('logUOz'), size: OZ } : { k: 'g', l: info.unit === 'ml' ? t('logUMl') : t('logUG'), size: 1 });
   return u;
 }
 function lwState(k, i){
@@ -186,7 +186,7 @@ function lwAdd(st){
   LW.added.push(added); LW.open = null; lwChips(); renderAll(); drawLog();
   toast(t('logged', { n: info.name }) + ` · ${added.kcal} kcal` + extra, t('undo'), () => { dayLog[curDay] = (dayLog[curDay] || []).filter(x => x !== added); LW.added = LW.added.filter(x => x !== added); saveLog(); lwChips(); renderAll(); });
 }
-function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">✓ ${esc(bareName(e.name))} · ${e.kcal}<button class="lchipx" type="button" data-chiprm="${e.id}" aria-label="${t('logChipRm')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>`).join('') +
+function lwChips(){ $('lAdded').innerHTML = LW.added.map(e => `<span class="lchip">${esc(bareName(e.name))} · ${e.kcal}<button class="lchipx" type="button" data-chiprm="${e.id}" aria-label="${t('logChipRm')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>`).join('') +
   (LW.added.length >= 2 ? (LW.naming ? `<span class="lcombo"><input id="lComboName" placeholder="${t('comboPh')}" autocomplete="off"><button type="button" class="lwdone" id="lComboSave">${t('save')}</button></span>` : `<button type="button" class="lsave" id="lComboBtn">${svgIcon('plus', 14, 2.4)}${t('comboSave')}</button>`) : ''); }
 
 // ---------- combos (0.6.9.3): the same few foods you often eat together, logged in one tap ("My breakfast") ----------
@@ -208,8 +208,8 @@ function drawLog(){
   if(!q){
     LS.recent = usuals(); const ids = LS.recent.map((e, i) => i);
     if(combos.length) h += `<div class="lgrp">${t('comboT')}</div>` + combos.map(comboRow).join('');
-    if(LS.recent.length && LS.hourN) h += `<div class="lgrp">🕒 ${t('lwHour')}</div>` + ids.slice(0, LS.hourN).map(i => lwRow('rc', i)).join('') + (LS.recent.length > LS.hourN ? `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.slice(LS.hourN).map(i => lwRow('rc', i)).join('') : '');
-    else if(LS.recent.length) h += `<div class="lgrp">⭐ ${t('usuals')}</div>` + ids.map(i => lwRow('rc', i)).join('');
+    if(LS.recent.length && LS.hourN) h += `<div class="lgrp">${t('lwHour')}</div>` + ids.slice(0, LS.hourN).map(i => lwRow('rc', i)).join('') + (LS.recent.length > LS.hourN ? `<div class="lgrp">${t('usuals')}</div>` + ids.slice(LS.hourN).map(i => lwRow('rc', i)).join('') : '');
+    else if(LS.recent.length) h += `<div class="lgrp">${t('usuals')}</div>` + ids.map(i => lwRow('rc', i)).join('');
     else if(!combos.length) h = `<div class="hint">${t('typeToSearch')}</div>`;
   } else {
     const s = searchLocal(q, false, { log: true, meals: true }); LS.meals = s.meals; LS.mine = s.mine; LS.std = s.std;
@@ -217,12 +217,12 @@ function drawLog(){
     if(local) h += `<div class="lgrp">${t('lwResults')}</div>` + LS.meals.map((m, i) => lwRow('ml', i)).join('') + LS.mine.map((f, i) => lwRow('m', i)).join('') + LS.std.map((g, i) => lwRow('s', i)).join('');
     if(onl) h += `<div class="lgrp">${t('grpOnline2')}</div>` + LOGON.res.map((d, i) => lwRow('o', i)).join('');
     else if(LOGON.busy) h += `<div class="hint">${t('onlineSearching')}</div>`;
-    else if(q.length >= 2 && LOGON.q !== q) h += `<button class="lmore" id="lOnline" type="button">🌐 ${t('onlineMore')}</button>`;
+    else if(q.length >= 2 && LOGON.q !== q) h += `<button class="lmore" id="lOnline" type="button">${t('onlineMore')}</button>`;
     // never a dead end: a spelling fix when little matched, and Quick Log for anything
     const dym = local + (onl ? LOGON.res.length : 0) < 3 ? Search.didYouMean(q) : null;
     if(!local && !LOGON.busy && !onl) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
     if(dym) h = `<button class="dym" data-dym="${esc(dym)}">${t('didYouMean')} <b>${esc(dym)}</b>?</button>` + h;
-    h += `<button class="lmore" id="lTakeaway" type="button"><span>${t('logQOpen', { q: esc(q) })} ${logAIB()}</span><small>${t('logQOpenSub')}</small></button>`;
+    h += `<button class="lmore" id="lTakeaway" type="button"><span>${t('logQOpen', { q: esc(q) })} ${AI.badge()}</span><small>${t('logQOpenSub')}</small></button>`;
   }
   $('lResults').innerHTML = h;
 }
@@ -246,7 +246,7 @@ function openAmt(o){
   if(info.food && info.food.usualPack && info.food.usualPack <= 1000) chips.push([info.food.usualPack, `1 ${t('perPackLabel').replace(/^(per|ανά)\s*/, '')} · ${fmtSize(info.food.usualPack, info.unit)}`]);
   if(info.meal) [250, 350, 450].forEach(g => chips.push([g, `${g} g`]));
   if(!info.meal && !(info.piece && info.pw)) (info.unit === 'ml' ? [100, 200, 250, 500] : [50, 100, 150, 200]).forEach(g => chips.push([g, fmtSize(g, info.unit)]));
-  if(o.mode === 'use') chips.push([o.item.qty, `${lang === 'el' ? 'Όλο' : 'All'} · ${fmtSize(o.item.qty, info.unit)}`]);
+  if(o.mode === 'use') chips.push([o.item.qty, `${t('logAll')} · ${fmtSize(o.item.qty, info.unit)}`]);
   $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
   $('amAmt').value = o.mode === 'editlog' ? o.entry.amt : '';
   $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM());
@@ -290,7 +290,7 @@ function amUnits(o){
   AM.u = i; $('amU').innerHTML = u.map(x => `<option value="${x.k}">${esc(x.l)}</option>`).join(''); $('amU').selectedIndex = i; syncSel($('amU')); amDD();
 }
 // 0.6.9.3: the same custom unit list as Log Food — portion + weight on the left, its calories on the right
-function amDD(){ if(!AM || !AM.units) return; const per = AM.info.per, lbl = x => x.k === 'g' ? (x.l === 'ml' ? 'ml' : lang === 'el' ? 'Γραμμάρια' : 'Grams') : `${x.l} (${fmtSize(x.size, AM.info.unit)})`;
+function amDD(){ if(!AM || !AM.units) return; const per = AM.info.per, lbl = x => x.k === 'g' ? x.l : `${x.l} (${fmtSize(x.size, AM.info.unit)})`;
   $('amDDL').textContent = lbl(AM.units[AM.u] || AM.units[0]);
   $('amDDM').innerHTML = AM.units.map((x, j) => `<button type="button" class="ldo ${j === AM.u ? 'on' : ''}" data-amu="${j}" role="option"><span>${esc(lbl(x))}</span><span>${macrosFor(per, x.k === 'g' ? 100 : x.size).kcal} kcal${x.k === 'g' ? ' / 100 ' + (AM.info.unit || 'g') : ''}</span></button>`).join(''); }
 function amFromN(){ const u = AM.units[AM.u] || { size: 1 }, n = num('amN'); $('amAmt').value = n > 0 ? r1(n * u.size) : ''; AM.typing = true; amRes(); AM.typing = false; }
@@ -341,7 +341,7 @@ async function saveQuick(){
     else if(loc.kind === 'gen' && loc.g.cat === 'ready'){ const pg = qaPortion(loc.g).amt, x = pg / 100, g = loc.g;
       const m = dishMeal({ name: L(g), grams: pg, kcal: g.kcal * x, p: g.protein * x, c: g.carbs * x, f: g.fat * x, fib: (g.fiber || 0) * x, na: naOf(g) * x, k: (g.potassium || 0) * x });
       info = { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m }; por = { amt: pg }; }
-    else { const f = loc.kind === 'gen' ? saveGeneric(loc.g) : loc.f; info = { name: foodName(f), icon: iconOf(f) || '🍽️', unit: f.unit, per: f, food: f }; por = qaPortion(loc.kind === 'gen' ? loc.g : { ...f, gid: f.gid, cat: f.cat, sub: f.sub }); }
+    else { const f = loc.kind === 'gen' ? saveGeneric(loc.g) : loc.f; info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; por = qaPortion(loc.kind === 'gen' ? loc.g : { ...f, gid: f.gid, cat: f.cat, sub: f.sub }); }
     const amt = Math.round(por.amt * size); dropOld();
     const m = macrosFor(info.per, amt);
     done({ id: uid(), time, kind: info.meal ? 'meal' : 'food', refId: info.meal ? info.meal.id : info.food.id, name: info.name, icon: info.icon, amt, unit: info.unit, ...m }, `${info.name} · ${fmtSize(amt, info.unit)}`);
@@ -388,7 +388,7 @@ function renderToday(){
   const water = w => w.k === 'winPre' ? rnd50(6 * bw) : w.k === 'winWorkout' ? rnd50(8 * bw * (w.b - w.a + 1) / 60) : w.k === 'winPost' ? rnd50(8 * bw) : 0;
   $('dTiming').innerHTML = !tg ? '' : wins.map(w => { const n = meals[w.k] || 0, ml = water(w);
     return `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
-      <div class="tm">${w.k === 'other' ? (lang === 'el' ? 'Υπόλοιπη μέρα' : 'Rest of day') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
+      <div class="tm">${w.k === 'other' ? t('logRestDay') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
       <div class="bd">${w.gym ? t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : `${t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${n ? ` · ${t(n === 1 ? 'logTMeal' : 'logTMeals', { n })}` : ''}`}${ml ? `<span class="na">${t('logTWater', { n: ml })}</span>` : ''}</div></div>`; }).join('');
   // log
   // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.
@@ -413,13 +413,6 @@ function weightTrend(){
   return { perWeek: slope * 7, days: Math.round(span), last: rec[rec.length - 1][1], pts: rec.map(p => p[1]) };
 }
 
-function weighAdvice(tr){
-  const goal = (targets && targets.goal) || 'bulk', pct = tr.perWeek / tr.last * 100;
-  if(goal === 'bulk') return pct < .25 ? { msg: t('wiSlowBulk'), d: 150 } : pct > .6 ? { msg: t('wiFastBulk'), d: -150 } : { msg: t('wiOk'), d: 0 };
-  if(goal === 'cut') return pct > -.4 ? { msg: t('wiSlowCut'), d: -200 } : pct < -1.1 ? { msg: t('wiFastCut'), d: 150 } : { msg: t('wiOk'), d: 0 };
-  return Math.abs(pct) > .3 ? { msg: t('wiRecomp'), d: pct > 0 ? -100 : 100 } : { msg: t('wiOk'), d: 0 };
-}
-
 function openTargets(){
   const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
   setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = latestWeight() || tg.bw || ''; $('tgFib').value = '';
@@ -440,7 +433,7 @@ function mxFromGrams(P){ const k = +$('tg' + P + 'k').value || 0, g = x => +$('t
 function initMacroSliders(){
   [['G', 'gymDayTargets'], ['R', 'restDayTargets']].forEach(([P]) => {
     if(!$('mx' + P)){ const grid = $('tg' + P + 'k').closest('.grid4'), d = document.createElement('div'); d.className = 'mxs'; d.id = 'mx' + P;
-      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}"><button class="mxlock" type="button" data-lock="${k}" data-p="${P}" aria-label="Lock">🔓</button>${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}</span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
+      d.innerHTML = ['p', 'c', 'f'].map(k => `<div class="mxrow"><span class="mxl mx-${k}"><button class="mxlock" type="button" data-lock="${k}" data-p="${P}" data-ta="logALock" aria-label="${t('logALock')}">${svgIcon('unlock', 16, 2)}</button>${t({ p: 'protein', c: 'carbs', f: 'fat' }[k])}</span><input type="range" class="mxr mx-${k}" min="0" max="100" step="any" data-p="${P}" data-k="${k}" aria-label="${k}"><b data-o="${k}"></b></div>`).join('') +
         `<div class="mxbar"><i class="mx-p"></i><i class="mx-c"></i><i class="mx-f"></i></div>`;
       grid.after(d); }
     MX[P] = mxFromGrams(P); drawMx(P, false); });
@@ -470,7 +463,7 @@ const MXL = { G: null, R: null }, MXLG = { G: 0, R: 0 };
 function mxKeepLock(P){ const L = MXL[P], k = +$('tg' + P + 'k').value || 0; if(!L || !k || !MXLG[P]) return; const m = MX[P];
   const pct = Math.max(5, Math.min(90, MXLG[P] * MXK[L] / k * 100)), others = ['p', 'c', 'f'].filter(x => x !== L), sum = m[others[0]] + m[others[1]] || 1, rem = 100 - pct;
   m[L] = pct; m[others[0]] = Math.max(5, rem * m[others[0]] / sum); m[others[1]] = 100 - pct - m[others[0]]; }
-function drawLocks(){ ['G', 'R'].forEach(P => { const box = $('mx' + P); if(!box) return; box.querySelectorAll('[data-lock]').forEach(b => { const on = MXL[P] === b.dataset.lock; b.textContent = on ? '🔒' : '🔓'; b.classList.toggle('on', on); }); }); }
+function drawLocks(){ ['G', 'R'].forEach(P => { const box = $('mx' + P); if(!box) return; box.querySelectorAll('[data-lock]').forEach(b => { const on = MXL[P] === b.dataset.lock; b.innerHTML = svgIcon(on ? 'lock' : 'unlock', 16, 2); b.classList.toggle('on', on); }); }); }
 function fibSuggest(){ const goal = TG.goal || 'bulk', k = +$('tgRk').value || +$('tgGk').value || 2500;
   return goal === 'cut' ? Math.max(32, Math.round(k / 1000 * 16)) : Math.round(k / 1000 * 14); }
 function drawFibSug(){}   // 0.5.9: fibre is automatic, no box
@@ -482,10 +475,11 @@ function kcalColor(e, T){
   if(!T) return 'var(--text)';
   e = Math.round(e); const pct = e / T * 100;
   if(pct < 75) return 'var(--text)';
-  if(e <= T){ const f = e >= T ? 1 : (Math.floor((pct - 75) / 5) + 1) / 6, W = [238, 241, 243], G = [89, 211, 140];
-    return `rgb(${W.map((w, i) => Math.round(w + (G[i] - w) * f)).join(',')})`; }
+  // 0.7.4.0.5: blends between theme colours, so it stays readable in Light too
+  if(e <= T){ const f = e >= T ? 1 : (Math.floor((pct - 75) / 5) + 1) / 6;
+    return `color-mix(in srgb, var(--t-done) ${Math.round(f * 100)}%, var(--t-text))`; }
   const f = Math.min(10, Math.ceil((e - T) / 50)) / 10;
-  return `hsl(${Math.round(145 * (1 - f))},${Math.round(59 + 41 * f)}%,${Math.round(59 + 9 * f)}%)`;
+  return `color-mix(in srgb, var(--t-danger) ${Math.round(f * 100)}%, var(--t-warm))`;
 }
 // macro bars: green when the goal is hit; over it while calories are still under target = light green; red only once calories are used up and past the margin
 const MACRO_MARGIN = { p: .25, c: .1, f: .1 };   // protein gets the biggest margin
@@ -499,12 +493,25 @@ function macroState(k, a, b, usedUp){
 function showTip(key, btn){
   hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.textContent = t(key); document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
-  let x = Math.max(16, Math.min(innerWidth - w - 16, r.left + r.width / 2 - w / 2)), y = r.bottom + 8; if(y + h > innerHeight - 16) y = Math.max(16, r.top - h - 8);
-  p.style.left = x + 'px'; p.style.top = y + 'px';
+  const top = topClear(), x = Math.max(16, Math.min(innerWidth - w - 16, r.left + r.width / 2 - w / 2));
+  let y = r.bottom + 8;   // 0.7.4.0.5: below the button; flipped above only if that stays clear of the page title blur
+  if(y + h > innerHeight - 16){ const up = r.top - h - 8; y = up >= top ? up : Math.max(top, innerHeight - 16 - h); }
+  p.style.left = x + 'px'; p.style.top = Math.max(y, top) + 'px';
 }
+// the first y that isn't under the page title blur (no blur while a window is open)
+function topClear(){
+  if(document.body.classList.contains('ovopen') || document.querySelector('.overlay.open')) return 16;
+  const hd = [...document.querySelectorAll('section.page>header')].find(h => h.offsetParent !== null && h.getBoundingClientRect().height);
+  return hd ? Math.max(16, hd.getBoundingClientRect().bottom + 18) : 16;
+}
+// Log Food / Quick Log unit menu: opens downward, or upward when there's no room below in its window
+function lddToggle(row, dd){ const mn = row.querySelector('.ldm'); mn.classList.toggle('hide'); const on = !mn.classList.contains('hide'); dd.setAttribute('aria-expanded', on); mn.classList.remove('up');
+  if(!on) return; const box = dd.closest('.sheet') || document.documentElement, b = box.getBoundingClientRect(), r = dd.getBoundingClientRect(), h = mn.offsetHeight;
+  const lim = Math.min(innerHeight, b.bottom) - 8, ceil = Math.max(topClear(), b.top) + 8;
+  if(r.bottom + 4 + h > lim && r.top - 4 - h >= ceil) mn.classList.add('up'); }
 function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
 // plan my day runs from the Log food sheet; progress shows on Today where the plan lands
-function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${logAIB()} ${esc(txt)}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
+function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${esc(txt)} ${AI.badge()}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
 
 // 0.6.3.1: dishes (souvlaki, moussaka…) from Quick Add are saved as Home-cooked meals, not store-bought foods
 function dishMeal(d){
@@ -533,7 +540,6 @@ function planFit(r, rem){ const tot = r.meals.reduce((a, m) => a + (+m.kcal || 0
 let logPhr = Store.load('logPhr', {});   // 'p:<typed words>' → { f: foodId } | { m: mealId };  'm:<whole message>' → the AI's split
 const logQSavePhr = () => Store.save('logPhr', logPhr);
 let logQS = { msgs: [], ctl: null };
-const logAIB = () => '<span class="aib">AI</span>';
 function logQEstTag(e){ if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f && f.source === 'estimate' ? `<span class="sttag est">${t('logQEst')}</span>` : ''; }
 
 // the typed words for one food, without amounts: "Fage yogurt 200g" → "fage yogurt"
@@ -616,10 +622,10 @@ async function logQMatch(it){
   try{
     const res = await Promise.race([searchOnlineAll(br ? `${br} ${en}` : en), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 15000))]);
     const d = (res || []).find(x => !x.check && +x.kcal > 0);
-    if(d) return logQSet(it, { name: d.name, icon: '🌐', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }, 'onl');
+    if(d) return logQSet(it, { name: d.name, icon: '', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }, 'onl');
   }catch(e){}
   if(it.kcal !== null && it.kcal !== undefined){ const nmC = nm.charAt(0).toUpperCase() + nm.slice(1);
-    return logQSet(it, { name: nmC, icon: '🍽️', unit: it.ml ? 'ml' : 'g', per: { kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat }, food: null, est: { brand: br, en }, piece: null }, 'est'); }
+    return logQSet(it, { name: nmC, icon: '', unit: it.ml ? 'ml' : 'g', per: { kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat }, food: null, est: { brand: br, en }, piece: null }, 'est'); }
   it.st = null; it.src = 'none';
 }
 
@@ -753,7 +759,7 @@ function logQWire(){
       const g = it.st ? lwCalc(it.st).g : +it.grams || 0;
       it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; logQRedraw(m); return; }
     const st = it.st; if(!st) return;
-    const dd = e.target.closest('[data-ldd]'); if(dd){ const mn = row.querySelector('.ldm'); mn.classList.toggle('hide'); dd.setAttribute('aria-expanded', !mn.classList.contains('hide')); return; }
+    const dd = e.target.closest('[data-ldd]'); if(dd){ lddToggle(row, dd); return; }
     const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size, sz = st.units[j].size;
       st.u = j; st.n = st.units[j].k === 'g' ? r1((g || 100) / sz) : Math.max(.5, Math.round((g || sz) / sz * 2) / 2);
       row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); logQUpd(m, row, it); return; }
