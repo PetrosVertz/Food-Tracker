@@ -10,12 +10,6 @@ $('backBtn2').addEventListener('click', () => goBack());
 
 $('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : b.dataset.v === 'supps' ? 'supps' : 'foods')), route(); });
 
-$('tScan').addEventListener('click', () => startScan());
-
-$('tFoods').addEventListener('click', () => go('foods'));
-
-$('tMeals').addEventListener('click', () => go('meals'));
-
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
   if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
@@ -213,7 +207,7 @@ const foods_ref = f => ({ type:'my', id:f.id, name:foodName(f), unit:f.unit, ico
 
 const gen_ref = g => ({ type:'gen', id:g.gid, name:L(g), unit:g.unit, icon:subOf(g.cat,g.sub).icon, per:{ kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber:g.fiber, salt:g.salt, potassium:g.potassium } });
 
-const off_ref = d => ({ type:'off', id:d.barcode, name:d.name, unit:d.unit || 'g', icon:'🌐', per:{ kcal:d.kcal ?? Math.round(d.protein*4 + d.carbs*4 + d.fat*9), protein:d.protein, carbs:d.carbs, fat:d.fat, fiber:d.fiber, salt:d.salt, potassium:d.potassium } });
+const off_ref = d => ({ type:'off', id:d.barcode, name:d.name, unit:d.unit || 'g', icon:'', per:{ kcal:d.kcal ?? Math.round(d.protein*4 + d.carbs*4 + d.fat*9), protein:d.protein, carbs:d.carbs, fat:d.fat, fiber:d.fiber, salt:d.salt, potassium:d.potassium } });
 
 const newRow = () => ({ key: uid(), ref: null, grams: null, wanted: '' });
 

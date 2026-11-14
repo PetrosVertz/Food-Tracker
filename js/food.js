@@ -13,8 +13,8 @@ function portion(f){
   return { mode, amt: 100, label: t('per100Label', { u: f.unit }), size: '' };
 }
 
-function renderAll(){ renderHome(); render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec();
-  const fab = $('fab'); if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : '▶ ' + t('startWk');
+function renderAll(){ render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec();
+  const fab = $('fab'); if(fab.dataset.action === 'gym') fab.textContent = active ? t('resume', { m: Math.floor(sesMs() / 60000) }) : t('startWk');
   syncFab2(); }
 
 // the second floating button (0.6.9): the same pair on Food Tracker and Fridge — scan first (line scanner icon), then ＋ Add Food
@@ -60,8 +60,8 @@ function render(){
   const groups = {}; items.forEach(f => (groups[f.cat || 'none'] = groups[f.cat || 'none'] || []).push(f));
   const order = [...CATS.map(c => c.id).filter(id => groups[id]), ...(groups.none ? ['none'] : [])];
   const allOpen = !!FCAT.__all;   // 0.6.5.1: everything sits inside one All Foods fold
-  $('list').innerHTML = `<button class="foldh catfold allfold ${allOpen ? 'open' : ''}" data-fcat="__all"><b>${t('allFoods')}</b><span class="fn">${items.length}</span><i>⌄</i></button>` + (!allOpen ? '' : '<div class="foldb allbody">' + order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
-    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>⌄</i></button>` +
+  $('list').innerHTML = `<button class="foldh catfold allfold ${allOpen ? 'open' : ''}" data-fcat="__all"><b>${t('allFoods')}</b><span class="fn">${items.length}</span><i>${svgIcon('down', 18)}</i></button>` + (!allOpen ? '' : '<div class="foldb allbody">' + order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
+    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>${svgIcon('down', 18)}</i></button>` +
       (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('') + '</div>');
 
 }
@@ -118,8 +118,8 @@ function setType(cat, sub, guessed){
   const s = subOf(cat, sub);
   $('typeBtn').classList.toggle('missing', !cat);
   $('typeBtn').innerHTML = cat
-    ? `<span class="big">${s.icon}</span><span>${esc(typeLabel(cat, sub))}<small>${guessed ? t('guessed') : t('tapChange')}</small></span>`
-    : `<span class="big">❔</span><span>${t('chooseType')}<small>${t('chooseTypeSub')}</small></span>`;
+    ? `<span>${esc(typeLabel(cat, sub))}<small>${guessed ? t('guessed') : t('tapChange')}</small></span>`
+    : `<span>${t('chooseType')}<small>${t('chooseTypeSub')}</small></span>`;
   if(cat && !F.unitTouched && !F.editingId && s.opt.ml) setUnit('ml');
   if(cat && !F.piecesTouched) setPieces(guessPieces(cat, sub, $('fName').value));
 }
@@ -129,7 +129,7 @@ function setNoBrand(on){ F.noBrand = on; $('noBrandBtn').classList.toggle('on', 
 function drawPacks(){
   F.packs.sort((a,b) => a-b);
   $('packList').innerHTML = F.packs.map(p => `<span class="pack ${F.usual===p?'usual':''}">${fmtSize(p, F.unit)}
-     <button class="star" data-star="${p}">${F.usual===p?'★':'☆'}</button><button data-rm="${p}">✕</button></span>`).join('');
+     <button class="star" data-star="${p}" aria-label="${t('packStarA')}">${svgIcon(F.usual===p ? 'starOn' : 'star', 18)}</button><button data-rm="${p}" aria-label="${t('delete')}">${svgIcon('x', 16)}</button></span>`).join('');
   updatePreview();
 }
 
@@ -256,7 +256,7 @@ async function commit(){
   if(F.onSaved){ const cb = F.onSaved; F.onSaved = null; cb(saved); return; }
   if(!wasEdit && scanCtx){ const c = scanCtx; scanCtx = null;
     if(c === 'fridge') return openFridgeAdd(saved);
-    if(c === 'log') return openAmt({ mode: 'log', info: { name: foodName(saved), icon: iconOf(saved) || '🍽️', unit: saved.unit, per: saved, food: saved, piece: saved.pieces !== 'none' ? (saved.piece || saved.serving || null) : null, pw: saved.pieces } }); }
+    if(c === 'log') return openAmt({ mode: 'log', info: { name: foodName(saved), icon: iconOf(saved) || '', unit: saved.unit, per: saved, food: saved, piece: saved.pieces !== 'none' ? (saved.piece || saved.serving || null) : null, pw: saved.pieces } }); }
   if(wasEdit) toast(t('updated'));
   else if(F.fromScan) toast(lastAutoFridge ? t('inFridgeToo', { i: '' }) : t('saved', { i: '' }), t('scanNext'), () => startScan());
   else if(lastAutoFridge){ const it = lastAutoFridge; toast(t('inFridgeToo', { i: '' }), t('notInFridge'), () => { fridge = fridge.filter(x => x.id !== it.id); saveFridge(); renderAll(); }); }
@@ -336,10 +336,10 @@ async function lookup(code){
   const existing = foods.find(f => f.barcode === code);
   if(existing){ close('ovScan');
     if(scanCtx === 'fridge'){ scanCtx = null; openFridgeAdd(existing); return; }
-    if(scanCtx === 'log'){ scanCtx = null; openAmt({ mode: 'log', info: { name: foodName(existing), icon: iconOf(existing) || '🍽️', unit: existing.unit, per: existing, food: existing, piece: existing.pieces !== 'none' ? (existing.piece || existing.serving || null) : null, pw: existing.pieces } }); return; }
+    if(scanCtx === 'log'){ scanCtx = null; openAmt({ mode: 'log', info: { name: foodName(existing), icon: iconOf(existing) || '', unit: existing.unit, per: existing, food: existing, piece: existing.pieces !== 'none' ? (existing.piece || existing.serving || null) : null, pw: existing.pieces } }); return; }
     toast(t('alreadyHave')); openForm(existing, null, 'edit'); return; }
   try{
-    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${OFF_FIELDS}`);
+    const r = await fetchT(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${OFF_FIELDS}`, {}, 9000);
     const j = await r.json();
     if(j.status !== 1 || !j.product) return notFound(code, t('notInOFF'));
     const data = offToFood(j.product, code);
@@ -362,9 +362,9 @@ function openIngSearch(prefill, cb, opts){
   opts = opts || {};
   ING = { cb, online:[], onlineQ:'', timer:null, force: !!opts.force };
   let sb = $('iScanBtn');
-  if(!sb){ sb = document.createElement('button'); sb.id = 'iScanBtn'; sb.className = 'btn'; sb.style.cssText = 'width:100%;margin-bottom:8px';
+  if(!sb){ sb = document.createElement('button'); sb.id = 'iScanBtn'; sb.className = 'btn iscanbtn';
     $('iSearch').closest('.logfX').before(sb); sb.addEventListener('click', () => { const c = sb.dataset.ctx; close('ovIng'); startScan(c); }); }
-  sb.textContent = '▥ ' + t('scanTitle'); sb.dataset.ctx = opts.scanBtn || ''; sb.classList.toggle('hide', !opts.scanBtn);
+  sb.innerHTML = svgIcon('scan', 18) + `<span>${esc(t('scanTitle'))}</span>`; sb.dataset.ctx = opts.scanBtn || ''; sb.classList.toggle('hide', !opts.scanBtn);
   $('iSearch').value = prefill || ''; status($('iStatus'), ''); $('iSaveMy').checked = true;
   drawIngResults(); open('ovIng'); setTimeout(() => $('iSearch').focus(), 120);
 }
@@ -376,9 +376,9 @@ function drawIngResults(){
   if(!text){ $('iResults').innerHTML = `<div class="hint">${t('typeToSearch')}</div>`; $('iSaveWrap').classList.add('hide'); return; }
   lastLocal = searchLocal(text);
   let h = '';
-  if(lastLocal.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + lastLocal.mine.map((f,i) => itemHtml('m', i, iconOf(f) || '❔', foodName(f), `${f.noBrand ? '' : esc(f.brand) + ' · '}${macroLine(f)}`)).join('');
-  if(lastLocal.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + lastLocal.std.map((g,i) => itemHtml('s', i, subOf(g.cat,g.sub).icon, L(g), `${macroLine(g)} · ${t('stdValues')}`)).join('');
-  if(ING.online.length && ING.onlineQ === text) h += `<div class="sgroup">${t('grpOnline')}</div>` + ING.online.map((d,i) => itemHtml('o', i, (guessType(d.name + ' ' + d.hint) ? subOf(guessType(d.name + ' ' + d.hint).cat, guessType(d.name + ' ' + d.hint).sub).icon : '🌐'), d.name, `${esc(d.brand || '')}${d.brand ? ' · ' : ''}${macroLine(d)}`)).join('');
+  if(lastLocal.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + lastLocal.mine.map((f,i) => itemHtml('m', i, '', foodName(f), `${f.noBrand ? '' : esc(f.brand) + ' · '}${macroLine(f)}`)).join('');
+  if(lastLocal.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + lastLocal.std.map((g,i) => itemHtml('s', i, '', L(g), `${macroLine(g)} · ${t('stdValues')}`)).join('');
+  if(ING.online.length && ING.onlineQ === text) h += `<div class="sgroup">${t('grpOnline')}</div>` + ING.online.map((d,i) => itemHtml('o', i, '', d.name, `${esc(d.brand || '')}${d.brand ? ' · ' : ''}${macroLine(d)}`)).join('');
   else h += `<button class="btn" id="iOnline" style="width:100%;margin-top:12px">${t('searchOnline', { q: esc(text) })}</button>`;
   $('iResults').innerHTML = h;
   $('iSaveWrap').classList.toggle('hide', ING.force || !(lastLocal.std.length || ING.online.length));
@@ -394,7 +394,7 @@ async function runOnline(text){
 function pickIng(ref){ close('ovIng'); ING.cb && ING.cb(ref); }
 
 function recipeHtml(r, compact){
-  return `<div class="recipe"><b>📖 ${esc(r.title || t('recipeT'))}</b>
+  return `<div class="recipe"><b>${esc(r.title || t('recipeT'))}</b>
     <div class="rmeta">${[r.own ? t('ownTag') : '', r.servings ? t('serves', { n: r.servings }) : '', r.minutes ? t('minutes', { n: r.minutes }) : ''].filter(Boolean).join(' · ')}</div>
     ${compact ? '' : `<ul>${(r.ingredients || []).map(i => `<li>${esc(i.name)}${Number(i.grams) > 0 ? ` — ${r1(Number(i.grams))} g` : ''}${i.note ? ` (${esc(i.note)})` : ''}</li>`).join('')}</ul>`}
     <div class="sgroup">${t('steps')}</div><ol>${(r.steps || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`;
@@ -479,15 +479,15 @@ function readOwn(){
   OWN = parseRecipe($('ownText').value);
   if(!OWN.ingredients.length && !OWN.steps.length){ $('ownOut').innerHTML = `<div class="status show err">${t('nothingFound')}</div>`; $('ownUse').disabled = true; return; }
   const items = OWN.ingredients.map(i => { const ref = matchIng([i.name]);
-    return `<li class="${ref && i.grams ? '' : 'miss'}">${ref ? ref.icon + ' ' : ''}${esc(i.name)} — ${i.grams ? fmtSize(i.grams, 'g') : t('noAmount')}${ref ? ` → <b>${esc(ref.name)}</b>` : ` · ${t('willPick')}`}</li>`; }).join('');
-  $('ownOut').innerHTML = `<div class="recipe parsed">${OWN.title ? `<b>📖 ${esc(OWN.title)}</b>` : ''}
+    return `<li class="${ref && i.grams ? '' : 'miss'}">${esc(i.name)} — ${i.grams ? fmtSize(i.grams, 'g') : t('noAmount')}${ref ? ` → <b>${esc(ref.name)}</b>` : ` · ${t('willPick')}`}</li>`; }).join('');
+  $('ownOut').innerHTML = `<div class="recipe parsed">${OWN.title ? `<b>${esc(OWN.title)}</b>` : ''}
     <div class="sgroup">${t('foundIng', { n: OWN.ingredients.length })}</div><ul style="color:var(--text)">${items}</ul>
     <div class="sgroup">${t('foundSteps', { n: OWN.steps.length })}</div><ol>${OWN.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`;
   $('ownUse').disabled = false;
 }
 
 // ======================= meals list + detail =======================
-function mealIcon(m){ const g = guessType(m.name); return g ? subOf(g.cat, g.sub).icon : '🍲'; }
+function mealIcon(m){ return ''; }   // food-type emojis are gone (0.7.4.0.5); kept because other parts call it
 
 function renderMeals(){
   const q = norm($('mSearch').value), tokens = q.split(' ').filter(Boolean);
@@ -497,7 +497,7 @@ function renderMeals(){
   if(!meals.length){ $('mList').innerHTML = `<div class="empty">${t('noMeals')}</div>`; return; }
   if(!items.length){ $('mList').innerHTML = `<div class="empty">${t('nothingMatches', { q: esc($('mSearch').value) })}</div>`; return; }
   $('mList').innerHTML = items.map(m => `<div class="card" data-mid="${m.id}">
-      <div class="ficon">${mealIcon(m)}</div>
+      <div class="ficon">${svgIcon('pot', 22)}</div>
       <div class="body">
         <div class="row"><div class="brand">${fmtDate(m.cookedAt)}${m.timesCooked > 1 ? ' · ' + t('timesCooked', { n: m.timesCooked }) : ''}</div><div class="kcal">${m.kcal} <small>kcal</small></div></div>
         <div class="name">${esc(m.name)}</div>
@@ -510,12 +510,12 @@ function renderMeals(){
 
 function openMeal(id){
   const m = meals.find(x => x.id === id); if(!m) return; openMealId = id;
-  $('mdName').textContent = `${mealIcon(m)} ${m.name}`;
+  $('mdName').textContent = m.name;
   $('mdWhen').textContent = m.cookedEstimated ? t('estimated') : t('per100cooked');
   $('mdMeta').textContent = t('mealMeta', { d: fmtDate(m.cookedAt), s: fmtSize(m.cookedWeight, 'g') }) + (m.timesCooked > 1 ? ' · ' + t('timesCooked', { n: m.timesCooked }) : '');
   $('mdStats').innerHTML = `<div><b>${m.kcal}</b><small>kcal</small></div><div><b style="color:var(--p)">${fmt(m.protein)}</b><small>${t('protein')}</small></div><div><b style="color:var(--c)">${fmt(m.carbs)}</b><small>${t('carbs')}</small></div><div><b style="color:var(--f)">${fmt(m.fat)}</b><small>${t('fat')}</small></div>`;
   $('mdPlate').value = ''; $('mdPlateRes').classList.remove('show');
-  $('mdIngs').innerHTML = `<ul style="color:var(--text)">${m.ingredients.map(i => `<li>${i.ref.icon || ''} ${esc(i.ref.name)} — ${fmtSize(i.grams, i.ref.unit)}</li>`).join('')}</ul>`;
+  $('mdIngs').innerHTML = `<ul style="color:var(--text)">${m.ingredients.map(i => `<li>${esc(i.ref.name)} — ${fmtSize(i.grams, i.ref.unit)}</li>`).join('')}</ul>`;
   $('mdRecipe').innerHTML = m.recipe ? `<h3>${t('recipeT')}</h3>` + recipeHtml(m.recipe, true) : `<p class="hint">${t('noRecipe')}</p>`;
   open('ovMeal');
 }
@@ -574,20 +574,6 @@ function tgCheck(){
   $('tgCheck').textContent = msgs.length ? msgs.join(' ') : t('tgOk'); $('tgCheck').classList.toggle('warn', !!msgs.length);
 }
 
-// ---------- home additions ----------
-function homeTodayTiles(){
-  const tg = targetFor(todayKey()), tot = dayTotals(todayKey()), di = dayInfo(todayKey());
-  $('tTodaySub').textContent = `${Math.round(tot.kcal)}${tg ? ' / ' + tg.k : ''} kcal · ${di.type === 'gym' ? '🏋️ ' + t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') + (di.time ? ' ' + di.time : '') : '😴'}`;
-  $('tTodayBar').style.width = tg ? `${Math.min(100, tot.kcal / tg.k * 100)}%` : '0';
-  const items = liveItems(), toBuy = groc.filter(g => !g.done).length;
-  $('tFridgeSub').textContent = !items.length ? t('fridgeSubEmpty') : t('fridgeSubOk', { n: items.length });
-  $('tFridgeBadge').classList.add('hide');
-  $('tGrocSub').textContent = toBuy ? t('grocSub', { n: toBuy }) : t('grocSubEmpty');
-  $('tGrocBadge').textContent = toBuy; $('tGrocBadge').classList.toggle('hide', !toBuy);
-  const tp = todayProgress();
-  $('homeAlerts').innerHTML = (tp.total && tp.done < tp.total && new Date().getHours() >= 12 ? `<div class="alert green" data-go="supps">${t('alertSupps', { n: tp.total - tp.done })}</div>` : '');
-}
-
 function saveGeneric(g){
   const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
   const now = new Date().toISOString();
@@ -620,10 +606,10 @@ function openCook(meal, mode){
 function drawRows(){
   $('iRows').innerHTML = D.rows.map(r => { const pr = pairOf(r.ref), st = r.ref ? refState(r.ref) : null;
     return `<div class="irow" data-key="${r.key}">
-      <button class="ipick ${r.ref ? '' : 'unset'} ${r.ref && r.ref.vague ? 'vague' : ''}" data-pick>${r.ref ? `<span style="font-size:20px">${r.ref.icon || '🍽️'}</span><span>${esc(r.ref.name)}${r.ref.vague ? `<small>${t('tapChangeV')}</small>` : ''}</span>` : `<span>${esc(r.wanted || t('chooseFood'))}</span>`}</button>
+      <button class="ipick ${r.ref ? '' : 'unset'} ${r.ref && r.ref.vague ? 'vague' : ''}" data-pick>${r.ref ? `<span>${esc(r.ref.name)}${r.ref.vague ? `<small>${t('tapChangeV')}</small>` : ''}</span>` : `<span>${esc(r.wanted || t('chooseFood'))}</span>`}</button>
       ${pr ? `<button class="rc ${st === 'cooked' ? 'ck' : ''}" data-rc>${st === 'cooked' ? t('cookedS') : t('raw')}</button>` : ''}
       <div class="igr"><input type="number" inputmode="decimal" step="any" min="0" value="${r.grams ?? ''}" data-g placeholder="0"><i>${r.ref && r.ref.unit === 'ml' ? 'ml' : 'g'}</i></div>
-      <button class="irm" data-rm aria-label="Remove">✕</button></div>`; }).join('');
+      <button class="irm" data-rm aria-label="${t('delete')}">${svgIcon('x', 16)}</button></div>`; }).join('');
   calcMeal(); updateTake();
 }
 
@@ -665,11 +651,5 @@ function trySave(){
   commit();
 }
 
-function renderHome(){
-  $('tFoodsSub').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
-  $('tMealsSub').textContent = meals.length === 1 ? t('nMeal') : t('nMeals', { n: meals.length });
-  const tp = todayProgress();
-  homeTodayTiles(); homeGymTile();
-  $('tSuppsSub').textContent = !supps.length ? t('nSupps', { n: 0 }) : (supps.length === 1 ? t('nSupp') : t('nSupps', { n: supps.length })) + (tp.total ? ` · ${t('todayLabel')}: ${t('todayTaken', { a: tp.done, b: tp.total })}` : '');
-  renderBackupCard($('homeBackup'));
-}
+// the old home page is gone (0.7.4.0.5). Kept empty only because gym.js and wire/04-gym.js still call it; delete once they stop.
+function renderHome(){}

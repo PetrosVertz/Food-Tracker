@@ -619,6 +619,19 @@ body.has-logqfab #fab{right:var(--lqfr)!important}
 /* Cook a Meal button: pot icon + text; Can't scan? buttons: line icon + text */
 .fab svg{vertical-align:-4px;margin-right:8px}
 .csico{display:flex;align-items:center;justify-content:center;gap:8px} .csico svg{flex:0 0 auto}
+/* 0.7.4.0.5: Scan Barcode button above the ingredient search; line icons on pack sizes, folds and Add Food options */
+.iscanbtn{width:100%;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px} .iscanbtn svg{flex:0 0 auto}
+.pack button svg{display:block} .foldh i svg{display:block}
+.opt .ic svg{display:block;margin:0 auto}
+/* search boxes (search.js logfX): the clear X sits inside the box, right side, only while there is text; no browser X as well */
+.logfX{position:relative}
+.logfX input{padding-right:44px}
+.logfX input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.logfXb{position:absolute;right:6px;top:0;bottom:0;margin:auto 0;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:var(--t-muted,var(--muted));cursor:pointer}
+.logfX .search ~ .logfXb{top:4px;bottom:10px}
+.logfX input:placeholder-shown ~ .logfXb{display:none}
+/* Light: the amber "choose a food" ingredient button sits on the darker page grey, so it needs a slightly deeper amber to read */
+:root[data-theme="light"] .ipick.unset{color:color-mix(in srgb,var(--c) 85%,#000)}
 /* ==== end foods ==== */
 /* ==== branch: shop (new Fridge & Groceries styles go on the lines below) ==== */
 /* 0.7.3 fridge rows: tag + name + arrow left, "300 / 500 g" right; tap = a small menu drops down under the row */

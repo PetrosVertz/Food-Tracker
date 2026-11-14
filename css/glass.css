@@ -42,8 +42,6 @@ input,select,textarea{background:rgba(0,0,0,.28);border-color:var(--line)}
 .sttag.raw{background:rgba(143,211,255,.2);color:var(--raw);border:1px solid rgba(143,211,255,.45)}
 .sttag.cooked{background:rgba(155,232,155,.18);color:var(--cooked);border:1px solid rgba(155,232,155,.45)}
 /* log search */
-.searchrow{display:flex;gap:8px;align-items:center} .searchrow .search{flex:1;margin:4px 0 10px} .searchrow .scanin{flex:0 0 46px;height:46px;margin-bottom:6px;font-size:20px}
-.srow{display:flex;gap:6px;align-items:stretch} .srow .sitem{flex:1;min-width:0}
 #amFridgeWrap input{display:none} #amFridgeWrap span{color:var(--muted);font-size:13px}
 /* today reminder */
 #gymBox{display:none!important}
