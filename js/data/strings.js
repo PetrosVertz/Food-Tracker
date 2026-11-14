@@ -682,4 +682,11 @@ Object.assign(S, {
 // 0.7.7 shell: Profile tab (Settings now opens from the gear on Profile)
 Object.assign(S, {
   tabProfile: ['Profile', 'Προφίλ'],
+  pfYou: ['You', 'Εσύ'], pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
+  pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfLatestPR: ['Latest PR', 'Τελευταίο Ρεκόρ'], pfNoPR: ['No PRs yet. Your next record shows up here.', 'Κανένα ρεκόρ ακόμα. Το επόμενο θα εμφανιστεί εδώ.'],
+  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your best estimated 1RM per lift. With friends soon.', 'Το καλύτερο εκτιμώμενο 1RM σου ανά άσκηση. Με φίλους σύντομα.'],
+  pfMChest: ['Chest', 'Στήθος'], pfMShoulders: ['Shoulders', 'Ώμοι'], pfMBack: ['Back', 'Πλάτη'], pfMUpperBack: ['Upper Back', 'Άνω Πλάτη'], pfMQuads: ['Quads', 'Τετρακέφαλοι'],
+  pfMHams: ['Hamstrings', 'Οπίσθιοι Μηριαίοι'], pfMGlutes: ['Glutes', 'Γλουτοί'], pfMArms: ['Arms', 'Χέρια'], pfMBonus: ['Bonus', 'Μπόνους'],
+  pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
+  pfPRs: ['PRs', 'Ρεκόρ'], pfWorkouts: ['Workouts', 'Προπονήσεις'], pfSets: ['Sets', 'Σετ'], pfVolume: ['Volume', 'Όγκος'], pfFoodDays: ['Days Logged Food', 'Μέρες με Καταγραφή'],
 });
