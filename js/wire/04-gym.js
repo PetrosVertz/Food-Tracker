@@ -282,12 +282,17 @@ $('stEmpty').addEventListener('click', () => startSession(null));
 
 $('gTplV').addEventListener('click', e => {
   if(e.target.closest('#tpNew')) return openTpl(null);
+  if(e.target.closest('[data-wkscan]')){ Phone.haptic(); return startWkScan(); }
   const c = e.target.closest('[data-tp]'); if(!c) return; const x = tpls.find(y => y.id === c.dataset.tp);
   if(e.target.closest('[data-qr-tp]')){ Phone.haptic(); return openWkQR(x); }
   if(e.target.closest('[data-go-tp]')){ if(active) return openSession(); return startSession(x); }
   openTpl(x);
 });
 
+// 0.7.7 gym-qr: Scan a Workout — the camera stops whenever the window closes
+new MutationObserver(() => { if(!$('ovWkScan').classList.contains('open')) stopWkScan(); }).observe($('ovWkScan'), { attributes: true, attributeFilter: ['class'] });
+$('wsPhotoBtn').addEventListener('click', () => $('wsPhoto').click());
+$('wsPhoto').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; wkScanPhoto(f); });
 // 0.7.7 gym-qr: let the screen sleep again when the QR closes (unless a live workout is keeping it on)
 new MutationObserver(() => { if(!$('ovWkQR').classList.contains('open') && !$('ovSession').classList.contains('open')) Phone.keepScreenOn(false); })
   .observe($('ovWkQR'), { attributes: true, attributeFilter: ['class'] });

@@ -67,3 +67,69 @@ function openWkQR(tp){
   $('wqSun').innerHTML = gymIco('sun', 18, 2); $('wqCode').innerHTML = wkQRSvg(wkPack(tp, wkOwn));
   open('ovWkQR'); Phone.keepScreenOn(true);
 }
+
+// ---------- Scan a Workout: camera (or a photo) → code → saved workout → Start / Not Now ----------
+let WKS = { on: false, loop: 0, stream: null, msg: '' };
+async function startWkScan(){
+  stopWkScan(); WKS.msg = null; open('ovWkScan'); wsStatus(t('startingCam'));
+  if(!Phone.hasCamera()) return wsStatus(t('wsCamFail'), true);
+  try{
+    const [det, s] = await Promise.all([Phone.qrReader().catch(e => { e.reader = true; throw e; }), Phone.camera()]);
+    if(!$('ovWkScan').classList.contains('open')){ s.getTracks().forEach(tr => tr.stop()); return; }
+    WKS.stream = s; const v = $('wsVideo'); v.srcObject = s; await v.play().catch(() => {});
+    wsStatus(''); WKS.on = true;
+    const tick = async () => {
+      if(!WKS.on) return;
+      if(!$('ovWkScan').classList.contains('open')) return stopWkScan();
+      try{ if(v.readyState >= 2){ const res = await det.detect(v); for(const r of res) if(wkScanned(r.rawValue)) return; } }catch(e){}
+      WKS.loop = setTimeout(tick, 120);
+    };
+    tick();
+  }catch(e){
+    wsStatus(e && e.reader ? t('wsNoReader') : e && e.name === 'NotAllowedError' ? t('wsCamBlocked') : location.protocol !== 'https:' ? t('wsCamHttps') : t('wsCamFail'), true);
+  }
+}
+function stopWkScan(){ WKS.on = false; clearTimeout(WKS.loop); if(WKS.stream){ WKS.stream.getTracks().forEach(tr => tr.stop()); WKS.stream = null; } const v = $('wsVideo'); if(v) v.srcObject = null; }
+function wsStatus(msg, bad){ if(WKS.msg === msg) return; WKS.msg = msg; status($('wsStatus'), msg, bad); }
+
+// a photo of the code (a screenshot someone sent, or when the live camera won't start)
+async function wkScanPhoto(file){
+  if(!file) return;
+  let det; try{ det = await Phone.qrReader(); }catch(e){ return wsStatus(t('wsNoReader'), true); }
+  try{ const bmp = await createImageBitmap(file), res = await det.detect(bmp);
+    if(!res.some(r => wkScanned(r.rawValue))) wsStatus(t(res.length ? 'wsNotWk' : 'wsNoCode'), true); }
+  catch(e){ wsStatus(t('wsNoCode'), true); }
+}
+
+// true when this text was a workout (the scan stops); otherwise shows why and keeps looking
+function wkScanned(text){
+  const d = wkUnpack(text);
+  if(!d){ wsStatus(t('wsNotWk'), true); return false; }
+  if(d.newer){ wsStatus(t('wsNewer'), true); return false; }
+  stopWkScan(); Phone.vibrate(60); close('ovWkScan');
+  setTimeout(() => wkImport(d), 250);
+  return true;
+}
+
+// turn a scanned code into a saved workout (your own exercises are matched by name, or added), then offer to start it
+async function wkImport(d){
+  const ownIds = d.own.map(o => {
+    const h = HEADS[o.h] ? o.h : 'chest_mid', same = exCustom.find(c => norm(c.en || '') === norm(o.en) && (c.h || '') === h);
+    if(same) return same.id;
+    const x = { id: 'c_' + uid(), en: o.en || t('wsOwnEx'), el: o.en || t('wsOwnEx'), e: EQUIP[o.e] ? o.e : 'machine', p: o.p || 'press_h', mu: { [h]: 100 }, h, m: HEADS[h][2], rest: o.rest, custom: true };
+    exCustom.push(x); return x.id;
+  });
+  if(d.own.length) saveG('custom');
+  const groups = {};
+  const exercises = d.exercises.map(e => { const exId = e.own != null ? ownIds[e.own] : e.exId;
+    return { exId, sets: e.sets, reps: e.reps, rest: e.rest ?? exById(exId).rest, ...(e.ss ? { ss: groups[e.ss] || (groups[e.ss] = uid()) } : {}), ...(e.uni ? { uni: true } : {}) }; });
+  normalizeSS(exercises);
+  const type = /^[a-z_]+$/.test(d.type || '') ? d.type : inferType(exercises);
+  const tpl = { id: uid(), name: d.name || typeLabel_(type), type, exercises };
+  // the same workout scanned twice is kept once
+  const code = wkPack(tpl, wkOwn), have = tpls.find(x => x.name === tpl.name && wkPack(x, wkOwn).split('~').slice(3).join('~') === code.split('~').slice(3).join('~'));
+  const tp = have || tpl;
+  if(!have){ tpls.push(tpl); saveG('tpl'); }
+  LIBF.saved = true; renderAll(); Phone.haptic();
+  if(await ask(t(have ? 'wsHaveQ' : 'wsSavedQ', { n: tp.name }), t('wsStart'), t('wsNotNow'))){ if(active) return openSession(); startSession(tp); }
+}

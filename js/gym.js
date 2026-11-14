@@ -604,7 +604,7 @@ function renderTpls(){
       <div class="name">${esc(s.name)}</div><div class="rmeta">${fmtDate(s.start)} · ${s.mins} min · ${t('nEx', { n: s.exercises.length })}${s.vol ? ' · ' + s.vol.toLocaleString() + ' kg' : ''}</div></div></div>`).join('')}</div>`
     : `<p class="hint">${t('noPast')}</p>`;
   const fold = (k, title, n, body) => `<button class="foldh ${LIBF[k] ? 'open' : ''}" data-fold="${k}"><b>${title}</b><span class="fn">${n}</span><i>${svgIcon('down', 18, 2)}</i></button>${LIBF[k] ? `<div class="foldb">${body}</div>` : ''}`;
-  $('gTplV').innerHTML = fold('saved', t('savedWorkouts'), tpls.length, saved) +
+  $('gTplV').innerHTML = `<button class="btn wsbtn" type="button" data-wkscan>${gymIco('qr', 18, 2)}<span>${esc(t('wsT'))}</span></button>` + fold('saved', t('savedWorkouts'), tpls.length, saved) +
     fold('past', t('pastWorkouts'), past.length, pastHtml);
 }
 
