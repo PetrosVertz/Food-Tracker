@@ -740,6 +740,11 @@
 <!-- ==== branch: shop (new Fridge & Groceries sheets go on the lines below) ==== -->
 <!-- ==== end shop ==== -->
 <!-- ==== branch: shell (new App Shell & Settings sheets go on the lines below) ==== -->
+<div class="overlay" id="ovCoach"><div class="sheet coachwin">
+  <div class="chead"><button class="cback" type="button" id="coachBack" data-ta="back" aria-label="Back"></button><span class="cface" id="coachFace" aria-hidden="true"></span><h2 id="coachT"></h2></div>
+  <div class="clist" id="coachList" aria-live="polite"></div>
+  <form class="cbar" id="coachForm"><div class="cprev hide" id="coachPrev"></div><div class="cbox"><button class="ccam hide" type="button" id="coachCam" data-ta="coachPhoto" aria-label="Photo"></button><textarea id="coachIn" rows="1" enterkeyhint="send" autocomplete="off"></textarea><button class="csend" type="submit" id="coachSend" data-ta="coachSend" aria-label="Send" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button></div><input type="file" id="coachFile" accept="image/*" capture="environment" hidden></form>
+</div></div>
 <!-- ==== end shell ==== -->
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
@@ -762,6 +767,7 @@
 <script src="js/data/gym-anatomy.js"></script>
 <script src="js/core.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/coach.js"></script>
 <script src="js/food.js"></script>
 <script src="js/search.js"></script>
 <script src="js/supplements.js"></script>

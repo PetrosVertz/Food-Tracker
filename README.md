@@ -16,6 +16,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/data/foods.js`, `js/data/foods-more.js`, `js/data/gym.js` | Built-in foods (700, incl. ~370 cooked foods and dishes added in 0.6.7) / exercises, muscles, equipment |
 | `js/core.js` | Helpers: text, food records, fetch with timeout, Claude export |
 | `js/ui.js` | Line icons (`ICON`, `svgIcon`, `BACK_SVG`), sliding pills (one knob per selector follows `.on`), themes (`THEMES`, `applyTheme`), navigation, tabs, sheets (open/close), setup, settings, backup, swipe-to-delete |
+| `js/coach.js` | **Coach chat (0.7.4.3)**: the one chat window Food Coach and Gym Coach share (`Coach.setup` / `Coach.open`), its robot bubble, the coach pills beside the main button |
 | `js/food.js` | Food Track: food list, food form, barcode, cooking, meals |
 | `js/search.js` | **Search** (0.6.7): word order, plurals, typos, other names (`SYN_GROUPS`), ranking by your habits and time of day, Did you mean, online (USDA + Open Food Facts) with a quality check |
 | `js/supplements.js` | Supplements (Take button with times) |

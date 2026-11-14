@@ -106,3 +106,6 @@ applyTabOrder();
 
 $('sFoodBody').addEventListener('click', e => { const c = e.target.closest('.fpchips button'); if(c){ c.classList.toggle('on'); Phone.haptic(); } });
 $('sFoodSave').addEventListener('click', () => { saveFoodPrefs(readFoodPrefs($('sFoodBody'))); toast(t('fpSaved')); close('ovSFood'); });
+
+// 0.7.4.3: the shared coach chat (js/coach.js)
+Coach.init();
