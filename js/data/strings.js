@@ -478,7 +478,7 @@ Object.assign(S, {
   moreItemsQ: ['More items?', 'Κι άλλα προϊόντα;'], moreItems: ['More Items', 'Κι Άλλα'],
   shopReading: ['Reading the receipt…', 'Διαβάζω την απόδειξη…'], shopOffLook: ['Finding {n} products on Open Food Facts…', 'Ψάχνω {n} προϊόντα στο Open Food Facts…'],
   shopWebLook: ['Looking up {n} unknown items online…', 'Ψάχνω {n} άγνωστα προϊόντα στο διαδίκτυο…'],
-  shopReview: ['Check Before Adding', 'Έλεγχος πριν την προσθήκη'], shopReviewSub: ['Tap a name to change it, untick anything wrong, roll the wheel for how many packs.', 'Πάτα ένα όνομα για αλλαγή, ξετσέκαρε ό,τι είναι λάθος, γύρνα τη ρόδα για το πόσα πήρες.'],
+  shopReview: ['Check Before Adding', 'Έλεγχος πριν την προσθήκη'], shopReviewSub: ['Tap an item to edit it, swipe left to remove it, roll the wheel for how many packs.', 'Πάτα ένα προϊόν για αλλαγή, σύρε αριστερά για διαγραφή, γύρνα τη ρόδα για το πόσα πήρες.'],
   emptyGroc: ['<b>Nothing to buy</b>Type above to add something. Tick things off in the store and they go straight into the fridge. What you run out of lands here by itself.', '<b>Τίποτα για ψώνια</b>Γράψε από πάνω για να προσθέσεις. Τσέκαρέ τα στο μαγαζί και μπαίνουν κατευθείαν στο ψυγείο. Ό,τι τελειώνει μπαίνει εδώ μόνο του.'],
   chkBtn: ['Check My Foods', 'Έλεγχος τροφίμων'], chkT: ['Check My Foods', 'Έλεγχος τροφίμων'],
   chkSub: ['Each food is checked against that exact product online. Only the ones that look off are shown — nothing changes unless you accept.', 'Κάθε τρόφιμο ελέγχεται με το ίδιο ακριβώς προϊόν στο διαδίκτυο. Βλέπεις μόνο όσα φαίνονται λάθος — τίποτα δεν αλλάζει αν δεν το δεχτείς.'],
@@ -541,6 +541,7 @@ Object.assign(S, {
   shopFFrozenTag: ['FROZEN', 'ΚΑΤΕΨ.'], shopFCooked: ['Cooked', 'Μαγειρεμένο'], shopFRaw: ['Raw', 'Ωμό'], shopFReady: ['Ready', 'Έτοιμο'],
   shopFPack: ['1 Pack · {s}', '1 συσκευασία · {s}'], shopFToPacks: ['Count in Packs of {s}', 'Μέτρα σε συσκευασίες των {s}'],
   shopFPackSize: ['Pack Size', 'Μέγεθος συσκευασίας'], shopFAmount: ['Amount', 'Ποσότητα'],
+  shopUnsure: ['Not Sure', 'Δεν είμαι σίγουρος'], shopEditT: ['Edit Item', 'Επεξεργασία'], shopEditFood: ['Which Food', 'Ποιο τρόφιμο'], shopEditTag: ['Tag', 'Ετικέτα'], shopEditCount: ['How Many Packs', 'Πόσες συσκευασίες'],
   // ==== end shop ====
   // ==== branch: shell (new App Shell & Settings text goes on the lines below) ====
   shSearchPh: ['Search Settings', 'Αναζήτηση ρυθμίσεων'],

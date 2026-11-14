@@ -14,9 +14,9 @@ function learnPack(foodId, size, count){
   saveFoods();
 }
 // n packs of one food into the fridge; returns the new ids (for Undo)
-function putPacks(f, size, n, guess){
+function putPacks(f, size, n, guess, opt){
   const ids = []; for(let i = 0; i < Math.max(1, n); i++){ const id = uid(); ids.push(id);
-    addToFridge({ id, foodId: f.id, qty: r1(size), packSize: r1(size), unit: f.unit, loc: defaultLoc(f), ...(guess ? { qtyGuess: true } : {}) }); }
+    addToFridge({ id, foodId: f.id, qty: r1(size), packSize: r1(size), unit: f.unit, loc: opt && opt.frozen ? 'freezer' : defaultLoc(f), ...(opt && opt.tag && opt.tag !== f.state ? { tag: opt.tag } : {}), ...(guess ? { qtyGuess: true } : {}) }); }
   return ids;
 }
 function takeBack(ids){ const s = new Set(ids); fridge = fridge.filter(it => !s.has(it.id)); saveFridge(); }
@@ -49,6 +49,7 @@ function shopTags(x){
   else if(x.web) tags.push(`<span class="stag web">${t('fromWeb')}</span>`);
   else if(x.data) tags.push(`<span class="stag">${t('shopNew')}</span>`);
   else if(x.gid) tags.push(`<span class="stag">${t('stdValues')}</span>`);
+  if(x.src === 'receipt' && !x.sure && x.look !== 'busy' && (x.foodId || x.gid || x.data)) tags.push(`<span class="stag warn">${t('shopUnsure')}</span>`);
   if(x.brand) tags.push(esc(x.brand));
   if(x.line && x.src !== 'scan') tags.push(`<span class="sline">${esc(x.line)}</span>`);
   return tags.join(' · ');
@@ -60,6 +61,21 @@ function shopRow(x, i){
     <button class="sname" type="button" data-sname><b>${esc(shopName(x))}</b><small>${shopTags(x)}</small></button>
     <label class="spack"><input data-ssize inputmode="decimal" data-nfix value="${x.size ? fmt(x.size) : ''}" placeholder="—" aria-label="${t('packSizeL')}"><span>${x.unit}</span></label>
     <span class="wx">×</span>${wheelHtml(x.count)}</div>`;
+}
+function shopRemove(x){
+  const i = SHOP.items.indexOf(x); if(i < 0) return; SHOP.items.splice(i, 1); drawShop();
+  toast(t('deleted', { n: shopName(x) }), t('undo'), () => { SHOP.items.splice(Math.min(i, SHOP.items.length), 0, x); drawShop(); });
+}
+// the edit window for one card: name, which food, tag, pack size, count
+let SHED = null;
+function shopEdit(x){
+  SHED = x; $('shedName').value = x.name || ''; $('shedSize').value = x.size ? fmt(x.size) : ''; $('shedUnit').textContent = x.unit; $('shedCount').textContent = x.count;
+  $('shedFood').textContent = x.foodId || x.gid || x.data ? shopName(x) : t('shopPick'); drawShedTags(); open('ovShopEd');
+}
+function drawShedTags(){
+  const f = SHED.foodId && foods.find(y => y.id === SHED.foodId), cur = SHED.tag || (f && f.state) || 'cooked';
+  $('shedTags').innerHTML = [['cooked', 'shopFCooked'], ['uncooked', 'shopFRaw'], ['ready', 'shopFReady']].map(([v, k]) => `<button type="button" data-stag="${v}" class="${cur === v ? 'on' : ''}">${t(k)}</button>`).join('')
+    + `<button type="button" data-sfrz class="${SHED.frozen ? 'on' : ''}" aria-pressed="${!!SHED.frozen}">${t('frozen')}</button>`;
 }
 function shopVisible(){ return SHOP.items.map((x, i) => ({ x, i })).filter(({ x }) => !x.done); }
 function drawShop(){
@@ -85,7 +101,7 @@ function shopResolve(x){
 function shopPut(x){
   const f = shopResolve(x); if(!f) return null;
   const size = x.size || f.usualPack, n = Math.max(1, Math.round(x.count || 1));
-  const ids = putPacks(f, size || guessPack(f), n, !size);
+  const ids = putPacks(f, size || guessPack(f), n, !size, { tag: x.tag, frozen: x.frozen });
   if(size) learnPack(f.id, size, n); else learnPack(f.id, null, n);
   if(x.code && !f.barcode) f.barcode = x.code;
   if(x.line && x.src !== 'scan'){ const k = norm(x.line); f.rcpt = [...new Set([k, ...(f.rcpt || [])])].slice(0, 8); }   // this receipt line = this food, next time
@@ -217,8 +233,8 @@ async function shopPhoto(file){
     if(m && m.foodId){ const f = foods.find(y => y.id === m.foodId); const nm = x.name; shopSetFood(x, f); if(!m.sure) x.name = foodName(f) || nm; }
     else if(m && m.gid){ x.gid = m.gid; x.name = L(GENBY[m.gid]); }
     x.sure = !!(m && m.sure); x.on = !!m; return x; });
-  // sure ones go straight in
-  const sureIds = []; SHOP.items.filter(x => x.sure).forEach(x => { const r = shopPut(x); if(r) sureIds.push(...r); }); SHOP.sureIds = sureIds; renderAll(); drawShop();
+  // every line is shown as a card for you to check: sure matches first (pre-ticked), unsure ones marked
+  SHOP.items = SHOP.items.map((x, i) => [x, i]).sort((a, b) => (b[0].sure - a[0].sure) || a[1] - b[1]).map(r => r[0]); SHOP.sureIds = []; drawShop();
   // 2) branded lines you don't have: Open Food Facts
   const offs = SHOP.items.filter(x => !x.done && !x.foodId && x.brand && !x.loose);
   if(offs.length){ status($('shopStatus'), t('shopOffLook', { n: offs.length })); offs.forEach(x => { x.look = 'busy'; }); drawShop();
@@ -242,7 +258,6 @@ ${part.map((x, j) => `${j}) "${x.line}" = ${x.brand ? x.brand + ' ' : ''}${x.nam
     web.forEach(x => { x.look = ''; });
   }
   SHOP.busy = false; status($('shopStatus'), ''); drawShop();
-  if(!shopVisible().length) toast(t('shopAdded', { n: SHOP.items.length }), t('undo'), () => { takeBack(SHOP.sureIds || []); renderAll(); });
 }
 
 // ---------- Check My Foods (AI): every saved food against online sources, in batches of 20; only the ones that look off are shown ----------

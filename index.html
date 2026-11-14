@@ -180,6 +180,20 @@
   <div id="shopList"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="shopAddBtn"></button></div>
 </div></div>
+<div class="overlay" id="ovShopEd"><div class="sheet">
+  <h2 data-t="shopEditT"></h2>
+  <label for="shedName" data-t="supName"></label>
+  <input id="shedName" autocomplete="off">
+  <label data-t="shopEditFood"></label>
+  <button class="btn" type="button" id="shedFoodBtn"><span id="shedFood"></span></button>
+  <label data-t="shopEditTag"></label>
+  <div class="tchips" id="shedTags"></div>
+  <label for="shedSize" data-t="shopFPackSize"></label>
+  <div class="brandrow"><input id="shedSize" inputmode="decimal" data-nfix style="flex:1"><span id="shedUnit"></span></div>
+  <label data-t="shopEditCount"></label>
+  <div class="brandrow"><button class="btn" type="button" data-shedn="-1" aria-label="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button><b id="shedCount" style="flex:1;text-align:center"></b><button class="btn" type="button" data-shedn="1" aria-label="+1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button></div>
+  <div class="actions"><button class="btn primary" type="button" id="shedDone" data-t="done"></button></div>
+</div></div>
 <div class="overlay" id="ovCheck"><div class="sheet tall">
   <h2 data-t="chkT"></h2><p class="sub" data-t="chkSub"></p>
   <div class="status" id="chkStatus"></div>
