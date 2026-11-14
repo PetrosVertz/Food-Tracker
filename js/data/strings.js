@@ -700,3 +700,10 @@ Object.assign(S, {
   tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level: Diamond 1', 'Ανώτατο επίπεδο: Διαμαντένιο 1'],
   tierNeedBody: ['Add Body Weight and Sex for Tiers', 'Πρόσθεσε Βάρος και Φύλο για Επίπεδα'],
 });
+
+// ---------- 0.7.7 gym-qr: share a saved workout as a QR code ----------
+Object.assign(S, {
+  wqShowL: ['Show QR Code', 'Εμφάνιση Κωδικού QR'],
+  wqHint: ['Turn your screen brightness up so it scans easily.', 'Ανέβασε τη φωτεινότητα της οθόνης για να σκανάρεται εύκολα.'],
+  wqHow: ['On the other phone, open Food Track · Gym Buddy: Gym › Workouts › Scan a Workout.', 'Στο άλλο κινητό άνοιξε το Food Track · Gym Buddy: Γυμναστήριο › Προπονήσεις › Σκανάρισμα Προπόνησης.'],
+});

@@ -283,9 +283,14 @@ $('stEmpty').addEventListener('click', () => startSession(null));
 $('gTplV').addEventListener('click', e => {
   if(e.target.closest('#tpNew')) return openTpl(null);
   const c = e.target.closest('[data-tp]'); if(!c) return; const x = tpls.find(y => y.id === c.dataset.tp);
+  if(e.target.closest('[data-qr-tp]')){ Phone.haptic(); return openWkQR(x); }
   if(e.target.closest('[data-go-tp]')){ if(active) return openSession(); return startSession(x); }
   openTpl(x);
 });
+
+// 0.7.7 gym-qr: let the screen sleep again when the QR closes (unless a live workout is keeping it on)
+new MutationObserver(() => { if(!$('ovWkQR').classList.contains('open') && !$('ovSession').classList.contains('open')) Phone.keepScreenOn(false); })
+  .observe($('ovWkQR'), { attributes: true, attributeFilter: ['class'] });
 
 document.querySelectorAll('#tpType button').forEach(b => b.addEventListener('click', () => { TP.type = b.dataset.v; setSeg('#tpType', TP.type); }));
 

@@ -76,8 +76,8 @@ $('sBodySave').addEventListener('click', async () => {
 addEventListener('hashchange', () => { if(location.hash === '#settings') fillSettings(); });
 $('pfGear').addEventListener('click', () => { Phone.haptic(); go('settings'); });   // 0.7.7: Settings opens from the gear on Profile
 $('sBackBtn').addEventListener('click', goBack);
-// 0.7.7 Profile: Share a Workout opens the saved workouts list in Gym Buddy (the QR comes with gym-qr)
-$('pfBody').addEventListener('click', e => { if(!e.target.closest('#pfShare')) return; Phone.haptic(); ui.lastIn_gym = 'gym-lib'; saveUI(); switchTab(0, 'gym'); });
+// 0.7.7 Profile: Share a Workout opens the saved workouts list in Gym Buddy, unfolded (each row has its QR button, gym-qr)
+$('pfBody').addEventListener('click', e => { if(!e.target.closest('#pfShare')) return; Phone.haptic(); LIBF.saved = true; ui.lastIn_gym = 'gym-lib'; saveUI(); switchTab(0, 'gym'); });
 addEventListener('hashchange', () => setTimeout(syncFab2, 0));
 
 // Backup reminder when the app opens (iPhone can't show anything when a web app closes)

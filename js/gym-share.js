@@ -47,3 +47,23 @@ function wkUnpack(str){
   if(!exercises.length) return null;
   return { name: wkUnesc(name).trim().slice(0, 60), type: wkUnesc(type), exercises, own };
 }
+
+// ---------- the QR picture: square modules on white with the standard 4-module quiet border ----------
+function wkQRSvg(text){
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  const q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make();
+  const n = q.getModuleCount(), m = 4, d = [];
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++) if(q.isDark(r, c)) d.push(`M${c + m} ${r + m}h1v1h-1z`);
+  return `<svg viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" shape-rendering="crispEdges" role="img" aria-label="${esc(t('wqShowL'))}"><rect width="100%" height="100%" fill="var(--qr-paper)"/><path d="${d.join('')}" fill="var(--qr-ink)"/></svg>`;
+}
+
+// your own exercises travel inside the code (the other phone doesn't have them)
+const wkOwn = id => { const c = exCustom.find(x => x.id === id); return c ? normEx(c) : null; };
+
+// full-screen QR of one saved workout; the screen stays on while it shows
+function openWkQR(tp){
+  if(!tp) return;
+  $('wqName').textContent = tp.name; $('wqMeta').textContent = t('nEx', { n: tp.exercises.length });
+  $('wqSun').innerHTML = gymIco('sun', 18, 2); $('wqCode').innerHTML = wkQRSvg(wkPack(tp, wkOwn));
+  open('ovWkQR'); Phone.keepScreenOn(true);
+}

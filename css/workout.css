@@ -318,3 +318,22 @@ html.pwa #cb-gymlive{top:calc(var(--appH,100vh) - 60px - 92px - env(safe-area-in
 /* Profile › Leaderboards: the tier badge text takes the tier colour too; the prompt when body weight or sex is missing */
 .pftier[style*="--tier-"]{color:var(--tc)}
 .pfneed{display:block;margin:0 0 var(--s3);padding:0;text-align:left}
+
+/* ---------- 0.7.7 gym-qr: Share a Workout QR, full screen on white (scanners need dark modules on a light page, in every theme) ---------- */
+#ovWkQR{--qr-paper:#fff;--qr-ink:#000;--qr-soft:#3d4249}
+#ovWkQR .sheet.wqsheet{height:100%!important;max-height:none!important;width:100%!important;max-width:none;border-radius:0!important;border:0!important;margin:0;
+  background:var(--qr-paper)!important;color:var(--qr-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+#ovWkQR .sheet.wqsheet::before,#ovWkQR .sheet.wqsheet::after{display:none}
+#ovWkQR.center{align-items:stretch!important}
+#ovWkQR h2{color:var(--qr-ink);margin:0 0 4px;max-width:100%;overflow-wrap:anywhere}
+.wqmeta{color:var(--qr-soft);font-size:15px}
+.wqcode{width:min(86vw,62vh,440px);aspect-ratio:1;margin:22px 0 18px}
+.wqcode svg{display:block;width:100%;height:100%}
+.wqhint{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--qr-ink);font-size:15px;margin:0 0 6px}
+.wqhint svg{flex:0 0 auto}
+.wqhow{color:var(--qr-soft);font-size:13px;margin:0 0 22px;max-width:340px}
+#ovWkQR .btn.wqclose{flex:0 0 auto;background:var(--qr-paper);color:var(--qr-ink);border:1.5px solid var(--qr-ink);min-width:160px}
+#ovWkQR .sheet.wqsheet{position:relative}
+#ovWkQR .sback{position:absolute!important;top:calc(env(safe-area-inset-top) + 10px)!important;left:10px!important;margin:0!important;color:var(--qr-ink)!important;background:none!important}
+.qrbtn{margin-right:6px}

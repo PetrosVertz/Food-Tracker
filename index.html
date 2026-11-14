@@ -620,6 +620,15 @@
 </div></div>
 
 <!-- ============ WORKOUT TEMPLATE ============ -->
+<!-- 0.7.7 gym-qr: a saved workout's QR code, full screen on white so another phone can scan it -->
+<div class="overlay" id="ovWkQR"><div class="sheet wqsheet">
+  <h2 id="wqName"></h2>
+  <small id="wqMeta" class="wqmeta"></small>
+  <div id="wqCode" class="wqcode"></div>
+  <p class="wqhint"><span id="wqSun" aria-hidden="true"></span><span data-t="wqHint"></span></p>
+  <p class="wqhow" data-t="wqHow"></p>
+  <button class="btn wqclose" type="button" data-close data-t="close"></button>
+</div></div>
 <div class="overlay" id="ovTpl"><div class="sheet tall">
   <h2 id="tpTitle"></h2>
   <label for="tpName" data-t="workoutName"></label>
