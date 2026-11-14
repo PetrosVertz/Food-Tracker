@@ -219,3 +219,10 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 
 #tpAdd{display:flex;align-items:center;justify-content:center;gap:8px} #tpAdd b{font-weight:inherit} .tpaddi{display:flex}
 .adddrop svg{vertical-align:-1px}
+
+/* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
+.fph{display:flex;align-items:center;gap:6px}
+.fph svg{flex:0 0 auto;color:var(--t-done-ink,var(--t-done))} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
+#eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
+#eiBody .mrow small{white-space:nowrap}
+#eiBody .mrow b{text-align:right}
