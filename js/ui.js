@@ -195,6 +195,33 @@ let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
+// ---------- 0.7.7: the action pills above the bottom bar (main button, scan button, coach pill) on a tab switch ----------
+// The old pills slide down out of view (copies, so their text never changes mid-way), then the new page's pills rise from the
+// bottom with a short fade and a slight spring, 40 ms apart. Transform and opacity only; with Reduce Motion they just swap.
+const PILL_ACTS = '#fab2,#fab,.coachpill';
+const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
+function pillSwap(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate) return;
+  clearTimeout(pillSwap.t); document.querySelectorAll('.pillghost').forEach(g => g.remove());
+  const olds = [...document.querySelectorAll(PILL_ACTS)].filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);
+    g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.classList.add('pillghost'); g.setAttribute('aria-hidden', 'true'); g.tabIndex = -1;
+    const pin = { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', 'z-index': cs.zIndex };
+    Object.entries(pin).forEach(([k, v]) => g.style.setProperty(k, v, 'important'));   // geometry beats the pills' own !important rules; transform and opacity stay free to animate
+    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity }); document.body.appendChild(g); return g; });
+  document.body.classList.add('pillswap');   // the real pills wait out of sight while the page changes under them
+  const OUT = 150, gap = 40, outEnd = OUT + Math.max(0, ghosts.length - 1) * gap;
+  ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: 'translateY(96px)', opacity: 0 }],
+    { duration: OUT, delay: i * gap, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
+  pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove());
+    const all = [...document.querySelectorAll(PILL_ACTS)]; all.forEach(el => el.style.transition = 'none');   // no CSS fade of their own on the way back
+    document.body.classList.remove('pillswap');
+    const news = all.filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    news.forEach((el, i) => { const op = getComputedStyle(el).opacity;   // a greyed-out AI pill keeps its dimmed look
+      el.animate([{ transform: 'translateY(96px)', opacity: 0 }, { transform: 'translateY(-5px)', opacity: op, offset: .72 }, { transform: 'none', opacity: op }],
+        { duration: 250, delay: i * gap, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
+    requestAnimationFrame(() => all.forEach(el => el.style.transition = '')); }, outEnd + 10);
+}
 function switchTab(dir, toTab){
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
@@ -202,7 +229,7 @@ function switchTab(dir, toTab){
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   // plain slide: this page moves out, the next one moves in (down = next tab slides up from below)
-  SWITCHING = true;
+  SWITCHING = true; pillSwap();
   const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
   const opt = { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' }, target = tabTarget(tab);
