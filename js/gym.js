@@ -21,7 +21,7 @@ function topHead(mu){ return Object.entries(mu).sort((a, b) => b[1] - a[1])[0][0
 function normEx(x){ if(x.mu) return x; const h = LEGACY_HEAD[x.m] || 'chest_mid'; return { ...x, mu: { [h]: 100 }, h, m: HEADS[h] ? HEADS[h][2] : 'other', p: x.m === 'cardio' ? 'cardio' : (x.p || 'press_h') }; }
 
 function exIcon(x, size){
-  x = typeof x === 'string' ? exById(x) : x; const f = ICON_FIG[x.p] || ICON_FIG.press_h, col = (GROUPS[x.m] || GROUPS.other)[3];
+  x = typeof x === 'string' ? exById(x) : x; const f = ICON_FIG[x.id === 'treadmill' ? 'treadmill' : x.p] || ICON_FIG.press_h, col = (GROUPS[x.m] || GROUPS.other)[3];
   return `<svg class="exicon" viewBox="0 0 48 48" width="${size || 40}" height="${size || 40}" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="12" fill="${col}" opacity=".16"/>
     <path d="${f[2]}" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${f[0]}" cy="${f[1]}" r="3.6" fill="${col}"/></svg>`;
 }
@@ -640,6 +640,8 @@ function exTilesByEq(list, key){
   return EQ_ORDER.filter(e => list.some(x => x.e === e)).map(e => `<div class="eqhead" style="color:${gymInk(EQ_COL[e])}">${eqIcon(e, 18)} ${EL(e)}</div>${exTiles(list.filter(x => x.e === e), key)}`).join('');
 }
 
+// 0.7.9: cardio list starts with the machines people use most
+const CARDIO_FIRST = ['treadmill', 'bike', 'rower', 'elliptical', 'stairs', 'walking'], cardioRank = id => { const i = CARDIO_FIRST.indexOf(id); return i < 0 ? 99 : i; };
 function drawExPick(){
   const q = norm($('exSearch').value), tokens = q.split(' ').filter(Boolean);
   setSeg('#pkRegion', PK.region); setSeg('#pkMode', PK.mode);
@@ -647,10 +649,10 @@ function drawExPick(){
   let h = '';
   if(q){
     const vias = {};   // 0.7.5: best matches first; an "also: …" line shows when it matched another name
-    const list = EX().map((x, i) => ({ x, i, r: exMatch(x, q, `${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`) })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || a.i - b.i).slice(0, 80).map(o => { if(o.r.via) vias[o.x.id] = o.r.via; return o.x; });
+    const list = EX().map((x, i) => ({ x, i, r: exMatch(x, q, `${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`) })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || exName(a.x).length - exName(b.x).length || a.i - b.i).slice(0, 80).map(o => { if(o.r.via) vias[o.x.id] = o.r.via; return o.x; });
     h = exTiles(list, null, vias) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
   } else if(PK.region === 'cardio'){
-    h = exTiles(EX().filter(x => x.m === 'cardio'));
+    h = exTiles(EX().filter(x => x.m === 'cardio').sort((a, b) => cardioRank(a.id) - cardioRank(b.id)));
   } else if(!PK.group){
     if(PK.mode === 'map') h = `<div class="bodymap pickhalf">${anatomySVG({ mode: 'pick', region: PK.region, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: 'pick', half: PK.region === 'up' || PK.region === 'low' ? PK.region : null, max: 900 })}</div><p class="hint" style="text-align:center">${t('tapMuscle')}</p>`;
     else h = `<div class="ggrid">${Object.entries(GROUPS).filter(([, g]) => g[2] === PK.region).map(([k, g]) => { const hs = Object.keys(HEADS).filter(x => HEADS[x][2] === k);
@@ -667,6 +669,7 @@ function drawExPick(){
       (PK.eq || ui.pkSortMu ? exTiles(list, key) : exTilesByEq(list, key));   // grouped by equipment, or one list by muscle usage
   }
   $('pkBody').innerHTML = h;
+  if(q){ const sh = $('ovExPick').querySelector('.sheet'); sh.scrollTop = 0; $('pkBody').scrollTop = 0; }   // 0.7.9: the best match stays in view on every keystroke
 }
 
 // gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); the pills sit on the right.

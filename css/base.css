@@ -172,9 +172,7 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .gbtn.wt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s1);border-left-width:1px} .gbtn.wt .e{font-size:30px}
 .gbtn .dots{display:flex;gap:var(--s1);margin:6px 0 2px} .gbtn .dots i{width:10px;height:10px;border-radius:50%}
 .hchip i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hc);margin-right:6px}
-.hchip.on{background:var(--hc);border-color:var(--hc);color:#111}
-.eqchip{display:inline-flex;align-items:center;gap:5px;border-color:var(--ec)!important;color:var(--eci,var(--ec))}
-.eqchip.on{background:var(--ec);color:#111} .eqchip.on svg{stroke:#111}
+.eqchip{display:inline-flex;align-items:center;gap:5px}
 .eqhead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;margin:14px 0 var(--s2)}
 .extile{border-left:4px solid var(--eq)!important}
 .rc{flex:0 0 auto;padding:var(--s2) 9px;border-radius:9px;border:1px solid #6b3f12;background:#2a1a08;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer}
