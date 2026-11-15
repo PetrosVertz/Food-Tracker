@@ -191,6 +191,9 @@ input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--t-accent
 #ovSupp .sheet>*{min-width:0;max-width:100%}
 #ovSupp input,#ovSupp select{box-sizing:border-box;height:44px;min-height:0;padding-top:0;padding-bottom:0;line-height:normal}
 #ovSupp .brandrow>*{min-width:0}
+#ovSupp #supTime{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;text-align:left}   /* iPhone draws a tall native bar otherwise */
+#ovSupp #supTime::-webkit-date-and-time-value{text-align:left;min-height:0;margin:0}
+#ovSupp #supTime::-webkit-datetime-edit{padding:0}
 #ovSupp .actions{margin-top:var(--s5,22px)}
 #ovSupp .actions .btn{flex:1 1 0;min-width:0}
 #ovSupp .actions .btn.small{flex:0 0 auto}
