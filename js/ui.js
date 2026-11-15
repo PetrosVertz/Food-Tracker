@@ -447,7 +447,7 @@ function open(id){
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }
-  if(id === 'ovSession' || id === 'ovAsk') return;
+  if(id === 'ovSession' || id === 'ovAsk' || id === 'ovCoach') return;   // 0.7.9.2: the coach chat places itself (coach.js lay)
   requestAnimationFrame(() => { const sh = el.querySelector('.sheet'); if(!sh) return; el.classList.add('measure'); const hgt = sh.offsetHeight; el.classList.remove('measure');
     el.classList.toggle('center', hgt < (window.innerHeight || 700) * .7); });
 }
