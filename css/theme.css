@@ -914,3 +914,31 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 /* 0.7.8 spacing: a window's one-line intro sits under the title, not beside the floating back arrow */
 .sheet>.sback~.sub{clear:left;margin-top:var(--s2)}
+
+/* 0.7.9 log 1: gym-today card: title + compact streak pill on one line, centred; plain info icon on My Food Log */
+#dBlocks .gymtitle{display:flex;align-items:center;gap:var(--s2)}
+#dBlocks .gymstreak{margin:0;padding:2px var(--s2);border:1px solid var(--t-line);border-radius:999px;gap:4px}
+#dBlocks .remind{padding-top:var(--s3);padding-bottom:var(--s3)}
+#pgToday .ibtn svg{background:none;box-shadow:none;padding:0;width:18px;height:18px}
+
+/* 0.7.9 log 2: calendar: month between the arrows, barbell on workout days, read-only session sheet */
+.calhead h2{text-align:center;margin:0!important}
+.calday .calwkic{position:absolute;right:1px;top:1px;display:inline-flex;color:var(--t-accent-ink,var(--t-accent))}
+.calday.today .calwkic{color:var(--t-on)}
+#ovCalPick .sheet.calpick{padding-bottom:var(--s5)}
+.dsex{padding:var(--s2) 0;border-top:1px solid var(--t-line)}
+.dsex>b{display:block;margin-bottom:var(--s1)}
+.dsset{display:flex;justify-content:space-between;gap:var(--s3);font-size:var(--fs-label);color:var(--t-muted);padding:2px 0}
+.dsset span:last-child{color:var(--t-text);font-weight:var(--w-med)}
+
+/* 0.7.9 log 3: supplement cards: name + dose on the left, Take on the right, taken times underneath (nothing stretched across the row) */
+.supcard .supline{display:flex;align-items:center;gap:var(--s3)}
+.supcard .supline .name{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s2)}
+.supcard .supnm{display:flex;flex-direction:column;min-width:0}
+.supcard .supnm .rmeta{font-size:var(--fs-label);color:var(--t-muted)}
+.supcard .takebtn{margin:0;flex:0 0 auto}
+
+/* 0.7.9 log 4: AI label centred on its button (text + badge as one centred row, badge on the text's middle line) */
+.btn.aiafter,.opt.aiafter{display:inline-flex;align-items:center;justify-content:center}
+.btn.aiafter::after,.btn .aibadge{vertical-align:baseline;margin-top:0;margin-bottom:0}
+#ovCook .actions .btn.aiafter{display:flex}
