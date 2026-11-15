@@ -93,7 +93,7 @@ function drawTheme(){
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
 // ---------- 0.6.9.3: what the app is used for — "mainly gym work" puts Gym Buddy first (nothing is hidden) ----------
-// 0.7.9: Kitchen (Fridge, Groceries) can be switched off in Settings › Tabs: four tabs. 0.7.9.1: Recipes (Home-Cooked) always live in Food Library
+// 0.7.9: Kitchen (Fridge, Groceries) can be switched off in Settings › Tabs: four tabs. 0.7.9.1: Recipes always live in Food Library
 const kitchenOn = () => !ui.noKitchen;
 function applyTabOrder(){
   const order = (ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge']).filter(k => k !== 'fridge' || kitchenOn());

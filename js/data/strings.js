@@ -6,7 +6,7 @@ const S = {
  tFridge:['Fridge','Ψυγείο'],
  tGroc:['Groceries','Ψώνια'], soon:['soon','σύντομα'],
  nFoods:['{n} foods','{n} τρόφιμα'], nFood:['1 food','1 τρόφιμο'], nMeals:['{n} meals','{n} φαγητά'], nMeal:['1 meal','1 φαγητό'],
- tabStore:['Store-Bought','Από το μαγαζί'], tabMeals:['Home-Cooked','Σπιτικά'],
+ tabStore:['Store-Bought','Από το μαγαζί'], tabMeals:['Recipes','Συνταγές'],
  searchFoods:['Search food, brand or category…','Αναζήτηση τροφίμου, μάρκας ή κατηγορίας…'], searchMeals:['Search your meals…','Αναζήτηση φαγητών…'],
  addFood:['Add food','Προσθήκη τροφίμου'], addSub:['Barcode is fastest. If the product isn’t found, snap the label.','Το barcode είναι το πιο γρήγορο. Αν δεν βρεθεί, φωτογράφισε την ετικέτα.'],
  optScan:['Scan barcode<small>Live camera, looks it up on Open Food Facts</small>','Σάρωση barcode<small>Ζωντανή κάμερα, αναζήτηση στο Open Food Facts</small>'],
@@ -726,7 +726,7 @@ Object.assign(S, {
 Object.assign(S, {
   stTabs: ['Tabs', 'Καρτέλες'],
   kitchenSw: ['Kitchen Tab', 'Καρτέλα Κουζίνα'],
-  kitchenSwSub: ['Fridge and Groceries. Turn it off for four tabs at the bottom. Your recipes always stay in Food Library › Home-Cooked.', 'Ψυγείο και Ψώνια. Κλείσ’ το για τέσσερις καρτέλες κάτω. Οι συνταγές σου μένουν πάντα στη Βιβλιοθήκη Τροφίμων › Σπιτικά.'],
+  kitchenSwSub: ['Fridge and Groceries. Turn it off for four tabs at the bottom. Your recipes always stay in Food Library › Recipes.', 'Ψυγείο και Ψώνια. Κλείσ’ το για τέσσερις καρτέλες κάτω. Οι συνταγές σου μένουν πάντα στη Βιβλιοθήκη Τροφίμων › Συνταγές.'],
   tabsOrderSub: ['Mainly gym work puts Gym Buddy first.', 'Κυρίως γυμναστήριο: το Gym Buddy μπαίνει πρώτο.'],
 });
 
