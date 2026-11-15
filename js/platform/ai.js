@@ -80,7 +80,17 @@ const AI = (() => {
 
   // 0.7.1 robot bubble: the window that asked closes while the AI works; tap the bubble when it's ready to bring it back with the answer.
   // Chef robot = food jobs, the same robot with a lime sweatband = gym jobs (opts.robot, else Gym Buddy pages). Drawings from the "Robots and anatomy" canvas (v2).
-  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [], robot: 'chef' };
+  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [], robot: 'chef', area: 'food' };
+  // 0.7.9.2 each robot bubble belongs to one area of the app and only shows there: Food (Today + Food tabs), Gym, Kitchen, Profile.
+  // A coach bubble's area is its coach's (Food Coach → Food, Gym Coach → Gym, coach.js); the AI-job bubble's is where the job started
+  // (the Kitchen clerk in Kitchen). Switching to another area fades it away (.away, opacity only; it stays where it is), coming back fades
+  // it in (.back). A bubble put in the trash or closed is removed as before, so it stays gone.
+  const AREA = { today: 'food', food: 'food', gym: 'gym', fridge: 'kitchen', profile: 'profile' };
+  const areaNow = () => AREA[typeof tabOf === 'function' ? tabOf(location.hash.slice(1) || 'today') : 'today'] || 'food';
+  function areaSync(){ const a = areaNow();
+    document.querySelectorAll('.aibub[data-area]').forEach(b => { const away = b.dataset.area !== a; if(away === b.classList.contains('away')) return;
+      b.classList.toggle('away', away); b.classList.toggle('back', !away); }); }
+  addEventListener('hashchange', areaSync);
   const ROBOT_DEFS = '<g id="rEars"><rect x="9" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/><rect x="100" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/></g>'
     + '<g id="rChefBase"><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/>'
     + '<path d="M31 51 C15 50 10 30 24 23 C21 6 41 -4 54 6 C61 -5 81 -4 86 8 C101 4 112 22 101 35 C108 44 100 53 89 51 Z" fill="#ffffff" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/>'
@@ -153,7 +163,7 @@ const AI = (() => {
         if(b.classList.contains('ready')){ const ids = B.show; bubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); });
       drag(b, () => { if(B.jobs){ B.drop = true; B.ctls.forEach(c => c.abort()); } B.show = []; bubble('hide'); }, 'aiBub'); }
     const run = st === 'run';
-    b.className = 'aibub ' + st + ' r' + B.robot;
+    b.className = 'aibub ' + st + ' r' + B.robot; b.dataset.area = B.area; areaSync();
     b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '' : `<b class="rok">${OK_SVG}</b>`);
     b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') Phone.haptic(); }
 
@@ -233,7 +243,7 @@ const AI = (() => {
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
     if(!B.jobs){ B.drop = false; B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
-    B.robot = (opts && opts.robot) || (location.hash.startsWith('#gym') ? 'gym' : 'chef');
+    B.robot = (opts && opts.robot) || (location.hash.startsWith('#gym') ? 'gym' : 'chef'); if(!B.jobs) B.area = areaNow();
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
     try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);
@@ -261,6 +271,7 @@ const AI = (() => {
   const wait = (el, text) => { if(!el) return; el.innerHTML = dots(text); el.classList.add('show'); el.classList.remove('err'); };
   return {
     dots, untail, wait,
+    areaSync,
     ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },

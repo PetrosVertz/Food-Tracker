@@ -163,11 +163,12 @@ Return ONLY JSON: {"reply": string}`, img);
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
+    b.dataset.area = k === 'gym' ? 'gym' : 'food';   // 0.7.9.2: shows only in its coach's area (ai.js areaSync)
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
     document.body.appendChild(b);
     b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic();
       if(cur === id) minimize(); else open_(id); });   // 0.7.9.2: the bubble never moves; tap it again to put the chat away
-    AI.drag(b, () => dismiss(id), 'coachBub_' + id);
+    AI.drag(b, () => dismiss(id), 'coachBub_' + id); AI.areaSync();
     return b;
   }
   function dismiss(id){

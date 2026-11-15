@@ -754,6 +754,9 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
 .coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:opacity .18s}
 @keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* fade only, so it never fights the drag's transform */
+/* 0.7.9.2: a robot bubble outside its own area fades away where it is and fades back in on return (ai.js areaSync) */
+@keyframes bubAway{to{opacity:0}}
+.aibub.away{animation:bubAway .2s ease-in forwards!important;pointer-events:none} .aibub.back{animation:bubFade .25s ease-out}
 html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
 .coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}
 /* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
