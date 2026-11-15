@@ -1,6 +1,6 @@
 # Fix lists — 0.7.9.1 (refinements)
 
-Follow CLAUDE.md. Run after ai-0.7.9 and gym-b-0.7.9 are merged. **shell** and **foods** can run together.
+Follow CLAUDE.md. Run after ai-0.7.9 and gym-b-0.7.9 are merged. **shell**, **foods** and **gym** can run together.
 
 ## shell (Sonnet)
 1. **Bottom pill animations, smoother:**
@@ -20,3 +20,8 @@ Follow CLAUDE.md. Run after ai-0.7.9 and gym-b-0.7.9 are merged. **shell** and *
 ## foods (Sonnet)
 1. **Recipes back to the Food Library:** Home-Cooked lives in Food Library again as a pill switcher `Store-Bought | Home-Cooked` (same pill style as Kitchen's switcher). Kitchen keeps only `Fridge | Groceries`. Move the markup, routes and wiring; "Cook a Meal" still works from the Fridge and the finished meal lands under Home-Cooked. Turning Kitchen off never hides recipes. Update any links, strings (EN + GR) and the Tabs setting text that mention Recipes in Kitchen.
 2. Bump VERSION to 0.7.9.1 and CACHE to match.
+
+## gym (Sonnet)
+1. **Finished sets stay clean:** when a set is ticked (the green finished row above the rest timer), its half reps, negatives and RIR fields disappear from the row; it shows only the finished set (weight × reps, as today). The values stay saved with the set.
+   - Before ticking, the extras show as today (when switched on in Exercise Settings). Tapping a finished set to reopen it shows them again for editing.
+   - They're background data: recovery uses them (e.g. RIR 0 / negatives = harder set), and the Gym Coach and the background profile (AI.knows) read them; check both actually do, and add it where missing.
