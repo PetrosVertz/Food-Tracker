@@ -220,7 +220,7 @@ function lwSub(st){ const r = lwCalc(st), un = st.units[st.u], n = +st.n || 0;
   const amt = un.k === 'g' ? fmtSize(r.g, st.info.unit) : `${fmt(n)} ${n === 1 || lang === 'el' || /sp$/.test(un.l) ? un.l : un.l + 's'} · ${fmtSize(r.g, st.info.unit)}`;
   return `${amt} · ${r.kcal} kcal`; }
 function lwRow(k, i){ const st = lwState(k, i); if(!st) return ''; const open = LW.open === k + i;
-  return `<div class="lrow ${open ? 'open' : ''}" data-k="${k}" data-i="${i}"><div class="lrh"><button class="lrn" type="button" data-lopen><span class="nm">${esc(st.info.name)}</span><small class="ls">${esc(lwSub(st))}</small></button>
+  return `<div class="lrow ${open ? 'open' : ''}" data-k="${k}" data-i="${i}"><div class="lrh"><button class="lrn" type="button" data-lopen><span class="nm">${catIcon(st.info.food ? st.info.food.cat : st.info.gen ? st.info.gen.cat : null)}${esc(st.info.name)}</span><small class="ls">${esc(lwSub(st))}</small></button>
     <button class="lplus" type="button" data-lplus aria-label="${t('lwUsual')}">+</button></div>${open ? lwPanel(st) : ''}</div>`; }
 function lwPanel(st){
   const r = lwCalc(st);
@@ -464,8 +464,9 @@ function renderToday(){
   // log
   // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.
   // The time shows only when you tap the row (the edit sheet).
+  const catOf = e => { if(e.kind !== 'food') return null; const f = foods.find(x => x.id === e.refId); return f ? f.cat : null; };
   const stOf = e => { if(e.kind !== 'food') return ''; const f = foods.find(x => x.id === e.refId); return f ? f.state : ''; };
-  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name"><span class="nmt">${esc(bareName(e.name))}</span>${stTag(stOf(e))}${logQEstTag(e)}</span><small class="esub"><b class="p">P ${fmt(e.p)}</b> · <b class="c">C ${fmt(e.c)}</b> · <b class="f">F ${fmt(e.f)}</b> · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)}<small>kcal</small></span></div>`).join('')
+  $('dLog').innerHTML = entries.length ? entries.map(e => `<div class="card eatrow" data-eid="${e.id}"><div class="et"><span class="name"><span class="nmt">${catIcon(catOf(e))}${esc(bareName(e.name))}</span>${stTag(stOf(e))}${logQEstTag(e)}</span><small class="esub"><b class="p">P ${fmt(e.p)}</b> · <b class="c">C ${fmt(e.c)}</b> · <b class="f">F ${fmt(e.f)}</b> · <span class="eamt">${fmtSize(e.amt, e.unit)}</span></small></div><span class="ekc">${Math.round(e.kcal)}<small>kcal</small></span></div>`).join('')
     : `<div class="empty">${t('nothingLogged')}</div>`;
   $('copyYesterday').classList.toggle('hide', !!entries.length || !(dayLog[addDays(d, -1)] || []).length);
   renderPlan();

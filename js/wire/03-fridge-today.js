@@ -109,8 +109,8 @@ $('amFinish').addEventListener('click', () => {
 $('gIn').addEventListener('input', () => {
   const q = $('gIn').value.trim(); if(!q){ $('gSugg').innerHTML = ''; return; }
   GS = searchLocal(q); GS.mine = GS.mine.slice(0, 4); GS.std = GS.std.slice(0, 3);
-  $('gSugg').innerHTML = GS.mine.map((f, i) => itemHtml('m', i, '', foodName(f), f.brand && !f.noBrand ? esc(f.brand) : t('grpMine'))).join('') +
-    GS.std.map((g, i) => itemHtml('s', i, '', L(g), t('grpStd'))).join('') +
+  $('gSugg').innerHTML = GS.mine.map((f, i) => itemHtml('m', i, catIcon(f.cat), foodName(f), f.brand && !f.noBrand ? esc(f.brand) : t('grpMine'))).join('') +
+    GS.std.map((g, i) => itemHtml('s', i, catIcon(g.cat), L(g), t('grpStd'))).join('') +
     `<button class="sitem" data-k="t"><span class="t"><b>${t('addAsText', { q: esc(q) })}</b></span></button>`;
 });
 
