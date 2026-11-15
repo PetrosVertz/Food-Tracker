@@ -11,6 +11,7 @@
 //     title / first / placeholder   text or a function returning text (the window title, the opening message, the box hint)
 //     camera   true → a big camera button inside the chat box; the photo comes to send() as img (base64 JPEG)
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
+//     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
 //   Coach.minimize(id)        puts that chat on screen as its robot bubble without opening it
 //   Coach.dismiss(id)         ends that chat (its bubble goes, the coach pill comes back)
@@ -23,7 +24,7 @@
 //   chat.ask(prompt, img, o)  the AI call for this chat (gemini, quiet: the chat shows its own thinking dots, AI.dots; Back cancels nothing)
 //   chat.transcript()         the last few messages as plain lines, to put in a prompt (kept short to save AI use)
 //   chat.history()            the same as a list: [{ who: 'me' | 'bot', text }]
-// A card: { title, sub, tag, tagKind, body (html), dim (greyed until added), actions: [{ label, primary, run(card, chat) }], done (text once handled), undo() }
+// A card: { title, sub, tag, tagKind, cls (extra class for its look), body (html), dim (greyed until added), actions: [{ label, primary, run(card, chat) }], done (text once handled), undo() }
 const Coach = (() => {
   const CH = {}, CFG = {}, KEEP = 8, CUT = 280;   // the AI only ever sees the last KEEP messages, each cut to CUT letters
   let cur = null, anc = null;   // anc: what the open window hangs from (its bubble, or the header robot that opened it)
@@ -72,7 +73,7 @@ Return ONLY JSON: {"reply": string}`, img);
     const tag = x.tag ? ` <span class="ctag ${esc(x.tagKind || '')}">${esc(x.tag)}</span>` : '';
     const acts = x.done ? `<div class="ccdone">${svgIcon('check', 16, 2.6)}<span>${esc(x.done)}</span>${x.undo ? `<button type="button" class="ccundo" data-cundo>${t('undo')}</button>` : ''}</div>`
       : (x.actions || []).length ? `<div class="ccacts">${x.actions.map((a, i) => `<button type="button" class="ccbtn${a.primary ? ' pri' : ''}" data-ca="${i}">${esc(a.label)}</button>`).join('')}</div>` : '';
-    return `<div class="ccard${x.dim && !x.done ? ' dim' : ''}${x.done ? ' done' : ''}" data-cid="${x.cid}">
+    return `<div class="ccard${x.cls ? ' ' + esc(x.cls) : ''}${x.dim && !x.done ? ' dim' : ''}${x.done ? ' done' : ''}" data-cid="${x.cid}">
       ${x.title || x.sub ? `<div class="cchead"><b>${esc(x.title || '')}${tag}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</div>` : ''}${x.body || ''}${acts}</div>`;
   }
   function msgHtml(m, prev, k){
@@ -80,8 +81,13 @@ Return ONLY JSON: {"reply": string}`, img);
     const lead = !prev || prev.who !== 'bot' ? face(k) : '<span class="cav"></span>';
     if(m.work) return `<div class="cmsg bot"><span class="cav" aria-hidden="true">${AI.robot(k, 26, true)}</span><div class="ctext cwork" role="status"><span class="cst">${esc(AI.untail(m.status || t('aiThinking')))}</span>${AI.dots()}</div></div>`;
     if(m.cards) return `<div class="cmsg bot">${lead}<div class="ccards">${m.cards.map(cardHtml).join('')}</div></div>`;
-    return `<div class="cmsg bot">${lead}<div class="ctext">${esc(m.text)}</div></div>`;
+    const st = m.first ? starters(m) : '';
+    return `<div class="cmsg bot">${lead}<div class="ctext">${esc(m.text)}</div></div>${st}`;
   }
+  // 0.7.9.6: the opening message's suggestion chips (cfg.starters), only while nothing has been written yet
+  function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs.length !== 1 || c.msgs[0] !== m) return '';
+    const l = val(cfg(cur).starters) || []; if(!l.length) return '';
+    return `<div class="cstart">${l.map(s => `<button type="button" class="cschip" data-cst="${esc(s)}">${esc(s)}</button>`).join('')}</div>`; }
   function draw(){
     if(!cur) return; const c = CH[cur], el = $('coachList'); if(!c || !el) return;
     const k = kindOf(cur), stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80 || !el.childElementCount;
@@ -116,15 +122,18 @@ Return ONLY JSON: {"reply": string}`, img);
 
   // ---- open / shrink into the bubble / dismiss ----
   // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; the window hangs from that robot
-  const NOBUB = id => id === 'gymlive' || id === 'gymstart';
+  // 0.7.9.6: no Gym Coach chat makes a bubble. From the Gym Coach pill the window opens centred at the top with the robot face
+  // fixed on its top right corner (#coachFace, part of the window, not draggable) and shrinks back into that face
+  const NOBUB = id => kindOf(id) === 'gym';
+  const FACE = id => NOBUB(id) && id !== 'gymlive' && id !== 'gymstart';
   function open_(id, first){
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
     if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob) ob._home = false; }
     // the bubble stays exactly where it is (opened from a pill: it appears at its own spot) and holds still while its chat is open
     const b = NOBUB(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
-    anc = b || [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null;
-    cur = id; head(); $('coachIn').value = c.draft || ''; preview(); draw();
+    anc = b || (FACE(id) ? null : [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null);
+    cur = id; head(); faceSet(); $('coachIn').value = c.draft || ''; preview(); draw();
     sh.getAnimations().forEach(a => a.cancel()); sh.style.transform = '';
     if(!again) open('ovCoach'); fit(); pillSync();
     requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = c.end === false ? c.sy : el.scrollHeight; });   // back where you left off (bottom unless you had scrolled up)
@@ -149,6 +158,8 @@ Return ONLY JSON: {"reply": string}`, img);
     saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
     return { t: saP.offsetHeight, b: saP.offsetWidth }; };
   const M = 12, WMAX = 560, HMIN = 320;
+  const FR = 26;   // the face's radius (theme.css .coachface is 52 px)
+  function faceSet(){ const f = $('coachFace'), on = FACE(cur); f.classList.toggle('hide', !on); if(on && f.dataset.k !== 'gym'){ f.innerHTML = AI.robot('gym', 34); f.dataset.k = 'gym'; } }
   function lay(){ const ov = $('ovCoach'), sh = ov && ov.querySelector('.sheet'); if(!sh || !cur) return;
     const W = ov.clientWidth, H = ov.clientHeight, sa = safe(), kb = ov.classList.contains('kb'), y0 = (kb ? 0 : sa.t) + M, y1 = H - (kb ? 0 : sa.b) - M, oy = ov.getBoundingClientRect().top;
     const w = Math.min(W - 2 * M, WMAX); let x, top, bot, side = 'r', ax = W - M - 34, ay = y0;
@@ -156,13 +167,15 @@ Return ONLY JSON: {"reply": string}`, img);
     side = ax < W / 2 ? 'l' : 'r';
     x = side === 'r' ? Math.min(W - M, ax + 34) - w : Math.max(M, ax - 34); x = Math.max(M, Math.min(W - M - w, x));
     top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1;   // hang from the bubble (or the header robot), down to the bottom margin
+    if(FACE(cur)){ side = 'r'; x = (W - w) / 2; ax = x + w - 34; ay = y0 + FR; top = ay;   // centred at the top, the face on its top right corner
+      const f = $('coachFace'); f.style.left = (ax - FR) + 'px'; f.style.top = (ay - FR) + 'px'; }
     sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (bot - top) + 'px';
     sh.style.transformOrigin = `${(ax - x).toFixed(1)}px ${(ay - top).toFixed(1)}px`;   // grows from / shrinks into the bubble's centre
-    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !anc || NOBUB(cur)); }
+    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !FACE(cur) && (!anc || NOBUB(cur))); }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
-    b.dataset.area = k === 'gym' ? 'gym' : 'food';   // 0.7.9.2: shows only in its coach's area (ai.js areaSync)
+    b.dataset.area = 'food';   // 0.7.9.2: shows only in its coach's area (ai.js areaSync); 0.7.9.6: only Food Coach has a bubble
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
     document.body.appendChild(b);
     b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic();
@@ -214,6 +227,8 @@ Return ONLY JSON: {"reply": string}`, img);
     addEventListener('resize', pillSync); addEventListener('hashchange', pillSync); setTimeout(pillSync, 300);
     $('coachBack').innerHTML = BACK_SVG;
     $('coachBack').addEventListener('click', () => minimize());
+    $('coachFace').addEventListener('click', () => minimize());   // tap the face: the chat shrinks back into it
+    if(typeof ui !== 'undefined' && ui.coachBub_gym){ delete ui.coachBub_gym; saveUI(); }   // 0.7.9.6: the old Gym Coach bubble's saved spot
     $('coachForm').addEventListener('submit', e => { e.preventDefault(); send(); });
     $('coachIn').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing && !matchMedia('(pointer: coarse)').matches){ e.preventDefault(); send(); } });
     $('coachIn').addEventListener('input', grow);
@@ -224,6 +239,7 @@ Return ONLY JSON: {"reply": string}`, img);
       try{ CH[cur].img = await shrink(f, 1600, .85); preview(); }catch(x){ toast(t('coachFail', { e: x.message })); } });
     $('coachPrev').addEventListener('click', e => { if(e.target.closest('[data-cpx]') && cur){ CH[cur].img = null; preview(); } });
     $('coachList').addEventListener('click', e => {
+      const sc = e.target.closest('[data-cst]'); if(sc && cur){ Phone.haptic(); $('coachIn').value = sc.dataset.cst; send(); return; }
       const el = e.target.closest('[data-cid]'); if(!el || !cur) return; const c = CH[cur];
       const card = c.msgs.flatMap(m => m.cards || []).find(x => x.cid === el.dataset.cid); if(!card) return;
       if(e.target.closest('[data-cundo]')){ const u = card.undo; card.done = ''; card.undo = null; draw(); if(u) u(); return; }

@@ -282,12 +282,18 @@ body.inses .coachbub{display:none!important}
 .gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
 .gsrow{display:flex;flex-direction:column;gap:2px;padding:var(--s2) 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
 .gsnote{margin:0}
+/* 0.7.9.6 Gym Coach polish: the suggested workout reads as one list. Exercise cards are compact, the Save / Start pair sits on its own
+   without an empty card around it, wide and easy to tap */
+.ccard.gcex{gap:var(--s2);padding:var(--s3) 14px}
+.ccard.gcex .ccbtn{min-height:36px;padding:0 14px;font-size:13px}
+.ccard.gcfoot{padding:0;background:none!important;border:0;box-shadow:none}
+.ccard.gcfoot .ccbtn{flex:1 1 0;min-height:44px}
 .gspick{display:none}
 /* 0.7.9 Gym Coach workout cards: the suggested weight; Intensity / Rep Range pickers (the chosen one slides on, the others off) */
 .gcsw{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:12px;background:var(--t-sel)}
 .gcsw small{color:var(--t-muted);font-size:var(--fs-label)} .gcsw b{font-weight:var(--w-bold);font-variant-numeric:tabular-nums}
-.ccard:has(.gspick) .ccacts{justify-content:flex-start;flex-wrap:wrap}
-.ccard:has(.gspick) .ccbtn{padding:0 14px;transition:background-color .26s cubic-bezier(.3,1.4,.5,1),color .26s ease,border-color .26s ease,transform .26s cubic-bezier(.3,1.4,.5,1)}
+.ccard:has(.gspick) .ccacts{justify-content:flex-start;flex-wrap:nowrap}   /* 0.7.9.6: the choices share one row, even widths */
+.ccard:has(.gspick) .ccbtn{flex:1 1 0;min-width:0;padding:0 8px;transition:background-color .26s cubic-bezier(.3,1.4,.5,1),color .26s ease,border-color .26s ease,transform .26s cubic-bezier(.3,1.4,.5,1)}
 .ccard:has(.gspick) .ccbtn.pri{transform:scale(1.04)}
 .ccard:has(.gspick) .ccbtn:not(.pri){transform:scale(1)}
 @media (prefers-reduced-motion: reduce){ .ccard:has(.gspick) .ccbtn{transition:none} .ccard:has(.gspick) .ccbtn.pri{transform:none} }
