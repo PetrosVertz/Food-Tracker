@@ -116,18 +116,23 @@ Return ONLY JSON: {"reply": string}`, img);
   function open_(id, first){
     const c = chat(id);
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
-    const b = $('cb-' + id); if(b) b.remove();
-    const ov = $('ovCoach'); clearTimeout(ov._sk); ov.classList.remove('shrink');
+    const b = $('cb-' + id), ov = $('ovCoach'); clearTimeout(ov._sk); ov.classList.remove('shrink');
+    if(b) b.classList.add('pre');   // 0.7.9: the bubble stays (hidden) while its chat is open, so the chat can shrink back into it
     if(cur && cur !== id) keep();
     cur = id; head(); $('coachIn').value = c.draft || ''; preview(); draw();
+    const grow_ = !!b && !rmo();   // 0.7.9: opened from its bubble (now at the top right): the window grows out of it
+    ov.classList.toggle('grow', grow_);
     open('ovCoach'); fit(); pillSync();
-    requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = el.scrollHeight; });
+    if(grow_){ const sh = ov.querySelector('.sheet'), r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
+      sh.style.transformOrigin = `${r.left + r.width / 2 - s.left}px ${r.top + r.height / 2 - s.top}px`; }
+    requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = c.end === false ? c.sy : el.scrollHeight; });   // back where you left off (bottom unless you had scrolled up)
   }
   function keep(){ const c = cur && CH[cur]; if(c) c.draft = $('coachIn').value; }
   // close() calls this whenever the chat window closes (Back, the phone's back, the edge swipe, opening Settings…): the chat becomes its bubble
   // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; closing just closes
   const NOBUB = id => id === 'gymlive' || id === 'gymstart';
-  function closed(){ if(!cur) return; const id = cur, ov = $('ovCoach'); keep(); cur = null; shrinking = false; clearTimeout(ov._sk); ov._sk = setTimeout(() => ov.classList.remove('shrink'), 260); if(!NOBUB(id)) bubble(id); pillSync(); }
+  function closed(){ if(!cur) return; const id = cur, ov = $('ovCoach'), was = shrinking; keep(); cur = null; shrinking = false; clearTimeout(ov._sk); ov._sk = setTimeout(() => ov.classList.remove('shrink'), 260);
+    if(!NOBUB(id)){ const b = bubble(id); if(!was){ b.classList.remove('pre'); goHome(b); } } pillSync(); }   // closed another way (no shrink): the bubble just reappears at its own spot
   function minimize(id){
     if(id && NOBUB(id)) return;
     if(id && id !== cur){ chat(id); if(!CH[id].msgs.length) CH[id].msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; bubble(id); pillSync(); return; }
@@ -135,17 +140,36 @@ Return ONLY JSON: {"reply": string}`, img);
     const ov = $('ovCoach'), sh = ov.querySelector('.sheet');
     if(rmo() || NOBUB(cur)){ close('ovCoach'); return; }
     // shrink toward where the bubble will sit
-    const b = bubble(cur); b.classList.add('pre'); const r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
+    const b = bubble(cur); b.classList.add('pre'); if(!b._home) perch(b, true);   // the bubble waits at the top right
+    const r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
     sh.style.transformOrigin = `${r.left + r.width / 2 - s.left}px ${r.top + r.height / 2 - s.top}px`;
     shrinking = true; ov.classList.add('shrink'); Phone.haptic();
-    setTimeout(() => { sh.style.transformOrigin = ''; if(shrinking) close('ovCoach'); b.classList.remove('pre'); }, 240);
+    setTimeout(() => { sh.style.transformOrigin = ''; if(shrinking) close('ovCoach'); b.classList.remove('pre'); setTimeout(() => goHome(b), 120); }, 240);   // then the bubble glides back to where it was
+  }
+  // ---- the bubble's trip: home → top right (the chat grows out of it) → back home ----
+  const POS = ['left', 'top', 'right', 'bottom'];
+  function perch(b, instant){
+    if(!b._home){ const r = b.getBoundingClientRect(); b._home = POS.map(k => b.style[k]);
+      b.style.transition = 'none'; b.style.right = 'auto'; b.style.bottom = 'auto'; b.style.left = r.left + 'px'; b.style.top = r.top + 'px'; b.getBoundingClientRect(); b.style.transition = instant ? 'none' : ''; }
+    b.style.left = (innerWidth - b.offsetWidth - 14) + 'px'; b.style.top = 'calc(env(safe-area-inset-top) + 10px)';
+    if(instant){ b.getBoundingClientRect(); b.style.transition = ''; }
+  }
+  function goHome(b){
+    const h = b && b._home; if(!h || !b.isConnected) return; b._home = null;
+    const now = POS.map(k => b.style[k]); b.style.transition = 'none';
+    POS.forEach((k, i) => { b.style[k] = h[i]; }); const r = b.getBoundingClientRect();   // where home is, in pixels
+    POS.forEach((k, i) => { b.style[k] = now[i]; }); b.getBoundingClientRect(); b.style.transition = '';
+    b.style.right = 'auto'; b.style.bottom = 'auto'; b.style.left = r.left + 'px'; b.style.top = r.top + 'px';
+    setTimeout(() => { if(b._home || !b.isConnected) return; b.style.transition = 'none'; POS.forEach((k, i) => { b.style[k] = h[i]; }); b.getBoundingClientRect(); b.style.transition = ''; }, rmo() ? 0 : 460);
   }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
     document.body.appendChild(b);
-    b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic(); open_(id); });
+    b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } if(b._going) return; Phone.haptic();
+      if(rmo()){ open_(id); return; }
+      b._going = true; perch(b); setTimeout(() => { b._going = false; if(!cur && $('cb-' + id) === b) open_(id); }, 320); });   // the bubble flies to the top right, then the chat grows out of it
     AI.drag(b, () => dismiss(id), 'coachBub_' + id);
     return b;
   }
@@ -187,6 +211,7 @@ Return ONLY JSON: {"reply": string}`, img);
     $('coachForm').addEventListener('submit', e => { e.preventDefault(); send(); });
     $('coachIn').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing && !matchMedia('(pointer: coarse)').matches){ e.preventDefault(); send(); } });
     $('coachIn').addEventListener('input', grow);
+    $('coachList').addEventListener('scroll', e => { const l = e.target, c = cur && CH[cur]; if(!c || !$('ovCoach').classList.contains('open')) return; c.sy = l.scrollTop; c.end = l.scrollHeight - l.scrollTop - l.clientHeight < 80; }, { passive: true });   // remembered for the next open
     $('coachCam').innerHTML = svgIcon('camera', 24, 2);
     $('coachCam').addEventListener('click', () => { $('coachFile').value = ''; $('coachFile').click(); });
     $('coachFile').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if(!f || !cur) return;
