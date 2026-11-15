@@ -599,16 +599,19 @@ const SHEET_NODRAG = '#ovCoach,#ovSession,#ovSetup,#ovAsk,#ovScan,#ovLang';
 function sheetDrag(ov){
   const sh = ov.querySelector(':scope>.sheet'); if(!sh || ov.matches(SHEET_NODRAG)) return;
   const atTop = t => { for(let n = t; n && n !== ov; n = n.parentElement){ if(n.scrollTop > 0) return false; } return true; };
-  let h = 0;
+  let h = 0, scrim = null;
   dragger(sh, { axis: 'y',
     item: e => matchMedia('(max-width: 699px)').matches && !sh.matches('.setpage,.formpage,.themepage') && sh.offsetHeight < innerHeight - 40   // floating and bottom windows, not full-screen pages
       && !e.target.closest('input,textarea,select,button,.stepper,.wheel,.hscroll,[data-nodrag],.swipebox,.sortbox,canvas,.phcirc') && atTop(e.target) ? sh : null,
     claim: (dx, dy) => dy > 0,
-    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; sh.style.willChange = 'transform'; },
-    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; },
-    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = ''; sh.style.willChange = '';
-      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down, the window closes behind it
-        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' });
-        close(ov.id); Phone.haptic(); setTimeout(() => { a.cancel(); sh.style.transition = ''; }, 320); return; }
-      springTo(sh, { y }, { y: 0 }, { y: s.vy }).finished.then(() => { sh.style.transition = ''; }, () => {}); } });
+    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; scrim = ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, fill: 'both', pseudoElement: '::before' }); scrim.pause(); },
+    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; if(scrim) scrim.currentTime = Math.min(1, Math.max(0, y / h)) * 1000; },   // the dim fades on its own layer
+    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120), p = Math.min(1, Math.max(0, y / h)), sc = scrim; scrim = null; sh.style.transform = '';
+      const fade = (from, to, ms) => { const f = ov.animate([{ opacity: from }, { opacity: to }], { duration: ms, easing: 'ease-out', fill: 'forwards', pseudoElement: '::before' }); if(sc) sc.cancel(); return f; };
+      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down; the window really closes only once it is out of sight (nothing else redraws meanwhile)
+        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' }), f = fade(1 - p, 0, 260); Phone.haptic();
+        const fin = () => { close(ov.id); setTimeout(() => { a.cancel(); f.cancel(); sh.style.transition = ''; }, 260); };
+        a.finished.then(fin, fin); return; }
+      const f = fade(1 - p, 1, 260), back = springTo(sh, { y }, { y: 0 }, { y: s.vy });
+      back.finished.then(() => { sh.style.transition = ''; f.cancel(); }, () => { f.cancel(); }); } });
 }

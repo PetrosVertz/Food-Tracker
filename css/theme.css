@@ -98,7 +98,10 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
    that iPhone draws at low resolution (soft letters). The colour is what the old glass looked like over the dimmed page. */
 .sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
-.overlay{background:var(--t-scrim)}
+.overlay{background:transparent}
+/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
+.overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
+.overlay.open>.sheet{will-change:transform}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
