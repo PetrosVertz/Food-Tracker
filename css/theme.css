@@ -920,3 +920,13 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 #dBlocks .gymstreak{margin:0;padding:2px var(--s2);border:1px solid var(--t-line);border-radius:999px;gap:4px}
 #dBlocks .remind{padding-top:var(--s3);padding-bottom:var(--s3)}
 #pgToday .ibtn svg{background:none;box-shadow:none;padding:0;width:18px;height:18px}
+
+/* 0.7.9 log 2: calendar: month between the arrows, barbell on workout days, read-only session sheet */
+.calhead h2{text-align:center;margin:0!important}
+.calday .calwkic{position:absolute;right:1px;top:1px;display:inline-flex;color:var(--t-accent-ink,var(--t-accent))}
+.calday.today .calwkic{color:var(--t-on)}
+#ovCalPick .sheet.calpick{padding-bottom:var(--s5)}
+.dsex{padding:var(--s2) 0;border-top:1px solid var(--t-line)}
+.dsex>b{display:block;margin-bottom:var(--s1)}
+.dsset{display:flex;justify-content:space-between;gap:var(--s3);font-size:var(--fs-label);color:var(--t-muted);padding:2px 0}
+.dsset span:last-child{color:var(--t-text);font-weight:var(--w-med)}

@@ -867,18 +867,37 @@ function logCalDraw(){
   const [y, m] = logCalM.split('-').map(Number), loc = lang === 'el' ? 'el-GR' : 'en-GB', first = new Date(y, m - 1, 1), n = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7, today = todayKey();
   const ttl = first.toLocaleDateString(loc, { month: 'long', year: 'numeric' }); $('calT').textContent = ttl.charAt(0).toUpperCase() + ttl.slice(1);
   $('calWk').innerHTML = [...Array(7)].map((_, i) => `<span>${new Date(2024, 0, 1 + i).toLocaleDateString(loc, { weekday: 'narrow' })}</span>`).join('');   // 1 Jan 2024 was a Monday
-  let h = '<span></span>'.repeat(lead);
-  for(let d = 1; d <= n; d++){ const k = `${logCalM}-${String(d).padStart(2, '0')}`, cls = [k === today ? 'today' : '', k === curDay ? 'on' : '', (dayLog[k] || []).length ? 'has' : ''].join(' ');
-    h += `<button type="button" class="calday ${cls}" data-cald="${k}" aria-label="${new Date(k + 'T12:00:00').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })}"${k === curDay ? ' aria-current="date"' : ''}>${d}</button>`; }
+  const wkDays = new Set(sessions.map(x => x.date)); let h = '<span></span>'.repeat(lead);
+  for(let d = 1; d <= n; d++){ const k = `${logCalM}-${String(d).padStart(2, '0')}`, cls = [k === today ? 'today' : '', k === curDay ? 'on' : '', (dayLog[k] || []).length ? 'has' : '', wkDays.has(k) ? 'wk' : ''].join(' ');
+    h += `<button type="button" class="calday ${cls}" data-cald="${k}" aria-label="${new Date(k + 'T12:00:00').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })}"${k === curDay ? ' aria-current="date"' : ''}>${d}${wkDays.has(k) ? `<span class="calwkic">${svgIcon('workouts', 11, 2)}</span>` : ''}</button>`; }
   $('calDays').innerHTML = h;
   $('calNow').classList.toggle('hide', curDay === today && logCalM === today.slice(0, 7));
+}
+// tap a day: Food and Workout both there → ask; only one → open it; neither → Food Log
+function logCalTap(k){
+  const wk = sessions.filter(x => x.date === k), food = (dayLog[k] || []).length > 0;
+  if(wk.length && food){ calPickDay = k; $('calPickT').textContent = new Date(k + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' }); close('ovCal'); open('ovCalPick'); }
+  else if(wk.length) logCalSession(k);
+  else logCalGo(k);
+}
+let calPickDay = '';
+function logCalSession(k){
+  const loc = lang === 'el' ? 'el-GR' : 'en-GB';
+  $('dsBody').innerHTML = sessions.filter(x => x.date === k).map(ses => `<h2>${esc(ses.name || t('gymAny'))}</h2><p class="sub">${new Date(k + 'T12:00:00').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+    <div class="statgrid"><div><b>${ses.mins || 0}</b><small>${t('smDur')}</small></div><div><b>${(ses.vol || 0).toLocaleString()}</b><small>${t('smVol')}</small></div>
+      <div><b>${ses.exercises.reduce((a, x) => a + x.sets.filter(st => st.done && isMainSet(st)).length, 0)}</b><small>${t('smSets')}</small></div><div><b>≈${ses.kcal || 0}</b><small>${t('smKcal')}</small></div></div>
+    <h3>${t('calExercises')}</h3>` + ses.exercises.map(x => { const card = isCardio(x.exId), sets = x.sets.filter(st => st.done);
+      return `<div class="dsex"><b>${esc(exName(x.exId))}</b>${sets.length ? sets.map((st, i) => `<div class="dsset"><span>${t('setLbl')} ${i + 1}${st.side ? ' · ' + st.side : ''}${st.type === 'W' ? ' · W' : st.drop ? ' · D' : ''}</span><span>${card ? `${esc(st.r)} ${t('minLbl')}${+st.w ? ' · ' + esc(st.w) + ' ' + t('kmLbl') : ''}` : `${esc(st.w)} ${t('kgLbl')} × ${esc(st.r)} ${t('repsLbl')}`}</span></div>`).join('') : `<small class="hint">${t('calNoSets')}</small>`}</div>`; }).join('')).join('');
+  close('ovCal'); open('ovDaySes');
 }
 function logCalGo(k){ curDay = k; close('ovCal'); renderToday(); }
 function logCalWire(){
   $('dLabel').addEventListener('click', logCalOpen);
   $('calPrev').addEventListener('click', () => logCalShift(-1));
   $('calNext').addEventListener('click', () => logCalShift(1));
-  $('calDays').addEventListener('click', e => { const b = e.target.closest('[data-cald]'); if(b) logCalGo(b.dataset.cald); });
+  $('calDays').addEventListener('click', e => { const b = e.target.closest('[data-cald]'); if(b) logCalTap(b.dataset.cald); });
+  $('calPickFood').addEventListener('click', () => { close('ovCalPick'); logCalGo(calPickDay); });
+  $('calPickWk').addEventListener('click', () => { close('ovCalPick'); logCalSession(calPickDay); });
   $('calNow').addEventListener('click', () => logCalGo(todayKey()));
 }
 
