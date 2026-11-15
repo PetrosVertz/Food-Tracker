@@ -8,3 +8,4 @@ Follow CLAUDE.md. Petros adds items during planning; prompts are written when he
    - Raise the accent share from the current 26% (Dark) / 32% (Light) to roughly 80–90%, and tune by eye in Playwright screenshots (Dark and Light, every accent preset).
    - Still **no live blur** (`backdrop-filter` stays off) so sliding between tabs stays smooth.
    - Icon and profile photo on it must stay crisp and read at ≥ 4.5:1 in Light and Dark (use `--t-on` for the icon colour on the vibrant marker).
+2. Bump VERSION to 0.7.9.2 and CACHE to match (this is the only branch of the round).
