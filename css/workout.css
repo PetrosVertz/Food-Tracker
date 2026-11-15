@@ -244,7 +244,8 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
 .fph{display:flex;align-items:center;gap:6px}
 .fph svg{flex:0 0 auto;color:var(--t-done)} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
-#eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
+#eiBody .mrow{grid-template-columns:112px minmax(0,1fr) 40px;gap:10px}   /* 0.7.9: every bar starts in the same column */
+#eiBody .eiform{width:auto;padding:0 var(--s3);margin-left:auto;flex:0 0 auto}
 #eiBody .mrow small{white-space:nowrap}
 #eiBody .mrow b{text-align:right}
 /* 0.7.4.1 gym: Form page stays phone-wide and centred on a computer */

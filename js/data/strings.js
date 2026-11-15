@@ -732,5 +732,6 @@ Object.assign(S, {
   phUse: ['Use Photo', 'Χρήση Φωτογραφίας'], phZoom: ['Zoom', 'Ζουμ'], phDrag: ['Drag to move it, slide to zoom.', 'Σύρε για να τη μετακινήσεις, κύλισε για ζουμ.'],
   phName: ['Name', 'Όνομα'], phNamePh: ['Your first name (optional)', 'Το μικρό σου όνομα (προαιρετικό)'],
   phNameSub: ['With no photo, its first letter shows on Profile and in the bottom bar.', 'Χωρίς φωτογραφία, το πρώτο του γράμμα φαίνεται στο Προφίλ και στην κάτω μπάρα.'],
+  eiMore: ['Muscles and Steps', 'Μύες και Βήματα'],
   phSaved: ['Profile photo saved', 'Η φωτογραφία προφίλ αποθηκεύτηκε'], phBad: ['Couldn’t open that photo.', 'Δεν άνοιξε αυτή η φωτογραφία.'],
 });
