@@ -132,7 +132,7 @@ const S = {
  ownTag:['your recipe','δική σου συνταγή'],
  // supplements
  tSupps:['My supplements','Τα συμπληρώματά μου'], nSupps:['{n} supplements','{n} συμπληρώματα'], nSupp:['1 supplement','1 συμπλήρωμα'],
- addSuppFab:['Add Supplement','Προσθήκη'], addSupp:['Add supplement','Νέο συμπλήρωμα'], editSupp:['Edit supplement','Επεξεργασία'],
+ addSuppFab:['Add Supplement','Προσθήκη'], addSupp:['Add Supplement','Νέο συμπλήρωμα'], editSupp:['Edit Supplement','Επεξεργασία'],
  supQuickSub:['Pick a common one or type your own below.','Διάλεξε ένα συνηθισμένο ή γράψε το δικό σου από κάτω.'],
  supName:['Name','Όνομα'], supNamePh:['e.g. Magnesium bisglycinate','π.χ. Μαγνήσιο δισγλυκινικό'],
  supDose:['Dose each time','Δόση κάθε φορά'], supDoseHint:['Use the dose on your label or what your doctor told you.','Βάλε τη δόση της ετικέτας ή αυτή που σου είπε ο γιατρός.'],
