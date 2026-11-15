@@ -789,13 +789,16 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+/* 0.7.9.2: the Gym Coach button made this row 52 px tall, so the title sat 4–8 px under the arrow; the row is now exactly the arrow's 44 px */
+.overlay .sheet>.sback+.sthead{height:44px!important;min-height:44px;margin-top:-12px!important}
+.overlay .sheet>.sback+.sthead .sescoach{height:44px}
 /* 0.7.9 header: NO header band. The 0.7.8 solid bar + fade sliced cards under a strip that, on a notched iPhone, is the status bar
    plus a 52px title row. Now page titles (and the header buttons beside them) are part of the page and scroll away with it;
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
 section.page>header::before,.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{display:none!important}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:auto;z-index:1}
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:var(--topP);z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
