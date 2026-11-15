@@ -58,7 +58,6 @@ $('shopOpts').addEventListener('click', e => {
   if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
   if(k === 'scan'){ close('ovShop'); startScan('fridge'); return; }
   if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
-  if(k === 'table'){ $('tableFile').value = ''; $('tableFile').click(); return; }
   $('shopFile').value = ''; $('shopFile').click();
 });
 

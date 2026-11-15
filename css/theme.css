@@ -214,8 +214,9 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 /* ---------- Swap sheet (Gym.dc.html) ---------- */
 #ovSwap{align-items:flex-end}
 #ovSwap .sheet.swapsheet{position:relative;left:auto;right:auto;width:calc(100% - 16px)!important;max-width:520px!important;margin:0 auto var(--s2)!important;height:auto!important;max-height:86vh;overflow-y:auto;
-  border-radius:32px!important;background:rgba(26,27,29,.82)!important;padding:12px 16px calc(24px + env(safe-area-inset-bottom))!important;display:flex;flex-direction:column;gap:var(--s3)}
-:root[data-theme="light"] #ovSwap .sheet.swapsheet{background:rgba(244,244,245,.86)!important}
+  border-radius:32px!important;background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:12px 16px calc(24px + env(safe-area-inset-bottom))!important;display:flex;flex-direction:column;gap:var(--s3)}
+#ovSwap .swrow{background:var(--t-card2)}   /* 0.7.9.6: rows stand out from the solid window in Dark */
+:root[data-theme="light"] #ovSwap .swrow{background:var(--t-card)}
 #ovSwap .sback{position:absolute;left:8px;top:22px;float:none;margin:0}
 #ovSwap .swhead{padding-left:40px}
 .grab{align-self:center;width:40px;height:4px;border-radius:4px;background:#44484d;flex:0 0 4px}
@@ -736,6 +737,13 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .ccacts{display:flex;justify-content:flex-end;gap:var(--s2)}
 .ccbtn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
 .ccbtn.pri{background:var(--t-accent);color:var(--t-on);border-color:transparent}
+/* 0.7.9.6: suggestion chips under a coach's opening message (coach.js starters), lined up with the text, not the face */
+.cstart{display:flex;flex-wrap:wrap;gap:var(--s2);margin:-2px 0 0 38px}
+.cschip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--t-line);background:none;color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-med);cursor:pointer;text-align:left}
+.cschip:active{background:var(--t-sel)}
+/* 0.7.9.6: cards stand out from the solid window in Dark; your messages stand out in Light; Send is plain grey until there is something to send */
+:root:not([data-theme="light"]) .ccard{background:var(--t-card2)}
+:root[data-theme="light"] .cme{background:var(--t-card);border:1px solid var(--t-edge)}
 .ccdone{display:flex;align-items:center;gap:6px;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-done)}
 .ccundo{margin-left:auto;min-height:36px;padding:0 6px;border:0;background:none;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);cursor:pointer}
 .cbar{flex:0 0 auto;padding:8px 12px 12px}
@@ -748,8 +756,15 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .cbox textarea{flex:1;width:auto;min-width:0;min-height:40px;max-height:148px;resize:none;margin:0;padding:9px 0;border:0!important;border-radius:0;background:none!important;box-shadow:none!important;outline:0!important;color:var(--t-text);font-size:16px;line-height:21px;overflow-y:auto;scrollbar-width:none}
 .cbox textarea::-webkit-scrollbar{display:none}
 .csend{flex:0 0 40px;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:var(--t-accent);color:var(--t-on);display:grid;place-items:center;cursor:pointer;transition:opacity .15s}
-.csend:disabled{opacity:.35;cursor:default}
+.csend:disabled{background:var(--t-sel);color:var(--t-muted);cursor:default}
 .ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
+/* 0.7.9.6: Gym Coach has no bubble. From its pill the window opens centred at the top with this robot face fixed on its top right
+   corner (coach.js lay() places it); the window grows out of the face and shrinks back into it. Not draggable; tapping it closes the chat */
+.coachface{position:absolute;z-index:2;width:52px;height:52px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:#26282b;border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 22px rgba(0,0,0,.4);-webkit-tap-highlight-color:transparent;animation:bubFade .2s ease-out}
+:root[data-theme="light"] .coachface{background:#ffffff;border-color:rgba(0,0,0,.1);box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.coachface.hide{display:none} .coachface .robot{display:block;margin-top:2px}
+#ovCoach.closing .coachface{animation:bubAway .12s ease-in .14s forwards}
 /* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
 .aibub.coachbub,html.pwa .aibub.coachbub{top:calc(env(safe-area-inset-top) + 140px);bottom:auto;transition:opacity .18s}   /* 0.7.9.2: its own spot is near the top right, so the chat always opens below it */
 @keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* fade only, so it never fights the drag's transform */
@@ -964,3 +979,15 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .foldh .cico{margin-right:8px;vertical-align:-3px}
 .pitem .cico{margin:0 0 2px}
 .eatrow .nmt .cico,.lrn .nm .cico{width:14px;height:14px;vertical-align:-2px;margin-right:5px}
+
+/* 0.7.9.6 spacing: Food Library + My Food Log use one gap (10px) between folds, fold and first card, and cards; last card clears the buttons and bottom bar */
+#pgFoods,#pgToday{--foldgap:10px}
+#list,#mList,#dLog{display:flex;flex-direction:column;gap:var(--foldgap)}
+#list .foldh,#list .catfold,#list .allfold{margin-top:0}
+#list .foldb,#list .catbody,#list .allbody{display:flex;flex-direction:column;gap:var(--foldgap);padding:0;margin:0}
+#list .foldb .foldh{margin:0}
+#list .card,#mList .card,#dLog .card{margin:0}
+#list .foldb .card,#list .catbody .card{width:100%;box-sizing:border-box}
+#pgToday details.sectfold{margin-top:var(--foldgap)}
+#pgToday details.sectfold>summary{padding:0 0 var(--foldgap)}
+#pgFoods,#pgToday{padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}
