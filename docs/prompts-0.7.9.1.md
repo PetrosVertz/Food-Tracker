@@ -14,5 +14,5 @@ Branch foods-0.7.9.1. Do the ## foods section of docs/fixes-0.7.9.1.md, followin
 
 ## gym (Sonnet)
 ```
-Branch gym-0.7.9.1. Do the ## gym section of docs/fixes-0.7.9.1.md, following CLAUDE.md. Run node tools/check.js --boot, push and open a pull request.
+Branch gym-0.7.9.1. Do the ## gym section of docs/fixes-0.7.9.1.md, following CLAUDE.md. Commit and push after each item. Run node tools/check.js --boot before every push, open a pull request after the first push.
 ```
