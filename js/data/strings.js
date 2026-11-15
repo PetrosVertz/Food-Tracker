@@ -390,7 +390,7 @@ Object.assign(S, {
 Object.assign(S, {
   startWk: ['Start workout', 'Έναρξη προπόνησης'], entryDel: ['Deleted {n}', 'Διαγράφηκε: {n}'],
   suSex: ['Sex (calories and macros differ)', 'Φύλο (οι θερμίδες διαφέρουν)'], suMale: ['Male', 'Άνδρας'], suFemale: ['Female', 'Γυναίκα'], suHeight: ['Height', 'Ύψος'],
-  shopCam: ['Camera', 'Κάμερα'], shopCamSub: ['Lay all the items out and take a picture, or picture the receipt (more accurate)', 'Άπλωσε όλα τα προϊόντα και βγάλε φωτογραφία, ή φωτογράφισε την απόδειξη (πιο ακριβές)'],
+  shopCam: ['Take Photo', 'Βγάλε Φωτογραφία'], shopCamSub: ['Photograph your receipt or lay the items out on a table', 'Φωτογράφισε την απόδειξη ή άπλωσε τα προϊόντα σε τραπέζι'],
   scanSaved: ['Saved to Food Library too, so next time it\'s instant', 'Μπήκε και στη Βιβλιοθήκη Τροφίμων, την επόμενη φορά είναι άμεσο'],
   bkAskOld: ['Your data only lives on this phone. Last backup was {d} days ago. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό. Τελευταίο αντίγραφο πριν {d} μέρες. Αντίγραφο τώρα;'],
   bkAskNever: ['Your data only lives on this phone and you haven\'t backed it up yet. Back up now?', 'Τα δεδομένα σου είναι μόνο σε αυτό το κινητό και δεν έχεις κρατήσει αντίγραφο. Αντίγραφο τώρα;'],
@@ -631,7 +631,7 @@ Object.assign(S, {
   tableT: ['Want it more accurate?', 'Θες πιο ακριβές αποτέλεσμα;'],
   tableSub: ["Lay your shopping out on a table and snap one photo. I'll combine it with your receipt to get exactly what you bought and how much.", 'Άπλωσε τα ψώνια σε ένα τραπέζι και βγάλε μία φωτογραφία. Θα την συνδυάσω με την απόδειξη για να βρω ακριβώς τι αγόρασες και πόσο.'],
   tableTake: ['Take Photo', 'Βγάλε Φωτογραφία'], tableReading: ['Reading your table photo…', 'Διαβάζω τη φωτογραφία του τραπεζιού…'],
-  shopTable: ['Table Photo', 'Φωτογραφία Τραπεζιού'], shopTableSub: ['Lay your shopping on a table, one photo; combined with your receipt if you just scanned one', 'Άπλωσε τα ψώνια σε τραπέζι, μία φωτογραφία· συνδυάζεται με την απόδειξη αν μόλις σκάναρες μία'],
+  shopTable: ['Table Photo', 'Φωτογραφία Τραπεζιού'],
   shopCodeLook: ['Looking up {n} barcodes…', 'Ψάχνω {n} barcode…'], verBarcode: ['Verified from barcode', 'Επαληθεύτηκε από barcode'], verPhoto: ['Verified from grocery photo', 'Επαληθεύτηκε από φωτογραφία'],
   notFoodToast: ['{n} is not food, so it was skipped.', 'Το «{n}» δεν είναι τρόφιμο, παραλείφθηκε.'],
 });
