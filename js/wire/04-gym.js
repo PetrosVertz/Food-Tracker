@@ -135,9 +135,10 @@ setInterval(() => { tickRest(); tickClock(); }, 500);
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
 $('exSearch').addEventListener('input', drawExPick);
-// 0.7.1: while searching, the box sits at the top and the list scrolls under it (it no longer slides away behind the keyboard)
+// while searching, the pills step aside so the results get the room (0.7.9.6: the box stays at the bottom, above the keyboard)
 const gymPkSearching = () => $('ovExPick').querySelector('.sheet').classList.toggle('pksearching', document.activeElement === $('exSearch') || !!$('exSearch').value.trim());
 ['focus', 'input', 'blur'].forEach(k => $('exSearch').addEventListener(k, () => setTimeout(gymPkSearching, 0)));
+if(window.visualViewport){ visualViewport.addEventListener('resize', pkFit); visualViewport.addEventListener('scroll', pkFit); }   // 0.7.9.6: search strip above the keyboard
 $('pkBody').addEventListener('change', e => { if(e.target.id === 'pkSortMu'){ ui.pkSortMu = e.target.checked; saveUI(); drawExPick(); } });   // one list by muscle usage
 
 document.querySelectorAll('#pkRegion button').forEach(b => b.addEventListener('click', () => { PK.region = b.dataset.v; PK.group = null; PK.head = null; ui.pkRegion = PK.region; saveUI(); drawExPick(); }));
@@ -146,6 +147,7 @@ document.querySelectorAll('#pkMode button').forEach(b => b.addEventListener('cli
 
 $('pkBody').addEventListener('click', e => {
   const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); openExInfo(inf.dataset.exinfo, PK.cb); return; }
+  if(e.target.closest('[data-hh]:not([data-hh=""])')) return;   // a muscle on the body: wire/05 lights it up, then opens it
   const g = e.target.closest('[data-g],[data-grp]'); if(g){ PK.group = g.dataset.g || g.dataset.grp; PK.head = null; drawExPick(); return; }
   const hd = e.target.closest('[data-head]'); if(hd){ PK.head = hd.dataset.head || null; drawExPick(); return; }
   if(e.target.closest('[data-pkback]')){ PK.group = null; PK.head = null; drawExPick(); return; }

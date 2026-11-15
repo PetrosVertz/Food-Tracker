@@ -255,7 +255,14 @@ function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now
 
 // o (0.7.9, optional): { group } opens straight at that muscle group's list, { cardio: true } at Cardio (Gym Coach › Replace)
 function openExPick(cb, o){ o = o || {}; const g = o.group && GROUPS[o.group] ? o.group : null;
-  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); }
+  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); pkFit(); }
+// 0.7.9.6: the window always matches the visible screen, so the search strip at the bottom sits right above the keyboard while typing
+function pkFit(){ const ov = $('ovExPick'), vv = window.visualViewport; if(!vv || !ov.classList.contains('open')) return;
+  ov.style.setProperty('--pkvh', vv.height + 'px'); ov.style.setProperty('--pkvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < innerHeight * .8); }
+// exercises already in the workout this picker adds to: marked in the list
+function pkHave(){ const op = id => $(id).classList.contains('open');
+  const l = op('ovTpl') && TP ? TP.exercises : active && op('ovSession') ? active.exercises : [];
+  return new Set(l.map(e => e.exId)); }
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
 function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
@@ -596,33 +603,44 @@ function miniMap(x){
   const svg = anatomySVG({ mode: 'mu', mu, side: fr >= bk ? 'f' : 'b', half: low > up ? 'low' : 'up', muMax: Math.max(...Object.values(mu), 1), idp: 'mm' + x.id.replace(/\W/g, '') });
   MINI.set(k, svg); return svg;
 }
-function exTiles(list, key, vias){
+const PK_IN = () => `<span class="exin" aria-hidden="true">${svgIcon('check', 18, 2.6)}</span>`;   // 0.7.9.6: already in this workout
+function exTiles(list, key, vias, have){ have = have || new Set();
   return `<div class="exrows">${list.map(x => { const pct = key ? exScore(x, key) : (x.mu || {})[x.h] || 0;
-    return `<button class="exrow" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="mm">${isCardio(x.id) ? exIcon(x, 40) : miniMap(x)}</span>
-      <span class="exn"><b>${esc(exName(x))}</b>${vias && vias[x.id] ? `<small class="exalso">${t('exAlso', { n: esc(exTitle(vias[x.id])) })}</small>` : ''}<small>${eqIcon(x.e, 13)} ${EL(x.e)}${isCardio(x.id) ? '' : ` · ${t('muUse', { p: pct })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`; }).join('')}</div>`;
+    return `<button class="exrow${have.has(x.id) ? ' in' : ''}" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="mm">${isCardio(x.id) ? exIcon(x, 40) : miniMap(x)}</span>
+      <span class="exn"><b>${esc(exName(x))}</b>${vias && vias[x.id] ? `<small class="exalso">${t('exAlso', { n: esc(exTitle(vias[x.id])) })}</small>` : ''}<small>${eqIcon(x.e, 13)} ${EL(x.e)}${isCardio(x.id) ? '' : ` · ${t('muUse', { p: pct })}`}</small></span>${have.has(x.id) ? PK_IN() : ''}<span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`; }).join('')}</div>`;
 }
 
-function exTilesByEq(list, key){
-  return EQ_ORDER.filter(e => list.some(x => x.e === e)).map(e => `<div class="eqhead" style="color:${gymInk(EQ_COL[e])}">${eqIcon(e, 18)} ${EL(e)}</div>${exTiles(list.filter(x => x.e === e), key)}`).join('');
+function exTilesByEq(list, key, have){
+  return EQ_ORDER.filter(e => list.some(x => x.e === e)).map(e => `<div class="eqhead" style="color:${gymInk(EQ_COL[e])}">${eqIcon(e, 18)} ${EL(e)}</div>${exTiles(list.filter(x => x.e === e), key, null, have)}`).join('');
+}
+// 0.7.9.6 List view: every exercise of the region, grouped by muscle. Even rows: the equipment icon on the left, the name, then muscle · equipment
+// in grey. A muscle's heading opens that muscle (its parts and equipment filters), like tapping it on the body
+function exListByGroup(region, have){
+  return Object.keys(GROUPS).filter(k => GROUPS[k][2] === region).map(k => {
+    const l = EX().filter(x => x.m === k).sort((a, b) => exHistory(b.id).length - exHistory(a.id).length); if(!l.length) return '';
+    return `<button type="button" class="pkgh" data-grp="${k}"><b>${esc(ML(k))}</b><small>${t('nEx', { n: l.length })}</small><span class="pkchev" aria-hidden="true">${svgIcon('back', 16, 2.4)}</span></button>
+      <div class="exrows">${l.map(x => `<button class="exrow eqrow${have.has(x.id) ? ' in' : ''}" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="mm">${eqIcon(x.e, 24)}</span>
+      <span class="exn"><b>${esc(exName(x))}</b><small>${esc(ML(x.h))} · ${EL(x.e)}</small></span>${have.has(x.id) ? PK_IN() : ''}<span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`).join('')}</div>`; }).join('');
 }
 
 // 0.7.9: cardio list starts with the machines people use most
 const CARDIO_FIRST = ['treadmill', 'bike', 'rower', 'elliptical', 'stairs', 'walking'], cardioRank = id => { const i = CARDIO_FIRST.indexOf(id); return i < 0 ? 99 : i; };
 function drawExPick(){
-  const q = norm($('exSearch').value), tokens = q.split(' ').filter(Boolean);
+  const q = norm($('exSearch').value), tokens = q.split(' ').filter(Boolean), have = pkHave();
   setSeg('#pkRegion', PK.region); setSeg('#pkMode', PK.mode);
+  const mapv = !q && PK.region !== 'cardio' && !PK.group && PK.mode === 'map'; $('pkBody').classList.toggle('pkmapmode', mapv);
   $('pkModeRow').classList.toggle('hide', !!q || PK.region === 'cardio' || !!PK.group);
   let h = '';
   if(q){
     const vias = {};   // 0.7.5: best matches first; an "also: …" line shows when it matched another name
     const list = EX().map((x, i) => ({ x, i, r: exMatch(x, q, `${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`) })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || exName(a.x).length - exName(b.x).length || a.i - b.i).slice(0, 80).map(o => { if(o.r.via) vias[o.x.id] = o.r.via; return o.x; });
-    h = exTiles(list, null, vias) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
+    h = (list.length ? exTiles(list, null, vias, have) : `<p class="pknone">${t('pkNone', { q: esc($('exSearch').value.trim()) })}</p>`) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
   } else if(PK.region === 'cardio'){
-    h = exTiles(EX().filter(x => x.m === 'cardio').sort((a, b) => cardioRank(a.id) - cardioRank(b.id)));
+    h = exTiles(EX().filter(x => x.m === 'cardio').sort((a, b) => cardioRank(a.id) - cardioRank(b.id)), null, null, have);
   } else if(!PK.group){
-    if(PK.mode === 'map') h = `<div class="bodymap pickhalf">${anatomySVG({ mode: 'pick', region: PK.region, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: 'pick', half: PK.region === 'up' || PK.region === 'low' ? PK.region : null, max: 900 })}</div><p class="hint" style="text-align:center">${t('tapMuscle')}</p>`;
-    else h = `<div class="ggrid">${Object.entries(GROUPS).filter(([, g]) => g[2] === PK.region).map(([k, g]) => { const hs = Object.keys(HEADS).filter(x => HEADS[x][2] === k);
-      return `<button class="gbtn" data-grp="${k}" style="--gc:${HEAD_COL[hs[0]] || g[3]}"><b>${esc(ML(k))}</b><span class="dots">${hs.map(x => `<i style="background:${HEAD_COL[x]}"></i>`).join('')}</span><small>${t('nEx', { n: EX().filter(x => x.m === k).length })}</small></button>`; }).join('')}</div>`;
+    // 0.7.9.6: the body fills the space (theme: .pkmap sizes it by the room left, --ar = its width / height), the caption right under it
+    if(PK.mode === 'map') h = `<div class="pkmap" style="--ar:${PK.region === 'low' ? 336 / 252 : 336 / 262}">${anatomySVG({ mode: 'pick', region: PK.region, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: 'pick', half: PK.region === 'up' || PK.region === 'low' ? PK.region : null, max: 900 })}<p class="pkcap">${t('tapMuscle')}</p></div>`;
+    else h = exListByGroup(PK.region, have);
   } else {
     const heads = Object.entries(HEADS).filter(([, v]) => v[2] === PK.group).map(([k]) => k), key = PK.head || PK.group;
     let list = EX().filter(x => exScore(x, key) >= (PK.head ? 25 : 40) && x.m !== 'cardio').sort((a, b) => exScore(b, key) - exScore(a, key) || (exHistory(b.id).length - exHistory(a.id).length));
@@ -632,9 +650,10 @@ function drawExPick(){
       (heads.length > 1 ? `<div class="chips" style="margin-bottom:8px"><button class="fchip ${!PK.head ? 'on' : ''}" data-head="">${t('all')}</button>${heads.map(k => `<button class="fchip hchip ${PK.head === k ? 'on' : ''}" data-head="${k}" style="--hc:${HEAD_COL[k]}"><i></i>${esc(ML(k))}</button>`).join('')}</div>` : '') +
       `<div class="chips eqchips" style="margin-bottom:10px"><button class="fchip ${!PK.eq ? 'on' : ''}" data-eq="">${t('allEquip')}</button>${eqs.map(e => `<button class="fchip eqchip ${PK.eq === e ? 'on' : ''}" data-eq="${e}" style="--ec:${EQ_COL[e]};--eci:${gymInk(EQ_COL[e])}">${eqIcon(e, 15)} ${EL(e)}</button>`).join('')}</div>` +
       `<label class="advrow musort"><span>${t('sortByMu')}</span><input type="checkbox" id="pkSortMu" ${ui.pkSortMu ? 'checked' : ''}></label>` +
-      (PK.eq || ui.pkSortMu ? exTiles(list, key) : exTilesByEq(list, key));   // grouped by equipment, or one list by muscle usage
+      (PK.eq || ui.pkSortMu ? exTiles(list, key, null, have) : exTilesByEq(list, key, have));   // grouped by equipment, or one list by muscle usage
   }
   $('pkBody').innerHTML = h;
+  if(mapv && PK.lastH) document.querySelectorAll(`#pkBody path[data-hh="${PK.lastH}"]`).forEach(p => p.classList.add('pkhit'));   // the muscle you came back from stays lit
   if(q){ const sh = $('ovExPick').querySelector('.sheet'); sh.scrollTop = 0; $('pkBody').scrollTop = 0; }   // 0.7.9: the best match stays in view on every keystroke
 }
 
@@ -1027,7 +1046,7 @@ function showSummary(ses){
 }
 
 // ---------- "what next?" button in the exercise picker (0.7.3: the sweatband robot, was a 💡) ----------
-const gymBulbRobot = () => { const b = $('pkBulb'); if(b && !b.dataset.robot && typeof AI !== 'undefined' && AI.robot){ b.innerHTML = AI.robot('gym', 34); b.dataset.robot = 1; } };
+const gymBulbRobot = () => { const b = $('pkBulb'); if(b && !b.dataset.robot && typeof AI !== 'undefined' && AI.robot){ b.innerHTML = AI.robot('gym', 32); b.dataset.robot = 1; } };
 const DAY_SETS = { push: ['chest_upper','chest_mid','chest_lower','delt_front','delt_side','triceps'], pull: ['lats','upper_back','traps','delt_rear','biceps'],
   legs: ['quads','hamstrings','glutes','calves','adductors','abductors'] };
 function inferDayType(list){

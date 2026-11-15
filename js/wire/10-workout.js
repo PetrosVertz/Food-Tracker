@@ -55,3 +55,6 @@ $('exsBody').addEventListener('click', e => {
   if(e.target.closest('[data-hmopen]')){ EXS_MK = !EXS_MK; Phone.haptic(); drawExSet(); return; }
   const hm = e.target.closest('[data-hm]'); if(hm){ Phone.haptic(); const G = gx(); hideM('W'); G.hideM = G.hideM || {}; if(G.hideM[hm.dataset.hm]) delete G.hideM[hm.dataset.hm]; else G.hideM[hm.dataset.hm] = true; Store.save('settings', settings); drawExSet(); if(active) renderSession(); return; }
   const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });
+
+// 0.7.9.6 Pick Exercise: the back arrow sits in the title row of the solid top strip
+{ const b = $('ovExPick').querySelector('.sheet>.sback'); if(b) $('pkBar').prepend(b); }

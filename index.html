@@ -584,13 +584,18 @@
 </div></div>
 
 <!-- ============ PICK EXERCISE ============ -->
-<div class="overlay" id="ovExPick"><div class="sheet tall">
-  <h2 data-t="addExercise"></h2>
-  <div class="mpill" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
-  <div id="pkModeRow" style="margin-top:8px"><div class="mpill" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
-  <div id="pkBody" style="margin-top:12px"></div>
-  <div class="pksearch"><span class="pksi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off"></div>
-  <button class="bulb hide" id="pkBulb" aria-label="What next?" data-ta="nxT"></button>
+<!-- 0.7.9.6: solid top strip (back arrow, title, the gym robot when adding to a live workout; then the two pills), the content fills
+     the rest, the search strip sits at the bottom (wire/10 moves the back arrow into the title row) -->
+<div class="overlay" id="ovExPick"><div class="sheet tall pksheet">
+  <div class="pktop">
+    <div class="pkbar" id="pkBar"><h2 data-t="addExercise"></h2><button class="pkbulb hide" type="button" id="pkBulb" aria-label="What next?" data-ta="nxT"></button></div>
+    <div class="pkpills">
+      <div class="mpill" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
+      <div id="pkModeRow"><div class="seg" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
+    </div>
+  </div>
+  <div id="pkBody"></div>
+  <div class="pksearch"><label class="pksbox"><span class="pksi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off"></label></div>
 </div></div>
 
 <!-- ============ EXERCISE INFO ============ -->

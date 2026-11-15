@@ -139,7 +139,9 @@ if(!ui.seedClean053){
 const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${gymInk(EQ_COL[e]) || 'currentColor'}" style="overflow:visible;color:${gymInk(EQ_COL[e]) || 'inherit'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
 
 $('pkBody').addEventListener('click', e => {
-  const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopPropagation(); PK.group = HEADS[hh.dataset.hh][2]; PK.head = hh.dataset.hh; PK.eq = null; drawExPick(); return; }
+  const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopImmediatePropagation(); const k = hh.dataset.hh; PK.lastH = k;   // 0.7.9.6: the tapped muscle lights up, then opens
+    document.querySelectorAll('#pkBody path.pkhit').forEach(p => p.classList.remove('pkhit')); document.querySelectorAll(`#pkBody path[data-hh="${k}"]`).forEach(p => p.classList.add('pkhit'));
+    setTimeout(() => { if(PK.lastH !== k || PK.group) return; PK.group = HEADS[k][2]; PK.head = k; PK.eq = null; drawExPick(); }, 160); return; }
   const eq = e.target.closest('[data-eq]'); if(eq){ e.stopPropagation(); PK.eq = eq.dataset.eq || null; drawExPick(); return; }
   if(e.target.closest('[data-pkback]')){ e.stopPropagation(); goBack(); return; }
   const hd = e.target.closest('[data-head]'); if(hd){ PK.eq = null; }

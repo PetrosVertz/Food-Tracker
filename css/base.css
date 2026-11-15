@@ -171,8 +171,6 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .dcrow{display:flex;gap:6px;align-items:center;margin-top:6px} .dcrow select{flex:1} .dcrow input[type=time]{flex:0 0 104px;padding:var(--s2)} .dcl{width:22px;text-align:center}
 .wrapchips{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
 .bigopt{padding:18px var(--s4)} .bigopt b{font-size:17px}
-.gbtn.wt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s1);border-left-width:1px} .gbtn.wt .e{font-size:30px}
-.gbtn .dots{display:flex;gap:var(--s1);margin:6px 0 2px} .gbtn .dots i{width:10px;height:10px;border-radius:50%}
 .hchip i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hc);margin-right:6px}
 .eqchip{display:inline-flex;align-items:center;gap:5px}
 .eqhead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;margin:14px 0 var(--s2)}
@@ -189,9 +187,6 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .extile{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:var(--s3) 6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:center}
 .extile b{font-size:12.5px;line-height:1.25} .extile small{font-size:11px;color:var(--muted)}
 .extile .iinfo{position:absolute;top:4px;right:6px;color:var(--muted);font-size:14px;padding:2px var(--s1)}
-.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.gbtn{padding:18px var(--s3);border-radius:16px;border:1px solid var(--line);border-left:5px solid var(--gc);background:var(--bg);color:var(--text);text-align:left;cursor:pointer}
-.gbtn b{display:block;font-size:16px} .gbtn small{color:var(--muted)}
 .bodymap{display:flex;justify-content:center;background:var(--bg);border-radius:16px;padding:var(--s2)}
 .legend{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--muted);margin:var(--s2) 0}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
