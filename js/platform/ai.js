@@ -180,7 +180,7 @@ const AI = (() => {
       const x = L < 0 ? rubber(L, 80) : L > W ? W + rubber(L - W, 80) : L, y = T < 0 ? rubber(T, 80) : T > H ? H + rubber(T - H, 80) : T;
       return { x: x - base.x, y: y - base.y }; };
     dragger(el, { slop: 8,
-      item: () => el._home || el.classList.contains('pre') || el.classList.contains('gone') ? null : el,
+      item: () => el._home || el.classList.contains('gone') ? null : el,   // _home: a coach bubble whose chat is open holds still
       start: s => { const r = el.getBoundingClientRect(); el.getAnimations().forEach(a => a.cancel());
         base = { x: el.offsetLeft, y: el.offsetTop }; s.ox = r.left - base.x; s.oy = r.top - base.y;   // a glide still under way carries on from where it is
         el.style.transition = 'none'; el.style.willChange = 'transform'; el.classList.add('drag'); tr = bubTrash(true); hot = false;
