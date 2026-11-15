@@ -131,16 +131,20 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 #pgFridge .fgseg{margin:var(--s2) 0 var(--s3)}
 
 /* Bottom bar (Phones.dc.html): glass, 64 tall, radius 24, 16 from the sides and 24 from the bottom.
-   Line icons 22px; the active tab sits in a 52×44 accent bubble (radius 16) that glides between tabs. */
+   Line icons 22px; 0.7.9.1: the active tab sits in a 44 px frosted accent circle (same size on every tab) that glides between tabs. */
 .rail{position:fixed;z-index:9;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),480px);height:64px;
   bottom:max(24px,calc(env(safe-area-inset-bottom) - 10px));top:auto;right:auto;
   display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
 .rail>button.hide{display:none}   /* 0.7.9: Kitchen switched off → four tabs share the bar */
 html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env(safe-area-inset-bottom) - 10px)))}
 .rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
-.rail>button.on{color:var(--t-on)}
+.rail>button.on{color:var(--t-text)}
 .rail .ri{display:flex;line-height:0}
-.rail>.knob{background:var(--t-accent);border-radius:16px}
+/* 0.7.9.1: frosted look with no live blur (so it stays smooth while sliding): a see-through accent tint, a soft 1 px light edge and a faint
+   highlight at the top. Only transform and opacity animate. The icon on it uses the normal text colour, so it reads in Light and Dark. */
+:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 26%,transparent);--t-knob-hi:rgba(255,255,255,.16);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.22)}
+:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 32%,transparent);--t-knob-hi:rgba(255,255,255,.5);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 1px 0 rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.1)}
+.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 60%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* Back: one plain arrow everywhere, no box, generous tap area */
 .backarrow,.sback,.sesback{width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 0 0 -10px;
@@ -533,6 +537,9 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .lwacts .aiafter::after{height:16px;font-size:10px;margin-left:5px}
 .lwacts .aiafter{display:inline-flex;align-items:center;justify-content:center}
 .lwacts .lwico{display:flex;align-items:center;justify-content:center;padding:0}
+/* 0.7.9.1: buttons that open a chat show the helper's robot face before the text (AI.face), not the AI tag */
+.aiface{display:inline-flex;align-items:center;flex:0 0 auto;line-height:0} .aiface .robot{display:block}
+.aifbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:6px} .aifln{display:inline-flex;align-items:center;gap:var(--s2)}
 
 /* 0.7.4.3 · Food Coach answers (was Quick Log): the food list inside a coach chat card (js/coach.js draws the card) */
 .lqdots{display:inline-flex;gap:var(--s1)} .lqdots i{width:6px;height:6px;border-radius:50%;background:var(--t-accent);animation:lqDot 1.1s ease-in-out infinite}
@@ -690,11 +697,13 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 #ovCoach .sback{display:none}
 /* Back: the window shrinks into the robot bubble (transform-origin = where the bubble sits, set by coach.js) */
 /* 0.7.9: opening from the bubble: the window grows out of it (transform + opacity + clip-path only; transform-origin = the bubble, set by coach.js) */
-@keyframes coachGrow{from{transform:scale(.08);opacity:0;clip-path:inset(0 round 400px)}60%{opacity:1}to{transform:none;opacity:1;clip-path:inset(0 round 0)}}
+/* 0.7.9.1: a round opening from the bubble's centre (--cx/--cy/--cr set by coach.js aim()), like a speech bubble opening; the shrink is the same in reverse */
+@keyframes coachGrow{from{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}30%{opacity:1}to{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}}
+@keyframes coachShrink{60%{opacity:1}to{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}}
 @keyframes coachFade{from{opacity:0}to{opacity:1}}
 #ovCoach.grow.open .sheet.coachwin{animation:coachGrow .3s cubic-bezier(.3,1.12,.5,1) both!important}
 #ovCoach.shrink{background:transparent!important}
-#ovCoach.shrink .sheet.coachwin{transform:scale(.08);opacity:0;clip-path:inset(0 round 400px);border-radius:400px!important;animation:none!important;transition:transform .24s cubic-bezier(.4,0,.7,1),opacity .2s ease-in .04s,border-radius .24s}
+#ovCoach.shrink.shrink .sheet.coachwin.coachwin{animation:coachShrink .26s cubic-bezier(.4,0,.2,1) both!important}
 .chead{flex:0 0 auto;display:flex;align-items:center;gap:var(--s1);min-height:56px;padding:6px var(--s4) 6px var(--s1);border-bottom:1px solid var(--t-line)}
 .cback{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--t-text);display:grid;place-items:center;padding:0;cursor:pointer}
 .cface{display:inline-flex;margin-right:var(--s1)} .cface .robot,.cav .robot{display:block}
@@ -734,23 +743,23 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .csend:disabled{opacity:.35;cursor:default}
 .ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
 /* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
-.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:left .42s cubic-bezier(.2,1.3,.4,1),top .32s cubic-bezier(.2,.9,.3,1),opacity .18s}
+.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .18s}
+@keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* 0.7.9.1: fade only, so coming back from the chat never resets its glide (transform) */
 html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
 .coachbub.pre{opacity:0;animation:none;pointer-events:none}
 .coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}
 /* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
-.coachpill{position:fixed;z-index:20;height:44px;padding:0 var(--s4) 0 var(--s2);display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:color-mix(in srgb,var(--t-card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;animation:tipIn .25s ease-out}
+.coachpill{position:fixed;z-index:20;height:44px;padding:0 var(--s4) 0 var(--s2);display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}   /* 0.7.9.1: solid, no live blur, so it moves as smoothly as the main pill (ui.js pillSwap animates both) */
 .coachpill.hide{display:none}
 .cpface{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center} .cpface .robot{display:block;margin-top:2px}
 body.has-coachpill #fab{right:var(--cpr)!important}
-#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
+#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s}   /* 0.7.9.1: when a coach pill steps aside or comes back, the main button slides by a transform (coach.js pillPlace), not by a layout transition */
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
-@media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
+@media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }
 /* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
-.rail>.knob{border-radius:22px;transition:transform .26s cubic-bezier(.3,1.3,.6,1),width .26s cubic-bezier(.3,1.3,.6,1),height .26s cubic-bezier(.3,1.3,.6,1),border-radius .26s,opacity .15s}
-.rail>.knob.round{border-radius:50%}
-.rail .avimg,.rail .avini{width:30px;height:30px;border-radius:50%;display:block;object-fit:cover}
+.rail>.knob{border-radius:50%;transition:transform .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}
+.rail .avimg,.rail .avini{width:36px;height:36px;border-radius:50%;display:block;object-fit:cover}   /* 0.7.9.1: a little bigger, so the ring of the 44 px marker around it is slim */
 .avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
 .rail>button.on .avini{background:var(--t-card)}
 .pfme .pfav{border:0;padding:0;cursor:pointer;overflow:hidden;font:inherit;font-size:34px;font-weight:var(--w-bold)}
@@ -760,8 +769,7 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 .phcirc>.avimg{width:100%;height:100%;object-fit:cover}
 .phcirc>.avini{width:100%;height:100%;font-size:84px}
 .phcirc.cropping{cursor:grab;box-shadow:0 0 0 2px var(--t-accent)}
-.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none}
-#phZoom{width:200px}
+.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none;transform-origin:50% 50%;will-change:transform}
 #phBtns .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 #phDel{display:block;margin:0 auto var(--s3);color:var(--t-danger)}
 /* 0.7.9 navigation, one pattern everywhere: the back arrow and the title share one 44px line and are centred together;

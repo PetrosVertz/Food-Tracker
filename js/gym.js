@@ -1103,47 +1103,41 @@ const rest30 = v => Math.max(30, Math.min(300, Math.round((+v || 90) / 30) * 30)
 // letting go links the two. Over the top or bottom EDGE of a card, it moves above or below it. Zones come from where the cards
 // are now (after they moved aside), not where they were when the drag began. If the phone cancels the touch, nothing moves.
 function makeSortable(box, itemSel, onMove, onMerge, canMerge){
-  let tm = null, drag = null, sx = 0, sy = 0, quiet = 0;
+  // 0.7.9.1: on the shared drag helper (ui.js dragger): long press, then the card follows the finger 1:1 (drawn once per frame,
+  // positions read only at the start); let go and it springs into its new slot carrying the finger's speed, then the list is redrawn
+  let drag = null; box.classList.add('sortbox');   // (a window's pull-down-to-close leaves this list alone)
   const items = () => [...box.querySelectorAll(itemSel)];
-  const stop = () => { clearTimeout(tm); tm = null; };
   const scroller = () => { for(let el = box; el && el !== document.body; el = el.parentElement){ const o = getComputedStyle(el).overflowY; if((o === 'auto' || o === 'scroll') && el.scrollHeight > el.clientHeight) return el; } return document.scrollingElement || document.documentElement; };
-  box.addEventListener('pointerdown', e => {
-    if(drag || e.button > 0 || e.target.closest('input,button,textarea,select,a')) return;
-    const it = e.target.closest(itemSel); if(!it || !box.contains(it)) return;
-    sx = e.clientX; sy = e.clientY; stop();
-    tm = setTimeout(() => { tm = null; const list = items(), from = list.indexOf(it); if(from < 0) return;
-      const rects = list.map(el => el.getBoundingClientRect()), sc = scroller(), nx = rects[from + 1] || rects[from - 1];
-      const gap = nx ? Math.max(0, nx.top > rects[from].top ? nx.top - rects[from].bottom : rects[from].top - nx.bottom) : 10;
-      drag = { it, from, to: from, y0: sy, list, rects, sc, st0: sc.scrollTop, step: rects[from].height + gap, over: -1 };
-      it.classList.add('dragging'); document.body.classList.add('sorting'); Phone.haptic(); }, 420);
-  });
   // how far card i has moved aside for the dragged one
   const shift = (d, i) => d.from < d.to && i > d.from && i <= d.to ? -d.step : d.from > d.to && i < d.from && i >= d.to ? d.step : 0;
-  window.addEventListener('pointermove', e => {
-    if(tm && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) stop();   // moved first = it's a scroll, not a long press
-    if(!drag) return; e.preventDefault();
-    const d = drag, ds = d.sc.scrollTop - d.st0, y = e.clientY;
-    let over = -1, to = d.to;
-    { const r = d.rects[d.from], top = r.top + y - d.y0, m = Math.min(r.height * .4, 70);   // the card itself pulled past the top or bottom of the whole list
-      d.out = d.list.length > 1 && (top + r.height > d.rects[d.rects.length - 1].bottom - ds + m || top < d.rects[0].top - ds - m); }
-    d.list.forEach((el, i) => { if(i === d.from) return;
-      const r = d.rects[i], top = r.top - ds + shift(d, i), f = (y - top) / r.height; if(f < 0 || f > 1) return;
-      if(onMerge && f > .25 && f < .75 && (!canMerge || canMerge(d.from, i))){ over = i; return; }   // the middle: link
-      const before = f < .5; to = i > d.from ? (before ? i - 1 : i) : (before ? i : i + 1); });   // an edge: above or below this card
-    if(over !== d.over){ if(d.over > -1) d.list[d.over].classList.remove('ssarm'); d.over = over;
-      if(over > -1){ d.list[over].dataset.ssl = t('superset'); d.list[over].classList.add('ssarm'); Phone.haptic(); } }
-    if(over < 0) d.to = to;   // over a link zone the other cards stay where they are
-    d.it.style.transform = `translateY(${(y - d.y0 + ds).toFixed(1)}px) scale(1.02)`;
-    d.list.forEach((el, i) => { if(i === d.from) return; const sh = shift(d, i); el.style.transform = sh ? `translateY(${sh}px)` : ''; });
-  }, { passive: false });
-  const end = commit => { stop(); if(!drag) return; const { from, to, list, over, out } = drag; drag = null; quiet = Date.now() + 400; document.body.classList.remove('sorting');
-    list.forEach(el => { el.style.transform = ''; el.classList.remove('dragging', 'ssarm'); });
-    if(!commit) return;   // pointercancel (iOS took the touch for a scroll): never commit a move
-    if(over > -1) onMerge(from, over); else if(from !== to || out) onMove(from, to, !!out); };
-  window.addEventListener('pointerup', () => end(true)); window.addEventListener('pointercancel', () => end(false));
-  box.addEventListener('click', e => { if(Date.now() < quiet){ e.stopPropagation(); e.preventDefault(); } }, true);   // no tap on the card you just let go
-  document.addEventListener('touchmove', e => { if(drag) e.preventDefault(); }, { passive: false });   // no page scroll while dragging
-  box.addEventListener('contextmenu', e => { if(drag || tm) e.preventDefault(); });
+  const reset = list => { document.body.classList.remove('sorting'); list.forEach(el => { el.style.transform = ''; el.style.willChange = ''; el.classList.remove('dragging', 'ssarm'); }); };
+  dragger(box, { hold: 420, slop: 8,
+    item: e => { if(drag || e.target.closest('input,button,textarea,select,a')) return null; const it = e.target.closest(itemSel); return it && box.contains(it) ? it : null; },
+    start: s => { const it = s.it, list = items(), from = list.indexOf(it); if(from < 0) return;
+      const rects = list.map(el => el.getBoundingClientRect()), sc = scroller(), nx = rects[from + 1] || rects[from - 1];
+      const gap = nx ? Math.max(0, nx.top > rects[from].top ? nx.top - rects[from].bottom : rects[from].top - nx.bottom) : 10;
+      drag = { it, from, to: from, y0: s.y0, list, rects, sc, st0: sc.scrollTop, step: rects[from].height + gap, over: -1, ty: 0 };
+      it.classList.add('dragging'); it.style.willChange = 'transform'; document.body.classList.add('sorting'); Phone.haptic(); },
+    move: s => { const d = drag; if(!d) return; const ds = d.sc.scrollTop - d.st0, y = s.y;
+      let over = -1, to = d.to;
+      { const r = d.rects[d.from], top = r.top + y - d.y0, m = Math.min(r.height * .4, 70);   // the card itself pulled past the top or bottom of the whole list
+        d.out = d.list.length > 1 && (top + r.height > d.rects[d.rects.length - 1].bottom - ds + m || top < d.rects[0].top - ds - m); }
+      d.list.forEach((el, i) => { if(i === d.from) return;
+        const r = d.rects[i], top = r.top - ds + shift(d, i), f = (y - top) / r.height; if(f < 0 || f > 1) return;
+        if(onMerge && f > .25 && f < .75 && (!canMerge || canMerge(d.from, i))){ over = i; return; }   // the middle: link
+        const before = f < .5; to = i > d.from ? (before ? i - 1 : i) : (before ? i : i + 1); });   // an edge: above or below this card
+      if(over !== d.over){ if(d.over > -1) d.list[d.over].classList.remove('ssarm'); d.over = over;
+        if(over > -1){ d.list[over].dataset.ssl = t('superset'); d.list[over].classList.add('ssarm'); Phone.haptic(); } }
+      if(over < 0) d.to = to;   // over a link zone the other cards stay where they are
+      d.ty = y - d.y0 + ds; d.it.style.transform = `translate3d(0,${d.ty.toFixed(1)}px,0) scale(1.02)`;
+      d.list.forEach((el, i) => { if(i === d.from) return; const sh = shift(d, i); el.style.transform = sh ? `translate3d(0,${sh}px,0)` : ''; }); },
+    end: (s, ok) => { const d = drag; drag = null; if(!d) return; const { from, to, list, over, out } = d;
+      if(!ok){ reset(list); return; }   // pointercancel (the phone took the touch): never commit a move
+      if(over > -1){ reset(list); onMerge(from, over); return; }
+      const moved = from !== to || out, slot = (to - from) * d.step;   // where the card lands (its own spot if nothing moved)
+      d.it.style.transform = '';
+      springTo(d.it, { y: d.ty, s: 1.02 }, { y: moved ? slot : 0, s: 1 }, { y: s.vy }, { damp: 1, fill: 'forwards' }).finished.then(a => {
+        d.it.getAnimations().forEach(x => x.cancel()); reset(list); if(moved) onMove(from, to, !!out); }, () => reset(list)); } });   // same task as the redraw: no frame in between
 }
 
 // 0.6.2: female figure = the same muscles, reshaped: narrower shoulders and arms, a narrower waist, wider hips

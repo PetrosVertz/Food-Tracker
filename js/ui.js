@@ -114,14 +114,14 @@ document.addEventListener('DOMContentLoaded', () => ibtnFill(document));
 document.addEventListener('scroll', e => { const el = e.target; if(el.nodeType === 1 && el.matches('section.page,.overlay .sheet')) el.classList.toggle('scrolled', el.scrollTop > 6); }, { capture: true, passive: true });
 
 const PILL_SEL = '.mpill,.seg,.rail';
+const RAIL_KNOB = 44;   // the bottom bar's selected-tab circle (theme.css .rail>.knob; the profile photo is 36 px inside it)
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
   if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
   const b = el.querySelector(':scope > button.on');
   if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
-  const rail = el.classList.contains('rail'), av = rail && !!b.querySelector('.avimg,.avini');   // 0.7.9: on the Profile photo the bubble is a circle ring
-  k.classList.toggle('round', av);
-  const w = rail ? (av ? 40 : 52) : b.offsetWidth, hh = rail ? (av ? 40 : 44) : b.offsetHeight,
+  const rail = el.classList.contains('rail');   // 0.7.9.1: the bottom bar's marker is the same 44 px circle on every tab (icons and the photo), so it never resizes while it slides
+  const w = rail ? RAIL_KNOB : b.offsetWidth, hh = rail ? RAIL_KNOB : b.offsetHeight,
     x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
   if(jump) k.style.transition = 'none';
   k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
@@ -148,6 +148,7 @@ function applyLang(){
   // 0.7.1: a ✨ in a label becomes the "AI" badge after the text
   document.querySelectorAll('[data-t]').forEach(el => { const s = t(el.dataset.t); if(s.includes('✨')) el.innerHTML = AI.label(s); else el.textContent = s; });
   document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = AI.label(t(el.dataset.th), true));
+  document.querySelectorAll('[data-face]').forEach(el => { if(!el.firstChild) el.outerHTML = AI.face(el.dataset.face); });   // 0.7.9.1: a chat button's robot face (AI.face)
   document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp).replace(/✨\s?/g, ''));
   document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', t(el.dataset.ta).replace(/\u2728\s?/g, '')));   // 0.7.4.0.5: translated aria-labels
   setSeg('#sLang', lang);
@@ -206,53 +207,58 @@ function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySele
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
 // ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
-// 0.7.7 → 0.7.9: copies of the old pills drop out of view (so their text never changes mid-way), then the new pills rise on a
-// real spring (sampled damped spring: a small overshoot, then settles), 40 ms apart. Transform and opacity only, nothing moves
-// in the layout while it is visible. A tab switch starts at once; a change inside a tab (Fridge → Groceries, Store-Bought →
-// Supplements) first checks whether the pills really changed, so identical pills never blink. With Reduce Motion they just swap.
-const PILL_ACTS = '#fab2,#fab,.coachpill', PILL_GAP = 40, PILL_OUT = 140, PILL_IN = 520, PILL_DROP = 96;
+// 0.7.9.1: copies of the old pills drop out of view together (so their text never changes mid-way), then the new pills rise
+// together as one unit: same curve, same time, no stagger, no overshoot (~300 ms down, ~350 ms up with a soft settle).
+// Transform and opacity only, nothing moves in the layout while it is visible. A new change mid-way carries on from where the
+// pills are: copies still dropping keep dropping; pills still rising drop from their current height. A tab switch starts at
+// once; a change inside a tab (Fridge → Groceries, Store-Bought → Supplements) first checks whether the pills really changed, so
+// identical pills never blink. With Reduce Motion they just swap.
+const PILL_ACTS = '#fab2,#fab,.coachpill', PILL_OUT = 300, PILL_IN = 350, PILL_DROP = 96, PILL_EASE = 'cubic-bezier(.4,0,.2,1)';
 const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
 const pillsNow = () => [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost') && pillShown(el)).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
 const pillSig = els => els.map(el => { const r = el.getBoundingClientRect(); return `${el.id}|${el.textContent.trim()}|${Math.round(r.left)}|${Math.round(r.width)}`; }).join(';');
-const PILL_SPRING = (() => { const k = [], n = 28, T = .52, a = 16, w = 18;   // x(t) = 1 − e^(−at)(cos wt + a/w sin wt): ~6% overshoot, settled by T
-  for(let i = 0; i <= n; i++){ const t = i / n * T, x = i === n ? 1 : 1 - Math.exp(-a * t) * (Math.cos(w * t) + a / w * Math.sin(w * t));
-    k.push({ transform: `translate3d(0,${((1 - x) * PILL_DROP).toFixed(2)}px,0)`, offset: i / n }); }
-  return k; })();
 const pillReduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate;
-function pillsIn(){
+// pills rising from below into place (`els` defaults to every pill showing now; dy/op0 = where a rise cut short carries on from)
+function pillsIn(els, dy = PILL_DROP, op0 = 0){
   const all = [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost'));
   all.forEach(el => { el.getAnimations().forEach(a => a.cancel()); el.style.transition = 'none'; });   // no CSS fade of their own on the way back
   document.body.classList.remove('pillswap');
-  pillsNow().forEach((el, i) => { const op = getComputedStyle(el).opacity, delay = i * PILL_GAP;   // a greyed-out AI pill keeps its dimmed look
+  (els || pillsNow()).forEach(el => { const op = getComputedStyle(el).opacity;   // a greyed-out AI pill keeps its dimmed look
     el.style.willChange = 'transform,opacity';
-    el.animate(PILL_SPRING, { duration: PILL_IN, delay, easing: 'linear', fill: 'backwards' })
-      .finished.then(() => { el.style.willChange = ''; }, () => {});
-    el.animate([{ opacity: 0 }, { opacity: op }], { duration: 160, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
+    el.animate([{ transform: `translate3d(0,${dy}px,0)`, opacity: Math.min(op0, op) }, { transform: 'translate3d(0,0,0)', opacity: op }],
+      { duration: Math.max(120, PILL_IN * dy / PILL_DROP), easing: PILL_EASE, fill: 'backwards' }).finished.then(() => { el.style.willChange = ''; }, () => {}); });
   requestAnimationFrame(() => all.forEach(el => el.style.transition = ''));
 }
 function pillSwap(soft){
   if(pillReduce()) return;
+  // copies already on their way down: let them carry on; the new pills rise when they are out of sight
+  if(pillSwap.out && document.querySelector('.pillghost')) return;
   clearTimeout(pillSwap.t); cancelAnimationFrame(pillSwap.f); document.querySelectorAll('.pillghost').forEach(g => g.remove());
-  const olds = pillsNow(), sig0 = pillSig(olds);
-  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);   // the rect includes a rise still under way
+  const olds = pillsNow(), sig0 = pillSig(olds), now = olds.map(el => [el.getBoundingClientRect(), getComputedStyle(el).opacity]);   // where they are right now (a rise may be under way)
+  olds.forEach(el => el.getAnimations().forEach(a => a.cancel()));
+  const ghosts = olds.map((el, i) => { const r = el.getBoundingClientRect(), [r0, op] = now[i], cs = getComputedStyle(el), g = el.cloneNode(true);
     g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.classList.add('pillghost'); g.setAttribute('aria-hidden', 'true'); g.tabIndex = -1;
     const pin = { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', 'z-index': cs.zIndex };
     Object.entries(pin).forEach(([k, v]) => g.style.setProperty(k, v, 'important'));   // geometry beats the pills' own !important rules; transform and opacity stay free to animate
-    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity, willChange: 'transform,opacity' }); document.body.appendChild(g); return g; });
+    const dy = Math.max(0, Math.min(PILL_DROP, r0.top - r.top));
+    Object.assign(g.style, { transform: `translate3d(0,${dy}px,0)`, transition: 'none', animation: 'none', opacity: op, willChange: 'transform,opacity' }); g._dy = dy; document.body.appendChild(g); return g; });
   document.body.classList.add('pillswap');   // the real pills wait out of sight while the page changes under them
-  const out = () => { ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: `translate3d(0,${PILL_DROP}px,0)`, opacity: 0 }],
-      { duration: PILL_OUT, delay: i * PILL_GAP, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
-    pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove()); pillsIn(); }, PILL_OUT + Math.max(0, ghosts.length - 1) * PILL_GAP + 10); };
+  const out = () => { pillSwap.out = true;
+    const left = ghosts.length ? 1 - ghosts[0]._dy / PILL_DROP : 1, dur = Math.max(120, PILL_OUT * left);   // all copies are at the same height, so they move as one
+    ghosts.forEach(g => g.animate([{ transform: g.style.transform, opacity: g.style.opacity }, { transform: `translate3d(0,${PILL_DROP}px,0)`, opacity: 0 }],
+      { duration: dur, easing: PILL_EASE, fill: 'forwards' }));
+    pillSwap.t = setTimeout(() => { pillSwap.out = false; ghosts.forEach(g => g.remove()); pillsIn(); }, dur + 10); };
   if(!soft){ out(); return; }
   // inside a tab: wait two frames (the page and the coach pill have been placed), then only animate if something changed
   pillSwap.f = requestAnimationFrame(() => { pillSwap.f = requestAnimationFrame(() => {
-    if(pillSig(pillsNow()) === sig0){ ghosts.forEach(g => g.remove()); document.body.classList.remove('pillswap'); return; }
+    if(pillSig(pillsNow()) === sig0){ const g0 = ghosts[0]; ghosts.forEach(g => g.remove()); document.body.classList.remove('pillswap');
+      if(g0 && g0._dy > .5) pillsIn(olds, g0._dy, +g0.style.opacity); return; }   // nothing changed: a rise that was under way just finishes
     out(); }); });
 }
 // start-up: the pills rise once everything (fonts, coach pill) is in place, so the main button never visibly jumps aside
 function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pillswap');
   let last = '', n = 0;   // rise only when the pills have stopped moving (same place and text twice in a row), 1.5 s at most
-  const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(pillsIn); return; } last = sg; setTimeout(check, 120); };
+  const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(() => pillsIn()); return; } last = sg; setTimeout(check, 120); };
   Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(() => setTimeout(check, 420)); }   // the coach pill places itself ~300 ms after start (coach.js)
 
 function switchTab(dir, toTab){
@@ -450,16 +456,23 @@ const pfInitial = () => ((profile.name || Account.current().name || '').trim().c
 function avatarHtml(){ const p = pfPhoto(), i = pfInitial(); return p ? `<img class="avimg" src="${p}" alt="">` : i ? `<b class="avini">${esc(i)}</b>` : ''; }
 function railAvatar(){ const r = document.querySelector('#rail [data-tab="profile"] .ri'); if(!r) return;
   r.innerHTML = avatarHtml() || svgIcon('user', 22, 2); const rl = $('rail'); if(rl) pillQueue(rl); }
-function phCover(){ const c = PCROP; return PH_BOX / Math.min(c.w, c.h) * c.z; }
-function phClamp(){ const c = PCROP, s = phCover(), mx = Math.max(0, (c.w * s - PH_BOX) / 2), my = Math.max(0, (c.h * s - PH_BOX) / 2);
+// 0.7.9.1: the photo is sized once so it just fills the circle (z = 1); pinching (1× – 4×) and dragging only change its transform.
+// x / y = how far its centre sits from the circle's centre. It always covers the circle: no empty edges.
+const PH_ZMAX = 4;
+const phBase = () => PH_BOX / Math.min(PCROP.w, PCROP.h);
+function phCover(){ return phBase() * PCROP.z; }
+function phLimits(z){ const c = PCROP, s = phBase() * z; return { mx: Math.max(0, (c.w * s - PH_BOX) / 2), my: Math.max(0, (c.h * s - PH_BOX) / 2) }; }
+function phClamp(){ const c = PCROP; c.z = Math.max(1, Math.min(PH_ZMAX, c.z)); const { mx, my } = phLimits(c.z);
   c.x = Math.max(-mx, Math.min(mx, c.x)); c.y = Math.max(-my, Math.min(my, c.y)); }
-function phDrawCrop(){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; phClamp(); const s = phCover();
-  im.style.width = c.w * s + 'px'; im.style.height = c.h * s + 'px'; im.style.transform = `translate(calc(-50% + ${c.x}px),calc(-50% + ${c.y}px))`; }
+function phDrawCrop(free){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; if(!free) phClamp();   // free: mid-gesture, edges rubber-band
+  im.style.transform = `translate3d(${c.x.toFixed(2)}px,${c.y.toFixed(2)}px,0) scale(${c.z.toFixed(4)})`; }
+function phSizeImg(){ const c = PCROP, s = phBase(), w = c.w * s, h = c.h * s;   // once per photo: the only layout change
+  Object.assign(c.img.style, { width: w + 'px', height: h + 'px', marginLeft: -w / 2 + 'px', marginTop: -h / 2 + 'px' }); }
 function drawPhoto(){
   const crop = !!PCROP, circ = $('phCirc'); circ.classList.toggle('cropping', crop);
-  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phDrawCrop(); }
+  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phSizeImg(); phDrawCrop(); }
   else circ.innerHTML = avatarHtml() || svgIcon('user', 72, 1.6);
-  $('phZoom').classList.toggle('hide', !crop); $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
+  $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
   $('phBtns').classList.toggle('hide', crop); $('phDel').classList.toggle('hide', crop || !pfPhoto());
   $('phCam').innerHTML = `${svgIcon('camera', 18, 2)}<span>${esc(t('phTake'))}</span>`; $('phLib').innerHTML = `${svgIcon('image', 18, 2)}<span>${esc(t('phChoose'))}</span>`;
   $('phName').value = profile.name || '';
@@ -468,7 +481,7 @@ function openPhoto(){ PCROP = null; drawPhoto(); open('ovSProfile'); }
 async function phPick(src){
   const f = await Phone.pickPhoto(src); if(!f) return;
   const url = URL.createObjectURL(f), img = new Image(); img.alt = ''; img.draggable = false;
-  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; $('phZoom').value = 1; drawPhoto(); };
+  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; drawPhoto(); };
   img.onerror = () => { URL.revokeObjectURL(url); toast(t('phBad')); }; img.src = url;
 }
 function phEnd(){ if(PCROP) URL.revokeObjectURL(PCROP.url); PCROP = null; drawPhoto(); }
@@ -485,27 +498,106 @@ function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
 function tabIdx(tab){ return tab === 'profile' ? TABS3.length : TABS3.indexOf(tab); }   // 0.7.7: Profile is the last tab (Settings lives inside it)
 
-// swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
+// swipe right-to-left past 1/3 (or a quick flick) to delete: finger on a phone, mouse drag on a computer. 0.7.9.1: on the shared
+// drag helper: the row follows the finger 1:1, then carries on out with the finger's speed or springs back home
 function makeSwipeDelete(box, itemSel, onDelete, opts){
   opts = opts || ({ '.exc': { skip: '.setrow,.rbwrap,.sethead,.newset,.endex2,.adddrop,.exdone,.wuhint,.expills' }, '.setrow': { buttons: true } })[itemSel] || {};
-  let S = null, eatClick = false;
-  const start = (c, x, y) => { S = { c, x, y, dx: 0, claim: null }; };
-  const move = (x, y, ev) => { if(!S) return false; const dx = x - S.x, dy = y - S.y;
-    if(S.claim === null){ if(dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.3) S.claim = true; else if(Math.abs(dy) > 10 || dx > 10) S.claim = false; }
-    if(!S.claim) return false; ev.stopPropagation(); if(ev.cancelable) ev.preventDefault();
-    S.dx = Math.min(0, dx); const pr = Math.min(1, -S.dx / (S.c.offsetWidth / 3));
-    S.c.classList.add('swiping'); S.c.style.transform = `translateX(${S.dx}px)`; S.c.style.setProperty('--sw', pr.toFixed(2));
-    if(pr >= 1 && !S.c.classList.contains('swready')) Phone.haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
-  const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
-    if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
-    else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
   const ok = t => !t.closest(opts.buttons ? 'input,textarea,select' : 'input,textarea,select,button,.stepper,.sbox') && !(opts.skip && t.closest(opts.skip));
-  box.addEventListener('touchstart', e => { const c = e.target.closest(itemSel); if(!c || e.touches.length > 1 || !ok(e.target)){ S = null; return; } start(c, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-  box.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false });
-  box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
-  box.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse' || e.button) return; const c = e.target.closest(itemSel); if(!c || !ok(e.target)) return; start(c, e.clientX, e.clientY); });
-  addEventListener('pointermove', e => { if(e.pointerType === 'mouse' && S) move(e.clientX, e.clientY, e); });
-  addEventListener('pointerup', e => { if(e.pointerType === 'mouse') end(e); });
-  box.addEventListener('click', e => { if(eatClick){ e.stopPropagation(); e.preventDefault(); eatClick = false; } }, true);
+  let w = 0;
+  dragger(box, { axis: 'x', slop: 10,
+    item: e => { const c = e.target.closest(itemSel); return c && box.contains(c) && ok(e.target) ? c : null; },
+    claim: dx => dx < 0 && !document.body.classList.contains('sorting'),
+    start: s => { const c = s.it; w = c.offsetWidth || 300; s.ready = false; c.getAnimations().forEach(a => a.cancel()); c.classList.add('swiping'); c.style.transition = 'none'; c.style.willChange = 'transform'; },
+    move: s => { const c = s.it, dx = s.dx <= 0 ? s.dx : rubber(s.dx, 60), pr = Math.min(1, Math.max(0, -dx) / (w / 3));
+      c.style.transform = `translate3d(${dx.toFixed(1)}px,0,0)`; c.style.setProperty('--sw', pr.toFixed(3));
+      if((pr >= 1) !== s.ready){ s.ready = pr >= 1; c.classList.toggle('swready', s.ready); if(s.ready) Phone.haptic(); } },
+    end: (s, fine) => { const c = s.it, dx = s.dx <= 0 ? s.dx : rubber(s.dx, 60); c.style.transform = ''; c.style.willChange = '';
+      if(fine && (-dx >= w / 3 || (s.vx < -.6 && -dx > 40))){ c.style.setProperty('--sw', 1); c.classList.add('swready');
+        springTo(c, { x: dx }, { x: -w * 1.1 }, { x: Math.min(s.vx, -.9) }, { k: 260, damp: 1, fill: 'forwards', op: [1, 0] }); setTimeout(() => onDelete(c), 190); return; }
+      c.style.setProperty('--sw', 0); c.classList.remove('swready');
+      springTo(c, { x: dx }, { x: 0 }, { x: s.vx }).finished.then(() => { c.style.transition = ''; c.classList.remove('swiping'); }, () => {}); } });
   box.classList.add('swipebox');
+}
+
+// ---------- 0.7.9.1: ONE drag helper for everything you move with a finger ----------
+// Robot bubbles + the trash circle (AI.drag), swipe-to-delete rows (makeSwipeDelete), sheets pulled down to close (sheetDrag),
+// reordering exercise cards (makeSortable), the profile photo crop. Pointer events with pointer capture; the finger's position is
+// only stored on pointermove and drawn once per frame (requestAnimationFrame); layout is read at the start, never during the move.
+// A drag that has been claimed blocks the page's scroll (non-passive touchmove), so iPhone never takes it over half-way.
+//   dragger(el, o) → { busy() }
+//     o.item(e)     the element being dragged (for a list: e.target.closest(row)); null = not a drag here. Default: el
+//     o.axis        'x' | 'y' | 'xy': which way a move must go to become a drag (the other way stays a page scroll). Default 'xy'
+//     o.claim(dx, dy, s) optional finer test once the finger has moved `slop` px (e.g. only leftwards); false = let it go
+//     o.hold        ms to press still before the drag starts (long press; moving first = a scroll). Default 0
+//     o.slop        px before a move counts. Default 8
+//     o.start(s)    the drag begins (s.it = the element, s.x0/y0 = where the finger went down)
+//     o.move(s)     once per frame: s.dx / s.dy = how far the finger has moved (1:1), s.x / s.y = where it is
+//     o.end(s, ok)  let go: s.vx / s.vy = the finger's speed (px per ms); ok = false when the phone cancelled the touch
+//     o.multi(e)    a second finger touched down (pinch): the drag gives way
+function dragger(el, o){
+  o = o || {}; const axis = o.axis || 'xy', slop = o.slop ?? 8; let s = null, raf = 0, tm = 0;
+  const frame = () => { raf = 0; if(s && s.on && o.move) o.move(s); };
+  const track = e => { const now = e.timeStamp || performance.now(), dt = now - s.t;
+    if(dt > 0){ const k = Math.min(1, dt / 32); s.vx += ((e.clientX - s.x) / dt - s.vx) * k; s.vy += ((e.clientY - s.y) / dt - s.vy) * k; }   // smoothed finger speed
+    s.x = e.clientX; s.y = e.clientY; s.t = now; s.dx = s.x - s.x0; s.dy = s.y - s.y0; };
+  const begin = () => { s.on = true; try{ el.setPointerCapture(s.id); }catch(x){} if(o.start) o.start(s); if(!raf) raf = requestAnimationFrame(frame); };
+  el.addEventListener('pointerdown', e => {
+    if(s || (e.pointerType === 'mouse' && e.button > 0) || !e.isPrimary) return;
+    const it = o.item ? o.item(e) : el; if(!it) return;
+    s = { it, id: e.pointerId, type: e.pointerType, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, dx: 0, dy: 0, vx: 0, vy: 0, t: e.timeStamp || performance.now(), on: false, held: !o.hold };
+    if(o.hold) tm = setTimeout(() => { tm = 0; if(s && !s.on){ s.held = true; begin(); } }, o.hold);
+  });
+  el.addEventListener('pointerdown', e => { if(s && !e.isPrimary && o.multi){ const was = s; finish(was, false); o.multi(e); } });
+  el.addEventListener('pointermove', e => { if(!s || e.pointerId !== s.id) return; track(e);
+    if(!s.on){ const ax = Math.abs(s.dx), ay = Math.abs(s.dy); if(Math.max(ax, ay) < slop) return;
+      if(!s.held){ s = null; clearTimeout(tm); return; }   // moved before the long press: a scroll
+      const way = axis === 'x' ? ax > ay * 1.2 : axis === 'y' ? ay > ax * 1.2 : true;
+      if(!way || (o.claim && !o.claim(s.dx, s.dy, s))){ s = null; return; }
+      begin(); }
+    if(e.cancelable) e.preventDefault(); if(!raf) raf = requestAnimationFrame(frame); });
+  const finish = (was, ok) => { s = null; clearTimeout(tm); cancelAnimationFrame(raf); raf = 0; if(!was.on) return;
+    if(performance.now() - was.t > 80){ was.vx = 0; was.vy = 0; }   // the finger stopped before letting go: no fling
+    if(o.move) o.move(was); if(o.end) o.end(was, ok);
+    if(ok){ const eat = ev => { ev.stopImmediatePropagation(); ev.preventDefault(); }; el.addEventListener('click', eat, { capture: true, once: true }); setTimeout(() => el.removeEventListener('click', eat, true), 60); } };   // no tap on what you just let go
+  el.addEventListener('pointerup', e => { if(s && e.pointerId === s.id) finish(s, true); });
+  el.addEventListener('pointercancel', e => { if(s && e.pointerId === s.id) finish(s, false); });
+  el.addEventListener('touchmove', e => { if(s && (s.on || (s.held && o.hold)) && e.cancelable) e.preventDefault(); }, { passive: false });   // a claimed drag: the page doesn't scroll
+  el.addEventListener('contextmenu', e => { if(s && o.hold) e.preventDefault(); });
+  return { busy: () => !!(s && s.on) };
+}
+// past an edge, the drag gives less and less (like iOS): d = how far past, dim = the size it is measured against
+const rubber = (d, dim) => { const a = Math.abs(d), r = (1 - 1 / (a * .55 / (dim || 300) + 1)) * (dim || 300); return d < 0 ? -r : r; };
+// a spring from where the finger let go to where it belongs, carrying the finger's speed (v in px per ms) so there's no jolt.
+// Sampled once into keyframes so it runs on the compositor. from / to: { x, y, s } (translate px, scale). Returns the Animation.
+function springTo(el, from, to, v, o){
+  o = o || {}; const k = o.k || 260, c = o.c || 2 * Math.sqrt(k) * (o.damp ?? .86), dt = 1 / 120, keys = [];
+  const f = { x: from.x || 0, y: from.y || 0, s: from.s ?? 1 }, g = { x: to.x || 0, y: to.y || 0, s: to.s ?? 1 };
+  const dist = Math.hypot(g.x - f.x, g.y - f.y) || 1, along = v ? ((v.x || 0) * (g.x - f.x) + (v.y || 0) * (g.y - f.y)) / dist * 1000 : 0;   // speed toward the target, px per s
+  let p = 0, u = Math.max(-8, Math.min(8, along / dist)), t = 0; const pts = [[0, 0]];   // p: 0 → 1 of the way; u: its speed (capped: a fast finger over a short way never flings it past and back)
+  while(t < 1.2){ const a = -k * (p - 1) - c * u; u += a * dt; p += u * dt; t += dt; pts.push([t, p]); if(Math.abs(p - 1) < .002 && Math.abs(u) < .02) break; }
+  const T = t, step = Math.max(1, Math.round(pts.length / 40));
+  for(let i = 0; i < pts.length; i += step){ const [ti, pi] = pts[i], q = i + step >= pts.length ? 1 : pi;
+    keys.push({ offset: ti / T, transform: `translate3d(${(f.x + (g.x - f.x) * q).toFixed(2)}px,${(f.y + (g.y - f.y) * q).toFixed(2)}px,0) scale(${(f.s + (g.s - f.s) * q).toFixed(4)})`,
+      ...(o.op ? { opacity: (o.op[0] + (o.op[1] - o.op[0]) * Math.min(1, Math.max(0, q))).toFixed(3) } : {}) }); }
+  keys[keys.length - 1].offset = 1;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return el.animate([keys[keys.length - 1], keys[keys.length - 1]], { duration: 1, fill: o.fill || 'none' });
+  return el.animate(keys, { duration: T * 1000, easing: 'linear', fill: o.fill || 'none' });
+}
+// ---------- windows: pull a floating or bottom window down to close it (only from the top of its scroll, never the full-screen pages) ----------
+const SHEET_NODRAG = '#ovCoach,#ovSession,#ovSetup,#ovAsk,#ovScan,#ovLang';
+function sheetDrag(ov){
+  const sh = ov.querySelector(':scope>.sheet'); if(!sh || ov.matches(SHEET_NODRAG)) return;
+  const atTop = t => { for(let n = t; n && n !== ov; n = n.parentElement){ if(n.scrollTop > 0) return false; } return true; };
+  let h = 0;
+  dragger(sh, { axis: 'y',
+    item: e => matchMedia('(max-width: 699px)').matches && !sh.matches('.setpage,.formpage,.themepage') && sh.offsetHeight < innerHeight - 40   // floating and bottom windows, not full-screen pages
+      && !e.target.closest('input,textarea,select,button,.stepper,.wheel,.hscroll,[data-nodrag],.swipebox,.sortbox,canvas,.phcirc') && atTop(e.target) ? sh : null,
+    claim: (dx, dy) => dy > 0,
+    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; sh.style.willChange = 'transform'; },
+    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; },
+    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = ''; sh.style.willChange = '';
+      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down, the window closes behind it
+        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' });
+        close(ov.id); Phone.haptic(); setTimeout(() => { a.cancel(); sh.style.transition = ''; }, 320); return; }
+      springTo(sh, { y }, { y: 0 }, { y: s.vy }).finished.then(() => { sh.style.transition = ''; }, () => {}); } });
 }

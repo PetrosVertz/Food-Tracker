@@ -8,7 +8,7 @@ body::before{content:"";position:fixed;inset:-25%;z-index:-1;pointer-events:none
 .iconbtn{background:rgba(255,255,255,.08);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .sheet{background:var(--glass);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
 .sitem{background:rgba(255,255,255,.05);border-color:var(--line)}
-.fab{bottom:calc(92px + env(safe-area-inset-bottom))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.fab{bottom:calc(92px + env(safe-area-inset-bottom))!important}
 .page{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 /* setup */
 .sudots{display:flex;gap:6px;justify-content:center;margin:2px 0 14px} .sudots i{width:26px;height:4px;border-radius:4px;background:rgba(255,255,255,.15)} .sudots i.on{background:var(--accent)}
