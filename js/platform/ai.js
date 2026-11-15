@@ -252,7 +252,15 @@ const AI = (() => {
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
 
+  // 0.7.9.2 the one "thinking" sign for every AI wait: three dots, one hops up and lands, then the next, then the next, a short rest, repeat
+  // (theme.css .tdots; Reduce Motion: they light up in turn). dots(text) puts it after a text, dropping the text's own "…".
+  const DOTS = '<span class="tdots" aria-hidden="true"><i></i><i></i><i></i></span>';
+  const untail = s => String(s || '').replace(/\s*(…|\.{3})\s*$/, '');
+  const dots = text => text == null ? DOTS : `${esc(untail(text))}${DOTS}`;
+  // a status line (like status() in core.js) that shows the dots while the AI works
+  const wait = (el, text) => { if(!el) return; el.innerHTML = dots(text); el.classList.add('show'); el.classList.remove('err'); };
   return {
+    dots, untail, wait,
     ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },

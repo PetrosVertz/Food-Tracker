@@ -44,7 +44,7 @@ function shopCount(x){ if(x.userCount || x.src !== 'scan') return; x.count = x.s
 function shopName(x){ return x.name || (x.code ? t('unknownCode', { c: x.code }) : x.line || '?'); }
 function shopTags(x){
   const tags = [];
-  if(x.look === 'busy') tags.push(`<span class="spin1"></span>${t('lookingUp1')}`);
+  if(x.look === 'busy') tags.push(AI.dots(t('lookingUp1')));
   else if(!x.foodId && !x.gid && !x.data) tags.push(`<span class="stag warn">${t('shopPick')}</span>`);
   else if(x.web) tags.push(`<span class="stag web">${t('fromWeb')}</span>`);
   else if(x.data) tags.push(`<span class="stag">${t('shopNew')}</span>`);
@@ -177,7 +177,7 @@ function scanUI(){
   $('scanBasket').classList.toggle('hide', !fr || !SHOP.items.length); $('scanBasket').textContent = t('scanBasket', { n });
   $('scanCancel').textContent = fr && SHOP.items.length ? t('scanDone', { n }) : t('close');
   const q = fr && S_.ask; $('scanQ').classList.toggle('hide', !q);
-  if(q){ const x = S_.askFor; $('scanQT').innerHTML = `<small>${t('addedOne')}</small><b>${esc(x.look === 'busy' ? t('lookingUp1') : shopName(x))}</b>${x.look === 'busy' ? '' : scanMacros(x)}`; }
+  if(q){ const x = S_.askFor; $('scanQT').innerHTML = `<small>${t('addedOne')}</small><b>${x.look === 'busy' ? AI.dots(t('lookingUp1')) : esc(shopName(x))}</b>${x.look === 'busy' ? '' : scanMacros(x)}`; }
 }
 function scanFlash(x){ const el = $('scanFlash'); el.innerHTML = `${svgIcon('check', 16, 3)} ${esc(x.look === 'busy' ? t('addedOne') : shopName(x))}${x.scans > 1 ? ` <b>×${x.scans}</b>` : ''}`;
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); Phone.haptic(); }
@@ -276,10 +276,10 @@ function shopRescue(i){
 
 // file: a photo, or { imgs: [cleaned scans] } from the receipt camera (sent at full size, one receipt)
 async function shopPhoto(file){
-  SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.rcpt = false; SHOP.busy = true; $('shopDone').innerHTML = ''; status($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
+  SHOP.scan = null; SHOP.items = []; SHOP.skipped = []; SHOP.rcpt = false; SHOP.busy = true; $('shopDone').innerHTML = ''; AI.wait($('shopStatus'), t('shopReading')); open('ovShopRev'); drawShop();
   let lines;
   try{
-    const parts = file.imgs, img = parts || await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT + (parts && parts.length > 1 ? RCPT_PARTS : ''), img, (i, n) => status($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
+    const parts = file.imgs, img = parts || await shrink(file, 3072, .92), d = await gemini(RCPT_PROMPT + (parts && parts.length > 1 ? RCPT_PARTS : ''), img, (i, n) => AI.wait($('shopStatus'), t('shopReading') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : '')), null, { best: true, robot: 'fridge' });
     if(d && d.kind === 'unreadable'){ SHOP.busy = false; status($('shopStatus'), t('rcptUnreadable'), true);
       drawShop(); if(parts) $('shopDone').innerHTML = `<button class="btn primary" type="button" id="shopRetake">${t('rcptRetake')}</button>`; return; }
     SHOP.rcpt = !!d && d.kind !== 'groceries';

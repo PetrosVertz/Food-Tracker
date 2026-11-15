@@ -582,7 +582,7 @@ function lddToggle(row, dd){ const mn = row.querySelector('.ldm'); mn.classList.
   if(r.bottom + 4 + h > lim && r.top - 4 - h >= ceil) mn.classList.add('up'); }
 function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
 // plan my day runs from the Log food sheet; progress shows on Today where the plan lands
-function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${esc(txt)} ${AI.badge()}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
+function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${AI.dots(txt)} ${AI.badge()}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
 
 // 0.6.3.1: dishes (souvlaki, moussaka…) from Quick Add are saved as Home-cooked meals, not store-bought foods
 function dishMeal(d){
@@ -736,7 +736,7 @@ function logQRowHtml(m, it, i){
   const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
   const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
   return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
-    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}</button>
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${it.busy ? AI.dots(sub) : esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}</button>
     ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}">${svgIcon('x', 14, 2.6)}</button>`}</div>
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }

@@ -229,7 +229,7 @@ $('planBtn').addEventListener('click', async () => {
   const tg = targetFor(curDay); if(!tg){ toast(t('planNeedTargets')); openTargets(); return; }
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
   const btn = $('planBtn');
-  planCtl = new AbortController(); const ctl = planCtl; btn.textContent = t('planning'); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
+  planCtl = new AbortController(); const ctl = planCtl; btn.innerHTML = AI.dots(t('planning')); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
   try{
     const r = await gemini(planPrompt(),
       null, (i, n) => { if(planCtl === ctl){ btn.textContent = t('cancelRec', { i, n }); planStat(t('cancelRec', { i, n })); } }, ctl.signal);

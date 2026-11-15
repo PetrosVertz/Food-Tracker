@@ -66,7 +66,7 @@ $('sgGo').addEventListener('click', async () => {
   const dish = $('sgIn').value.trim() || $('cName').value.trim();
   if(!SG.sel.size && !dish){ toast(t('sgPick')); return; }
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
-  const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.textContent = t('thinking');
+  const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.innerHTML = AI.dots(t('thinking'));
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{
     const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
