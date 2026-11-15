@@ -175,11 +175,13 @@ const AI = (() => {
       tr.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M18 7l-.9 12.1a2 2 0 0 1-2 1.9H8.9a2 2 0 0 1-2-1.9L6 7M10 11v6M14 11v6"/></svg>';
       document.body.appendChild(tr); tr.getBoundingClientRect(); }
     tr.classList.toggle('show', on); if(!on) tr.classList.remove('hot'); return tr; }
-  function bubLimits(){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
+  function bubLimits(el){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
     const top = (hd ? hd.getBoundingClientRect().bottom : 60) + 6, rt = rail && rail.getClientRects().length ? rail.getBoundingClientRect().top : H - 24;
-    return { top, bot: Math.max(top, rt - BSZ - 12) }; }
+    // 0.7.9.2: a coach bubble stays high enough that its chat (which always opens below it, coach.js lay) has room: about 400 px under its top
+    const cb = el && el.classList.contains('coachbub') ? H - 400 : Infinity;
+    return { top, bot: Math.max(top, Math.min(rt - BSZ - 12, cb)) }; }
   function place(el, key){ const p = typeof ui !== 'undefined' && ui[key]; if(!p){ ['left', 'top', 'right', 'bottom'].forEach(k => el.style.removeProperty(k)); return; }
-    const L = bubLimits(), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
+    const L = bubLimits(el), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
     el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.top = y + 'px'; el.style.left = (p.s === 'l' ? EDGE : innerWidth - BSZ - EDGE) + 'px'; }
   // 0.7.9.1: on the shared drag helper (ui.js dragger): the bubble follows the finger 1:1 as a transform (its left/top stay put while
   // moving), rubber-bands past the screen edges, then springs to its side carrying the finger's speed. Dropped on the trash: it shrinks
@@ -205,7 +207,7 @@ const AI = (() => {
           springTo(el, { x: p.x, y: p.y }, to, null, { k: 320, damp: 1, fill: 'forwards', op: [1, 0] });
           setTimeout(() => bubTrash(false), rmo() ? 0 : 200); setTimeout(onGone, rmo() ? 0 : 380); return; }   // into the bin, the bin closes, then the pill comes back
         bubTrash(false); el.classList.remove('kill');
-        const L = bubLimits(), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
+        const L = bubLimits(el), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
         if(typeof ui !== 'undefined'){ ui[key] = { s: side, y: y / innerHeight }; saveUI(); }
         const from = { x: base.x + p.x, y: base.y + p.y }; el.style.transform = ''; place(el, key);   // its new spot, in one layout change...
         const nb = { x: el.offsetLeft, y: el.offsetTop };
