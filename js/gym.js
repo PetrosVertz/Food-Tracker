@@ -152,7 +152,8 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
+  if(s.done){ const mate = gx().uniBoth && x.uni && s.side === 'L' && x.sets[si + 1] && x.sets[si + 1].side === 'R' ? x.sets[si + 1] : null; if(mate){ mate.done = false; delete mate.at; }   // the tall tick reopens both sides
+    s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(atOn(x) && s.type !== 'W') s.r = '1';   // attempt mode: a ticked set is a single
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
@@ -767,9 +768,11 @@ function cardHtml(x, i){
     const lastDrop = !hideM('D') && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
-    return `<div class="setrow t-${ty}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
+    const merge = G.uniBoth && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = G.uniBoth && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
+    const xtra = merge ? '' : (mate ? extrasHtml(x.sets[j - 1], j - 1) : '') + extrasHtml(s, j);
+    return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
-        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + extrasHtml(s, j) +
+        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}

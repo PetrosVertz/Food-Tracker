@@ -652,7 +652,7 @@ Object.assign(S, {
 // ---------- 0.7.7: Exercise Settings ----------
 Object.assign(S, {
   exSettings: ['Exercise Settings', 'Ρυθμίσεις Άσκησης'],
-  exsUni: ['Both Sides Together', 'Και οι Δύο Πλευρές Μαζί'], exsUniS: ['On one-sided exercises, finishing the left set also finishes the right.', 'Στις ασκήσεις μίας πλευράς, ο αριστερός γύρος ολοκληρώνει και τον δεξιό.'],
+  exsUni: ['Unilateral Set Finishing', 'Ολοκλήρωση Σετ Μίας Πλευράς'], exsUniS: ['One tick finishes both the left and the right set.', 'Ένα τικ ολοκληρώνει και το αριστερό και το δεξί σετ.'],
   exsMarks: ['Hide Set Markers', 'Απόκρυψη Σημάτων Γύρων'], exsMarksS: ['Choose which markers are offered on sets.', 'Διάλεξε ποια σήματα προσφέρονται στα σετ.'], mkW: ['Warm-Up', 'Προθέρμανση'], mkD: ['Drop Set', 'Drop Set'], mkF: ['Failure', 'Αποτυχία'],
   exsExtras: ['Extras For Each Set', 'Πρόσθετα Κάθε Γύρου'],
   halfReps: ['Half Reps', 'Μισές Επαναλήψεις'], exsHalfS: ['Adds a Half Reps box under each set.', 'Προσθέτει ένα πλαίσιο μισών επαναλήψεων κάτω από κάθε γύρο.'],

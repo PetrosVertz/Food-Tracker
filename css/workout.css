@@ -294,7 +294,7 @@ body.inses .coachbub{display:none!important}
 @media (prefers-reduced-motion: reduce){ .ccard:has(.gspick) .ccbtn{transition:none} .ccard:has(.gspick) .ccbtn.pri{transform:none} }
 
 /* 0.7.7 Exercise Settings + per-set extras */
-.exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:var(--s3) 0;border-bottom:1px solid var(--t-line)}
+.exsrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:var(--s3) 0;border-bottom:1px solid var(--t-line)}
 .exsrow b{display:block;font-weight:var(--w-med)} .exsrow small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
 .exsh{margin:var(--s4) 0 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
 .setx{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2);margin:-2px 0 var(--s2) 48px}
@@ -380,3 +380,8 @@ body.inses .coachbub{display:none!important}
 .mklist{display:flex;gap:var(--s2);padding:var(--s2) 0 var(--s3);border-bottom:1px solid var(--t-line)}
 .mkopt{flex:1;min-height:44px;border-radius:var(--r-input);border:1px solid var(--t-accent);background:var(--t-sel);color:var(--t-text);font:inherit;font-size:var(--fs-label);cursor:pointer}
 .mkopt.off{border-color:var(--t-line);background:var(--t-card2);color:var(--t-muted);text-decoration:line-through}
+/* 0.7.9.1 Unilateral Set Finishing: the L tick is one tall box over both rows (L row 34 + R row 34 − 4 overlap); the R tick stays as an invisible spacer */
+.setrow.lmerge .sok{height:64px;align-self:start;position:relative;z-index:1}
+.setrow.rmate .sok{visibility:hidden;pointer-events:none}
+.exsrow .switch,.mkhead>svg{justify-self:end}
+.mkrow{display:block}
