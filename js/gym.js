@@ -226,7 +226,9 @@ function restAdjust(v){ if(!REST) return; if(v === 'skip'){ REST = null; autoEnd
 // was skipped (or the last set, with no rest); a new set, a rest change or Resume starts the wait again.
 function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now(), t || 0); delete active.askedAt; saveG('act'); }   // the bracket updates itself every frame
 
-function openExPick(cb){ PK = { cb, region: ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: null, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); }
+// o (0.7.9, optional): { group } opens straight at that muscle group's list, { cardio: true } at Cardio (Gym Coach › Replace)
+function openExPick(cb, o){ o = o || {}; const g = o.group && GROUPS[o.group] ? o.group : null;
+  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); }
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
 function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
@@ -1134,30 +1136,62 @@ function gcWorkout(w){
   if(!w || !Array.isArray(w.exercises)) return null;
   const list = w.exercises.map(e => { const x = exByName(e && e.name); if(!x) return null;
     const sets = Math.max(1, Math.min(8, Math.round(+e.sets) || 3)), reps = /^\d+(\s*[-–]\s*\d+)?$/.test(String(e.reps || '').trim()) ? String(e.reps).trim().replace(/\s*[-–]\s*/, '-') : defReps(x.rest);
-    return { exId: x.id, sets, reps, rest: rest30(+e.rest || x.rest), ...(isUni(x.id) ? { uni: true } : {}) }; }).filter(Boolean)
+    const rr = gymReps(), r2 = rr && !isCardio(x.id) && x.m !== 'core' && x.e !== 'bodyweight' ? rr : reps;   // 0.7.9: the chosen Rep Range wins
+    return { exId: x.id, sets, reps: r2, rest: rest30(+e.rest || x.rest), ...(isUni(x.id) ? { uni: true } : {}) }; }).filter(Boolean)
     .filter((e, i, a) => a.findIndex(z => z.exId === e.exId) === i);
   if(!list.length) return null;
   const base = w.based_on ? tpls.find(tp => norm(tp.name) === norm(w.based_on)) : null;
   const type = inferType(list) === 'cardio' ? 'cardio' : inferDayType(list);   // push / pull / legs / upper / full, like the rest of Gym
   return { tpl: { id: null, name: String(w.name || '').trim().slice(0, 40) || (base ? base.name : typeLabel_(type)), type, exercises: list }, base };
 }
-function gcWorkoutCard(tpl, base){
-  return { title: tpl.name, sub: `${typeLabel_(tpl.type)} · ${t('nEx', { n: tpl.exercises.length })}`, tag: base ? t('gcImproved') : '',
-    body: `<ol class="gcwk">${tpl.exercises.map(e => `<li><b>${esc(exName(e.exId))}</b><small>${e.sets} × ${esc(e.reps)} · ${fmtRest(e.rest)}</small></li>`).join('')}</ol>`,
-    actions: [
-      { label: t('save'), primary: true, run(card, ch){ const tp = { ...JSON.parse(JSON.stringify(tpl)), id: uid() }; tpls.push(tp); saveG('tpl'); renderAll();
-        ch.update(card, { done: t('gcSaved', { n: tp.name }), undo(){ const i = tpls.findIndex(x => x.id === tp.id); if(i > -1){ tpls.splice(i, 1); saveG('tpl'); renderAll(); } } }); } },
-      { label: t('edit'), run(){ Coach.minimize(); setTimeout(() => openTpl(tpl), 260); } } ] };
+// 0.7.9: the coach's workout as editable cards: a head card (name, type, count), one card per exercise (sets × rep range · rest, the suggested weight)
+// with Remove and Replace (the exercise picker at the same muscle), then Save / Start. Edits change this one workout (W.list) only.
+function gcSugg(exId, reps){
+  const ex = exById(exId); if(isCardio(exId) || ex.e === 'bodyweight') return '';
+  const s = suggestFor(exId, reps); if(!s || !s.w) return '';
+  return `<div class="gcsw"><small>${t(s.first ? 'gcSugFirst' : 'gcSugW')}</small><b>${fmt(s.w)} kg × ${esc(String(s.r))}</b></div>`;
+}
+const gcExSub = e => `${e.sets} × ${e.reps} · ${fmtRest(e.rest)}`;
+function gcExCard(W, e){
+  const c = { title: exName(e.exId), sub: gcExSub(e), body: gcSugg(e.exId, e.reps), _e: e };
+  c.actions = gcExActs(W, c); return c;
+}
+function gcExActs(W, c){
+  return [
+    { label: t('remove'), run(card, ch){ const i = W.list.indexOf(card._e); if(i > -1) W.list.splice(i, 1);
+      ch.update(card, { dim: true, actions: [{ label: t('gcAddBack'), run(cd, ch2){ W.list.splice(Math.min(W.order(cd), W.list.length), 0, cd._e); ch2.update(cd, { dim: false, actions: gcExActs(W, cd) }); W.sync(ch2); } }] }); W.sync(ch); } },
+    { label: t('gcReplace'), run(card, ch){ const g = HEADS[exById(card._e.exId).h]; Phone.haptic();
+      openExPick(id => { if(!id || id === card._e.exId) return; const x = exById(id), old = card._e, i = W.list.indexOf(old);
+        const e = { ...old, exId: id, rest: rest30(old.rest || x.rest) }; if(isUni(id)) e.uni = true; else delete e.uni;
+        if(isCardio(id)){ e.sets = 1; e.reps = '20'; }
+        if(i > -1) W.list[i] = e; ch.update(card, { _e: e, title: exName(id), sub: gcExSub(e), body: gcSugg(id, e.reps) }); W.sync(ch); },
+        { group: g && !isCardio(card._e.exId) ? g[2] : null, cardio: isCardio(card._e.exId) }); } } ];
+}
+function gcWorkoutCards(tpl, base){
+  const W = { list: tpl.exercises.slice(), all: [], tpl, done: false };
+  W.order = cd => { const k = W.all.indexOf(cd); return W.all.slice(0, k).filter(x => !x.dim).length; };   // where a removed card goes back
+  W.cur = () => ({ ...JSON.parse(JSON.stringify(tpl)), exercises: JSON.parse(JSON.stringify(W.list)), type: W.list.length ? (inferType(W.list) === 'cardio' ? 'cardio' : inferDayType(W.list)) : tpl.type });
+  W.sync = ch => { const tp = W.cur(); ch.update(W.head, { sub: `${typeLabel_(tp.type)} · ${t('nEx', { n: W.list.length })}` });
+    if(!W.done) ch.update(W.foot, { dim: !W.list.length }); };
+  const head = { title: tpl.name, sub: `${typeLabel_(tpl.type)} · ${t('nEx', { n: tpl.exercises.length })}`, tag: base ? t('gcImproved') : '' };
+  const exs = tpl.exercises.map(e => gcExCard(W, e));
+  const foot = { actions: [
+    { label: t('save'), run(card, ch){ if(!W.list.length) return; const tp = { ...W.cur(), id: uid() }; tpls.push(tp); saveG('tpl'); renderAll(); W.done = true;
+      ch.update(card, { done: t('gcSaved', { n: tp.name }), undo(){ W.done = false; const i = tpls.findIndex(x => x.id === tp.id); if(i > -1){ tpls.splice(i, 1); saveG('tpl'); renderAll(); } } }); } },
+    { label: t('gStartL'), primary: true, run(){ if(!W.list.length) return; if(active){ toast(t('gcLiveAlready')); return; }
+      const tp = W.cur(); Coach.minimize(); setTimeout(() => startSession(tp), 260); } } ] };
+  return { W, list: [head, ...exs, foot] };
 }
 function gcShow(r, ch){
   const reply = String((r && r.reply) || '').trim(), w = gcWorkout(r && r.workout);
   if(reply || !w) ch.say(reply || t('coachFail', { e: '?' }));
-  if(w) ch.cards([gcWorkoutCard(w.tpl, w.base)]);
+  if(w){ const { W, list } = gcWorkoutCards(w.tpl, w.base), cs = ch.cards(list);   // the chat keeps copies: edit those
+    W.head = cs[0]; W.all = cs.slice(1, -1); W.foot = cs[cs.length - 1]; }
   gcStyleAfter(r, ch);
 }
-// the training style shows with the chat's first answer; "style" in the answer = the user corrected it by text
+// the training style (Intensity) and Rep Range show with the chat's first answer; "style" in the answer = the user corrected it by text
 function gcStyleAfter(r, ch){ const k = r && r.style; if(['low', 'mid', 'high'].includes(k) && k !== gymStyle().k){ gymStyleSet(k, null, ch); return; }
-  if(ch.history().filter(h => h.who === 'me').length === 1) ch.cards([gymStyleCard()]); }
+  if(ch.history().filter(h => h.who === 'me').length === 1) ch.cards([gymStyleCard(), gymRepsCard()]); }
 async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }
 
 // ---- live workout: the sweatband robot bubble ('gymlive'); a photo of a machine → what it is, how to use it, a first-time weight ----
@@ -1236,17 +1270,35 @@ function gymStyleRead(){
 function gymStyle(){ const read = gymStyleRead(), own = ['low', 'mid', 'high'].includes(profile.gymStyle) ? profile.gymStyle : null; return { ...(read || {}), read, own, k: own || (read && read.k) || 'mid' }; }
 const gsName = k => t({ low: 'gsLow', mid: 'gsMid', high: 'gsHigh' }[k]);
 // one line for every gym suggestion prompt
-function gymStyleRule(){ const s = gymStyle();
-  return `Training style: ${s.k === 'low' ? 'low volume / high intensity' : s.k === 'high' ? 'high volume / lower intensity' : 'in between'}${s.own ? ' (the user chose this)' : s.read ? ` (from their last ${s.n} workouts: about ${s.perWk} hard sets per muscle a week, usually ${s.reps} reps, ${s.fail}% of sets to failure, ${s.rest} s rest)` : ' (not enough workouts yet to tell)'}. Fit every suggestion to it: ${GS_RULE[s.k]}.`; }
-function gymStyleCard(){
-  const s = gymStyle(), row = (l, v) => `<div class="gsrow"><small>${l}</small><b>${v}</b></div>`;
-  return { title: t('gcStyleT'), sub: gsName(s.k), body: (s.read ? `<div class="gsgrid">${row(t('gsSets'), '~' + s.read.perWk)}${row(t('gsReps'), s.read.reps || '–')}${row(t('gsFail'), s.read.fail + '%')}${row(t('restL'), fmtRest(s.read.rest))}</div>` : '')
-      + `<p class="hint gsnote">${s.own ? t('gsMine') : s.read ? t('gsFrom', { n: s.read.n }) : t('gsFew')}</p>`,
-    actions: ['low', 'mid', 'high'].map(k => ({ label: t({ low: 'gsLowS', mid: 'gsMidS', high: 'gsHighS' }[k]), primary: k === s.k, run(card, ch){ gymStyleSet(k, card, ch); } })) };
+function gymStyleRule(){ const s = gymStyle(), rr = gymReps();
+  return (rr ? `Rep range the user chose for working sets: ${rr} reps (use it for every lift except core and cardio). ` : '') + `Training style: ${s.k === 'low' ? 'low volume / high intensity' : s.k === 'high' ? 'high volume / lower intensity' : 'in between'}${s.own ? ' (the user chose this)' : s.read ? ` (from their last ${s.n} workouts: about ${s.perWk} hard sets per muscle a week, usually ${s.reps} reps, ${s.fail}% of sets to failure, ${s.rest} s rest)` : ' (not enough workouts yet to tell)'}. Fit every suggestion to it: ${GS_RULE[s.k]}.`; }
+// 0.7.9: Intensity and Rep Range are pickers: the tapped button slides on (accent), the others off; the choice is saved at once and the card stays
+// (the chat redraws only on new messages, so the buttons are switched in place and the card is kept in step for later redraws)
+function gcChoose(card, i, sub){
+  card.actions.forEach((a, j) => { a.primary = j === i; }); if(sub != null) card.sub = sub;
+  const el = document.querySelector(`#coachList [data-cid="${card.cid}"]`); if(!el) return;
+  el.querySelectorAll('.ccacts .ccbtn').forEach((b, j) => { b.classList.toggle('pri', j === i); b.setAttribute('aria-pressed', j === i); });
+  const sm = el.querySelector('.cchead small'); if(sm && sub != null) sm.textContent = sub;
 }
+function gymStyleBody(s){ const row = (l, v) => `<div class="gsrow"><small>${l}</small><b>${v}</b></div>`;
+  return `<span class="gspick" hidden></span>` + (s.read ? `<div class="gsgrid">${row(t('gsSets'), '~' + s.read.perWk)}${row(t('gsReps'), s.read.reps || '–')}${row(t('gsFail'), s.read.fail + '%')}${row(t('restL'), fmtRest(s.read.rest))}</div>` : '')
+    + `<p class="hint gsnote">${s.own ? t('gsMine') : s.read ? t('gsFrom', { n: s.read.n }) : t('gsFew')}</p>`; }
+function gymStyleCard(){
+  const s = gymStyle(), ks = ['low', 'mid', 'high'];
+  return { title: t('gcStyleT'), sub: gsName(s.k), body: gymStyleBody(s),
+    actions: ks.map((k, i) => ({ label: t({ low: 'gsLowS', mid: 'gsMidS', high: 'gsHighS' }[k]), primary: k === s.k, run(card){ gymStyleSet(k); card.body = gymStyleBody(gymStyle()); gcChoose(card, i, gsName(k));
+      const n = document.querySelector(`#coachList [data-cid="${card.cid}"] .gsnote`); if(n) n.textContent = t('gsMine'); } })) };
+}
+// the chat corrected it by text (no card): save it and show the Intensity card with the new choice
 function gymStyleSet(k, card, ch){
-  const was = profile.gymStyle; profile.gymStyle = k; saveProfile();
-  const undo = () => { if(was) profile.gymStyle = was; else delete profile.gymStyle; saveProfile(); };
-  if(card) ch.update(card, { sub: gsName(k), done: t('gsSet', { n: gsName(k) }), undo });
-  else ch.cards([{ ...gymStyleCard(), done: t('gsSet', { n: gsName(k) }), undo }]);
+  profile.gymStyle = k; saveProfile();
+  if(ch) ch.cards([{ ...gymStyleCard(), sub: gsName(k) }]);
+}
+// Rep Range for working sets: Auto (follows Intensity) or a fixed range. profile.gymReps = '5-8' | '8-12' | '12-15' (absent = Auto)
+const GC_REPS = ['', '5-8', '8-12', '12-15'];
+const gymReps = () => GC_REPS.includes(profile.gymReps) && profile.gymReps ? profile.gymReps : '';
+function gymRepsCard(){
+  const cur = gymReps(), name = v => v ? t('gcRepsN', { r: v }) : t('gcRepsAuto');
+  return { title: t('gcRepRange'), sub: name(cur), body: `<span class="gspick" hidden></span>`,
+    actions: GC_REPS.map((v, i) => ({ label: v || t('auto'), primary: v === cur, run(card){ if(v) profile.gymReps = v; else delete profile.gymReps; saveProfile(); gcChoose(card, i, name(v)); } })) };
 }
