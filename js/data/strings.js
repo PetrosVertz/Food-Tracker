@@ -754,3 +754,10 @@ Object.assign(S, {
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
   soreHint: ['{m} is still recovering: about {h} h left', 'Ο μυς ({m}) αναρρώνει ακόμα: περίπου {h} ώρες ακόμα'],
 });
+Object.assign(S, {
+  exsVisH: ['Visual', 'Εμφάνιση'], exsExtH: ['Extras', 'Πρόσθετα'],
+  exsUniPill: ['Unilateral Pill', 'Κουμπί Μίας Πλευράς'], exsUniPillS: ['Shows the L | R pill on exercise cards.', 'Εμφανίζει το κουμπί L | R στις κάρτες ασκήσεων.'],
+  exsFormPill: ['Form Pill', 'Κουμπί Τεχνικής'], exsFormPillS: ['Shows the Form pill on exercise cards.', 'Εμφανίζει το κουμπί Τεχνικής στις κάρτες ασκήσεων.'],
+  exsSwapPill: ['Swap Pill', 'Κουμπί Αλλαγής'], exsSwapPillS: ['Shows the Swap pill and the swap button on exercise cards.', 'Εμφανίζει το κουμπί Αλλαγής στις κάρτες ασκήσεων.'],
+  exsTips: ['Tips', 'Συμβουλές'], exsTipsS: ['Shows a suggestion like "Try 7 kg for 8 reps", based on your other exercises.', 'Εμφανίζει πρόταση όπως «Δοκίμασε 7 kg για 8 επαναλήψεις», με βάση τις άλλες ασκήσεις σου.'],
+});
