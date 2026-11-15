@@ -347,3 +347,7 @@ body.inses .coachbub{display:none!important}
 .wsbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin:0 0 var(--s3)}
 #ovWkScan .wscam .frame{left:22%;right:22%;top:14%;bottom:14%}
 #ovWkScan #wsPhotoBtn{width:100%;margin-top:10px}
+
+/* 0.7.9 streak numbers: slanted athletic numerals (bold italic Inter, tight spacing) on the streak card and the pill */
+.pfstreak .pfnum,.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
+.pfstreak .pfnum{padding-right:3px}
