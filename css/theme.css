@@ -937,3 +937,8 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .supcard .supnm{display:flex;flex-direction:column;min-width:0}
 .supcard .supnm .rmeta{font-size:var(--fs-label);color:var(--t-muted)}
 .supcard .takebtn{margin:0;flex:0 0 auto}
+
+/* 0.7.9 log 4: AI label centred on its button (text + badge as one centred row, badge on the text's middle line) */
+.btn.aiafter,.opt.aiafter{display:inline-flex;align-items:center;justify-content:center}
+.btn.aiafter::after,.btn .aibadge{vertical-align:baseline;margin-top:0;margin-bottom:0}
+#ovCook .actions .btn.aiafter{display:flex}
