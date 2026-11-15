@@ -211,33 +211,56 @@ let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
-// ---------- 0.7.7: the action pills above the bottom bar (main button, scan button, coach pill) on a tab switch ----------
-// The old pills slide down out of view (copies, so their text never changes mid-way), then the new page's pills rise from the
-// bottom with a short fade and a slight spring, 40 ms apart. Transform and opacity only; with Reduce Motion they just swap.
-const PILL_ACTS = '#fab2,#fab,.coachpill';
+// ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
+// 0.7.7 → 0.7.9: copies of the old pills drop out of view (so their text never changes mid-way), then the new pills rise on a
+// real spring (sampled damped spring: a small overshoot, then settles), 40 ms apart. Transform and opacity only, nothing moves
+// in the layout while it is visible. A tab switch starts at once; a change inside a tab (Fridge → Recipes, Store-Bought →
+// Supplements) first checks whether the pills really changed, so identical pills never blink. With Reduce Motion they just swap.
+const PILL_ACTS = '#fab2,#fab,.coachpill', PILL_GAP = 40, PILL_OUT = 140, PILL_IN = 520, PILL_DROP = 96;
 const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
-function pillSwap(){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate) return;
-  clearTimeout(pillSwap.t); document.querySelectorAll('.pillghost').forEach(g => g.remove());
-  const olds = [...document.querySelectorAll(PILL_ACTS)].filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);
+const pillsNow = () => [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost') && pillShown(el)).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+const pillSig = els => els.map(el => { const r = el.getBoundingClientRect(); return `${el.id}|${el.textContent.trim()}|${Math.round(r.left)}|${Math.round(r.width)}`; }).join(';');
+const PILL_SPRING = (() => { const k = [], n = 28, T = .52, a = 16, w = 18;   // x(t) = 1 − e^(−at)(cos wt + a/w sin wt): ~6% overshoot, settled by T
+  for(let i = 0; i <= n; i++){ const t = i / n * T, x = i === n ? 1 : 1 - Math.exp(-a * t) * (Math.cos(w * t) + a / w * Math.sin(w * t));
+    k.push({ transform: `translate3d(0,${((1 - x) * PILL_DROP).toFixed(2)}px,0)`, offset: i / n }); }
+  return k; })();
+const pillReduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate;
+function pillsIn(){
+  const all = [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost'));
+  all.forEach(el => { el.getAnimations().forEach(a => a.cancel()); el.style.transition = 'none'; });   // no CSS fade of their own on the way back
+  document.body.classList.remove('pillswap');
+  pillsNow().forEach((el, i) => { const op = getComputedStyle(el).opacity, delay = i * PILL_GAP;   // a greyed-out AI pill keeps its dimmed look
+    el.style.willChange = 'transform,opacity';
+    el.animate(PILL_SPRING, { duration: PILL_IN, delay, easing: 'linear', fill: 'backwards' })
+      .finished.then(() => { el.style.willChange = ''; }, () => {});
+    el.animate([{ opacity: 0 }, { opacity: op }], { duration: 160, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
+  requestAnimationFrame(() => all.forEach(el => el.style.transition = ''));
+}
+function pillSwap(soft){
+  if(pillReduce()) return;
+  clearTimeout(pillSwap.t); cancelAnimationFrame(pillSwap.f); document.querySelectorAll('.pillghost').forEach(g => g.remove());
+  const olds = pillsNow(), sig0 = pillSig(olds);
+  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);   // the rect includes a rise still under way
     g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.classList.add('pillghost'); g.setAttribute('aria-hidden', 'true'); g.tabIndex = -1;
     const pin = { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', 'z-index': cs.zIndex };
     Object.entries(pin).forEach(([k, v]) => g.style.setProperty(k, v, 'important'));   // geometry beats the pills' own !important rules; transform and opacity stay free to animate
-    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity }); document.body.appendChild(g); return g; });
+    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity, willChange: 'transform,opacity' }); document.body.appendChild(g); return g; });
   document.body.classList.add('pillswap');   // the real pills wait out of sight while the page changes under them
-  const OUT = 150, gap = 40, outEnd = OUT + Math.max(0, ghosts.length - 1) * gap;
-  ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: 'translateY(96px)', opacity: 0 }],
-    { duration: OUT, delay: i * gap, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
-  pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove());
-    const all = [...document.querySelectorAll(PILL_ACTS)]; all.forEach(el => el.style.transition = 'none');   // no CSS fade of their own on the way back
-    document.body.classList.remove('pillswap');
-    const news = all.filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-    news.forEach((el, i) => { const op = getComputedStyle(el).opacity;   // a greyed-out AI pill keeps its dimmed look
-      el.animate([{ transform: 'translateY(96px)', opacity: 0 }, { transform: 'translateY(-5px)', opacity: op, offset: .72 }, { transform: 'none', opacity: op }],
-        { duration: 250, delay: i * gap, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
-    requestAnimationFrame(() => all.forEach(el => el.style.transition = '')); }, outEnd + 10);
+  const out = () => { ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: `translate3d(0,${PILL_DROP}px,0)`, opacity: 0 }],
+      { duration: PILL_OUT, delay: i * PILL_GAP, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
+    pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove()); pillsIn(); }, PILL_OUT + Math.max(0, ghosts.length - 1) * PILL_GAP + 10); };
+  if(!soft){ out(); return; }
+  // inside a tab: wait two frames (the page and the coach pill have been placed), then only animate if something changed
+  pillSwap.f = requestAnimationFrame(() => { pillSwap.f = requestAnimationFrame(() => {
+    if(pillSig(pillsNow()) === sig0){ ghosts.forEach(g => g.remove()); document.body.classList.remove('pillswap'); return; }
+    out(); }); });
 }
+// start-up: the pills rise once everything (fonts, coach pill) is in place, so the main button never visibly jumps aside
+function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pillswap');
+  let last = '', n = 0;   // rise only when the pills have stopped moving (same place and text twice in a row), 1.5 s at most
+  const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(pillsIn); return; } last = sg; setTimeout(check, 120); };
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(() => setTimeout(check, 420)); }   // the coach pill places itself ~300 ms after start (coach.js)
+
 function switchTab(dir, toTab){
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
@@ -261,6 +284,7 @@ function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
+  { const prev = route.last; route.last = h; if(prev && prev !== h && !SWITCHING && tabOf(prev) === tabOf(h)) pillSwap(true); }   // 0.7.9: pills changing inside a tab glide too
   const kit = kitchenOn(); placeRecipes();
   if(!kit && (h === 'fridge' || h === 'groc')){ h = homeHash().slice(1); history.replaceState(null, '', '#' + h); }   // Kitchen is off: nothing opens it
   const kv = kit && ['fridge', 'groc', 'meals'].includes(h) ? h : '';   // 0.7.9: Kitchen = Fridge · Groceries · Recipes under one pill
