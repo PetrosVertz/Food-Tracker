@@ -801,7 +801,6 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
-section.page>header::before,.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{display:none!important}
 .overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:var(--topP);z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
@@ -815,22 +814,15 @@ body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env
 :where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
 
 /* ============================================================================================
-   ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), then a short soft fade below
-   (no blur: scrolled content can't show through the letters). --topfade is the fade height.
-   Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
+   ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), with a clean edge (no fade, no blur: nothing soft at the top).
+   Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
-:root{--topfade:6px;--topP:calc(8px + env(safe-area-inset-top))}
-section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
-  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
+:root{--topP:calc(8px + env(safe-area-inset-top))}
 .overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
-.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{content:'';display:block;flex:0 0 auto;position:sticky;top:0;z-index:2;pointer-events:none;
-  height:calc(var(--topP) + 44px + var(--topfade));margin:0 -16px calc(-44px - var(--topfade));
-  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 .setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
 .setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
-/* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: same fade under its sticky head */
+/* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: solid sticky head */
 #ovExPick .sheet{background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.seshead3::after{content:'';position:absolute;left:0;right:0;top:100%;height:var(--topfade);pointer-events:none;background:linear-gradient(var(--t-bg),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 
 /* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
 .kcalcol{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
