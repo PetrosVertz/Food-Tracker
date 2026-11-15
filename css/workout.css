@@ -26,7 +26,6 @@
 .recbig{width:100%;margin-top:var(--s3);padding:var(--s3) 10px 10px;align-items:stretch}
 .recbig .rbhead{display:flex;justify-content:space-between;align-items:center;padding:0 6px var(--s1);color:var(--text)} .recbig .rbhead b{font-size:16px} .recbig .rbhead span{color:var(--muted);font-size:20px}
 .recbig small{text-align:center}
-#gHubTiles .pettile{flex-direction:column;align-items:flex-start;gap:6px;min-height:0}
 /* tab slide: the old page as a picture moving out */
 .pghost{pointer-events:none;z-index:2}
 /* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
@@ -229,7 +228,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .burst span.cf{width:9px;height:9px;border-radius:50%;font-size:0}
 .burst span.cf1{border-radius:2px;width:8px;height:8px}
 .burst span.cf2{border-radius:2px;width:4px;height:14px}
-/* red line x in Common Mistakes and the remove buttons; pet checklist tick; finished-exercise tick */
+/* red line x in Common Mistakes and the remove buttons; finished-exercise tick */
 .xred{color:var(--t-fail)!important;display:inline-flex;align-items:center}
 .fpx li .xred{flex:0 0 auto;padding-top:2px}
 .feed .pfck{display:inline-flex;width:18px;margin-right:6px;vertical-align:-3px;color:var(--t-done)}

@@ -1,4 +1,4 @@
-// Gym Buddy: workouts, sessions, library, picker, recovery, progress, pets, form demos. (functions only)
+// Gym Buddy: workouts, sessions, library, picker, recovery, progress, form demos. (functions only)
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 // ran out (or below your level) → onto the grocery list by itself
@@ -168,7 +168,7 @@ function tickSet(x, s, row, xi, si){
       const prevVol = bestVolBefore(x.exId), curVol = same.reduce((a, z) => a + exVol(x.exId, z.sets), 0);
       if(!x.volPR && curVol > prevVol){ x.volPR = true; s.pr = 'v'; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v'));
         active.prs.push({ exId: x.exId, kind: 'v', vol: Math.round(curVol), prev: Math.round(prevVol) });
-        celebrate(); setTimeout(celebrate, 350); toast(t('prV', { n: exName(x.exId), v: Math.round(curVol).toLocaleString() })); petAward('vpr', 2); }
+        celebrate(); setTimeout(celebrate, 350); toast(t('prV', { n: exName(x.exId), v: Math.round(curVol).toLocaleString() })); }
       else if(x.volPR){ const p = active.prs.find(p => p.exId === x.exId && p.kind === 'v'); if(p) p.vol = Math.round(curVol); }
     }
   }
@@ -282,92 +282,6 @@ function strengthChange(exId){
   const best = a => a.length ? Math.max(...a.map(x => x.e1)) : null;
   const r = best(recent), p = best(prev), first = h[0].e1, all = best(h);
   return { h, best: all, pct: r && p ? (r / p - 1) * 100 : null, since: r && h.length > 1 ? (r / first - 1) * 100 : null };
-}
-
-function petMood(){ if(!pet || !pet.lastFed) return 'ok'; const d = -daysUntil(pet.lastFed); return d <= 1 ? 'happy' : d <= 3 ? 'ok' : 'sleepy'; }
-
-function petSVG(species, stage, mood, size){
-  const s = [.72, .86, 1][stage], eyes = (x1, x2, y) => mood === 'sleepy'
-    ? `<path d="M${x1 - 5} ${y} q5 4 10 0 M${x2 - 5} ${y} q5 4 10 0" stroke="#1b1b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
-    : [x1, x2].map(x => `<circle cx="${x}" cy="${y}" r="${mood === 'happy' ? 5.5 : 4.5}" fill="#fff"/><circle cx="${x + .8}" cy="${y + .6}" r="3" fill="#1b1b1b"/><circle cx="${x + 2}" cy="${y - 1.2}" r="1.1" fill="#fff"/>`).join('');
-  const mouth = (y) => mood === 'happy' ? `<path d="M55 ${y} q5 5 10 0" stroke="#1b1b1b" stroke-width="2.2" fill="none" stroke-linecap="round"/>` : `<path d="M56 ${y + 2} h8" stroke="#1b1b1b" stroke-width="2.2" stroke-linecap="round"/>`;
-  let art = '';
-  if(species === 'embrik'){
-    const fl = [.55, .85, 1.15][stage];
-    art = `<g transform="translate(60 34) scale(${fl}) translate(-60 -34)"><path d="M60 4 C72 16 74 26 67 34 C64 38 56 38 53 34 C46 26 50 14 60 4Z" fill="#ff8a2a"/><path d="M60 15 C66 23 65 30 60 34 C55 30 55 23 60 15Z" fill="#ffd23f"/></g>
-      ${stage === 2 ? '<circle cx="34" cy="40" r="3" fill="#ffd23f"/><circle cx="88" cy="36" r="2.5" fill="#ff8a2a"/>' : ''}
-      <path d="M38 60 C38 34 82 34 82 60" stroke="#2b2422" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M41 60 C41 39 79 39 79 60" stroke="#4a3b37" stroke-width="3" fill="none"/>
-      <circle cx="60" cy="76" r="32" fill="#3b2f2c"/>${stage === 2 ? '<ellipse cx="60" cy="86" rx="20" ry="12" fill="#ff8a2a" opacity=".25"/>' : ''}
-      <path d="M33 72 L43 77 L39 88 M85 66 L77 74 L85 83${stage >= 1 ? ' M52 100 L58 93 L66 99' : ''}" stroke="#ff8a2a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <ellipse cx="44" cy="82" rx="5" ry="3" fill="#ff8a2a" opacity=".55"/><ellipse cx="76" cy="82" rx="5" ry="3" fill="#ff8a2a" opacity=".55"/>
-      ${eyes(51, 69, 72)}${mouth(82)}<ellipse cx="46" cy="107" rx="9" ry="5" fill="#2b2422"/><ellipse cx="74" cy="107" rx="9" ry="5" fill="#2b2422"/>`;
-  } else if(species === 'tidepup'){
-    art = `${stage === 2 ? '<circle cx="24" cy="50" r="5" fill="none" stroke="#8fd3ff" stroke-width="2"/><circle cx="98" cy="44" r="4" fill="none" stroke="#8fd3ff" stroke-width="2"/><circle cx="92" cy="28" r="2.5" fill="none" stroke="#8fd3ff" stroke-width="2"/>' : ''}
-      <path d="M92 84 q14 -6 10 -22 q10 8 6 20 q-4 10 -16 8z" fill="#2f7fd0"/>
-      <ellipse cx="60" cy="84" rx="32" ry="24" fill="#4aa8ff"/><ellipse cx="60" cy="90" rx="18" ry="14" fill="#bfe3ff"/>
-      <ellipse cx="36" cy="52" rx="9" ry="16" transform="rotate(25 36 52)" fill="#2f7fd0"/><ellipse cx="84" cy="52" rx="9" ry="16" transform="rotate(-25 84 52)" fill="#2f7fd0"/>
-      <circle cx="60" cy="56" r="24" fill="#4aa8ff"/>${stage >= 1 ? '<path d="M60 22 C66 30 68 34 66 38 C64 42 56 42 54 38 C52 34 54 30 60 22Z" fill="#8fd3ff"/>' : ''}
-      ${stage === 2 ? '<path d="M38 74 q11 8 22 0 q11 8 22 0" stroke="#bfe3ff" stroke-width="4" fill="none" stroke-linecap="round"/>' : ''}
-      ${eyes(51, 69, 52)}<ellipse cx="60" cy="64" rx="10" ry="7" fill="#bfe3ff"/><ellipse cx="60" cy="61" rx="3.5" ry="2.6" fill="#1b1b1b"/>${mouth(66)}
-      <ellipse cx="46" cy="106" rx="8" ry="5" fill="#2f7fd0"/><ellipse cx="74" cy="106" rx="8" ry="5" fill="#2f7fd0"/>`;
-  } else {
-    art = `<circle cx="38" cy="44" r="11" fill="#6b8f3a"/><circle cx="38" cy="44" r="5.5" fill="#4f6e2a"/><circle cx="82" cy="44" r="11" fill="#6b8f3a"/><circle cx="82" cy="44" r="5.5" fill="#4f6e2a"/>
-      ${stage >= 1 ? `<path d="M60 40 V22" stroke="#3f6e1f" stroke-width="3" stroke-linecap="round"/><ellipse cx="53" cy="24" rx="7" ry="4" transform="rotate(-30 53 24)" fill="#8bc34a"/><ellipse cx="67" cy="24" rx="7" ry="4" transform="rotate(30 67 24)" fill="#8bc34a"/>` : ''}
-      ${stage === 2 ? '<circle cx="60" cy="18" r="4" fill="#ffd23f"/><circle cx="60" cy="12" r="3.2" fill="#ff8ab3"/><circle cx="54" cy="17" r="3.2" fill="#ff8ab3"/><circle cx="66" cy="17" r="3.2" fill="#ff8ab3"/><circle cx="57" cy="22" r="3.2" fill="#ff8ab3"/><circle cx="63" cy="22" r="3.2" fill="#ff8ab3"/><circle cx="60" cy="17" r="2.6" fill="#ffd23f"/>' : ''}
-      <circle cx="60" cy="74" r="34" fill="#7aa24a"/><ellipse cx="60" cy="88" rx="20" ry="16" fill="#c9dca0"/>
-      <ellipse cx="38" cy="90" rx="8" ry="6" fill="#5d8a2e"/><ellipse cx="84" cy="64" rx="7" ry="5" fill="#5d8a2e"/>${stage === 2 ? '<path d="M86 86 q4 -8 8 0z" fill="#d9534f"/><rect x="89" y="86" width="2" height="5" fill="#eee"/>' : ''}
-      ${eyes(50, 70, 66)}<ellipse cx="60" cy="76" rx="9" ry="6" fill="#e6efcf"/><ellipse cx="60" cy="74" rx="3.2" ry="2.4" fill="#1b1b1b"/>${mouth(79)}
-      <ellipse cx="45" cy="106" rx="9" ry="5" fill="#5d7a33"/><ellipse cx="75" cy="106" rx="9" ry="5" fill="#5d7a33"/>`;
-  }
-  return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" aria-hidden="true"><ellipse cx="60" cy="112" rx="${30 * s}" ry="5" fill="rgba(0,0,0,.35)"/>
-    <g class="${mood === 'sleepy' ? '' : 'bob'}"><g transform="translate(60 110) scale(${s}) translate(-60 -110)">${art}</g></g>
-    ${mood === 'sleepy' ? '<text x="88" y="30" fill="#8b949c" font-size="14" font-weight="700">z</text><text x="98" y="20" fill="#8b949c" font-size="10" font-weight="700">z</text>' : ''}</svg>`;
-}
-
-function petAward(kind, n){
-  if(!pet) return; const d = todayKey(); pet.awards = pet.awards || {}; const a = pet.awards[d] = pet.awards[d] || {};
-  if(kind === 'pr' || kind === 'vpr'){ if((a[kind] || 0) >= 3) return; a[kind] = (a[kind] || 0) + 1; } else { if(a[kind]) return; a[kind] = 1; }
-  const fav = PETS[pet.species].fav, gain = n * (fav === kind || (fav === 'kcal' && kind === 'prot') || (fav === 'pr' && kind === 'vpr') ? 2 : 1);
-  const before = petStage(petLevel(pet.xp)); pet.xp += gain; pet.lastFed = d;
-  pet.log = [{ d, kind, gain }].concat(pet.log || []).slice(0, 12);
-  const keys = Object.keys(pet.awards).sort(); if(keys.length > 60) keys.slice(0, keys.length - 60).forEach(k => delete pet.awards[k]);
-  saveG('pet'); const after = petStage(petLevel(pet.xp));
-  if(after > before){ celebrate(); setTimeout(() => toast(t('petEvolved', { a: PETS[pet.species].names[before], b: PETS[pet.species].names[after] })), 300); }
-  else if(kind !== 'pr' && kind !== 'vpr') toast(t('petFed', { n: pet.name, x: gain }));
-}
-
-// daily goals are checked whenever the numbers change
-function petTick(){
-  if(!pet) return; const d = todayKey(), tg = targetFor(d), tot = dayTotals(d), tp = todayProgress();
-  if(tg && tg.k && Math.abs(tot.kcal - tg.k) / tg.k <= .07) petAward('kcal', 1);
-  if(tg && tg.p && tot.p >= tg.p * .95) petAward('prot', 1);
-  if(tp.total && tp.done === tp.total) petAward('supps', 1);
-}
-
-function renderPetTile(){
-  if(!pet){ $('tPetArt').innerHTML = petSVG('embrik', 0, 'sleepy', 76); $('tPetName').textContent = t('petNone'); $('tPetSub').textContent = t('petNoneSub'); $('tPetBar').style.width = '0'; return; }
-  const lv = petLevel(pet.xp), st = petStage(lv), mood = petMood();
-  $('tPetArt').innerHTML = petSVG(pet.species, st, mood, 76);
-  $('tPetName').textContent = pet.name === PETS[pet.species].names[st] ? pet.name : `${pet.name} · ${PETS[pet.species].names[st]}`;
-  $('tPetSub').textContent = `${t('petLv', { l: lv, x: pet.xp % 5, n: 5 })} · ${t('petMood_' + mood)}`;
-  $('tPetBar').style.width = `${(pet.xp % 5) / 5 * 100}%`; $('tPetBar').style.background = PETS[pet.species].col;
-}
-
-function openPet(){
-  if(!pet){
-    $('ppList').innerHTML = Object.entries(PETS).map(([k, p]) => `<button class="ppcard" data-pp="${k}">${petSVG(k, 0, 'happy', 110)}<span><b>${p.names[0]}</b><small>${p.trait[lang === 'el' ? 1 : 0]}</small><small>${p.names.join(' → ')}</small></span></button>`).join('');
-    return open('ovPetPick');
-  }
-  const lv = petLevel(pet.xp), st = petStage(lv), mood = petMood(), a = (pet.awards || {})[todayKey()] || {}, P = PETS[pet.species];
-  const nextLv = st === 0 ? 5 : st === 1 ? 12 : null;
-  $('petBody').innerHTML = `<div class="petbig">${petSVG(pet.species, st, mood, 200)}</div>
-    <div class="brandrow"><input id="petName" value="${esc(pet.name)}" aria-label="${t('petRename')}" style="font-size:18px;font-weight:700"><span class="chip">${P.names[st]}</span></div>
-    <p class="rmeta" style="margin:8px 0">${t('petLv', { l: lv, x: pet.xp % 5, n: 5 })} · ${t('petMood_' + mood)}</p>
-    <span class="mbar"><i style="width:${(pet.xp % 5) / 5 * 100}%;background:${P.col}"></i></span>
-    <p class="hint">${t('petStage', { s: st + 1 })} · ${nextLv ? t('petNext', { l: nextLv }) : t('petMax')} · ${t('petFav', { f: t(FAV_KEY[P.fav]).split(' (')[0].toLowerCase() })}</p>
-    <h3>${t('petHow')} · ${t('petToday')}</h3>
-    <ul class="feed">${[['pfPR', (a.pr || 0) + (a.vpr || 0) > 0, a.pr || a.vpr ? ` (${(a.pr || 0) + (a.vpr || 0)})` : ''], ['pfWork', a.workout], ['pfKcal', a.kcal], ['pfProt', a.prot], ['pfSupps', a.supps]].map(([k, ok, x]) => `<li class="${ok ? 'ok' : ''}"><span class="pfck">${ok ? svgIcon('check', 16, 2.4) : ''}</span>${t(k)}${x || ''}</li>`).join('')}</ul>`;
-  open('ovPet');
 }
 
 // confetti: plain coloured dots, squares and bars from the theme (no emoji)
@@ -990,7 +904,7 @@ function renderGym(){
   const h = location.hash.slice(1), sec = GSEC[h] || null;
   $('gHub').classList.toggle('hide', !!sec);
   $('gBackBtn').classList.toggle('hide', !sec);
-  $('gTabs').classList.toggle('hide', !sec || sec === 'rec'); $('gtPet').classList.toggle('hide', $('tPet').classList.contains('hide'));
+  $('gTabs').classList.toggle('hide', !sec || sec === 'rec');
   $('gTabs').querySelectorAll('[data-sec]').forEach(b => b.classList.toggle('on', b.dataset.sec === h));
   // 0.7.4.0.5: the section name is the page title (no second title under the header)
   $('pgGym').querySelector('header h1').textContent = t(sec ? { plan: 'hubWeek', tpl: 'hubLib', prog: 'hubProg', rec: 'hubRec' }[sec] : 'tabGym');
@@ -1008,7 +922,6 @@ function renderGym(){
     $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
   }
   renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
-  petTick(); renderPetTile();   // was on the old home tile
   $('gOther').classList.toggle('hide', !!active || !tp || $('gStart').classList.contains('hide'));
 }
 

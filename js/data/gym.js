@@ -813,16 +813,7 @@ function exMatch(x, q, extra){
   return { s: 0 };
 }
 
-const GKEY = { custom: 'exCustom', tpl: 'tpls', plan: 'gymPlan', ses: 'sessions', act: 'active', cb: 'comeback', pet: 'pet' };   // short names → Store names
-
-// ---------- pets (original starters, three evolution stages each) ----------
-const PETS = {
-  embrik: { names: ['Embrik', 'Embrak', 'Pyrobell'], fav: 'pr', col: '#ff8a2a', trait: ['Ember kettlebell · strength. Loves PRs.', 'Πυρωμένο kettlebell · δύναμη. Λατρεύει τα ρεκόρ.'] },
-  tidepup: { names: ['Tidepup', 'Tidehound', 'Tsunamutt'], fav: 'kcal', col: '#4aa8ff', trait: ['Water pup · consistency. Loves hitting macros.', 'Κουτάβι του νερού · συνέπεια. Λατρεύει τα μακρο.'] },
-  mossling: { names: ['Mossling', 'Mossbear', 'Grovekeeper'], fav: 'supps', col: '#7aa24a', trait: ['Moss bear · recovery. Loves supplements and rest.', 'Αρκουδάκι από βρύα · αποκατάσταση. Λατρεύει τα συμπληρώματα και την ξεκούραση.'] },
-};
-
-const FAV_KEY = { pr: 'pfPR', kcal: 'pfKcal', supps: 'pfSupps' };
+const GKEY = { custom: 'exCustom', tpl: 'tpls', plan: 'gymPlan', ses: 'sessions', act: 'active', cb: 'comeback' };   // short names → Store names
 
 // Needs Rest / Recovering / Ready are always red / yellow / green (0.6.9, whatever the accent); read from the CSS variables
 // so Light mode gets its own shades.

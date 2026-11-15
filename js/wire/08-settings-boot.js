@@ -42,7 +42,6 @@ $('importInput').addEventListener('change', async e => {
     if(data.gym){ const g = data.gym; const have = new Set(sessions.map(x => x.id)); sessions = sessions.concat((g.sessions || []).filter(x => !have.has(x.id))).sort((a, b) => a.start.localeCompare(b.start));
       const ht = new Set(tpls.map(x => x.id)); tpls = tpls.concat((g.tpl || []).filter(x => !ht.has(x.id))); const hc = new Set(exCustom.map(x => x.id)); exCustom = exCustom.concat((g.custom || []).filter(x => !hc.has(x.id)));
       if(g.plan && !Object.keys(gymPlan).length) gymPlan = g.plan; ['ses', 'tpl', 'custom', 'plan'].forEach(saveG); }
-    if(data.pet && !pet){ pet = data.pet; saveG('pet'); }
     if(data.profile && typeof data.profile === 'object'){ profile = { ...data.profile, ...profile }; saveProfile(); }
     fridge.forEach(x => { if(x.name === 'item') delete x.name; });
     saveFoods(); saveMeals(); saveSupps(); Store.save('suppLog', suppLog); saveFridge(); saveGroc(); saveLog(); saveDays(); Store.save('plans', plans); if(targets) Store.save('targets', targets); renderAll(); toast(t('imported', { a: added, u: updated }));
@@ -61,7 +60,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:') navigator.ser
 
 if(location.protocol === 'https:') setTimeout(() => Phone.barcodeReader().catch(()=>{}), 2500);
 
-window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFedb, switchTab, calcTargets, backupBlob, get SHOP(){ return SHOP; }, set FEDB(v){ FEDB = v; }, goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, petSVG, planFor, e1rm, goBack, carbWindows, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, AI, Store, Phone, Account };
+window.__ft = { openSetup, searchLocal, usuals, weightTrend, demoMatches, loadFedb, switchTab, calcTargets, backupBlob, get SHOP(){ return SHOP; }, set FEDB(v){ FEDB = v; }, goBack, goForward, matchIng, dayTotals, PAIR, GENBY, workKind, groupReadiness, recoveryWarnings, nextSuggestions, exById, EX, stockBadge, suggestFor, warmupFor, strengthChange, planFor, e1rm, goBack, carbWindows, defaultLoc, grocText, guessType, guessPieces, portion, validGTIN, searchLocal, claudeText, GEN, parseRecipe, AI, Store, Phone, Account };
 
 // Settings → Your Body: sex, height, weight; offers to recalculate targets
 document.querySelectorAll('#sSex button').forEach(b => b.addEventListener('click', () => setSeg('#sSex', b.dataset.v)));

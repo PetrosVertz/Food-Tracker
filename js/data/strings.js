@@ -210,10 +210,10 @@ const S = {
 };
 
 // =====================================================================
-// v1.6 — GYM · LIVE WORKOUTS · PROGRESS · PETS · SWIPE BACK
+// v1.6 — GYM · LIVE WORKOUTS · PROGRESS · SWIPE BACK
 // =====================================================================
 Object.assign(S, {
- tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'], gtPartner:['Partner','Συνεργάτης'],
+ tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
  exAlso:['Same Exercise · {n}','Ίδια Άσκηση · {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
@@ -238,16 +238,7 @@ Object.assign(S, {
  breakTxt:['Start at about {p}% of your old weights and add ~5% each session. You’ll be back to normal in about {s} sessions, with a lot less injury risk and soreness.','Ξεκίνα περίπου στο {p}% των παλιών κιλών και πρόσθετε ~5% κάθε φορά. Σε περίπου {s} προπονήσεις θα είσαι εκεί που ήσουν, με πολύ λιγότερο κίνδυνο τραυματισμού και πιάσιμο.'],
  cbActive:['Comeback: session {k}, aim for {p}% of your old weights','Επιστροφή: προπόνηση {k}, στόχος {p}% των παλιών κιλών'],
  lastTrained:['Coming back after a break? When did you last train?','Επιστρέφεις μετά από διάλειμμα; Πότε προπονήθηκες τελευταία;'],
- // pets
- petChoose:['Choose your partner','Διάλεξε τον σύντροφό σου'], petChooseSub:['It grows when you hit your goals. Pick one and give it a name.','Μεγαλώνει όταν πετυχαίνεις τους στόχους σου. Διάλεξε έναν και δώσ’ του όνομα.'],
- later:['Later','Αργότερα'], petNone:['Choose your partner','Διάλεξε σύντροφο'], petNoneSub:['A little creature that grows with your goals','Ένα πλασματάκι που μεγαλώνει με τους στόχους σου'],
- petLv:['Lv {l} · {x}/{n} to next level','Επ. {l} · {x}/{n} για το επόμενο'], petMood_happy:['happy','χαρούμενο'], petMood_ok:['hungry','πεινάει'], petMood_sleepy:['sleepy… feed it a goal','νυστάζει… τάισέ το έναν στόχο'],
- petFed:['Fed {n} +{x}','Τάισες το {n} +{x}'], petEvolved:['{a} evolved into {b}!','Το {a} εξελίχθηκε σε {b}!'],
- petHow:['How to feed it','Πώς το ταΐζεις'], petToday:['Today','Σήμερα'],
- pfPR:['New PR in a workout (+1 each, max 3/day)','Νέο ρεκόρ σε προπόνηση (+1 το καθένα, έως 3/μέρα)'], pfWork:['Finish a workout','Ολοκλήρωσε προπόνηση'],
- pfKcal:['Calories within 7% of target','Θερμίδες εντός 7% του στόχου'], pfProt:['Hit your protein','Πέτυχε την πρωτεΐνη'], pfSupps:['All supplements taken','Όλα τα συμπληρώματα'],
- petFav:['Favourite: {f} (double food)','Αγαπημένο: {f} (διπλό φαγητό)'], petRename:['Name','Όνομα'], petStage:['Stage {s} of 3','Στάδιο {s} από 3'],
- petNext:['Evolves at level {l}','Εξελίσσεται στο επίπεδο {l}'], petMax:['Fully evolved','Πλήρως εξελιγμένο'],
+ later:['Later','Αργότερα'],
 });
 
 // =====================================================================
@@ -590,7 +581,7 @@ function titleCase(str){
   'hubRec', 'hubWeek', 'hubWeekSub', 'import', 'ingredients', 'language', 'later', 'light', 'listMode', 'locCupboard', 'locFreezer', 'locFridge',
   'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
   'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
-  'perPack', 'petChoose', 'petHow', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
+  'perPack', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
   'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
   'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
   'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',
