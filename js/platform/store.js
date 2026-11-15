@@ -21,7 +21,7 @@ const Store = (() => {
     fridge: ['ft.fridge.v1', 'list', 1], groc: ['ft.groc.v1', 'list', 1], dayLog: ['ft.log.v1', 'days', 1], days: ['ft.days.v1', 'map', 1],
     targets: ['ft.targets.v1', 'one', 1], plans: ['ft.plans.v1', 'map', 1], weights: ['ft.weights.v1', 'map', 1], profile: ['ft.profile.v1', 'one', 1],
     exCustom: ['ft.gym.custom', 'list', 1], tpls: ['ft.gym.tpl', 'list', 1], gymPlan: ['ft.gym.plan', 'map', 1], sessions: ['ft.gym.sessions', 'list', 1],
-    active: ['ft.gym.active', 'one', 1], comeback: ['ft.gym.comeback', 'one', 1], pet: ['ft.pet.v1', 'one', 1], combos: ['ft.combos.v1', 'list', 1],
+    active: ['ft.gym.active', 'one', 1], comeback: ['ft.gym.comeback', 'one', 1], combos: ['ft.combos.v1', 'list', 1],
     logPhr: ['ft.logphr.v1', 'map', 1],   // 0.7.1 Quick Log: typed phrase → food, so repeats need no AI matching
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],
   };
@@ -78,6 +78,7 @@ const Store = (() => {
       flushMeta();
     },
   };
+  try{ localStorage.removeItem('ft.pet.v1'); }catch(e){}   // 0.7.9: the pet system is gone; old pet data is deleted
   (function migrate(){
     let v = +read(SCHEMA_KEY) || 1;
     while(v < SCHEMA){ v++; try{ MIGRATIONS[v] && MIGRATIONS[v](); }catch(e){ console.error('migration ' + v, e); } write(SCHEMA_KEY, v); }
@@ -97,7 +98,7 @@ const Store = (() => {
     return { app: 'tracker', version: VERSION, schema: SCHEMA, exportedAt: new Date().toISOString(), account: Account.current().id,
       foods: g('foods'), meals: g('meals'), supps: g('supps'), suppLog: g('suppLog'), fridge: g('fridge'), groc: g('groc'), dayLog: g('dayLog'), days: g('days'),
       targets: g('targets'), plans: g('plans'), weights: g('weights'), profile: g('profile') || {},
-      gym: { custom: g('exCustom'), tpl: g('tpls') || [], plan: g('gymPlan'), sessions: g('sessions'), comeback: g('comeback') }, pet: g('pet'), combos: g('combos'), sync: M() };
+      gym: { custom: g('exCustom'), tpl: g('tpls') || [], plan: g('gymPlan'), sessions: g('sessions'), comeback: g('comeback') }, combos: g('combos'), sync: M() };
   }
 
   return { SCHEMA, load, save, snapshot, upgradeBackup, newId, meta: M, flush: flushMeta,

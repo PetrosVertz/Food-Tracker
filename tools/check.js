@@ -66,9 +66,9 @@ try {
   else ok(`strings: ${used.size} keys used, all exist`);
   const noGreek = Object.keys(S).filter(k => !Array.isArray(S[k]) || S[k][1] == null || S[k][1] === '');
   if (noGreek.length) fail('strings without Greek: ' + noGreek.join(', '));
-  // Keys never referenced literally (dynamic families like slot_/petMood_ are skipped)
+  // Keys never referenced literally (dynamic families like slot_ is skipped)
   const all = jsFiles.map(read).join('\n') + html;
-  const dyn = /^(slot_|petMood_|wt_|ul_|u_)/;
+  const dyn = /^(slot_|wt_|ul_|u_)/;
   const unused = Object.keys(S).filter(k => !dyn.test(k) && !new RegExp(`['"\`]${k}['"\`]|\\b${k}\\b(?!\\s*:)`).test(all.replace(read('js/data/strings.js'), '')));
   if (unused.length) note(`${unused.length} string keys look unused: ${unused.slice(0, 40).join(', ')}${unused.length > 40 ? ' …' : ''}`);
 } catch (e) { fail('could not load strings.js: ' + e.message); }

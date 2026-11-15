@@ -13,7 +13,7 @@ const HEAVY = new Set(['bench','incline_bench','squat','front_squat','deadlift',
 const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), th = topHead(m_);
   return { id, en, el, al: ALSO[id] || [], e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
 
-let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null), pet = Store.load('pet', null);
+let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null);
 
 const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: exCustom.length, l: LIB.concat(exCustom.map(normEx)) }).l;
 
@@ -40,7 +40,7 @@ const e1rm = (w, r, id) => { const load_ = loadOf(id, w); return r >= 1 && r <= 
 
 const fmtRest = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
 
-const saveG = k => Store.save(GKEY[k], { custom: exCustom, tpl: tpls, plan: gymPlan, ses: sessions, act: active, cb: comeback, pet }[k]);
+const saveG = k => Store.save(GKEY[k], { custom: exCustom, tpl: tpls, plan: gymPlan, ses: sessions, act: active, cb: comeback }[k]);
 
 if(!tpls){
   const mk = (name, type, ids) => ({ id: uid(), name, type, exercises: ids.map(([id, sets]) => ({ exId: id, sets, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest })) });
@@ -185,7 +185,7 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
   }catch(err){ ai.disabled = false; ai.innerHTML = t('nxAI') + ' ' + AI.badge(); $('nxAIOut').innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
 });
 
-// ---------- finish → summary (ties into food, supplements and the pet) ----------
+// ---------- finish → summary (ties into food and supplements) ----------
 // 0.7.3: back with no exercises = no workout (the day goes back to how it was, the button stays "Start Workout")
 function gymDropEmpty(){ if(!active || active.exercises.length) return; if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); keepAwake(false); }
@@ -214,7 +214,6 @@ async function finishWorkout(auto){
   sessions.push(ses); saveG('ses');
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
-  petAward('workout', 1);
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
   if(gx().sound !== false) Phone.sound('done');
@@ -264,7 +263,7 @@ setInterval(checkAbandoned, 15000);
 
 $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
-$('gTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; if(b.hasAttribute('data-pet')) return openPet(); if(location.hash.slice(1) !== b.dataset.sec) history.replaceState(null, '', '#' + b.dataset.sec), route(); });
+$('gTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; if(location.hash.slice(1) !== b.dataset.sec) history.replaceState(null, '', '#' + b.dataset.sec), route(); });
 
 $('gStart').addEventListener('click', () => {
   if(active) return openSession();
@@ -326,16 +325,6 @@ $('tpDel').addEventListener('click', () => { const i = tpls.findIndex(y => y.id 
 $('gProgV').addEventListener('change', e => { if(e.target.id === 'gLast'){ profile.gymLast = e.target.value || null; saveProfile(); renderGym(); } });
 
 $('gProgV').addEventListener('click', e => { const c = e.target.closest('[data-ses]'); if(c){ const s = sessions.find(x => x.id === c.dataset.ses); if(s) showSummary(s); } });
-
-const petLevel = xp => Math.floor(xp / 5) + 1, petStage = lv => lv >= 12 ? 2 : lv >= 5 ? 1 : 0;
-
-$('ppList').addEventListener('click', e => { const b = e.target.closest('[data-pp]'); if(!b) return;
-  pet = { species: b.dataset.pp, name: PETS[b.dataset.pp].names[0], xp: 0, lastFed: todayKey(), createdAt: new Date().toISOString(), awards: {}, log: [] };
-  saveG('pet'); close('ovPetPick'); celebrate(); renderAll(); setTimeout(openPet, 250); });
-
-$('petBody').addEventListener('change', e => { if(e.target.id === 'petName'){ pet.name = e.target.value.trim() || PETS[pet.species].names[0]; saveG('pet'); renderPetTile(); } });
-
-$('tPet').addEventListener('click', openPet);
 
 // ---------- swipe from the left edge = back ----------
 (() => {

@@ -26,7 +26,6 @@
 .recbig{width:100%;margin-top:var(--s3);padding:var(--s3) 10px 10px;align-items:stretch}
 .recbig .rbhead{display:flex;justify-content:space-between;align-items:center;padding:0 6px var(--s1);color:var(--text)} .recbig .rbhead b{font-size:16px} .recbig .rbhead span{color:var(--muted);font-size:20px}
 .recbig small{text-align:center}
-#gHubTiles .pettile{flex-direction:column;align-items:flex-start;gap:6px;min-height:0}
 /* tab slide: the old page as a picture moving out */
 .pghost{pointer-events:none;z-index:2}
 /* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
@@ -87,6 +86,12 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .exrow .exn small.exalso{font-size:11.5px;color:var(--t-muted)}
 .exrow .exn small{display:flex;align-items:center;gap:var(--s1);color:var(--muted);font-size:12px}
 .exrow .iinfo{flex:0 0 auto;color:var(--muted);font-size:17px;padding:var(--s2)}
+/* 0.7.9 picker: clearer layers. Icon tile sits one step below the row; Light mode gets a much lighter tile */
+.exrow .mm{background:rgba(0,0,0,.28)}
+:root[data-theme="light"] .exrow .mm{background:rgba(0,0,0,.04)}
+.exrow .exn b{font-weight:var(--w-bold)}
+.exrow .exn small{color:var(--t-muted)}
+.eqhead{margin:18px 2px 8px;letter-spacing:.2px}
 .musort{margin:0 0 10px}
 .eimap{margin:6px 0 10px} .eimap svg{max-height:300px}
 .gymstartbtn{border:1px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 14%,transparent);color:var(--t-accent-ink,var(--t-accent));border-radius:999px;padding:var(--s1) var(--s3);font-size:12px;font-weight:700;cursor:pointer}
@@ -223,7 +228,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .burst span.cf{width:9px;height:9px;border-radius:50%;font-size:0}
 .burst span.cf1{border-radius:2px;width:8px;height:8px}
 .burst span.cf2{border-radius:2px;width:4px;height:14px}
-/* red line x in Common Mistakes and the remove buttons; pet checklist tick; finished-exercise tick */
+/* red line x in Common Mistakes and the remove buttons; finished-exercise tick */
 .xred{color:var(--t-fail)!important;display:inline-flex;align-items:center}
 .fpx li .xred{flex:0 0 auto;padding-top:2px}
 .feed .pfck{display:inline-flex;width:18px;margin-right:6px;vertical-align:-3px;color:var(--t-done)}
@@ -238,7 +243,8 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
 .fph{display:flex;align-items:center;gap:6px}
 .fph svg{flex:0 0 auto;color:var(--t-done)} .fph.warn svg{color:var(--t-alert-ink,var(--t-accent-ink,var(--t-accent)))}
-#eiBody .mrow{grid-template-columns:auto minmax(0,110px) 36px;justify-content:start;gap:10px}
+#eiBody .mrow{grid-template-columns:112px minmax(0,1fr) 40px;gap:10px}   /* 0.7.9: every bar starts in the same column */
+#eiBody .eiform{width:auto;padding:0 var(--s3);margin-left:auto;flex:0 0 auto}
 #eiBody .mrow small{white-space:nowrap}
 #eiBody .mrow b{text-align:right}
 /* 0.7.4.1 gym: Form page stays phone-wide and centred on a computer */
@@ -340,3 +346,7 @@ body.inses .coachbub{display:none!important}
 .wsbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin:0 0 var(--s3)}
 #ovWkScan .wscam .frame{left:22%;right:22%;top:14%;bottom:14%}
 #ovWkScan #wsPhotoBtn{width:100%;margin-top:10px}
+
+/* 0.7.9 streak numbers: slanted athletic numerals (bold italic Inter, tight spacing) on the streak card and the pill */
+.pfstreak .pfnum,.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
+.pfstreak .pfnum{padding-right:3px}
