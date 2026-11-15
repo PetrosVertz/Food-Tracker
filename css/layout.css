@@ -11,13 +11,13 @@ section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 
 /* no bottom bar any more */
 #foodSupps{margin-top:22px}
 /* iOS-style switches instead of square checkboxes */
-input[type=checkbox]:not(#hapI){-webkit-appearance:none;appearance:none;position:relative;flex:0 0 auto;width:46px;height:28px;margin:0 8px 0 0;border:0;border-radius:999px;background:#3a3f46;cursor:pointer;vertical-align:middle;transition:background-color .22s}
+input[type=checkbox]:not(#hapI){-webkit-appearance:none;appearance:none;position:relative;flex:0 0 auto;width:46px;height:28px;margin:0 var(--s2) 0 0;border:0;border-radius:999px;background:#3a3f46;cursor:pointer;vertical-align:middle;transition:background-color .22s}
 input[type=checkbox]:not(#hapI)::before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.35);transition:transform .25s cubic-bezier(.2,.9,.3,1.25)}
 input[type=checkbox]:not(#hapI):checked{background:#34c759}
 input[type=checkbox]:not(#hapI):checked::before{transform:translateX(18px)}
 /* linked macro sliders */
-.mxs{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
-.mxrow{display:grid;grid-template-columns:74px 1fr 92px;align-items:center;gap:8px;margin:4px 0}
+.mxs{margin:10px 0 var(--s1);padding:10px var(--s3);border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.mxrow{display:grid;grid-template-columns:74px 1fr 92px;align-items:center;gap:var(--s2);margin:var(--s1) 0}
 .mxrow b{font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .mxl{font-size:13px;font-weight:600} .mxl.mx-p{color:var(--p)} .mxl.mx-c{color:var(--c)} .mxl.mx-f{color:var(--f)}
 .mxr.mxr{width:100%;--v:30%;--mc:var(--p);background:none!important}
@@ -36,9 +36,9 @@ input.mxr::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px}
 .fab{left:0!important;right:50px!important;margin:0 auto;width:max-content;transform:none;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s}
 .fab:active:not(:disabled){transform:scale(.93);transition-duration:.1s}
 /* calories shown once */
-.kchead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.kchead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:var(--s1)}
 .kcnum{font-size:34px;font-weight:800;letter-spacing:-.8px;line-height:1.1;transition:color .4s}
-.kcnum small{font-size:15px;font-weight:400;color:var(--muted);letter-spacing:0;margin-left:4px}
+.kcnum small{font-size:15px;font-weight:400;color:var(--muted);letter-spacing:0;margin-left:var(--s1)}
 .daypill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
 .mrow.hit .mbar i{background:var(--ok)!important}
 .mrow.soft .mbar i{background:#a8ecc4!important}
@@ -46,22 +46,22 @@ input.mxr::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px}
 :root{ --fi:#d4a86a; }
 /* folded sections */
 details.fold{margin-top:10px}
-details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:6px 0}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:var(--s2);font-size:13px;color:var(--muted);padding:6px 0}
 details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{content:'›';margin-left:auto;font-size:18px;transition:transform .2s}
 details.fold[open]>summary::after{transform:rotate(90deg)}
 details.fold#dExtras{border-top:1px dashed var(--line);margin-top:10px;padding-top:2px}
-details.sectfold{margin-top:16px}
+details.sectfold{margin-top:var(--s4)}
 details.sectfold>summary{font-size:16px;font-weight:700;color:var(--text)}
 .win .na{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 /* ⓘ info bubbles */
 /* 0.7.4.0.5: info button = round chip with the info line icon (ui.js ibtnFill); the button itself is a 44 px target */
 .ibtn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:-12px -8px;padding:0;border:0;background:none;color:var(--t-muted);font-size:0;line-height:1;vertical-align:middle;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.ibtn svg{box-sizing:content-box;width:16px;height:16px;padding:4px;border-radius:999px;background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line)}
-.tippop{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 32px));background:#22272c;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;color:var(--text);box-shadow:0 12px 34px rgba(0,0,0,.45);animation:tipIn .18s ease-out}
+.ibtn svg{box-sizing:content-box;width:16px;height:16px;padding:var(--s1);border-radius:999px;background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line)}
+.tippop{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 32px));background:#22272c;border:1px solid var(--line);border-radius:14px;padding:var(--s3) 14px;font-size:13px;line-height:1.45;color:var(--text);box-shadow:0 12px 34px rgba(0,0,0,.45);animation:tipIn .18s ease-out}
 @keyframes tipIn{from{opacity:0;transform:translateY(4px)}}
-#qaOut{min-height:18px;margin-top:8px}
-.planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+#qaOut{min-height:18px;margin-top:var(--s2)}
+.planstat{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:var(--s3)}
 
 /* ---------- 0.6.0: back buttons are grey, and flash orange while pressed ---------- */
 
@@ -71,9 +71,9 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 /* stronger glass on tabs and tiles */
 .tile{background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04))!important;border-color:rgba(255,255,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.25)!important}
 /* 0.6.1 · Food Track categories, Can't scan?, yesterday */
-.catfold{margin-top:8px} .catfold .e{font-size:20px}
-.catbody{padding-top:4px}
-.cantscan{width:100%;margin-top:12px;background:none!important;border:1px dashed var(--line)!important;color:var(--muted)!important}
+.catfold{margin-top:var(--s2)} .catfold .e{font-size:20px}
+.catbody{padding-top:var(--s1)}
+.cantscan{width:100%;margin-top:var(--s3);background:none!important;border:1px dashed var(--line)!important;color:var(--muted)!important}
 .cantscan.open{color:var(--text)!important}
 #cantScan{animation:rowIn .22s ease-out}
 /* 0.6.1 · AI loader, cook picker, own recipe quick add */
@@ -81,27 +81,27 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 #cookStart{display:none!important}
 #cookPickOpts .bigopt{width:100%;margin-top:10px}
 #recipeBox .actions,#pasteBtn{display:none!important}
-#cWeighLink{display:block;margin:14px 0 4px;color:var(--muted)}
-#sgIn{width:100%;margin-top:8px}
-#sgTime{margin-top:4px}
+#cWeighLink{display:block;margin:14px 0 var(--s1);color:var(--muted)}
+#sgIn{width:100%;margin-top:var(--s2)}
+#sgTime{margin-top:var(--s1)}
 
 /* ---------- 0.6.2 ---------- */
 #gStart{display:none!important}
 .hubstack#gHubTiles{grid-template-columns:1fr!important}
-.hubstack .tile{flex-direction:row!important;min-height:0!important;padding:16px!important}
+.hubstack .tile{flex-direction:row!important;min-height:0!important;padding:var(--s4)!important}
 /* can't scan: easy to spot */
 .cantscan{background:rgba(255,138,42,.12)!important;border:1px solid rgba(255,138,42,.55)!important;color:var(--orange)!important;font-weight:700;font-size:15px;padding:13px!important}
 /* calorie card: Advanced (bottom left) + 🎯 (bottom right) */
 .macrocard{position:relative}
 #dExtras>summary{padding-right:52px}
 .tgcard{position:absolute;right:10px;bottom:8px;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);font-size:18px;cursor:pointer}
-.advtiming{margin-top:12px;padding-top:8px;border-top:1px dashed var(--line);padding-bottom:40px}
-.advh{display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:8px}
-#dExtras[open]{padding-bottom:4px}
+.advtiming{margin-top:var(--s3);padding-top:var(--s2);border-top:1px dashed var(--line);padding-bottom:40px}
+.advh{display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:var(--s2)}
+#dExtras[open]{padding-bottom:var(--s1)}
 #targetsBtn{display:none!important}
 /* Eaten drop-down */
 #dEatenFold>summary small{font-weight:400;color:var(--muted);font-size:14px}
-#copyYesterday{margin:0 0 8px}
+#copyYesterday{margin:0 0 var(--s2)}
 /* swipe to delete */
 #dLog .card{position:relative;touch-action:pan-y}
 #dLog .card.swiping{box-shadow:inset calc(-60px * var(--sw,0)) 0 40px -30px rgba(255,92,92,calc(.9 * var(--sw,0))),0 0 calc(18px * var(--sw,0)) rgba(255,92,92,calc(.45 * var(--sw,0)))!important}
@@ -136,23 +136,23 @@ header .left h1,header>h1{position:absolute;left:0;right:0;top:0;bottom:0;margin
 /* End Workout higher, Discard = a smaller red pill */
 /* Advanced switch */
 .advwrap{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
-.advrow{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin:0;font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:600;cursor:pointer;padding-right:52px}
+.advrow{display:flex;align-items:center;justify-content:flex-start;gap:var(--s3);margin:0;font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:600;cursor:pointer;padding-right:52px}
 .advrow input{margin:0!important}
 .advbody .advtiming{padding-bottom:40px}
 /* macro lock */
-.mxlock{border:0;background:none;font-size:13px;padding:0 0 0 4px;cursor:pointer;opacity:.55;vertical-align:middle}
+.mxlock{border:0;background:none;font-size:13px;padding:0 0 0 var(--s1);cursor:pointer;opacity:.55;vertical-align:middle}
 .mxlock.on{opacity:1}
 .mxr:disabled{opacity:.45}
 /* Can't scan? layout */
-.cscode{display:flex;gap:8px;margin-top:12px}
+.cscode{display:flex;gap:var(--s2);margin-top:var(--s3)}
 .cscode input{flex:1;min-width:0}
-.csbtn{display:block;width:100%;margin-top:8px;text-align:center}
+.csbtn{display:block;width:100%;margin-top:var(--s2);text-align:center}
 /* Gym hub tiles: words next to the icon */
 .hubstack .tile{justify-content:flex-start!important;align-items:center!important;gap:14px!important;text-align:left}
 .hubstack .tile>span:not(.e){flex:1;min-width:0}
 /* Settings: Your Body */
-.bodybox{margin-top:16px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
-.bodybox h3{margin:0 0 8px}
+.bodybox{margin-top:var(--s4);padding:var(--s3);border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.bodybox h3{margin:0 0 var(--s2)}
 /* premium polish pass */
 :root{--r:16px}
 .card,.exc,.tpcard,.macrocard,.wtcard,.win,.remind,.prog,.pgrow,.foldh,.opt{border-radius:var(--r)!important}
@@ -168,11 +168,11 @@ input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--t-accent
 .foldb,.catbody,.pgsub,#cantScan{animation:rowIn .26s cubic-bezier(.2,.9,.25,1)}
 
 /* ---------- 0.6.3.1 ---------- */
-.advwrap{padding-top:8px}
+.advwrap{padding-top:var(--s2)}
 .advline{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .advline .advrow{padding-right:0}
 .tgcard{position:static!important;flex:0 0 auto}
-.macrocard{padding-bottom:12px}
+.macrocard{padding-bottom:var(--s3)}
 /* day arrows: just arrows */
 .daynav #dPrev,.daynav #dNext{background:none!important;border:0!important;box-shadow:none!important;font-size:26px;color:var(--text);width:40px}
 /* no food emojis (custom category icons later) */
@@ -180,9 +180,9 @@ input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--t-accent
 #lResults .sitem{padding-left:14px}
 /* supplements */
 #supQuick,label[data-t="supWhen"],#supTimes,label[data-t="supOften"],#supOften,label[for="supFood"],#supFood,#supLinkHint,label[for="supNotes"],#supNotes,[data-t="supDoseHint"]{display:none!important}
-.takes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
-.take{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 9px;border-radius:999px;background:rgba(89,211,140,.14);border:1px solid rgba(89,211,140,.45);color:var(--ok);font-size:13px}
-.take input{width:auto;padding:2px 4px;border:0;background:none;color:var(--text);font-size:16px}
+.takes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:var(--s2)}
+.take{display:inline-flex;align-items:center;gap:var(--s1);padding:3px var(--s1) 3px 9px;border-radius:999px;background:rgba(89,211,140,.14);border:1px solid rgba(89,211,140,.45);color:var(--ok);font-size:13px}
+.take input{width:auto;padding:2px var(--s1);border:0;background:none;color:var(--text);font-size:16px}
 .take button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px}
 .takebtn{margin-left:auto}
 #supFood + .selbtn{display:none!important}   /* 0.6.3.1: no linked food in supplements */
@@ -269,7 +269,7 @@ html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-are
 #ovAsk .sheet,#ovPick .sheet{min-height:0!important}
 /* Fridge: tidier spacing; no Fridge/Freezer tabs */
 #fLoc{display:none!important}
-#pgFridge .fgseg{margin:6px 0 12px} #pgFridge .search{margin:0 0 12px} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
+#pgFridge .fgseg{margin:6px 0 var(--s3)} #pgFridge .search{margin:0 0 var(--s3)} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
 .frzrow{margin:10px 0}
 /* Home Screen app: everything a little lower */
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
@@ -286,19 +286,19 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 /* 0.6.5.2: planned (not eaten yet) meals are greyed and don't count */
 .planmeal.planned{opacity:.55;border:1px dashed var(--line)!important;background:rgba(255,255,255,.02)!important;filter:grayscale(.6);transition:opacity .2s}
 .planmeal.planned [data-plog]{filter:none;opacity:1}
-#planShow h3.sect{margin-top:4px}
+#planShow h3.sect{margin-top:var(--s1)}
 /* 0.6.5.3: menus show as much as fits; the body map always fits inside the picker (no scrolling the body) */
 #ovExPick .sheet{height:min(90vh,800px)!important}
 .overlay.searchy .sheet{height:min(84vh,740px)!important}
 html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area-inset-top)),800px)!important}
 #ovExPick .bodymap{margin:0} #ovExPick .bodymap svg{width:100%!important;max-width:none!important;height:auto;max-height:calc(min(90vh,800px) - 270px)}
-#ovExPick .bodymap + .hint{margin:4px 0 0}
+#ovExPick .bodymap + .hint{margin:var(--s1) 0 0}
 
 /* 0.6.7 · search: did you mean, add as takeaway, amount unit */
-.dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;color:var(--muted);font-size:14px;cursor:pointer}
+.dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px var(--s3);margin:0 0 var(--s2);color:var(--muted);font-size:14px;cursor:pointer}
 .dym b{color:var(--t-accent-ink,var(--t-accent))}
 .sitem.takeaway{margin-top:10px;border:1px dashed color-mix(in srgb,var(--t-accent) 35%,transparent)}
-#ovAmt .amrow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+#ovAmt .amrow{display:flex;gap:var(--s2);align-items:stretch;margin-top:10px}
 #ovAmt .amrow input{flex:1 1 0;min-width:0;font-size:20px;font-weight:700;text-align:center}
 #ovAmt .amrow .selbtn{flex:0 0 42%;width:42%;min-width:0}
 
@@ -310,6 +310,6 @@ html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area
 :root{--edge:rgba(255,255,255,.11)}
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow{border-color:var(--edge)!important}
 .exrow{border-left-color:var(--eq)!important} .exc.ss,.tpcard.ss{border-left-color:var(--ssc)!important}
-.toast{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 150px)!important;width:min(calc(100vw - 32px),440px);padding:7px 8px 7px 18px;justify-content:space-between;white-space:normal;text-align:left;line-height:1.3;min-height:38px}   /* 0.7.2: wide and slim, above the main button (Log Food / Start Workout), never on it */
+.toast{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 150px)!important;width:min(calc(100vw - 32px),440px);padding:7px var(--s2) 7px 18px;justify-content:space-between;white-space:normal;text-align:left;line-height:1.3;min-height:38px}   /* 0.7.2: wide and slim, above the main button (Log Food / Start Workout), never on it */
 .toast:has(#toastAct.hide){justify-content:center;text-align:center;padding-right:18px}
-.toast button{flex:0 0 auto;padding:6px 12px;border-radius:999px}
+.toast button{flex:0 0 auto;padding:6px var(--s3);border-radius:999px}
