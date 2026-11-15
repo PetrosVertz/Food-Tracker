@@ -727,3 +727,13 @@ Object.assign(S, {
   eiMore: ['Muscles and Steps', 'Μύες και Βήματα'],
   phSaved: ['Profile photo saved', 'Η φωτογραφία προφίλ αποθηκεύτηκε'], phBad: ['Couldn’t open that photo.', 'Δεν άνοιξε αυτή η φωτογραφία.'],
 });
+
+// ---------- 0.7.9 ai: what the AI knows (Settings › AI) ----------
+Object.assign(S, {
+  aiKnowT: ['What AI Knows', 'Τι Ξέρει το AI'],
+  aiKnowSub: ['The AI learns from your food and workout logs on this phone, so its suggestions fit you. Nothing leaves the phone except inside the AI requests you already make.', 'Το AI μαθαίνει από τα γεύματα και τις προπονήσεις που καταγράφεις σε αυτό το κινητό, ώστε οι προτάσεις του να σου ταιριάζουν. Τίποτα δεν φεύγει από το κινητό, εκτός από τα αιτήματα AI που ήδη κάνεις.'],
+  aiKnowReset: ['Reset What AI Knows', 'Επαναφορά Όσων Ξέρει το AI'],
+  aiKnowAsk: ['Forget everything the AI has learned from your logs? It starts learning again from tomorrow. Your logs stay as they are.', 'Να ξεχάσει το AI ό,τι έμαθε από τις καταγραφές σου; Θα αρχίσει να μαθαίνει ξανά από αύριο. Οι καταγραφές σου μένουν ως έχουν.'],
+  aiKnowYes: ['Reset', 'Επαναφορά'],
+  aiKnowDone: ['The AI has forgotten what it learned', 'Το AI ξέχασε όσα είχε μάθει'],
+});

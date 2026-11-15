@@ -56,7 +56,7 @@ const Coach = (() => {
   async function talk(text, ch, img){
     const gym = kindOf(ch.id) === 'gym';
     const role = gym ? 'You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app.' : 'You are Food Coach, a friendly, practical nutrition coach inside a food-tracking app for someone who lifts weights.';
-    const r = await ch.ask(`${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most 120 words), plain text with no markdown.${AI.dietRules()}
+    const r = await ch.ask(`${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most 120 words), plain text with no markdown.${AI.dietRules()}${AI.knows(gym ? 'gym' : 'food')}
 Conversation so far:
 ${ch.transcript()}
 ${img ? 'The user also sent the attached photo.' : ''}

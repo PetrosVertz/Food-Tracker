@@ -181,6 +181,15 @@ const AI = (() => {
     return '\nFood rules (strict, never break them): ' + (al.length ? `the user is ALLERGIC to: ${al.join(', ')}; never suggest or include these or anything made with them. ` : '') + (av.length ? `The user does not eat / avoids: ${av.join(', ')}; never suggest or include these.` : '');
   }
 
+  // 0.7.9 what the app has learned from the user's own logs (js/know.js, rebuilt once a day on the phone), for coach and suggestion prompts.
+  // topic 'food' | 'gym': that part in full, the other in one line; '' when nothing is learned yet. Never shown on screen.
+  function knows(topic){
+    const k = Store.load('aiKnow', null); if(!k) return '';
+    const parts = [k.body, topic === 'gym' ? k.gym : k.food, topic === 'gym' ? k.foodShort : k.gymShort].filter(Boolean);
+    if(!parts.length) return '';
+    return '\nWhat the app has learned about this user from their own logs (use it quietly so suggestions fit them; do not list it back or ask about what it already says; what they ask for now comes first): ' + parts.join(' ');
+  }
+
   async function ask(prompt, img, onTry, outer, opts){
     count();
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
@@ -206,7 +215,7 @@ const AI = (() => {
   }
 
   return {
-    ask, dietRules, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
+    ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

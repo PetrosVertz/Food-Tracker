@@ -1122,7 +1122,7 @@ function gcPrompt(ch, img){
   return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. Answer the user's last message in ${gcLang()}.
 ${GC_REPLY}
 You can suggest a full workout, or look at one of their saved workouts and improve it (better exercise choice and order, balance between muscles, sets, reps, rest). Respect recovery: avoid muscles that still need rest. Use only equipment they use.
-${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}
+${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
 ${gcContext()}
 Exercise list (use these exact English names): ${gcNames()}.
 Conversation so far (latest last):
@@ -1171,7 +1171,7 @@ function gcLivePrompt(ch, img){
   return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. The user is in the middle of a workout. Answer their last message in ${gcLang()}.
 ${GC_REPLY}
 ${img ? 'They sent a photo, most likely of a gym machine they are not sure about: name it and explain how to use it safely. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer questions about this workout: technique, what to do next, weights, rest.'}
-${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}
+${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
 ${gcActive()}
 ${gcContext()}
 Exercise list (use these exact English names): ${gcNames()}.

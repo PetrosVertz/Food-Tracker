@@ -28,11 +28,12 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/vendor/qrcode.js` | QR picture maker (qrcode-generator, MIT, unmodified; licence in `licenses/qrcode-generator`) |
 | `js/progress.js` | Gym → Progress |
 | `js/profile.js` | **Profile tab (0.7.7)**: your circle + friends space, Share a Workout, streak, latest PR, leaderboards (best estimated 1RM per board lift), stats. `profileData()` is the one place the gym branches fill in (streak, tiers); `renderProfile()` draws the page. Settings opens from the gear on Profile |
+| `js/know.js` | **What the AI knows (0.7.9)**: once a day, on the phone, a short profile from your own logs (eating, training, strength, weight trend) saved as `aiKnow`; `AI.knows(topic)` adds it to coach and suggestion prompts. Never shown on screen; Settings › AI › Reset What AI Knows clears it |
 | `js/wire/01…10-*.js` | Start-up wiring in order: state, button wiring, first render (by topic) |
 | `sw.js` | Offline cache (bump `CACHE` and list new files when adding any) |
 
 ## Rules
-- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account (this device only).
+- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow (this device only).
 - Changing the shape of saved data: raise `SCHEMA` in store.js and add a migration (it also upgrades old backups in `upgradeBackup`).
 - The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads. Nothing else may.
 - Phone APIs only through `Phone.*`; AI only through `gemini()` / `AI.*`.
