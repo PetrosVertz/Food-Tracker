@@ -256,8 +256,8 @@ Object.assign(S, {
  whatNext:['What Next?','Τι μετά;'], nxT:['What next?','Τι μετά;'], nxSub:['Muscles you haven’t hit yet, based on this session and your week.','Μύες που δεν έχεις δουλέψει ακόμα, με βάση αυτή την προπόνηση και την εβδομάδα.'],
  nxWhy:['{a} sets today · {b} this week','{a} σετ σήμερα · {b} αυτή την εβδομάδα'], nxNone:['You’ve covered everything for this workout. Nice.','Τα κάλυψες όλα για αυτή την προπόνηση. Ωραία.'],
  nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
- recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'], recDays:['{n} more days','{n} μέρες ακόμα'],
- recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'], recAllReady:['Everything is recovered. Good to go.','Όλα έχουν αναρρώσει. Πάμε.'],
+ recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'],
+ recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
  recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
  recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
  recWarnToday:['{m} still recovering (~{p}%). Go lighter today or swap exercises.','{m} ακόμα αναρρώνουν (~{p}%). Πήγαινε πιο ελαφριά σήμερα ή άλλαξε ασκήσεις.'],
@@ -670,10 +670,8 @@ Object.assign(S, {
 
 // ---------- 0.7.7: recovery ----------
 Object.assign(S, {
-  recMoreH: ['{h} h more rest', '{h} ώρες ξεκούραση ακόμα'],
-  recFoodNone: ['No food logged since your workout. Eat some protein to help recovery.', 'Δεν έχεις καταγράψει φαγητό από την προπόνηση. Φάε λίγη πρωτεΐνη για την ανάρρωση.'],
-  recFoodOk: ['Enough food since your workout for recovery: {p} g protein, {k} kcal.', 'Αρκετό φαγητό από την προπόνηση για ανάρρωση: {p} g πρωτεΐνη, {k} kcal.'],
-  recFoodLow: ['Not enough food yet for recovery. About {p} g more protein would help.', 'Δεν αρκεί ακόμα το φαγητό για ανάρρωση. Περίπου {p} g ακόμα πρωτεΐνη θα βοηθούσε.'],
+  recVOk: ['On Track', 'Σε καλό δρόμο'], recVBit: ['A Bit Low', 'Λίγο Χαμηλά'], recVLow: ['Low', 'Χαμηλά'], recGap: ['about {g} g protein short', 'λείπουν περίπου {g} g πρωτεΐνη'],
+  recTipTonight: ['Add a protein-rich meal tonight', 'Πρόσθεσε ένα γεύμα πλούσιο σε πρωτεΐνη απόψε'], recTipTomorrow: ['Start tomorrow with a protein-rich meal', 'Ξεκίνα αύριο με γεύμα πλούσιο σε πρωτεΐνη'], recTipToday: ['Start today with a protein-rich meal', 'Ξεκίνα σήμερα με γεύμα πλούσιο σε πρωτεΐνη'],
 });
 
 // ---------- 0.7.7: sounds ----------

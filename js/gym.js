@@ -417,25 +417,42 @@ function sessionRecoveryWarn(){
 // Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
 function recFigure(){ const m = recMap();
   return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
-// 0.7.7: was the food since the last workout enough for recovery? Reads the food log and targets (dayLog / targets), nothing new is stored.
-function recFoodLine(){
-  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return '';
-  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return '';
-  const day = last.date, tg = targetFor(day); if(!tg || !tg.p || !tg.k) return '';
-  const hm = new Date(endTs).toTimeString().slice(0, 5), today = todayKey();
-  const list = [day, ...(today > day ? [today] : [])].flatMap(d => (dayLog[d] || []).filter(e => d !== day || (e.time || '') >= hm));
-  const p = list.reduce((a, e) => a + (+e.p || 0), 0), k = list.reduce((a, e) => a + (+e.kcal || 0), 0);
-  const msg = !list.length ? t('recFoodNone') : p >= tg.p * .5 && k >= tg.k * .5 ? t('recFoodOk', { p: Math.round(p), k: Math.round(k) }) : t('recFoodLow', { p: Math.round(Math.max(0, tg.p * .5 - p)) });
-  return `<div class="alert" style="cursor:default;margin-bottom:12px">${msg}</div>`; }
+// 0.7.9.1: does the food since the last workout support recovery? ALL the rules live in recFoodVerdict() so the AI coach brain
+// (docs/notes/ai-coach-brief.md) can replace them later with the researched rules. Reads the food log and targets, nothing new is stored.
+// Returns null (say nothing) or { v: 'ok' | 'bit' | 'low', tip, gap? }.
+function recFoodVerdict(){
+  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return null;
+  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return null;   // the recovery window: up to ~48 h after the workout
+  const wDay = last.date, today = todayKey(), now = new Date(), nowH = now.getHours() + now.getMinutes() / 60, wH = new Date(endTs).getHours() + new Date(endTs).getMinutes() / 60;
+  const tg = targetFor(today); if(!tg || !tg.p || !tg.k) return null;
+  // RULE 1: nothing logged today is UNKNOWN, not zero. Then today is left out and the window ends with the last day that has food (yesterday).
+  const todayFood = (dayLog[today] || []).length > 0, endDay = todayFood ? today : addDays(today, -1);
+  if(endDay < wDay) return null;   // the workout was today and nothing is logged yet: nothing to judge
+  // RULE 2: how much of a normal day's eating is "due" by a given hour (not a flat share: breakfast is small, dinner is big)
+  const due = h => { const pts = [[6, 0], [9, .2], [13, .5], [19, .8], [22, 1]]; if(h <= pts[0][0]) return 0; for(let i = 1; i < pts.length; i++) if(h <= pts[i][0]) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (h - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); return 1; };
+  let exp = 0, p = 0, k = 0, n = 0;
+  for(let d = wDay; d <= endDay; d = addDays(d, 1)){
+    const from = d === wDay ? wH : 0, to = d === today ? nowH : 24, hm = d === wDay ? new Date(endTs).toTimeString().slice(0, 5) : '';
+    exp += Math.max(0, due(to) - due(from));
+    (dayLog[d] || []).filter(e => !hm || (e.time || '') >= hm).forEach(e => { n++; p += +e.p || 0; k += +e.kcal || 0; }); }
+  if(exp < .15) return null;   // too early in the window to say anything useful
+  if(!n) return null;   // no food logged in the window at all: unknown, not zero
+  // RULE 3: compare with the targets pro-rated by that share; the weaker of protein and calories decides
+  const r = Math.min(p / (tg.p * exp), k / (tg.k * exp)), v = r >= .85 ? 'ok' : r >= .6 ? 'bit' : 'low';
+  // RULE 4: one tip when low; exact grams only when the day is mostly over
+  const dayOver = todayFood && nowH >= 21;
+  return { v, tip: v === 'low' ? (!todayFood ? 'recTipToday' : nowH >= 20 ? 'recTipTomorrow' : 'recTipTonight') : '', gap: v !== 'ok' && dayOver ? Math.max(0, Math.round(tg.p * exp - p)) : 0 };
+}
+function recFoodLine(){ const r = recFoodVerdict(); if(!r) return '';
+  return `<div class="alert" style="cursor:default;margin-bottom:12px"><b>${t({ ok: 'recVOk', bit: 'recVBit', low: 'recVLow' }[r.v])}</b>${r.tip ? ' · ' + t(r.tip) : ''}${r.gap > 0 ? ' · ' + t('recGap', { g: r.gap }) : ''}</div>`; }
 function renderRecovery(){
   const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
-  const notReady = Object.entries(m).filter(([, v]) => v.h > 0).sort((a, b) => b[1].h - a[1].h);
-  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h <= 24 ? t('recMoreH', { h: v.h }) : t('recDays', { n: Math.ceil(v.h / 24) })}</span></div>`;
-  $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-bottom:12px">${w}</div>`).join('') +
-    `<div class="reccard" id="recFig">${recFigure()}</div>
+  const all = Object.entries(m).sort((a, b) => b[1].h - a[1].h);   // 0.7.9.1: every muscle, state + hours left ("Needs Rest · 48 h", "Recovering · 14 h", "Ready"), always hours
+  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${v.st === 'ok' ? t('recReady') : `${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h} h`}</span></div>`;
+  $('gRecV').innerHTML = `<div class="reccard" id="recFig">${recFigure()}</div>
     <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small>${t('recReady')}</small><small>${t('recLow')}</small></span></div>
     ${recFoodLine()}
-    <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
+    <div class="reclist">${all.map(row).join('')}</div>
     <p class="hint">${t('recHint')}</p>`;
 }
 
