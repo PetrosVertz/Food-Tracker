@@ -116,6 +116,9 @@ function ibtnFill(root){ (root.matches && root.matches('.ibtn') ? [root] : []).c
   .forEach(b => { if(!b.querySelector('svg')) b.innerHTML = svgIcon('info', 18); }); }
 document.addEventListener('DOMContentLoaded', () => ibtnFill(document));
 
+// 0.7.9: pages and windows get .scrolled once their content moves, so the pinned back arrow shows its round backing (theme.css)
+document.addEventListener('scroll', e => { const el = e.target; if(el.nodeType === 1 && el.matches('section.page,.overlay .sheet')) el.classList.toggle('scrolled', el.scrollTop > 6); }, { capture: true, passive: true });
+
 const PILL_SEL = '.mpill,.seg,.rail';
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
