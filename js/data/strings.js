@@ -750,3 +750,7 @@ Object.assign(S, {
   aiKnowYes: ['Reset', 'Επαναφορά'],
   aiKnowDone: ['The AI has forgotten what it learned', 'Το AI ξέχασε όσα είχε μάθει'],
 });
+Object.assign(S, {
+  exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
+  soreHint: ['{m} is still recovering: about {h} h left', 'Ο μυς ({m}) αναρρώνει ακόμα: περίπου {h} ώρες ακόμα'],
+});

@@ -86,6 +86,8 @@ function warmupFor(exId, w){
 const gx = () => settings.gx || (settings.gx = {});
 // 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
 // The old single switch (hideMarks) becomes all three hidden.
+// 0.7.9.5: simple on/off switches in Exercise Settings that are on unless switched off (gx()[k] === false)
+const gOn = k => gx()[k] !== false;
 function hideM(k){ const G = gx(); if(G.hideMarks){ G.hideM = { W: true, D: true, F: true }; delete G.hideMarks; Store.save('settings', settings); } return !!(G.hideM && G.hideM[k]); }
 let EXS_MK = false;   // the Hide Set Markers list is open
 function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
@@ -383,6 +385,10 @@ function groupReadiness(atTs){
 
 // 0.7.4.2: ONE function decides the recovery state, from the hours left, so the colour and the hours text always agree:
 // more than 24 h left = low (red, Needs Rest) · 1-24 h = mid (yellow, Recovering) · recovered = ok (green, Ready)
+let _recMapAt = 0, _recMapV = null;
+function recMapNow(){ if(!_recMapV || Date.now() - _recMapAt > 30000){ _recMapV = recMap(); _recMapAt = Date.now(); } return _recMapV; }
+// 0.7.9.5: the sore-muscle state of one exercise, from recMap() (the one source): { h, st } when Needs Rest or Recovering, else null
+function exSore(exId){ const ex = exById(exId), hd = HEADS[ex.h], v = hd && recMapNow()[hd[2]]; return v && v.st !== 'ok' ? v : null; }
 const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
 function recMap(){
   const gs = Object.keys(groupReadiness(Date.now())), hrs = {};
@@ -750,9 +756,9 @@ function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.t
 
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
-function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
+function drawExSet(){ const G = gx(), dRow = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] !== false ? 'on' : ''}" data-gx="${k}" data-def="1" type="button" role="switch" aria-checked="${G[k] !== false}" aria-label="${t(a)}"><i></i></button></div>`, row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
   const mk = [['W', t('mkW')], ['D', t('mkD')], ['F', t('mkF')]].map(([k, l]) => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${l}</button>`).join('');
-  $('exsBody').innerHTML = row('lbAtt', 'atTitle', 'atSub') + row('uniBoth', 'exsUni', 'exsUniS') +
+  $('exsBody').innerHTML = row('lbAtt', 'atTitle', 'atSub') + row('uniBoth', 'exsUni', 'exsUniS') + dRow('warnSore', 'exsWarn', 'exsWarnS') +
     `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
 
 function cardHtml(x, i){
@@ -766,8 +772,9 @@ function cardHtml(x, i){
   const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
+  const sore = !card && gOn('warnSore') ? exSore(x.exId) : null;
   // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
-  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b>
+  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow">${sore ? `<button type="button" class="sorewarn" data-sore aria-label="${esc(t('soreHint', { m: ML(ex.h), h: Math.ceil(sore.h) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
