@@ -85,7 +85,7 @@ $('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-
 });
 
 $('sesBody').addEventListener('click', e => {
-  const atl = e.target.closest('[data-atlift]'); if(atl) return atSetup(atl.dataset.atlift);   // 0.7.9 Leaderboard Attempt
+  const ab = e.target.closest('[data-attempt]'); if(ab) return atToggle(+ab.closest('.exc').dataset.x);   // trophy: Leaderboard Attempt on this exercise
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
@@ -119,7 +119,6 @@ $('sesBody').addEventListener('click', e => {
 });
 
 $('sesSupps').addEventListener('click', e => {
-  if(e.target.closest('[data-attempt]')) return atToggle();
   const b = e.target.closest('[data-ssup]'); if(!b) return; const k = todayKey(); suppLog[k] = suppLog[k] || {};
   if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderSupps();
 });
