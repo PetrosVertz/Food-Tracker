@@ -690,11 +690,13 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 #ovCoach .sback{display:none}
 /* Back: the window shrinks into the robot bubble (transform-origin = where the bubble sits, set by coach.js) */
 /* 0.7.9: opening from the bubble: the window grows out of it (transform + opacity + clip-path only; transform-origin = the bubble, set by coach.js) */
-@keyframes coachGrow{from{transform:scale(.08);opacity:0;clip-path:inset(0 round 400px)}60%{opacity:1}to{transform:none;opacity:1;clip-path:inset(0 round 0)}}
+/* 0.7.9.1: a round opening from the bubble's centre (--cx/--cy/--cr set by coach.js aim()), like a speech bubble opening; the shrink is the same in reverse */
+@keyframes coachGrow{from{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}30%{opacity:1}to{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}}
+@keyframes coachShrink{from{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}60%{opacity:1}to{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}}
 @keyframes coachFade{from{opacity:0}to{opacity:1}}
 #ovCoach.grow.open .sheet.coachwin{animation:coachGrow .3s cubic-bezier(.3,1.12,.5,1) both!important}
 #ovCoach.shrink{background:transparent!important}
-#ovCoach.shrink .sheet.coachwin{transform:scale(.08);opacity:0;clip-path:inset(0 round 400px);border-radius:400px!important;animation:none!important;transition:transform .24s cubic-bezier(.4,0,.7,1),opacity .2s ease-in .04s,border-radius .24s}
+#ovCoach.shrink.shrink .sheet.coachwin.coachwin{animation:coachShrink .26s cubic-bezier(.4,0,.2,1) both!important}
 .chead{flex:0 0 auto;display:flex;align-items:center;gap:var(--s1);min-height:56px;padding:6px var(--s4) 6px var(--s1);border-bottom:1px solid var(--t-line)}
 .cback{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--t-text);display:grid;place-items:center;padding:0;cursor:pointer}
 .cface{display:inline-flex;margin-right:var(--s1)} .cface .robot,.cav .robot{display:block}
@@ -734,7 +736,8 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .csend:disabled{opacity:.35;cursor:default}
 .ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
 /* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
-.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:left .42s cubic-bezier(.2,1.3,.4,1),top .32s cubic-bezier(.2,.9,.3,1),opacity .18s}
+.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .18s}
+@keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* 0.7.9.1: fade only, so coming back from the chat never resets its glide (transform) */
 html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
 .coachbub.pre{opacity:0;animation:none;pointer-events:none}
 .coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}

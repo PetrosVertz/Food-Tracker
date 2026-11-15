@@ -123,8 +123,7 @@ Return ONLY JSON: {"reply": string}`, img);
     const grow_ = !!b && !rmo();   // 0.7.9: opened from its bubble (now at the top right): the window grows out of it
     ov.classList.toggle('grow', grow_);
     open('ovCoach'); fit(); pillSync();
-    if(grow_){ const sh = ov.querySelector('.sheet'), r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
-      sh.style.transformOrigin = `${r.left + r.width / 2 - s.left}px ${r.top + r.height / 2 - s.top}px`; }
+    if(grow_) aim(b);
     requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = c.end === false ? c.sy : el.scrollHeight; });   // back where you left off (bottom unless you had scrolled up)
   }
   function keep(){ const c = cur && CH[cur]; if(c) c.draft = $('coachIn').value; }
@@ -141,26 +140,34 @@ Return ONLY JSON: {"reply": string}`, img);
     if(rmo() || NOBUB(cur)){ close('ovCoach'); return; }
     // shrink toward where the bubble will sit
     const b = bubble(cur); b.classList.add('pre'); if(!b._home) perch(b, true);   // the bubble waits at the top right
-    const r = b.getBoundingClientRect(), s = sh.getBoundingClientRect();
-    sh.style.transformOrigin = `${r.left + r.width / 2 - s.left}px ${r.top + r.height / 2 - s.top}px`;
-    shrinking = true; ov.classList.add('shrink'); Phone.haptic();
-    setTimeout(() => { sh.style.transformOrigin = ''; if(shrinking) close('ovCoach'); b.classList.remove('pre'); setTimeout(() => goHome(b), 120); }, 240);   // then the bubble glides back to where it was
+    aim(b, true);
+    shrinking = true; ov.classList.remove('grow'); ov.classList.add('shrink'); Phone.haptic();
+    setTimeout(() => b.classList.remove('pre'), 170);   // the bubble fades back in as the window fades into it
+    setTimeout(() => { if(shrinking) close('ovCoach'); setTimeout(() => goHome(b), 100); }, 260);   // then the bubble glides back to where it was
   }
+  // 0.7.9.1: the window opens from / closes into the bubble: transform-origin and the round clip sit on the bubble's centre.
+  // Measured from the window's own layout box (not its on-screen box, which is scaled while it animates). perched = use where
+  // the bubble is going (the top right), not where it is now.
+  const GROW_S = .35;   // the window's scale at the start of the grow / end of the shrink (theme.css coachGrow / coachShrink)
+  function aim(b, perched){ const ov = $('ovCoach'), sh = ov.querySelector('.sheet'), o = ov.getBoundingClientRect();
+    const p = perched ? spot(b) : b.getBoundingClientRect(), w = b.offsetWidth;
+    const cx = (perched ? p.x : p.left) + w / 2 - (o.left + sh.offsetLeft), cy = (perched ? p.y : p.top) + w / 2 - (o.top + sh.offsetTop);
+    sh.style.transformOrigin = `${cx}px ${cy}px`; sh.style.setProperty('--cx', cx + 'px'); sh.style.setProperty('--cy', cy + 'px'); sh.style.setProperty('--cr', (w / 2 / GROW_S) + 'px'); }
   // ---- the bubble's trip: home → top right (the chat grows out of it) → back home ----
-  const POS = ['left', 'top', 'right', 'bottom'];
+  // 0.7.9.1: the trip is a transform on top of the bubble's own spot (left/top never change), so it glides on the GPU
+  const BUBT = 'transform .34s cubic-bezier(.22,1,.36,1),opacity .18s';
+  let satP = null;   // a hidden probe that measures the phone's top safe area (the notch)
+  const satop = () => { if(!satP){ satP = document.createElement('div'); satP.setAttribute('aria-hidden', 'true');
+    satP.style.cssText = 'position:fixed;left:0;top:0;width:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(satP); } return satP.offsetHeight; };
+  const spot = b => ({ x: innerWidth - b.offsetWidth - 14, y: satop() + 10 });   // the top right, where the chat grows from
   function perch(b, instant){
-    if(!b._home){ const r = b.getBoundingClientRect(); b._home = POS.map(k => b.style[k]);
-      b.style.transition = 'none'; b.style.right = 'auto'; b.style.bottom = 'auto'; b.style.left = r.left + 'px'; b.style.top = r.top + 'px'; b.getBoundingClientRect(); b.style.transition = instant ? 'none' : ''; }
-    b.style.left = (innerWidth - b.offsetWidth - 14) + 'px'; b.style.top = 'calc(env(safe-area-inset-top) + 10px)';
-    if(instant){ b.getBoundingClientRect(); b.style.transition = ''; }
+    const p = spot(b); b._home = true; b.style.transition = instant || rmo() ? 'none' : BUBT;
+    b.style.transform = `translate3d(${p.x - b.offsetLeft}px,${p.y - b.offsetTop}px,0)`;
+    if(instant){ b.getBoundingClientRect(); b.style.transition = BUBT; }
   }
   function goHome(b){
-    const h = b && b._home; if(!h || !b.isConnected) return; b._home = null;
-    const now = POS.map(k => b.style[k]); b.style.transition = 'none';
-    POS.forEach((k, i) => { b.style[k] = h[i]; }); const r = b.getBoundingClientRect();   // where home is, in pixels
-    POS.forEach((k, i) => { b.style[k] = now[i]; }); b.getBoundingClientRect(); b.style.transition = '';
-    b.style.right = 'auto'; b.style.bottom = 'auto'; b.style.left = r.left + 'px'; b.style.top = r.top + 'px';
-    setTimeout(() => { if(b._home || !b.isConnected) return; b.style.transition = 'none'; POS.forEach((k, i) => { b.style[k] = h[i]; }); b.getBoundingClientRect(); b.style.transition = ''; }, rmo() ? 0 : 460);
+    if(!b || !b._home || !b.isConnected) return; b._home = false;
+    b.style.transition = rmo() ? 'none' : BUBT; b.style.transform = '';
   }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
@@ -169,7 +176,7 @@ Return ONLY JSON: {"reply": string}`, img);
     document.body.appendChild(b);
     b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } if(b._going) return; Phone.haptic();
       if(rmo()){ open_(id); return; }
-      b._going = true; perch(b); setTimeout(() => { b._going = false; if(!cur && $('cb-' + id) === b) open_(id); }, 320); });   // the bubble flies to the top right, then the chat grows out of it
+      b._going = true; perch(b); setTimeout(() => { b._going = false; if(!cur && $('cb-' + id) === b) open_(id); }, 330); });   // the bubble flies to the top right, then the chat grows out of it
     AI.drag(b, () => dismiss(id), 'coachBub_' + id);
     return b;
   }
