@@ -88,7 +88,7 @@ Return ONLY JSON: {"reply": string}`, img);
     el.innerHTML = c.msgs.map((m, i) => msgHtml(m, c.msgs[i - 1], k)).join('');
     if(stick) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
   }
-  function head(){ const k = kindOf(cur); $('coachT').textContent = title(cur); $('coachFace').innerHTML = AI.robot(k, 28);
+  function head(){ $('coachT').textContent = title(cur);   // 0.7.9.2: no robot face in the title (it is the bubble, and beside its answers)
     const f = cfg(cur), ph = val(f.placeholder) || t('coachPh'); $('coachIn').placeholder = ph; $('coachIn').setAttribute('aria-label', ph);
     $('coachCam').classList.toggle('hide', !f.camera); $('coachForm').classList.toggle('cam', !!f.camera); }
 
@@ -140,26 +140,25 @@ Return ONLY JSON: {"reply": string}`, img);
     if(!cur) return; Phone.haptic(); close('ovCoach');
   }
   // ---- where the window sits (0.7.9.2) ----
-  // Rounded, a margin all round, at most 560 wide. Its corner on the bubble's side sits under the bubble's centre: below the bubble when
-  // there is more room below (the bubble on its top corner), else above it (the bubble on its bottom corner; the chat box makes room).
+  // Rounded, a margin all round, at most 560 wide. Always BELOW the bubble: its top corner on the bubble's side sits under the bubble's centre
+  // (the bubble's own spot is near the top right, theme.css .coachbub). A bubble dragged low still opens a usable window (at least HMIN tall)
+  // that then starts a little above it, with the bubble resting on its side.
   // The overlay already matches the visible screen above the keyboard (fit), so with the keyboard up the window shrinks to stay fully in view.
   let saP = null;   // a hidden probe that reads the phone's safe areas (notch / home bar)
   const safe = () => { if(!saP){ saP = document.createElement('div'); saP.setAttribute('aria-hidden', 'true');
     saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
     return { t: saP.offsetHeight, b: saP.offsetWidth }; };
-  const M = 12, WMAX = 560, HMIN = 240;
+  const M = 12, WMAX = 560, HMIN = 320;
   function lay(){ const ov = $('ovCoach'), sh = ov && ov.querySelector('.sheet'); if(!sh || !cur) return;
     const W = ov.clientWidth, H = ov.clientHeight, sa = safe(), kb = ov.classList.contains('kb'), y0 = (kb ? 0 : sa.t) + M, y1 = H - (kb ? 0 : sa.b) - M, oy = ov.getBoundingClientRect().top;
-    const w = Math.min(W - 2 * M, WMAX); let x, top, bot, side = 'r', up = false, ax = W - M - 34, ay = y0;
+    const w = Math.min(W - 2 * M, WMAX); let x, top, bot, side = 'r', ax = W - M - 34, ay = y0;
     if(anc && anc.isConnected && anc.getClientRects().length){ const r = anc.getBoundingClientRect(); ax = r.left + r.width / 2; ay = r.top + r.height / 2 - oy; }
     side = ax < W / 2 ? 'l' : 'r';
     x = side === 'r' ? Math.min(W - M, ax + 34) - w : Math.max(M, ax - 34); x = Math.max(M, Math.min(W - M - w, x));
-    if(!anc || NOBUB(cur)){ top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1; }   // header robot: hang just under it, full height below
-    else if(y1 - ay >= ay - y0){ top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1; }   // more room below the bubble
-    else { up = true; top = y0; bot = Math.min(y1, Math.max(ay, y0 + HMIN)); }   // more room above it
+    top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1;   // hang from the bubble (or the header robot), down to the bottom margin
     sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (bot - top) + 'px';
     sh.style.transformOrigin = `${(ax - x).toFixed(1)}px ${(ay - top).toFixed(1)}px`;   // grows from / shrinks into the bubble's centre
-    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('up', up); sh.classList.toggle('nb', !anc || NOBUB(cur)); }
+    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !anc || NOBUB(cur)); }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
