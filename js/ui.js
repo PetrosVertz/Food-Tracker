@@ -490,27 +490,106 @@ function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
 function tabIdx(tab){ return tab === 'profile' ? TABS3.length : TABS3.indexOf(tab); }   // 0.7.7: Profile is the last tab (Settings lives inside it)
 
-// swipe right-to-left past 1/3 to delete: finger on a phone, mouse drag on a computer
+// swipe right-to-left past 1/3 (or a quick flick) to delete: finger on a phone, mouse drag on a computer. 0.7.9.1: on the shared
+// drag helper: the row follows the finger 1:1, then carries on out with the finger's speed or springs back home
 function makeSwipeDelete(box, itemSel, onDelete, opts){
   opts = opts || ({ '.exc': { skip: '.setrow,.rbwrap,.sethead,.newset,.endex2,.adddrop,.exdone,.wuhint,.expills' }, '.setrow': { buttons: true } })[itemSel] || {};
-  let S = null, eatClick = false;
-  const start = (c, x, y) => { S = { c, x, y, dx: 0, claim: null }; };
-  const move = (x, y, ev) => { if(!S) return false; const dx = x - S.x, dy = y - S.y;
-    if(S.claim === null){ if(dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.3) S.claim = true; else if(Math.abs(dy) > 10 || dx > 10) S.claim = false; }
-    if(!S.claim) return false; ev.stopPropagation(); if(ev.cancelable) ev.preventDefault();
-    S.dx = Math.min(0, dx); const pr = Math.min(1, -S.dx / (S.c.offsetWidth / 3));
-    S.c.classList.add('swiping'); S.c.style.transform = `translateX(${S.dx}px)`; S.c.style.setProperty('--sw', pr.toFixed(2));
-    if(pr >= 1 && !S.c.classList.contains('swready')) Phone.haptic(); S.c.classList.toggle('swready', pr >= 1); return true; };
-  const end = ev => { if(!S) return; const s = S; S = null; if(!s.claim) return; ev.stopPropagation(); eatClick = true; setTimeout(() => eatClick = false, 50);
-    if(-s.dx >= s.c.offsetWidth / 3){ s.c.style.transition = 'transform .2s ease-in,opacity .2s'; s.c.style.transform = 'translateX(-110%)'; s.c.style.opacity = '0'; setTimeout(() => onDelete(s.c), 190); }
-    else { s.c.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)'; s.c.style.transform = ''; s.c.style.setProperty('--sw', 0); setTimeout(() => { s.c.style.transition = ''; s.c.classList.remove('swiping', 'swready'); }, 300); } };
   const ok = t => !t.closest(opts.buttons ? 'input,textarea,select' : 'input,textarea,select,button,.stepper,.sbox') && !(opts.skip && t.closest(opts.skip));
-  box.addEventListener('touchstart', e => { const c = e.target.closest(itemSel); if(!c || e.touches.length > 1 || !ok(e.target)){ S = null; return; } start(c, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-  box.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false });
-  box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
-  box.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse' || e.button) return; const c = e.target.closest(itemSel); if(!c || !ok(e.target)) return; start(c, e.clientX, e.clientY); });
-  addEventListener('pointermove', e => { if(e.pointerType === 'mouse' && S) move(e.clientX, e.clientY, e); });
-  addEventListener('pointerup', e => { if(e.pointerType === 'mouse') end(e); });
-  box.addEventListener('click', e => { if(eatClick){ e.stopPropagation(); e.preventDefault(); eatClick = false; } }, true);
+  let w = 0;
+  dragger(box, { axis: 'x', slop: 10,
+    item: e => { const c = e.target.closest(itemSel); return c && box.contains(c) && ok(e.target) ? c : null; },
+    claim: dx => dx < 0 && !document.body.classList.contains('sorting'),
+    start: s => { const c = s.it; w = c.offsetWidth || 300; s.ready = false; c.getAnimations().forEach(a => a.cancel()); c.classList.add('swiping'); c.style.transition = 'none'; c.style.willChange = 'transform'; },
+    move: s => { const c = s.it, dx = s.dx <= 0 ? s.dx : rubber(s.dx, 60), pr = Math.min(1, Math.max(0, -dx) / (w / 3));
+      c.style.transform = `translate3d(${dx.toFixed(1)}px,0,0)`; c.style.setProperty('--sw', pr.toFixed(3));
+      if((pr >= 1) !== s.ready){ s.ready = pr >= 1; c.classList.toggle('swready', s.ready); if(s.ready) Phone.haptic(); } },
+    end: (s, fine) => { const c = s.it, dx = s.dx <= 0 ? s.dx : rubber(s.dx, 60); c.style.transform = ''; c.style.willChange = '';
+      if(fine && (-dx >= w / 3 || (s.vx < -.6 && -dx > 40))){ c.style.setProperty('--sw', 1); c.classList.add('swready');
+        springTo(c, { x: dx }, { x: -w * 1.1 }, { x: Math.min(s.vx, -.9) }, { k: 260, damp: 1, fill: 'forwards', op: [1, 0] }); setTimeout(() => onDelete(c), 190); return; }
+      c.style.setProperty('--sw', 0); c.classList.remove('swready');
+      springTo(c, { x: dx }, { x: 0 }, { x: s.vx }).finished.then(() => { c.style.transition = ''; c.classList.remove('swiping'); }, () => {}); } });
   box.classList.add('swipebox');
+}
+
+// ---------- 0.7.9.1: ONE drag helper for everything you move with a finger ----------
+// Robot bubbles + the trash circle (AI.drag), swipe-to-delete rows (makeSwipeDelete), sheets pulled down to close (sheetDrag),
+// reordering exercise cards (makeSortable), the profile photo crop. Pointer events with pointer capture; the finger's position is
+// only stored on pointermove and drawn once per frame (requestAnimationFrame); layout is read at the start, never during the move.
+// A drag that has been claimed blocks the page's scroll (non-passive touchmove), so iPhone never takes it over half-way.
+//   dragger(el, o) → { busy() }
+//     o.item(e)     the element being dragged (for a list: e.target.closest(row)); null = not a drag here. Default: el
+//     o.axis        'x' | 'y' | 'xy': which way a move must go to become a drag (the other way stays a page scroll). Default 'xy'
+//     o.claim(dx, dy, s) optional finer test once the finger has moved `slop` px (e.g. only leftwards); false = let it go
+//     o.hold        ms to press still before the drag starts (long press; moving first = a scroll). Default 0
+//     o.slop        px before a move counts. Default 8
+//     o.start(s)    the drag begins (s.it = the element, s.x0/y0 = where the finger went down)
+//     o.move(s)     once per frame: s.dx / s.dy = how far the finger has moved (1:1), s.x / s.y = where it is
+//     o.end(s, ok)  let go: s.vx / s.vy = the finger's speed (px per ms); ok = false when the phone cancelled the touch
+//     o.multi(e)    a second finger touched down (pinch): the drag gives way
+function dragger(el, o){
+  o = o || {}; const axis = o.axis || 'xy', slop = o.slop ?? 8; let s = null, raf = 0, tm = 0;
+  const frame = () => { raf = 0; if(s && s.on && o.move) o.move(s); };
+  const track = e => { const now = e.timeStamp || performance.now(), dt = now - s.t;
+    if(dt > 0){ const k = Math.min(1, dt / 32); s.vx += ((e.clientX - s.x) / dt - s.vx) * k; s.vy += ((e.clientY - s.y) / dt - s.vy) * k; }   // smoothed finger speed
+    s.x = e.clientX; s.y = e.clientY; s.t = now; s.dx = s.x - s.x0; s.dy = s.y - s.y0; };
+  const begin = () => { s.on = true; try{ el.setPointerCapture(s.id); }catch(x){} if(o.start) o.start(s); if(!raf) raf = requestAnimationFrame(frame); };
+  el.addEventListener('pointerdown', e => {
+    if(s || (e.pointerType === 'mouse' && e.button > 0) || !e.isPrimary) return;
+    const it = o.item ? o.item(e) : el; if(!it) return;
+    s = { it, id: e.pointerId, type: e.pointerType, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, dx: 0, dy: 0, vx: 0, vy: 0, t: e.timeStamp || performance.now(), on: false, held: !o.hold };
+    if(o.hold) tm = setTimeout(() => { tm = 0; if(s && !s.on){ s.held = true; begin(); } }, o.hold);
+  });
+  el.addEventListener('pointerdown', e => { if(s && !e.isPrimary && o.multi){ const was = s; finish(was, false); o.multi(e); } });
+  el.addEventListener('pointermove', e => { if(!s || e.pointerId !== s.id) return; track(e);
+    if(!s.on){ const ax = Math.abs(s.dx), ay = Math.abs(s.dy); if(Math.max(ax, ay) < slop) return;
+      if(!s.held){ s = null; clearTimeout(tm); return; }   // moved before the long press: a scroll
+      const way = axis === 'x' ? ax > ay * 1.2 : axis === 'y' ? ay > ax * 1.2 : true;
+      if(!way || (o.claim && !o.claim(s.dx, s.dy, s))){ s = null; return; }
+      begin(); }
+    if(e.cancelable) e.preventDefault(); if(!raf) raf = requestAnimationFrame(frame); });
+  const finish = (was, ok) => { s = null; clearTimeout(tm); cancelAnimationFrame(raf); raf = 0; if(!was.on) return;
+    if(performance.now() - was.t > 80){ was.vx = 0; was.vy = 0; }   // the finger stopped before letting go: no fling
+    if(o.move) o.move(was); if(o.end) o.end(was, ok);
+    if(ok){ const eat = ev => { ev.stopImmediatePropagation(); ev.preventDefault(); }; el.addEventListener('click', eat, { capture: true, once: true }); setTimeout(() => el.removeEventListener('click', eat, true), 60); } };   // no tap on what you just let go
+  el.addEventListener('pointerup', e => { if(s && e.pointerId === s.id) finish(s, true); });
+  el.addEventListener('pointercancel', e => { if(s && e.pointerId === s.id) finish(s, false); });
+  el.addEventListener('touchmove', e => { if(s && (s.on || (s.held && o.hold)) && e.cancelable) e.preventDefault(); }, { passive: false });   // a claimed drag: the page doesn't scroll
+  el.addEventListener('contextmenu', e => { if(s && o.hold) e.preventDefault(); });
+  return { busy: () => !!(s && s.on) };
+}
+// past an edge, the drag gives less and less (like iOS): d = how far past, dim = the size it is measured against
+const rubber = (d, dim) => { const a = Math.abs(d), r = (1 - 1 / (a * .55 / (dim || 300) + 1)) * (dim || 300); return d < 0 ? -r : r; };
+// a spring from where the finger let go to where it belongs, carrying the finger's speed (v in px per ms) so there's no jolt.
+// Sampled once into keyframes so it runs on the compositor. from / to: { x, y, s } (translate px, scale). Returns the Animation.
+function springTo(el, from, to, v, o){
+  o = o || {}; const k = o.k || 260, c = o.c || 2 * Math.sqrt(k) * (o.damp ?? .86), dt = 1 / 120, keys = [];
+  const f = { x: from.x || 0, y: from.y || 0, s: from.s ?? 1 }, g = { x: to.x || 0, y: to.y || 0, s: to.s ?? 1 };
+  const dist = Math.hypot(g.x - f.x, g.y - f.y) || 1, along = v ? ((v.x || 0) * (g.x - f.x) + (v.y || 0) * (g.y - f.y)) / dist * 1000 : 0;   // speed toward the target, px per s
+  let p = 0, u = Math.max(-8, Math.min(8, along / dist)), t = 0; const pts = [[0, 0]];   // p: 0 → 1 of the way; u: its speed (capped: a fast finger over a short way never flings it past and back)
+  while(t < 1.2){ const a = -k * (p - 1) - c * u; u += a * dt; p += u * dt; t += dt; pts.push([t, p]); if(Math.abs(p - 1) < .002 && Math.abs(u) < .02) break; }
+  const T = t, step = Math.max(1, Math.round(pts.length / 40));
+  for(let i = 0; i < pts.length; i += step){ const [ti, pi] = pts[i], q = i + step >= pts.length ? 1 : pi;
+    keys.push({ offset: ti / T, transform: `translate3d(${(f.x + (g.x - f.x) * q).toFixed(2)}px,${(f.y + (g.y - f.y) * q).toFixed(2)}px,0) scale(${(f.s + (g.s - f.s) * q).toFixed(4)})`,
+      ...(o.op ? { opacity: (o.op[0] + (o.op[1] - o.op[0]) * Math.min(1, Math.max(0, q))).toFixed(3) } : {}) }); }
+  keys[keys.length - 1].offset = 1;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return el.animate([keys[keys.length - 1], keys[keys.length - 1]], { duration: 1, fill: o.fill || 'none' });
+  return el.animate(keys, { duration: T * 1000, easing: 'linear', fill: o.fill || 'none' });
+}
+// ---------- windows: pull a floating or bottom window down to close it (only from the top of its scroll, never the full-screen pages) ----------
+const SHEET_NODRAG = '#ovCoach,#ovSession,#ovSetup,#ovAsk,#ovScan,#ovLang';
+function sheetDrag(ov){
+  const sh = ov.querySelector(':scope>.sheet'); if(!sh || ov.matches(SHEET_NODRAG)) return;
+  const atTop = t => { for(let n = t; n && n !== ov; n = n.parentElement){ if(n.scrollTop > 0) return false; } return true; };
+  let h = 0;
+  dragger(sh, { axis: 'y',
+    item: e => matchMedia('(max-width: 699px)').matches && !sh.matches('.setpage,.formpage,.themepage') && sh.offsetHeight < innerHeight - 40   // floating and bottom windows, not full-screen pages
+      && !e.target.closest('input,textarea,select,button,.stepper,.wheel,.hscroll,[data-nodrag],.swipebox,.sortbox,canvas,.phcirc') && atTop(e.target) ? sh : null,
+    claim: (dx, dy) => dy > 0,
+    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; sh.style.willChange = 'transform'; },
+    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; },
+    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = ''; sh.style.willChange = '';
+      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down, the window closes behind it
+        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' });
+        close(ov.id); Phone.haptic(); setTimeout(() => { a.cancel(); sh.style.transition = ''; }, 320); return; }
+      springTo(sh, { y }, { y: 0 }, { y: s.vy }).finished.then(() => { sh.style.transition = ''; }, () => {}); } });
 }

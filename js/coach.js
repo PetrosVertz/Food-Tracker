@@ -140,10 +140,10 @@ Return ONLY JSON: {"reply": string}`, img);
     if(rmo() || NOBUB(cur)){ close('ovCoach'); return; }
     // shrink toward where the bubble will sit
     const b = bubble(cur); b.classList.add('pre'); if(!b._home) perch(b, true);   // the bubble waits at the top right
-    aim(b, true);
+    aim(b, true); if(!sh.style.clipPath) sh.style.clipPath = 'circle(150% at var(--cx,100%) var(--cy,0px))';   // coachShrink starts from the window as it is now
     shrinking = true; ov.classList.remove('grow'); ov.classList.add('shrink'); Phone.haptic();
     setTimeout(() => b.classList.remove('pre'), 170);   // the bubble fades back in as the window fades into it
-    setTimeout(() => { if(shrinking) close('ovCoach'); setTimeout(() => goHome(b), 100); }, 260);   // then the bubble glides back to where it was
+    setTimeout(() => { if(shrinking) close('ovCoach'); setTimeout(() => { goHome(b); sh.style.transform = ''; sh.style.clipPath = ''; sh.style.transition = ''; sh.style.willChange = ''; }, 100); }, 260);   // then the bubble glides back to where it was
   }
   // 0.7.9.1: the window opens from / closes into the bubble: transform-origin and the round clip sit on the bubble's centre.
   // Measured from the window's own layout box (not its on-screen box, which is scaled while it animates). perched = use where
@@ -195,17 +195,26 @@ Return ONLY JSON: {"reply": string}`, img);
     b.innerHTML = `<span class="cpface" aria-hidden="true">${AI.robot(kindOf(id), 24)}</span><span class="cpl"></span>`;
     b.addEventListener('click', () => { Phone.haptic(); open_(id); }); document.body.appendChild(b); }); }
   let pq = 0; const pillSync = () => { cancelAnimationFrame(pq); pq = requestAnimationFrame(pillPlace); };
+  // 0.7.9.1: when the pill comes back (its bubble went in the bin) or steps aside, it rises like on a tab switch (ui.js pillsIn) and
+  // the main button slides over by a transform (FLIP: measured before and after, then animated back from the old spot), never by layout
   function pillPlace(){
     const f = $('fab'); if(!f) return; let shown = null;
+    const was = PILLS.map(([id]) => $('cp-' + id)).find(b => b && !b.classList.contains('hide')) || null;
+    const anim = !rmo() && !document.body.classList.contains('pillswap') && !f.classList.contains('hide') && f.getClientRects().length > 0, f0 = anim ? f.getBoundingClientRect().left : 0;
     PILLS.forEach(([id, act]) => { const b = $('cp-' + id); if(!b) return;
       const on = !f.classList.contains('hide') && f.dataset.action === act && cur !== id && !has(id);   // while its bubble is out, the pill steps aside
       b.classList.toggle('hide', !on); if(on){ shown = b; b.querySelector('.cpl').textContent = title(id); } });
-    document.body.classList.remove('has-coachpill'); if(!shown) return;
+    document.body.classList.remove('has-coachpill');
+    const slide = () => { if(!anim || shown === was) return; const dx = f0 - f.getBoundingClientRect().left;
+      if(Math.abs(dx) > .5) f.animate([{ transform: `translate3d(${dx}px,0,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: PILL_IN, easing: PILL_EASE }); };
+    if(!shown){ slide(); return; }
     // the main button and the pill sit centred together: the button's right edge moves in by the pill's width
     const cs = getComputedStyle(f), L = parseFloat(cs.left) || 0, R = parseFloat(cs.right) || 0, W = document.documentElement.clientWidth, cpr = R + shown.offsetWidth + 10;
     document.body.style.setProperty('--cpr', cpr + 'px'); document.body.classList.add('has-coachpill');
     const fr = f.getBoundingClientRect(), right = (L + W - cpr) / 2 + f.offsetWidth / 2;
     shown.style.left = (right + 10) + 'px'; shown.style.top = (fr.top + (fr.height - shown.offsetHeight) / 2) + 'px'; shown.style.zIndex = cs.zIndex;
+    if(anim && shown !== was) pillsIn([shown]);   // the pill rises into place
+    slide();
   }
 
   // ---- wiring (called once from wire/08) ----
@@ -231,11 +240,20 @@ Return ONLY JSON: {"reply": string}`, img);
       const a = e.target.closest('[data-ca]'); if(!a) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run) return;
       Phone.haptic(); Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
     });
-    // a left-to-right swipe anywhere on the chat shrinks it into the bubble (not while selecting text in the box)
-    let sx = null, sy = 0, st = 0; const sh = $('ovCoach').querySelector('.sheet');
-    sh.addEventListener('touchstart', e => { const p = e.touches[0]; if(e.touches.length > 1 || e.target.closest('textarea,input,.ccacts')){ sx = null; return; } sx = p.clientX; sy = p.clientY; st = Date.now(); }, { passive: true });
-    sh.addEventListener('touchend', e => { if(sx === null) return; const p = e.changedTouches[0], dx = p.clientX - sx, dy = Math.abs(p.clientY - sy); sx = null;
-      if(dx > 80 && dy < dx * .6 && Date.now() - st < 700) minimize(); }, { passive: true });
+    // 0.7.9.1: drag the chat to the right (anywhere but the text box): it follows the finger; let go past a third (or flick) and it
+    // shrinks from there into its bubble (coachShrink starts from where the drag left it), else it springs back
+    const sh = $('ovCoach').querySelector('.sheet'); let cw = 0;
+    const cdx = s => s.dx >= 0 ? s.dx : rubber(s.dx, 60);
+    dragger(sh, { axis: 'x', slop: 10,
+      item: e => cur && !NOBUB(cur) && !rmo() && !shrinking && !e.target.closest('textarea,input,.ccacts,.cpimg') ? sh : null,
+      claim: dx => dx > 0,
+      start: () => { cw = sh.offsetWidth; sh.getAnimations().forEach(a => a.cancel()); sh.style.transition = 'none'; sh.style.willChange = 'transform';   // the finished grow no longer holds it
+        sh.style.clipPath = 'circle(150% at var(--cx,100%) var(--cy,0px))'; },   // the same shape coachShrink starts from, so letting go has no jump
+      move: s => { const x = cdx(s); sh.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${(1 - Math.max(0, x) / cw * .12).toFixed(4)})`; },
+      end: (s, ok) => { const x = cdx(s);
+        if(ok && (x > cw / 3 || (s.vx > .5 && x > 40))){ minimize(); return; }
+        const sc = 1 - Math.max(0, x) / cw * .12; sh.style.transform = ''; sh.style.willChange = '';
+        springTo(sh, { x, s: sc }, { x: 0, s: 1 }, { x: s.vx }).finished.then(() => { sh.style.transition = ''; sh.style.clipPath = ''; }, () => {}); } });
     if(window.visualViewport){
       visualViewport.addEventListener('resize', () => { if(!$('ovCoach').classList.contains('open')) return; fit(); const l = $('coachList'); l.scrollTop = l.scrollHeight; });
       visualViewport.addEventListener('scroll', () => { if($('ovCoach').classList.contains('open')) fit(); });

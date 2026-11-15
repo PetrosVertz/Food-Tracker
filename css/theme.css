@@ -692,7 +692,7 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 /* 0.7.9: opening from the bubble: the window grows out of it (transform + opacity + clip-path only; transform-origin = the bubble, set by coach.js) */
 /* 0.7.9.1: a round opening from the bubble's centre (--cx/--cy/--cr set by coach.js aim()), like a speech bubble opening; the shrink is the same in reverse */
 @keyframes coachGrow{from{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}30%{opacity:1}to{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}}
-@keyframes coachShrink{from{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}60%{opacity:1}to{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}}
+@keyframes coachShrink{60%{opacity:1}to{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}}
 @keyframes coachFade{from{opacity:0}to{opacity:1}}
 #ovCoach.grow.open .sheet.coachwin{animation:coachGrow .3s cubic-bezier(.3,1.12,.5,1) both!important}
 #ovCoach.shrink{background:transparent!important}
@@ -746,7 +746,7 @@ html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env
 .coachpill.hide{display:none}
 .cpface{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center} .cpface .robot{display:block;margin-top:2px}
 body.has-coachpill #fab{right:var(--cpr)!important}
-#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s,right .34s cubic-bezier(.2,.9,.3,1)}   /* the main button slides back to the centre when a coach pill steps aside */
+#fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s}   /* 0.7.9.1: when a coach pill steps aside or comes back, the main button slides by a transform (coach.js pillPlace), not by a layout transition */
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }

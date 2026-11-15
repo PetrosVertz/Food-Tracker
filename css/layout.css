@@ -244,11 +244,12 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(sa
 .robot .reye{animation-name:reye} .robot .rgl{animation-name:rgl} .robot .rmo{transform-origin:60px 117.75px;animation-name:rmo}
 .robot .rfi,.robot .rfx{display:none}
 /* dragging (ai.js drag()): follows the finger, snaps to the nearest side; over the trash it glows red and the eyes turn to X's */
-.aibub{touch-action:none;-webkit-user-select:none;user-select:none;transition:left .42s cubic-bezier(.2,1.3,.4,1),top .32s cubic-bezier(.2,.9,.3,1)}
+.aibub{touch-action:none;-webkit-user-select:none;user-select:none}
+button.aibub.aibub:active{opacity:1;transform:none}   /* no press-dim or press-shrink on a bubble you are about to drag (no jump when you let go) */   /* 0.7.9.1: moves only by transform (ui.js dragger / springTo), never by left/top transitions */
 .aibub.drag .rcore{transform:scale(1.08);box-shadow:0 16px 40px rgba(0,0,0,.55)} .aibub .rcore{transition:transform .15s,box-shadow .15s}
 .aibub.kill .robot .rft,.aibub.kill .robot .rfi,.aibub.kill .robot .rfi0{display:none} .aibub.kill .robot .rfx{display:inline} .aibub.kill .robot .rtilt{animation:none}
 .aibub.kill .rglow{animation:none;background:rgba(255,77,77,.85)} .aibub.kill .rcore{box-shadow:0 0 0 2px #ff4d4d,0 0 26px 8px rgba(255,77,77,.55)}
-.aibub.gone{transition:transform .2s ease-in,opacity .2s ease-in!important;transform:scale(.3);opacity:0}
+.aibub.gone{pointer-events:none}
 .aitrash{position:fixed;left:50%;z-index:89999;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;pointer-events:none;color:var(--t-muted);
   bottom:calc(max(24px,env(safe-area-inset-bottom)) + 84px);background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);
   opacity:0;transform:translateX(-50%) scale(.6);transition:opacity .18s,transform .22s cubic-bezier(.2,1.3,.4,1),background-color .15s,border-color .15s,color .15s}

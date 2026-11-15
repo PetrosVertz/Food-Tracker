@@ -127,4 +127,5 @@ $('sFoodBody').addEventListener('click', e => { const c = e.target.closest('.fpc
 $('sFoodSave').addEventListener('click', () => { saveFoodPrefs(readFoodPrefs($('sFoodBody'))); toast(t('fpSaved')); close('ovSFood'); });
 
 // 0.7.4.3: the shared coach chat (js/coach.js)
+document.querySelectorAll('.overlay').forEach(sheetDrag);   // 0.7.9.1: pull a bottom sheet down to close it
 Coach.init(); aiGate(); pillsBoot();   // and greys out the AI controls when there is no key
