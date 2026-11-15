@@ -283,6 +283,15 @@ body.inses .coachbub{display:none!important}
 .gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
 .gsrow{display:flex;flex-direction:column;gap:2px;padding:var(--s2) 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
 .gsnote{margin:0}
+.gspick{display:none}
+/* 0.7.9 Gym Coach workout cards: the suggested weight; Intensity / Rep Range pickers (the chosen one slides on, the others off) */
+.gcsw{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:12px;background:var(--t-sel)}
+.gcsw small{color:var(--t-muted);font-size:var(--fs-label)} .gcsw b{font-weight:var(--w-bold);font-variant-numeric:tabular-nums}
+.ccard:has(.gspick) .ccacts{justify-content:flex-start;flex-wrap:wrap}
+.ccard:has(.gspick) .ccbtn{padding:0 14px;transition:background-color .26s cubic-bezier(.3,1.4,.5,1),color .26s ease,border-color .26s ease,transform .26s cubic-bezier(.3,1.4,.5,1)}
+.ccard:has(.gspick) .ccbtn.pri{transform:scale(1.04)}
+.ccard:has(.gspick) .ccbtn:not(.pri){transform:scale(1)}
+@media (prefers-reduced-motion: reduce){ .ccard:has(.gspick) .ccbtn{transition:none} .ccard:has(.gspick) .ccbtn.pri{transform:none} }
 
 /* 0.7.7 Exercise Settings + per-set extras */
 .exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:var(--s3) 0;border-bottom:1px solid var(--t-line)}
@@ -316,8 +325,16 @@ body.inses .coachbub{display:none!important}
 /* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
 .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
-.tierbadge{display:inline-flex;align-items:center;gap:var(--s1);height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--trc);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tierbadge svg{flex:0 0 auto}
+/* 0.7.9 rank emblem (rankIcon): tier colour, soft fill, three level pips; a faint glow in Dark so it reads as a badge, not a plain icon */
+.rankic{display:block;color:var(--trc);overflow:visible}
+:root:not([data-theme="light"]) .rankic{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--trc) 35%,transparent))}
+.pfempty{margin:0;padding:var(--s2) 0;color:var(--t-muted);font-size:var(--fs-label);line-height:1.45}
+.pform{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;margin-top:var(--s3)}
+.ormrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--t-line)}
+.ormrow b{display:block;font-weight:var(--w-med)} .ormrow small{display:block;color:var(--t-muted);font-size:var(--fs-label)}
+.pfrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
 :root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
 :root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
 .tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}
@@ -350,3 +367,13 @@ body.inses .coachbub{display:none!important}
 /* 0.7.9 streak numbers: slanted athletic numerals (bold italic Inter, tight spacing) on the streak card and the pill */
 .pfstreak .pfnum,.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
 .pfstreak .pfnum{padding-right:3px}
+
+/* 0.7.9 Leaderboard Attempt mode: the switch row (trophy), the lift picker panel */
+.atrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:0 0 10px;padding:10px var(--s3);border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-edge)}
+.atrow.on{border-color:color-mix(in srgb,var(--tier-gold) 55%,transparent)}
+.atl{display:flex;align-items:center;gap:10px;min-width:0} .atl>svg{flex:0 0 auto;color:var(--tier-gold)}
+.atl b{display:block;font-weight:var(--w-med)} .atl small{display:block;color:var(--t-muted);font-size:var(--fs-label)}
+.atpanel{margin:0 0 var(--s3)} .atpanel .hint{margin:0 0 var(--s2)}
+.atlifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+.atlift{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:10px var(--s3);border-radius:14px;border:1px solid var(--t-line);background:var(--t-sel);color:var(--t-text);font:inherit;text-align:left;cursor:pointer}
+.atlift b{font-weight:var(--w-med);font-size:14px} .atlift small{color:var(--t-muted);font-size:var(--fs-label)}

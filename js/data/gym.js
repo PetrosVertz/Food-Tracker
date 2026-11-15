@@ -1018,7 +1018,7 @@ const FORM_PICK = {
 // ---------- 0.7.7 tiers: strength standards (estimated 1RM ÷ body weight) ----------
 // Source: Strength Level (strengthlevel.com) published standards — Beginner, Novice, Intermediate, Advanced, Elite —
 // as body-weight ratios, rounded to the nearest 0.05. Pull-ups count body weight + any added weight (so 1.0 = one clean rep).
-// Only these lifts (the Profile board lifts) and the close variants in TIER_VARIANT get tiers; every other exercise shows none.
+// Only these lifts and the close variants in TIER_VARIANT get tiers; every other exercise shows none (no sensible standard).
 const TIER_STD = {
   //            Beginner Novice Intermediate Advanced Elite
   bench:      { m: [0.50, 0.75, 1.25, 1.75, 2.00], f: [0.25, 0.50, 0.75, 1.00, 1.50] },
@@ -1030,6 +1030,19 @@ const TIER_STD = {
   hip_thrust: { m: [0.50, 1.00, 1.50, 2.25, 3.00], f: [0.50, 1.00, 1.50, 2.00, 2.75] },
   bb_curl:    { m: [0.20, 0.40, 0.60, 0.85, 1.15], f: [0.10, 0.20, 0.40, 0.60, 0.85] },
   deadlift:   { m: [1.00, 1.50, 2.00, 2.50, 3.00], f: [0.50, 1.00, 1.25, 1.75, 2.50] },
+  // 0.7.9: more common lifts (same source, rounded; dumbbell lifts = one dumbbell, as the app logs them)
+  db_bench:         { m: [0.20, 0.35, 0.50, 0.75, 1.00], f: [0.10, 0.20, 0.30, 0.45, 0.60] },
+  machine_press:    { m: [0.50, 0.75, 1.10, 1.50, 2.00], f: [0.20, 0.40, 0.60, 0.90, 1.25] },
+  db_shoulder:      { m: [0.15, 0.25, 0.40, 0.55, 0.75], f: [0.10, 0.15, 0.25, 0.35, 0.50] },
+  machine_shoulder: { m: [0.30, 0.50, 0.75, 1.05, 1.40], f: [0.15, 0.30, 0.45, 0.65, 0.90] },
+  lat_pulldown:     { m: [0.50, 0.75, 1.00, 1.25, 1.50], f: [0.30, 0.45, 0.65, 0.85, 1.10] },
+  seated_row:       { m: [0.50, 0.70, 1.00, 1.35, 1.75], f: [0.30, 0.45, 0.65, 0.90, 1.20] },
+  db_row:           { m: [0.20, 0.40, 0.60, 0.85, 1.10], f: [0.10, 0.20, 0.35, 0.50, 0.70] },
+  leg_press:        { m: [1.00, 2.00, 3.00, 4.25, 5.50], f: [0.50, 1.25, 2.00, 3.00, 4.00] },
+  leg_ext:          { m: [0.50, 0.75, 1.10, 1.50, 2.00], f: [0.25, 0.50, 0.75, 1.10, 1.50] },
+  lying_curl:       { m: [0.40, 0.60, 0.85, 1.15, 1.50], f: [0.20, 0.40, 0.60, 0.85, 1.15] },
+  db_curl:          { m: [0.10, 0.15, 0.25, 0.40, 0.50], f: [0.05, 0.10, 0.15, 0.25, 0.35] },
+  pushdown:         { m: [0.25, 0.40, 0.60, 0.85, 1.15], f: [0.15, 0.25, 0.40, 0.55, 0.75] },
 };
 // close variants: [the lift whose standard they use, how strong they are next to it] (e.g. incline bench ≈ 85 % of flat bench)
 const TIER_VARIANT = {
@@ -1042,6 +1055,18 @@ const TIER_VARIANT = {
   smith_hip_thrust: ['hip_thrust', 1],
   ez_curl: ['bb_curl', 1],
   sumo_deadlift: ['deadlift', 1], trap_bar_dl: ['deadlift', 1.05],
+  // 0.7.9
+  floor_press: ['bench', 0.9], smith_close_bench: ['bench', 0.9], z_press: ['ohp', 0.85],
+  incline_db: ['db_bench', 0.85], decline_db: ['db_bench', 1],
+  incline_machine: ['machine_press', 0.85], iso_chest_press: ['machine_press', 1], iso_incline_press: ['machine_press', 0.85],
+  seated_db_press: ['db_shoulder', 1], arnold: ['db_shoulder', 0.9],
+  close_pulldown: ['lat_pulldown', 1], wide_pulldown: ['lat_pulldown', 0.95], neutral_pulldown: ['lat_pulldown', 1], reverse_grip_pulldown: ['lat_pulldown', 1], iso_pulldown: ['lat_pulldown', 1],
+  machine_row: ['seated_row', 1], iso_row: ['seated_row', 1], tbar_row: ['bb_row', 1],
+  sled_leg_press_45: ['leg_press', 1], horizontal_leg_press: ['leg_press', 0.85], hack_squat: ['squat', 0.9],
+  seated_curl: ['lying_curl', 1],
+  machine_thrust: ['hip_thrust', 1],
+  alt_db_curl: ['db_curl', 1], seated_db_curl: ['db_curl', 1], hammer_curl: ['db_curl', 1.05], incline_curl: ['db_curl', 0.8],
+  rope_pushdown: ['pushdown', 0.9],
 };
 // tiers low → high; each has levels 3 → 1 (Bronze 3 lowest, Diamond 1 highest). Colours live in workout.css (--tier-*).
 const TIERS = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];

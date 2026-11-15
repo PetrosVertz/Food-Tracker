@@ -495,14 +495,31 @@ Object.assign(S, {
   gcWFirst: ['First Time', 'Πρώτη φορά'], gcWEst: ['Start with about {w} kg × {r}, from your other lifts', 'Ξεκίνα με περίπου {w} kg × {r}, από τις άλλες ασκήσεις σου'],
   gcWLast: ['You\'ve done this: try {w} kg × {r} today', 'Το έχεις κάνει: δοκίμασε {w} kg × {r} σήμερα'],
   gcWNone: ['Start light: a weight you can lift 15 times with good form', 'Ξεκίνα ελαφριά: ένα βάρος που σηκώνεις 15 φορές σωστά'],
-  gcStyleT: ['Your Training Style', 'Το στυλ προπόνησής σου'],
+  gcStyleT: ['Intensity', 'Ένταση'],
   gsLow: ['Low Volume, High Intensity', 'Λίγος όγκος, υψηλή ένταση'], gsMid: ['In Between', 'Ενδιάμεσο'], gsHigh: ['High Volume, Lower Intensity', 'Πολύς όγκος, χαμηλότερη ένταση'],
   gsLowS: ['Low', 'Χαμηλό'], gsMidS: ['Medium', 'Μεσαίο'], gsHighS: ['High', 'Υψηλό'],
   gsSets: ['Sets per Muscle a Week', 'Σετ ανά μυ την εβδομάδα'], gsReps: ['Usual Reps', 'Συνήθεις επαναλήψεις'], gsFail: ['Sets to Failure', 'Σετ μέχρι αποτυχία'],
   gsFrom: ['Read from your last {n} workouts. Every suggestion fits it. Not right? Pick yours below.', 'Από τις τελευταίες {n} προπονήσεις σου. Κάθε πρόταση ταιριάζει σε αυτό. Δεν είναι σωστό; Διάλεξε το δικό σου παρακάτω.'],
   gsMine: ['You chose this. Every suggestion fits it.', 'Το διάλεξες εσύ. Κάθε πρόταση ταιριάζει σε αυτό.'],
   gsFew: ['Not enough workouts yet to tell. Pick the one that fits you.', 'Δεν υπάρχουν ακόμα αρκετές προπονήσεις για να φανεί. Διάλεξε αυτό που σου ταιριάζει.'],
-  gsSet: ['Training style: {n}', 'Στυλ προπόνησης: {n}'],
+  // 0.7.9 Gym Coach: editable workout cards, Intensity + Rep Range pickers
+  gcSugW: ['Suggested Weight', 'Προτεινόμενο βάρος'], gcSugFirst: ['First-Time Estimate', 'Εκτίμηση για πρώτη φορά'],
+  gcReplace: ['Replace', 'Αντικατάσταση'], gcAddBack: ['Add Back', 'Επαναφορά'],
+  gcLiveAlready: ['A workout is already running. Finish it first, or Save this one for later.', 'Τρέχει ήδη μια προπόνηση. Τελείωσέ την πρώτα ή αποθήκευσε αυτή για αργότερα.'],
+  gcRepRange: ['Rep Range', 'Εύρος επαναλήψεων'], gcRepsAuto: ['Auto: follows Intensity', 'Αυτόματο: ακολουθεί την ένταση'], gcRepsN: ['{r} reps on working sets', '{r} επαναλήψεις στα κύρια σετ'],
+  // 0.7.9 leaderboards: real 1RMs only
+  pfBoardsEmpty: ['No 1RM yet. Add one you\'ve lifted, or tick a single rep at a heavy weight in a workout, and it shows up here.', 'Δεν υπάρχει ακόμα 1RM. Πρόσθεσε ένα που έχεις σηκώσει ή τσέκαρε μία επανάληψη με βαρύ κιλό σε προπόνηση και θα εμφανιστεί εδώ.'],
+  ormAdd: ['Add a 1RM', 'Προσθήκη 1RM'], ormSub: ['The most you lifted for one clean rep.', 'Το περισσότερο που σήκωσες για μία σωστή επανάληψη.'],
+  ormLift: ['Lift', 'Άσκηση'], ormWeight: ['Weight (kg)', 'Βάρος (kg)'], ormDate: ['Date', 'Ημερομηνία'],
+  ormBwHint: ['Pull-ups: enter only the weight you added. Your body weight ({bw} kg) is counted for you.', 'Έλξεις: γράψε μόνο το βάρος που πρόσθεσες. Το σωματικό σου βάρος ({bw} kg) μετράει αυτόματα.'],
+  ormYours: ['Your Entries', 'Οι καταχωρήσεις σου'], ormManual: ['entered', 'καταχώρηση'],
+  ormBad: ['Choose a lift, a weight and a date (not in the future).', 'Διάλεξε άσκηση, βάρος και ημερομηνία (όχι μελλοντική).'], ormSaved: ['1RM saved', 'Το 1RM αποθηκεύτηκε'],
+  // 0.7.9 Leaderboard Attempt mode
+  atTitle: ['Leaderboard Attempt', 'Προσπάθεια για κατάταξη'], atSub: ['Go for a 1RM on a leaderboard lift', 'Κυνήγησε 1RM σε άσκηση της κατάταξης'],
+  atHow: ['Pick a lift: warm-ups from your estimate, then single attempts. Tick a single you lift cleanly and it goes on the leaderboard.', 'Διάλεξε άσκηση: προθέρμανση από την εκτίμησή σου και μετά μονές προσπάθειες. Τσέκαρε ένα μονό που σήκωσες σωστά και μπαίνει στην κατάταξη.'],
+  atBest: ['Best {kg} kg', 'Ρεκόρ {kg} kg'], atEst: ['Estimate {kg} kg', 'Εκτίμηση {kg} kg'], atNone: ['No estimate yet', 'Χωρίς εκτίμηση ακόμα'],
+  atNoEst: ['No estimate yet: fill in the weights yourself, starting light.', 'Δεν υπάρχει εκτίμηση: γράψε εσύ τα κιλά, ξεκινώντας ελαφριά.'],
+  atNew: ['New leaderboard 1RM: {n} {kg} kg', 'Νέο 1RM στην κατάταξη: {n} {kg} kg'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
@@ -674,7 +691,7 @@ Object.assign(S, {
   frzUse: ['1 Streak Freeze Left This Week, Use It?', 'Απομένει 1 Πάγωμα Σερί Αυτή την Εβδομάδα. Να Χρησιμοποιηθεί;'], frzEnd: ['This Will End Your {n}-Day Streak', 'Αυτό Θα Τερματίσει το Σερί {n} Προπονήσεων'],
   frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
   pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfLatestPR: ['Latest PR', 'Τελευταίο Ρεκόρ'], pfNoPR: ['No PRs yet. Your next record shows up here.', 'Κανένα ρεκόρ ακόμα. Το επόμενο θα εμφανιστεί εδώ.'],
-  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your best estimated 1RM per lift. With friends soon.', 'Το καλύτερο εκτιμώμενο 1RM σου ανά άσκηση. Με φίλους σύντομα.'],
+  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your heaviest single (one rep) per lift, entered by you or ticked in a workout. With friends soon.', 'Το βαρύτερο μονό σου (μία επανάληψη) ανά άσκηση, που το έγραψες εσύ ή το τσέκαρες σε προπόνηση. Με φίλους σύντομα.'],
   pfMChest: ['Chest', 'Στήθος'], pfMShoulders: ['Shoulders', 'Ώμοι'], pfMBack: ['Back', 'Πλάτη'], pfMUpperBack: ['Upper Back', 'Άνω Πλάτη'], pfMQuads: ['Quads', 'Τετρακέφαλοι'],
   pfMHams: ['Hamstrings', 'Οπίσθιοι Μηριαίοι'], pfMGlutes: ['Glutes', 'Γλουτοί'], pfMArms: ['Arms', 'Χέρια'], pfMBonus: ['Bonus', 'Μπόνους'],
   pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
@@ -684,7 +701,7 @@ Object.assign(S, {
 // ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
 Object.assign(S, {
   tier_bronze: ['Bronze', 'Χάλκινο'], tier_silver: ['Silver', 'Ασημένιο'], tier_gold: ['Gold', 'Χρυσό'], tier_platinum: ['Platinum', 'Πλατινένιο'], tier_diamond: ['Diamond', 'Διαμαντένιο'],
-  tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level: Diamond 1', 'Ανώτατο επίπεδο: Διαμαντένιο 1'],
+  tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level reached', 'Ανώτατο επίπεδο'],
   tierNeedBody: ['Add Body Weight and Sex for Tiers', 'Πρόσθεσε Βάρος και Φύλο για Επίπεδα'],
 });
 

@@ -85,6 +85,7 @@ $('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-
 });
 
 $('sesBody').addEventListener('click', e => {
+  const atl = e.target.closest('[data-atlift]'); if(atl) return atSetup(atl.dataset.atlift);   // 0.7.9 Leaderboard Attempt
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
@@ -118,6 +119,7 @@ $('sesBody').addEventListener('click', e => {
 });
 
 $('sesSupps').addEventListener('click', e => {
+  if(e.target.closest('[data-attempt]')) return atToggle();
   const b = e.target.closest('[data-ssup]'); if(!b) return; const k = todayKey(); suppLog[k] = suppLog[k] || {};
   if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderSupps();
 });
@@ -373,4 +375,9 @@ $('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymst
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
 
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
+// 0.7.9 leaderboards: Add a 1RM
+$('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); } });
+$('ormEx').addEventListener('change', ormHint);
+$('ormSave').addEventListener('click', saveOrm);
+$('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });
