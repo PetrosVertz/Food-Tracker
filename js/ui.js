@@ -265,9 +265,8 @@ function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pill
   const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(() => pillsIn()); return; } last = sg; setTimeout(check, 120); };
   Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(() => setTimeout(check, 420)); }   // the coach pill places itself ~300 ms after start (coach.js)
 
-// 0.7.9.3: one calm slide, transform only (no fade at all), 320 ms, the same ease as the bottom bar's circle.
-// The old page is a copy that stays underneath and drifts a little; the new page is built first (route), is fully solid from the first frame
-// (.pgnew: solid page colour, no opacity) and slides in over it. The copy is removed when the motion ends, or at once if anything else interrupts.
+// 0.7.9.4: one calm slide, transform only, no fade, no old-page copy. The new page is fully solid from the first frame (.pgnew: solid page colour)
+// and slides in 28 px; what its edge uncovers is the plain page colour, never the old page. 320 ms, the same ease as the bottom bar's circle.
 // Reduce Motion = a plain swap. A tap during the motion is remembered and played right after, so the circle and the page stay in step.
 const TAB_EASE = 'cubic-bezier(.45,0,.2,1)', TAB_MS = 320;
 function switchTab(dir, toTab){
@@ -275,22 +274,18 @@ function switchTab(dir, toTab){
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur) return;
   if(SWITCHING){ switchTab.next = tab; return; }
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
-  document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));   // nothing left over from an earlier switch
+  document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!pg || !pg.animate || reduce){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   SWITCHING = true; switchTab.next = null; pillSwap();
-  const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-  ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
   const target = tabTarget(tab); let np = null, finished = false, tm = 0;
   const done = () => { if(finished) return; finished = true; clearTimeout(tm); removeEventListener('hashchange', run);
-    ghost.remove(); if(np) np.classList.remove('pgnew'); document.querySelectorAll('.pghost').forEach(g => g.remove()); SWITCHING = false;
+    document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew')); SWITCHING = false;
     const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
-  function run(){ if(finished || np) return; np = document.querySelector('section.page:not(.hide):not(.pghost)');
+  function run(){ if(finished || np) return; np = document.querySelector('section.page:not(.hide)');
     if(!np){ done(); return; }
     np.classList.add('pgnew');   // solid from this very frame, before the slide starts
-    const o = { duration: TAB_MS, easing: TAB_EASE };
-    ghost.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${-dir * 10}px,0,0)` }], { ...o, fill: 'forwards' });
-    const a = np.animate([{ transform: `translate3d(${dir * 28}px,0,0)` }, { transform: 'translate3d(0,0,0)' }], o);
+    const a = np.animate([{ transform: `translate3d(${dir * 28}px,0,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: TAB_MS, easing: TAB_EASE });
     a.onfinish = a.oncancel = done; tm = setTimeout(done, TAB_MS + 60); }
   if(location.hash.slice(1) === target){ route(); run(); }
   else { addEventListener('hashchange', run, { once: true }); location.replace('#' + target); }   // 0.6.5: replace, not push — the phone's back never jumps tabs; the page swaps on hashchange, then it moves
