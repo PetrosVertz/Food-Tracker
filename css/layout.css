@@ -203,7 +203,6 @@ section.page>header>:not(.left),section.page>header .left>:not(h1){position:rela
 /* 0.7.3: the title fade is never on top of a window. iPhone can draw a sticky blurred layer above later fixed layers whatever the z-index, so while ANY window
    is open (open()/close() in ui.js set body.ovopen) the fade is simply not drawn and the header loses its layer. One rule for every sheet, any size, also when it grows. */
 body.ovopen section.page>header,body:has(.overlay.open,.overlay.closing) section.page>header{z-index:auto;isolation:auto}
-body.ovopen section.page>header::before,body:has(.overlay.open,.overlay.closing) section.page>header::before{display:none}
 /* Food Track: two buttons side by side */
 body.twofab .fab{margin:0!important;width:auto!important;min-width:0;padding-left:14px;padding-right:14px;font-size:16px}
 body.twofab #fab{left:calc(50% + 5px)!important;right:16px!important}
