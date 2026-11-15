@@ -131,16 +131,20 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 #pgFridge .fgseg{margin:var(--s2) 0 var(--s3)}
 
 /* Bottom bar (Phones.dc.html): glass, 64 tall, radius 24, 16 from the sides and 24 from the bottom.
-   Line icons 22px; the active tab sits in a 52×44 accent bubble (radius 16) that glides between tabs. */
+   Line icons 22px; 0.7.9.1: the active tab sits in a 44 px frosted accent circle (same size on every tab) that glides between tabs. */
 .rail{position:fixed;z-index:9;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),480px);height:64px;
   bottom:max(24px,calc(env(safe-area-inset-bottom) - 10px));top:auto;right:auto;
   display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
 .rail>button.hide{display:none}   /* 0.7.9: Kitchen switched off → four tabs share the bar */
 html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env(safe-area-inset-bottom) - 10px)))}
 .rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
-.rail>button.on{color:var(--t-on)}
+.rail>button.on{color:var(--t-text)}
 .rail .ri{display:flex;line-height:0}
-.rail>.knob{background:var(--t-accent);border-radius:16px}
+/* 0.7.9.1: frosted look with no live blur (so it stays smooth while sliding): a see-through accent tint, a soft 1 px light edge and a faint
+   highlight at the top. Only transform and opacity animate. The icon on it uses the normal text colour, so it reads in Light and Dark. */
+:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 26%,transparent);--t-knob-hi:rgba(255,255,255,.16);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.22)}
+:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 32%,transparent);--t-knob-hi:rgba(255,255,255,.5);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 1px 0 rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.1)}
+.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 60%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* Back: one plain arrow everywhere, no box, generous tap area */
 .backarrow,.sback,.sesback{width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 0 0 -10px;
@@ -751,9 +755,8 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }
 /* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
-.rail>.knob{border-radius:22px;transition:transform .26s cubic-bezier(.3,1.3,.6,1),width .26s cubic-bezier(.3,1.3,.6,1),height .26s cubic-bezier(.3,1.3,.6,1),border-radius .26s,opacity .15s}
-.rail>.knob.round{border-radius:50%}
-.rail .avimg,.rail .avini{width:30px;height:30px;border-radius:50%;display:block;object-fit:cover}
+.rail>.knob{border-radius:50%;transition:transform .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}
+.rail .avimg,.rail .avini{width:36px;height:36px;border-radius:50%;display:block;object-fit:cover}   /* 0.7.9.1: a little bigger, so the ring of the 44 px marker around it is slim */
 .avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
 .rail>button.on .avini{background:var(--t-card)}
 .pfme .pfav{border:0;padding:0;cursor:pointer;overflow:hidden;font:inherit;font-size:34px;font-weight:var(--w-bold)}

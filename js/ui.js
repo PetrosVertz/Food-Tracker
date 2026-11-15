@@ -114,14 +114,14 @@ document.addEventListener('DOMContentLoaded', () => ibtnFill(document));
 document.addEventListener('scroll', e => { const el = e.target; if(el.nodeType === 1 && el.matches('section.page,.overlay .sheet')) el.classList.toggle('scrolled', el.scrollTop > 6); }, { capture: true, passive: true });
 
 const PILL_SEL = '.mpill,.seg,.rail';
+const RAIL_KNOB = 44;   // the bottom bar's selected-tab circle (theme.css .rail>.knob; the profile photo is 36 px inside it)
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
   if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
   const b = el.querySelector(':scope > button.on');
   if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
-  const rail = el.classList.contains('rail'), av = rail && !!b.querySelector('.avimg,.avini');   // 0.7.9: on the Profile photo the bubble is a circle ring
-  k.classList.toggle('round', av);
-  const w = rail ? (av ? 40 : 52) : b.offsetWidth, hh = rail ? (av ? 40 : 44) : b.offsetHeight,
+  const rail = el.classList.contains('rail');   // 0.7.9.1: the bottom bar's marker is the same 44 px circle on every tab (icons and the photo), so it never resizes while it slides
+  const w = rail ? RAIL_KNOB : b.offsetWidth, hh = rail ? RAIL_KNOB : b.offsetHeight,
     x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
   if(jump) k.style.transition = 'none';
   k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
