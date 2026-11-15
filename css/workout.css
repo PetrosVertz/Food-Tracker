@@ -1,57 +1,57 @@
 /* 0.5.8 · workout screen as its own full-screen mode, light bulb, library sections, hub recovery */
 #ovSession{align-items:stretch}
-#ovSession .sheet.session{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;border:0;padding:0 16px 0;padding-top:env(safe-area-inset-top)}
+#ovSession .sheet.session{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;border:0;padding:0 var(--s4) 0;padding-top:env(safe-area-inset-top)}
 @media(min-width:700px){#ovSession .sheet.session{padding-left:max(16px,calc((100vw - 680px) / 2));padding-right:max(16px,calc((100vw - 680px) / 2))}}
-.addexbig{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;margin:0 0 12px;border-radius:18px;cursor:pointer;
+.addexbig{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;margin:0 0 var(--s3);border-radius:18px;cursor:pointer;
   background:color-mix(in srgb,var(--t-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--t-accent) 45%,transparent);color:var(--t-accent-ink,var(--t-accent));font-size:17px}
 .addexbig span{font-size:24px;font-weight:700;line-height:1}
 #restProg2{transition:none!important}
 /* light bulb */
-.bulb{position:sticky;bottom:calc(16px + env(safe-area-inset-bottom));margin:8px 0 0 auto;display:grid;place-items:center;width:58px;height:58px;border-radius:50%;cursor:pointer;z-index:3;padding:0;overflow:hidden;
+.bulb{position:sticky;bottom:calc(16px + env(safe-area-inset-bottom));margin:var(--s2) 0 0 auto;display:grid;place-items:center;width:58px;height:58px;border-radius:50%;cursor:pointer;z-index:3;padding:0;overflow:hidden;
   background:rgba(30,32,35,.78);border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 2px color-mix(in srgb,var(--t-accent) 35%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}   /* 0.7.3: the sweatband robot, styled like the AI bubble */
 .bulb .robot{display:block;margin-top:6px}
 :root[data-theme="light"] .bulb{background:rgba(244,244,245,.86);border-color:rgba(0,0,0,.1)}
 .bulb.hide{display:none}
-.blchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.blchips{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s2)}
 .blchip{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);font:inherit;font-size:14px;cursor:pointer}
 .blchip.on{border-color:var(--accent);background:color-mix(in srgb,var(--t-accent) 14%,transparent);color:var(--t-accent-ink,var(--t-accent))}
 .blbest small{display:block;color:var(--t-accent-ink,var(--t-accent));font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0}
-.blplan{margin:8px 0;padding-left:22px} .blplan li{margin:6px 0} .blplan small{display:block;color:var(--muted);font-size:12px}
+.blplan{margin:var(--s2) 0;padding-left:22px} .blplan li{margin:6px 0} .blplan small{display:block;color:var(--muted);font-size:12px}
 /* Workout Library sections */
-.foldh{display:flex;align-items:center;gap:8px;width:100%;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;cursor:pointer;text-align:left}
-.foldh b{flex:1;font-size:16px} .foldh .fn{font-size:12px;color:var(--muted);padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06)}
+.foldh{display:flex;align-items:center;gap:var(--s2);width:100%;margin-top:14px;padding:var(--s3) 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;cursor:pointer;text-align:left}
+.foldh b{flex:1;font-size:16px} .foldh .fn{font-size:12px;color:var(--muted);padding:2px var(--s2);border-radius:999px;background:rgba(255,255,255,.06)}
 .foldh i{font-style:normal;color:var(--muted);transition:transform .25s} .foldh.open i{transform:rotate(180deg)}
 .foldb{animation:rowIn .25s ease-out}
 /* Gym hub: bigger recovery figure with a title */
-.recbig{width:100%;margin-top:12px;padding:12px 10px 10px;align-items:stretch}
-.recbig .rbhead{display:flex;justify-content:space-between;align-items:center;padding:0 6px 4px;color:var(--text)} .recbig .rbhead b{font-size:16px} .recbig .rbhead span{color:var(--muted);font-size:20px}
+.recbig{width:100%;margin-top:var(--s3);padding:var(--s3) 10px 10px;align-items:stretch}
+.recbig .rbhead{display:flex;justify-content:space-between;align-items:center;padding:0 6px var(--s1);color:var(--text)} .recbig .rbhead b{font-size:16px} .recbig .rbhead span{color:var(--muted);font-size:20px}
 .recbig small{text-align:center}
 #gHubTiles .pettile{flex-direction:column;align-items:flex-start;gap:6px;min-height:0}
 /* tab slide: the old page as a picture moving out */
 .pghost{pointer-events:none;z-index:2}
 /* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
 .exc.ended{opacity:1;border-style:solid}
-.exdone{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;color:var(--ok)}
-#sesBody .addexbig{margin-top:12px}
+.exdone{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--line);font-size:13px;color:var(--ok)}
+#sesBody .addexbig{margin-top:var(--s3)}
 /* 0.6.0 · Progress: weight chart, compact weigh-in, strength by muscle */
-.wtcard{padding:12px 12px 6px;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
+.wtcard{padding:var(--s3) var(--s3) 6px;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
 .wthead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
 .wthead b{font-size:24px;font-weight:800;letter-spacing:-.4px}
 .wthead small{display:block;font-size:12px;color:var(--muted)} .wthead small.up{color:var(--ok)} .wthead small.down{color:var(--orange)}
 .wtchart{display:block;width:100%;height:auto}
 .wtchart text{fill:var(--muted);font-size:10px;font-family:inherit}
 .wtempty{padding:22px 6px;text-align:center;color:var(--muted);font-size:13px}
-.wibox.wismall{margin-top:8px;padding:8px 10px;border-radius:14px}
-.wismall .brandrow{gap:8px;align-items:center} .wismall label{margin:0;flex:1;font-size:13px;text-transform:none;letter-spacing:0}
-.wismall input{flex:0 0 84px;padding:8px 10px;font-size:16px} .wismall .btn.small{padding:8px 12px}
+.wibox.wismall{margin-top:var(--s2);padding:var(--s2) 10px;border-radius:14px}
+.wismall .brandrow{gap:var(--s2);align-items:center} .wismall label{margin:0;flex:1;font-size:13px;text-transform:none;letter-spacing:0}
+.wismall input{flex:0 0 84px;padding:var(--s2) 10px;font-size:16px} .wismall .btn.small{padding:var(--s2) var(--s3)}
 .pglist{margin-top:6px}
-.pgrow{display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:10px;width:100%;padding:10px 12px;margin-top:6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.pgrow{display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:10px;width:100%;padding:10px var(--s3);margin-top:6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);font:inherit;text-align:left;cursor:pointer}
 .pgrow.l2{background:none;border-color:transparent;border-bottom:1px solid var(--line);border-radius:0;margin-top:0;padding:9px 6px}
 .pgrow .pgn{font-size:15px;font-weight:600} .pgrow.l2 .pgn{font-size:14px;font-weight:500}
 .pgrow .pgn small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px}
 .pgrow .pct{font-size:16px} .pgrow.l2 .pct{font-size:14px}
 .pgrow i{font-style:normal;color:var(--muted);transition:transform .2s} .pgrow.open i{transform:rotate(90deg)}
-.pgsub{padding:2px 0 4px 12px;animation:rowIn .22s ease-out}
+.pgsub{padding:2px 0 var(--s1) var(--s3);animation:rowIn .22s ease-out}
 .pgex{padding:2px 6px 6px}
 .pgexr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;color:var(--muted);border-bottom:1px dashed rgba(255,255,255,.06)}
 .pgexr .pct{font-size:13px} .pgexr small{font-weight:400;color:var(--muted)}
@@ -67,7 +67,7 @@ body.sorting{overscroll-behavior:none}
 .aibub{right:12px!important;width:60px!important;height:60px!important}
 
 /* 0.6.8 · finished set number = filled green badge; drop rows; supersets; swap */
-.adddrop{display:block;margin:0 0 8px 14px;border:1px dashed rgba(90,176,255,.45);background:none;color:var(--p);border-radius:10px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.adddrop{display:block;margin:0 0 var(--s2) 14px;border:1px dashed rgba(90,176,255,.45);background:none;color:var(--p);border-radius:10px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
 .setrow.ssnext{box-shadow:0 0 0 2px var(--ok);background:rgba(89,211,140,.10)}
 .exc.ss,.tpcard.ss{border-left:4px solid var(--ssc)!important}
 .sslbl{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ssc);margin:-2px 0 6px}
@@ -80,16 +80,16 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 #ovExPick #pkBody{overflow-x:hidden}
 #ovExPick .bodymap svg{max-height:calc(100vh - 230px)!important}
 .exrows{display:flex;flex-direction:column;gap:6px}
-.exrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 8px 6px 6px;border-radius:12px;border:1px solid var(--line);border-left:4px solid var(--eq);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
+.exrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px var(--s2) 6px 6px;border-radius:12px;border:1px solid var(--line);border-left:4px solid var(--eq);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
 .exrow .mm{flex:0 0 46px;height:56px;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.25);overflow:hidden}
 .exrow .exn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .exrow .exn b{font-size:14.5px;line-height:1.25}
 .exrow .exn small.exalso{font-size:11.5px;color:var(--t-muted)}
-.exrow .exn small{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
-.exrow .iinfo{flex:0 0 auto;color:var(--muted);font-size:17px;padding:8px}
+.exrow .exn small{display:flex;align-items:center;gap:var(--s1);color:var(--muted);font-size:12px}
+.exrow .iinfo{flex:0 0 auto;color:var(--muted);font-size:17px;padding:var(--s2)}
 .musort{margin:0 0 10px}
 .eimap{margin:6px 0 10px} .eimap svg{max-height:300px}
-.gymstartbtn{border:1px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 14%,transparent);color:var(--t-accent-ink,var(--t-accent));border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.gymstartbtn{border:1px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 14%,transparent);color:var(--t-accent-ink,var(--t-accent));border-radius:999px;padding:var(--s1) var(--s3);font-size:12px;font-weight:700;cursor:pointer}
 .skipbtn{margin-left:6px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer}
 
 /* ===== 0.6.8.1 · live workout screen (canvas: Phones.dc.html "Live workout", Gym.dc.html rest bracket) ===== */
@@ -104,7 +104,7 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .hg5{animation:flip 300s ease-in-out infinite} .hg5 .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 300s linear infinite} .hg5 .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 300s linear infinite}
 
 /* header: plain back arrow · centred title · 28 px italic clock + hourglass (flips every 5 min) */
-.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:8px 0;margin-bottom:8px;background:var(--t-bg)}
+.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:var(--s2) 0;margin-bottom:var(--s2);background:var(--t-bg)}
 .seshead3 .sesback{width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;color:var(--t-text);border-radius:0}
 .seshead3 h2{margin:0;max-width:100%;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);letter-spacing:0;color:var(--t-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seshead3 h2:empty{display:none}
@@ -120,32 +120,32 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesHg{display:flex}
 
 /* cards */
-#sesBody .exc{margin-bottom:16px;border-radius:var(--r-card)!important;padding:16px}
-.exc.open{position:relative;display:flex;flex-direction:column;gap:8px}
+#sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
+.exc.open{position:relative;display:flex;flex-direction:column;gap:var(--s2)}
 /* 0.7.7: card top row, pulled into the card's corner: [tier badge slot][settings gear 44 px] */
 .extop{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:44px;margin:-14px -10px -18px 0}
 .extier{display:flex;align-items:center;min-width:0}
 .extier:empty{display:none}
 .exgear{flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exc.ssarm .exgear{visibility:hidden}
-.exc.mini{display:flex;align-items:center;gap:8px;cursor:pointer}
-.exc.mini .mtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.exc.mini{display:flex;align-items:center;gap:var(--s2);cursor:pointer}
+.exc.mini .mtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--s1)}
 .exc.mini .mtxt b{font-size:var(--fs-body);font-weight:var(--w-med)}
 .exc.mini .mtxt small{font-size:var(--fs-label);color:var(--t-muted)}
-.exhead{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:4px;text-align:center}
+.exhead{display:flex;flex-direction:column;align-items:center;gap:var(--s1);margin-bottom:var(--s1);text-align:center}
 .exname{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
 .exhead small{font-size:var(--fs-label);color:var(--t-muted)}
 .exhead .xt{color:var(--t-text);font-weight:var(--w-med);font-variant-numeric:tabular-nums}
-.expills{display:flex;justify-content:center;gap:8px;margin-top:8px}
-.pill2{width:72px;height:28px;box-sizing:border-box;padding:0;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-med);display:flex;align-items:center;justify-content:center;gap:4px;border:0;background:var(--t-sel);color:var(--t-text);cursor:pointer}
+.expills{display:flex;justify-content:center;gap:var(--s2);margin-top:var(--s2)}
+.pill2{width:72px;height:28px;box-sizing:border-box;padding:0;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-med);display:flex;align-items:center;justify-content:center;gap:var(--s1);border:0;background:var(--t-sel);color:var(--t-text);cursor:pointer}
 .pill2.uni{letter-spacing:.5px;background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);transition:background .2s,color .2s,border-color .2s}
 .pill2.uni.on{background:#eef0f2;border-color:#eef0f2;color:#0b0d0f;font-style:italic}
 .exinfo{font-size:var(--fs-label);color:var(--t-muted);text-align:center;line-height:1.4}
-.wuhint{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:var(--fs-label);color:var(--t-muted)}
-.wuhint button{border:0;border-radius:var(--r-pill);background:var(--t-sel);color:var(--t-text);font-size:var(--fs-label);font-weight:var(--w-med);padding:6px 12px}
+.wuhint{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);font-size:var(--fs-label);color:var(--t-muted)}
+.wuhint button{border:0;border-radius:var(--r-pill);background:var(--t-sel);color:var(--t-text);font-size:var(--fs-label);font-weight:var(--w-med);padding:6px var(--s3)}
 
 /* set setter (weights stay 800) */
-.sethead,.setrow{display:grid!important;grid-template-columns:40px 1fr 1fr 38px!important;gap:8px!important;align-items:center}
+.sethead,.setrow{display:grid!important;grid-template-columns:40px 1fr 1fr 38px!important;gap:var(--s2)!important;align-items:center}
 .sethead span{font-size:var(--fs-label);color:var(--t-muted);text-align:center}
 .setrow{margin:0;padding:0;border-radius:0;background:none!important;box-shadow:none!important}
 .snum{justify-self:center;width:30px;height:30px;box-sizing:border-box;padding:0;border-radius:8px;border:1.5px solid transparent;background:transparent;font-size:15px;font-weight:var(--w-setter);display:flex;align-items:center;justify-content:center;white-space:nowrap;cursor:pointer;color:var(--t-text);transition:background .2s,color .2s,border-color .2s}
@@ -176,7 +176,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* rest bracket */
 .rbwrap{overflow:hidden;max-height:60px;opacity:1;margin-top:0;transition:max-height .35s ease,opacity .35s ease,margin-top .35s ease}
 .rbwrap.fold{max-height:0;opacity:0;margin-top:-8px}
-.rbk{position:relative;height:52px;border-radius:12px;background:var(--t-rest-box);overflow:hidden;display:flex;align-items:center;gap:12px;padding:0 8px 0 12px;color:var(--t-rest)}
+.rbk{position:relative;height:52px;border-radius:12px;background:var(--t-rest-box);overflow:hidden;display:flex;align-items:center;gap:var(--s3);padding:0 var(--s2) 0 var(--s3);color:var(--t-rest)}
 .rbglow{position:absolute;top:0;bottom:0;right:0;left:0;background:linear-gradient(90deg,rgba(95,168,245,0) 0%,rgba(95,168,245,.04) 40%,rgba(95,168,245,.10) 100%);pointer-events:none}
 .rbfuse{position:absolute;inset:0;pointer-events:none;color:var(--t-rest)}
 
@@ -190,11 +190,11 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .rbb .skip{background:var(--t-danger-soft);color:var(--t-danger);font-size:var(--fs-label)}
 
 /* New Set (frosted glass, accent text) · End Exercise (soft green) */
-.newset{margin-top:4px;width:100%;height:40px;border-radius:var(--r-pill);background:var(--t-glass-btn);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--t-glass-btn-edge);color:var(--t-accent-ink,var(--t-accent));font-size:var(--fs-body);font-weight:var(--w-setter);cursor:pointer}
+.newset{margin-top:var(--s1);width:100%;height:40px;border-radius:var(--r-pill);background:var(--t-glass-btn);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--t-glass-btn-edge);color:var(--t-accent-ink,var(--t-accent));font-size:var(--fs-body);font-weight:var(--w-setter);cursor:pointer}
 .endex2{width:100%;height:40px;border-radius:var(--r-pill);background:var(--t-done-soft);border:1px solid var(--t-done);color:var(--t-done);font-size:var(--fs-body);font-weight:var(--w-setter);cursor:pointer}
 
 /* bottom: Discard (soft red) + End Workout (accent), matching full pills */
-.endbar2{position:sticky;bottom:0;margin-top:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 0 calc(24px + env(safe-area-inset-bottom));background:linear-gradient(rgba(0,0,0,0),var(--t-bg) 40%);z-index:3}
+.endbar2{position:sticky;bottom:0;margin-top:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);padding:12px 0 calc(24px + env(safe-area-inset-bottom));background:linear-gradient(rgba(0,0,0,0),var(--t-bg) 40%);z-index:3}
 .pillbtn{height:52px;border-radius:var(--r-pill);border:0;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .pillbtn.primary{background:var(--t-accent);color:var(--t-on)}
 .pillbtn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
@@ -209,7 +209,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* exercise search: while you search, the box moves to the top and stays there as the list scrolls */
 #ovExPick .sheet.pksearching{display:flex;flex-direction:column}
 #ovExPick .sheet.pksearching>h2,#ovExPick .sheet.pksearching>#pkRegion{display:none}
-#ovExPick .sheet.pksearching .pksearch{order:-1;position:sticky;top:0;bottom:auto;margin:0 -16px var(--s2);padding:8px 16px 10px}
+#ovExPick .sheet.pksearching .pksearch{order:-1;position:sticky;top:0;bottom:auto;margin:0 -16px var(--s2);padding:var(--s2) var(--s4) 10px}
 #ovExPick .sheet.pksearching .pksearch .pksi{transform:translateY(-50%)}
 
 /* ======================= 0.7.4.0.5 (gym branch) ======================= */
@@ -218,7 +218,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #ovExPick .sheet{display:flex;flex-direction:column;overflow-y:hidden}
 #ovExPick .sheet>*{flex:0 0 auto}
 #ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-y:auto}
-#ovExPick .pkhead{position:sticky;top:0;z-index:3;margin:0 -16px;padding:0 16px 2px;background:linear-gradient(var(--t-glass),var(--t-glass)),var(--t-bg)}
+#ovExPick .pkhead{position:sticky;top:0;z-index:3;margin:0 -16px;padding:0 var(--s4) 2px;background:linear-gradient(var(--t-glass),var(--t-glass)),var(--t-bg)}
 /* confetti: plain dots, squares and bars in theme colours */
 .burst span.cf{width:9px;height:9px;border-radius:50%;font-size:0}
 .burst span.cf1{border-radius:2px;width:8px;height:8px}
@@ -227,12 +227,12 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .xred{color:var(--t-fail)!important;display:inline-flex;align-items:center}
 .fpx li .xred{flex:0 0 auto;padding-top:2px}
 .feed .pfck{display:inline-flex;width:18px;margin-right:6px;vertical-align:-3px;color:var(--t-done)}
-.exdone .exdt{display:inline-flex;align-items:center;gap:4px}
+.exdone .exdt{display:inline-flex;align-items:center;gap:var(--s1)}
 .foldh i svg,.exrow .iinfo svg{display:block}
 .chip.ok svg{vertical-align:-1px}
 .usebtn svg{display:block;margin:auto}
 
-#tpAdd{display:flex;align-items:center;justify-content:center;gap:8px} #tpAdd b{font-weight:inherit} .tpaddi{display:flex}
+#tpAdd{display:flex;align-items:center;justify-content:center;gap:var(--s2)} #tpAdd b{font-weight:inherit} .tpaddi{display:flex}
 .adddrop svg{vertical-align:-1px}
 
 /* 0.7.4.1 gym: info-window headings with line icons; muscle rows fit 375px */
@@ -249,9 +249,9 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #ovSummary .btn.fillbtn{background:var(--t-text)!important;color:var(--t-bg)!important;border:0!important;box-shadow:none!important;font-weight:var(--w-bold)}
 /* 0.7.4.1 gym: Create a Workout cards */
 .tpcard .tpname{font-weight:var(--w-bold);font-style:italic}
-.tpcard .tph .ttl small{display:flex;align-items:center;gap:4px}
+.tpcard .tph .ttl small{display:flex;align-items:center;gap:var(--s1)}
 .tpb{align-items:center}
-.tpb .formb{width:auto;height:28px;padding:0 12px;border-radius:var(--r-pill);background:var(--t-sel)!important;border:0!important;color:var(--t-accent-ink,var(--t-accent))!important;font-size:var(--fs-label)}
+.tpb .formb{width:auto;height:28px;padding:0 var(--s3);border-radius:var(--r-pill);background:var(--t-sel)!important;border:0!important;color:var(--t-accent-ink,var(--t-accent))!important;font-size:var(--fs-label)}
 .tpb .tprm{background:none!important;border:0!important;width:32px;height:32px;color:var(--t-muted)!important}
 .tpcard .stepper{background:var(--t-rest-box);border:1px solid var(--t-line);height:42px}
 .tpcard .stepper button{background:var(--t-sel);color:var(--t-text)}
@@ -267,31 +267,31 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .gcwk b{display:block;font-weight:var(--w-med)} .gcwk small{color:var(--t-muted);font-size:var(--fs-label)}
 /* machine card: how it works, How to do it, Common mistakes (like the Form page), the first-time weight */
 .gchow{margin:0;color:var(--t-text)}
-.gcblk{display:flex;flex-direction:column;gap:6px} .gcblk ol,.gcblk ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px} .gcblk ul.fpx{padding-left:0;list-style:none}
-.gcw{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--t-sel)} .gcw small{color:var(--t-muted);font-size:var(--fs-label)}
+.gcblk{display:flex;flex-direction:column;gap:6px} .gcblk ol,.gcblk ul{margin:0;padding-left:var(--s5);display:flex;flex-direction:column;gap:var(--s1)} .gcblk ul.fpx{padding-left:0;list-style:none}
+.gcw{display:flex;flex-direction:column;gap:2px;padding:10px var(--s3);border-radius:14px;background:var(--t-sel)} .gcw small{color:var(--t-muted);font-size:var(--fs-label)}
 /* 0.7.8: the live workout has no robot bubble (the header robot is the only way in); other coach bubbles step aside there */
 body.inses .coachbub{display:none!important}
 /* the coach chat box gets class "cam" when it has a camera button, which also matches the barcode camera frame (base.css .cam): undo that here */
 #coachForm.cam{aspect-ratio:auto;width:auto;border-radius:0;overflow:visible;background:none}
 /* training style card: four small numbers, a note */
-.gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.gsrow{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
+.gsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+.gsrow{display:flex;flex-direction:column;gap:2px;padding:var(--s2) 10px;border-radius:12px;background:var(--t-sel)} .gsrow small{color:var(--t-muted);font-size:var(--fs-label)} .gsrow b{font-weight:var(--w-bold)}
 .gsnote{margin:0}
 
 /* 0.7.7 Exercise Settings + per-set extras */
-.exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--t-line)}
+.exsrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:var(--s3) 0;border-bottom:1px solid var(--t-line)}
 .exsrow b{display:block;font-weight:var(--w-med)} .exsrow small{display:block;color:var(--t-muted);font-size:var(--fs-label);margin-top:2px}
-.exsh{margin:16px 0 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
-.setx{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-2px 0 8px 48px}
+.exsh{margin:var(--s4) 0 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
+.setx{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2);margin:-2px 0 var(--s2) 48px}
 .sxn{display:flex;align-items:center;gap:6px;font-size:var(--fs-label);color:var(--t-muted)}
 .sxn input{width:48px;height:30px;border-radius:var(--r-input);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-text);text-align:center;font-size:16px}
-.sxr{display:flex;align-items:center;gap:4px;font-size:var(--fs-label);color:var(--t-muted)}
+.sxr{display:flex;align-items:center;gap:var(--s1);font-size:var(--fs-label);color:var(--t-muted)}
 .sxr span{margin-right:2px}
 .sxr button{width:28px;height:28px;border-radius:var(--r-pill);border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font-size:var(--fs-label);cursor:pointer;padding:0}
 .sxr button.on{background:var(--t-accent);border-color:var(--t-accent);color:#0b0d0f;font-weight:var(--w-bold,700)}
 
 /* 0.7.7 cardio card: labelled fields, one tick */
-.cardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr)) 38px;gap:8px;align-items:end;margin:6px 0}
+.cardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr)) 38px;gap:var(--s2);align-items:end;margin:6px 0}
 .cardf{display:flex;flex-direction:column;gap:3px;min-width:0}
 .cardf>span{font-size:var(--fs-label);color:var(--t-muted)}
 .cardrow.done .sok{background:var(--t-done);border:0;color:var(--t-done-ink)}
@@ -305,12 +305,12 @@ body.inses .coachbub{display:none!important}
 :root[data-theme="light"] .flame.fl-orange{--fc:#b34700}:root[data-theme="light"] .flame.fl-silver{--fc:#5a6473}
 :root[data-theme="light"] .flame.fl-gold{--fc:#876000}:root[data-theme="light"] .flame.fl-platinum{--fc:#2f6b7a}
 :root[data-theme="light"] .flame.fl-diamond{--fc:#0a64a8;filter:drop-shadow(0 0 4px rgba(10,100,168,.45))}
-.gymstreak{display:inline-flex;align-items:center;gap:4px;margin-top:2px}.gymstreak b{font-size:var(--fs-label);color:var(--t-text)}
+.gymstreak{display:inline-flex;align-items:center;gap:var(--s1);margin-top:2px}.gymstreak b{font-size:var(--fs-label);color:var(--t-text)}
 
 /* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
 .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
-.tierbadge{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge{display:inline-flex;align-items:center;gap:var(--s1);height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tierbadge svg{flex:0 0 auto}
 :root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
 :root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
@@ -326,17 +326,17 @@ body.inses .coachbub{display:none!important}
   padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
 #ovWkQR .sheet.wqsheet::before,#ovWkQR .sheet.wqsheet::after{display:none}
 #ovWkQR.center{align-items:stretch!important}
-#ovWkQR h2{color:var(--qr-ink);margin:0 0 4px;max-width:100%;overflow-wrap:anywhere}
+#ovWkQR h2{color:var(--qr-ink);margin:0 0 var(--s1);max-width:100%;overflow-wrap:anywhere}
 .wqmeta{color:var(--qr-soft);font-size:15px}
 .wqcode{width:min(86vw,62vh,440px);aspect-ratio:1;margin:22px 0 18px}
 .wqcode svg{display:block;width:100%;height:100%}
-.wqhint{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--qr-ink);font-size:15px;margin:0 0 6px}
+.wqhint{display:flex;gap:var(--s2);align-items:center;justify-content:center;color:var(--qr-ink);font-size:15px;margin:0 0 6px}
 .wqhint svg{flex:0 0 auto}
 .wqhow{color:var(--qr-soft);font-size:13px;margin:0 0 22px;max-width:340px}
 #ovWkQR .btn.wqclose{flex:0 0 auto;background:var(--qr-paper);color:var(--qr-ink);border:1.5px solid var(--qr-ink);min-width:160px}
 #ovWkQR .sheet.wqsheet{position:relative}
 #ovWkQR .sback{position:absolute!important;top:calc(env(safe-area-inset-top) + 10px)!important;left:10px!important;margin:0!important;color:var(--qr-ink)!important;background:none!important}
 .qrbtn{margin-right:6px}
-.wsbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px}
+.wsbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin:0 0 var(--s3)}
 #ovWkScan .wscam .frame{left:22%;right:22%;top:14%;bottom:14%}
 #ovWkScan #wsPhotoBtn{width:100%;margin-top:10px}

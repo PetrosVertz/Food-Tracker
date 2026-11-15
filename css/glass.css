@@ -15,16 +15,16 @@ body::before{content:"";position:fixed;inset:-25%;z-index:-1;pointer-events:none
 .langpick button.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
 .daychips button{min-width:44px}
 /* raw / cooked tags */
-.sttag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:6px;margin-right:4px;vertical-align:1px;background:rgba(255,255,255,.12);color:var(--text)}
+.sttag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:6px;margin-right:var(--s1);vertical-align:1px;background:rgba(255,255,255,.12);color:var(--text)}
 .sttag.raw{background:rgba(143,211,255,.2);color:var(--raw);border:1px solid rgba(143,211,255,.45)}
 .sttag.cooked{background:rgba(155,232,155,.18);color:var(--cooked);border:1px solid rgba(155,232,155,.45)}
 /* log search */
 #amFridgeWrap input{display:none} #amFridgeWrap span{color:var(--muted);font-size:13px}
 /* today reminder */
 #gymBox{display:none!important}
-.remind{display:flex;gap:10px;align-items:flex-start;border-radius:18px;padding:10px 12px;margin:8px 0 10px;animation:remIn .45s cubic-bezier(.2,.8,.2,1);border-color:rgba(255,138,42,.3)}
+.remind{display:flex;gap:10px;align-items:flex-start;border-radius:18px;padding:10px var(--s3);margin:var(--s2) 0 10px;animation:remIn .45s cubic-bezier(.2,.8,.2,1);border-color:rgba(255,138,42,.3)}
 .remind .rmtxt{flex:1;font-size:14px;line-height:1.45} .remind .rmrec{color:var(--t-warm);font-size:13px;cursor:pointer;margin-top:2px}
-.remind .rmbtns{display:flex;gap:4px}
+.remind .rmbtns{display:flex;gap:var(--s1)}
 @keyframes remIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 .dblocks{font-size:inherit;color:inherit}
 /* shopping review */
@@ -38,19 +38,19 @@ body::before{content:"";position:fixed;inset:-25%;z-index:-1;pointer-events:none
 .tpb .formb{border-color:rgba(90,176,255,.45)!important;color:var(--p)!important}
 .gother{display:block;margin:6px auto 0;color:var(--muted)}
 /* template editor */
-.tpcard{border-radius:16px;padding:10px 12px;margin-bottom:10px}
+.tpcard{border-radius:16px;padding:10px var(--s3);margin-bottom:10px}
 .tph{display:flex;gap:10px;align-items:center} .tph .ttl{flex:1;min-width:0} .tph .ttl b{display:block} .tph .ttl small{color:var(--muted);font-size:12px}
 .tpb{display:flex;gap:6px} .tpb button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);cursor:pointer;font-size:14px}
-.tpsteps{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:10px;align-items:end}
-.tps small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.tpsteps{display:grid;grid-template-columns:1fr 1fr auto;gap:var(--s2);margin-top:10px;align-items:end}
+.tps small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:var(--s1)}
 .restchip{height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--p);padding:0 10px;font-weight:600;cursor:pointer;white-space:nowrap}
-#tpTypeShow{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:15px}
+#tpTypeShow{display:flex;align-items:center;gap:var(--s2);margin:2px 0 6px;font-size:15px}
 /* form demo */
-.formwide{width:100%;margin-bottom:12px;border-color:rgba(90,176,255,.45);color:var(--p)}
+.formwide{width:100%;margin-bottom:var(--s3);border-color:rgba(90,176,255,.45);color:var(--p)}
 /* smooth slider */
 input[type=range]{-webkit-appearance:none;appearance:none;height:30px;background:none;border:0;padding:0}
 input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#59d38c,#ffb547,#ff5c5c)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 /* weigh-in */
-.wibox{margin-top:14px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
-.wibox h3{margin:0 0 8px}
+.wibox{margin-top:14px;padding:var(--s3);border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.wibox h3{margin:0 0 var(--s2)}
