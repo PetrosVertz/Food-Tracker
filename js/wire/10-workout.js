@@ -51,4 +51,7 @@ $('sesCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gyml
     if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
 // Exercise Settings sheet: switches save at once and the open workout redraws
-$('exsBody').addEventListener('click', e => { const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });
+$('exsBody').addEventListener('click', e => {
+  if(e.target.closest('[data-hmopen]')){ EXS_MK = !EXS_MK; Phone.haptic(); drawExSet(); return; }
+  const hm = e.target.closest('[data-hm]'); if(hm){ Phone.haptic(); const G = gx(); hideM('W'); G.hideM = G.hideM || {}; if(G.hideM[hm.dataset.hm]) delete G.hideM[hm.dataset.hm]; else G.hideM[hm.dataset.hm] = true; Store.save('settings', settings); drawExSet(); if(active) renderSession(); return; }
+  const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, b.dataset.def ? gx()[b.dataset.gx] === false : !gx()[b.dataset.gx]); drawExSet(); if(active) renderSession(); });

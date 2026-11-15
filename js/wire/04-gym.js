@@ -100,9 +100,10 @@ $('sesBody').addEventListener('click', e => {
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-type]') && s && !gx().hideMarks){ const j = +row.dataset.s;
-    if(s.drop){ addDrop(x, j); saveG('act'); renderSession(); return; }   // ↘ on a drop: one more drop
-    s.type = { N: 'W', W: 'D', D: 'F', F: 'N' }[s.type];
+  if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
+    if(s.drop){ if(!hideM('D')){ addDrop(x, j); saveG('act'); renderSession(); } return; }   // ↘ on a drop: one more drop
+    const cyc = ['N', 'W', 'D', 'F']; let nt = s.type; for(let q = 0; q < 4; q++){ nt = cyc[(cyc.indexOf(nt) + 1) % 4]; if(nt === 'N' || !hideM(nt)) break; }   // skip the markers hidden in Exercise Settings
+    if(nt === s.type) return; s.type = nt;
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
     if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
     saveG('act'); renderSession(); return; }

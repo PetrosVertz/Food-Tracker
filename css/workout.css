@@ -373,3 +373,10 @@ body.inses .coachbub{display:none!important}
 .attbtn.on{color:var(--tier-gold)}
 .exname.gold{color:var(--tier-gold)}
 .sethead.attset,.setrow.attset{grid-template-columns:40px 1fr 38px!important}
+/* 0.7.9.1 Hide Set Markers drop-down */
+.mkrow{padding:0}
+.mkhead{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:var(--s3) 0;border:0;background:none;color:var(--t-text);font:inherit;text-align:left;cursor:pointer}
+.mkhead>svg{flex:0 0 auto;color:var(--t-muted);transition:transform .2s} .mkhead[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.mklist{display:flex;gap:var(--s2);padding:var(--s2) 0 var(--s3);border-bottom:1px solid var(--t-line)}
+.mkopt{flex:1;min-height:44px;border-radius:var(--r-input);border:1px solid var(--t-accent);background:var(--t-sel);color:var(--t-text);font:inherit;font-size:var(--fs-label);cursor:pointer}
+.mkopt.off{border-color:var(--t-line);background:var(--t-card2);color:var(--t-muted);text-decoration:line-through}

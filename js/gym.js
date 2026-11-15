@@ -84,6 +84,10 @@ function warmupFor(exId, w){
 // ---------- live session ----------
 // 0.7.7: Exercise Settings (one global menu, saved with the device settings): both sides together, hidden markers, per-set extras, sounds
 const gx = () => settings.gx || (settings.gx = {});
+// 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
+// The old single switch (hideMarks) becomes all three hidden.
+function hideM(k){ const G = gx(); if(G.hideMarks){ G.hideM = { W: true, D: true, F: true }; delete G.hideMarks; Store.save('settings', settings); } return !!(G.hideM && G.hideM[k]); }
+let EXS_MK = false;   // the Hide Set Markers list is open
 function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
 // 0.7.7 cardio: no sets / reps. Time (min, stored in r) and distance (km, stored in w) like before, plus calories and level where the machine has them (optional fields cal, lvl).
 const CARDIO_NODIST = /^(burpee|jumping_jacks|jump_rope|battle_ropes)$/, CARDIO_LVL = /bike|elliptical|stair|rower|ski_erg|spin|treadmill|incline/;
@@ -729,7 +733,9 @@ function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.t
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
 function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
-  $('exsBody').innerHTML = row('lbAtt', 'atTitle', 'atSub') + row('uniBoth', 'exsUni', 'exsUniS') + row('hideMarks', 'exsMarks', 'exsMarksS') + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
+  const mk = ['W', 'D', 'F'].map(k => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${t('mk' + k)}</button>`).join('');
+  $('exsBody').innerHTML = row('lbAtt', 'atTitle', 'atSub') + row('uniBoth', 'exsUni', 'exsUniS') +
+    `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
@@ -749,7 +755,7 @@ function cardHtml(x, i){
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
-  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !G.hideMarks && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
+  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !hideM('W') && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
@@ -757,8 +763,8 @@ function cardHtml(x, i){
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
     const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
-    const ty = G.hideMarks ? 'N' : s.drop ? 'D' : s.type, base = G.hideMarks ? j + 1 : s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
-    const lastDrop = !G.hideMarks && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
+    const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
+    const lastDrop = !hideM('D') && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     return `<div class="setrow t-${ty}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
