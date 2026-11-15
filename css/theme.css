@@ -98,7 +98,10 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
    that iPhone draws at low resolution (soft letters). The colour is what the old glass looked like over the dimmed page. */
 .sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
-.overlay{background:var(--t-scrim)}
+.overlay{background:transparent}
+/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
+.overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
+.overlay.open>.sheet{will-change:transform}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
@@ -137,14 +140,16 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
   display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
 .rail>button.hide{display:none}   /* 0.7.9: Kitchen switched off → four tabs share the bar */
 html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env(safe-area-inset-bottom) - 10px)))}
-.rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
-.rail>button.on{color:var(--t-text)}
+.rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .34s cubic-bezier(.45,0,.2,1),transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
 .rail .ri{display:flex;line-height:0}
 /* 0.7.9.1: frosted look with no live blur (so it stays smooth while sliding): a see-through accent tint, a soft 1 px light edge and a faint
    highlight at the top. Only transform and opacity animate. The icon on it uses the normal text colour, so it reads in Light and Dark. */
-:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 26%,transparent);--t-knob-hi:rgba(255,255,255,.16);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.22)}
-:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 32%,transparent);--t-knob-hi:rgba(255,255,255,.5);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 1px 0 rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.1)}
-.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 60%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* 0.7.9.2: the selected-tab marker is the vibrant accent (same colour as Start Workout / Log Food) with only a slight frosted look on top:
+   a faint light highlight at the top, a soft 1 px light edge and a gentle inner glow. Still no live blur, so it slides smoothly. Icon colour = --t-on. */
+:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 88%,transparent);--t-knob-hi:rgba(255,255,255,.2);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 8px rgba(255,255,255,.12)}
+:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 90%,transparent);--t-knob-hi:rgba(255,255,255,.26);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 8px rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.12)}
+.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 55%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
+.rail>button.on{color:var(--t-knob-on,var(--t-on))}
 
 /* Back: one plain arrow everywhere, no box, generous tap area */
 .backarrow,.sback,.sesback{width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 0 0 -10px;
@@ -758,7 +763,7 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }
 /* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
-.rail>.knob{border-radius:50%;transition:transform .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}
+.rail>.knob{border-radius:50%;will-change:transform;transition:transform .34s cubic-bezier(.45,0,.2,1),opacity .15s}   /* 0.7.9.2: one soft ease-in-out glide, no bounce, transform only */
 .rail .avimg,.rail .avini{width:36px;height:36px;border-radius:50%;display:block;object-fit:cover}   /* 0.7.9.1: a little bigger, so the ring of the 44 px marker around it is slim */
 .avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
 .rail>button.on .avini{background:var(--t-card)}
@@ -784,13 +789,16 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+/* 0.7.9.2: the Gym Coach button made this row 52 px tall, so the title sat 4–8 px under the arrow; the row is now exactly the arrow's 44 px */
+.overlay .sheet>.sback+.sthead{height:44px!important;min-height:44px;margin-top:-12px!important}
+.overlay .sheet>.sback+.sthead .sescoach{height:44px}
 /* 0.7.9 header: NO header band. The 0.7.8 solid bar + fade sliced cards under a strip that, on a notched iPhone, is the status bar
    plus a 52px title row. Now page titles (and the header buttons beside them) are part of the page and scroll away with it;
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
 section.page>header::before,.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{display:none!important}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:auto;z-index:1}
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:var(--topP);z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
@@ -807,7 +815,7 @@ body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env
    (no blur: scrolled content can't show through the letters). --topfade is the fade height.
    Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
-:root{--topfade:14px;--topP:calc(8px + env(safe-area-inset-top))}
+:root{--topfade:6px;--topP:calc(8px + env(safe-area-inset-top))}
 section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
   background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 .overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
