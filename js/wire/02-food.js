@@ -15,7 +15,6 @@ $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
   if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
   else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
-$('fCookBtn').addEventListener('click', () => open('ovCookPick'));   // Cook a Meal from the Fridge; the meal lands under Food Library › Recipes
 // Recipes view: Suggest a Recipe and Quick Recipe sit at the top, each with the chef robot face on the left
 document.querySelectorAll('.recFace').forEach(f => { f.innerHTML = AI.robot('chef', 24); });
 $('recSuggestBtn').addEventListener('click', () => $('cookSuggestBtn').click());
