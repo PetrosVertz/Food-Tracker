@@ -243,6 +243,12 @@ html.pwa .aibub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(sa
 .robot .reye,.robot .rgl,.robot .rmo{transform-box:view-box;animation:2.6s ease-in-out infinite}
 .robot .reye{animation-name:reye} .robot .rgl{animation-name:rgl} .robot .rmo{transform-origin:60px 117.75px;animation-name:rmo}
 .robot .rfi,.robot .rfx{display:none}
+/* 0.7.9 idle life: slow look left / right with pauses, plus a quick blink every few seconds (each robot has its own phase: --rd / --rb) */
+@keyframes ridle{0%,16%{transform:translate(0,0)}24%,36%{transform:translate(-4px,0)}46%,56%{transform:translate(0,0)}64%,78%{transform:translate(4px,-1px)}88%,100%{transform:translate(0,0)}}
+@keyframes rblink{0%,93%,100%{transform:scaleY(1)}96.5%{transform:scaleY(.1)}}
+.robot .ridle{transform-box:view-box;animation:ridle 7s ease-in-out infinite;animation-delay:var(--rd,0s)}
+.robot .rblink{transform-box:view-box;transform-origin:60px 100px;animation:rblink 5.3s ease-in-out infinite;animation-delay:var(--rb,0s)}
+.sescoach .robot{touch-action:manipulation}
 /* dragging (ai.js drag()): follows the finger, snaps to the nearest side; over the trash it glows red and the eyes turn to X's */
 .aibub{touch-action:none;-webkit-user-select:none;user-select:none}
 button.aibub.aibub:active{opacity:1;transform:none}   /* no press-dim or press-shrink on a bubble you are about to drag (no jump when you let go) */   /* 0.7.9.1: moves only by transform (ui.js dragger / springTo), never by left/top transitions */
@@ -258,7 +264,7 @@ html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-are
 .aitrash.show{opacity:1;transform:translateX(-50%) scale(1)}
 .aitrash.hot{transform:translateX(-50%) scale(1.15);background:rgba(255,77,77,.18);border-color:#ff4d4d;color:#ff4d4d}
 /* Reduce Motion: no sway, no gliding, no spin, no spring: the idle face and a still lime ring while it works */
-@media (prefers-reduced-motion: reduce){ .robot .rft{display:none} .robot .rfi{display:inline} .aibub,.aitrash,.aibub .rcore{transition:none!important}
+@media (prefers-reduced-motion: reduce){ .robot .rft{display:none} .robot .rfi{display:inline} .robot .ridle,.robot .rblink{animation:none} .aibub,.aitrash,.aibub .rcore{transition:none!important}
   .aibub .rglow{background:color-mix(in srgb,var(--t-accent) 55%,transparent);filter:blur(6px);inset:-6px} }
 /* search windows: top two thirds, fixed size, list drops down under the box */
 .overlay.searchy{align-items:flex-start!important}

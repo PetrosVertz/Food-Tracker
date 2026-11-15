@@ -108,22 +108,28 @@ const AI = (() => {
     + '<g class="rgl"><circle cx="44" cy="93.5" r="3.4" fill="#ffffff"/><circle cx="76" cy="93.5" r="3.4" fill="#ffffff"/></g></g>'
     + '<path class="rmo" d="M53 117.75 Q60 118.6 67 117.75" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
   // 0.7.4.3 idle face drawn inline (same as #rFaceIdle) so the eyes (.rlook) can glance toward a tap on the screen
-  const FACE_I = '<g class="rfi0"><g class="rlook"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/></g>'
+  const FACE_I = '<g class="rfi0"><g class="rblink"><g class="ridle"><g class="rlook"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/></g></g></g>'
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // robot bubbles: tap anywhere and the eyes glance that way (a small, smooth move), then drift back to the middle; off with Reduce Motion
-  document.addEventListener('pointerdown', e => {
+  // 0.7.9 robots feel alive: every idle robot slowly looks around and blinks (CSS .ridle / .rblink); on top of that the eyes glance toward a tap anywhere on the screen.
+  // Robot bubbles glance once and drift back. The Gym Coach robot in the live workout (top right) also FOLLOWS a finger that stays down and moves, and holds the look a bit longer.
+  // Off with Reduce Motion.
+  let gazeDown = false;
+  function gaze(e){
     if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    document.querySelectorAll('.aibub .rlook').forEach(g => { const b = g.closest('.aibub'); if(b.contains(e.target) || b.classList.contains('drag')) return;
-      const r = b.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 140);
-      g.style.transition = 'transform .28s cubic-bezier(.2,.8,.3,1)'; g.style.transform = `translate(${(dx / d * 5 * k).toFixed(2)}px,${(dy / d * 4 * k).toFixed(2)}px)`;
-      clearTimeout(g._t); g._t = setTimeout(() => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; }, 1100); });
-  }, { capture: true, passive: true });
+    document.querySelectorAll('.aibub .rlook, .sescoach .rlook').forEach(g => { const b = g.closest('.aibub, .sescoach'); if(b.contains(e.target) || b.classList.contains('drag')) return;
+      const r = b.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 140), hdr = b.classList.contains('sescoach');
+      g.style.transition = 'transform .28s cubic-bezier(.2,.8,.3,1)'; g.style.transform = `translate(${(dx / d * 6 * k).toFixed(2)}px,${(dy / d * 5 * k).toFixed(2)}px)`;
+      clearTimeout(g._t); g._t = setTimeout(() => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; }, hdr ? 1800 : 1100); });
+  }
+  document.addEventListener('pointerdown', e => { gazeDown = true; gaze(e); }, { capture: true, passive: true });
+  document.addEventListener('pointermove', e => { if(gazeDown) gaze(e); }, { capture: true, passive: true });
+  ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { gazeDown = false; }, { capture: true, passive: true }));
   function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
     d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
   // the robot as an <svg>: kind 'chef' | 'gym' | 'fridge' | 'tour'; think = gliding eyes + sway (Reduce Motion shows the idle face); every robot also carries the X-eyes face for the trash drag
   function robot(kind, size, think){ robotDefs(); const base = { gym: 'rGymBase', fridge: 'rClerkBase', tour: 'rTourBase' }[kind] || 'rChefBase', w = size || 40, h = Math.round(w * 146 / 120);
     const face = (think ? FACE_T + '<use class="rfi" href="#rFaceIdle"/>' : FACE_I) + '<use class="rfx" href="#rFaceX"/>';
-    return `<svg class="robot" width="${w}" height="${h}" viewBox="0 -6 120 146" aria-hidden="true"><g${think ? ' class="rtilt"' : ''}><use href="#${base}"/>${face}</g></svg>`; }
+    return `<svg class="robot" width="${w}" height="${h}" viewBox="0 -6 120 146" style="--rd:-${(Math.random() * 7).toFixed(1)}s;--rb:-${(Math.random() * 5).toFixed(1)}s" aria-hidden="true"><g${think ? ' class="rtilt"' : ''}><use href="#${base}"/>${face}</g></svg>`; }
   const OK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function bubble(st){ let b = $('aiBub');
     if(st === 'hide'){ if(b) b.remove(); bubTrash(false); return; }
