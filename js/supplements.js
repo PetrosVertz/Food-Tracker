@@ -16,9 +16,8 @@ function renderSupps(){
   if(!supps.length){ $('sList').innerHTML = `<div class="empty">${t('noSupps')}</div>`; return; }
   $('sList').innerHTML = suppsByTime().map(s => { const tk = takesOf(d, s.id);
     return `<div class="card supcard" data-sid="${s.id}"><div class="body">
-      <div class="row"><div class="name"><span class="sic">${svgIcon('capsule', 18, 2)}</span>${esc(suppName(s))}</div><span class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}</span></div>
-      <div class="takes">${tk.map((tm, i) => `<span class="take"><span>${svgIcon('check', 14, 2.4)}</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="${t('logATime')}"><button data-tkx="${i}" aria-label="${t('logATakeRm')}">${svgIcon('x', 14, 2.4)}</button></span>`).join('')}
-        <button class="btn small takebtn" data-take>${tk.length ? t('takeAgain') : t('takeIt')}</button></div></div></div>`; }).join('');
+      <div class="row supline"><div class="name"><span class="sic">${svgIcon('capsule', 18, 2)}</span><span class="supnm">${esc(suppName(s))}<small class="rmeta">${fmt(s.dose)} ${esc(unitLabel(s.unit))}</small></span></div><button class="btn small takebtn" data-take>${tk.length ? t('takeAgain') : t('takeIt')}</button></div>
+      ${tk.length ? `<div class="takes">${tk.map((tm, i) => `<span class="take"><span>${svgIcon('check', 14, 2.4)}</span><input type="time" value="${tm}" data-tkt="${i}" aria-label="${t('logATime')}"><button data-tkx="${i}" aria-label="${t('logATakeRm')}">${svgIcon('x', 14, 2.4)}</button></span>`).join('')}</div>` : ''}</div></div>`; }).join('');
 }
 
 function openSupp(s){

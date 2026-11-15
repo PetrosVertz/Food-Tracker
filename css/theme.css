@@ -930,3 +930,10 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .dsex>b{display:block;margin-bottom:var(--s1)}
 .dsset{display:flex;justify-content:space-between;gap:var(--s3);font-size:var(--fs-label);color:var(--t-muted);padding:2px 0}
 .dsset span:last-child{color:var(--t-text);font-weight:var(--w-med)}
+
+/* 0.7.9 log 3: supplement cards: name + dose on the left, Take on the right, taken times underneath (nothing stretched across the row) */
+.supcard .supline{display:flex;align-items:center;gap:var(--s3)}
+.supcard .supline .name{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s2)}
+.supcard .supnm{display:flex;flex-direction:column;min-width:0}
+.supcard .supnm .rmeta{font-size:var(--fs-label);color:var(--t-muted)}
+.supcard .takebtn{margin:0;flex:0 0 auto}
