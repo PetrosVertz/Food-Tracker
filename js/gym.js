@@ -660,11 +660,25 @@ function tierSteps(exId, body){ const st = tierStd(exId); if(!st) return null; c
   return out; }
 const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${3 - n % 3}`;
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { n, tier, label, next?: { label, kg } } (n 0–14) · { none: true } (no sets yet)
-// the line badge top right on the exercise card (just left of the gear); tap → the gap to the next level
-const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${svgIcon('medal', 13, 2)}<span>${esc(tf.label)}</span></button>`;
+// 0.7.9: rank emblems instead of text. One line emblem per tier (Bronze shield · Silver shield, two chevrons · Gold shield, star ·
+// Platinum hexagon gem · Diamond cut diamond), tier colour, a soft tinted fill; the level as three pips below (Level 3 = one lit, Level 1 = all three).
+const RANK_SHIELD = 'M12 2.6l7.4 2.9v5.8c0 4.5-3.1 8-7.4 9.6-4.3-1.6-7.4-5.1-7.4-9.6V5.5z';
+const RANK_ART = {
+  bronze: [RANK_SHIELD, 'M8.6 10.4l3.4 2.6 3.4-2.6'],
+  silver: [RANK_SHIELD, 'M8.6 8.6l3.4 2.6 3.4-2.6M8.6 12.2l3.4 2.6 3.4-2.6'],
+  gold: [RANK_SHIELD, 'M12 7l1.1 2.7 2.9.2-2.3 1.9.8 2.8-2.5-1.6-2.5 1.6.8-2.8-2.3-1.9 2.9-.2z'],
+  platinum: ['M12 2.4l8 4.6v9.2l-8 4.6-8-4.6V7z', 'M12 6.6l4.4 2.5v5l-4.4 2.5-4.4-2.5v-5zM12 6.6v10M7.6 9.1l8.8 5M16.4 9.1l-8.8 5'],
+  diamond: ['M7.2 3.6h9.6l4.2 5.2L12 20.6 3 8.8z', 'M3 8.8h18M9.6 3.6L8 8.8l4 11.8 4-11.8-1.6-5.2'] };
+function rankIcon(tier, n, size){
+  const a = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips
+  return `<svg class="rankic tr-${tier}" width="${Math.round(h * 24 / 30)}" height="${h}" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="${a[0]}" fill="currentColor" fill-opacity=".16"/><path d="${a[1]}"/>${[7.5, 12, 16.5].map((x, i) => `<circle cx="${x}" cy="26.6" r="1.7"${i < lit ? ' fill="currentColor"' : ' fill="none" stroke-opacity=".5" stroke-width="1.2"'}/>`).join('')}</svg>`;
+}
+// the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
+const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 28)}</button>`;
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
   hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
-  p.textContent = tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop'); document.body.appendChild(p);
+  p.textContent = `${tf.label} · ${tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop')}`; document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth;
   p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.right - w)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
 function tierFor(exId, e1){ if(!tierStd(exId)) return null; const body = tierBody(); if(!body) return { need: true };

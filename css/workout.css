@@ -325,8 +325,12 @@ body.inses .coachbub{display:none!important}
 /* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
 .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
-.tierbadge{display:inline-flex;align-items:center;gap:var(--s1);height:26px;padding:0 9px;border-radius:var(--r-pill);border:1.5px solid var(--trc);background:none;color:var(--trc);font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--trc);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tierbadge svg{flex:0 0 auto}
+/* 0.7.9 rank emblem (rankIcon): tier colour, soft fill, three level pips; a faint glow in Dark so it reads as a badge, not a plain icon */
+.rankic{display:block;color:var(--trc);overflow:visible}
+:root:not([data-theme="light"]) .rankic{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--trc) 35%,transparent))}
+.pfrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
 :root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
 :root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
 .tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}

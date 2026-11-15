@@ -20,12 +20,12 @@ function bestE1(exId){
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
 //   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
-//   tierOf : (exId, e1) => null | { label, color? }   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
+//   tierOf : (exId, e1) => null | { label, tier, n, color? }   (0.7.9: drawn as the rank emblem, rankIcon in gym.js)   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
 function profileData(){
   const me = Account.current(), today = todayKey();
   const streak = gymStreak();                              // gym-streak (gym.js)
   // gym-tiers: Bronze 3 … Diamond 1 from tierFor() (gym.js); colour = the tier's theme-aware colour (workout.css --tier-*)
-  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, color: `var(--tier-${tf.tier})` } : null; };
+  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, tier: tf.tier, n: tf.n, color: `var(--tier-${tf.tier})` } : null; };
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
   const latestPR = prs.filter(p => p.kind === 'w').sort((a, b) => b.start.localeCompare(a.start))[0] || null;
@@ -66,7 +66,7 @@ function renderProfile(){
   const pr = d.latestPR ? `<b class="pfbig">${esc(exName(d.latestPR.exId))}</b><span class="pfline">${kg(d.latestPR.w)} × ${d.latestPR.r} · ${esc(fmtDate(d.latestPR.date + 'T12:00:00'))}</span>`
     : `<span class="pfline">${esc(t('pfNoPR'))}</span>`;
   const rows = d.boards.map(b => `<div class="pfrow${b.bonus ? ' bonus' : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))}</small></span>
-      ${b.tier ? `<span class="pftier"${b.tier.color ? ` style="--tc:${b.tier.color}"` : ''}>${esc(b.tier.label)}</span>` : ''}<span class="pfrv">${b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
+      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
   const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
   const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
       ${w.length > 1 ? pfWeightChart(w) : `<span class="pfline">${esc(t('pfNoWeight'))}</span>`}</div>`;
