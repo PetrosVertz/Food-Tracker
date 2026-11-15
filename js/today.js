@@ -293,7 +293,7 @@ function drawLog(){
     const dym = local + (onl ? LOGON.res.length : 0) < 3 ? Search.didYouMean(q) : null;
     if(!local && !LOGON.busy && !onl) h = `<div class="hint">${t('nothingMatches', { q: esc(q) })}</div>` + h;
     if(dym) h = `<button class="dym" data-dym="${esc(dym)}">${t('didYouMean')} <b>${esc(dym)}</b>?</button>` + h;
-    h += `<button class="lmore" id="lTakeaway" type="button"><span>${t('logQOpen', { q: esc(q) })} ${AI.badge()}</span><small>${t('logQOpenSub')}</small></button>`;
+    h += `<button class="lmore" id="lTakeaway" type="button" data-ai><span class="aifln">${AI.face('chef')}<span>${t('logQOpen', { q: esc(q) })}</span></span><small>${t('logQOpenSub')}</small></button>`;
   }
   $('lResults').innerHTML = h;
 }

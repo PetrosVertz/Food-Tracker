@@ -184,6 +184,8 @@ const AI = (() => {
 
   // the "AI" pill that replaces ✨ on AI buttons; label() turns a '✨ Text' string into 'Text <AI>' (html = the string is already markup)
   const badge = () => '<span class="aibadge">AI</span>';
+  // 0.7.9.1 one rule: a control that OPENS A CHAT shows that helper's face (chef = Food Coach, gym = Gym Coach, fridge = Kitchen); a one-tap AI job keeps badge()
+  const face = (kind, size) => `<span class="aiface" aria-hidden="true">${robot(kind, size || 20)}</span>`;
   function label(s, html){ s = String(s ?? ''); if(!s.includes('✨')) return html ? s : esc(s);
     const plain = s.replace(/✨\s?/g, '').trim(); if(!html) return `${esc(plain)} ${badge()}`;
     const i = plain.indexOf('<'); return i > 0 ? `${plain.slice(0, i).trim()} ${badge()}${plain.slice(i)}` : `${plain} ${badge()}`; }
@@ -230,7 +232,7 @@ const AI = (() => {
   }
 
   return {
-    ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, label, drag,
+    ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

@@ -537,6 +537,9 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .lwacts .aiafter::after{height:16px;font-size:10px;margin-left:5px}
 .lwacts .aiafter{display:inline-flex;align-items:center;justify-content:center}
 .lwacts .lwico{display:flex;align-items:center;justify-content:center;padding:0}
+/* 0.7.9.1: buttons that open a chat show the helper's robot face before the text (AI.face), not the AI tag */
+.aiface{display:inline-flex;align-items:center;flex:0 0 auto;line-height:0} .aiface .robot{display:block}
+.aifbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:6px} .aifln{display:inline-flex;align-items:center;gap:var(--s2)}
 
 /* 0.7.4.3 · Food Coach answers (was Quick Log): the food list inside a coach chat card (js/coach.js draws the card) */
 .lqdots{display:inline-flex;gap:var(--s1)} .lqdots i{width:6px;height:6px;border-radius:50%;background:var(--t-accent);animation:lqDot 1.1s ease-in-out infinite}

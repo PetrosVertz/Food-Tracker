@@ -148,6 +148,7 @@ function applyLang(){
   // 0.7.1: a ✨ in a label becomes the "AI" badge after the text
   document.querySelectorAll('[data-t]').forEach(el => { const s = t(el.dataset.t); if(s.includes('✨')) el.innerHTML = AI.label(s); else el.textContent = s; });
   document.querySelectorAll('[data-th]').forEach(el => el.innerHTML = AI.label(t(el.dataset.th), true));
+  document.querySelectorAll('[data-face]').forEach(el => { if(!el.firstChild) el.outerHTML = AI.face(el.dataset.face); });   // 0.7.9.1: a chat button's robot face (AI.face)
   document.querySelectorAll('[data-tp]').forEach(el => el.placeholder = t(el.dataset.tp).replace(/✨\s?/g, ''));
   document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', t(el.dataset.ta).replace(/\u2728\s?/g, '')));   // 0.7.4.0.5: translated aria-labels
   setSeg('#sLang', lang);
