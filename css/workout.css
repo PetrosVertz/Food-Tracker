@@ -109,19 +109,19 @@ html.pwa #ovExPick .sheet{height:var(--appH,100vh)!important}
 .hg5{animation:flip 300s ease-in-out infinite} .hg5 .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 300s linear infinite} .hg5 .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 300s linear infinite}
 
 /* header: plain back arrow · centred title · 28 px italic clock + hourglass (flips every 5 min) */
-.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:var(--s2) 0;margin-bottom:var(--s2);background:var(--t-bg)}
+.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:var(--s2) 0;margin-bottom:var(--s2);background:var(--t-bg)}
 .seshead3 .sesback{width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;color:var(--t-text);border-radius:0}
 .seshead3 h2{margin:0;max-width:100%;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);letter-spacing:0;color:var(--t-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seshead3 h2:empty{display:none}
 .wmid{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
 .wclock{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--t-clock)}
 /* 0.7.7: the Gym Coach robot, top right; it steps aside while the chat is open */
-.sescoach{justify-self:end;width:44px;height:44px;margin-right:-4px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sescoach{justify-self:end;width:48px;min-height:44px;height:52px;margin-right:-8px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 body:has(#ovCoach.open) .sescoach{visibility:hidden}
 /* 0.7.8: Start Workout window: title on the left, the Gym Coach robot at the right end of the title bar */
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)} .sthead h2{margin:0;min-width:0} .sthead .sescoach{margin-right:-8px;flex:0 0 auto}
 body.noai .sescoach{opacity:.42;filter:grayscale(1)}
-#sesClock{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
+#sesClock{font-size:34px;line-height:1.1;font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
 #sesHg{display:flex}
 
 /* cards */

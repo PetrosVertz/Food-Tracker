@@ -119,12 +119,12 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); cb.innerHTML = AI.robot('gym', 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 40 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
   gymHeadRobot('sesCoach');   // 0.7.7: the Gym Coach robot, top right of the header
-  $('sesHg').innerHTML = hourglass('hg5', 20, sesMs() / 1000);
+  $('sesHg').innerHTML = hourglass('hg5', 24, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
   const warn = sessionRecoveryWarn();
