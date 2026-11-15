@@ -373,4 +373,9 @@ $('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymst
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
 
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
+// 0.7.9 leaderboards: Add a 1RM
+$('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); } });
+$('ormEx').addEventListener('change', ormHint);
+$('ormSave').addEventListener('click', saveOrm);
+$('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });

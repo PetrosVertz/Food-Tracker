@@ -507,6 +507,13 @@ Object.assign(S, {
   gcReplace: ['Replace', 'Αντικατάσταση'], gcAddBack: ['Add Back', 'Επαναφορά'],
   gcLiveAlready: ['A workout is already running. Finish it first, or Save this one for later.', 'Τρέχει ήδη μια προπόνηση. Τελείωσέ την πρώτα ή αποθήκευσε αυτή για αργότερα.'],
   gcRepRange: ['Rep Range', 'Εύρος επαναλήψεων'], gcRepsAuto: ['Auto: follows Intensity', 'Αυτόματο: ακολουθεί την ένταση'], gcRepsN: ['{r} reps on working sets', '{r} επαναλήψεις στα κύρια σετ'],
+  // 0.7.9 leaderboards: real 1RMs only
+  pfBoardsEmpty: ['No 1RM yet. Add one you\'ve lifted, or tick a single rep at a heavy weight in a workout, and it shows up here.', 'Δεν υπάρχει ακόμα 1RM. Πρόσθεσε ένα που έχεις σηκώσει ή τσέκαρε μία επανάληψη με βαρύ κιλό σε προπόνηση και θα εμφανιστεί εδώ.'],
+  ormAdd: ['Add a 1RM', 'Προσθήκη 1RM'], ormSub: ['The most you lifted for one clean rep.', 'Το περισσότερο που σήκωσες για μία σωστή επανάληψη.'],
+  ormLift: ['Lift', 'Άσκηση'], ormWeight: ['Weight (kg)', 'Βάρος (kg)'], ormDate: ['Date', 'Ημερομηνία'],
+  ormBwHint: ['Pull-ups: enter only the weight you added. Your body weight ({bw} kg) is counted for you.', 'Έλξεις: γράψε μόνο το βάρος που πρόσθεσες. Το σωματικό σου βάρος ({bw} kg) μετράει αυτόματα.'],
+  ormYours: ['Your Entries', 'Οι καταχωρήσεις σου'], ormManual: ['entered', 'καταχώρηση'],
+  ormBad: ['Choose a lift, a weight and a date (not in the future).', 'Διάλεξε άσκηση, βάρος και ημερομηνία (όχι μελλοντική).'], ormSaved: ['1RM saved', 'Το 1RM αποθηκεύτηκε'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],
@@ -678,7 +685,7 @@ Object.assign(S, {
   frzUse: ['1 Streak Freeze Left This Week, Use It?', 'Απομένει 1 Πάγωμα Σερί Αυτή την Εβδομάδα. Να Χρησιμοποιηθεί;'], frzEnd: ['This Will End Your {n}-Day Streak', 'Αυτό Θα Τερματίσει το Σερί {n} Προπονήσεων'],
   frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
   pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfLatestPR: ['Latest PR', 'Τελευταίο Ρεκόρ'], pfNoPR: ['No PRs yet. Your next record shows up here.', 'Κανένα ρεκόρ ακόμα. Το επόμενο θα εμφανιστεί εδώ.'],
-  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your best estimated 1RM per lift. With friends soon.', 'Το καλύτερο εκτιμώμενο 1RM σου ανά άσκηση. Με φίλους σύντομα.'],
+  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your heaviest single (one rep) per lift, entered by you or ticked in a workout. With friends soon.', 'Το βαρύτερο μονό σου (μία επανάληψη) ανά άσκηση, που το έγραψες εσύ ή το τσέκαρες σε προπόνηση. Με φίλους σύντομα.'],
   pfMChest: ['Chest', 'Στήθος'], pfMShoulders: ['Shoulders', 'Ώμοι'], pfMBack: ['Back', 'Πλάτη'], pfMUpperBack: ['Upper Back', 'Άνω Πλάτη'], pfMQuads: ['Quads', 'Τετρακέφαλοι'],
   pfMHams: ['Hamstrings', 'Οπίσθιοι Μηριαίοι'], pfMGlutes: ['Glutes', 'Γλουτοί'], pfMArms: ['Arms', 'Χέρια'], pfMBonus: ['Bonus', 'Μπόνους'],
   pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],

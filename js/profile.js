@@ -9,13 +9,18 @@ const BOARD_LIFTS = [
   { id: 'deadlift', lbl: 'pfMBonus', bonus: true },
 ];
 
-// Best estimated 1RM of one exercise: finished working sets (no warm-ups) with 12 reps or fewer
-function bestE1(exId){
-  let best = 0;
-  sessions.forEach(s => s.exercises.forEach(x => { if(x.exId !== exId) return;
-    x.sets.forEach(st => { if(!st.done || st.type === 'W' || st.w === '' || st.r === '' || +st.r > 12) return; const v = e1rm(+st.w, +st.r, exId); if(v > best) best = v; }); }));
+// 0.7.9: a leaderboard entry is a REAL 1RM only: one you entered (profile.orm: { id, exId, w, date }) or a single rep at that weight,
+// ticked in a workout (normal set, no warm-up, not the right side of L/R). w = the weight you typed; the board shows the lifted load
+// (loadOf: pull-ups count body weight + added weight). → { kg, w, date, src: 'manual' | 'live' } or null.
+const ormList = () => Array.isArray(profile.orm) ? profile.orm.filter(o => o && o.exId && +o.w >= 0 && o.date) : [];
+function boardBest(exId){
+  let best = null; const take = (w, date, src) => { const kg = loadOf(exId, w); if(kg > 0 && (!best || kg > best.kg)) best = { kg, w: +w, date, src }; };
+  ormList().forEach(o => { if(o.exId === exId) take(o.w, o.date, 'manual'); });
+  const scan = (x, date) => { if(x.exId !== exId) return; x.sets.forEach(st => { if(st.done && isMainSet(st) && st.w !== '' && +st.r === 1) take(+st.w, date, 'live'); }); };
+  sessions.forEach(s => s.exercises.forEach(x => scan(x, s.date))); if(active) active.exercises.forEach(x => scan(x, active.date));
   return best;
 }
+const isBoardLift = exId => BOARD_LIFTS.some(b => b.id === exId);
 
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
@@ -35,7 +40,7 @@ function profileData(){
     live: !!active, trainedToday: sessions.some(s => s.date === today),
     streak, latestPR, prCount: prs.length,
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
-    boards: BOARD_LIFTS.map(b => { const e1 = bestE1(b.id); return { ...b, e1, tier: e1 ? tierOf(b.id, e1) : null }; }),
+    boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best),   // 0.7.9: only lifts with a real 1RM
     weights: wts,
     totals: {
       workouts: sessions.length,
@@ -45,6 +50,26 @@ function profileData(){
     },
   };
 }
+
+// ---------- 0.7.9 Add a 1RM (Profile › Leaderboards): lift, weight, date; your entries below with Delete ----------
+function openOrm(exId){
+  const sel = $('ormEx'); sel.innerHTML = BOARD_LIFTS.map(b => `<option value="${b.id}">${esc(exName(b.id))}</option>`).join('');
+  sel.value = exId && isBoardLift(exId) ? exId : BOARD_LIFTS[0].id; if(typeof syncSel === 'function') syncSel(sel);
+  $('ormW').value = ''; $('ormDate').value = todayKey(); $('ormDate').max = todayKey(); ormHint(); drawOrmList(); open('ovOrm');
+}
+// pull-ups: the weight is what you add on top of your body weight
+function ormHint(){ const bw = exById($('ormEx').value).e === 'bodyweight'; $('ormBw').classList.toggle('hide', !bw); if(bw) $('ormBw').textContent = t('ormBwHint', { bw: fmt(bodyW()) }); }
+function drawOrmList(){
+  const L = ormList().slice().sort((a, b) => b.date.localeCompare(a.date));
+  $('ormList').innerHTML = L.length ? `<h3 class="exsh">${esc(t('ormYours'))}</h3>` + L.map(o => `<div class="ormrow"><span><b>${esc(exName(o.exId))}</b><small>${fmt(o.w)} kg · ${esc(fmtDate(o.date + 'T12:00:00'))}</small></span>
+      <button class="iconbtn" type="button" data-ormdel="${esc(o.id)}" aria-label="${esc(t('delete'))}">${svgIcon('trash', 20, 2)}</button></div>`).join('') : '';
+}
+function saveOrm(){
+  const exId = $('ormEx').value, w = parseFloat(String($('ormW').value).replace(',', '.')), date = $('ormDate').value, bw = exById(exId).e === 'bodyweight';
+  if(!isBoardLift(exId) || !(w > 0 || (bw && w === 0)) || w > 600 || !/^\d{4}-\d\d-\d\d$/.test(date) || date > todayKey()){ toast(t('ormBad')); return; }
+  profile.orm = [...ormList(), { id: uid(), exId, w, date }]; saveProfile(); Phone.haptic(); close('ovOrm'); renderProfile(); toast(t('ormSaved'));
+}
+function delOrm(id){ profile.orm = ormList().filter(o => o.id !== id); if(!profile.orm.length) delete profile.orm; saveProfile(); drawOrmList(); renderProfile(); }
 
 // small line chart of the latest weigh-ins (theme colours, no labels inside)
 function pfWeightChart(pts){
@@ -65,7 +90,7 @@ function renderProfile(){
     </div>`;
   const pr = d.latestPR ? `<b class="pfbig">${esc(exName(d.latestPR.exId))}</b><span class="pfline">${kg(d.latestPR.w)} × ${d.latestPR.r} · ${esc(fmtDate(d.latestPR.date + 'T12:00:00'))}</span>`
     : `<span class="pfline">${esc(t('pfNoPR'))}</span>`;
-  const rows = d.boards.map(b => `<div class="pfrow${b.bonus ? ' bonus' : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))}</small></span>
+  const rows = d.boards.map(b => `<div class="pfrow${b.bonus ? ' bonus' : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
       ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
   const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
   const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
@@ -75,7 +100,7 @@ function renderProfile(){
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
         <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfLatestPR'))}</small>${pr}</div></div>`
-    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows}</div>`
+    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`
     + wCard
     + `<div class="pfstats">${stat(num(d.prCount), 'pfPRs')}${stat(num(d.totals.workouts), 'pfWorkouts')}${stat(num(d.totals.sets), 'pfSets')}${stat(`${num(d.totals.volume)} <small>kg</small>`, 'pfVolume')}${stat(num(d.totals.foodDays), 'pfFoodDays')}</div>`;
