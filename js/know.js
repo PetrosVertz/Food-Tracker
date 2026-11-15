@@ -88,11 +88,11 @@ const Know = (() => {
     const best = (exId, from, to) => { let b = 0; list.forEach(s => { const ago = -daysUntil(s.date); if(ago < from || ago > to) return;
       s.exercises.forEach(x => { if(x.exId !== exId) return; x.sets.forEach(z => { if(!z.done || !isMainSet(z) || z.w === '' || z.r === '' || +z.r > 12) return; b = Math.max(b, e1rm(+z.w, +z.r, exId)); }); }); }); return b; };
     const lifts = top(cnt, 6, 2).map(([id]) => { const now = best(id, 1, 28), was = best(id, 29, GYM_DAYS), e = now || was; if(!e) return null;
-      const tf = typeof tierFor === 'function' ? tierFor(id) : null, ch = now && was ? Math.round((now - was) / was * 100) : null;
+      const tf = typeof tierFor === 'function' ? tierFor(id, e) : null, ch = now && was ? Math.round((now - was) / was * 100) : null;
       return `${gcEx(id)} ~${Math.round(e)} kg${ch !== null ? ` (${ch > 0 ? '+' : ''}${ch}% vs the 4 weeks before)` : ''}${tf && tf.label ? `, rank ${tf.label}` : ''}`; }).filter(Boolean);
     const cardio = list.filter(s => s.exercises.some(x => isCardio(x.exId))).length;
     const lines = [
-      `Training (last ${Math.round(weeks)} weeks): ${list.length} workouts, ~${(dates.length / weeks).toFixed(1)} days a week${days_.length ? `, usually ${days_.join(' ')}` : ''}, starts ~${hm(med(starts))}${mins.length ? `, ~${med(mins)} min` : ''}.`,
+      `Training (last ${Math.round(weeks) === 1 ? 'week' : Math.round(weeks) + ' weeks'}): ${list.length} workouts, ~${(dates.length / weeks).toFixed(1)} days a week${days_.length ? `, usually ${days_.join(' ')}` : ''}, starts ~${hm(med(starts))}${mins.length ? `, ~${med(mins)} min` : ''}.`,
       top(split, 4).length ? `Split: ${top(split, 4).map(([k, n]) => `${k} ${n}x`).join(', ')}${cardio ? `; cardio in ${cardio} workouts` : ''}.` : '',
       Object.keys(grp).length ? `Hard sets per week: ${top(grp, 10).map(([g, v]) => `${g} ${Math.round(v / weeks)}`).join(', ')}.` : '',
       st ? `Usually ${st.reps || '?'} reps, ${st.fail}% of sets to failure, ~${st.rest} s rest.` : '',
@@ -107,7 +107,7 @@ const Know = (() => {
     const ds = window_(GYM_DAYS, since), w = ds.filter(d => +weights[d] > 0).sort();
     const bits = [profile.sex === 'm' ? 'male' : profile.sex === 'f' ? 'female' : '', +profile.height ? `${profile.height} cm` : '', targets && targets.goal ? `goal: ${targets.goal}` : ''].filter(Boolean);
     if(w.length >= 2){ const a = +weights[w[0]], b = +weights[w[w.length - 1]], d = r1(b - a), wk = Math.max(1, (daysUntil(w[w.length - 1]) - daysUntil(w[0])) / 7);
-      bits.push(`weight ${fmt(b)} kg, ${d > 0 ? '+' : ''}${fmt(d)} kg over ${Math.round(wk)} weeks (${d > 0 ? '+' : ''}${r1(d / wk)} kg/week)`); }
+      bits.push(`weight ${fmt(b)} kg, ${d > 0 ? '+' : ''}${fmt(d)} kg over ${Math.round(wk) === 1 ? '1 week' : Math.round(wk) + ' weeks'} (${d > 0 ? '+' : ''}${r1(d / wk)} kg/week)`); }
     else if(w.length) bits.push(`weight ${fmt(+weights[w[0]])} kg`);
     return bits.length ? `Body: ${bits.join(', ')}.` : '';
   }
