@@ -89,7 +89,7 @@ let NAV = [location.hash.slice(1)], NAVI = 0, navMode = false;
 
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if(navMode){ navMode = false; return; } if(NAV[NAVI] === h) return; NAV = NAV.slice(0, NAVI + 1); NAV.push(h); NAVI = NAV.length - 1; });
 
-const tabOf = h => h === 'profile' || h === 'settings' ? 'profile' : h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : h === 'fridge' || h === 'groc' || (h === 'meals' && kitchenOn()) ? 'fridge' : 'food';
+const tabOf = h => h === 'profile' || h === 'settings' ? 'profile' : h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : h === 'fridge' || h === 'groc' ? 'fridge' : 'food';
 
 (() => {   // swipe from the right edge = forward (left edge = back is already wired)
   let sx = null, sy = 0, st = 0;

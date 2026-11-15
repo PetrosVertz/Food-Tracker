@@ -15,6 +15,7 @@ $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
   if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
   else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
+$('fCookBtn').addEventListener('click', () => open('ovCookPick'));   // Cook a Meal from the Fridge; the meal lands under Food Library › Home-Cooked
 $('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ shopCamera(); return; } pendingBarcode = null; startScan(); });
 
 

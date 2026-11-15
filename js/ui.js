@@ -89,19 +89,13 @@ function drawTheme(){
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
 // ---------- 0.6.9.3: what the app is used for — "mainly gym work" puts Gym Buddy first (nothing is hidden) ----------
-// 0.7.9: Kitchen (Fridge, Groceries, Recipes) can be switched off in Settings › Tabs: four tabs, Recipes go back into Food Library
+// 0.7.9: Kitchen (Fridge, Groceries) can be switched off in Settings › Tabs: four tabs. 0.7.9.1: Recipes (Home-Cooked) always live in Food Library
 const kitchenOn = () => !ui.noKitchen;
-function placeRecipes(){
-  const mv = $('mealsView'), kit = kitchenOn(), home = kit ? $('pgFridge') : $('pgFoods'); if(!mv || !home) return;
-  if(mv.parentNode !== home){ if(kit) home.appendChild(mv); else home.insertBefore(mv, $('foodSupps')); }
-  const mb = document.querySelector('#foodTabs [data-v="meals"]'); if(mb) mb.classList.toggle('hide', kit);
-}
 function applyTabOrder(){
   const order = (ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge']).filter(k => k !== 'fridge' || kitchenOn());
   TABS3.splice(0, TABS3.length, ...order);
   const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); });
     const fb = bar.querySelector('[data-tab="fridge"]'); if(fb) fb.classList.toggle('hide', !kitchenOn()); }
-  placeRecipes();
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if($('sKitchen')) $('sKitchen').checked = kitchenOn();
   if(typeof pillsAll === 'function') pillsAll();
@@ -214,7 +208,7 @@ function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today
 // ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
 // 0.7.7 → 0.7.9: copies of the old pills drop out of view (so their text never changes mid-way), then the new pills rise on a
 // real spring (sampled damped spring: a small overshoot, then settles), 40 ms apart. Transform and opacity only, nothing moves
-// in the layout while it is visible. A tab switch starts at once; a change inside a tab (Fridge → Recipes, Store-Bought →
+// in the layout while it is visible. A tab switch starts at once; a change inside a tab (Fridge → Groceries, Store-Bought →
 // Supplements) first checks whether the pills really changed, so identical pills never blink. With Reduce Motion they just swap.
 const PILL_ACTS = '#fab2,#fab,.coachpill', PILL_GAP = 40, PILL_OUT = 140, PILL_IN = 520, PILL_DROP = 96;
 const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
@@ -285,9 +279,9 @@ function route(){
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
   { const prev = route.last; route.last = h; if(prev && prev !== h && !SWITCHING && tabOf(prev) === tabOf(h)) pillSwap(true); }   // 0.7.9: pills changing inside a tab glide too
-  const kit = kitchenOn(); placeRecipes();
+  const kit = kitchenOn();
   if(!kit && (h === 'fridge' || h === 'groc')){ h = homeHash().slice(1); history.replaceState(null, '', '#' + h); }   // Kitchen is off: nothing opens it
-  const kv = kit && ['fridge', 'groc', 'meals'].includes(h) ? h : '';   // 0.7.9: Kitchen = Fridge · Groceries · Recipes under one pill
+  const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Kitchen = Fridge · Groceries under one pill
   const page = kv ? (kv === 'groc' ? 'groc' : 'fridge') : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
   [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides

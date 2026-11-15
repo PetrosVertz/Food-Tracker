@@ -119,7 +119,7 @@ drawUnits();
 
 // 0.6.9.3: Customize › Use the app for (also asked at first launch)
 $('sUse').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return; ui.gymFirst = b.dataset.v === 'gym'; saveUI(); applyTabOrder(); toast(t(ui.gymFirst ? 'useGymOn' : 'useBothOn')); });
-// 0.7.9: Settings › Tabs › Kitchen Tab (off = four tabs; Recipes move back into Food Library)
+// 0.7.9: Settings › Tabs › Kitchen Tab (off = four tabs; Recipes always stay in Food Library)
 $('sKitchen').addEventListener('change', e => { ui.noKitchen = !e.target.checked; if(!ui.noKitchen) delete ui.noKitchen; saveUI(); applyTabOrder(); markRail(tabOf(location.hash.slice(1))); });
 applyTabOrder();
 
