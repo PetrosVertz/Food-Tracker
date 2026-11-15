@@ -368,10 +368,12 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
   saveG('act'); renderSession(); toast(t('setRemoved'), t('undo'), () => { x.sets.splice(si, 0, gone); saveG('act'); renderSession(); }); });
 
 // ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
-Coach.setup('gym', { kind: 'gym', send: gymCoachSend });
+// 0.7.9.6: suggestion chips under the opening message (Improve only once there is a saved workout)
+const gcStarters = () => [t('gcAskW'), ...(tpls.length ? [t('gcAskImp')] : []), t('gcAskSets')];
+Coach.setup('gym', { kind: 'gym', send: gymCoachSend, starters: gcStarters });
 // the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
 // 0.7.8: the Start Workout window's own chat: opened from the robot in its title bar, no floating bubble
-Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend });
+Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend, starters: gcStarters });
 $('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymstart'); });
 Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
 

@@ -1219,7 +1219,7 @@ function gcSugg(exId, reps){
 }
 const gcExSub = e => `${e.sets} × ${e.reps} · ${fmtRest(e.rest)}`;
 function gcExCard(W, e){
-  const c = { title: exName(e.exId), sub: gcExSub(e), body: gcSugg(e.exId, e.reps), _e: e };
+  const c = { cls: 'gcex', title: exName(e.exId), sub: gcExSub(e), body: gcSugg(e.exId, e.reps), _e: e };
   c.actions = gcExActs(W, c); return c;
 }
 function gcExActs(W, c){
@@ -1241,7 +1241,7 @@ function gcWorkoutCards(tpl, base){
     if(!W.done) ch.update(W.foot, { dim: !W.list.length }); };
   const head = { title: tpl.name, sub: `${typeLabel_(tpl.type)} · ${t('nEx', { n: tpl.exercises.length })}`, tag: base ? t('gcImproved') : '' };
   const exs = tpl.exercises.map(e => gcExCard(W, e));
-  const foot = { actions: [
+  const foot = { cls: 'gcfoot', actions: [
     { label: t('save'), run(card, ch){ if(!W.list.length) return; const tp = { ...W.cur(), id: uid() }; tpls.push(tp); saveG('tpl'); renderAll(); W.done = true;
       ch.update(card, { done: t('gcSaved', { n: tp.name }), undo(){ W.done = false; const i = tpls.findIndex(x => x.id === tp.id); if(i > -1){ tpls.splice(i, 1); saveG('tpl'); renderAll(); } } }); } },
     { label: t('gStartL'), primary: true, run(){ if(!W.list.length) return; if(active){ toast(t('gcLiveAlready')); return; }
