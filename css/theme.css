@@ -763,8 +763,7 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 .phcirc>.avimg{width:100%;height:100%;object-fit:cover}
 .phcirc>.avini{width:100%;height:100%;font-size:84px}
 .phcirc.cropping{cursor:grab;box-shadow:0 0 0 2px var(--t-accent)}
-.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none}
-#phZoom{width:200px}
+.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none;transform-origin:50% 50%;will-change:transform}
 #phBtns .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 #phDel{display:block;margin:0 auto var(--s3);color:var(--t-danger)}
 /* 0.7.9 navigation, one pattern everywhere: the back arrow and the title share one 44px line and are centred together;

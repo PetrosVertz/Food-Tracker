@@ -455,16 +455,23 @@ const pfInitial = () => ((profile.name || Account.current().name || '').trim().c
 function avatarHtml(){ const p = pfPhoto(), i = pfInitial(); return p ? `<img class="avimg" src="${p}" alt="">` : i ? `<b class="avini">${esc(i)}</b>` : ''; }
 function railAvatar(){ const r = document.querySelector('#rail [data-tab="profile"] .ri'); if(!r) return;
   r.innerHTML = avatarHtml() || svgIcon('user', 22, 2); const rl = $('rail'); if(rl) pillQueue(rl); }
-function phCover(){ const c = PCROP; return PH_BOX / Math.min(c.w, c.h) * c.z; }
-function phClamp(){ const c = PCROP, s = phCover(), mx = Math.max(0, (c.w * s - PH_BOX) / 2), my = Math.max(0, (c.h * s - PH_BOX) / 2);
+// 0.7.9.1: the photo is sized once so it just fills the circle (z = 1); pinching (1× – 4×) and dragging only change its transform.
+// x / y = how far its centre sits from the circle's centre. It always covers the circle: no empty edges.
+const PH_ZMAX = 4;
+const phBase = () => PH_BOX / Math.min(PCROP.w, PCROP.h);
+function phCover(){ return phBase() * PCROP.z; }
+function phLimits(z){ const c = PCROP, s = phBase() * z; return { mx: Math.max(0, (c.w * s - PH_BOX) / 2), my: Math.max(0, (c.h * s - PH_BOX) / 2) }; }
+function phClamp(){ const c = PCROP; c.z = Math.max(1, Math.min(PH_ZMAX, c.z)); const { mx, my } = phLimits(c.z);
   c.x = Math.max(-mx, Math.min(mx, c.x)); c.y = Math.max(-my, Math.min(my, c.y)); }
-function phDrawCrop(){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; phClamp(); const s = phCover();
-  im.style.width = c.w * s + 'px'; im.style.height = c.h * s + 'px'; im.style.transform = `translate(calc(-50% + ${c.x}px),calc(-50% + ${c.y}px))`; }
+function phDrawCrop(free){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; if(!free) phClamp();   // free: mid-gesture, edges rubber-band
+  im.style.transform = `translate3d(${c.x.toFixed(2)}px,${c.y.toFixed(2)}px,0) scale(${c.z.toFixed(4)})`; }
+function phSizeImg(){ const c = PCROP, s = phBase(), w = c.w * s, h = c.h * s;   // once per photo: the only layout change
+  Object.assign(c.img.style, { width: w + 'px', height: h + 'px', marginLeft: -w / 2 + 'px', marginTop: -h / 2 + 'px' }); }
 function drawPhoto(){
   const crop = !!PCROP, circ = $('phCirc'); circ.classList.toggle('cropping', crop);
-  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phDrawCrop(); }
+  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phSizeImg(); phDrawCrop(); }
   else circ.innerHTML = avatarHtml() || svgIcon('user', 72, 1.6);
-  $('phZoom').classList.toggle('hide', !crop); $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
+  $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
   $('phBtns').classList.toggle('hide', crop); $('phDel').classList.toggle('hide', crop || !pfPhoto());
   $('phCam').innerHTML = `${svgIcon('camera', 18, 2)}<span>${esc(t('phTake'))}</span>`; $('phLib').innerHTML = `${svgIcon('image', 18, 2)}<span>${esc(t('phChoose'))}</span>`;
   $('phName').value = profile.name || '';
@@ -473,7 +480,7 @@ function openPhoto(){ PCROP = null; drawPhoto(); open('ovSProfile'); }
 async function phPick(src){
   const f = await Phone.pickPhoto(src); if(!f) return;
   const url = URL.createObjectURL(f), img = new Image(); img.alt = ''; img.draggable = false;
-  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; $('phZoom').value = 1; drawPhoto(); };
+  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; drawPhoto(); };
   img.onerror = () => { URL.revokeObjectURL(url); toast(t('phBad')); }; img.src = url;
 }
 function phEnd(){ if(PCROP) URL.revokeObjectURL(PCROP.url); PCROP = null; drawPhoto(); }

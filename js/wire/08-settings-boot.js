@@ -82,11 +82,35 @@ $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-pfphoto]
 $('phCam').addEventListener('click', () => phPick('camera')); $('phLib').addEventListener('click', () => phPick('library'));
 $('phCancel').addEventListener('click', phEnd); $('phUse').addEventListener('click', phSave); $('phDel').addEventListener('click', phRemove);
 $('phName').addEventListener('change', e => phName(e.target.value));
-$('phZoom').addEventListener('input', e => { if(!PCROP) return; PCROP.z = +e.target.value; phDrawCrop(); });
-{ let d = null; const c = $('phCirc');   // drag the photo inside the circle (finger or mouse)
-  c.addEventListener('pointerdown', e => { if(!PCROP) return; d = { x: e.clientX, y: e.clientY, ox: PCROP.x, oy: PCROP.y }; c.setPointerCapture(e.pointerId); e.preventDefault(); });
-  c.addEventListener('pointermove', e => { if(!d || !PCROP) return; PCROP.x = d.ox + e.clientX - d.x; PCROP.y = d.oy + e.clientY - d.y; phDrawCrop(); });
-  const up = () => { d = null; }; c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up); }
+// 0.7.9.1: place the photo with your fingers, like iPhone Contacts: one finger drags it (shared drag helper), two fingers pinch to
+// zoom (1× – 4×) around the point between them, double-tap resets. Past an edge or a zoom limit it gives a little, then springs back
+// so the photo always fills the circle. Drawn once per frame; only the photo's transform changes. Mouse wheel zooms on a computer.
+{ const c = $('phCirc'), P = new Map(); let pin = null, raf = 0, tap = 0, tapAt = null;
+  const im = () => c.querySelector('img'), still = () => { const el = im(); if(el) el.getAnimations().forEach(a => a.cancel()); };
+  const rub = (v, lo, hi) => v < lo ? lo + rubber(v - lo, 80) : v > hi ? hi + rubber(v - hi, 80) : v;
+  const settle = v => { const p = PCROP, el = im(); if(!p || !el) return; const from = { x: p.x, y: p.y, s: p.z }; phClamp(); phDrawCrop();   // back inside the limits, with a spring
+    if(Math.abs(from.x - p.x) + Math.abs(from.y - p.y) + Math.abs(from.s - p.z) * 100 > .5) springTo(el, from, { x: p.x, y: p.y, s: p.z }, v, { damp: 1 }); };
+  const pinch = () => { raf = 0; const p = PCROP; if(!p || !pin || P.size < 2) return; const [a, b] = [...P.values()];
+    let z = pin.z0 * (Math.hypot(a.x - b.x, a.y - b.y) || 1) / pin.d0; z = z < 1 ? 1 - rubber(1 - z, 2) : z > PH_ZMAX ? PH_ZMAX + rubber(z - PH_ZMAX, 4) : z;
+    const mx = (a.x + b.x) / 2 - pin.cx, my = (a.y + b.y) / 2 - pin.cy;   // the point of the photo that was between the fingers stays between them
+    p.z = z; p.x = mx - (pin.mx - pin.x0) * z / pin.z0; p.y = my - (pin.my - pin.y0) * z / pin.z0; phDrawCrop(true); };
+  c.addEventListener('pointerdown', e => { if(!PCROP) return; P.set(e.pointerId, { x: e.clientX, y: e.clientY }); try{ c.setPointerCapture(e.pointerId); }catch(x){}
+    if(P.size === 2){ const [a, b] = [...P.values()], r = c.getBoundingClientRect(); still();   // read once, at the start of the pinch
+      pin = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: PCROP.z, x0: PCROP.x, y0: PCROP.y, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+      pin.mx = (a.x + b.x) / 2 - pin.cx; pin.my = (a.y + b.y) / 2 - pin.cy; tap = 0; return; }
+    if(P.size === 1){ if(e.timeStamp - tap < 320 && tapAt && Math.hypot(e.clientX - tapAt.x, e.clientY - tapAt.y) < 30){   // double-tap: back to the start
+        tap = 0; still(); const p = PCROP, from = { x: p.x, y: p.y, s: p.z }; p.x = 0; p.y = 0; p.z = 1; phDrawCrop(); springTo(im(), from, { x: 0, y: 0, s: 1 }, null, { damp: 1 }); Phone.haptic(); }
+      else { tap = e.timeStamp; tapAt = { x: e.clientX, y: e.clientY }; } } });
+  c.addEventListener('pointermove', e => { if(!P.has(e.pointerId)) return; P.set(e.pointerId, { x: e.clientX, y: e.clientY }); if(pin && !raf) raf = requestAnimationFrame(pinch); });
+  const up = e => { P.delete(e.pointerId); if(pin && P.size < 2){ pin = null; cancelAnimationFrame(raf); raf = 0; settle(null); } };
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+  dragger(c, { slop: 3,   // one finger: drag
+    item: () => PCROP && !pin ? c : null,
+    start: s => { still(); s.px = PCROP.x; s.py = PCROP.y; },
+    move: s => { const p = PCROP; if(!p || pin) return; const { mx, my } = phLimits(p.z); p.x = rub(s.px + s.dx, -mx, mx); p.y = rub(s.py + s.dy, -my, my); phDrawCrop(true); },
+    end: s => { if(!pin) settle({ x: s.vx, y: s.vy }); },
+    multi: () => {} });   // a second finger: the drag stops where it is and the pinch takes over
+  c.addEventListener('wheel', e => { if(!PCROP) return; e.preventDefault(); still(); PCROP.z *= Math.exp(-e.deltaY * .002); phDrawCrop(); }, { passive: false }); }
 railAvatar();
 
 // 0.7.7 Profile: Share a Workout opens the saved workouts list in Gym Buddy, unfolded (each row has its QR button, gym-qr)
