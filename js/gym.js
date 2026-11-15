@@ -338,7 +338,9 @@ function headLoads(ses){
   const per = {};
   (ses.exercises || []).forEach(x => { const ex = exById(x.exId); if(!ex || !ex.mu) return; const ecc = ECC_PAT.test((ex.p || '') + ' ' + ex.id) ? 1.2 : 1;
     x.sets.filter(z => z.done && z.type !== 'W').forEach(z => { const reps = +z.r || 0, rf = reps >= 20 ? .85 : reps > 0 && reps <= 5 ? 1.1 : 1;
-      const e = (z.type === 'F' ? 1.35 : z.type === 'D' ? 1.2 : 1) * ecc * rf;
+      // 0.7.9.1: background extras make a set harder: reps in reserve 0, or negatives, ×1.1 (once, not stacked)
+      const hardX = z.rir === 0 || +z.ng > 0 ? 1.1 : 1;
+      const e = (z.type === 'F' ? 1.35 : z.type === 'D' ? 1.2 : 1) * ecc * rf * hardX;
       Object.entries(ex.mu).forEach(([h, v]) => { if(HEADS[h] && h !== 'cardio') per[h] = (per[h] || 0) + v / 100 * e; }); }); });
   return per;
 }
@@ -734,7 +736,8 @@ function curEx(){ const ex = active.exercises; if(active.cur != null && ex[activ
 function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exercises[c]; return i === c || !!(x && y && x.ss && x.ss === y.ss); }
 
 // per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
-function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W') return '';
+// 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
+function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W' || s.done) return '';
   const num = (k, lbl, v) => `<label class="sxn"><span>${lbl}</span><input data-sx="${k}" inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${lbl}"></label>`;
   return `<div class="setx" data-sxrow="${j}">${G.half ? num('hr', t('halfReps'), s.hr) : ''}${G.neg ? num('ng', t('negReps'), s.ng) : ''}${G.rir ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
 
@@ -1155,7 +1158,8 @@ function gcContext(){
   [...tpls.flatMap(tp => tp.exercises), ...recent.slice(0, 20).flatMap(s => s.exercises)].forEach(x => { const e = exById(x.exId).e; if(e) eq.add(e); });
   const saved = tpls.slice(0, 12).map(tp => `- "${tp.name}" (${tp.type}): ${tp.exercises.map(e => `${gcEx(e.exId)} ${e.sets}x${e.reps}${e.rest ? ` rest ${e.rest}s` : ''}`).join(', ')}`).join('\n');
   const hist = recent.slice(0, 6).map(s => `- ${s.date} ${s.name || s.type || ''}: ${s.exercises.map(x => { const w = x.sets.filter(z => z.done && isMainSet(z));
-    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}` : ''}`; }).join(', ')}`).join('\n');
+    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; const xt = [top && +top.hr > 0 ? `${top.hr} half reps` : '', top && +top.ng > 0 ? `${top.ng} negatives` : '', top && top.rir != null ? `${top.rir} reps in reserve` : ''].filter(Boolean).join(', ');
+    return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}${xt ? ` (${xt})` : ''}` : ''}`; }).join(', ')}`).join('\n');
   const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false);
   const rec = Object.entries(recMap()).map(([g, v]) => `${g} ${v.st === 'ok' ? 'ready' : `${v.h} h to recover`}`).join(', ');
   return `Today: ${todayKey()}. Lifter: ${bodyW()} kg, goal ${(targets && targets.goal) || 'build muscle'}.

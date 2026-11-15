@@ -90,12 +90,18 @@ const Know = (() => {
     const lifts = top(cnt, 6, 2).map(([id]) => { const now = best(id, 1, 28), was = best(id, 29, GYM_DAYS), e = now || was; if(!e) return null;
       const tf = typeof tierFor === 'function' ? tierFor(id, e) : null, ch = now && was ? Math.round((now - was) / was * 100) : null;
       return `${gcEx(id)} ~${Math.round(e)} kg${ch !== null ? ` (${ch > 0 ? '+' : ''}${ch}% vs the 4 weeks before)` : ''}${tf && tf.label ? `, rank ${tf.label}` : ''}`; }).filter(Boolean);
+    // 0.7.9.1: effort logged in the background (reps in reserve, negatives, half reps)
+    let nRir = 0, nHard = 0, nNeg = 0, nHalf = 0;
+    lift.forEach(s => s.exercises.forEach(x => x.sets.forEach(z => { if(!z.done || !isMainSet(z)) return;
+      if(z.rir != null){ nRir++; if(z.rir <= 1) nHard++; } if(+z.ng > 0) nNeg++; if(+z.hr > 0) nHalf++; })));
     const cardio = list.filter(s => s.exercises.some(x => isCardio(x.exId))).length;
     const lines = [
       `Training (last ${Math.round(weeks) === 1 ? 'week' : Math.round(weeks) + ' weeks'}): ${list.length} workouts, ~${(dates.length / weeks).toFixed(1)} days a week${days_.length ? `, usually ${days_.join(' ')}` : ''}, starts ~${hm(med(starts))}${mins.length ? `, ~${med(mins)} min` : ''}.`,
       top(split, 4).length ? `Split: ${top(split, 4).map(([k, n]) => `${k} ${n}x`).join(', ')}${cardio ? `; cardio in ${cardio} workouts` : ''}.` : '',
       Object.keys(grp).length ? `Hard sets per week: ${top(grp, 10).map(([g, v]) => `${g} ${Math.round(v / weeks)}`).join(', ')}.` : '',
       st ? `Usually ${st.reps || '?'} reps, ${st.fail}% of sets to failure, ~${st.rest} s rest.` : '',
+      nRir >= 5 ? `Effort: ${Math.round(nHard / nRir * 100)}% of logged sets end with 0-1 reps in reserve.` : '',
+      nNeg + nHalf >= 3 ? `Uses negatives in ${nNeg} sets and half reps in ${nHalf} sets.` : '',
       lifts.length ? `Strength (estimated 1RM): ${lifts.join('; ')}.` : '',
       gaps.length ? `Recovery: ~${avg(gaps).toFixed(1)} days between workouts (longest break ${Math.max(...gaps)} days)${every.length ? `; days between two workouts of the same muscle: ${every.slice(0, 6).map(([g, v]) => `${g} ${v.toFixed(1)}`).join(', ')}` : ''}.` : '',
     ].filter(Boolean);
