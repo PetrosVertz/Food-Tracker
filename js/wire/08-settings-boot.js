@@ -76,6 +76,19 @@ $('sBodySave').addEventListener('click', async () => {
 addEventListener('hashchange', () => { if(location.hash === '#settings') fillSettings(); });
 $('pfGear').addEventListener('click', () => { Phone.haptic(); go('settings'); });   // 0.7.7: Settings opens from the gear on Profile
 $('sBackBtn').addEventListener('click', goBack);
+// 0.7.9: profile photo + name (ui.js): Settings › Photo and Name, or a tap on your circle on Profile
+$('sPhotoBtn').addEventListener('click', openPhoto);
+$('pfBody').addEventListener('click', e => { if(e.target.closest('[data-pfphoto]')){ Phone.haptic(); openPhoto(); } });
+$('phCam').addEventListener('click', () => phPick('camera')); $('phLib').addEventListener('click', () => phPick('library'));
+$('phCancel').addEventListener('click', phEnd); $('phUse').addEventListener('click', phSave); $('phDel').addEventListener('click', phRemove);
+$('phName').addEventListener('change', e => phName(e.target.value));
+$('phZoom').addEventListener('input', e => { if(!PCROP) return; PCROP.z = +e.target.value; phDrawCrop(); });
+{ let d = null; const c = $('phCirc');   // drag the photo inside the circle (finger or mouse)
+  c.addEventListener('pointerdown', e => { if(!PCROP) return; d = { x: e.clientX, y: e.clientY, ox: PCROP.x, oy: PCROP.y }; c.setPointerCapture(e.pointerId); e.preventDefault(); });
+  c.addEventListener('pointermove', e => { if(!d || !PCROP) return; PCROP.x = d.ox + e.clientX - d.x; PCROP.y = d.oy + e.clientY - d.y; phDrawCrop(); });
+  const up = () => { d = null; }; c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up); }
+railAvatar();
+
 // 0.7.7 Profile: Share a Workout opens the saved workouts list in Gym Buddy, unfolded (each row has its QR button, gym-qr)
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('#pfShare')) return; Phone.haptic(); LIBF.saved = true; ui.lastIn_gym = 'gym-lib'; saveUI(); switchTab(0, 'gym'); });
 addEventListener('hashchange', () => setTimeout(syncFab2, 0));

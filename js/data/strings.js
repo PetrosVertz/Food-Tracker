@@ -724,3 +724,13 @@ Object.assign(S, {
   kitchenSwSub: ['Fridge, Groceries and Recipes. Turn it off for four tabs at the bottom; your recipes then sit in Food Library.', 'Ψυγείο, Ψώνια και Συνταγές. Κλείσ’ το για τέσσερις καρτέλες κάτω· οι συνταγές σου μένουν τότε στη Βιβλιοθήκη Τροφίμων.'],
   tabsOrderSub: ['Mainly gym work puts Gym Buddy first.', 'Κυρίως γυμναστήριο: το Gym Buddy μπαίνει πρώτο.'],
 });
+
+// ---------- 0.7.9 shell: profile photo ----------
+Object.assign(S, {
+  stProfile: ['Photo and Name', 'Φωτογραφία και Όνομα'],
+  phTake: ['Take Photo', 'Λήψη Φωτογραφίας'], phChoose: ['Choose Photo', 'Επιλογή Φωτογραφίας'], phRemove: ['Remove Photo', 'Αφαίρεση Φωτογραφίας'],
+  phUse: ['Use Photo', 'Χρήση Φωτογραφίας'], phZoom: ['Zoom', 'Ζουμ'], phDrag: ['Drag to move it, slide to zoom.', 'Σύρε για να τη μετακινήσεις, κύλισε για ζουμ.'],
+  phName: ['Name', 'Όνομα'], phNamePh: ['Your first name (optional)', 'Το μικρό σου όνομα (προαιρετικό)'],
+  phNameSub: ['With no photo, its first letter shows on Profile and in the bottom bar.', 'Χωρίς φωτογραφία, το πρώτο του γράμμα φαίνεται στο Προφίλ και στην κάτω μπάρα.'],
+  phSaved: ['Profile photo saved', 'Η φωτογραφία προφίλ αποθηκεύτηκε'], phBad: ['Couldn’t open that photo.', 'Δεν άνοιξε αυτή η φωτογραφία.'],
+});

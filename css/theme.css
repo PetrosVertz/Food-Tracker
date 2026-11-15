@@ -743,6 +743,23 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
+/* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
+.rail>.knob{border-radius:22px;transition:transform .26s cubic-bezier(.3,1.3,.6,1),width .26s cubic-bezier(.3,1.3,.6,1),height .26s cubic-bezier(.3,1.3,.6,1),border-radius .26s,opacity .15s}
+.rail>.knob.round{border-radius:50%}
+.rail .avimg,.rail .avini{width:30px;height:30px;border-radius:50%;display:block;object-fit:cover}
+.avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
+.rail>button.on .avini{background:var(--t-card)}
+.pfme .pfav{border:0;padding:0;cursor:pointer;overflow:hidden;font:inherit;font-size:34px;font-weight:var(--w-bold)}
+.pfav .avimg{width:100%;height:100%;object-fit:cover;display:block}
+.phwrap{display:flex;flex-direction:column;align-items:center;gap:var(--s2);margin:var(--s2) 0 var(--s3)}
+.phcirc{position:relative;width:200px;height:200px;border-radius:50%;overflow:hidden;background:var(--t-card2);color:var(--t-muted);display:flex;align-items:center;justify-content:center;touch-action:none;box-shadow:0 0 0 1px var(--t-edge)}
+.phcirc>.avimg{width:100%;height:100%;object-fit:cover}
+.phcirc>.avini{width:100%;height:100%;font-size:84px}
+.phcirc.cropping{cursor:grab;box-shadow:0 0 0 2px var(--t-accent)}
+.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none}
+#phZoom{width:200px}
+#phBtns .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#phDel{display:block;margin:0 auto var(--s3);color:var(--t-danger)}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}

@@ -38,6 +38,7 @@ const ICON = {
   play: '<path d="M7.5 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.7 4.1a.8.8 0 0 0-1.2.7z"/>',
   snow: '<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4l2.5 2.5L14.5 4M9.5 20l2.5-2.5 2.5 2.5M4 10.4l3.4.9-.9 3.4M20 13.6l-3.4-.9.9-3.4M4 13.6l3.4-.9-.9-3.4M20 10.4l-3.4.9.9 3.4"/>',
   // 0.7.7 Profile: you, friends, share, streak flame
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5L5 19.5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5a8 8 0 0 1 16 0"/>',
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
   share: '<path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/>',
@@ -121,7 +122,9 @@ function pillSync(el){
   if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
   const b = el.querySelector(':scope > button.on');
   if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
-  const rail = el.classList.contains('rail'), w = rail ? 52 : b.offsetWidth, hh = rail ? 44 : b.offsetHeight,
+  const rail = el.classList.contains('rail'), av = rail && !!b.querySelector('.avimg,.avini');   // 0.7.9: on the Profile photo the bubble is a circle ring
+  k.classList.toggle('round', av);
+  const w = rail ? (av ? 40 : 52) : b.offsetWidth, hh = rail ? (av ? 40 : 44) : b.offsetHeight,
     x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
   if(jump) k.style.transition = 'none';
   k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
@@ -416,6 +419,46 @@ function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel')
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
   if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
+
+// ---------- 0.7.9: profile photo + name (Settings › Photo and Name, or tap your circle on Profile) ----------
+// Camera or photo library through Phone.pickPhoto; drag and zoom it inside the circle; saved as a 192 px JPEG in profile.photo (synced, in backups).
+const PH_PX = 192, PH_BOX = 200;
+let PCROP = null;   // while placing a new photo: { img, w, h, x, y, z }
+const pfPhoto = () => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(profile.photo || '') ? profile.photo : '';
+const pfInitial = () => ((profile.name || Account.current().name || '').trim().charAt(0) || '').toUpperCase();
+function avatarHtml(){ const p = pfPhoto(), i = pfInitial(); return p ? `<img class="avimg" src="${p}" alt="">` : i ? `<b class="avini">${esc(i)}</b>` : ''; }
+function railAvatar(){ const r = document.querySelector('#rail [data-tab="profile"] .ri'); if(!r) return;
+  r.innerHTML = avatarHtml() || svgIcon('user', 22, 2); const rl = $('rail'); if(rl) pillQueue(rl); }
+function phCover(){ const c = PCROP; return PH_BOX / Math.min(c.w, c.h) * c.z; }
+function phClamp(){ const c = PCROP, s = phCover(), mx = Math.max(0, (c.w * s - PH_BOX) / 2), my = Math.max(0, (c.h * s - PH_BOX) / 2);
+  c.x = Math.max(-mx, Math.min(mx, c.x)); c.y = Math.max(-my, Math.min(my, c.y)); }
+function phDrawCrop(){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; phClamp(); const s = phCover();
+  im.style.width = c.w * s + 'px'; im.style.height = c.h * s + 'px'; im.style.transform = `translate(calc(-50% + ${c.x}px),calc(-50% + ${c.y}px))`; }
+function drawPhoto(){
+  const crop = !!PCROP, circ = $('phCirc'); circ.classList.toggle('cropping', crop);
+  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phDrawCrop(); }
+  else circ.innerHTML = avatarHtml() || svgIcon('user', 72, 1.6);
+  $('phZoom').classList.toggle('hide', !crop); $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
+  $('phBtns').classList.toggle('hide', crop); $('phDel').classList.toggle('hide', crop || !pfPhoto());
+  $('phCam').innerHTML = `${svgIcon('camera', 18, 2)}<span>${esc(t('phTake'))}</span>`; $('phLib').innerHTML = `${svgIcon('image', 18, 2)}<span>${esc(t('phChoose'))}</span>`;
+  $('phName').value = profile.name || '';
+}
+function openPhoto(){ PCROP = null; drawPhoto(); open('ovSProfile'); }
+async function phPick(src){
+  const f = await Phone.pickPhoto(src); if(!f) return;
+  const url = URL.createObjectURL(f), img = new Image(); img.alt = ''; img.draggable = false;
+  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; $('phZoom').value = 1; drawPhoto(); };
+  img.onerror = () => { URL.revokeObjectURL(url); toast(t('phBad')); }; img.src = url;
+}
+function phEnd(){ if(PCROP) URL.revokeObjectURL(PCROP.url); PCROP = null; drawPhoto(); }
+function phSave(){
+  const c = PCROP; if(!c) return; phClamp(); const s = phCover(), k = PH_PX / PH_BOX, cv = document.createElement('canvas'); cv.width = cv.height = PH_PX;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, PH_PX, PH_PX); ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(c.img, (PH_BOX / 2 + c.x - c.w * s / 2) * k, (PH_BOX / 2 + c.y - c.h * s / 2) * k, c.w * s * k, c.h * s * k);
+  profile.photo = cv.toDataURL('image/jpeg', .82); saveProfile(); phEnd(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); Phone.haptic(); toast(t('phSaved'));
+}
+function phRemove(){ delete profile.photo; saveProfile(); drawPhoto(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); }
+function phName(v){ v = (v || '').trim().slice(0, 40); if(v) profile.name = v; else delete profile.name; saveProfile(); drawPhoto(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 

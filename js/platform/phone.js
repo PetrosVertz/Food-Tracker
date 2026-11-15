@@ -76,6 +76,11 @@ const Phone = (() => {
       try{ await navigator.clipboard.writeText(text); }
       catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} ta.remove(); }
     },
+    // 0.7.9: pick one photo. 'camera' opens the front camera, 'library' the photo library. Resolves to the File, or null when cancelled.
+    pickPhoto(src){ return new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; if(src === 'camera') i.setAttribute('capture', 'user');
+      i.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0'; document.body.appendChild(i);
+      const done = f => { i.remove(); res(f || null); };
+      i.addEventListener('change', () => done(i.files && i.files[0]), { once: true }); i.addEventListener('cancel', () => done(null), { once: true }); i.click(); }); },
     openUrl(url){ if(/^https?:/.test(url)) window.open(url, '_blank', 'noopener'); else location.href = url; },
   };
 })();
