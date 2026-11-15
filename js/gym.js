@@ -124,14 +124,15 @@ function renderSession(){
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
   const warn = sessionRecoveryWarn();
-  $('sesSupps').innerHTML = (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
+  $('sesSupps').innerHTML = atRow() + (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
     (warn ? `<div class="alert red" style="cursor:default">${warn}</div>` : '') +
     (sp.length ? `<div class="slots" style="margin:0 0 10px"><small class="rmeta" style="align-self:center">${t('suppsNow')}</small>${sp.map(s => { const sl = s.times.find(x => x === 'pre' || x === 'post') || s.times[0]; const k = `${s.id}|${sl}`;
       return `<button class="slot ${day[k] ? 'taken' : ''}" data-ssup="${k}">${day[k] ? svgIcon('check', 14, 2.6) + ' ' : ''}${suppIcon(s)} ${esc(suppName(s))}</button>`; }).join('')}</div>` : '');
   if(active.clock0 === undefined) active.clock0 = active.exercises.length ? new Date(active.start).getTime() : null;   // workouts started before 0.6.0
   if(!active.clock0 && active.exercises.length){ active.clock0 = Date.now(); saveG('act'); }   // 0.6.0: the clock starts with the first exercise
   normalizeSS(active.exercises);
-  $('sesBody').innerHTML = active.exercises.map((x, i) => cardHtml(x, i)).join('') || `<div class="empty">${t('noExYet')}</div>`;
+  const at = !!active.attempt, shown = active.exercises.map((x, i) => at && !isBoardLift(x.exId) ? '' : cardHtml(x, i)).join('');   // 0.7.9: Attempt mode = board lifts only
+  $('sesBody').innerHTML = (at ? atPanel() : '') + (shown || (at ? '' : `<div class="empty">${t('noExYet')}</div>`));
   SES_ADD = SES_ADD || $('sesAddEx'); $('sesBody').appendChild(SES_ADD);   // Add Exercise always sits under the last exercise
 }
 let SES_ADD = null;
@@ -179,11 +180,45 @@ function tickSet(x, s, row, xi, si){
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
+  if(!card && s.type !== 'W' && +s.r === 1) boardCheer(x, s);   // 0.7.9: a ticked single on a board lift = a leaderboard 1RM
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
   if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
-    const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true); x.sets.push(...add); saveG('act'); }
+    const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
+    if(x.attempt) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
+    x.sets.push(...add); saveG('act'); }
   renderSession(); tickRest();
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
+}
+
+// ---------- 0.7.9 Leaderboard Attempt mode (live workout): a switch (trophy) → only the board lifts show, with a panel to set up a 1RM attempt:
+// warm-ups from your estimate (best of your estimated 1RM and your board 1RM), then single attempts. A ticked single that beats your board 1RM
+// is your new leaderboard entry (boardBest reads ticked singles) and gets a celebration. active.attempt = the switch (saved with the workout).
+const ICO_TROPHY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M9 20h6M10 17h4"/></svg>';
+function atRow(){ const on = !!(active && active.attempt);
+  return `<div class="atrow${on ? ' on' : ''}"><span class="atl">${ICO_TROPHY}<span><b>${t('atTitle')}</b><small>${t('atSub')}</small></span></span><button class="switch ${on ? 'on' : ''}" type="button" role="switch" aria-checked="${on}" aria-label="${esc(t('atTitle'))}" data-attempt><i></i></button></div>`; }
+// the 1RM to aim at, in kg lifted (pull-ups: body weight + added)
+const atGoal = exId => Math.max(tierBest(exId) || 0, (boardBest(exId) || {}).kg || 0);
+const atTyped = (exId, kg) => Math.max(0, exById(exId).e === 'bodyweight' ? kg - bodyW() : kg);   // what goes in the kg box
+function atPanel(){
+  return `<div class="atpanel"><p class="hint">${t('atHow')}</p><div class="atlifts">${BOARD_LIFTS.map(b => { const g = atGoal(b.id), bb = boardBest(b.id);
+    return `<button class="atlift" type="button" data-atlift="${b.id}"><b>${esc(exName(b.id))}</b><small>${bb ? t('atBest', { kg: fmt(Math.round(bb.kg * 2) / 2) }) : g ? t('atEst', { kg: fmt(Math.round(g * 2) / 2) }) : t('atNone')}</small></button>`; }).join('')}</div></div>`; }
+function atToggle(){ if(!active) return; active.attempt = !active.attempt; if(!active.attempt) delete active.attempt; saveG('act'); Phone.haptic(); renderSession(); }
+function atSetup(exId){
+  if(!active || !isBoardLift(exId)) return; const ex = exById(exId), g = atGoal(exId);
+  const w = p => g ? String(Math.max(ex.e === 'barbell' ? 20 : 0, r25(atTyped(exId, g * p), ex.e))) : '';
+  const st = (type, p, r) => ({ ...newSet(type), w: w(p), r: String(r) });
+  const sets = [st('W', .5, 5), st('W', .7, 3), st('W', .8, 2), st('W', .9, 1), st('N', .95, 1), st('N', 1, 1), st('N', 1.03, 1)];
+  if(ex.e === 'bodyweight' && g) sets.splice(0, 2);   // pull-ups: the light warm-ups would be below body weight
+  const x = { exId, reps: '1', rest: 180, attempt: true, sets }; if(isUni(exId)) makeUni(x, true);
+  active.exercises.push(x); active.cur = active.exercises.length - 1; saveG('act'); renderSession(); Phone.haptic();
+  if(!g) toast(t('atNoEst'));
+  const i = active.exercises.length - 1; setTimeout(() => { const el = document.querySelector(`.exc[data-x="${i}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+}
+function boardCheer(x, s){
+  if(!isBoardLift(x.exId)) return; const kg = loadOf(x.exId, s.w); if(!(kg > 0)) return;
+  const prev = boardBest(x.exId, s); if(prev && kg <= prev.kg) return;
+  celebrate(); setTimeout(celebrate, 300); setTimeout(celebrate, 650); Phone.vibrate([60, 40, 60, 40, 120]);
+  toast(t('atNew', { n: exName(x.exId), kg: fmt(kg) }));
 }
 
 // ---------- supersets: linked exercises share a colour; tick A → straight to B (no rest) → rest (the longest of the group) → back to A ----------

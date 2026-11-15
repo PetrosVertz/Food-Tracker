@@ -13,10 +13,10 @@ const BOARD_LIFTS = [
 // ticked in a workout (normal set, no warm-up, not the right side of L/R). w = the weight you typed; the board shows the lifted load
 // (loadOf: pull-ups count body weight + added weight). → { kg, w, date, src: 'manual' | 'live' } or null.
 const ormList = () => Array.isArray(profile.orm) ? profile.orm.filter(o => o && o.exId && +o.w >= 0 && o.date) : [];
-function boardBest(exId){
+function boardBest(exId, skip){   // skip = one set to leave out (to compare a fresh single with the best before it)
   let best = null; const take = (w, date, src) => { const kg = loadOf(exId, w); if(kg > 0 && (!best || kg > best.kg)) best = { kg, w: +w, date, src }; };
   ormList().forEach(o => { if(o.exId === exId) take(o.w, o.date, 'manual'); });
-  const scan = (x, date) => { if(x.exId !== exId) return; x.sets.forEach(st => { if(st.done && isMainSet(st) && st.w !== '' && +st.r === 1) take(+st.w, date, 'live'); }); };
+  const scan = (x, date) => { if(x.exId !== exId) return; x.sets.forEach(st => { if(st !== skip && st.done && isMainSet(st) && st.w !== '' && +st.r === 1) take(+st.w, date, 'live'); }); };
   sessions.forEach(s => s.exercises.forEach(x => scan(x, s.date))); if(active) active.exercises.forEach(x => scan(x, active.date));
   return best;
 }

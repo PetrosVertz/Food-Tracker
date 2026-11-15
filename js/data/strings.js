@@ -514,6 +514,12 @@ Object.assign(S, {
   ormBwHint: ['Pull-ups: enter only the weight you added. Your body weight ({bw} kg) is counted for you.', 'Έλξεις: γράψε μόνο το βάρος που πρόσθεσες. Το σωματικό σου βάρος ({bw} kg) μετράει αυτόματα.'],
   ormYours: ['Your Entries', 'Οι καταχωρήσεις σου'], ormManual: ['entered', 'καταχώρηση'],
   ormBad: ['Choose a lift, a weight and a date (not in the future).', 'Διάλεξε άσκηση, βάρος και ημερομηνία (όχι μελλοντική).'], ormSaved: ['1RM saved', 'Το 1RM αποθηκεύτηκε'],
+  // 0.7.9 Leaderboard Attempt mode
+  atTitle: ['Leaderboard Attempt', 'Προσπάθεια για κατάταξη'], atSub: ['Go for a 1RM on a leaderboard lift', 'Κυνήγησε 1RM σε άσκηση της κατάταξης'],
+  atHow: ['Pick a lift: warm-ups from your estimate, then single attempts. Tick a single you lift cleanly and it goes on the leaderboard.', 'Διάλεξε άσκηση: προθέρμανση από την εκτίμησή σου και μετά μονές προσπάθειες. Τσέκαρε ένα μονό που σήκωσες σωστά και μπαίνει στην κατάταξη.'],
+  atBest: ['Best {kg} kg', 'Ρεκόρ {kg} kg'], atEst: ['Estimate {kg} kg', 'Εκτίμηση {kg} kg'], atNone: ['No estimate yet', 'Χωρίς εκτίμηση ακόμα'],
+  atNoEst: ['No estimate yet: fill in the weights yourself, starting light.', 'Δεν υπάρχει εκτίμηση: γράψε εσύ τα κιλά, ξεκινώντας ελαφριά.'],
+  atNew: ['New leaderboard 1RM: {n} {kg} kg', 'Νέο 1RM στην κατάταξη: {n} {kg} kg'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
   logTMeal: ['{n} meal', '{n} γεύμα'], logTMeals: ['{n} meals', '{n} γεύματα'], logTWater: ['{n} ml water', '{n} ml νερό'], logChipRm: ['Remove', 'Αφαίρεση'],

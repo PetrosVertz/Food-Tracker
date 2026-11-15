@@ -367,3 +367,13 @@ body.inses .coachbub{display:none!important}
 /* 0.7.9 streak numbers: slanted athletic numerals (bold italic Inter, tight spacing) on the streak card and the pill */
 .pfstreak .pfnum,.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
 .pfstreak .pfnum{padding-right:3px}
+
+/* 0.7.9 Leaderboard Attempt mode: the switch row (trophy), the lift picker panel */
+.atrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:0 0 10px;padding:10px var(--s3);border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-edge)}
+.atrow.on{border-color:color-mix(in srgb,var(--tier-gold) 55%,transparent)}
+.atl{display:flex;align-items:center;gap:10px;min-width:0} .atl>svg{flex:0 0 auto;color:var(--tier-gold)}
+.atl b{display:block;font-weight:var(--w-med)} .atl small{display:block;color:var(--t-muted);font-size:var(--fs-label)}
+.atpanel{margin:0 0 var(--s3)} .atpanel .hint{margin:0 0 var(--s2)}
+.atlifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+.atlift{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:10px var(--s3);border-radius:14px;border:1px solid var(--t-line);background:var(--t-sel);color:var(--t-text);font:inherit;text-align:left;cursor:pointer}
+.atlift b{font-weight:var(--w-med);font-size:14px} .atlift small{color:var(--t-muted);font-size:var(--fs-label)}
