@@ -31,7 +31,7 @@ function profileData(){
   const latestPR = prs.filter(p => p.kind === 'w').sort((a, b) => b.start.localeCompare(a.start))[0] || null;
   const wts = Object.entries(weights || {}).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).slice(-30).map(([d, w]) => ({ d, w: +w }));
   return {
-    initial: (me.name || '').trim().charAt(0).toUpperCase(),
+    initial: pfInitial(), photo: pfPhoto(),   // 0.7.9: Settings › Photo and Name (ui.js)
     live: !!active, trainedToday: sessions.some(s => s.date === today),
     streak, latestPR, prCount: prs.length,
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
@@ -60,7 +60,7 @@ function renderProfile(){
   const d = profileData(), kg = v => `${fmt(Math.round(v * 2) / 2)} kg`, num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB');
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
   const circles = `<div class="pfcircles" role="list">
-      <div class="pfme ${ring}" role="listitem"><span class="pfav">${d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</span><small>${esc(t('pfYou'))}</small></div>
+      <div class="pfme ${ring}" role="listitem"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button><small>${esc(t('pfYou'))}</small></div>
       <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
     </div>`;
   const pr = d.latestPR ? `<b class="pfbig">${esc(exName(d.latestPR.exId))}</b><span class="pfline">${kg(d.latestPR.w)} × ${d.latestPR.r} · ${esc(fmtDate(d.latestPR.date + 'T12:00:00'))}</span>`

@@ -134,7 +134,8 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
    Line icons 22px; the active tab sits in a 52×44 accent bubble (radius 16) that glides between tabs. */
 .rail{position:fixed;z-index:9;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),480px);height:64px;
   bottom:max(24px,calc(env(safe-area-inset-bottom) - 10px));top:auto;right:auto;
-  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
+  display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
+.rail>button.hide{display:none}   /* 0.7.9: Kitchen switched off → four tabs share the bar */
 html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env(safe-area-inset-bottom) - 10px)))}
 .rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
 .rail>button.on{color:var(--t-on)}
@@ -742,6 +743,46 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} .coachpill{animation:none} #fab{transition:none} }
+/* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
+.rail>.knob{border-radius:22px;transition:transform .26s cubic-bezier(.3,1.3,.6,1),width .26s cubic-bezier(.3,1.3,.6,1),height .26s cubic-bezier(.3,1.3,.6,1),border-radius .26s,opacity .15s}
+.rail>.knob.round{border-radius:50%}
+.rail .avimg,.rail .avini{width:30px;height:30px;border-radius:50%;display:block;object-fit:cover}
+.avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
+.rail>button.on .avini{background:var(--t-card)}
+.pfme .pfav{border:0;padding:0;cursor:pointer;overflow:hidden;font:inherit;font-size:34px;font-weight:var(--w-bold)}
+.pfav .avimg{width:100%;height:100%;object-fit:cover;display:block}
+.phwrap{display:flex;flex-direction:column;align-items:center;gap:var(--s2);margin:var(--s2) 0 var(--s3)}
+.phcirc{position:relative;width:200px;height:200px;border-radius:50%;overflow:hidden;background:var(--t-card2);color:var(--t-muted);display:flex;align-items:center;justify-content:center;touch-action:none;box-shadow:0 0 0 1px var(--t-edge)}
+.phcirc>.avimg{width:100%;height:100%;object-fit:cover}
+.phcirc>.avini{width:100%;height:100%;font-size:84px}
+.phcirc.cropping{cursor:grab;box-shadow:0 0 0 2px var(--t-accent)}
+.phcirc .phimg{position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none}
+#phZoom{width:200px}
+#phBtns .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#phDel{display:block;margin:0 auto var(--s3);color:var(--t-danger)}
+/* 0.7.9 navigation, one pattern everywhere: the back arrow and the title share one 44px line and are centred together;
+   the arrow's line icon sits 14px from the edge on pages and full-screen windows (as in a page header).
+   Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
+   Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
+   (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback,.overlay#ovExPick .sheet>.sback{display:flex;margin:0 0 -44px -10px}
+#ovExPick .sheet>.sback{position:relative;z-index:4}
+#ovExPick .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s2);text-align:center}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+/* 0.7.9 header: NO header band. The 0.7.8 solid bar + fade sliced cards under a strip that, on a notched iPhone, is the status bar
+   plus a 52px title row. Now page titles (and the header buttons beside them) are part of the page and scroll away with it;
+   back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
+   scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
+section.page>header{position:relative;top:auto}
+section.page>header::before,.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{display:none!important}
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:auto;z-index:1}
+section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
+section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
+section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
+body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--t-bg);pointer-events:none}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}

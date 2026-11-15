@@ -38,6 +38,7 @@ const ICON = {
   play: '<path d="M7.5 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.7 4.1a.8.8 0 0 0-1.2.7z"/>',
   snow: '<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4l2.5 2.5L14.5 4M9.5 20l2.5-2.5 2.5 2.5M4 10.4l3.4.9-.9 3.4M20 13.6l-3.4-.9.9-3.4M4 13.6l3.4-.9-.9-3.4M20 10.4l-3.4.9.9 3.4"/>',
   // 0.7.7 Profile: you, friends, share, streak flame
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5L5 19.5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5a8 8 0 0 1 16 0"/>',
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
   share: '<path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/>',
@@ -88,11 +89,21 @@ function drawTheme(){
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
 // ---------- 0.6.9.3: what the app is used for — "mainly gym work" puts Gym Buddy first (nothing is hidden) ----------
+// 0.7.9: Kitchen (Fridge, Groceries, Recipes) can be switched off in Settings › Tabs: four tabs, Recipes go back into Food Library
+const kitchenOn = () => !ui.noKitchen;
+function placeRecipes(){
+  const mv = $('mealsView'), kit = kitchenOn(), home = kit ? $('pgFridge') : $('pgFoods'); if(!mv || !home) return;
+  if(mv.parentNode !== home){ if(kit) home.appendChild(mv); else home.insertBefore(mv, $('foodSupps')); }
+  const mb = document.querySelector('#foodTabs [data-v="meals"]'); if(mb) mb.classList.toggle('hide', kit);
+}
 function applyTabOrder(){
-  const order = ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge'];
+  const order = (ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge']).filter(k => k !== 'fridge' || kitchenOn());
   TABS3.splice(0, TABS3.length, ...order);
-  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); }); }
+  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); });
+    const fb = bar.querySelector('[data-tab="fridge"]'); if(fb) fb.classList.toggle('hide', !kitchenOn()); }
+  placeRecipes();
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
+  if($('sKitchen')) $('sKitchen').checked = kitchenOn();
   if(typeof pillsAll === 'function') pillsAll();
 }
 const fabBtn = (icon, label) => `<span class="fabic">${svgIcon(icon, 18, 2.4)}</span>${esc(label)}`;   // main button: line icon before the text
@@ -105,13 +116,18 @@ function ibtnFill(root){ (root.matches && root.matches('.ibtn') ? [root] : []).c
   .forEach(b => { if(!b.querySelector('svg')) b.innerHTML = svgIcon('info', 18); }); }
 document.addEventListener('DOMContentLoaded', () => ibtnFill(document));
 
+// 0.7.9: pages and windows get .scrolled once their content moves, so the pinned back arrow shows its round backing (theme.css)
+document.addEventListener('scroll', e => { const el = e.target; if(el.nodeType === 1 && el.matches('section.page,.overlay .sheet')) el.classList.toggle('scrolled', el.scrollTop > 6); }, { capture: true, passive: true });
+
 const PILL_SEL = '.mpill,.seg,.rail';
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
   if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
   const b = el.querySelector(':scope > button.on');
   if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
-  const rail = el.classList.contains('rail'), w = rail ? 52 : b.offsetWidth, hh = rail ? 44 : b.offsetHeight,
+  const rail = el.classList.contains('rail'), av = rail && !!b.querySelector('.avimg,.avini');   // 0.7.9: on the Profile photo the bubble is a circle ring
+  k.classList.toggle('round', av);
+  const w = rail ? (av ? 40 : 52) : b.offsetWidth, hh = rail ? (av ? 40 : 44) : b.offsetHeight,
     x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
   if(jump) k.style.transition = 'none';
   k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
@@ -190,38 +206,61 @@ function goForward(){
   if(NAVI < NAV.length - 1 && tabOf(NAV[NAVI + 1]) === tabOf(location.hash.slice(1))){ NAVI++; navTo(NAV[NAVI]); }
 }
 
-// ---------- tabs: Today → Gym → Food → Fridge, switched from the side strip or a short pull past the end ----------
+// ---------- tabs: My Food Log → Gym → Food Library → Kitchen, switched from the side strip or a short pull past the end ----------
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
-// ---------- 0.7.7: the action pills above the bottom bar (main button, scan button, coach pill) on a tab switch ----------
-// The old pills slide down out of view (copies, so their text never changes mid-way), then the new page's pills rise from the
-// bottom with a short fade and a slight spring, 40 ms apart. Transform and opacity only; with Reduce Motion they just swap.
-const PILL_ACTS = '#fab2,#fab,.coachpill';
+// ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
+// 0.7.7 → 0.7.9: copies of the old pills drop out of view (so their text never changes mid-way), then the new pills rise on a
+// real spring (sampled damped spring: a small overshoot, then settles), 40 ms apart. Transform and opacity only, nothing moves
+// in the layout while it is visible. A tab switch starts at once; a change inside a tab (Fridge → Recipes, Store-Bought →
+// Supplements) first checks whether the pills really changed, so identical pills never blink. With Reduce Motion they just swap.
+const PILL_ACTS = '#fab2,#fab,.coachpill', PILL_GAP = 40, PILL_OUT = 140, PILL_IN = 520, PILL_DROP = 96;
 const pillShown = el => !el.classList.contains('hide') && el.getClientRects().length && getComputedStyle(el).display !== 'none';
-function pillSwap(){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate) return;
-  clearTimeout(pillSwap.t); document.querySelectorAll('.pillghost').forEach(g => g.remove());
-  const olds = [...document.querySelectorAll(PILL_ACTS)].filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);
+const pillsNow = () => [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost') && pillShown(el)).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+const pillSig = els => els.map(el => { const r = el.getBoundingClientRect(); return `${el.id}|${el.textContent.trim()}|${Math.round(r.left)}|${Math.round(r.width)}`; }).join(';');
+const PILL_SPRING = (() => { const k = [], n = 28, T = .52, a = 16, w = 18;   // x(t) = 1 − e^(−at)(cos wt + a/w sin wt): ~6% overshoot, settled by T
+  for(let i = 0; i <= n; i++){ const t = i / n * T, x = i === n ? 1 : 1 - Math.exp(-a * t) * (Math.cos(w * t) + a / w * Math.sin(w * t));
+    k.push({ transform: `translate3d(0,${((1 - x) * PILL_DROP).toFixed(2)}px,0)`, offset: i / n }); }
+  return k; })();
+const pillReduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !document.body.animate;
+function pillsIn(){
+  const all = [...document.querySelectorAll(PILL_ACTS)].filter(el => !el.classList.contains('pillghost'));
+  all.forEach(el => { el.getAnimations().forEach(a => a.cancel()); el.style.transition = 'none'; });   // no CSS fade of their own on the way back
+  document.body.classList.remove('pillswap');
+  pillsNow().forEach((el, i) => { const op = getComputedStyle(el).opacity, delay = i * PILL_GAP;   // a greyed-out AI pill keeps its dimmed look
+    el.style.willChange = 'transform,opacity';
+    el.animate(PILL_SPRING, { duration: PILL_IN, delay, easing: 'linear', fill: 'backwards' })
+      .finished.then(() => { el.style.willChange = ''; }, () => {});
+    el.animate([{ opacity: 0 }, { opacity: op }], { duration: 160, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
+  requestAnimationFrame(() => all.forEach(el => el.style.transition = ''));
+}
+function pillSwap(soft){
+  if(pillReduce()) return;
+  clearTimeout(pillSwap.t); cancelAnimationFrame(pillSwap.f); document.querySelectorAll('.pillghost').forEach(g => g.remove());
+  const olds = pillsNow(), sig0 = pillSig(olds);
+  const ghosts = olds.map(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el), g = el.cloneNode(true);   // the rect includes a rise still under way
     g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.classList.add('pillghost'); g.setAttribute('aria-hidden', 'true'); g.tabIndex = -1;
     const pin = { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', 'z-index': cs.zIndex };
     Object.entries(pin).forEach(([k, v]) => g.style.setProperty(k, v, 'important'));   // geometry beats the pills' own !important rules; transform and opacity stay free to animate
-    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity }); document.body.appendChild(g); return g; });
+    Object.assign(g.style, { transform: 'none', transition: 'none', animation: 'none', opacity: cs.opacity, willChange: 'transform,opacity' }); document.body.appendChild(g); return g; });
   document.body.classList.add('pillswap');   // the real pills wait out of sight while the page changes under them
-  const OUT = 150, gap = 40, outEnd = OUT + Math.max(0, ghosts.length - 1) * gap;
-  ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: 'translateY(96px)', opacity: 0 }],
-    { duration: OUT, delay: i * gap, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
-  pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove());
-    const all = [...document.querySelectorAll(PILL_ACTS)]; all.forEach(el => el.style.transition = 'none');   // no CSS fade of their own on the way back
-    document.body.classList.remove('pillswap');
-    const news = all.filter(pillShown).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-    news.forEach((el, i) => { const op = getComputedStyle(el).opacity;   // a greyed-out AI pill keeps its dimmed look
-      el.animate([{ transform: 'translateY(96px)', opacity: 0 }, { transform: 'translateY(-5px)', opacity: op, offset: .72 }, { transform: 'none', opacity: op }],
-        { duration: 250, delay: i * gap, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'backwards' }); });
-    requestAnimationFrame(() => all.forEach(el => el.style.transition = '')); }, outEnd + 10);
+  const out = () => { ghosts.forEach((g, i) => g.animate([{ transform: 'none', opacity: g.style.opacity }, { transform: `translate3d(0,${PILL_DROP}px,0)`, opacity: 0 }],
+      { duration: PILL_OUT, delay: i * PILL_GAP, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
+    pillSwap.t = setTimeout(() => { ghosts.forEach(g => g.remove()); pillsIn(); }, PILL_OUT + Math.max(0, ghosts.length - 1) * PILL_GAP + 10); };
+  if(!soft){ out(); return; }
+  // inside a tab: wait two frames (the page and the coach pill have been placed), then only animate if something changed
+  pillSwap.f = requestAnimationFrame(() => { pillSwap.f = requestAnimationFrame(() => {
+    if(pillSig(pillsNow()) === sig0){ ghosts.forEach(g => g.remove()); document.body.classList.remove('pillswap'); return; }
+    out(); }); });
 }
+// start-up: the pills rise once everything (fonts, coach pill) is in place, so the main button never visibly jumps aside
+function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pillswap');
+  let last = '', n = 0;   // rise only when the pills have stopped moving (same place and text twice in a row), 1.5 s at most
+  const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(pillsIn); return; } last = sg; setTimeout(check, 120); };
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(() => setTimeout(check, 420)); }   // the coach pill places itself ~300 ms after start (coach.js)
+
 function switchTab(dir, toTab){
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
@@ -245,24 +284,28 @@ function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
-  const page = h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','fridge','groc','settings','profile'].includes(h) ? h : 'foods';
+  { const prev = route.last; route.last = h; if(prev && prev !== h && !SWITCHING && tabOf(prev) === tabOf(h)) pillSwap(true); }   // 0.7.9: pills changing inside a tab glide too
+  const kit = kitchenOn(); placeRecipes();
+  if(!kit && (h === 'fridge' || h === 'groc')){ h = homeHash().slice(1); history.replaceState(null, '', '#' + h); }   // Kitchen is off: nothing opens it
+  const kv = kit && ['fridge', 'groc', 'meals'].includes(h) ? h : '';   // 0.7.9: Kitchen = Fridge · Groceries · Recipes under one pill
+  const page = kv ? (kv === 'groc' ? 'groc' : 'fridge') : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
   [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
-  $('fridgeView').classList.toggle('hide', page === 'groc'); $('pgGroc').classList.toggle('hide', page !== 'groc');
+  $('fridgeView').classList.toggle('hide', kv !== 'fridge'); $('pgGroc').classList.toggle('hide', kv !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
   setSeg('#foodTabs', tab);
   $('storeView').classList.toggle('hide', tab !== 'store');
   $('mealsView').classList.toggle('hide', tab !== 'meals');
   $('foodSupps').classList.toggle('hide', tab !== 'supps');
-  document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === page)));
+  document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === kv)));
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
   fab.classList.toggle('hide', page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'meals' ? t('cookFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  { const fl = page === 'today' ? t('logFab') : tab === 'meals' ? t('cookFab') : page === 'fridge' ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
-  if(page === 'foods' && tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
-  fab.dataset.action = ['today','fridge','gym'].includes(page) ? page : tab;
+  if(tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
+  fab.dataset.action = tab === 'meals' ? 'meals' : ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
@@ -403,6 +446,46 @@ function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel')
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
   if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
+
+// ---------- 0.7.9: profile photo + name (Settings › Photo and Name, or tap your circle on Profile) ----------
+// Camera or photo library through Phone.pickPhoto; drag and zoom it inside the circle; saved as a 192 px JPEG in profile.photo (synced, in backups).
+const PH_PX = 192, PH_BOX = 200;
+let PCROP = null;   // while placing a new photo: { img, w, h, x, y, z }
+const pfPhoto = () => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(profile.photo || '') ? profile.photo : '';
+const pfInitial = () => ((profile.name || Account.current().name || '').trim().charAt(0) || '').toUpperCase();
+function avatarHtml(){ const p = pfPhoto(), i = pfInitial(); return p ? `<img class="avimg" src="${p}" alt="">` : i ? `<b class="avini">${esc(i)}</b>` : ''; }
+function railAvatar(){ const r = document.querySelector('#rail [data-tab="profile"] .ri'); if(!r) return;
+  r.innerHTML = avatarHtml() || svgIcon('user', 22, 2); const rl = $('rail'); if(rl) pillQueue(rl); }
+function phCover(){ const c = PCROP; return PH_BOX / Math.min(c.w, c.h) * c.z; }
+function phClamp(){ const c = PCROP, s = phCover(), mx = Math.max(0, (c.w * s - PH_BOX) / 2), my = Math.max(0, (c.h * s - PH_BOX) / 2);
+  c.x = Math.max(-mx, Math.min(mx, c.x)); c.y = Math.max(-my, Math.min(my, c.y)); }
+function phDrawCrop(){ const c = PCROP, im = $('phCirc').querySelector('img'); if(!c || !im) return; phClamp(); const s = phCover();
+  im.style.width = c.w * s + 'px'; im.style.height = c.h * s + 'px'; im.style.transform = `translate(calc(-50% + ${c.x}px),calc(-50% + ${c.y}px))`; }
+function drawPhoto(){
+  const crop = !!PCROP, circ = $('phCirc'); circ.classList.toggle('cropping', crop);
+  if(crop){ circ.innerHTML = ''; circ.appendChild(PCROP.img); PCROP.img.className = 'phimg'; phDrawCrop(); }
+  else circ.innerHTML = avatarHtml() || svgIcon('user', 72, 1.6);
+  $('phZoom').classList.toggle('hide', !crop); $('phHint').classList.toggle('hide', !crop); $('phCropBtns').classList.toggle('hide', !crop);
+  $('phBtns').classList.toggle('hide', crop); $('phDel').classList.toggle('hide', crop || !pfPhoto());
+  $('phCam').innerHTML = `${svgIcon('camera', 18, 2)}<span>${esc(t('phTake'))}</span>`; $('phLib').innerHTML = `${svgIcon('image', 18, 2)}<span>${esc(t('phChoose'))}</span>`;
+  $('phName').value = profile.name || '';
+}
+function openPhoto(){ PCROP = null; drawPhoto(); open('ovSProfile'); }
+async function phPick(src){
+  const f = await Phone.pickPhoto(src); if(!f) return;
+  const url = URL.createObjectURL(f), img = new Image(); img.alt = ''; img.draggable = false;
+  img.onload = () => { PCROP = { img, url, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, z: 1 }; $('phZoom').value = 1; drawPhoto(); };
+  img.onerror = () => { URL.revokeObjectURL(url); toast(t('phBad')); }; img.src = url;
+}
+function phEnd(){ if(PCROP) URL.revokeObjectURL(PCROP.url); PCROP = null; drawPhoto(); }
+function phSave(){
+  const c = PCROP; if(!c) return; phClamp(); const s = phCover(), k = PH_PX / PH_BOX, cv = document.createElement('canvas'); cv.width = cv.height = PH_PX;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, PH_PX, PH_PX); ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(c.img, (PH_BOX / 2 + c.x - c.w * s / 2) * k, (PH_BOX / 2 + c.y - c.h * s / 2) * k, c.w * s * k, c.h * s * k);
+  profile.photo = cv.toDataURL('image/jpeg', .82); saveProfile(); phEnd(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); Phone.haptic(); toast(t('phSaved'));
+}
+function phRemove(){ delete profile.photo; saveProfile(); drawPhoto(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); }
+function phName(v){ v = (v || '').trim().slice(0, 40); if(v) profile.name = v; else delete profile.name; saveProfile(); drawPhoto(); railAvatar(); if(typeof renderProfile === 'function') renderProfile(); }
 
 function setLang(l){ lang = l; ui.lang = l; saveUI(); applyLang(); route(); }
 
