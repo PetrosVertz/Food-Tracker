@@ -28,4 +28,5 @@ The owner (Petros) is not a programmer: explain results in plain words, no code 
 - No emoji or text-glyph icons (✓ ✕ ＋ ⌄ ⓘ ▶ …): use `svgIcon()` line icons from ui.js, or nothing.
 - Colours come from theme vars and must read at ≥ 4.5:1 in Light mode too. Accent used as text: `var(--t-accent-ink,var(--t-accent))`.
 - AI features: `class="aiafter"` / `AI.badge()` after the text, never a ✨ in the string.
+- Anything draggable or swipeable (bubbles, windows pulled down, swipe-to-delete, reordering, sliders, new things added later) must use the shared drag helper in ui.js: follow the finger 1:1 with `transform` only (no blur, no layout reads while moving), spring on release. It must feel as smooth as the robot bubbles; check frames in Playwright.
 - Network calls: `fetchT()` (with a time limit), never raw `fetch()`. Haptics: `Phone.haptic()`.

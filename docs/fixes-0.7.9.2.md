@@ -18,4 +18,9 @@ Follow CLAUDE.md. Petros adds items during planning; prompts are written when he
    - No flash, blank frame, scroll jump or layout shift while switching; the page is built before it appears, heavy work waits until the motion has finished.
    - Reduce Motion = a plain quick fade.
    - Check by recording frames in Playwright at device scale 3 and stepping through them: no jumps between frames, the circle and the page in step.
-4. Bump VERSION to 0.7.9.2 and CACHE to match (this is the only branch of the round).
+4. **Pull a window down to close it: much smoother** (`sheetDrag` in ui.js; Petros sees about 5 frames a second on iPhone). It must feel as smooth as the robot bubbles.
+   - Already true: the window follows the finger with transform only and has no blur. So look for what else costs frames while it moves, and remove it: the big box-shadow on the window, the dim background behind it repainting on every frame (fade it with opacity on its own layer instead), the page underneath being redrawn or re-rendered while dragging or at the moment of release (`close()` / `renderAll()` should wait until the closing motion has finished), and the window not being on its own layer from the start (give it `will-change: transform` when it opens, not when the drag starts).
+   - Test every window that can be pulled down (Start Workout, Add Food, pickers, summaries and so on), not just one.
+   - Check by recording frames in Playwright (also with CPU throttling 4x) and stepping through them: the window is under the finger in every frame, and the release and close carry on smoothly.
+5. **Start Workout window: title lined up with the back arrow.** "Saved Workouts" sits about 8 px lower than the back arrow (measured: arrow centre 235, title centre 243 on a 390 px wide phone). Fix in theme.css (the `.sback + .sthead` rules, the Gym Coach button makes the row 52 px tall) so the title's vertical centre equals the arrow's, in every window with a back arrow and a title row; check Start Workout, Pick Exercise, Targets and the Settings pages.
+6. Bump VERSION to 0.7.9.2 and CACHE to match (this is the only branch of the round).
