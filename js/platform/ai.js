@@ -99,30 +99,45 @@ const AI = (() => {
     + '<path d="M26 71 L31 49 Q60 38 89 49 L94 71 Z" fill="#ffffff" fill-opacity=".35" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/><path d="M60 42 V63" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".3"/>'
     + '<rect x="22" y="62" width="76" height="12" rx="4" fill="#59d38c" fill-opacity=".9" stroke="#0f1113" stroke-width="4"/>'
     + '<g transform="rotate(6 30 128)"><rect x="16" y="119" width="28" height="17" rx="4.5" fill="#ffffff" stroke="#0f1113" stroke-width="3.5"/><rect x="20.5" y="123.5" width="12" height="3" rx="1.5" fill="#0f1113" opacity=".55"/><rect x="20.5" y="129" width="19" height="3.5" rx="1.5" fill="#c6f432"/></g></g>'
-    + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/>'
+    + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="44" cy="100" r="3.4" fill="#ffffff"/><circle cx="76" cy="100" r="3.4" fill="#ffffff"/>'
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
     + '<g id="rFaceX"><path d="M37 93 L51 107 M51 93 L37 107 M69 93 L83 107 M83 93 L69 107" stroke="#0f1113" stroke-width="5.5" stroke-linecap="round"/>'
     + '<path d="M53 120 Q60 115 67 120" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.3 thinking face, drawn inline so CSS can move its parts: the eyes glide up-left ↔ up-right, the glints lead the look and the mouth tilts one way, then the other (in step with the sway)
-  const FACE_T = '<g class="rft"><g class="reye"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/>'
-    + '<g class="rgl"><circle cx="44" cy="93.5" r="3.4" fill="#ffffff"/><circle cx="76" cy="93.5" r="3.4" fill="#ffffff"/></g></g>'
+  // 0.7.3 thinking face, drawn inline so CSS can move its parts: the eyes glide up-left ↔ up-right, the glints lead the look and the mouth tilts one way, then the other (in step with the sway).
+  // 0.7.9.2: every face is built the same way so a tap can steer it (gaze below): .rlook moves the eyes, .rgz moves the glints further inside the eyes;
+  // the glints sit in the middle of each eye and only CSS animations (.rgl thinking, .rgi idle) or a tap move them off centre.
+  const GLINTS = '<circle cx="44" cy="100" r="3.4" fill="#ffffff"/><circle cx="76" cy="100" r="3.4" fill="#ffffff"/>', EYES = '<ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/>';
+  const FACE_T = `<g class="rft"><g class="rlook"><g class="reye">${EYES}<g class="rgz"><g class="rgl">${GLINTS}</g></g></g></g>`
     + '<path class="rmo" d="M53 117.75 Q60 118.6 67 117.75" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.4.3 idle face drawn inline (same as #rFaceIdle) so the eyes (.rlook) can glance toward a tap on the screen
-  const FACE_I = '<g class="rfi0"><g class="rblink"><g class="ridle"><g class="rlook"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/></g></g></g>'
+  // 0.7.4.3 idle face drawn inline (same look as #rFaceIdle) so the eyes can glance toward a tap on the screen
+  const FACE_I = `<g class="rfi0"><g class="rblink"><g class="ridle"><g class="rlook">${EYES}<g class="rgz"><g class="rgi">${GLINTS}</g></g></g></g></g>`
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.9 robots feel alive: every idle robot slowly looks around and blinks (CSS .ridle / .rblink); on top of that the eyes glance toward a tap anywhere on the screen.
-  // Robot bubbles glance once and drift back. The Gym Coach robot in the live workout (top right) also FOLLOWS a finger that stays down and moves, and holds the look a bit longer.
+  // 0.7.9 robots feel alive: every idle robot slowly looks around and blinks (CSS .ridle / .rblink / .rgi).
+  // 0.7.9.2 the look follows the real direction of a tap, all the way round: the eyes shift a little toward it and the white glints move further
+  // inside each eye the same way (tap below = looks down, tap left = looks left), then everything eases back to looking straight ahead.
+  // Every robot on screen does it (bubbles, coach pills, chat faces, header robots, thinking faces). While it looks, its own idle / thinking
+  // eye motion pauses where it is and the tap offset is measured from there, so the look lands exactly on the tap and nothing jumps.
+  // The Gym Coach robot in the live workout header (.sescoach) also FOLLOWS a finger that stays down and moves, and holds the look a bit longer.
   // Off with Reduce Motion.
-  let gazeDown = false;
-  function gaze(e){
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    document.querySelectorAll('.aibub .rlook, .sescoach .rlook').forEach(g => { const b = g.closest('.aibub, .sescoach'); if(b.contains(e.target) || b.classList.contains('drag')) return;
-      const r = b.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 140), hdr = b.classList.contains('sescoach');
-      g.style.transition = 'transform .28s cubic-bezier(.2,.8,.3,1)'; g.style.transform = `translate(${(dx / d * 6 * k).toFixed(2)}px,${(dy / d * 5 * k).toFixed(2)}px)`;
-      clearTimeout(g._t); g._t = setTimeout(() => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; }, hdr ? 1800 : 1100); });
-  }
-  document.addEventListener('pointerdown', e => { gazeDown = true; gaze(e); }, { capture: true, passive: true });
-  document.addEventListener('pointermove', e => { if(gazeDown) gaze(e); }, { capture: true, passive: true });
+  const tr2 = el => { const m = getComputedStyle(el).transform; if(!m || m === 'none') return { x: 0, y: 0 }; const d = new DOMMatrixReadOnly(m); return { x: d.e, y: d.f }; };
+  function look(svg, e, hold){ const host = svg.closest('button, .aibub, .sescoach, .cav, .aiface') || svg;
+    if(host.contains(e.target) || host.classList.contains('drag') || svg.closest('.kill')) return;
+    const r = svg.getBoundingClientRect(); if(!r.width || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return;
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * .726), d = Math.hypot(dx, dy) || 1, k = Math.min(1, .55 + d / 180), ux = dx / d * k, uy = dy / d * k;
+    svg.classList.add('gz');   // pause the idle / thinking eye motion where it is (CSS)
+    svg.querySelectorAll('.rlook').forEach(g => { const gz = g.querySelector('.rgz');
+      const a = tr2(g.querySelector('.reye') || g.parentNode), b = tr2(gz.firstElementChild);   // where the paused animations hold the eyes (.reye / .ridle) and glints (.rgl / .rgi) now
+      g.style.transition = gz.style.transition = 'transform .32s cubic-bezier(.2,.8,.3,1)';
+      g.style.transform = `translate(${(ux * 4 - a.x).toFixed(2)}px,${(uy * 3.5 - a.y).toFixed(2)}px)`;
+      gz.style.transform = `translate(${(ux * 5.6 - b.x).toFixed(2)}px,${(uy * 7.6 - b.y).toFixed(2)}px)`; });
+    clearTimeout(svg._gt); svg._gt = setTimeout(() => { svg.querySelectorAll('.rlook, .rgz').forEach(g => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; });
+      svg._gt = setTimeout(() => svg.classList.remove('gz'), 820); }, hold || 1100); }
+  let gazeDown = false, gazeRaf = 0, gazeEv = null;
+  const gazeOff = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.addEventListener('pointerdown', e => { gazeDown = true; if(gazeOff()) return;
+    document.querySelectorAll('svg.robot').forEach(s => look(s, e, s.closest('.sescoach') ? 1800 : 0)); }, { capture: true, passive: true });
+  document.addEventListener('pointermove', e => { if(!gazeDown || gazeOff()) return; gazeEv = e;   // only the header robot follows a moving finger (one read per frame)
+    if(!gazeRaf) gazeRaf = requestAnimationFrame(() => { gazeRaf = 0; document.querySelectorAll('.sescoach svg.robot').forEach(s => look(s, gazeEv, 1800)); }); }, { capture: true, passive: true });
   ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { gazeDown = false; }, { capture: true, passive: true }));
   function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
     d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
