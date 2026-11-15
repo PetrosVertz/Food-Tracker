@@ -85,7 +85,7 @@ $('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-
 });
 
 $('sesBody').addEventListener('click', e => {
-  const atl = e.target.closest('[data-atlift]'); if(atl) return atSetup(atl.dataset.atlift);   // 0.7.9 Leaderboard Attempt
+  const ab = e.target.closest('[data-attempt]'); if(ab) return atToggle(+ab.closest('.exc').dataset.x);   // trophy: Leaderboard Attempt on this exercise
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
     setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
@@ -100,9 +100,10 @@ $('sesBody').addEventListener('click', e => {
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-type]') && s && !gx().hideMarks){ const j = +row.dataset.s;
-    if(s.drop){ addDrop(x, j); saveG('act'); renderSession(); return; }   // ↘ on a drop: one more drop
-    s.type = { N: 'W', W: 'D', D: 'F', F: 'N' }[s.type];
+  if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
+    if(s.drop){ if(!hideM('D')){ addDrop(x, j); saveG('act'); renderSession(); } return; }   // ↘ on a drop: one more drop
+    const cyc = ['N', 'W', 'D', 'F']; let nt = s.type; for(let q = 0; q < 4; q++){ nt = cyc[(cyc.indexOf(nt) + 1) % 4]; if(nt === 'N' || !hideM(nt)) break; }   // skip the markers hidden in Exercise Settings
+    if(nt === s.type) return; s.type = nt;
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
     if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
     saveG('act'); renderSession(); return; }
@@ -119,7 +120,6 @@ $('sesBody').addEventListener('click', e => {
 });
 
 $('sesSupps').addEventListener('click', e => {
-  if(e.target.closest('[data-attempt]')) return atToggle();
   const b = e.target.closest('[data-ssup]'); if(!b) return; const k = todayKey(); suppLog[k] = suppLog[k] || {};
   if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderSupps();
 });

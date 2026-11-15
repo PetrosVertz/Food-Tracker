@@ -84,6 +84,10 @@ function warmupFor(exId, w){
 // ---------- live session ----------
 // 0.7.7: Exercise Settings (one global menu, saved with the device settings): both sides together, hidden markers, per-set extras, sounds
 const gx = () => settings.gx || (settings.gx = {});
+// 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
+// The old single switch (hideMarks) becomes all three hidden.
+function hideM(k){ const G = gx(); if(G.hideMarks){ G.hideM = { W: true, D: true, F: true }; delete G.hideMarks; Store.save('settings', settings); } return !!(G.hideM && G.hideM[k]); }
+let EXS_MK = false;   // the Hide Set Markers list is open
 function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
 // 0.7.7 cardio: no sets / reps. Time (min, stored in r) and distance (km, stored in w) like before, plus calories and level where the machine has them (optional fields cal, lvl).
 const CARDIO_NODIST = /^(burpee|jumping_jacks|jump_rope|battle_ropes)$/, CARDIO_LVL = /bike|elliptical|stair|rower|ski_erg|spin|treadmill|incline/;
@@ -115,24 +119,24 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); cb.innerHTML = AI.robot('gym', 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 40 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
   gymHeadRobot('sesCoach');   // 0.7.7: the Gym Coach robot, top right of the header
-  $('sesHg').innerHTML = hourglass('hg5', 20, sesMs() / 1000);
+  $('sesHg').innerHTML = hourglass('hg5', 24, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
   const warn = sessionRecoveryWarn();
-  $('sesSupps').innerHTML = atRow() + (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
+  $('sesSupps').innerHTML = (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
     (warn ? `<div class="alert red" style="cursor:default">${warn}</div>` : '') +
     (sp.length ? `<div class="slots" style="margin:0 0 10px"><small class="rmeta" style="align-self:center">${t('suppsNow')}</small>${sp.map(s => { const sl = s.times.find(x => x === 'pre' || x === 'post') || s.times[0]; const k = `${s.id}|${sl}`;
       return `<button class="slot ${day[k] ? 'taken' : ''}" data-ssup="${k}">${day[k] ? svgIcon('check', 14, 2.6) + ' ' : ''}${suppIcon(s)} ${esc(suppName(s))}</button>`; }).join('')}</div>` : '');
   if(active.clock0 === undefined) active.clock0 = active.exercises.length ? new Date(active.start).getTime() : null;   // workouts started before 0.6.0
   if(!active.clock0 && active.exercises.length){ active.clock0 = Date.now(); saveG('act'); }   // 0.6.0: the clock starts with the first exercise
   normalizeSS(active.exercises);
-  const at = !!active.attempt, shown = active.exercises.map((x, i) => at && !isBoardLift(x.exId) ? '' : cardHtml(x, i)).join('');   // 0.7.9: Attempt mode = board lifts only
-  $('sesBody').innerHTML = (at ? atPanel() : '') + (shown || (at ? '' : `<div class="empty">${t('noExYet')}</div>`));
+  const shown = active.exercises.map((x, i) => cardHtml(x, i)).join('');
+  $('sesBody').innerHTML = shown || `<div class="empty">${t('noExYet')}</div>`;
   SES_ADD = SES_ADD || $('sesAddEx'); $('sesBody').appendChild(SES_ADD);   // Add Exercise always sits under the last exercise
 }
 let SES_ADD = null;
@@ -148,9 +152,11 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
+  if(s.done){ const mate = gx().uniBoth && x.uni && s.side === 'L' && x.sets[si + 1] && x.sets[si + 1].side === 'R' ? x.sets[si + 1] : null; if(mate){ mate.done = false; delete mate.at; }   // the tall tick reopens both sides
+    s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
-  if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
+  if(atOn(x) && s.type !== 'W') s.r = '1';   // attempt mode: a ticked set is a single
+  if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; s.at = Date.now(); Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
@@ -184,36 +190,20 @@ function tickSet(x, s, row, xi, si){
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
   if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
-    if(x.attempt) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
+    if(atOn(x)) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
     x.sets.push(...add); saveG('act'); }
   renderSession(); tickRest();
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
 }
 
-// ---------- 0.7.9 Leaderboard Attempt mode (live workout): a switch (trophy) → only the board lifts show, with a panel to set up a 1RM attempt:
-// warm-ups from your estimate (best of your estimated 1RM and your board 1RM), then single attempts. A ticked single that beats your board 1RM
-// is your new leaderboard entry (boardBest reads ticked singles) and gets a celebration. active.attempt = the switch (saved with the workout).
+// ---------- Leaderboard Attempt (0.7.9.1): switched on in Exercise Settings (gx().lbAtt). Then every leaderboard lift gets a small trophy button above its
+// name; pressing it turns the name gold and puts that exercise in attempt mode (x.attempt): each set row is just the weight and a tick, a ticked
+// single (reps = 1) that beats your best goes to the leaderboard (boardBest reads ticked singles) with a celebration.
 const ICO_TROPHY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M9 20h6M10 17h4"/></svg>';
-function atRow(){ const on = !!(active && active.attempt);
-  return `<div class="atrow${on ? ' on' : ''}"><span class="atl">${ICO_TROPHY}<span><b>${t('atTitle')}</b><small>${t('atSub')}</small></span></span><button class="switch ${on ? 'on' : ''}" type="button" role="switch" aria-checked="${on}" aria-label="${esc(t('atTitle'))}" data-attempt><i></i></button></div>`; }
-// the 1RM to aim at, in kg lifted (pull-ups: body weight + added)
-const atGoal = exId => Math.max(tierBest(exId) || 0, (boardBest(exId) || {}).kg || 0);
-const atTyped = (exId, kg) => Math.max(0, exById(exId).e === 'bodyweight' ? kg - bodyW() : kg);   // what goes in the kg box
-function atPanel(){
-  return `<div class="atpanel"><p class="hint">${t('atHow')}</p><div class="atlifts">${BOARD_LIFTS.map(b => { const g = atGoal(b.id), bb = boardBest(b.id);
-    return `<button class="atlift" type="button" data-atlift="${b.id}"><b>${esc(exName(b.id))}</b><small>${bb ? t('atBest', { kg: fmt(Math.round(bb.kg * 2) / 2) }) : g ? t('atEst', { kg: fmt(Math.round(g * 2) / 2) }) : t('atNone')}</small></button>`; }).join('')}</div></div>`; }
-function atToggle(){ if(!active) return; active.attempt = !active.attempt; if(!active.attempt) delete active.attempt; saveG('act'); Phone.haptic(); renderSession(); }
-function atSetup(exId){
-  if(!active || !isBoardLift(exId)) return; const ex = exById(exId), g = atGoal(exId);
-  const w = p => g ? String(Math.max(ex.e === 'barbell' ? 20 : 0, r25(atTyped(exId, g * p), ex.e))) : '';
-  const st = (type, p, r) => ({ ...newSet(type), w: w(p), r: String(r) });
-  const sets = [st('W', .5, 5), st('W', .7, 3), st('W', .8, 2), st('W', .9, 1), st('N', .95, 1), st('N', 1, 1), st('N', 1.03, 1)];
-  if(ex.e === 'bodyweight' && g) sets.splice(0, 2);   // pull-ups: the light warm-ups would be below body weight
-  const x = { exId, reps: '1', rest: 180, attempt: true, sets }; if(isUni(exId)) makeUni(x, true);
-  active.exercises.push(x); active.cur = active.exercises.length - 1; saveG('act'); renderSession(); Phone.haptic();
-  if(!g) toast(t('atNoEst'));
-  const i = active.exercises.length - 1; setTimeout(() => { const el = document.querySelector(`.exc[data-x="${i}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
-}
+const atAvail = x => !!gx().lbAtt && isBoardLift(x.exId) && !isCardio(x.exId);
+const atOn = x => atAvail(x) && !!x.attempt;
+function atToggle(xi){ const x = active && active.exercises[xi]; if(!x || !atAvail(x)) return;
+  if(x.attempt) delete x.attempt; else x.attempt = true; saveG('act'); Phone.haptic(); renderSession(); }
 function boardCheer(x, s){
   if(!isBoardLift(x.exId)) return; const kg = loadOf(x.exId, s.w); if(!(kg > 0)) return;
   const prev = boardBest(x.exId, s); if(prev && kg <= prev.kg) return;
@@ -338,7 +328,9 @@ function headLoads(ses){
   const per = {};
   (ses.exercises || []).forEach(x => { const ex = exById(x.exId); if(!ex || !ex.mu) return; const ecc = ECC_PAT.test((ex.p || '') + ' ' + ex.id) ? 1.2 : 1;
     x.sets.filter(z => z.done && z.type !== 'W').forEach(z => { const reps = +z.r || 0, rf = reps >= 20 ? .85 : reps > 0 && reps <= 5 ? 1.1 : 1;
-      const e = (z.type === 'F' ? 1.35 : z.type === 'D' ? 1.2 : 1) * ecc * rf;
+      // 0.7.9.1: background extras make a set harder: reps in reserve 0, or negatives, ×1.1 (once, not stacked)
+      const hardX = z.rir === 0 || +z.ng > 0 ? 1.1 : 1;
+      const e = (z.type === 'F' ? 1.35 : z.type === 'D' ? 1.2 : 1) * ecc * rf * hardX;
       Object.entries(ex.mu).forEach(([h, v]) => { if(HEADS[h] && h !== 'cardio') per[h] = (per[h] || 0) + v / 100 * e; }); }); });
   return per;
 }
@@ -425,25 +417,42 @@ function sessionRecoveryWarn(){
 // Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
 function recFigure(){ const m = recMap();
   return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
-// 0.7.7: was the food since the last workout enough for recovery? Reads the food log and targets (dayLog / targets), nothing new is stored.
-function recFoodLine(){
-  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return '';
-  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return '';
-  const day = last.date, tg = targetFor(day); if(!tg || !tg.p || !tg.k) return '';
-  const hm = new Date(endTs).toTimeString().slice(0, 5), today = todayKey();
-  const list = [day, ...(today > day ? [today] : [])].flatMap(d => (dayLog[d] || []).filter(e => d !== day || (e.time || '') >= hm));
-  const p = list.reduce((a, e) => a + (+e.p || 0), 0), k = list.reduce((a, e) => a + (+e.kcal || 0), 0);
-  const msg = !list.length ? t('recFoodNone') : p >= tg.p * .5 && k >= tg.k * .5 ? t('recFoodOk', { p: Math.round(p), k: Math.round(k) }) : t('recFoodLow', { p: Math.round(Math.max(0, tg.p * .5 - p)) });
-  return `<div class="alert" style="cursor:default;margin-bottom:12px">${msg}</div>`; }
+// 0.7.9.1: does the food since the last workout support recovery? ALL the rules live in recFoodVerdict() so the AI coach brain
+// (docs/notes/ai-coach-brief.md) can replace them later with the researched rules. Reads the food log and targets, nothing new is stored.
+// Returns null (say nothing) or { v: 'ok' | 'bit' | 'low', tip, gap? }.
+function recFoodVerdict(){
+  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return null;
+  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return null;   // the recovery window: up to ~48 h after the workout
+  const wDay = last.date, today = todayKey(), now = new Date(), nowH = now.getHours() + now.getMinutes() / 60, wH = new Date(endTs).getHours() + new Date(endTs).getMinutes() / 60;
+  const tg = targetFor(today); if(!tg || !tg.p || !tg.k) return null;
+  // RULE 1: nothing logged today is UNKNOWN, not zero. Then today is left out and the window ends with the last day that has food (yesterday).
+  const todayFood = (dayLog[today] || []).length > 0, endDay = todayFood ? today : addDays(today, -1);
+  if(endDay < wDay) return null;   // the workout was today and nothing is logged yet: nothing to judge
+  // RULE 2: how much of a normal day's eating is "due" by a given hour (not a flat share: breakfast is small, dinner is big)
+  const due = h => { const pts = [[6, 0], [9, .2], [13, .5], [19, .8], [22, 1]]; if(h <= pts[0][0]) return 0; for(let i = 1; i < pts.length; i++) if(h <= pts[i][0]) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (h - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); return 1; };
+  let exp = 0, p = 0, k = 0, n = 0;
+  for(let d = wDay; d <= endDay; d = addDays(d, 1)){
+    const from = d === wDay ? wH : 0, to = d === today ? nowH : 24, hm = d === wDay ? new Date(endTs).toTimeString().slice(0, 5) : '';
+    exp += Math.max(0, due(to) - due(from));
+    (dayLog[d] || []).filter(e => !hm || (e.time || '') >= hm).forEach(e => { n++; p += +e.p || 0; k += +e.kcal || 0; }); }
+  if(exp < .15) return null;   // too early in the window to say anything useful
+  if(!n) return null;   // no food logged in the window at all: unknown, not zero
+  // RULE 3: compare with the targets pro-rated by that share; the weaker of protein and calories decides
+  const r = Math.min(p / (tg.p * exp), k / (tg.k * exp)), v = r >= .85 ? 'ok' : r >= .6 ? 'bit' : 'low';
+  // RULE 4: one tip when low; exact grams only when the day is mostly over
+  const dayOver = todayFood && nowH >= 21;
+  return { v, tip: v === 'low' ? (!todayFood ? 'recTipToday' : nowH >= 20 ? 'recTipTomorrow' : 'recTipTonight') : '', gap: v !== 'ok' && dayOver ? Math.max(0, Math.round(tg.p * exp - p)) : 0 };
+}
+function recFoodLine(){ const r = recFoodVerdict(); if(!r) return '';
+  return `<div class="alert" style="cursor:default;margin-bottom:12px"><b>${t({ ok: 'recVOk', bit: 'recVBit', low: 'recVLow' }[r.v])}</b>${r.tip ? ' · ' + t(r.tip) : ''}${r.gap > 0 ? ' · ' + t('recGap', { g: r.gap }) : ''}</div>`; }
 function renderRecovery(){
   const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
-  const notReady = Object.entries(m).filter(([, v]) => v.h > 0).sort((a, b) => b[1].h - a[1].h);
-  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h <= 24 ? t('recMoreH', { h: v.h }) : t('recDays', { n: Math.ceil(v.h / 24) })}</span></div>`;
-  $('gRecV').innerHTML = recoveryWarnings().map(w => `<div class="alert" style="cursor:default;margin-bottom:12px">${w}</div>`).join('') +
-    `<div class="reccard" id="recFig">${recFigure()}</div>
+  const all = Object.entries(m).sort((a, b) => b[1].h - a[1].h);   // 0.7.9.1: every muscle, state + hours left ("Needs Rest · 48 h", "Recovering · 14 h", "Ready"), always hours
+  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${v.st === 'ok' ? t('recReady') : `${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h} h`}</span></div>`;
+  $('gRecV').innerHTML = `<div class="reccard" id="recFig">${recFigure()}</div>
     <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small>${t('recReady')}</small><small>${t('recLow')}</small></span></div>
     ${recFoodLine()}
-    <div class="reclist">${notReady.length ? notReady.map(row).join('') : `<div class="recrow"><span class="rn">${t('recAllReady')}</span></div>`}</div>
+    <div class="reclist">${all.map(row).join('')}</div>
     <p class="hint">${t('recHint')}</p>`;
 }
 
@@ -734,14 +743,17 @@ function curEx(){ const ex = active.exercises; if(active.cur != null && ex[activ
 function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exercises[c]; return i === c || !!(x && y && x.ss && x.ss === y.ss); }
 
 // per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
-function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W') return '';
+// 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
+function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W' || s.done) return '';
   const num = (k, lbl, v) => `<label class="sxn"><span>${lbl}</span><input data-sx="${k}" inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${lbl}"></label>`;
   return `<div class="setx" data-sxrow="${j}">${G.half ? num('hr', t('halfReps'), s.hr) : ''}${G.neg ? num('ng', t('negReps'), s.ng) : ''}${G.rir ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
 
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
 function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
-  $('exsBody').innerHTML = row('uniBoth', 'exsUni', 'exsUniS') + row('hideMarks', 'exsMarks', 'exsMarksS') + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
+  const mk = [['W', t('mkW')], ['D', t('mkD')], ['F', t('mkF')]].map(([k, l]) => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${l}</button>`).join('');
+  $('exsBody').innerHTML = row('lbAtt', 'atTitle', 'atSub') + row('uniBoth', 'exsUni', 'exsUniS') +
+    `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + `<h3 class="exsh">${t('exsExtras')}</h3>` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + `<h3 class="exsh">${t('exsSoundH')}</h3>` + `<div class="exsrow"><div><b>${t('exsSound')}</b><small>${t('exsSoundS')}</small></div><button class="switch ${G.sound !== false ? 'on' : ''}" data-gx="sound" data-def="1" type="button" role="switch" aria-checked="${G.sound !== false}" aria-label="${t('exsSound')}"><i></i></button></div>`; }
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
@@ -755,13 +767,13 @@ function cardHtml(x, i){
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || ex.e === 'barbell' ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
-  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead"><b class="exname" data-info>${esc(exName(ex))}</b>
+  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills">${uniPill}<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>${card ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(!x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
-  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !G.hideMarks && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
+  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !hideM('W') && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null;
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
@@ -769,19 +781,21 @@ function cardHtml(x, i){
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
     const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
-    const ty = G.hideMarks ? 'N' : s.drop ? 'D' : s.type, base = G.hideMarks ? j + 1 : s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
-    const lastDrop = !G.hideMarks && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
+    const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
+    const lastDrop = !hideM('D') && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
-    return `<div class="setrow t-${ty} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
-        <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${box('r')}
-        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + extrasHtml(s, j) +
+    const merge = G.uniBoth && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = G.uniBoth && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
+    const xtra = merge ? '' : (mate ? extrasHtml(x.sets[j - 1], j - 1) : '') + extrasHtml(s, j);
+    return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
+        <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
+        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    ${x.sets.length && !card ? `<div class="sethead"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span><span>${card ? t('minLbl') : t('repsLbl')}</span><span></span></div>` : ''}
+    ${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
     ${rows}
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
       : `${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
@@ -1155,7 +1169,8 @@ function gcContext(){
   [...tpls.flatMap(tp => tp.exercises), ...recent.slice(0, 20).flatMap(s => s.exercises)].forEach(x => { const e = exById(x.exId).e; if(e) eq.add(e); });
   const saved = tpls.slice(0, 12).map(tp => `- "${tp.name}" (${tp.type}): ${tp.exercises.map(e => `${gcEx(e.exId)} ${e.sets}x${e.reps}${e.rest ? ` rest ${e.rest}s` : ''}`).join(', ')}`).join('\n');
   const hist = recent.slice(0, 6).map(s => `- ${s.date} ${s.name || s.type || ''}: ${s.exercises.map(x => { const w = x.sets.filter(z => z.done && isMainSet(z));
-    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}` : ''}`; }).join(', ')}`).join('\n');
+    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; const xt = [top && +top.hr > 0 ? `${top.hr} half reps` : '', top && +top.ng > 0 ? `${top.ng} negatives` : '', top && top.rir != null ? `${top.rir} reps in reserve` : ''].filter(Boolean).join(', ');
+    return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}${xt ? ` (${xt})` : ''}` : ''}`; }).join(', ')}`).join('\n');
   const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false);
   const rec = Object.entries(recMap()).map(([g, v]) => `${g} ${v.st === 'ok' ? 'ready' : `${v.h} h to recover`}`).join(', ');
   return `Today: ${todayKey()}. Lifter: ${bodyW()} kg, goal ${(targets && targets.goal) || 'build muscle'}.

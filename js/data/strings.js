@@ -256,8 +256,8 @@ Object.assign(S, {
  whatNext:['What Next?','Τι μετά;'], nxT:['What next?','Τι μετά;'], nxSub:['Muscles you haven’t hit yet, based on this session and your week.','Μύες που δεν έχεις δουλέψει ακόμα, με βάση αυτή την προπόνηση και την εβδομάδα.'],
  nxWhy:['{a} sets today · {b} this week','{a} σετ σήμερα · {b} αυτή την εβδομάδα'], nxNone:['You’ve covered everything for this workout. Nice.','Τα κάλυψες όλα για αυτή την προπόνηση. Ωραία.'],
  nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
- recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'], recDays:['{n} more days','{n} μέρες ακόμα'],
- recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'], recAllReady:['Everything is recovered. Good to go.','Όλα έχουν αναρρώσει. Πάμε.'],
+ recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'],
+ recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
  recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
  recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
  recWarnToday:['{m} still recovering (~{p}%). Go lighter today or swap exercises.','{m} ακόμα αναρρώνουν (~{p}%). Πήγαινε πιο ελαφριά σήμερα ή άλλαξε ασκήσεις.'],
@@ -515,10 +515,8 @@ Object.assign(S, {
   ormYours: ['Your Entries', 'Οι καταχωρήσεις σου'], ormManual: ['entered', 'καταχώρηση'],
   ormBad: ['Choose a lift, a weight and a date (not in the future).', 'Διάλεξε άσκηση, βάρος και ημερομηνία (όχι μελλοντική).'], ormSaved: ['1RM saved', 'Το 1RM αποθηκεύτηκε'],
   // 0.7.9 Leaderboard Attempt mode
-  atTitle: ['Leaderboard Attempt', 'Προσπάθεια για κατάταξη'], atSub: ['Go for a 1RM on a leaderboard lift', 'Κυνήγησε 1RM σε άσκηση της κατάταξης'],
-  atHow: ['Pick a lift: warm-ups from your estimate, then single attempts. Tick a single you lift cleanly and it goes on the leaderboard.', 'Διάλεξε άσκηση: προθέρμανση από την εκτίμησή σου και μετά μονές προσπάθειες. Τσέκαρε ένα μονό που σήκωσες σωστά και μπαίνει στην κατάταξη.'],
-  atBest: ['Best {kg} kg', 'Ρεκόρ {kg} kg'], atEst: ['Estimate {kg} kg', 'Εκτίμηση {kg} kg'], atNone: ['No estimate yet', 'Χωρίς εκτίμηση ακόμα'],
-  atNoEst: ['No estimate yet: fill in the weights yourself, starting light.', 'Δεν υπάρχει εκτίμηση: γράψε εσύ τα κιλά, ξεκινώντας ελαφριά.'],
+  atTitle: ['Enable Leaderboard Attempt on Available Exercises', 'Προσπάθεια Κατάταξης στις Διαθέσιμες Ασκήσεις'], atSub: ['Adds a trophy button on leaderboard lifts: weight and a tick for each single.', 'Προσθέτει κουμπί κυπέλλου στις ασκήσεις της κατάταξης: κιλά και τικ για κάθε μονό.'],
+  atBtn: ['Leaderboard Attempt', 'Προσπάθεια για κατάταξη'],
   atNew: ['New leaderboard 1RM: {n} {kg} kg', 'Νέο 1RM στην κατάταξη: {n} {kg} kg'],
   // ==== end gym ====
   // ==== branch: log (new Today & Logging text goes on the lines below) ====
@@ -654,8 +652,8 @@ Object.assign(S, {
 // ---------- 0.7.7: Exercise Settings ----------
 Object.assign(S, {
   exSettings: ['Exercise Settings', 'Ρυθμίσεις Άσκησης'],
-  exsUni: ['Both Sides Together', 'Και οι Δύο Πλευρές Μαζί'], exsUniS: ['On one-sided exercises, finishing the left set also finishes the right.', 'Στις ασκήσεις μίας πλευράς, ο αριστερός γύρος ολοκληρώνει και τον δεξιό.'],
-  exsMarks: ['Hide Set Markers', 'Απόκρυψη Σημάτων Γύρων'], exsMarksS: ['Hides the warm-up, failure and drop-set markers.', 'Κρύβει τα σήματα προθέρμανσης, αποτυχίας και drop set.'],
+  exsUni: ['Unilateral Set Finishing', 'Ολοκλήρωση Σετ Μίας Πλευράς'], exsUniS: ['One tick finishes both the left and the right set.', 'Ένα τικ ολοκληρώνει και το αριστερό και το δεξί σετ.'],
+  exsMarks: ['Hide Set Markers', 'Απόκρυψη Σημάτων Γύρων'], exsMarksS: ['Choose which markers are offered on sets.', 'Διάλεξε ποια σήματα προσφέρονται στα σετ.'], mkW: ['Warm-Up', 'Προθέρμανση'], mkD: ['Drop Set', 'Drop Set'], mkF: ['Failure', 'Αποτυχία'],
   exsExtras: ['Extras For Each Set', 'Πρόσθετα Κάθε Γύρου'],
   halfReps: ['Half Reps', 'Μισές Επαναλήψεις'], exsHalfS: ['Adds a Half Reps box under each set.', 'Προσθέτει ένα πλαίσιο μισών επαναλήψεων κάτω από κάθε γύρο.'],
   negReps: ['Negatives', 'Αρνητικές'], exsNegS: ['Adds a Negatives box under each set.', 'Προσθέτει ένα πλαίσιο αρνητικών κάτω από κάθε γύρο.'],
@@ -672,10 +670,8 @@ Object.assign(S, {
 
 // ---------- 0.7.7: recovery ----------
 Object.assign(S, {
-  recMoreH: ['{h} h more rest', '{h} ώρες ξεκούραση ακόμα'],
-  recFoodNone: ['No food logged since your workout. Eat some protein to help recovery.', 'Δεν έχεις καταγράψει φαγητό από την προπόνηση. Φάε λίγη πρωτεΐνη για την ανάρρωση.'],
-  recFoodOk: ['Enough food since your workout for recovery: {p} g protein, {k} kcal.', 'Αρκετό φαγητό από την προπόνηση για ανάρρωση: {p} g πρωτεΐνη, {k} kcal.'],
-  recFoodLow: ['Not enough food yet for recovery. About {p} g more protein would help.', 'Δεν αρκεί ακόμα το φαγητό για ανάρρωση. Περίπου {p} g ακόμα πρωτεΐνη θα βοηθούσε.'],
+  recVOk: ['On Track', 'Σε καλό δρόμο'], recVBit: ['A Bit Low', 'Λίγο Χαμηλά'], recVLow: ['Low', 'Χαμηλά'], recGap: ['about {g} g protein short', 'λείπουν περίπου {g} g πρωτεΐνη'],
+  recTipTonight: ['Add a protein-rich meal tonight', 'Πρόσθεσε ένα γεύμα πλούσιο σε πρωτεΐνη απόψε'], recTipTomorrow: ['Start tomorrow with a protein-rich meal', 'Ξεκίνα αύριο με γεύμα πλούσιο σε πρωτεΐνη'], recTipToday: ['Start today with a protein-rich meal', 'Ξεκίνα σήμερα με γεύμα πλούσιο σε πρωτεΐνη'],
 });
 
 // ---------- 0.7.7: sounds ----------
