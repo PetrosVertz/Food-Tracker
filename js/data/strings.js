@@ -250,7 +250,7 @@ Object.assign(S, {
  prW:['Weight record! {n} {w} kg × {r}','Ρεκόρ κιλών! {n} {w} kg × {r}'], prV:['Volume record! {n}: {v} kg moved','Ρεκόρ όγκου! {n}: {v} kg συνολικά'],
  prWLine:['Weight record','Ρεκόρ κιλών'], prVLine:['Volume record','Ρεκόρ όγκου'], prWas:['was {v}','ήταν {v}'],
  upper:['Upper','Πάνω σώμα'], lower:['Lower','Κάτω σώμα'], bodyMode:['Body','Σώμα'], listMode:['List','Λίστα'], tapMuscle:['Tap a muscle','Πάτα έναν μυ'],
- allMuscles:['All muscles','Όλοι οι μύες'], front:['Front','Μπροστά'], backSide:['Back','Πίσω'],
+ allMuscles:['All Muscles','Όλοι οι Μύες'], front:['Front','Μπροστά'], backSide:['Back','Πίσω'],
  musclesWorked:['Muscles worked','Μύες που δουλεύουν'], pctNote:['Rough estimates of how much each muscle does the work, not lab measurements.','Χοντρικές εκτιμήσεις του πόσο δουλεύει κάθε μυς, όχι μετρήσεις εργαστηρίου.'],
  howTo:['How to do it','Πώς γίνεται'], mistakesT:['Common mistakes','Συνηθισμένα λάθη'], bestW:['Heaviest','Πιο βαρύ'], bestV:['Best volume','Καλύτερος όγκος'], addThis:['Add exercise','Προσθήκη'],
  whatNext:['What Next?','Τι μετά;'], nxT:['What next?','Τι μετά;'], nxSub:['Muscles you haven’t hit yet, based on this session and your week.','Μύες που δεν έχεις δουλέψει ακόμα, με βάση αυτή την προπόνηση και την εβδομάδα.'],
@@ -761,5 +761,6 @@ Object.assign(S, {
   exsSwapPill: ['Swap Pill', 'Κουμπί Αλλαγής'], exsSwapPillS: ['Shows the Swap pill and the swap button on exercise cards.', 'Εμφανίζει το κουμπί Αλλαγής στις κάρτες ασκήσεων.'],
   gcAskW: ['Suggest a Workout', 'Πρότεινε μια Προπόνηση'], gcAskImp: ['Improve One of My Workouts', 'Βελτίωσε μια Προπόνησή μου'],
   gcAskSets: ['How Many Sets per Week?', 'Πόσα Σετ την Εβδομάδα;'],
+  pkNone: ['No exercise matches “{q}”.', 'Καμία άσκηση δεν ταιριάζει με «{q}».'],
   exsTips: ['Tips', 'Συμβουλές'], exsTipsS: ['Shows a suggestion like "Try 7 kg for 8 reps", based on your other exercises.', 'Εμφανίζει πρόταση όπως «Δοκίμασε 7 kg για 8 επαναλήψεις», με βάση τις άλλες ασκήσεις σου.'],
 });

@@ -220,7 +220,6 @@ body.twofab #fab{left:calc(50% + 5px)!important;right:16px!important}
 body.twofab #fab2{left:16px!important;right:calc(50% + 5px)!important}
 @media(min-width:700px){body.twofab #fab{left:calc(50% + 5px)!important;right:calc(50% - 215px)!important} body.twofab #fab2{left:calc(50% - 215px)!important;right:calc(50% + 5px)!important}}
 /* half body in the exercise picker */
-.pickhalf svg{max-width:560px!important}
 /* short pop-ups float in the middle */
 .overlay.measure .sheet{height:auto!important}
 .overlay.center{align-items:center!important}
@@ -304,18 +303,13 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .overlay:not(#ovSession) .sheet{border-radius:26px!important;border-bottom:1px solid var(--line)!important;width:calc(100% - 20px);margin:0!important}
 .overlay.searchy .sheet{height:min(70vh,620px)!important}
 .picklist,#supQuickList,.sres:not(#lResults),#shopList,#sgChips{max-height:300px;overflow-y:auto}
-#ovExPick .sheet{height:min(80vh,680px)!important;display:flex;flex-direction:column} #ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-y:auto}
 .allfold{margin-top:6px} .allfold b{font-size:17px}
 /* 0.6.5.2: planned (not eaten yet) meals are greyed and don't count */
 .planmeal.planned{opacity:.55;border:1px dashed var(--line)!important;background:rgba(255,255,255,.02)!important;filter:grayscale(.6);transition:opacity .2s}
 .planmeal.planned [data-plog]{filter:none;opacity:1}
 #planShow h3.sect{margin-top:var(--s1)}
 /* 0.6.5.3: menus show as much as fits; the body map always fits inside the picker (no scrolling the body) */
-#ovExPick .sheet{height:min(90vh,800px)!important}
 .overlay.searchy .sheet{height:min(84vh,740px)!important}
-html.pwa #ovExPick .sheet{height:min(calc(var(--appH,100vh) * .9 - env(safe-area-inset-top)),800px)!important}
-#ovExPick .bodymap{margin:0} #ovExPick .bodymap svg{width:100%!important;max-width:none!important;height:auto;max-height:calc(min(90vh,800px) - 270px)}
-#ovExPick .bodymap + .hint{margin:var(--s1) 0 0}
 
 /* 0.6.7 · search: did you mean, add as takeaway, amount unit */
 .dym{display:block;width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:12px;padding:10px var(--s3);margin:0 0 var(--s2);color:var(--muted);font-size:14px;cursor:pointer}

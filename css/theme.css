@@ -398,11 +398,6 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .strow small{font-size:var(--fs-label);color:var(--t-muted)}
 #stEmpty{width:100%;margin-top:var(--s2)}
 /* exercise picker (0.6.9.3): search sits at the bottom, under your thumb; no Cancel (the back arrow does that) */
-#ovExPick .sheet{padding-bottom:0!important}
-.pksearch{position:sticky;bottom:0;z-index:3;margin:var(--s3) -16px 0;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:var(--t-glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid var(--t-glass-edge)}
-.pksearch .pksi{position:absolute;left:30px;top:50%;transform:translateY(calc(-50% - env(safe-area-inset-bottom) / 2));color:var(--t-muted);display:flex;pointer-events:none}
-.pksearch input{width:100%;margin:0!important;padding-left:40px!important;border-radius:999px!important;height:44px}
-#ovExPick #pkBulb{bottom:calc(84px + env(safe-area-inset-bottom))}
 /* Same as Yesterday = circular arrows on the Eaten header (0.6.9.3) */
 #dEatenFold>summary{display:flex;align-items:center}
 #dEatenN{margin-right:auto}
@@ -801,9 +796,7 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
    Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
    (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
-.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback,.overlay#ovExPick .sheet>.sback{display:flex;margin:0 0 -44px -10px}
-#ovExPick .sheet>.sback{position:relative;z-index:4}
-#ovExPick .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s2);text-align:center}
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback{display:flex;margin:0 0 -44px -10px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
@@ -837,7 +830,6 @@ body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env
 .setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
 .setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
 /* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: solid sticky head */
-#ovExPick .sheet{background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
 .kcalcol{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
