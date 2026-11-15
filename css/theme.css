@@ -760,6 +760,18 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 #phZoom{width:200px}
 #phBtns .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 #phDel{display:block;margin:0 auto var(--s3);color:var(--t-danger)}
+/* 0.7.9 navigation, one pattern everywhere: the back arrow and the title share one 44px line and are centred together;
+   the arrow's line icon sits 14px from the edge on pages and full-screen windows (as in a page header).
+   Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
+   Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
+   (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback,.overlay#ovExPick .sheet>.sback{display:flex;margin:0 0 -44px -10px}
+#ovExPick .sheet>.sback{position:relative;z-index:4}
+#ovExPick .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s2);text-align:center}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
+.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
