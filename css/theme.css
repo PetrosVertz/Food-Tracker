@@ -815,7 +815,7 @@ body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env
    (no blur: scrolled content can't show through the letters). --topfade is the fade height.
    Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
-:root{--topfade:14px;--topP:calc(8px + env(safe-area-inset-top))}
+:root{--topfade:6px;--topP:calc(8px + env(safe-area-inset-top))}
 section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
   background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 .overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */

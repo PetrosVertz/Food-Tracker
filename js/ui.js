@@ -279,9 +279,8 @@ function switchTab(dir, toTab){
   SWITCHING = true; switchTab.next = null; pillSwap();
   const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
-  document.body.classList.add('tabsw');   // the page's own pgIn pause: this motion replaces it
   const ms = reduce ? 160 : TAB_MS, opt = { duration: ms, easing: TAB_EASE }, dx = reduce ? 0 : 28, target = tabTarget(tab);
-  const done = () => { ghost.remove(); document.body.classList.remove('tabsw'); SWITCHING = false;
+  const done = () => { ghost.remove(); SWITCHING = false;
     const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
   const run = () => { const np = document.querySelector('section.page:not(.hide):not(.pghost)');
     ghost.animate([{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: `translate3d(${-dir * dx}px,0,0)` }], { ...opt, fill: 'forwards' });
@@ -301,6 +300,9 @@ function route(){
   const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Kitchen = Fridge · Groceries under one pill
   const page = kv ? (kv === 'groc' ? 'groc' : 'fridge') : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
   [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  { const shown = document.querySelector('section.page:not(.hide):not(.pghost)');   // 0.7.9.2: a page that newly appears fades in with a small rise (a tab switch runs its own cross-fade)
+    if(shown && route.shown !== shown && !SWITCHING && shown.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) shown.animate([{ opacity: 0, transform: 'translate3d(0,6px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 300, easing: TAB_EASE });
+    route.shown = shown; }
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', kv !== 'fridge'); $('pgGroc').classList.toggle('hide', kv !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs

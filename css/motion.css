@@ -8,8 +8,7 @@ section.page{overflow-x:clip}
 .overlay.closing{display:flex;pointer-events:none;}
 .overlay.closing::before{animation:ovOut .2s ease-in forwards} .overlay.closing .sheet{animation:shDown .2s ease-in forwards}
 @media(min-width:700px){@keyframes shUp{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}}
-section.page:not(.hide){animation:pgIn .24s ease-out}
-body.tabsw section.page:not(.hide){animation:none}   /* 0.7.9.2: tab switch has its own cross-fade (ui.js switchTab) */
+/* 0.7.9.2: the page-open motion is now run from ui.js (route / switchTab) with the Web Animations API, so nothing stays on the page or header once it has finished */
 .enter{animation:rowIn .26s cubic-bezier(.2,.9,.25,1) both} .ghostout{animation:rowOut .24s ease-in forwards}
 .sok.pop{animation:pop .3s ease-out}
 button{transition:transform .12s ease,background-color .15s,opacity .15s} button:active:not(:disabled){transform:scale(.96)}
