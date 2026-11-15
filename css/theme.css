@@ -214,8 +214,9 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 /* ---------- Swap sheet (Gym.dc.html) ---------- */
 #ovSwap{align-items:flex-end}
 #ovSwap .sheet.swapsheet{position:relative;left:auto;right:auto;width:calc(100% - 16px)!important;max-width:520px!important;margin:0 auto var(--s2)!important;height:auto!important;max-height:86vh;overflow-y:auto;
-  border-radius:32px!important;background:rgba(26,27,29,.82)!important;padding:12px 16px calc(24px + env(safe-area-inset-bottom))!important;display:flex;flex-direction:column;gap:var(--s3)}
-:root[data-theme="light"] #ovSwap .sheet.swapsheet{background:rgba(244,244,245,.86)!important}
+  border-radius:32px!important;background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:12px 16px calc(24px + env(safe-area-inset-bottom))!important;display:flex;flex-direction:column;gap:var(--s3)}
+#ovSwap .swrow{background:var(--t-card2)}   /* 0.7.9.6: rows stand out from the solid window in Dark */
+:root[data-theme="light"] #ovSwap .swrow{background:var(--t-card)}
 #ovSwap .sback{position:absolute;left:8px;top:22px;float:none;margin:0}
 #ovSwap .swhead{padding-left:40px}
 .grab{align-self:center;width:40px;height:4px;border-radius:4px;background:#44484d;flex:0 0 4px}
