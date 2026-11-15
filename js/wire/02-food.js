@@ -165,8 +165,8 @@ $('optPhoto').addEventListener('click', () => {
 
 $('photoInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
-  status($('addStatus'), t('readingLabel'));
-  const onTry = (i, n) => status($('addStatus'), t('readingLabel') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : ''));
+  AI.wait($('addStatus'), t('readingLabel'));
+  const onTry = (i, n) => AI.wait($('addStatus'), t('readingLabel') + (i > 1 ? ' ' + t('tryingModel', { i, n }) : ''));
   try{
     const img = await shrink(file);
     const d = await gemini(`You read food nutrition labels (often Greek). Return ONLY JSON:
@@ -269,7 +269,7 @@ $('suggestBtn').addEventListener('click', async () => {
   if(!name){ toast(t('suggestNeedName')); $('cName').focus(); return; }
   if(!settings.geminiKey){ $('suggestHint').textContent = t('needKey'); $('suggestHint').classList.add('warn'); return; }
   $('suggestHint').classList.remove('warn'); $('suggestHint').textContent = t('suggestHint');
-  const btn = $('suggestBtn'); btn.textContent = t('thinking'); recCtl = new AbortController(); const ctl = recCtl;
+  const btn = $('suggestBtn'); btn.innerHTML = AI.dots(t('thinking')); recCtl = new AbortController(); const ctl = recCtl;
   const onTry = (i, n) => { if(recCtl === ctl) btn.textContent = t('cancelRec', { i, n }); };
   try{
     const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');

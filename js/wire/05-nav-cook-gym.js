@@ -66,7 +66,7 @@ $('sgGo').addEventListener('click', async () => {
   const dish = $('sgIn').value.trim() || $('cName').value.trim();
   if(!SG.sel.size && !dish){ toast(t('sgPick')); return; }
   if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
-  const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.textContent = t('thinking');
+  const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.innerHTML = AI.dots(t('thinking'));
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{
     const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
@@ -136,7 +136,7 @@ if(!ui.seedClean053){
   tpls = tpls.filter(x => !(seedNames.has(x.name) && !used.has(x.id))); saveG('tpl'); ui.seedClean053 = true; saveUI();
 }
 
-const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${gymInk(EQ_COL[e]) || 'currentColor'}" style="color:${gymInk(EQ_COL[e]) || 'inherit'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
+const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${gymInk(EQ_COL[e]) || 'currentColor'}" style="overflow:visible;color:${gymInk(EQ_COL[e]) || 'inherit'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
 
 $('pkBody').addEventListener('click', e => {
   const hh = e.target.closest('[data-hh]'); if(hh && hh.dataset.hh){ e.stopPropagation(); PK.group = HEADS[hh.dataset.hh][2]; PK.head = hh.dataset.hh; PK.eq = null; drawExPick(); return; }

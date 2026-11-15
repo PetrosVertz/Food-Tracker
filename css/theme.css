@@ -98,7 +98,10 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
    that iPhone draws at low resolution (soft letters). The colour is what the old glass looked like over the dimmed page. */
 .sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
-.overlay{background:var(--t-scrim)}
+.overlay{background:transparent}
+/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
+.overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
+.overlay.open>.sheet{will-change:transform}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
@@ -137,14 +140,16 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
   display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:center;padding:0 var(--s2);border-radius:24px;box-shadow:none}
 .rail>button.hide{display:none}   /* 0.7.9: Kitchen switched off → four tabs share the bar */
 html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env(safe-area-inset-bottom) - 10px)))}
-.rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
-.rail>button.on{color:var(--t-text)}
+.rail>button{position:relative;z-index:1;height:44px;border:0;background:none!important;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;transition:color .34s cubic-bezier(.45,0,.2,1),transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
 .rail .ri{display:flex;line-height:0}
 /* 0.7.9.1: frosted look with no live blur (so it stays smooth while sliding): a see-through accent tint, a soft 1 px light edge and a faint
    highlight at the top. Only transform and opacity animate. The icon on it uses the normal text colour, so it reads in Light and Dark. */
-:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 26%,transparent);--t-knob-hi:rgba(255,255,255,.16);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.22)}
-:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 32%,transparent);--t-knob-hi:rgba(255,255,255,.5);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 1px 0 rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.1)}
-.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 60%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* 0.7.9.2: the selected-tab marker is the vibrant accent (same colour as Start Workout / Log Food) with only a slight frosted look on top:
+   a faint light highlight at the top, a soft 1 px light edge and a gentle inner glow. Still no live blur, so it slides smoothly. Icon colour = --t-on. */
+:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 88%,transparent);--t-knob-hi:rgba(255,255,255,.2);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 8px rgba(255,255,255,.12)}
+:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 90%,transparent);--t-knob-hi:rgba(255,255,255,.26);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 8px rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.12)}
+.rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 55%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
+.rail>button.on{color:var(--t-knob-on,var(--t-on))}
 
 /* Back: one plain arrow everywhere, no box, generous tap area */
 .backarrow,.sback,.sesback{width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 0 0 -10px;
@@ -466,8 +471,15 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .sname .sline{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:-.2px}
 .stag{display:inline-block;font-size:11px;font-weight:var(--w-bold);text-transform:uppercase;letter-spacing:.3px;color:var(--t-accent-ink,var(--t-accent))}
 .stag.warn{color:var(--t-f)} .stag.web{color:var(--t-c)}
-.spin1{display:inline-block;width:10px;height:10px;margin-right:5px;border:2px solid var(--t-muted);border-top-color:transparent;border-radius:999px;animation:spin .8s linear infinite;vertical-align:-1px}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* 0.7.9.2 · the one AI "thinking" sign (ai.js AI.dots / AI.wait): three dots; one hops up and lands on a smooth sine path, then the next,
+   then the next, a short rest, about 1.2 s a round. Transform only. Reduce Motion: no hop, the dots light up in turn. */
+.tdots{display:inline-flex;align-items:center;gap:4px;height:1em;margin-left:6px;vertical-align:middle;color:var(--t-accent-ink,var(--t-accent))}
+.tdots i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:tDot 1.2s infinite both}
+.tdots i:nth-child(2){animation-delay:.16s} .tdots i:nth-child(3){animation-delay:.32s}
+@keyframes tDot{0%{transform:translateY(0);animation-timing-function:cubic-bezier(.61,1,.88,1)}13.3%{transform:translateY(-5px);animation-timing-function:cubic-bezier(.12,0,.39,0)}26.6%,100%{transform:translateY(0)}}
+@keyframes tDotFade{0%,26.6%,100%{opacity:.35}13.3%{opacity:1}}
+@media (prefers-reduced-motion: reduce){ .tdots i{animation-name:tDotFade} }
+.cwork .tdots{margin-left:8px}
 .spack{display:flex;align-items:center;gap:3px;margin:0}
 .spack input{width:54px;min-width:0;padding:7px 3px;text-align:center;font-size:16px;font-variant-numeric:tabular-nums}
 .spack span{color:var(--t-muted);font-size:var(--fs-label);text-transform:none;letter-spacing:0;width:18px}
@@ -542,14 +554,10 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .aifbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:6px} .aifln{display:inline-flex;align-items:center;gap:var(--s2)}
 
 /* 0.7.4.3 · Food Coach answers (was Quick Log): the food list inside a coach chat card (js/coach.js draws the card) */
-.lqdots{display:inline-flex;gap:var(--s1)} .lqdots i{width:6px;height:6px;border-radius:50%;background:var(--t-accent);animation:lqDot 1.1s ease-in-out infinite}
-.lqdots i:nth-child(2){animation-delay:.15s} .lqdots i:nth-child(3){animation-delay:.3s}
-@keyframes lqDot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
 .lqcard{display:flex;flex-direction:column;margin:-6px 0 0}
 .lqrow{display:flex;flex-direction:column;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--t-line)}
 .lqrow .lrn:disabled{cursor:default;opacity:1}
 .lqrow .nm{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.lqrow.busy .ls{animation:lqDot 1.4s ease-in-out infinite}
 .lqrow.miss .ls{color:var(--t-danger)}
 .lqx{flex:0 0 36px;width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .lqrow .lan{background:var(--t-bg)}
@@ -688,25 +696,25 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
   padding:calc(8px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
 #ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
 html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
-/* 0.7.4.3 · the shared coach chat (js/coach.js), styled like the Claude app's chat: full window, plain robot answers on the left,
-   your messages as round bubbles on the right, one big round box pinned at the bottom with a round accent send button */
-#ovCoach{align-items:flex-start!important;top:var(--cvt,0px)!important;bottom:auto!important;height:var(--cvh,var(--appH,100vh))!important;transition:background-color .22s}
-#ovCoach .sheet.coachwin{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;padding:env(safe-area-inset-top) 0 0!important;
-  border:0!important;border-radius:0!important;background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;display:flex;flex-direction:column;overflow:hidden}
-@media(min-width:700px){ #ovCoach{align-items:center!important} #ovCoach .sheet.coachwin{max-width:640px!important;height:min(820px,calc(100% - 48px))!important;border-radius:28px!important;border:1px solid var(--t-line)!important;padding-top:0!important} }
+/* 0.7.4.3 · the shared coach chat (js/coach.js), styled like the Claude app's chat: plain robot answers on the left,
+   your messages as round bubbles on the right, one big round box pinned at the bottom with a round accent send button.
+   0.7.9.2: a small floating window above the dimmed page and BELOW the robot bubble (.aibub sits higher): rounded, a margin all round;
+   coach.js lay() sets its place and size (one corner under the bubble) and transform-origin = the bubble's centre.
+   It grows out of the bubble with a soft spring and shrinks back into it (transform + opacity only); Reduce Motion = a plain fade. */
+#ovCoach{top:var(--cvt,0px)!important;bottom:auto!important;height:var(--cvh,var(--appH,100vh))!important}
+#ovCoach .sheet.coachwin{position:absolute;left:12px;top:12px;width:calc(100% - 24px);height:calc(100% - 24px);max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;
+  border-radius:26px!important;box-shadow:0 12px 32px rgba(0,0,0,.35)!important;display:flex;flex-direction:column;overflow:hidden}
 #ovCoach .sback{display:none}
-/* Back: the window shrinks into the robot bubble (transform-origin = where the bubble sits, set by coach.js) */
-/* 0.7.9: opening from the bubble: the window grows out of it (transform + opacity + clip-path only; transform-origin = the bubble, set by coach.js) */
-/* 0.7.9.1: a round opening from the bubble's centre (--cx/--cy/--cr set by coach.js aim()), like a speech bubble opening; the shrink is the same in reverse */
-@keyframes coachGrow{from{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}30%{opacity:1}to{transform:none;opacity:1;clip-path:circle(150% at var(--cx,100%) var(--cy,0))}}
-@keyframes coachShrink{60%{opacity:1}to{transform:scale(.35);opacity:0;clip-path:circle(var(--cr,90px) at var(--cx,100%) var(--cy,0))}}
-@keyframes coachFade{from{opacity:0}to{opacity:1}}
-#ovCoach.grow.open .sheet.coachwin{animation:coachGrow .3s cubic-bezier(.3,1.12,.5,1) both!important}
-#ovCoach.shrink{background:transparent!important}
-#ovCoach.shrink.shrink .sheet.coachwin.coachwin{animation:coachShrink .26s cubic-bezier(.4,0,.2,1) both!important}
+@keyframes coachGrow{from{transform:scale(.2);opacity:0}35%{opacity:1}to{transform:none;opacity:1}}
+@keyframes coachShrink{to{transform:scale(.2);opacity:0}}
+@keyframes coachFade{from{opacity:0}to{opacity:1}} @keyframes coachFadeOut{to{opacity:0}}
+#ovCoach.open .sheet.coachwin{animation:coachGrow .36s cubic-bezier(.3,1.2,.5,1) both!important}
+#ovCoach.closing .sheet.coachwin{animation:coachShrink .2s cubic-bezier(.4,0,.6,1) both!important}
+/* room for the bubble on the window's top corner: the title row steps aside */
+#ovCoach .coachwin:not(.nb) .chead{padding-right:76px} #ovCoach .coachwin.al:not(.nb) .chead{padding-right:var(--s4);padding-left:76px}
 .chead{flex:0 0 auto;display:flex;align-items:center;gap:var(--s1);min-height:56px;padding:6px var(--s4) 6px var(--s1);border-bottom:1px solid var(--t-line)}
 .cback{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--t-text);display:grid;place-items:center;padding:0;cursor:pointer}
-.cface{display:inline-flex;margin-right:var(--s1)} .cface .robot,.cav .robot{display:block}
+.cav .robot{display:block}
 .chead h2{margin:0;font-size:var(--fs-title)!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .clist{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:var(--s4) var(--s4) var(--s2);display:flex;flex-direction:column;gap:14px}
 .clist::-webkit-scrollbar{display:none}
@@ -715,7 +723,7 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .cimg{display:block;max-width:220px;max-height:220px;border-radius:14px;object-fit:cover}
 .cav{flex:0 0 28px;width:28px;display:flex;justify-content:center}
 .ctext{flex:1;min-width:0;padding-top:var(--s1);font-size:var(--fs-body);line-height:1.55;color:var(--t-text);white-space:pre-wrap;overflow-wrap:anywhere}
-.cwork{display:flex;align-items:center;min-height:32px;padding-top:0;color:var(--t-muted);font-size:var(--fs-label)} .cwork .cst{animation:lqDot 1.6s ease-in-out infinite} @media (prefers-reduced-motion: reduce){ .cwork .cst{animation:none} }
+.cwork{display:flex;align-items:center;min-height:32px;padding-top:0;color:var(--t-muted);font-size:var(--fs-label)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .ccards{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .ccard{display:flex;flex-direction:column;gap:10px;padding:14px 14px var(--s3);border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-edge);box-shadow:var(--t-shadow)}
@@ -730,7 +738,7 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .ccbtn.pri{background:var(--t-accent);color:var(--t-on);border-color:transparent}
 .ccdone{display:flex;align-items:center;gap:6px;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-done)}
 .ccundo{margin-left:auto;min-height:36px;padding:0 6px;border:0;background:none;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);cursor:pointer}
-.cbar{flex:0 0 auto;padding:8px 12px calc(12px + env(safe-area-inset-bottom))} #ovCoach.kb .cbar{padding-bottom:10px}
+.cbar{flex:0 0 auto;padding:8px 12px 12px}
 .cprev{display:flex;padding:var(--s1) 6px 10px} .cprev.hide{display:none}
 .cpimg{position:relative;display:inline-block} .cpimg img{display:block;width:64px;height:64px;object-fit:cover;border-radius:12px}
 .cpimg button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:var(--t-text);color:var(--t-bg);display:grid;place-items:center;cursor:pointer}
@@ -743,10 +751,11 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .csend:disabled{opacity:.35;cursor:default}
 .ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
 /* the chat's robot bubble (sits above the AI-job bubble); a dot when an answer came in while it was shrunk */
-.coachbub{bottom:calc(224px + env(safe-area-inset-bottom));transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .18s}
-@keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* 0.7.9.1: fade only, so coming back from the chat never resets its glide (transform) */
-html.pwa .coachbub{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(10px, env(safe-area-inset-bottom)) - 214px)}
-.coachbub.pre{opacity:0;animation:none;pointer-events:none}
+.aibub.coachbub,html.pwa .aibub.coachbub{top:calc(env(safe-area-inset-top) + 140px);bottom:auto;transition:opacity .18s}   /* 0.7.9.2: its own spot is near the top right, so the chat always opens below it */
+@keyframes bubFade{from{opacity:0}} .coachbub{animation:bubFade .25s ease-out}   /* fade only, so it never fights the drag's transform */
+/* 0.7.9.2: a robot bubble outside its own area fades away where it is and fades back in on return (ai.js areaSync) */
+@keyframes bubAway{to{opacity:0}}
+.aibub.away{animation:bubAway .2s ease-in forwards!important;pointer-events:none} .aibub.back{animation:bubFade .25s ease-out}
 .coachbub.new::after{content:'';position:absolute;top:1px;right:1px;width:14px;height:14px;border-radius:50%;background:var(--t-accent);border:2px solid var(--t-bg)}
 /* the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout): the robot's face, not the AI badge (a face = a chat) */
 .coachpill{position:fixed;z-index:20;height:44px;padding:0 var(--s4) 0 var(--s2);display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}   /* 0.7.9.1: solid, no live blur, so it moves as smoothly as the main pill (ui.js pillSwap animates both) */
@@ -756,9 +765,9 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 #fab{transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .15s}   /* 0.7.9.1: when a coach pill steps aside or comes back, the main button slides by a transform (coach.js pillPlace), not by a layout transition */
 /* no AI key: every AI control greyed out (tapping one explains why, ui.js aiGate) */
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
-@media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }
+@media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach.closing .sheet.coachwin{animation:coachFadeOut .2s ease-in both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} }
 /* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
-.rail>.knob{border-radius:50%;transition:transform .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}
+.rail>.knob{border-radius:50%;will-change:transform;transition:transform .34s cubic-bezier(.45,0,.2,1),opacity .15s}   /* 0.7.9.2: one soft ease-in-out glide, no bounce, transform only */
 .rail .avimg,.rail .avini{width:36px;height:36px;border-radius:50%;display:block;object-fit:cover}   /* 0.7.9.1: a little bigger, so the ring of the 44 px marker around it is slim */
 .avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
 .rail>button.on .avini{background:var(--t-card)}
@@ -784,13 +793,15 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+/* 0.7.9.2: the Gym Coach button made this row 52 px tall, so the title sat 4–8 px under the arrow; the row is now exactly the arrow's 44 px */
+.overlay .sheet>.sback+.sthead{height:44px!important;min-height:44px;margin-top:-12px!important}
+.overlay .sheet>.sback+.sthead .sescoach{height:44px}
 /* 0.7.9 header: NO header band. The 0.7.8 solid bar + fade sliced cards under a strip that, on a notched iPhone, is the status bar
    plus a 52px title row. Now page titles (and the header buttons beside them) are part of the page and scroll away with it;
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
-section.page>header::before,.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{display:none!important}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:auto;z-index:1}
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:var(--topP);z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
@@ -803,22 +814,15 @@ body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env
 :where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
 
 /* ============================================================================================
-   ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), then a short soft fade below
-   (no blur: scrolled content can't show through the letters). --topfade is the fade height.
-   Pages: the header's ::before. Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
+   ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), with a clean edge (no fade, no blur: nothing soft at the top).
+   Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
-:root{--topfade:14px;--topP:calc(8px + env(safe-area-inset-top))}
-section.page>header::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:calc(-1 * var(--topfade));z-index:0;pointer-events:none;
-  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
+:root{--topP:calc(8px + env(safe-area-inset-top))}
 .overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
-.setpage::before,.formpage::before,.themepage::before,#ovTargets .sheet::before{content:'';display:block;flex:0 0 auto;position:sticky;top:0;z-index:2;pointer-events:none;
-  height:calc(var(--topP) + 44px + var(--topfade));margin:0 -16px calc(-44px - var(--topfade));
-  background:linear-gradient(var(--t-bg) calc(100% - var(--topfade)),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 .setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
 .setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
-/* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: same fade under its sticky head */
+/* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: solid sticky head */
 #ovExPick .sheet{background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.seshead3::after{content:'';position:absolute;left:0;right:0;top:100%;height:var(--topfade);pointer-events:none;background:linear-gradient(var(--t-bg),color-mix(in srgb,var(--t-bg) 0%,transparent))}
 
 /* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
 .kcalcol{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
@@ -954,3 +958,9 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .btn.aiafter,.opt.aiafter{display:inline-flex;align-items:center;justify-content:center}
 .btn.aiafter::after,.btn .aibadge{vertical-align:baseline;margin-top:0;margin-bottom:0}
 #ovCook .actions .btn.aiafter{display:flex}
+
+/* 0.7.9.3 icons: food category icon, small and muted, never crowds the name */
+.cico{flex:none;color:var(--t-muted);vertical-align:-3px;margin-right:6px}
+.foldh .cico{margin-right:8px;vertical-align:-3px}
+.pitem .cico{margin:0 0 2px}
+.eatrow .nmt .cico,.lrn .nm .cico{width:14px;height:14px;vertical-align:-2px;margin-right:5px}

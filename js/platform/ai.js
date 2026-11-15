@@ -80,7 +80,17 @@ const AI = (() => {
 
   // 0.7.1 robot bubble: the window that asked closes while the AI works; tap the bubble when it's ready to bring it back with the answer.
   // Chef robot = food jobs, the same robot with a lime sweatband = gym jobs (opts.robot, else Gym Buddy pages). Drawings from the "Robots and anatomy" canvas (v2).
-  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [], robot: 'chef' };
+  const B = { jobs: 0, was: [], pending: [], closed: [], ctls: [], defer: false, show: [], robot: 'chef', area: 'food' };
+  // 0.7.9.2 each robot bubble belongs to one area of the app and only shows there: Food (Today + Food tabs), Gym, Kitchen, Profile.
+  // A coach bubble's area is its coach's (Food Coach → Food, Gym Coach → Gym, coach.js); the AI-job bubble's is where the job started
+  // (the Kitchen clerk in Kitchen). Switching to another area fades it away (.away, opacity only; it stays where it is), coming back fades
+  // it in (.back). A bubble put in the trash or closed is removed as before, so it stays gone.
+  const AREA = { today: 'food', food: 'food', gym: 'gym', fridge: 'kitchen', profile: 'profile' };
+  const areaNow = () => AREA[typeof tabOf === 'function' ? tabOf(location.hash.slice(1) || 'today') : 'today'] || 'food';
+  function areaSync(){ const a = areaNow();
+    document.querySelectorAll('.aibub[data-area]').forEach(b => { const away = b.dataset.area !== a; if(away === b.classList.contains('away')) return;
+      b.classList.toggle('away', away); b.classList.toggle('back', !away); }); }
+  addEventListener('hashchange', areaSync);
   const ROBOT_DEFS = '<g id="rEars"><rect x="9" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/><rect x="100" y="84" width="11" height="22" rx="5" fill="#cfd3d7" stroke="#0f1113" stroke-width="4"/></g>'
     + '<g id="rChefBase"><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/>'
     + '<path d="M31 51 C15 50 10 30 24 23 C21 6 41 -4 54 6 C61 -5 81 -4 86 8 C101 4 112 22 101 35 C108 44 100 53 89 51 Z" fill="#ffffff" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/>'
@@ -91,38 +101,53 @@ const AI = (() => {
     + '<g id="rGymBase"><line x1="60" y1="62" x2="60" y2="44" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="39" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/>'
     + '<use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2"/>'
     + '<g clip-path="url(#rHeadClip)"><rect x="10" y="71" width="100" height="15" fill="#c6f432"/><line x1="10" y1="71" x2="110" y2="71" stroke="#0f1113" stroke-width="3.5"/><line x1="10" y1="86" x2="110" y2="86" stroke="#0f1113" stroke-width="3.5"/>'
-    + '<path d="M27 78.5 H40 M80 78.5 H93" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".4"/></g>'
+    + '<path d="M80 78.5 H93" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".4"/></g>'
     + '<rect x="18" y="62" width="84" height="72" rx="30" fill="none" stroke="#0f1113" stroke-width="4"/>'
-    + '<path d="M109 56 C104 63 104 68 109 69.5 C114 68 114 63 109 56 Z" fill="#5aa9f0" stroke="#0f1113" stroke-width="3" stroke-linejoin="round"/></g>'
+    + '<path d="M24 86.6 C27.6 90.6 27.6 93.8 24 95.8 C20.4 93.8 20.4 90.6 24 86.6 Z" fill="#5aa9f0" stroke="#0f1113" stroke-width="2" stroke-linejoin="round"/></g>'
     + '<g id="rTourBase"><line x1="60" y1="62" x2="60" y2="44" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="39" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/></g>'
     + '<g id="rClerkBase"><line x1="60" y1="46" x2="60" y2="30" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="24" r="6.5" fill="#c6f432" stroke="#0f1113" stroke-width="4"/><use href="#rEars"/><rect x="18" y="62" width="84" height="72" rx="30" fill="#eef0f2" stroke="#0f1113" stroke-width="4"/>'
     + '<path d="M26 71 L31 49 Q60 38 89 49 L94 71 Z" fill="#ffffff" fill-opacity=".35" stroke="#0f1113" stroke-width="4" stroke-linejoin="round"/><path d="M60 42 V63" stroke="#0f1113" stroke-width="2.5" stroke-linecap="round" opacity=".3"/>'
     + '<rect x="22" y="62" width="76" height="12" rx="4" fill="#59d38c" fill-opacity=".9" stroke="#0f1113" stroke-width="4"/>'
-    + '<g transform="rotate(6 30 128)"><rect x="16" y="119" width="28" height="17" rx="4.5" fill="#ffffff" stroke="#0f1113" stroke-width="3.5"/><rect x="20.5" y="123.5" width="12" height="3" rx="1.5" fill="#0f1113" opacity=".55"/><rect x="20.5" y="129" width="19" height="3.5" rx="1.5" fill="#c6f432"/></g></g>'
-    + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/>'
+    + '<g transform="rotate(6 30 128)"><rect x="16" y="119" width="28" height="17" rx="4.5" fill="#ffffff" stroke="#0f1113" stroke-width="3.5"/><rect x="20.5" y="123.5" width="12" height="3" rx="1.5" fill="#0f1113" opacity=".55"/><rect x="20.5" y="129" width="19" height="3.5" rx="1.75" fill="#c6f432"/></g></g>'
+    + '<g id="rFaceIdle"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="44" cy="100" r="3.4" fill="#ffffff"/><circle cx="76" cy="100" r="3.4" fill="#ffffff"/>'
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>'
     + '<g id="rFaceX"><path d="M37 93 L51 107 M51 93 L37 107 M69 93 L83 107 M83 93 L69 107" stroke="#0f1113" stroke-width="5.5" stroke-linecap="round"/>'
     + '<path d="M53 120 Q60 115 67 120" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.3 thinking face, drawn inline so CSS can move its parts: the eyes glide up-left ↔ up-right, the glints lead the look and the mouth tilts one way, then the other (in step with the sway)
-  const FACE_T = '<g class="rft"><g class="reye"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/>'
-    + '<g class="rgl"><circle cx="44" cy="93.5" r="3.4" fill="#ffffff"/><circle cx="76" cy="93.5" r="3.4" fill="#ffffff"/></g></g>'
+  // 0.7.3 thinking face, drawn inline so CSS can move its parts: the eyes glide up-left ↔ up-right, the glints lead the look and the mouth tilts one way, then the other (in step with the sway).
+  // 0.7.9.2: every face is built the same way so a tap can steer it (gaze below): .rlook moves the eyes, .rgz moves the glints further inside the eyes;
+  // the glints sit in the middle of each eye and only CSS animations (.rgl thinking, .rgi idle) or a tap move them off centre.
+  const GLINTS = '<circle cx="44" cy="100" r="3.4" fill="#ffffff"/><circle cx="76" cy="100" r="3.4" fill="#ffffff"/>', EYES = '<ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/>';
+  const FACE_T = `<g class="rft"><g class="rlook"><g class="reye">${EYES}<g class="rgz"><g class="rgl">${GLINTS}</g></g></g></g>`
     + '<path class="rmo" d="M53 117.75 Q60 118.6 67 117.75" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.4.3 idle face drawn inline (same as #rFaceIdle) so the eyes (.rlook) can glance toward a tap on the screen
-  const FACE_I = '<g class="rfi0"><g class="rblink"><g class="ridle"><g class="rlook"><ellipse cx="44" cy="100" rx="10" ry="12.5" fill="#0f1113"/><ellipse cx="76" cy="100" rx="10" ry="12.5" fill="#0f1113"/><circle cx="47.5" cy="94.5" r="3.4" fill="#ffffff"/><circle cx="79.5" cy="94.5" r="3.4" fill="#ffffff"/></g></g></g>'
+  // 0.7.4.3 idle face drawn inline (same look as #rFaceIdle) so the eyes can glance toward a tap on the screen
+  const FACE_I = `<g class="rfi0"><g class="rblink"><g class="ridle"><g class="rlook">${EYES}<g class="rgz"><g class="rgi">${GLINTS}</g></g></g></g></g>`
     + '<path d="M53 117 Q60 124 67 117" fill="none" stroke="#0f1113" stroke-width="4" stroke-linecap="round"/></g>';
-  // 0.7.9 robots feel alive: every idle robot slowly looks around and blinks (CSS .ridle / .rblink); on top of that the eyes glance toward a tap anywhere on the screen.
-  // Robot bubbles glance once and drift back. The Gym Coach robot in the live workout (top right) also FOLLOWS a finger that stays down and moves, and holds the look a bit longer.
+  // 0.7.9 robots feel alive: every idle robot slowly looks around and blinks (CSS .ridle / .rblink / .rgi).
+  // 0.7.9.2 the look follows the real direction of a tap, all the way round: the eyes shift a little toward it and the white glints move further
+  // inside each eye the same way (tap below = looks down, tap left = looks left), then everything eases back to looking straight ahead.
+  // Every robot on screen does it (bubbles, coach pills, chat faces, header robots, thinking faces). While it looks, its own idle / thinking
+  // eye motion pauses where it is and the tap offset is measured from there, so the look lands exactly on the tap and nothing jumps.
+  // The Gym Coach robot in the live workout header (.sescoach) also FOLLOWS a finger that stays down and moves, and holds the look a bit longer.
   // Off with Reduce Motion.
-  let gazeDown = false;
-  function gaze(e){
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    document.querySelectorAll('.aibub .rlook, .sescoach .rlook').forEach(g => { const b = g.closest('.aibub, .sescoach'); if(b.contains(e.target) || b.classList.contains('drag')) return;
-      const r = b.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 140), hdr = b.classList.contains('sescoach');
-      g.style.transition = 'transform .28s cubic-bezier(.2,.8,.3,1)'; g.style.transform = `translate(${(dx / d * 6 * k).toFixed(2)}px,${(dy / d * 5 * k).toFixed(2)}px)`;
-      clearTimeout(g._t); g._t = setTimeout(() => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; }, hdr ? 1800 : 1100); });
-  }
-  document.addEventListener('pointerdown', e => { gazeDown = true; gaze(e); }, { capture: true, passive: true });
-  document.addEventListener('pointermove', e => { if(gazeDown) gaze(e); }, { capture: true, passive: true });
+  const tr2 = el => { const m = getComputedStyle(el).transform; if(!m || m === 'none') return { x: 0, y: 0 }; const d = new DOMMatrixReadOnly(m); return { x: d.e, y: d.f }; };
+  function look(svg, e, hold){ const host = svg.closest('button, .aibub, .sescoach, .cav, .aiface') || svg;
+    if(host.contains(e.target) || host.classList.contains('drag') || svg.closest('.kill')) return;
+    const r = svg.getBoundingClientRect(); if(!r.width || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return;
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * .726), d = Math.hypot(dx, dy) || 1, k = Math.min(1, .55 + d / 180), ux = dx / d * k, uy = dy / d * k;
+    svg.classList.add('gz');   // pause the idle / thinking eye motion where it is (CSS)
+    svg.querySelectorAll('.rlook').forEach(g => { const gz = g.querySelector('.rgz');
+      const a = tr2(g.querySelector('.reye') || g.parentNode), b = tr2(gz.firstElementChild);   // where the paused animations hold the eyes (.reye / .ridle) and glints (.rgl / .rgi) now
+      g.style.transition = gz.style.transition = 'transform .32s cubic-bezier(.2,.8,.3,1)';
+      g.style.transform = `translate(${(ux * 4 - a.x).toFixed(2)}px,${(uy * 3.5 - a.y).toFixed(2)}px)`;
+      gz.style.transform = `translate(${(ux * 5.6 - b.x).toFixed(2)}px,${(uy * 7.6 - b.y).toFixed(2)}px)`; });
+    clearTimeout(svg._gt); svg._gt = setTimeout(() => { svg.querySelectorAll('.rlook, .rgz').forEach(g => { g.style.transition = 'transform .8s ease-in-out'; g.style.transform = ''; });
+      svg._gt = setTimeout(() => svg.classList.remove('gz'), 820); }, hold || 1100); }
+  let gazeDown = false, gazeRaf = 0, gazeEv = null;
+  const gazeOff = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.addEventListener('pointerdown', e => { gazeDown = true; if(gazeOff()) return;
+    document.querySelectorAll('svg.robot').forEach(s => look(s, e, s.closest('.sescoach') ? 1800 : 0)); }, { capture: true, passive: true });
+  document.addEventListener('pointermove', e => { if(!gazeDown || gazeOff()) return; gazeEv = e;   // only the header robot follows a moving finger (one read per frame)
+    if(!gazeRaf) gazeRaf = requestAnimationFrame(() => { gazeRaf = 0; document.querySelectorAll('.sescoach svg.robot').forEach(s => look(s, gazeEv, 1800)); }); }, { capture: true, passive: true });
   ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { gazeDown = false; }, { capture: true, passive: true }));
   function robotDefs(){ if($('rRobotDefs')) return; const d = document.createElement('div'); d.id = 'rRobotDefs';
     d.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${ROBOT_DEFS}</defs></svg>`; document.body.appendChild(d); }
@@ -138,7 +163,7 @@ const AI = (() => {
         if(b.classList.contains('ready')){ const ids = B.show; bubble('hide'); ids.forEach(id => { if($(id) && !$(id).classList.contains('open')) open(id); }); } else toast(t('aiStill')); });
       drag(b, () => { if(B.jobs){ B.drop = true; B.ctls.forEach(c => c.abort()); } B.show = []; bubble('hide'); }, 'aiBub'); }
     const run = st === 'run';
-    b.className = 'aibub ' + st + ' r' + B.robot;
+    b.className = 'aibub ' + st + ' r' + B.robot; b.dataset.area = B.area; areaSync();
     b.innerHTML = (run ? '<span class="rglow"></span>' : '') + `<span class="rcore">${robot(B.robot, 40, run)}</span>` + (run ? '' : `<b class="rok">${OK_SVG}</b>`);
     b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') Phone.haptic(); }
 
@@ -150,11 +175,13 @@ const AI = (() => {
       tr.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M18 7l-.9 12.1a2 2 0 0 1-2 1.9H8.9a2 2 0 0 1-2-1.9L6 7M10 11v6M14 11v6"/></svg>';
       document.body.appendChild(tr); tr.getBoundingClientRect(); }
     tr.classList.toggle('show', on); if(!on) tr.classList.remove('hot'); return tr; }
-  function bubLimits(){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
+  function bubLimits(el){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
     const top = (hd ? hd.getBoundingClientRect().bottom : 60) + 6, rt = rail && rail.getClientRects().length ? rail.getBoundingClientRect().top : H - 24;
-    return { top, bot: Math.max(top, rt - BSZ - 12) }; }
+    // 0.7.9.2: a coach bubble stays high enough that its chat (which always opens below it, coach.js lay) has room: about 400 px under its top
+    const cb = el && el.classList.contains('coachbub') ? H - 400 : Infinity;
+    return { top, bot: Math.max(top, Math.min(rt - BSZ - 12, cb)) }; }
   function place(el, key){ const p = typeof ui !== 'undefined' && ui[key]; if(!p){ ['left', 'top', 'right', 'bottom'].forEach(k => el.style.removeProperty(k)); return; }
-    const L = bubLimits(), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
+    const L = bubLimits(el), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
     el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.top = y + 'px'; el.style.left = (p.s === 'l' ? EDGE : innerWidth - BSZ - EDGE) + 'px'; }
   // 0.7.9.1: on the shared drag helper (ui.js dragger): the bubble follows the finger 1:1 as a transform (its left/top stay put while
   // moving), rubber-bands past the screen edges, then springs to its side carrying the finger's speed. Dropped on the trash: it shrinks
@@ -165,7 +192,7 @@ const AI = (() => {
       const x = L < 0 ? rubber(L, 80) : L > W ? W + rubber(L - W, 80) : L, y = T < 0 ? rubber(T, 80) : T > H ? H + rubber(T - H, 80) : T;
       return { x: x - base.x, y: y - base.y }; };
     dragger(el, { slop: 8,
-      item: () => el._home || el.classList.contains('pre') || el.classList.contains('gone') ? null : el,
+      item: () => el._home || el.classList.contains('gone') ? null : el,   // _home: a coach bubble whose chat is open holds still
       start: s => { const r = el.getBoundingClientRect(); el.getAnimations().forEach(a => a.cancel());
         base = { x: el.offsetLeft, y: el.offsetTop }; s.ox = r.left - base.x; s.oy = r.top - base.y;   // a glide still under way carries on from where it is
         el.style.transition = 'none'; el.style.willChange = 'transform'; el.classList.add('drag'); tr = bubTrash(true); hot = false;
@@ -180,7 +207,7 @@ const AI = (() => {
           springTo(el, { x: p.x, y: p.y }, to, null, { k: 320, damp: 1, fill: 'forwards', op: [1, 0] });
           setTimeout(() => bubTrash(false), rmo() ? 0 : 200); setTimeout(onGone, rmo() ? 0 : 380); return; }   // into the bin, the bin closes, then the pill comes back
         bubTrash(false); el.classList.remove('kill');
-        const L = bubLimits(), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
+        const L = bubLimits(el), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
         if(typeof ui !== 'undefined'){ ui[key] = { s: side, y: y / innerHeight }; saveUI(); }
         const from = { x: base.x + p.x, y: base.y + p.y }; el.style.transform = ''; place(el, key);   // its new spot, in one layout change...
         const nb = { x: el.offsetLeft, y: el.offsetTop };
@@ -218,7 +245,7 @@ const AI = (() => {
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
     const ctl = new AbortController(); if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort', () => ctl.abort()); }
     if(!B.jobs){ B.drop = false; B.was = [...document.querySelectorAll('.overlay.open')].map(o => o.id).filter(id => id !== 'ovAsk'); B.pending = []; B.closed = []; B.was.forEach(id => close(id)); toast(t('aiBg')); }
-    B.robot = (opts && opts.robot) || (location.hash.startsWith('#gym') ? 'gym' : 'chef');
+    B.robot = (opts && opts.robot) || (location.hash.startsWith('#gym') ? 'gym' : 'chef'); if(!B.jobs) B.area = areaNow();
     B.jobs++; B.ctls.push(ctl); bubble('run'); let ok = false;
     try{ const r = await call(prompt, img, onTry, ctl.signal, opts); ok = true; return r; }
     finally{ B.jobs--; B.ctls = B.ctls.filter(c => c !== ctl);
@@ -237,7 +264,16 @@ const AI = (() => {
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
 
+  // 0.7.9.2 the one "thinking" sign for every AI wait: three dots, one hops up and lands, then the next, then the next, a short rest, repeat
+  // (theme.css .tdots; Reduce Motion: they light up in turn). dots(text) puts it after a text, dropping the text's own "…".
+  const DOTS = '<span class="tdots" aria-hidden="true"><i></i><i></i><i></i></span>';
+  const untail = s => String(s || '').replace(/\s*(…|\.{3})\s*$/, '');
+  const dots = text => text == null ? DOTS : `${esc(untail(text))}${DOTS}`;
+  // a status line (like status() in core.js) that shows the dots while the AI works
+  const wait = (el, text) => { if(!el) return; el.innerHTML = dots(text); el.classList.add('show'); el.classList.remove('err'); };
   return {
+    dots, untail, wait,
+    areaSync,
     ask, dietRules, knows, hasKey: () => !!key(), listModels, bestModels, testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },

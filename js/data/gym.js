@@ -914,14 +914,14 @@ function gymInk(hex){
 
 const EQ_ORDER = ['barbell','dumbbell','machine','cable','bodyweight','kettlebell','band'];
 
-const EQ_ICON = {   // 0.6.9.3: detailed line drawings; bodyweight is just "BW"
-  barbell: '<path d="M1 12h22"/><rect x="2.6" y="7.5" width="2" height="9" rx=".6"/><rect x="5.2" y="5" width="2.4" height="14" rx=".6"/><path d="M8.6 10.3v3.4"/><rect x="16.4" y="5" width="2.4" height="14" rx=".6"/><rect x="19.4" y="7.5" width="2" height="9" rx=".6"/><path d="M15.4 10.3v3.4"/>',
-  dumbbell: '<path d="M5 7.6l3.8 2.2v4.4L5 16.4l-3.8-2.2V9.8z"/><path d="M19 7.6l3.8 2.2v4.4L19 16.4l-3.8-2.2V9.8z"/><path d="M8.8 12h6.4M10.6 10.9v2.2M12 10.9v2.2M13.4 10.9v2.2"/>',
-  machine: '<rect x="16" y="2" width="6" height="20" rx="1"/><path d="M16 6.5h6M16 10.5h6M16 14.5h6M19 14.5v3"/><path d="M3 4h10"/><path d="M5 4v6M11 4v6"/><rect x="3.6" y="9.5" width="2.8" height="5" rx="1.2"/><rect x="9.6" y="9.5" width="2.8" height="5" rx="1.2"/><path d="M5 20h8M9 15v5M8 15h4"/>',
-  cable: '<path d="M4 22V2h11"/><circle cx="15" cy="5" r="2.2"/><path d="M15 7.2V15"/><path d="M12 15h6l-1.2 4h-3.6z"/><path d="M4 8h3M4 11h3M4 14h3M4 17h3"/>',
-  bodyweight: '<text x="12" y="16.2" text-anchor="middle" font-size="10.5" font-weight="700" font-family="Inter,system-ui,sans-serif" fill="currentColor" stroke="none">BW</text>',
-  kettlebell: '<path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M6.5 14a5.5 5.5 0 1 1 11 0c0 2.8-.9 5-1.9 6.5H8.4C7.4 19 6.5 16.8 6.5 14z"/><path d="M9 20.5h6"/>',
-  band: '<path d="M4.5 7c5 5 10 5 15 0"/><path d="M4.5 7c4 10 11 10 15 0"/><rect x="1.5" y="4.5" width="3.2" height="5" rx="1.2"/><rect x="19.3" y="4.5" width="3.2" height="5" rx="1.2"/>' };
+const EQ_ICON = {   // 0.7.9.3: line drawings from the icon sheet (24 grid, 1.5 stroke)
+  barbell: '<path d="M.5 12h23"/><rect x="4.2" y="4.5" width="2.2" height="15" rx="1"/><rect x="1.6" y="7.5" width="2" height="9" rx="1"/><rect x="17.6" y="4.5" width="2.2" height="15" rx="1"/><rect x="20.4" y="7.5" width="2" height="9" rx="1"/>',
+  dumbbell: '<g transform="rotate(-45 12 12)"><path d="M8.6 12h6.8"/><rect x="4" y="6.5" width="4.6" height="11" rx="2"/><rect x="15.4" y="6.5" width="4.6" height="11" rx="2"/></g>',
+  machine: '<path d="M5 2v20M19 2v20M2 22h20"/><path d="M3 8.5h18"/><rect x="1" y="6" width="2" height="5" rx=".8"/><rect x="21" y="6" width="2" height="5" rx=".8"/><rect x="8" y="16" width="8" height="2.4" rx="1.1"/><path d="M9.6 18.4V22M14.4 18.4V22"/>',
+  cable: '<path d="M5 3v19"/><path d="M5 3h8.5"/><circle cx="15.8" cy="5.3" r="2.3"/><path d="M5 8h3M5 11.5h3M5 15h3"/><path d="M15.8 7.6V16"/><path d="M12.8 16.5h6l-3 4.8z"/>',
+  bodyweight: '<circle cx="20.4" cy="11.4" r="2.1"/><path d="M2.8 19.6L16.6 14.6"/><path d="M16.6 14.6L14.8 18l2.6 2.8"/><path d="M1 21.4h22"/>',
+  kettlebell: '<path d="M8.6 8.6C7.6 4 9.6 2.6 12 2.6s4.4 1.4 3.4 6"/><circle cx="12" cy="14.5" r="7"/><path d="M8.2 14.5a4 4 0 0 1 1.6-3.2"/>',
+  band: '<path d="M12 12C9.5 8 5 6.5 3.5 9.5 2.2 12.5 4.5 16.5 8 16c2-.4 3-2 4-4 1-2 2-3.6 4-4 3.5-.5 5.8 3.5 4.5 6.5C19 17.5 14.5 16 12 12z"/>' };
 
 const SYN = { db: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', ohp: 'overhead press', 'pull-up': 'pullup', 'pull-ups': 'pullup', 'chin-up': 'chinup', pullups: 'pullup', rdl: 'romanian deadlift', 'push-up': 'pushup', 'push-ups': 'pushup', pushups: 'pushup', 'sit-up': 'situp', flyes: 'fly', flye: 'fly', flies: 'fly', raises: 'raise', curls: 'curl', presses: 'press', rows: 'row', extensions: 'extension', 'skull': 'skullcrusher', lunges: 'lunge', squats: 'squat', dips: 'dip', 'kickbacks': 'kickback', 'pulldown': 'pulldown', 'pull-down': 'pulldown' };
 

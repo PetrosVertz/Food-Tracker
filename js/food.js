@@ -48,7 +48,7 @@ function render(){
     return `<div class="card" data-id="${f.id}" style="position:relative">
       <div class="body">
         <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcalcol"><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div>${stockBadge(f)}</div></div>
-        <div class="name">${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
+        <div class="name">${catIcon(f.cat)}${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
         <div class="row" style="margin-top:2px">
           <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span>${f.fiber != null ? `<span class="m fi">Fi <b>${fmt(sc(f.fiber))}</b></span>` : ''}</div>
           <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
@@ -61,7 +61,7 @@ function render(){
   const order = [...CATS.map(c => c.id).filter(id => groups[id]), ...(groups.none ? ['none'] : [])];
   const allOpen = !!FCAT.__all;   // 0.6.5.1: everything sits inside one All Foods fold
   $('list').innerHTML = `<button class="foldh catfold allfold ${allOpen ? 'open' : ''}" data-fcat="__all"><b>${t('allFoods')}</b><span class="fn">${items.length}</span><i>${svgIcon('down', 18)}</i></button>` + (!allOpen ? '' : '<div class="foldb allbody">' + order.map(id => { const c = CATS.find(x => x.id === id), op = !!FCAT[id];
-    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><b>${c ? esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>${svgIcon('down', 18)}</i></button>` +
+    return `<button class="foldh catfold ${op ? 'open' : ''}" data-fcat="${id}"><b>${c ? catIcon(c.id) + esc(L(c)) : t('noType')}</b><span class="fn">${groups[id].length}</span><i>${svgIcon('down', 18)}</i></button>` +
       (op ? `<div class="foldb catbody">${groups[id].map(cardOf).join('')}</div>` : ''); }).join('') + '</div>');
 
 }
@@ -71,7 +71,7 @@ function mountPicker(el, current, onPick){
   let showCat = current && current.cat ? current.cat : null;
   const draw = () => {
     if(!showCat){
-      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}">${esc(L(c))}</button>`).join('')}</div>`;
+      el.innerHTML = `<div class="pgrid">${CATS.map(c => `<button class="pitem ${current&&current.cat===c.id?'on':''}" data-c="${c.id}">${catIcon(c.id, 22)}${esc(L(c))}</button>`).join('')}</div>`;
     } else {
       const c = CAT[showCat];
       el.innerHTML = `<button class="pback" data-back>${svgIcon('back', 20, 2.4)}${t('allCats')}</button><div class="pgrid">${c.subs.map(s =>
@@ -369,15 +369,15 @@ function openIngSearch(prefill, cb, opts){
   drawIngResults(); open('ovIng'); setTimeout(() => $('iSearch').focus(), 120);
 }
 
-function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="t"><b>${esc(title)}</b><small>${subline}</small></span></button>`; }
+function itemHtml(kind, i, icon, title, subline){ return `<button class="sitem" data-k="${kind}" data-i="${i}"><span class="t"><b>${icon || ''}${esc(title)}</b><small>${subline}</small></span></button>`; }
 
 function drawIngResults(){
   const text = $('iSearch').value.trim();
   if(!text){ $('iResults').innerHTML = `<div class="hint">${t('typeToSearch')}</div>`; $('iSaveWrap').classList.add('hide'); return; }
   lastLocal = searchLocal(text);
   let h = '';
-  if(lastLocal.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + lastLocal.mine.map((f,i) => itemHtml('m', i, '', foodName(f), `${f.noBrand ? '' : esc(f.brand) + ' · '}${macroLine(f)}`)).join('');
-  if(lastLocal.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + lastLocal.std.map((g,i) => itemHtml('s', i, '', L(g), `${macroLine(g)} · ${t('stdValues')}`)).join('');
+  if(lastLocal.mine.length) h += `<div class="sgroup">${t('grpMine')}</div>` + lastLocal.mine.map((f,i) => itemHtml('m', i, catIcon(f.cat), foodName(f), `${f.noBrand ? '' : esc(f.brand) + ' · '}${macroLine(f)}`)).join('');
+  if(lastLocal.std.length) h += `<div class="sgroup">${t('grpStd')}</div>` + lastLocal.std.map((g,i) => itemHtml('s', i, catIcon(g.cat), L(g), `${macroLine(g)} · ${t('stdValues')}`)).join('');
   if(ING.online.length && ING.onlineQ === text) h += `<div class="sgroup">${t('grpOnline')}</div>` + ING.online.map((d,i) => itemHtml('o', i, '', d.name, `${esc(d.brand || '')}${d.brand ? ' · ' : ''}${macroLine(d)}`)).join('');
   else h += `<button class="btn" id="iOnline" style="width:100%;margin-top:12px">${t('searchOnline', { q: esc(text) })}</button>`;
   $('iResults').innerHTML = h;

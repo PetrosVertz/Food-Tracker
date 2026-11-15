@@ -1,7 +1,9 @@
 // ---------- 0.7.4.3 Coach chat: ONE chat window that Food Coach (chef robot) and Gym Coach (sweatband robot) share ----------
 // Looks like the Claude app's chat: a big round box pinned at the bottom that grows with the text, a round accent send button,
 // your messages as bubbles on the right, the robot's answers as plain text on the left with its small face, results as cards.
-// Back (the arrow, the phone's back or a left-to-right swipe) shrinks the chat into that robot's bubble; tap the bubble to carry on.
+// 0.7.9.2: the chat is a small floating window, not a whole page. Tapping a coach bubble leaves the bubble where it is; the window grows out
+// of it (scale from the bubble, transform + opacity only) on a layer above the page and below the bubble, its corner tucked under the bubble.
+// Back (the arrow, the phone's back), a tap on the dimmed page or a swipe down shrinks it back into the bubble; tap the bubble to carry on.
 //
 // Other parts use it like this:
 //   Coach.setup(id, { kind, title, first, placeholder, camera, send })   once, to say how that coach answers (all optional)
@@ -18,13 +20,13 @@
 //   chat.cards(list)          the robot answers with result cards; returns the cards so you can change them later
 //   chat.update(card, patch)  change a card (e.g. { done: 'Added', dim: false }) and redraw it
 //   chat.status(text)         changes the robot's "working" line while it thinks: Thinking… / Searching your foods… / Searching the web… / Reading the photo… (t('coachSt…'))
-//   chat.ask(prompt, img, o)  the AI call for this chat (gemini, quiet: the chat shows its own typing dots; Back cancels nothing)
+//   chat.ask(prompt, img, o)  the AI call for this chat (gemini, quiet: the chat shows its own thinking dots, AI.dots; Back cancels nothing)
 //   chat.transcript()         the last few messages as plain lines, to put in a prompt (kept short to save AI use)
 //   chat.history()            the same as a list: [{ who: 'me' | 'bot', text }]
 // A card: { title, sub, tag, tagKind, body (html), dim (greyed until added), actions: [{ label, primary, run(card, chat) }], done (text once handled), undo() }
 const Coach = (() => {
   const CH = {}, CFG = {}, KEEP = 8, CUT = 280;   // the AI only ever sees the last KEEP messages, each cut to CUT letters
-  let cur = null, shrinking = false;
+  let cur = null, anc = null;   // anc: what the open window hangs from (its bubble, or the header robot that opened it)
   const val = v => typeof v === 'function' ? v() : v;
   const rmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const kindOf = id => (CFG[id] && CFG[id].kind) || (/^gym/.test(id) ? 'gym' : 'chef');
@@ -41,7 +43,7 @@ const Coach = (() => {
       id: c.id,
       say: text => { push({ who: 'bot', text: String(text || '') }); },
       cards: list => { const cs = (list || []).map(x => ({ ...x, cid: uid() })); push({ who: 'bot', cards: cs }); return cs; },
-      status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = w.status; },
+      status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = AI.untail(w.status); },
       update(card, patch){ Object.assign(card, patch || {}); draw(); },
       ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController(); return gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
       history: () => hist(c),
@@ -76,7 +78,7 @@ Return ONLY JSON: {"reply": string}`, img);
   function msgHtml(m, prev, k){
     if(m.who === 'me') return `<div class="cmsg me"><div class="cme">${m.img ? `<img class="cimg" src="data:image/jpeg;base64,${m.img}" alt="">` : ''}${m.text ? `<span>${esc(m.text)}</span>` : ''}</div></div>`;
     const lead = !prev || prev.who !== 'bot' ? face(k) : '<span class="cav"></span>';
-    if(m.work) return `<div class="cmsg bot"><span class="cav" aria-hidden="true">${AI.robot(k, 26, true)}</span><div class="ctext cwork" role="status"><span class="cst">${esc(m.status || t('aiThinking'))}</span></div></div>`;
+    if(m.work) return `<div class="cmsg bot"><span class="cav" aria-hidden="true">${AI.robot(k, 26, true)}</span><div class="ctext cwork" role="status"><span class="cst">${esc(AI.untail(m.status || t('aiThinking')))}</span>${AI.dots()}</div></div>`;
     if(m.cards) return `<div class="cmsg bot">${lead}<div class="ccards">${m.cards.map(cardHtml).join('')}</div></div>`;
     return `<div class="cmsg bot">${lead}<div class="ctext">${esc(m.text)}</div></div>`;
   }
@@ -86,15 +88,15 @@ Return ONLY JSON: {"reply": string}`, img);
     el.innerHTML = c.msgs.map((m, i) => msgHtml(m, c.msgs[i - 1], k)).join('');
     if(stick) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
   }
-  function head(){ const k = kindOf(cur); $('coachT').textContent = title(cur); $('coachFace').innerHTML = AI.robot(k, 28);
+  function head(){ $('coachT').textContent = title(cur);   // 0.7.9.2: no robot face in the title (it is the bubble, and beside its answers)
     const f = cfg(cur), ph = val(f.placeholder) || t('coachPh'); $('coachIn').placeholder = ph; $('coachIn').setAttribute('aria-label', ph);
     $('coachCam').classList.toggle('hide', !f.camera); $('coachForm').classList.toggle('cam', !!f.camera); }
 
   // ---- the box: grows with the text up to about 6 lines; send is dimmed until there is something to send ----
   function grow(){ const ta = $('coachIn'); ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 6 * 21 + 22) + 'px';
     $('coachSend').disabled = !ta.value.trim() && !(cur && CH[cur] && CH[cur].img); }
-  function fit(){ const ov = $('ovCoach'), vv = window.visualViewport; if(!ov || !vv) return;   // the box stays above the keyboard
-    ov.style.setProperty('--cvh', vv.height + 'px'); ov.style.setProperty('--cvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < window.innerHeight * .8); }
+  function fit(){ const ov = $('ovCoach'), vv = window.visualViewport; if(!ov) return; if(!vv){ lay(); return; }   // the box stays above the keyboard
+    ov.style.setProperty('--cvh', vv.height + 'px'); ov.style.setProperty('--cvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < window.innerHeight * .8); lay(); }
   function preview(){ const c = cur && CH[cur], p = $('coachPrev');
     p.innerHTML = c && c.img ? `<span class="cpimg"><img src="data:image/jpeg;base64,${c.img}" alt=""><button type="button" data-cpx aria-label="${esc(t('remove'))}">${svgIcon('x', 14, 2.6)}</button></span>` : '';
     p.classList.toggle('hide', !(c && c.img)); grow(); }
@@ -113,71 +115,59 @@ Return ONLY JSON: {"reply": string}`, img);
   }
 
   // ---- open / shrink into the bubble / dismiss ----
+  // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; the window hangs from that robot
+  const NOBUB = id => id === 'gymlive' || id === 'gymstart';
   function open_(id, first){
-    const c = chat(id);
+    const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
-    const b = $('cb-' + id), ov = $('ovCoach'); clearTimeout(ov._sk); ov.classList.remove('shrink');
-    if(b) b.classList.add('pre');   // 0.7.9: the bubble stays (hidden) while its chat is open, so the chat can shrink back into it
-    if(cur && cur !== id) keep();
+    if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob) ob._home = false; }
+    // the bubble stays exactly where it is (opened from a pill: it appears at its own spot) and holds still while its chat is open
+    const b = NOBUB(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
+    anc = b || [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null;
     cur = id; head(); $('coachIn').value = c.draft || ''; preview(); draw();
-    const grow_ = !!b && !rmo();   // 0.7.9: opened from its bubble (now at the top right): the window grows out of it
-    ov.classList.toggle('grow', grow_);
-    open('ovCoach'); fit(); pillSync();
-    if(grow_) aim(b);
+    sh.getAnimations().forEach(a => a.cancel()); sh.style.transform = '';
+    if(!again) open('ovCoach'); fit(); pillSync();
     requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = c.end === false ? c.sy : el.scrollHeight; });   // back where you left off (bottom unless you had scrolled up)
   }
   function keep(){ const c = cur && CH[cur]; if(c) c.draft = $('coachIn').value; }
-  // close() calls this whenever the chat window closes (Back, the phone's back, the edge swipe, opening Settings…): the chat becomes its bubble
-  // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; closing just closes
-  const NOBUB = id => id === 'gymlive' || id === 'gymstart';
-  function closed(){ if(!cur) return; const id = cur, ov = $('ovCoach'), was = shrinking; keep(); cur = null; shrinking = false; clearTimeout(ov._sk); ov._sk = setTimeout(() => ov.classList.remove('shrink'), 260);
-    if(!NOBUB(id)){ const b = bubble(id); if(!was){ b.classList.remove('pre'); goHome(b); } } pillSync(); }   // closed another way (no shrink): the bubble just reappears at its own spot
+  // close() calls this whenever the chat window closes (Back, the phone's back, a tap outside, the swipe, opening Settings…); the bubble just stays
+  function closed(){ if(!cur) return; const id = cur; keep(); cur = null; anc = null;
+    if(!NOBUB(id)){ bubble(id)._home = false; } pillSync(); }
+  // Back: shrink into the bubble (theme.css #ovCoach.closing = coachShrink toward the bubble)
   function minimize(id){
     if(id && NOBUB(id)) return;
     if(id && id !== cur){ chat(id); if(!CH[id].msgs.length) CH[id].msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; bubble(id); pillSync(); return; }
-    if(!cur || shrinking) return;
-    const ov = $('ovCoach'), sh = ov.querySelector('.sheet');
-    if(rmo() || NOBUB(cur)){ close('ovCoach'); return; }
-    // shrink toward where the bubble will sit
-    const b = bubble(cur); b.classList.add('pre'); if(!b._home) perch(b, true);   // the bubble waits at the top right
-    aim(b, true); if(!sh.style.clipPath) sh.style.clipPath = 'circle(150% at var(--cx,100%) var(--cy,0px))';   // coachShrink starts from the window as it is now
-    shrinking = true; ov.classList.remove('grow'); ov.classList.add('shrink'); Phone.haptic();
-    setTimeout(() => b.classList.remove('pre'), 170);   // the bubble fades back in as the window fades into it
-    setTimeout(() => { if(shrinking) close('ovCoach'); setTimeout(() => { goHome(b); sh.style.transform = ''; sh.style.clipPath = ''; sh.style.transition = ''; sh.style.willChange = ''; }, 100); }, 260);   // then the bubble glides back to where it was
+    if(!cur) return; Phone.haptic(); close('ovCoach');
   }
-  // 0.7.9.1: the window opens from / closes into the bubble: transform-origin and the round clip sit on the bubble's centre.
-  // Measured from the window's own layout box (not its on-screen box, which is scaled while it animates). perched = use where
-  // the bubble is going (the top right), not where it is now.
-  const GROW_S = .35;   // the window's scale at the start of the grow / end of the shrink (theme.css coachGrow / coachShrink)
-  function aim(b, perched){ const ov = $('ovCoach'), sh = ov.querySelector('.sheet'), o = ov.getBoundingClientRect();
-    const p = perched ? spot(b) : b.getBoundingClientRect(), w = b.offsetWidth;
-    const cx = (perched ? p.x : p.left) + w / 2 - (o.left + sh.offsetLeft), cy = (perched ? p.y : p.top) + w / 2 - (o.top + sh.offsetTop);
-    sh.style.transformOrigin = `${cx}px ${cy}px`; sh.style.setProperty('--cx', cx + 'px'); sh.style.setProperty('--cy', cy + 'px'); sh.style.setProperty('--cr', (w / 2 / GROW_S) + 'px'); }
-  // ---- the bubble's trip: home → top right (the chat grows out of it) → back home ----
-  // 0.7.9.1: the trip is a transform on top of the bubble's own spot (left/top never change), so it glides on the GPU
-  const BUBT = 'transform .34s cubic-bezier(.22,1,.36,1),opacity .18s';
-  let satP = null;   // a hidden probe that measures the phone's top safe area (the notch)
-  const satop = () => { if(!satP){ satP = document.createElement('div'); satP.setAttribute('aria-hidden', 'true');
-    satP.style.cssText = 'position:fixed;left:0;top:0;width:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(satP); } return satP.offsetHeight; };
-  const spot = b => ({ x: innerWidth - b.offsetWidth - 14, y: satop() + 10 });   // the top right, where the chat grows from
-  function perch(b, instant){
-    const p = spot(b); b._home = true; b.style.transition = instant || rmo() ? 'none' : BUBT;
-    b.style.transform = `translate3d(${p.x - b.offsetLeft}px,${p.y - b.offsetTop}px,0)`;
-    if(instant){ b.getBoundingClientRect(); b.style.transition = BUBT; }
-  }
-  function goHome(b){
-    if(!b || !b._home || !b.isConnected) return; b._home = false;
-    b.style.transition = rmo() ? 'none' : BUBT; b.style.transform = '';
-  }
+  // ---- where the window sits (0.7.9.2) ----
+  // Rounded, a margin all round, at most 560 wide. Always BELOW the bubble: its top corner on the bubble's side sits under the bubble's centre
+  // (the bubble's own spot is near the top right, theme.css .coachbub). A bubble dragged low still opens a usable window (at least HMIN tall)
+  // that then starts a little above it, with the bubble resting on its side.
+  // The overlay already matches the visible screen above the keyboard (fit), so with the keyboard up the window shrinks to stay fully in view.
+  let saP = null;   // a hidden probe that reads the phone's safe areas (notch / home bar)
+  const safe = () => { if(!saP){ saP = document.createElement('div'); saP.setAttribute('aria-hidden', 'true');
+    saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
+    return { t: saP.offsetHeight, b: saP.offsetWidth }; };
+  const M = 12, WMAX = 560, HMIN = 320;
+  function lay(){ const ov = $('ovCoach'), sh = ov && ov.querySelector('.sheet'); if(!sh || !cur) return;
+    const W = ov.clientWidth, H = ov.clientHeight, sa = safe(), kb = ov.classList.contains('kb'), y0 = (kb ? 0 : sa.t) + M, y1 = H - (kb ? 0 : sa.b) - M, oy = ov.getBoundingClientRect().top;
+    const w = Math.min(W - 2 * M, WMAX); let x, top, bot, side = 'r', ax = W - M - 34, ay = y0;
+    if(anc && anc.isConnected && anc.getClientRects().length){ const r = anc.getBoundingClientRect(); ax = r.left + r.width / 2; ay = r.top + r.height / 2 - oy; }
+    side = ax < W / 2 ? 'l' : 'r';
+    x = side === 'r' ? Math.min(W - M, ax + 34) - w : Math.max(M, ax - 34); x = Math.max(M, Math.min(W - M - w, x));
+    top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1;   // hang from the bubble (or the header robot), down to the bottom margin
+    sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (bot - top) + 'px';
+    sh.style.transformOrigin = `${(ax - x).toFixed(1)}px ${(ay - top).toFixed(1)}px`;   // grows from / shrinks into the bubble's centre
+    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !anc || NOBUB(cur)); }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
+    b.dataset.area = k === 'gym' ? 'gym' : 'food';   // 0.7.9.2: shows only in its coach's area (ai.js areaSync)
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
     document.body.appendChild(b);
-    b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } if(b._going) return; Phone.haptic();
-      if(rmo()){ open_(id); return; }
-      b._going = true; perch(b); setTimeout(() => { b._going = false; if(!cur && $('cb-' + id) === b) open_(id); }, 330); });   // the bubble flies to the top right, then the chat grows out of it
-    AI.drag(b, () => dismiss(id), 'coachBub_' + id);
+    b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic();
+      if(cur === id) minimize(); else open_(id); });   // 0.7.9.2: the bubble never moves; tap it again to put the chat away
+    AI.drag(b, () => dismiss(id), 'coachBub_' + id); AI.areaSync();
     return b;
   }
   function dismiss(id){
@@ -240,22 +230,24 @@ Return ONLY JSON: {"reply": string}`, img);
       const a = e.target.closest('[data-ca]'); if(!a) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run) return;
       Phone.haptic(); Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
     });
-    // 0.7.9.1: drag the chat to the right (anywhere but the text box): it follows the finger; let go past a third (or flick) and it
-    // shrinks from there into its bubble (coachShrink starts from where the drag left it), else it springs back
-    const sh = $('ovCoach').querySelector('.sheet'); let cw = 0;
-    const cdx = s => s.dx >= 0 ? s.dx : rubber(s.dx, 60);
-    dragger(sh, { axis: 'x', slop: 10,
-      item: e => cur && !NOBUB(cur) && !rmo() && !shrinking && !e.target.closest('textarea,input,.ccacts,.cpimg') ? sh : null,
-      claim: dx => dx > 0,
-      start: () => { cw = sh.offsetWidth; sh.getAnimations().forEach(a => a.cancel()); sh.style.transition = 'none'; sh.style.willChange = 'transform';   // the finished grow no longer holds it
-        sh.style.clipPath = 'circle(150% at var(--cx,100%) var(--cy,0px))'; },   // the same shape coachShrink starts from, so letting go has no jump
-      move: s => { const x = cdx(s); sh.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${(1 - Math.max(0, x) / cw * .12).toFixed(4)})`; },
-      end: (s, ok) => { const x = cdx(s);
-        if(ok && (x > cw / 3 || (s.vx > .5 && x > 40))){ minimize(); return; }
-        const sc = 1 - Math.max(0, x) / cw * .12; sh.style.transform = ''; sh.style.willChange = '';
-        springTo(sh, { x, s: sc }, { x: 0, s: 1 }, { x: s.vx }).finished.then(() => { sh.style.transition = ''; sh.style.clipPath = ''; }, () => {}); } });
+    // 0.7.9.2: swipe the window down (from its title row, or from the messages when they are scrolled to the top) and it follows the
+    // finger 1:1 (transform only); let go past a quarter of its height (or flick) and it shrinks from there into its bubble, else it springs back
+    const sh = $('ovCoach').querySelector('.sheet'); let chH = 0;
+    const cdy = s => s.dy >= 0 ? s.dy : rubber(s.dy, 40);
+    dragger(sh, { axis: 'y', slop: 10,
+      item: e => { if(!cur || e.target.closest('textarea,input,.ccacts,.cpimg,.cbar')) return null; const l = $('coachList');
+        return e.target.closest('.chead') || (l.contains(e.target) && l.scrollTop <= 0) ? sh : null; },
+      claim: (dx, dy) => dy > 0,
+      start: () => { chH = sh.offsetHeight; sh.getAnimations().forEach(a => a.cancel()); },   // the finished grow no longer holds it
+      move: s => { sh.style.transform = `translate3d(0,${cdy(s).toFixed(1)}px,0)`; },
+      end: (s, ok) => { const y = cdy(s); sh.style.transform = '';
+        if(ok && (y > chH / 4 || (s.vy > .5 && y > 40))){ Phone.haptic();
+          if(!rmo()) sh.animate([{ transform: `translate3d(0,${y}px,0)`, opacity: 1 }, { transform: 'scale(.2)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' });
+          close('ovCoach'); return; }
+        springTo(sh, { y }, { y: 0 }, { y: s.vy }); } });
     if(window.visualViewport){
       visualViewport.addEventListener('resize', () => { if(!$('ovCoach').classList.contains('open')) return; fit(); const l = $('coachList'); l.scrollTop = l.scrollHeight; });
+      addEventListener('resize', () => { if($('ovCoach').classList.contains('open')) fit(); });
       visualViewport.addEventListener('scroll', () => { if($('ovCoach').classList.contains('open')) fit(); });
     }
   }

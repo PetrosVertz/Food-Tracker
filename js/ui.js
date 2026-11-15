@@ -71,10 +71,14 @@ const THEMES = [
 const THEME_WARM = ['sunset', 'red', 'gold', 'pink'];   // "Ready" muscles use green in these so they don't look like "Sore"
 function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'auto', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
   return { mode, p, look: mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode }; }
+// 0.7.9.2: the icon on the selected-tab marker uses whichever of the theme's text-on-accent, white or near-black reads best (≥ 4.5:1) on the accent
+const lumHex = c => { const f = v => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; return .2126 * f(parseInt(c.slice(1, 3), 16)) + .7152 * f(parseInt(c.slice(3, 5), 16)) + .0722 * f(parseInt(c.slice(5, 7), 16)); };
+const contrastHex = (a, b) => { const x = lumHex(a), y = lumHex(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+function bestOn(acc, pref){ return [pref, '#0f1113', '#ffffff'].reduce((best, c) => contrastHex(acc, c) > contrastHex(acc, best) + .01 ? c : best, pref); }
 function applyTheme(){
   const { p, look } = themeNow(), L = look === 'light', mono = p[0] === 'mono', r = document.documentElement, set = (k, v) => r.style.setProperty(k, v);
   r.setAttribute('data-theme', look);
-  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-accent-ink', L ? p[6] : p[2]);
+  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-knob-on', bestOn(L ? p[4] : p[2], L ? p[5] : p[3])); set('--t-accent-ink', L ? p[6] : p[2]);
   set('--t-toast-act', L ? (mono ? '#ffffff' : p[2]) : p[6]);              // toast is near-black in Light (bright accent), near-white in Dark (dark ink)
   set('--t-mp-text', mono ? (L ? '#ffffff' : '#0a0a0b') : p[2]);                 // the main pill keeps the bright accent (on black in Light)
   set('--t-mp-stroke', !L && !mono ? '2.4px #0b0d0f' : '0');
@@ -261,23 +265,30 @@ function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pill
   const check = () => { const sg = pillSig(pillsNow()); if((sg === last && sg) || ++n > 12){ requestAnimationFrame(() => pillsIn()); return; } last = sg; setTimeout(check, 120); };
   Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(() => setTimeout(check, 420)); }   // the coach pill places itself ~300 ms after start (coach.js)
 
+// 0.7.9.4: one calm slide, transform only, no fade, no old-page copy. The new page is fully solid from the first frame (.pgnew: solid page colour)
+// and slides in 28 px; what its edge uncovers is the plain page colour, never the old page. 320 ms, the same ease as the bottom bar's circle.
+// Reduce Motion = a plain swap. A tap during the motion is remembered and played right after, so the circle and the page stay in step.
+const TAB_EASE = 'cubic-bezier(.45,0,.2,1)', TAB_MS = 320;
 function switchTab(dir, toTab){
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
-  const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur || SWITCHING) return;
+  const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur) return;
+  if(SWITCHING){ switchTab.next = tab; return; }
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
+  document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!pg || reduce || !pg.animate){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
-  // plain slide: this page moves out, the next one moves in (down = next tab slides up from below)
-  SWITCHING = true; pillSwap();
-  const ghost = pg.cloneNode(true), top = pg.scrollTop; ghost.removeAttribute('id'); ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-  ghost.classList.add('pghost'); ghost.setAttribute('aria-hidden', 'true'); document.body.appendChild(ghost); ghost.scrollTop = top;
-  const opt = { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' }, target = tabTarget(tab);
-  const run = () => { const np = document.querySelector('section.page:not(.hide):not(.pghost)');
-    ghost.animate([{ transform: 'none' }, { transform: `translateY(${dir > 0 ? -100 : 100}%)` }], { ...opt, fill: 'forwards' });
-    if(np) np.animate([{ transform: `translateY(${dir > 0 ? 100 : -100}%)` }, { transform: 'none' }], opt);
-    setTimeout(() => { ghost.remove(); SWITCHING = false; }, 300); };
+  if(!pg || !pg.animate || reduce){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
+  SWITCHING = true; switchTab.next = null; pillSwap();
+  const target = tabTarget(tab); let np = null, finished = false, tm = 0;
+  const done = () => { if(finished) return; finished = true; clearTimeout(tm); removeEventListener('hashchange', run);
+    document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew')); SWITCHING = false;
+    const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
+  function run(){ if(finished || np) return; np = document.querySelector('section.page:not(.hide)');
+    if(!np){ done(); return; }
+    np.classList.add('pgnew');   // solid from this very frame, before the slide starts
+    const a = np.animate([{ transform: `translate3d(${dir * 28}px,0,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: TAB_MS, easing: TAB_EASE });
+    a.onfinish = a.oncancel = done; tm = setTimeout(done, TAB_MS + 60); }
   if(location.hash.slice(1) === target){ route(); run(); }
-  else { addEventListener('hashchange', run, { once: true }); location.replace('#' + target); }   // 0.6.5: replace, not push — the phone's back never jumps tabs; the page swaps on hashchange, then it slides
+  else { addEventListener('hashchange', run, { once: true }); location.replace('#' + target); }   // 0.6.5: replace, not push — the phone's back never jumps tabs; the page swaps on hashchange, then it moves
 }
 
 function route(){
@@ -290,6 +301,9 @@ function route(){
   const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Kitchen = Fridge · Groceries under one pill
   const page = kv ? (kv === 'groc' ? 'groc' : 'fridge') : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
   [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  { const shown = document.querySelector('section.page:not(.hide):not(.pghost)');   // 0.7.9.2: a page that newly appears fades in with a small rise (a tab switch runs its own cross-fade)
+    if(shown && route.shown !== shown && !SWITCHING && shown.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) shown.animate([{ opacity: 0, transform: 'translate3d(0,6px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 300, easing: TAB_EASE });
+    route.shown = shown; }
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', kv !== 'fridge'); $('pgGroc').classList.toggle('hide', kv !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
@@ -434,7 +448,7 @@ function open(id){
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }
-  if(id === 'ovSession' || id === 'ovAsk') return;
+  if(id === 'ovSession' || id === 'ovAsk' || id === 'ovCoach') return;   // 0.7.9.2: the coach chat places itself (coach.js lay)
   requestAnimationFrame(() => { const sh = el.querySelector('.sheet'); if(!sh) return; el.classList.add('measure'); const hgt = sh.offsetHeight; el.classList.remove('measure');
     el.classList.toggle('center', hgt < (window.innerHeight || 700) * .7); });
 }
@@ -588,16 +602,19 @@ const SHEET_NODRAG = '#ovCoach,#ovSession,#ovSetup,#ovAsk,#ovScan,#ovLang';
 function sheetDrag(ov){
   const sh = ov.querySelector(':scope>.sheet'); if(!sh || ov.matches(SHEET_NODRAG)) return;
   const atTop = t => { for(let n = t; n && n !== ov; n = n.parentElement){ if(n.scrollTop > 0) return false; } return true; };
-  let h = 0;
+  let h = 0, scrim = null;
   dragger(sh, { axis: 'y',
     item: e => matchMedia('(max-width: 699px)').matches && !sh.matches('.setpage,.formpage,.themepage') && sh.offsetHeight < innerHeight - 40   // floating and bottom windows, not full-screen pages
       && !e.target.closest('input,textarea,select,button,.stepper,.wheel,.hscroll,[data-nodrag],.swipebox,.sortbox,canvas,.phcirc') && atTop(e.target) ? sh : null,
     claim: (dx, dy) => dy > 0,
-    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; sh.style.willChange = 'transform'; },
-    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; },
-    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = ''; sh.style.willChange = '';
-      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down, the window closes behind it
-        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' });
-        close(ov.id); Phone.haptic(); setTimeout(() => { a.cancel(); sh.style.transition = ''; }, 320); return; }
-      springTo(sh, { y }, { y: 0 }, { y: s.vy }).finished.then(() => { sh.style.transition = ''; }, () => {}); } });
+    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; scrim = ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, fill: 'both', pseudoElement: '::before' }); scrim.pause(); },
+    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; if(scrim) scrim.currentTime = Math.min(1, Math.max(0, y / h)) * 1000; },   // the dim fades on its own layer
+    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120), p = Math.min(1, Math.max(0, y / h)), sc = scrim; scrim = null; sh.style.transform = '';
+      const fade = (from, to, ms) => { const f = ov.animate([{ opacity: from }, { opacity: to }], { duration: ms, easing: 'ease-out', fill: 'forwards', pseudoElement: '::before' }); if(sc) sc.cancel(); return f; };
+      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down; the window really closes only once it is out of sight (nothing else redraws meanwhile)
+        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' }), f = fade(1 - p, 0, 260); Phone.haptic();
+        const fin = () => { close(ov.id); setTimeout(() => { a.cancel(); f.cancel(); sh.style.transition = ''; }, 260); };
+        a.finished.then(fin, fin); return; }
+      const f = fade(1 - p, 1, 260), back = springTo(sh, { y }, { y: 0 }, { y: s.vy });
+      back.finished.then(() => { sh.style.transition = ''; f.cancel(); }, () => { f.cancel(); }); } });
 }
