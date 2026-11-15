@@ -9,13 +9,13 @@ Follow CLAUDE.md. Petros adds items during planning; prompts are written when he
    - Still **no live blur** (`backdrop-filter` stays off) so sliding between tabs stays smooth.
    - Icon and profile photo on it must stay crisp and read at ≥ 4.5:1 in Light and Dark (use `--t-on` for the icon colour on the vibrant marker).
 
-3. **Tab switch: smoother selector slide.** When another bottom tab is pressed, the marker circle glides from the old tab to the new one (`.rail>.knob`, tabs sliding code near `RAIL_KNOB` in ui.js). Make that glide clearly smoother:
+2. **Tab switch: smoother selector slide.** When another bottom tab is pressed, the marker circle glides from the old tab to the new one (`.rail>.knob`, tabs sliding code near `RAIL_KNOB` in ui.js). Make that glide clearly smoother:
    - One continuous motion with a soft ease-in-out (about 320–380 ms), no bounce, no stutter, no size or colour jump on the way.
    - Move with transform only (no left/width changes, no layout reads during the move); the icon/photo colour change on the old and new tab fades in step with the circle.
    - Tapping another tab mid-slide continues smoothly from where the circle currently is.
-4. **Tab switch: smoother page change** (`switchTab` in ui.js, `pgIn` in motion.css). Make the old page leaving and the new page arriving one smooth, calm transition:
+3. **Tab switch: smoother page change** (`switchTab` in ui.js, `pgIn` in motion.css). Make the old page leaving and the new page arriving one smooth, calm transition:
    - Short cross-fade with a small slide (direction matches the tab order), using opacity and transform only, about 280–340 ms, same easing as the selector so they move as one.
    - No flash, blank frame, scroll jump or layout shift while switching; the page is built before it appears, heavy work waits until the motion has finished.
    - Reduce Motion = a plain quick fade.
    - Check by recording frames in Playwright at device scale 3 and stepping through them: no jumps between frames, the circle and the page in step.
-5. Bump VERSION to 0.7.9.2 and CACHE to match (this is the only branch of the round).
+4. Bump VERSION to 0.7.9.2 and CACHE to match (this is the only branch of the round).
