@@ -563,7 +563,7 @@ function macroState(k, a, b, usedUp){
 }
 // ⓘ bubbles
 function showTip(key, btn){
-  hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.textContent = t(key); document.body.appendChild(p);
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); if(btn.dataset.tip1){ p.textContent = btn.dataset.tip1; const sm = document.createElement('small'); sm.className = 'tipsub'; sm.textContent = btn.dataset.tip2 || ''; p.appendChild(sm); } else p.textContent = t(key); document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
   const top = topClear(), x = Math.max(16, Math.min(innerWidth - w - 16, r.left + r.width / 2 - w / 2));
   let y = r.bottom + 8;   // 0.7.4.0.5: below the button; flipped above only if that stays clear of the page title blur

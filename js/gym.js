@@ -396,9 +396,9 @@ function recMapNow(){ if(!_recMapV || Date.now() - _recMapAt > 30000){ _recMapV 
 function exSore(exId){ const ex = exById(exId), hd = HEADS[ex.h], v = hd && recMapNow()[hd[2]]; return v && v.st !== 'ok' ? v : null; }
 const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
 function recMap(){
-  const gs = Object.keys(groupReadiness(Date.now())), hrs = {};
+  const now = groupReadiness(Date.now()), gs = Object.keys(now), hrs = {};
   for(let h = 0; h <= 120 && Object.keys(hrs).length < gs.length; h += 2){ const rd = groupReadiness(Date.now() + h * 3.6e6); gs.forEach(g => { if(!(g in hrs) && rd[g] >= .8) hrs[g] = h; }); }
-  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h), col: recColor(h) }]; })); }
+  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h), col: recColor(h), p: now[g] }]; })); }
 // 0.7.7: a smooth gradient instead of stages: green (ready) → yellow (24 h left) → red (3 days or more left). The label still follows recStateH.
 const recMix = (a, b, p) => `color-mix(in srgb, ${b} ${Math.round(Math.max(0, Math.min(1, p)) * 100)}%, ${a})`;
 const recColor = h => h <= 0 ? REC_COL.ok : h <= 24 ? recMix(REC_COL.ok, REC_COL.mid, h / 24) : recMix(REC_COL.mid, REC_COL.low, (h - 24) / 48);
@@ -784,7 +784,7 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' || !gOn('uniPill') ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore') ? exSore(x.exId) : null;
   // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
-  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow">${sore ? `<button type="button" class="sorewarn" data-sore aria-label="${esc(t('soreHint', { m: ML(ex.h), h: Math.ceil(sore.h) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
+  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow">${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills${uniPill || gOn('formPill') || (!card && gOn('swapPill')) ? '' : ' hide'}">${uniPill}${gOn('formPill') ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill') ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)

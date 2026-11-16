@@ -751,7 +751,8 @@ Object.assign(S, {
 });
 Object.assign(S, {
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
-  soreHint: ['{m} is still recovering: about {h} h left', 'Ο μυς ({m}) αναρρώνει ακόμα: περίπου {h} ώρες ακόμα'],
+  soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
+  soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
 });
 Object.assign(S, {
   exsVisH: ['Visual', 'Εμφάνιση'], exsExtH: ['Extras', 'Πρόσθετα'],
