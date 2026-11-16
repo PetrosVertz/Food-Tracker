@@ -215,14 +215,17 @@ async function finishWorkout(auto){
   if(!ses.name || ses.name === t('emptyWorkout')) ses.name = typeLabel_(inferDayType(ses.exercises));   // unnamed: Push / Pull / Legs… from what was done
   delete ses.last; delete ses.dayBefore; delete ses.cur; delete ses.idleFrom; delete ses.askedAt; delete ses.idleAsked; if(auto === true) ses.autoEnded = true;
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
+  const rkBefore = rankNow(ses.exercises.map(x => x.exId));   // ranks before this workout (rank-fx.js)
   sessions.push(ses); saveG('ses');
+  const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed: up to 3 windows, the rest listed in Workout Done
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
   close('ovSession');
-  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
+  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
-  showSummary(ses); renderAll();
+  showSummary(ses, rk.slice(3)); renderAll();
   if(!ses.tplId) askSaveTpl(ses);
+  RankFx.play(rk.slice(0, 3));
   return true;
 }
 

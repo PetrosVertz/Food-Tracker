@@ -710,13 +710,13 @@ const tierBody = () => { const bw = (typeof latestWeight === 'function' && lates
 // the standard an exercise is measured against: [Beginner…Elite ratios, strength next to the board lift] or null (no tiers)
 function tierStd(exId){ const v = TIER_VARIANT[exId], base = v ? v[0] : exId, s = TIER_STD[base]; return s ? { s, k: v ? v[1] : 1 } : null; }
 // one summary per workout with this lift, for rankParts(): finished normal sets only (no warm-ups, drops or the right side of L/R);
-// estimated 1RMs from sets of 1–12 reps, volume from every such set; saved workouts + the live one
-function tierList(exId){ const out = [];
+// estimated 1RMs from sets of 1–12 reps, volume from every such set; saved workouts + the live one (noLive: saved workouts only)
+function tierList(exId, noLive){ const out = [];
   const add = s => { let e1s = [], vol = 0;
     s.exercises.forEach(x => { if(x.exId !== exId) return; x.sets.forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1) return;
       vol += loadOf(exId, st.w) * (+st.r); if(+st.r <= 12) e1s.push(e1rm(+st.w, +st.r, exId)); }); });
     if(e1s.length || vol > 0) out.push({ ago: Math.max(0, -daysUntil(s.date)), e1s, vol }); };
-  sessions.forEach(add); if(active) add(active); return out; }
+  sessions.forEach(add); if(active && !noLive) add(active); return out; }
 const ROMAN = ['III', 'II', 'I'];   // level 3 … 1 inside a tier; n % 3 = 0 → III
 const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${ROMAN[n % 3]}`;
 // 0.7.10.2: rank plates (img/rank, 15 ranks × large/small). n = 0…14 (Bronze III … Diamond I). An <img>, not inline SVG, so each file's
@@ -730,18 +730,21 @@ const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" d
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
   hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
-  const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
-  p.setAttribute('aria-label', `${tf.label} · ${nx ? t('tierGap', { kg: fmt(nx.kg), tier: nx.label }) : t('tierTop')}`);
-  p.innerHTML = `<b class="tgkg">${nx ? esc(t('tierGapKg', { kg: fmt(nx.kg) })) : esc(t('tierTop'))}</b>
-    <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`;
+  p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop')}`);
+  p.innerHTML = tierBarHtml(tf);
   document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth;
   p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
+// the kg still needed, then [current plate] bar in the tier colour [next plate]; shared by the rank bubble and the Rank Up window (rank-fx.js)
+function tierBarHtml(tf){ const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
+  return `<b class="tgkg">${nx ? esc(t('tierGapKg', { kg: fmt(nx.kg) })) : esc(t('tierTop'))}</b>
+    <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`; }
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
 // · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
 // e1 (optional): a real 1RM from elsewhere (Profile › Add a 1RM); it counts as your peak, or as a normal trainee's if there are no workouts
-function tierFor(exId, e1){ const std = tierStd(exId); if(!std) return null; const body = tierBody(); if(!body) return { need: true };
-  let parts = rankParts(tierList(exId));
+// noLive: leave the workout in progress out (the rank as of the last saved workout)
+function tierFor(exId, e1, noLive){ const std = tierStd(exId); if(!std) return null; const body = tierBody(); if(!body) return { need: true };
+  let parts = rankParts(tierList(exId, noLive));
   if(+e1 > parts.P) parts = parts.P > 0 ? { ...parts, P: +e1 } : rankRefParts(+e1);
   if(!(parts.P > 0)) return { none: true };
   const g = rankGap(parts, body, std), n = g.n, res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n), frac: g.frac };
@@ -1013,13 +1016,15 @@ function recBlock(ses, r, note){
   return `<div id="smRec"><h3><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('recEstT')}</h3><p class="hint" style="margin:0">${t('recEstSub')}</p><div class="recest">${Object.entries(r).sort((a, b) => b[1] - a[1]).map(([g, hh]) => `<span class="rchip"><b>${esc(ML(g))}</b> ${hh > 0 ? `~${hh} h` : t('recReadyChip')}</span>`).join('')}</div>
     <p class="hint">${note}</p></div>`;
 }
-function showSummary(ses){
+// moreRanks (0.7.10.2): rank changes beyond the 3 shown as Rank Up windows (rank-fx.js), listed here
+function showSummary(ses, moreRanks){
   const tg = targetFor(ses.date), wins = carbWindows(ses.date), post = wins.find(w => w.k === 'winPost');
   $('smBody').innerHTML = `<h2>${t('smTitle')}</h2><p class="sub">${esc(ses.name)} · ${fmtDate(ses.start)}</p>
     <div class="statgrid"><div><b>${ses.mins}</b><small>${t('smDur')}</small></div><div><b>${ses.vol.toLocaleString()}</b><small>${t('smVol')}</small></div>
       <div><b>${ses.exercises.reduce((a, x) => a + x.sets.filter(isMainSet).length, 0)}</b><small>${t('smSets')}</small></div><div><b>≈${ses.kcal}</b><small>${t('smKcal')}</small></div></div>
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
       : p.kind === 't' || p.kind === 'd' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.kind === 't' ? 'prTLine' : 'prDLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.v)} ${p.kind === 't' ? 'min' : 'km'}</b></li>` : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
+    ${moreRanks && moreRanks.length ? `<h3><span class="ric">${svgIcon('medal', 16, 2)}</span>${esc(moreRanks.length === 1 ? t('rfxMore1') : t('rfxMore', { n: moreRanks.length }))}</h3><ul class="feed rfxmore">${moreRanks.map(c => `<li>${rankIcon(TIERS[Math.floor(c.to / 3)], c.to, 24)}<span>${esc(exName(c.exId))}: <b>${esc(tierName(c.to))}</b></span></li>`).join('')}</ul>` : ''}
     ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}`;
   if(ses.prs.length) celebrate();
   open('ovSummary');

@@ -447,3 +447,35 @@ body.inses .coachbub{display:none!important}
 .sorewarn{flex:0 0 auto;width:32px;height:32px;margin:-6px 0;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--t-fail,#e5484d);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exsh.first{margin-top:0}
 .tippop .tipsub{display:block;margin-top:2px;font-size:11px;color:var(--t-muted,var(--muted))}   /* 0.7.9.6: hours-left line in the red warning icon bubble */
+
+/* ---------- 0.7.10.2 Rank Up / Rank Changed window (js/rank-fx.js): small, centred over the dimmed page ----------
+   Everything that moves is animated on transform / opacity only (Web Animations); nothing here changes layout while it plays */
+#ovRankFx .sheet.rkfx{position:relative;width:min(340px,calc(100% - 32px))!important;max-width:340px;text-align:center;overflow:hidden;padding:var(--s5,22px) var(--s4) var(--s4)!important}
+#ovRankFx h2{margin:0}
+#ovRankFx .rfxex{margin:2px 0 0;color:var(--t-muted)}
+.rfxhalo{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 0 1.5px var(--trc),inset 0 0 42px -10px color-mix(in srgb,var(--trc) 70%,transparent)}
+.rfxstage{position:relative;display:grid;place-items:center;width:150px;height:150px;margin:var(--s2) auto var(--s1);perspective:640px}
+.rfxstage>*{grid-area:1/1}
+.rfxglow{width:150px;height:150px;border-radius:50%;opacity:0;background:radial-gradient(circle,color-mix(in srgb,var(--trc) 55%,transparent) 0,transparent 68%)}
+.rfxrain{width:146px;height:146px;border-radius:50%;opacity:0;
+  background:conic-gradient(from 0deg,#ff5f6d00,#ff5f6d,#ffc371,#f9f871,#5ef2a0,#5ec8ff,#a77bff,#ff5f6d00);
+  -webkit-mask:radial-gradient(circle,transparent 58px,#000 60px,#000 66px,transparent 70px);mask:radial-gradient(circle,transparent 58px,#000 60px,#000 66px,transparent 70px)}
+.rfxland{display:block;width:120px;height:120px;will-change:transform}
+.rfxcoin{position:relative;display:block;width:120px;height:120px;transform-style:preserve-3d;will-change:transform}
+.rfxcoin .rankic{position:absolute;inset:0;width:120px;height:120px}
+.rfxcoin .rfxb{opacity:0}
+#ovRankFx.rfx-first .rfxb{opacity:1}
+.rfxdim{position:absolute;inset:6px;border-radius:50%;background:#000;opacity:0;pointer-events:none}
+.rfxshine{position:absolute;inset:10px;border-radius:50%;overflow:hidden;pointer-events:none}
+.rfxshine i{position:absolute;top:-30%;bottom:-30%;left:30%;width:28%;transform:translate3d(-300%,0,0) rotate(20deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent)}
+.rfxsparks{position:relative;width:0;height:0}
+.rfxsparks i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--trc);opacity:0;will-change:transform,opacity}
+.rfxname{display:block;font-size:var(--fs-title,20px);font-weight:var(--w-bold);color:var(--trci)}
+.rfxmsg{margin:var(--s1) 0 0;color:var(--t-text);line-height:1.45}
+#ovRankFx .rfxbar{width:auto;margin:var(--s3) 0 0;text-align:center}
+#ovRankFx .actions{margin-top:var(--s3)}
+#ovRankFx .actions .btn{flex:1}
+/* Workout Done: the rank changes beyond the first three */
+.rfxmore li{display:flex;align-items:center;gap:var(--s2)}
