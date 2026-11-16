@@ -199,7 +199,6 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
 // 0.7.3: back with no exercises = no workout (the day goes back to how it was, the button stays "Start Workout")
 function gymDropEmpty(){ if(!active || active.exercises.length) return; if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); keepAwake(false); }
-$('sesMin').addEventListener('click', () => { close('ovSession'); gymDropEmpty(); renderAll(); });
 
 $('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;
   if(active && active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }   // the day goes back to how it was
