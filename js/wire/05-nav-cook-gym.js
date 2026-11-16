@@ -91,13 +91,6 @@ window.addEventListener('hashchange', () => { const h = location.hash.slice(1); 
 
 const tabOf = h => h === 'profile' || h === 'settings' ? 'profile' : h === 'today' ? 'today' : h.startsWith('gym') ? 'gym' : h === 'fridge' || h === 'groc' ? 'fridge' : 'food';
 
-(() => {   // swipe from the right edge = forward (left edge = back is already wired)
-  let sx = null, sy = 0, st = 0;
-  document.addEventListener('touchstart', e => { const t0 = e.touches[0]; if(t0.clientX > window.innerWidth * .55 && !e.target.closest('input,select,textarea,.mxs,.stepper,.hscroll,.chips,.tchips,.wrapchips,.seg,.swipebox .card,.swipebox .exc,.swipebox .tpcard,.bodymap,.wtchart')){ sx = t0.clientX; sy = t0.clientY; st = Date.now(); } else sx = null; }, { passive: true });
-  document.addEventListener('touchend', e => { if(sx === null) return; const t1 = e.changedTouches[0], dx = t1.clientX - sx, dy = Math.abs(t1.clientY - sy); sx = null;
-    if(dx > -80 || dy > 50 || dy > -dx * .6 || Date.now() - st > 700) return; goForward(); }, { passive: true });
-})();
-
 document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.parentElement.id; if(ov === 'ovLang' || ov === 'ovSession' || ov === 'ovAsk' || ov === 'ovPick') return;
   const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
 
