@@ -694,7 +694,7 @@ Object.assign(S, {
   pfMChest: ['Chest', 'Στήθος'], pfMQuads: ['Quads', 'Τετρακέφαλοι'], pfMBack: ['Back', 'Πλάτη'],
   pfMaxPR: ['Max PR', 'Μέγιστο Ρεκόρ'], pfStrength: ['Strength', 'Δύναμη'], pfXBw: ['× body weight', '× βάρος σώματος'],
   pfBoardsSubStr: ['Your heaviest single divided by your body weight, so a lighter lifter can top the board. With friends soon.', 'Το βαρύτερο μονό σου διαιρεμένο με το βάρος σώματός σου, ώστε και ένας ελαφρύτερος αθλητής να είναι πρώτος. Με φίλους σύντομα.'],
-  pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
+  pfStats: ['Stats', 'Στατιστικά'],
 });
 
 // ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
