@@ -1,0 +1,7 @@
+scope,n_users,n_sets,p25_reps,median_reps,p75_reps,share_1_5,share_6_12,share_13_plus,share_at_8_10_12
+all weighted exercises,121495,19126397,10,10,12,0.029,0.742,0.229,0.624
+bodyweight exercises,113585,4281208,10,11,13,0.028,0.695,0.277,0.595
+Barbell Bench Press,23302,434838,7,10,12,0.143,0.745,0.112,0.551
+Barbell Squat,12262,215993,8,10,11,0.134,0.773,0.093,0.605
+Barbell Deadlift,10279,145354,7,10,12,0.155,0.729,0.115,0.574
+Standing Barbell Overhead Press,10584,112965,8,10,12,0.073,0.821,0.106,0.645

@@ -1,0 +1,69 @@
+{
+  "_about": "Hand-edited settings of the new rank engine (ranking-1). tools/rank/build-bench.js combines this file with data/rank/sources/* into data/rank/benchmarks.v1.json and js/data/rank-bench.js. Change a number here, run the build, and the engine follows: no app code changes.",
+  "version": "1.0.0",
+  "calibrated": "2026-11-16",
+  "ranks": {
+    "_about": "The 15 levels. from = the score (0-100, a percentile of regular gym-goers who train that exercise) where the level starts. Median gym-goer (50) is Silver III. Shape from the brief, section 2b.",
+    "levels": [
+      { "n": 0, "tier": "bronze", "name": "Bronze III", "from": 0 },
+      { "n": 1, "tier": "bronze", "name": "Bronze II", "from": 15 },
+      { "n": 2, "tier": "bronze", "name": "Bronze I", "from": 30 },
+      { "n": 3, "tier": "silver", "name": "Silver III", "from": 45 },
+      { "n": 4, "tier": "silver", "name": "Silver II", "from": 55 },
+      { "n": 5, "tier": "silver", "name": "Silver I", "from": 64 },
+      { "n": 6, "tier": "gold", "name": "Gold III", "from": 72 },
+      { "n": 7, "tier": "gold", "name": "Gold II", "from": 79 },
+      { "n": 8, "tier": "gold", "name": "Gold I", "from": 85 },
+      { "n": 9, "tier": "platinum", "name": "Platinum III", "from": 90 },
+      { "n": 10, "tier": "platinum", "name": "Platinum II", "from": 93.5 },
+      { "n": 11, "tier": "platinum", "name": "Platinum I", "from": 96 },
+      { "n": 12, "tier": "diamond", "name": "Diamond III", "from": 98 },
+      { "n": 13, "tier": "diamond", "name": "Diamond II", "from": 99 },
+      { "n": 14, "tier": "diamond", "name": "Diamond I", "from": 99.7 }
+    ]
+  },
+  "scoring": {
+    "_about": "score = wVolume x volume percentile + wLoad x max-load percentile. Coherence rules from the brief, section 2b.",
+    "wVolume": 0.5,
+    "wLoad": 0.5,
+    "confirmFrom": 9,
+    "confirmDays": 56,
+    "maxStepUp": 2,
+    "windowDays": 365,
+    "fadePerWeek": 0.01,
+    "fadeFloor": 0.75,
+    "implausibleZ": 4.5,
+    "ceilingMargin": 1.05
+  },
+  "conversion": {
+    "_about": "ASSUMPTION, not data. GymStreak publishes each lifter's best set of 1-10 reps as weight x (1 + reps/30). No open source publishes the heaviest weight or the best single-set volume directly, so the two reference values are that same published figure turned back into a real set: the max-load reference is the weight of a set at the lift's 25th-percentile rep count (q2_rep_percentiles.csv), the volume reference is a 10-rep set (the median set, and the top of GymStreak's 1-10 window). Reps above repCap add no volume. Replace with measured values when in-app data exists.",
+    "volumeReps": 10,
+    "repCap": 10,
+    "loadRepsFrom": "p25_reps"
+  },
+  "exercises": {
+    "bench": { "name": "Bench press", "equipment": "barbell", "loadType": "external", "unit": "bar + plates, kg", "gymstreak": "Barbell_Bench_Press", "gymstreakReps": "Barbell Bench Press", "opl": "bench", "refBw": { "m": 80, "f": 65 } },
+    "squat": { "name": "Back squat", "equipment": "barbell", "loadType": "external", "unit": "bar + plates, kg", "gymstreak": "Barbell_Squats", "gymstreakReps": "Barbell Squat", "opl": "squat", "refBw": { "m": 80, "f": 65 } },
+    "deadlift": { "name": "Deadlift", "equipment": "barbell", "loadType": "external", "unit": "bar + plates, kg", "gymstreak": "Barbell_Deadlift", "gymstreakReps": "Barbell Deadlift", "opl": "deadlift", "refBw": { "m": 80, "f": 65 } },
+    "ohp": { "name": "Overhead press", "equipment": "barbell", "loadType": "external", "unit": "bar + plates, kg", "gymstreak": "Standing_Barbell_Shoulder_Press", "gymstreakReps": "Standing Barbell Overhead Press", "opl": null, "refBw": { "m": 80, "f": 65 } }
+  },
+  "minBands": 3,
+  "variants": {
+    "_about": "Variation factors (brief: Variation factors). thresholds of the variation = thresholds of the anchor x factor. Sourced factors only; same family and equipment type unless the source compares exactly these two; no chains. A sex missing from factor = no rank for that sex.",
+    "smith_squat": {
+      "anchor": "squat",
+      "factor": { "f": 1.092 },
+      "confidence": "low",
+      "source": "Tsoukos A, Bogdanis GC. Effects of Transducer Placement on Load-Velocity Relationships in Smith Machine and Free Weight Squats in Trained Women. J Funct Morphol Kinesiol. 2025;10(2):178. doi:10.3390/jfmk10020178 (CC BY 4.0)",
+      "evidence": "Tested 1RM, full back squat, same 11 trained women: Smith machine 92.9 +/- 16.2 kg, free weight 85.1 +/- 14.5 kg. Ratio 92.9 / 85.1 = 1.092.",
+      "n": 11,
+      "subjects": "11 trained women",
+      "notes": "Women only: no comparable open figure for men was found, so men get no rank. Different equipment type from the anchor, allowed here because the source compares exactly these two lifts. One small study: low confidence."
+    }
+  },
+  "sources": {
+    "gymstreak_train": { "name": "GymStreak (2026). How lifters actually train: GymStreak Training Data Study", "url": "https://www.gymstreak.com/research/how-lifters-train", "licence": "CC BY 4.0", "retrieved": "2026-11-16", "files": ["b5_strength_standards.csv", "q2_rep_percentiles.csv"] },
+    "gymstreak_progress": { "name": "GymStreak (2026). How lifters progress: GymStreak product data study", "url": "https://www.gymstreak.com/research/how-lifters-progress", "licence": "CC BY 4.0", "retrieved": "2026-11-16", "files": ["p1_e1rm_change_windows.csv"] },
+    "openpowerlifting": { "name": "OpenPowerlifting bulk CSV, revision 6b8787a8 (2026-11-14)", "url": "https://openpowerlifting.gitlab.io/opl-csv/bulk-csv.html", "licence": "Public domain", "retrieved": "2026-11-16", "attribution": "This page uses data from the OpenPowerlifting project, https://www.openpowerlifting.org. You may download a copy of the data at https://data.openpowerlifting.org.", "files": ["openpowerlifting-summary.json"] }
+  }
+}
