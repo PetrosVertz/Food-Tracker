@@ -370,8 +370,12 @@ Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
 // 0.7.9 leaderboards: Add a 1RM
 $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); return; }
+  if(e.target.closest('[data-rkcustom]')){ Phone.haptic(); openRankPick(); return; }
+  if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
   const sw = e.target.closest('[data-pfboard]'); if(sw){ Phone.haptic(); ui.pfBoard = sw.dataset.pfboard; saveUI(); renderProfile(); } });   // 0.7.10: Max PR | Strength, remembered
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
+$('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });
+$('rkSearch').addEventListener('input', drawRankPick); $('rkReset').addEventListener('click', resetRankPick);
 $('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });

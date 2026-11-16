@@ -1,4 +1,4 @@
-// Social Hub tab (was Profile; 0.7.7): your circle, Share a Workout, streak, latest PR, leaderboards, stats. Settings opens from the gear (index.html).
+// Social Hub tab (was Profile; 0.7.7): your circle, Share a Workout, streak, highest rank, leaderboards, stats. Settings opens from the gear (index.html).
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 // Everything here is this phone's own data. Friends, live status and friend boards need accounts (0.8+): only their spaces are drawn.
 
@@ -21,6 +21,31 @@ function boardBest(exId, skip){   // skip = one set to leave out (to compare a f
 }
 const isBoardLift = exId => BOARD_LIFTS.some(b => b.id === exId);
 
+// ---------- 0.7.10 Highest Rank card: every exercise you have done, with the rank you hold in it (best first) ----------
+// profile.rankPick = up to 3 exercise ids you chose (Customize); none = the single highest rank (Automatic)
+function rankList(){
+  if(!tierBody()) return [];
+  const ids = new Set(); sessions.forEach(s => s.exercises.forEach(x => { if(x.sets.some(st => st.done)) ids.add(x.exId); }));
+  return [...ids].map(exId => { const tf = tierFor(exId); return tf && tf.label ? { exId, n: tf.n, tier: tf.tier, label: tf.label, name: exName(exId) } : null; }).filter(Boolean)
+    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+}
+const rankPicks = ranks => { const ids = Array.isArray(profile.rankPick) ? profile.rankPick : [], got = ids.map(id => ranks.find(r => r.exId === id)).filter(Boolean).slice(0, 3); return got.length ? got : ranks.slice(0, 1); };
+const rankMini = (r, size) => `<span class="pftier rk tr-${r.tier}" role="img" aria-label="${esc(r.label)}">${rankIcon(r.tier, r.n, size)}</span>`;
+function openRankPick(){ $('rkSearch').value = ''; drawRankPick(); open('ovRank'); }
+function drawRankPick(){
+  const q = $('rkSearch').value.trim().toLowerCase(), ranks = rankList(), picked = Array.isArray(profile.rankPick) ? profile.rankPick : [];
+  $('rkCount').textContent = t('rkPicked', { n: picked.filter(id => ranks.some(r => r.exId === id)).length });
+  $('rkList').innerHTML = ranks.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => { const on = picked.includes(r.exId);
+    return `<button type="button" class="rkrow${on ? ' on' : ''}" data-rkpick="${esc(r.exId)}" aria-pressed="${on}">${rankMini(r, 30)}<span class="pfrn"><b>${esc(r.name)}</b><small>${esc(r.label)}</small></span>${on ? svgIcon('check', 20, 2.4) : ''}</button>`; }).join('')
+    || `<p class="pfempty">${esc(t('rkNone'))}</p>`;
+}
+function togglePick(exId){
+  const ranks = rankList(), cur = (Array.isArray(profile.rankPick) ? profile.rankPick : []).filter(id => ranks.some(r => r.exId === id));
+  if(cur.includes(exId)) cur.splice(cur.indexOf(exId), 1); else if(cur.length >= 3){ toast(t('rkMax')); return; } else cur.push(exId);
+  if(cur.length) profile.rankPick = cur; else delete profile.rankPick; saveProfile(); Phone.haptic(); drawRankPick(); renderProfile();
+}
+function resetRankPick(){ delete profile.rankPick; saveProfile(); Phone.haptic(); drawRankPick(); renderProfile(); }
+
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
 //   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
@@ -32,12 +57,11 @@ function profileData(){
   const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, tier: tf.tier, n: tf.n, color: `var(--tier-${tf.tier})` } : null; };
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
-  const latestPR = prs.filter(p => p.kind === 'w').sort((a, b) => b.start.localeCompare(a.start))[0] || null;
   const wts = Object.entries(weights || {}).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).slice(-30).map(([d, w]) => ({ d, w: +w }));
   return {
     initial: pfInitial(), photo: pfPhoto(),   // 0.7.9: Settings › Photo and Name (ui.js)
     live: !!active, trainedToday: sessions.some(s => s.date === today),
-    streak, latestPR, prCount: prs.length,
+    streak, prCount: prs.length, ranks: rankList(),
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
     boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, str: best ? strengthOf(best.kg) : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best)
       .sort((x, y) => boardMode() === 'str' ? y.str - x.str : y.e1 - x.e1),   // 0.7.9: only lifts with a real 1RM
@@ -88,9 +112,11 @@ function renderProfile(){
       <div class="pfme ${ring}" role="listitem"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button><small>${esc(t('pfYou'))}</small></div>
       <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
     </div>`;
-  const pr = d.latestPR ? `<b class="pfbig">${esc(exName(d.latestPR.exId))}</b><span class="pfline">${kg(d.latestPR.w)} × ${d.latestPR.r} · ${esc(fmtDate(d.latestPR.date + 'T12:00:00'))}</span>`
-    : `<span class="pfline">${esc(t('pfNoPR'))}</span>`;
-  const strMode = boardMode() === 'str';
+  const picks = rankPicks(d.ranks), custom = Array.isArray(profile.rankPick) && profile.rankPick.length > 0;
+  const rk = !picks.length ? `<span class="pfline">${esc(t(d.tierNeed ? 'tierNeedBody' : 'pfNoRank'))}</span>`
+    : picks.length === 1 ? `<div class="pfrk1">${rankMini(picks[0], 44)}<span class="pfrn"><b class="pfbig">${esc(picks[0].name)}</b><small>${esc(picks[0].label)}</small></span></div>`
+    : `<div class="pfrk3">${picks.map(r => `<span class="pfrkc">${rankMini(r, 34)}<small>${esc(r.name)}</small></span>`).join('')}</div>`;
+  const rkBtns = `<span class="pfrkb"><button class="pflink" type="button" data-rkcustom>${esc(t('rkCustomize'))}</button>${custom ? `<button class="pflink" type="button" data-rkreset>${esc(t('rkReset'))}</button>` : ''}</span>`;
   const rows = d.boards.map(b => `<div class="pfrow"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
       ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${strMode ? (b.str ? `${b.str.toFixed(2)} <small>${esc(t('pfXBw'))}</small>` : '–') : b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
   const boardSw = `<div class="seg pfboardsw" id="pfBoardSw" role="group" aria-label="${esc(t('pfBoards'))}"><button type="button" data-pfboard="max" class="${strMode ? '' : 'on'}">${esc(t('pfMaxPR'))}</button><button type="button" data-pfboard="str" class="${strMode ? 'on' : ''}">${esc(t('pfStrength'))}</button></div>`;
@@ -101,7 +127,7 @@ function renderProfile(){
   box.innerHTML = circles
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
-        <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfLatestPR'))}</small>${pr}</div></div>`
+        <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div></div>`
     + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t(strMode ? 'pfBoardsSubStr' : 'pfBoardsSub'))}</p>${boardSw}${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`
     + wCard
