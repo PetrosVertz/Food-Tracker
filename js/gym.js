@@ -734,11 +734,17 @@ function rankIcon(tier, n, size){
 }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
 const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 26)}</button>`;
+// 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
+// Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
-  hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
-  p.textContent = `${tf.label} · ${tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop')}`; document.body.appendChild(p);
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
+  const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
+  p.setAttribute('aria-label', `${tf.label} · ${nx ? t('tierGap', { kg: fmt(nx.kg), tier: nx.label }) : t('tierTop')}`);
+  p.innerHTML = `<b class="tgkg">${nx ? esc(t('tierGapKg', { kg: fmt(nx.kg) })) : esc(t('tierTop'))}</b>
+    <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`;
+  document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth;
-  p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.right - w)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
+  p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
 // · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
 // e1 (optional): a real 1RM from elsewhere (Profile › Add a 1RM); it counts as your peak, or as a normal trainee's if there are no workouts
