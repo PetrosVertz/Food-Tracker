@@ -717,21 +717,13 @@ function tierList(exId){ const out = [];
       vol += loadOf(exId, st.w) * (+st.r); if(+st.r <= 12) e1s.push(e1rm(+st.w, +st.r, exId)); }); });
     if(e1s.length || vol > 0) out.push({ ago: Math.max(0, -daysUntil(s.date)), e1s, vol }); };
   sessions.forEach(add); if(active) add(active); return out; }
-const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${3 - n % 3}`;
-// 0.7.10: rank badges. PLACEHOLDERS: Petros is drawing the final tier icons. To use them, put each tier's SVG drawing (the inside of an
-// <svg>, made for a 32 × 34 box, the crest in the top 26, use currentColor so the tier colour applies) into RANK_ART below. The code draws the
-// level pips under it (Level 3 = one lit, Level 1 = all three) and colours it; nothing else needs to change.
-const RANK_ART = {
-  bronze: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
-  silver: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
-  gold: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
-  platinum: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
-  diamond: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>' };
-function rankIcon(tier, n, size){
-  const art = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26, sw = h < 24 ? 1.9 : 1.6;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips; thicker lines when small
-  return `<svg class="rankic tr-${tier}" width="${Math.round(h * 32 / 34)}" height="${h}" viewBox="0 0 32 34" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    ${art}${[10.5, 16, 21.5].map((x, i) => `<circle cx="${x}" cy="30.6" r="1.9"${i < lit ? ' fill="currentColor" stroke="none"' : ' fill="none" stroke-opacity=".55" stroke-width="1.2"'}/>`).join('')}</svg>`;
-}
+const ROMAN = ['III', 'II', 'I'];   // level 3 … 1 inside a tier; n % 3 = 0 → III
+const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${ROMAN[n % 3]}`;
+// 0.7.10.2: rank plates (img/rank, 15 ranks × large/small). n = 0…14 (Bronze III … Diamond I). An <img>, not inline SVG, so each file's
+// own animation runs and its ids never clash when the same plate is on screen many times. `small` under 36 px (no texture), `large` from 36 px.
+const rankSrc = (tier, n, size) => `img/rank/${(size || 26) < 36 ? 'small' : 'large'}/${TIERS.includes(tier) ? tier : TIERS[Math.floor(n / 3)] || 'bronze'}-${ROMAN[((n % 3) + 3) % 3]}.svg`;
+function rankIcon(tier, n, size){ const h = size || 26;
+  return `<img class="rankic" src="${rankSrc(tier, n, h)}" width="${h}" height="${h}" alt="${esc(tierName(n))}" decoding="async" draggable="false">`; }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
 const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 26)}</button>`;
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.

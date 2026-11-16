@@ -366,10 +366,8 @@ body.inses .coachbub{display:none!important}
 .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
 .tierbadge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--trc);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tierbadge svg{flex:0 0 auto}
-/* 0.7.9 rank emblem (rankIcon): tier colour, soft fill, three level pips; a faint glow in Dark so it reads as a badge, not a plain icon */
-.rankic{display:block;color:var(--trc);overflow:visible}
-:root:not([data-theme="light"]) .rankic{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--trc) 35%,transparent))}
+/* 0.7.10.2 rank plate (rankIcon): an <img> of img/rank/…; fixed size from its width/height so nothing jumps while it loads */
+.rankic{display:block;flex:0 0 auto;object-fit:contain;-webkit-user-drag:none;user-select:none}
 .pfempty{margin:0;padding:var(--s2) 0;color:var(--t-muted);font-size:var(--fs-label);line-height:1.45}
 .pform{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;margin-top:var(--s3)}
 .ormrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--t-line)}
@@ -386,8 +384,7 @@ body.inses .coachbub{display:none!important}
 .tgbar{flex:1;height:8px;border-radius:var(--r-pill);background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line);overflow:hidden;margin-bottom:16px}
 .tgbar i{display:block;height:100%;background:var(--trc);transform-origin:left center;border-radius:inherit}
 .tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}
-/* Profile › Leaderboards: the tier badge text takes the tier colour too; the prompt when body weight or sex is missing */
-.pftier[style*="--tier-"]{color:var(--tc)}
+/* Profile › Leaderboards: the prompt when body weight or sex is missing */
 .pfneed{display:block;margin:0 0 var(--s3);padding:0;text-align:left}
 
 /* ---------- 0.7.7 gym-qr: Share a Workout QR, full screen on white (scanners need dark modules on a light page, in every theme) ---------- */
