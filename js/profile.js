@@ -61,18 +61,96 @@ function profileData(){
   return {
     initial: pfInitial(), photo: pfPhoto(),   // 0.7.9: Settings › Photo and Name (ui.js)
     live: !!active, trainedToday: sessions.some(s => s.date === today),
-    streak, prCount: prs.length, ranks: rankList(),
+    streak, ranks: rankList(),
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
     boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, str: best ? strengthOf(best.kg) : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best)
       .sort((x, y) => boardMode() === 'str' ? y.str - x.str : y.e1 - x.e1),   // 0.7.9: only lifts with a real 1RM
     weights: wts,
-    totals: {
-      workouts: sessions.length,
-      sets: sessions.reduce((a, s) => a + s.exercises.reduce((n, x) => n + x.sets.filter(st => st.done && isMainSet(st)).length, 0), 0),
-      volume: Math.round(sessions.reduce((a, s) => a + (+s.vol || 0), 0)),
-      foodDays: Object.keys(dayLog || {}).filter(d => (dayLog[d] || []).length).length,
-    },
   };
+}
+
+// ---------- 0.7.10 Stats: 20 facts from your own history. One row each: id, calc(c) → null (no data yet, hidden) or { v: number text, p: subtitle values, k?: other subtitle key } ----------
+// Words live in strings.js: title = stt_<id>, one-line subtitle = sts_<id> (or sts_<k>). To add a stat: add a row here and its two strings.
+const STATS = [
+  { id: 'workouts',   calc: c => c.ses.length && { v: c.num(c.ses.length), p: {} } },
+  { id: 'sets',       calc: c => c.sets && { v: c.num(c.sets), p: {} } },
+  { id: 'kg',         calc: c => { if(!(c.kg > 0)) return null; const el = c.kg / 5000, car = c.kg / 1500, bag = c.kg / 25;   // a friendly comparison: elephants, then cars, then 25 kg bags
+                         return el >= 1 ? { v: c.num(Math.round(c.kg)), k: 'kgEl', p: { n: c.num(Math.round(el * 10) / 10) } } : car >= 1 ? { v: c.num(Math.round(c.kg)), k: 'kgCar', p: { n: c.num(Math.round(car * 10) / 10) } } : { v: c.num(Math.round(c.kg)), k: 'kgBag', p: { n: c.num(Math.round(bag)) } }; } },
+  { id: 'streak',     calc: c => c.streakBest > 1 && { v: c.num(c.streakBest), p: {} } },
+  { id: 'bestWeek',   calc: c => c.weekBest && { v: c.num(c.weekBest), p: {} } },
+  { id: 'favEx',      calc: c => c.favEx && { v: c.favEx.name, p: { n: c.favEx.n }, big: 1 } },
+  { id: 'favMuscle',  calc: c => c.favMuscle && { v: c.favMuscle.name, p: { n: c.favMuscle.n }, big: 1 } },
+  { id: 'heaviest',   calc: c => c.heavy && { v: `${c.num(Math.round(c.heavy.kg * 2) / 2)} kg`, p: { n: c.heavy.name } } },
+  { id: 'bestVol',    calc: c => c.volBest > 0 && { v: `${c.num(Math.round(c.volBest))} kg`, p: {} } },
+  { id: 'longest',    calc: c => c.longMin && { v: c.dur(c.longMin), p: {} } },
+  { id: 'earliest',   calc: c => c.early != null && { v: c.hm(c.early), p: {} } },
+  { id: 'latest',     calc: c => c.late != null && { v: c.hm(c.late), p: {} } },
+  { id: 'weekday',    calc: c => c.wdBest != null && { v: t('wdFull').split(' ')[c.wdBest], p: { n: c.wdN }, big: 1 } },
+  { id: 'hours',      calc: c => c.totMin >= 30 && { v: c.dur(c.totMin), p: {} } },
+  { id: 'proteinRun', calc: c => c.protRun > 1 && { v: c.num(c.protRun), p: {} } },
+  { id: 'kcalDays',   calc: c => c.kcalDays && { v: c.num(c.kcalDays), p: {} } },
+  { id: 'meals',      calc: c => c.meals && { v: c.num(c.meals), p: {} } },
+  { id: 'topFood',    calc: c => c.topFood && { v: c.topFood.name, p: { n: c.topFood.n }, big: 1 } },
+  { id: 'prs',        calc: c => c.prs && { v: c.num(c.prs), p: {} } },
+  { id: 'foodDays',   calc: c => c.foodDays && { v: c.num(c.foodDays), p: {} } },
+];
+// everything the table needs, worked out once per draw
+function statsCtx(){
+  const num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB'), ses = sessions, c = { ses, num };
+  const top = m => { let b = null; m.forEach((n, k) => { if(!b || n > b.n) b = { k, n }; }); return b; };
+  const ex = new Map(), mus = new Map(), wk = new Map(), wd = [0, 0, 0, 0, 0, 0, 0], days = new Set();
+  c.sets = 0; c.kg = 0; c.volBest = 0; c.heavy = null; c.longMin = 0; c.totMin = 0; c.early = null; c.late = null; c.prs = 0;
+  ses.forEach(s => {
+    let vol = 0; days.add(s.date); c.prs += (s.prs || []).length;
+    s.exercises.forEach(x => { const m = exById(x.exId).m, sets = x.sets.filter(st => st.done && isMainSet(st));
+      if(sets.length){ ex.set(x.exId, (ex.get(x.exId) || 0) + sets.length); if(m && m !== 'cardio' && m !== 'other') mus.set(m, (mus.get(m) || 0) + sets.length); }
+      sets.forEach(st => { c.sets++; const w = +st.w || 0, r = +st.r || 0; vol += w * r;
+        const kg = loadOf(x.exId, w); if(r > 0 && r <= 12 && kg > 0 && (!c.heavy || kg > c.heavy.kg)) c.heavy = { kg, name: exName(x.exId) }; }); });
+    const sv = +s.vol || vol; c.kg += sv; c.volBest = Math.max(c.volBest, sv);
+    const a = new Date(s.start), b = s.end ? new Date(s.end) : null, min = b ? (b - a) / 6e4 : 0;
+    if(min >= 5 && min <= 360){ c.longMin = Math.max(c.longMin, Math.round(min)); c.totMin += min; }
+    const hm = a.getHours() * 60 + a.getMinutes(); if(!isNaN(hm)){ c.early = c.early == null ? hm : Math.min(c.early, hm); c.late = c.late == null ? hm : Math.max(c.late, hm); }
+    wd[a.getDay()]++;   // Sunday = 0, as in wdFull
+    const mon = addDays(s.date, -((new Date(s.date + 'T12:00:00').getDay() + 6) % 7)); wk.set(mon, (wk.get(mon) || 0) + 1);
+  });
+  const fe = top(ex), fm = top(mus), fw = Math.max(...wd);
+  c.favEx = fe && { name: exName(fe.k), n: fe.n }; c.favMuscle = fm && GROUPS[fm.k] ? { name: GROUPS[fm.k][lang === 'el' ? 1 : 0], n: fm.n } : null;
+  c.weekBest = Math.max(0, ...wk.values()); c.wdBest = fw > 0 ? wd.indexOf(fw) : null; c.wdN = fw;
+  // longest streak: workouts in a row with at most 2 days off between them
+  const ds = [...days].sort(); let run = 0, best = 0, prev = null;
+  ds.forEach(d => { const n = ses.filter(s => s.date === d).length; run = prev && (new Date(d) - new Date(prev)) / 864e5 <= 3 ? run + n : n; best = Math.max(best, run); prev = d; }); c.streakBest = best;
+  c.hm = m => { const h = Math.floor(m / 60), mi = String(m % 60).padStart(2, '0'); return `${String(h).padStart(2, '0')}:${mi}`; };
+  c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
+  // food: days in a row at your protein target, days near your calorie target, meals, most-logged food
+  const dl = Object.keys(dayLog || {}).filter(d => (dayLog[d] || []).length).sort(); c.foodDays = dl.length; c.meals = 0; c.kcalDays = 0; c.protRun = 0;
+  const foods = new Map(); let prun = 0, pprev = null;
+  dl.forEach(d => { const es = dayLog[d]; c.meals += es.length; es.forEach(e => { if(e.name) foods.set(e.name, (foods.get(e.name) || 0) + 1); });
+    const tg = targetFor(d), tot = dayTotals(d); if(!tg || !(tg.p > 0)){ prun = 0; pprev = d; return; }
+    if(tg.k > 0 && Math.abs(tot.kcal - tg.k) <= tg.k * .1) c.kcalDays++;
+    prun = tot.p >= tg.p * .95 ? (pprev && addDays(pprev, 1) === d ? prun + 1 : 1) : 0; pprev = d; c.protRun = Math.max(c.protRun, prun); });
+  const tf = top(foods); c.topFood = tf && { name: tf.k, n: tf.n }; c.foodDays = dl.length;
+  return c;
+}
+// today's five: pinned first, then a shuffle seeded by the date (stable all day, new tomorrow); the shuffle button bumps ui.statShuf.n
+function statsPick(all){
+  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).map(id => all.find(x => x.id === id)).filter(Boolean).slice(0, 5);
+  const sh = ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0; let h = 2166136261; for(const ch of todayKey() + ':' + sh) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = () => { h = (h + 0x6D2B79F5) | 0; let x = Math.imul(h ^ (h >>> 15), 1 | h); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+  const rest = all.filter(x => !pins.includes(x)).sort((a, b) => a.id.localeCompare(b.id)); for(let i = rest.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  return pins.concat(rest).slice(0, Math.max(5, pins.length));
+}
+const ICO_PIN = '<path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/>', ICO_SHUF = '<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.4 0 2.4-1 3.3-2.3M13.2 9.3C14 8 15 7 16.5 7H20M17.5 4L20.5 7l-3 3M17.5 14l3 3-3 3"/>';
+const pfIcon = (d, size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+function statCards(){
+  const c = statsCtx(), all = STATS.map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = Array.isArray(profile.statPins) ? profile.statPins : [];
+  return all.length ? statsPick(all).map(x => { const on = pins.includes(x.id), r = x.r;
+    return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}">${pfIcon(ICO_PIN, 16)}</button>
+      <small>${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${esc(t('sts_' + (r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
+}
+function togglePin(id){
+  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).slice();
+  if(pins.includes(id)) pins.splice(pins.indexOf(id), 1); else if(pins.length >= 5){ toast(t('stPinMax')); return; } else pins.push(id);
+  if(pins.length) profile.statPins = pins; else delete profile.statPins; saveProfile(); Phone.haptic(); renderProfile();
 }
 
 // ---------- 0.7.9 Add a 1RM (Profile › Leaderboards): lift, weight, date; your entries below with Delete ----------
@@ -123,13 +201,12 @@ function renderProfile(){
   const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
   const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
       ${w.length > 1 ? pfWeightChart(w) : `<span class="pfline">${esc(t('pfNoWeight'))}</span>`}</div>`;
-  const stat = (v, k) => `<div><b>${v}</b><small>${esc(t(k))}</small></div>`;
   box.innerHTML = circles
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
         <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div></div>`
     + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t(strMode ? 'pfBoardsSubStr' : 'pfBoardsSub'))}</p>${boardSw}${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
-    + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`
     + wCard
-    + `<div class="pfstats">${stat(num(d.prCount), 'pfPRs')}${stat(num(d.totals.workouts), 'pfWorkouts')}${stat(num(d.totals.sets), 'pfSets')}${stat(`${num(d.totals.volume)} <small>kg</small>`, 'pfVolume')}${stat(num(d.totals.foodDays), 'pfFoodDays')}</div>`;
+    + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`
+    + `<div class="pfstatgrid">${statCards()}</div>`;
 }

@@ -371,6 +371,8 @@ Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t
 // 0.7.9 leaderboards: Add a 1RM
 $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); return; }
   if(e.target.closest('[data-rkcustom]')){ Phone.haptic(); openRankPick(); return; }
+  const pn = e.target.closest('[data-statpin]'); if(pn){ togglePin(pn.dataset.statpin); return; }
+  if(e.target.closest('[data-statshuf]')){ Phone.haptic(); ui.statShuf = { d: todayKey(), n: (ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0) + 1 }; saveUI(); renderProfile(); return; }
   if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
   const sw = e.target.closest('[data-pfboard]'); if(sw){ Phone.haptic(); ui.pfBoard = sw.dataset.pfboard; saveUI(); renderProfile(); } });   // 0.7.10: Max PR | Strength, remembered
 $('ormEx').addEventListener('change', ormHint);
