@@ -1070,3 +1070,55 @@ const TIER_VARIANT = {
 };
 // tiers low → high; each has levels 3 → 1 (Bronze 3 lowest, Diamond 1 highest). Colours live in workout.css (--tier-*).
 const TIERS = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+
+// ---------- 0.7.10 rank rating: the one place for the rank maths (pure: no app state, tools/check.js tests it) ----------
+// One rating per exercise, in "standard units" (estimated 1RM ÷ body weight at the reference body weight, the same scale as TIER_STD).
+// Input: one summary per workout with this lift { ago: days ago, e1s: [estimated 1RM of each finished normal set, 12 reps or fewer],
+// vol: kg moved (sets × reps × kg) }; body { bw, sex }; std = tierStd(exId) → { s: TIER_STD row, k: variant strength }.
+const RANK = {
+  wPeak: 0.60, wWork: 0.25, wVol: 0.15,   // the mix: peak strength, working strength (top 3 sets), volume
+  bwExp: 0.67,                              // body weight rescales every part as bw^0.67 (strength grows with muscle size, like the powerlifting formulas)
+  refBw: { m: 80, f: 60 },                  // the body weight where TIER_STD's ratios hold exactly; lighter lifters need a bit more per kg, heavier a bit less
+  weeks: 12,                                // the window: your best sets of the last 12 weeks count in full
+  fade: 0.01, fadeMin: 0.75,                // older sets still count, 1 % less per week past the window, never below 75 % (a long break lowers it slowly)
+  refVol: 24,                               // the "normal training" behind a standard: 4 sets × 8 reps at 75 % of your 1RM = 24 × 1RM of volume
+  refWork: 0.95,                            // … and its top 3 sets each worth 95 % of your best 1RM (8 reps at 75 %)
+  confirm: 0.05,                            // a peak from one lucky workout counts at most 5 % above your best from any other workout
+  diaCap: 0.15,                             // Diamond's band above Elite: as wide as Advanced→Elite, but at most 15 % of Elite
+};
+// kg → standard units for this body weight: divide by bw^0.67 (scaled so the reference body weight is unchanged), times the variant strength
+const rankUnit = (body, std) => std.k / (Math.pow(body.bw, RANK.bwExp) * Math.pow(RANK.refBw[body.sex], 1 - RANK.bwExp));
+// the three parts in kg, best of each across your workouts (older ones faded): peak 1RM, average of the top 3 sets of your best workout, most volume
+function rankParts(list){ let P = 0, P2 = 0, W = 0, V = 0;
+  (list || []).forEach(s => { const a = Math.max(0, (+s.ago || 0) / 7 - RANK.weeks), f = Math.max(RANK.fadeMin, 1 - RANK.fade * a);
+    const top = (s.e1s || []).filter(v => v > 0).sort((x, y) => y - x);
+    if(top.length){ const p = top[0] * f; if(p > P){ P2 = P; P = p; } else if(p > P2) P2 = p; }
+    W = Math.max(W, ((top[0] || 0) + (top[1] || 0) + (top[2] || 0)) / 3 * f);   // missing sets count as 0: one lone set is only a third of this part
+    V = Math.max(V, (+s.vol || 0) * f); });
+  // a lucky day: the peak counts at most 5 % above your best from any other workout (it counts in full once a second workout confirms it)
+  if(P2 > 0) P = Math.min(P, P2 * (1 + RANK.confirm));
+  return { P, W, V }; }
+// the rating from the parts (kg) → standard units
+function rankScore(parts, body, std){ const u = rankUnit(body, std), mid = std.s[body.sex][2];
+  const p = parts.P * u, w = Math.min(parts.W * u, p);
+  // volume: square root (double the volume → +41 % of this part), scaled so normal training at Intermediate equals your strength, never above your peak
+  const v = Math.min(p, Math.sqrt(parts.V * u * mid / RANK.refVol));
+  return RANK.wPeak * p + RANK.wWork * w + RANK.wVol * v; }
+// the parts of someone with this estimated 1RM (kg) who trains normally (4 × 8 at 75 %): the yardstick the levels are built on
+const rankRefParts = e1 => ({ P: e1, W: e1 * RANK.refWork, V: e1 * RANK.refVol });
+// the 15 level starts as ratings: Bronze 3 at 0, then each tier's band (Beginner→Novice … Elite→Diamond top) in thirds, where a band edge
+// is the rating of a normal trainee whose 1RM sits exactly on that standard
+function rankSteps(body, std){ const r = std.s[body.sex], u = rankUnit(body, std), out = [];
+  const at = ratio => rankScore(rankRefParts(ratio / u), body, std);
+  for(let i = 0; i < 5; i++){ const lo = r[i], hi = i < 4 ? r[i + 1] : r[4] + Math.min(r[4] - r[3], r[4] * RANK.diaCap);
+    for(let j = 0; j < 3; j++) out.push(i + j ? at(lo + (hi - lo) * j / 3) : 0); }
+  return out; }
+// level 0 (Bronze 3) … 14 (Diamond 1) for a rating
+const rankLevel = (score, steps) => { let n = 0; while(n < 14 && score >= steps[n + 1] - 1e-9) n++; return n; };
+// how far along the current level (0…1) and the kg of estimated 1RM still needed for the next one (all your sets that much heavier)
+function rankGap(parts, body, std){ const steps = rankSteps(body, std), sc = rankScore(parts, body, std), n = rankLevel(sc, steps);
+  if(n >= 14) return { n, frac: 1, kg: 0 };
+  const lo = steps[n], hi = steps[n + 1], grow = f => rankScore({ P: parts.P * f, W: parts.W * f, V: parts.V * f }, body, std);
+  let a = 1, b = 2; while(grow(b) < hi && b < 64) b *= 2;
+  for(let i = 0; i < 40; i++){ const m = (a + b) / 2; if(grow(m) >= hi) b = m; else a = m; }
+  return { n, frac: Math.max(0, Math.min(1, (sc - lo) / (hi - lo))), kg: (b - 1) * parts.P }; }

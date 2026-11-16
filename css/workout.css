@@ -117,9 +117,12 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* cards */
 #sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
 .exc.open{position:relative;display:flex;flex-direction:column;gap:var(--s2)}
-/* 0.7.7: card top row, pulled into the card's corner: [tier badge slot][settings gear 44 px] */
-.extop{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:44px;margin:-14px -10px -18px 0}
-.extier{display:flex;align-items:center;min-width:0}
+/* 0.7.10: card top row, pulled into the card's corners: [rank badge][sore warning] … [settings gear 44 px] */
+.extop{display:flex;align-items:center;justify-content:space-between;gap:6px;height:44px;margin:-14px -10px -18px -8px}
+.extier{display:flex;align-items:center;gap:2px;min-width:0;margin-right:auto}
+.extop .exgear{margin-left:auto}
+.extop.has{margin-bottom:-6px}   /* badge row drawn: the title starts below it, full width */
+.extier .sorewarn{margin:0}
 .extier:empty{display:none}
 .exgear{flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exc.ssarm .exgear{visibility:hidden}
@@ -374,6 +377,14 @@ body.inses .coachbub{display:none!important}
 .pfrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
 :root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
 :root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
+/* 0.7.10 rank bubble: [current icon] bar in the current tier's colour [next icon]; the kg still needed once, above */
+.tiergap{width:min(260px,calc(100vw - 32px))}
+.tiergap .tgkg{display:block;text-align:center;font-weight:var(--w-bold);margin-bottom:6px}
+.tgrow{display:flex;align-items:center;gap:var(--s2)}
+.tgend{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto}
+.tgend small{font-size:11px;color:var(--t-muted);white-space:nowrap}
+.tgbar{flex:1;height:8px;border-radius:var(--r-pill);background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line);overflow:hidden;margin-bottom:16px}
+.tgbar i{display:block;height:100%;background:var(--trc);transform-origin:left center;border-radius:inherit}
 .tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}
 /* Profile › Leaderboards: the tier badge text takes the tier colour too; the prompt when body weight or sex is missing */
 .pftier[style*="--tier-"]{color:var(--tc)}

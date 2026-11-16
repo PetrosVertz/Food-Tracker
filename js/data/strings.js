@@ -700,7 +700,7 @@ Object.assign(S, {
 // ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
 Object.assign(S, {
   tier_bronze: ['Bronze', 'Χάλκινο'], tier_silver: ['Silver', 'Ασημένιο'], tier_gold: ['Gold', 'Χρυσό'], tier_platinum: ['Platinum', 'Πλατινένιο'], tier_diamond: ['Diamond', 'Διαμαντένιο'],
-  tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level reached', 'Ανώτατο επίπεδο'],
+  tierGap: ['{kg} kg to {tier} (estimated 1RM)', 'Ακόμα {kg} kg για {tier} (εκτιμώμενο 1RM)'], tierTop: ['Top level reached', 'Ανώτατο επίπεδο'], tierGapKg: ['+{kg} kg', '+{kg} kg'],
   tierNeedBody: ['Add Body Weight and Sex for Tiers', 'Πρόσθεσε Βάρος και Φύλο για Επίπεδα'],
 });
 
@@ -754,6 +754,7 @@ Object.assign(S, {
   aiKnowDone: ['The AI has forgotten what it learned', 'Το AI ξέχασε όσα είχε μάθει'],
 });
 Object.assign(S, {
+  exsRank: ['Rank Badge', 'Σήμα Κατάταξης'], exsRankS: ['Your rank for this lift on the card. Tap it to see how far the next rank is.', 'Η κατάταξή σου στην άσκηση, πάνω στην κάρτα. Πάτα το για να δεις πόσο απέχει η επόμενη.'],
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
   soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
   soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],

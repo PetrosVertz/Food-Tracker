@@ -87,7 +87,7 @@ const gx = () => settings.gx || (settings.gx = {});
 // 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
 // The old single switch (hideMarks) becomes all three hidden.
 // 0.7.9.6: ONE place for the Exercise Settings defaults: only the three pills are on; a switch someone has changed keeps their choice
-const GX_DEF = { uniPill: true, formPill: true, swapPill: true, lbAtt: false, warnSore: false, tips: false, uniBoth: false, half: false, neg: false, rir: false, sound: false };
+const GX_DEF = { rank: true, uniPill: true, formPill: true, swapPill: true, lbAtt: false, warnSore: false, tips: false, uniBoth: false, half: false, neg: false, rir: false, sound: false };
 const gOn = k => { const v = gx()[k]; return v === undefined || v === null ? !!GX_DEF[k] : !!v; };
 function hideM(k){ const G = gx(); if(G.hideMarks){ G.hideM = { W: true, D: true, F: true }; delete G.hideMarks; Store.save('settings', settings); } return !!(G.hideM && G.hideM[k]); }
 let EXS_MK = false;   // the Hide Set Markers list is open
@@ -704,48 +704,56 @@ function planFor(d){ const wd = new Date(d + 'T12:00:00').getDay(); const p = gy
   if(p.tpl === 'gym') return { type: 'gym', work: 'upper', time: p.time || profile.gymTime || '18:00' };
   const tp = tpls.find(x => x.id === p.tpl); return tp ? { type: 'gym', work: workKind(tp.type), time: p.time || profile.gymTime || '18:00', tpl: tp.id } : null; }
 
-// ---------- 0.7.7 tiers: Bronze 3 … Diamond 1 per exercise, from your best estimated 1RM vs body weight and sex (TIER_STD in data/gym.js) ----------
+// ---------- tiers: Bronze 3 … Diamond 1 per exercise (0.7.10: the rating in data/gym.js, RANK / rankScore; standards TIER_STD) ----------
 const tierBody = () => { const bw = (typeof latestWeight === 'function' && latestWeight()) || (targets && +targets.bw) || 0, sex = profile && profile.sex;
   return bw > 30 && (sex === 'm' || sex === 'f') ? { bw, sex } : null; };
 // the standard an exercise is measured against: [Beginner…Elite ratios, strength next to the board lift] or null (no tiers)
 function tierStd(exId){ const v = TIER_VARIANT[exId], base = v ? v[0] : exId, s = TIER_STD[base]; return s ? { s, k: v ? v[1] : 1 } : null; }
-// best estimated 1RM: finished normal sets (no warm-ups, drops or the right side of L/R), 12 reps or fewer; saved workouts + the live one
-function tierBest(exId){ let best = 0;
-  const scan = x => { if(x.exId !== exId) return; x.sets.forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1 || +st.r > 12) return; const v = e1rm(+st.w, +st.r, exId); if(v > best) best = v; }); };
-  sessions.forEach(s => s.exercises.forEach(scan)); if(active) active.exercises.forEach(scan); return best; }
-// the 15 level starts in kg of this exercise: Bronze 3 at 0, then each tier's band (Beginner→Novice → … → Elite→Elite+one step) split in thirds
-function tierSteps(exId, body){ const st = tierStd(exId); if(!st) return null; const r = st.s[body.sex], out = [];
-  for(let i = 0; i < 5; i++){ const lo = r[i], hi = i < 4 ? r[i + 1] : r[4] + (r[4] - r[3]);
-    for(let j = 0; j < 3; j++) out.push(i + j ? (lo + (hi - lo) * j / 3) * body.bw / st.k : 0); }
-  return out; }
+// one summary per workout with this lift, for rankParts(): finished normal sets only (no warm-ups, drops or the right side of L/R);
+// estimated 1RMs from sets of 1–12 reps, volume from every such set; saved workouts + the live one
+function tierList(exId){ const out = [];
+  const add = s => { let e1s = [], vol = 0;
+    s.exercises.forEach(x => { if(x.exId !== exId) return; x.sets.forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1) return;
+      vol += loadOf(exId, st.w) * (+st.r); if(+st.r <= 12) e1s.push(e1rm(+st.w, +st.r, exId)); }); });
+    if(e1s.length || vol > 0) out.push({ ago: Math.max(0, -daysUntil(s.date)), e1s, vol }); };
+  sessions.forEach(add); if(active) add(active); return out; }
 const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${3 - n % 3}`;
-// → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { n, tier, label, next?: { label, kg } } (n 0–14) · { none: true } (no sets yet)
-// 0.7.9: rank emblems instead of text. One line emblem per tier (Bronze shield · Silver shield, two chevrons · Gold shield, star ·
-// Platinum hexagon gem · Diamond cut diamond), tier colour, a soft tinted fill; the level as three pips below (Level 3 = one lit, Level 1 = all three).
-const RANK_SHIELD = 'M12 2.6l7.4 2.9v5.8c0 4.5-3.1 8-7.4 9.6-4.3-1.6-7.4-5.1-7.4-9.6V5.5z';
+// 0.7.10: rank badges. PLACEHOLDERS: Petros is drawing the final tier icons. To use them, put each tier's SVG drawing (the inside of an
+// <svg>, made for a 32 × 34 box, the crest in the top 26, use currentColor so the tier colour applies) into RANK_ART below. The code draws the
+// level pips under it (Level 3 = one lit, Level 1 = all three) and colours it; nothing else needs to change.
 const RANK_ART = {
-  bronze: [RANK_SHIELD, 'M8.6 10.4l3.4 2.6 3.4-2.6'],
-  silver: [RANK_SHIELD, 'M8.6 8.6l3.4 2.6 3.4-2.6M8.6 12.2l3.4 2.6 3.4-2.6'],
-  gold: [RANK_SHIELD, 'M12 7l1.1 2.7 2.9.2-2.3 1.9.8 2.8-2.5-1.6-2.5 1.6.8-2.8-2.3-1.9 2.9-.2z'],
-  platinum: ['M12 2.4l8 4.6v9.2l-8 4.6-8-4.6V7z', 'M12 6.6l4.4 2.5v5l-4.4 2.5-4.4-2.5v-5zM12 6.6v10M7.6 9.1l8.8 5M16.4 9.1l-8.8 5'],
-  diamond: ['M7.2 3.6h9.6l4.2 5.2L12 20.6 3 8.8z', 'M3 8.8h18M9.6 3.6L8 8.8l4 11.8 4-11.8-1.6-5.2'] };
+  bronze: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  silver: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  gold: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  platinum: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  diamond: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>' };
 function rankIcon(tier, n, size){
-  const a = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips
-  return `<svg class="rankic tr-${tier}" width="${Math.round(h * 24 / 30)}" height="${h}" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="${a[0]}" fill="currentColor" fill-opacity=".16"/><path d="${a[1]}"/>${[7.5, 12, 16.5].map((x, i) => `<circle cx="${x}" cy="26.6" r="1.7"${i < lit ? ' fill="currentColor"' : ' fill="none" stroke-opacity=".5" stroke-width="1.2"'}/>`).join('')}</svg>`;
+  const art = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26, sw = h < 24 ? 1.9 : 1.6;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips; thicker lines when small
+  return `<svg class="rankic tr-${tier}" width="${Math.round(h * 32 / 34)}" height="${h}" viewBox="0 0 32 34" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    ${art}${[10.5, 16, 21.5].map((x, i) => `<circle cx="${x}" cy="30.6" r="1.9"${i < lit ? ' fill="currentColor" stroke="none"' : ' fill="none" stroke-opacity=".55" stroke-width="1.2"'}/>`).join('')}</svg>`;
 }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
-const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 28)}</button>`;
+const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 26)}</button>`;
+// 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
+// Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
-  hideTip(); const p = document.createElement('div'); p.className = 'tippop'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
-  p.textContent = `${tf.label} · ${tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop')}`; document.body.appendChild(p);
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
+  const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
+  p.setAttribute('aria-label', `${tf.label} · ${nx ? t('tierGap', { kg: fmt(nx.kg), tier: nx.label }) : t('tierTop')}`);
+  p.innerHTML = `<b class="tgkg">${nx ? esc(t('tierGapKg', { kg: fmt(nx.kg) })) : esc(t('tierTop'))}</b>
+    <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`;
+  document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth;
-  p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.right - w)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
-function tierFor(exId, e1){ if(!tierStd(exId)) return null; const body = tierBody(); if(!body) return { need: true };
-  e1 = e1 == null ? tierBest(exId) : e1; if(!(e1 > 0)) return { none: true };
-  const steps = tierSteps(exId, body); let n = 0; while(n < 14 && e1 >= steps[n + 1]) n++;
-  const res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n) };
-  if(n < 14) res.next = { label: tierName(n + 1), kg: Math.max(0.5, Math.ceil((steps[n + 1] - e1) * 2) / 2) };
+  p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
+// → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
+// · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
+// e1 (optional): a real 1RM from elsewhere (Profile › Add a 1RM); it counts as your peak, or as a normal trainee's if there are no workouts
+function tierFor(exId, e1){ const std = tierStd(exId); if(!std) return null; const body = tierBody(); if(!body) return { need: true };
+  let parts = rankParts(tierList(exId));
+  if(+e1 > parts.P) parts = parts.P > 0 ? { ...parts, P: +e1 } : rankRefParts(+e1);
+  if(!(parts.P > 0)) return { none: true };
+  const g = rankGap(parts, body, std), n = g.n, res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n), frac: g.frac };
+  if(n < 14) res.next = { n: n + 1, tier: TIERS[Math.floor((n + 1) / 3)], label: tierName(n + 1), kg: Math.max(0.5, Math.ceil(g.kg * 2) / 2) };
   return res; }
 
 // ---------- live workout (canvas: Phones.dc.html / Gym.dc.html) ----------
@@ -768,7 +776,7 @@ function extrasHtml(s, j){ const G = gx(); if(!(gOn('half') || gOn('neg') || gOn
 function openExSet(){ drawExSet(); open('ovExSet'); }
 function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${gOn(k) ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${gOn(k)}" aria-label="${t(a)}"><i></i></button></div>`;
   const mk = [['W', t('mkW')], ['D', t('mkD')], ['F', t('mkF')]].map(([k, l]) => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${l}</button>`).join('');
-  $('exsBody').innerHTML = `<h3 class="exsh first">${t('exsVisH')}</h3>` + row('lbAtt', 'atTitle', 'atSub') + row('warnSore', 'exsWarn', 'exsWarnS') + row('uniPill', 'exsUniPill', 'exsUniPillS') + row('formPill', 'exsFormPill', 'exsFormPillS') + row('swapPill', 'exsSwapPill', 'exsSwapPillS') + row('tips', 'exsTips', 'exsTipsS') +
+  $('exsBody').innerHTML = `<h3 class="exsh first">${t('exsVisH')}</h3>` + row('lbAtt', 'atTitle', 'atSub') + row('rank', 'exsRank', 'exsRankS') + row('warnSore', 'exsWarn', 'exsWarnS') + row('uniPill', 'exsUniPill', 'exsUniPillS') + row('formPill', 'exsFormPill', 'exsFormPillS') + row('swapPill', 'exsSwapPill', 'exsSwapPillS') + row('tips', 'exsTips', 'exsTipsS') +
     `<h3 class="exsh">${t('exsExtH')}</h3>` + row('uniBoth', 'exsUni', 'exsUniS') +
     `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + row('sound', 'exsSound', 'exsSoundS'); }
 
@@ -784,8 +792,8 @@ function cardHtml(x, i){
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || ex.e === 'barbell' || !gOn('uniPill') ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore') ? exSore(x.exId) : null;
-  // 0.7.7: the top row of the card: a free slot for the tier badge (gym-tiers) just left of the Exercise Settings gear, top right
-  const head = `<div class="extop"><span class="extier" data-tier>${tf && tf.label ? tierBadge(tf) : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow">${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}<b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
+  // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
+  const rk = tf && tf.label && gOn('rank'), head = `<div class="extop${rk || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills${uniPill || gOn('formPill') || (!card && gOn('swapPill')) ? '' : ' hide'}">${uniPill}${gOn('formPill') ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill') ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
