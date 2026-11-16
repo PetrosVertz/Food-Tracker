@@ -681,7 +681,7 @@ Object.assign(S, {
 
 // 0.7.7 shell: Profile tab (Settings now opens from the gear on Profile)
 Object.assign(S, {
-  tabProfile: ['Profile', 'Προφίλ'],
+  tabProfile: ['Social Hub', 'Κοινωνικό Κέντρο'],
   pfYou: ['You', 'Εσύ'], pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
   frzUse: ['1 Streak Freeze Left This Week, Use It?', 'Απομένει 1 Πάγωμα Σερί Αυτή την Εβδομάδα. Να Χρησιμοποιηθεί;'], frzEnd: ['This Will End Your {n}-Day Streak', 'Αυτό Θα Τερματίσει το Σερί {n} Προπονήσεων'],
   frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
@@ -735,7 +735,7 @@ Object.assign(S, {
   phTake: ['Take Photo', 'Λήψη Φωτογραφίας'], phChoose: ['Choose Photo', 'Επιλογή Φωτογραφίας'], phRemove: ['Remove Photo', 'Αφαίρεση Φωτογραφίας'],
   phUse: ['Use Photo', 'Χρήση Φωτογραφίας'], phDrag: ['Pinch to zoom, drag to move. Double-tap to reset.', 'Τσίμπησε για ζουμ, σύρε για να τη μετακινήσεις. Διπλό πάτημα για επαναφορά.'],
   phName: ['Name', 'Όνομα'], phNamePh: ['Your first name (optional)', 'Το μικρό σου όνομα (προαιρετικό)'],
-  phNameSub: ['With no photo, its first letter shows on Profile and in the bottom bar.', 'Χωρίς φωτογραφία, το πρώτο του γράμμα φαίνεται στο Προφίλ και στην κάτω μπάρα.'],
+  phNameSub: ['With no photo, its first letter shows on Social Hub and in the bottom bar.', 'Χωρίς φωτογραφία, το πρώτο του γράμμα φαίνεται στο Κοινωνικό Κέντρο και στην κάτω μπάρα.'],
   eiMore: ['Muscles and Steps', 'Μύες και Βήματα'],
   phSaved: ['Profile photo saved', 'Η φωτογραφία προφίλ αποθηκεύτηκε'], phBad: ['Couldn’t open that photo.', 'Δεν άνοιξε αυτή η φωτογραφία.'],
 });
