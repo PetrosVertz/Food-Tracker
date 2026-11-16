@@ -23,6 +23,7 @@ const Store = (() => {
     exCustom: ['ft.gym.custom', 'list', 1], tpls: ['ft.gym.tpl', 'list', 1], gymPlan: ['ft.gym.plan', 'map', 1], sessions: ['ft.gym.sessions', 'list', 1],
     active: ['ft.gym.active', 'one', 1], comeback: ['ft.gym.comeback', 'one', 1], combos: ['ft.combos.v1', 'list', 1],
     logPhr: ['ft.logphr.v1', 'map', 1],   // 0.7.1 Quick Log: typed phrase → food, so repeats need no AI matching
+    foodFix: ['ft.foodfix.v1', 'map', 1],   // Athlete OS step 3: Food Coach corrections you made (food words → your portion), so the AI learns your portions
     aiKnow: ['ft.aiknow.v1', 'one', 0],   // 0.7.9 what the AI has learned from your logs (js/know.js); this device only, rebuilt daily
     aiUsage: ['ft.aiusage.v1', 'one', 0],   // Athlete OS step 1: AI request counts, tokens and timings (js/platform/ai-usage.js); this device only, no message text
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],

@@ -623,7 +623,7 @@ const logQGenInfo = g => ({ ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon:
 // Food Coach's answer is structured: the app draws it (a short reply, then the foods as one list with one Add), never guesses from free text
 // Athlete OS step 3: calm, precise voice; the user's own matching saved foods as a hint; a whole-portion total per item (checked against
 // per 100 g × grams in logQOdd); a general note on real portions. No food-name lists and no fixed calorie numbers anywhere.
-function logQPrompt(txt, ch, extra){
+function logQPrompt(txt, ch, extra, fix){
   const tg = targetFor(curDay), tot = dayTotals(curDay), conv = ch ? ch.transcript() : '', ln = lang === 'el' ? 'Greek' : 'English';
   return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Calm and precise, straight to the point, no chatting; very occasionally a dry, understated line of humour, never at the user's expense.
 ${conv ? `Conversation so far (last messages):\n${conv}\n` : ''}The user's new message: """${txt}"""
@@ -641,8 +641,13 @@ Rules for items (only for "log"):
 - grams: your best guess of the whole amount eaten, in grams (ml for drinks). ml: true for drinks.
 - kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
 - total_kcal: the calories of the WHOLE amount eaten. It must equal kcal × grams / 100; check it before answering.
-Real portions: estimate what a real person is actually served, not the smallest textbook portion. Restaurant, takeaway and street food are usually bigger and richer than home cooking; count the cooking oil, sauces, cheese and sides that come with a dish. When the amount is not written, use the typical real serving.${logQLib(txt)}${extra || ''}${AI.dietRules()}${AI.knows('food')}
+Real portions: estimate what a real person is actually served, not the smallest textbook portion. Restaurant, takeaway and street food are usually bigger and richer than home cooking; count the cooking oil, sauces, cheese and sides that come with a dish. When the amount is not written, use the typical real serving.${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}${extra || ''}${AI.dietRules()}${AI.knows('food')}
 Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"total_kcal":number}]}`;
+}
+// the correction case: the list being corrected, so the AI changes only what the user corrected
+function logQFixAsk(prev){
+  const rows = prev.items.map(it => { const r = it.st ? lwCalc(it.st) : null; return `- ${it.st ? it.st.info.name : it.name}: ${r ? `${Math.round(r.g)} g, ${Math.round(r.kcal)} kcal` : 'not found'}`; });
+  return `\nThe user is correcting the list you gave last:\n${rows.join('\n')}\nAnswer "log" with the WHOLE corrected list: change what they corrected, keep the rest as it was, and make the corrected values realistic.`;
 }
 // the user's own saved foods that share a word with the message (name, brand, kcal per 100 g), so names and estimates stay in line with them.
 // Only a hint for the AI: matching itself still goes through the web lookup (logQWeb), as since 0.7.5.
@@ -671,6 +676,37 @@ function logQClean(a){
     kcal: n(x.kcal) !== null && n(x.kcal) >= 0 ? n(x.kcal) : null, protein: Math.max(0, n(x.protein) || 0), carbs: Math.max(0, n(x.carbs) || 0), fat: Math.max(0, n(x.fat) || 0),
     total: n(x.total_kcal) > 0 ? n(x.total_kcal) : null }));
 }
+// ---- Athlete OS step 3: Food Coach remembers your corrections (on this phone, through Store; the Brain takes this over later) ----
+// Learned only from what you do: changing an amount the AI guessed, swapping a food, or correcting the list in the chat. Each food word
+// key keeps your latest portion; the matching ones go into the next request as a hint. Reset What AI Knows clears it (js/know.js).
+let logFix = Store.load('foodFix', {});   // logQKey(food words) → { name, g, kcal, aiG, aiKcal, to, n, at }
+const LOGQ_FIX_MAX = 150;
+function logQFixSave(){
+  const ks = Object.keys(logFix); if(ks.length > LOGQ_FIX_MAX) ks.sort((a, b) => (logFix[a].at || 0) - (logFix[b].at || 0)).slice(0, ks.length - LOGQ_FIX_MAX).forEach(k => { delete logFix[k]; });
+  Store.save('foodFix', logFix);
+}
+function logQFixNote(it, d){
+  const k = logQKey(it.text || it.name || ''); if(!k) return;
+  const was = logFix[k] || {};
+  logFix[k] = { name: String(it.name || it.text).slice(0, 60), g: Math.round(d.g), kcal: Math.round(d.kcal), aiG: d.aiG ? Math.round(d.aiG) : null, aiKcal: d.aiKcal ? Math.round(d.aiKcal) : null,
+    to: d.to ? String(d.to).slice(0, 60) : null, n: (was.n || 0) + 1, at: Date.now() };
+}
+// the remembered corrections that share a word with these words, as a prompt line; '' when none
+function logQFixHint(words){
+  const ws = new Set(logQKey(words).split(' ').filter(w => w.length > 2)); if(!ws.size) return '';
+  const hit = Object.entries(logFix).map(([k, v]) => ({ v, n: k.split(' ').filter(w => ws.has(w)).length })).filter(x => x.n && x.v && x.v.g > 0)
+    .sort((a, b) => b.n - a.n || (b.v.at || 0) - (a.v.at || 0)).slice(0, 6);
+  if(!hit.length) return '';
+  return `\nThis user's own past corrections (learned from their edits; for the same food use their portion and values unless the message says otherwise):\n`
+    + hit.map(({ v }) => `- "${v.name}": ${v.to ? `they chose "${v.to}" instead; ` : ''}they log about ${v.g} g (${v.kcal} kcal)${v.aiG ? `, where the first guess was ${v.aiG} g${v.aiKcal ? ` (${v.aiKcal} kcal)` : ''}` : ''}`).join('\n');
+}
+// does the message correct the last list? ("no, it was bigger", "that's too low", "λάθος, ήταν 300 γρ") — only counted when a list is there to correct
+function logQIsFix(txt){
+  const s = norm(txt);
+  return /\b(wrong|incorrect|too (low|high|little|much|small|big|few|many)|more like|closer to|not (that|so|enough)|actually|it was (more|less|bigger|smaller|about|around)|that'?s (not|too|off|way)|should be|bigger|smaller|larger|underestimat\w*|overestimat\w*|correct(ion)?|fix|change it|make it)\b/.test(s)
+    || /(λαθοσ|λαθοσ|πολυ (λιγ|πολλ)|περισσοτερ|λιγοτερ|μεγαλυτερ|μικροτερ|στην πραγματικοτητα|διορθ|δεν ηταν|ηταν (πιο|γυρω|περιπου|πανω|κατω)|αλλαξε|κανε το)/.test(s);
+}
+let logQPrev = null;   // the last list Food Coach showed, so a correction can refer to it
 // Athlete OS step 3: is one food's estimate believable? General checks only (no food names, no fixed calorie numbers):
 // '' when fine, else a short reason for the one retry. Drinks skip the macro check (alcohol has calories outside protein / carbs / fat).
 function logQOdd(x){
@@ -715,12 +751,11 @@ function logQState(info, it){
   if(!(g > 0)) g = 100;
   return mk(gi, r1(g / units[gi].size));
 }
-function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
 
 // Food Coach (0.7.5): AI and web only. Every food goes to the AI with web search, which reads the real product's nutrition per 100 g
 // (tag FROM THE WEB) or, when it can't find it, gives an estimate (tag AI ESTIMATE). Your foods, the built-in list and Open Food
 // Facts are NOT used for matching here. Each food is saved to My Foods marked via:'coach' (never read back by Food Coach).
-function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); }
+function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); if(it.g0 == null) it.g0 = lwCalc(it.st).g; }   // g0: the amount first offered, to notice your corrections
 // saved to My Foods, marked as from Food Coach; the same name + macros already saved by Food Coach isn't saved twice
 function logQSaveFound(it, d, src){
   const key = x => [norm(x.name || ''), norm(x.brand || ''), Math.round(+x.kcal || 0), r1(+x.protein || 0), r1(+x.carbs || 0), r1(+x.fat || 0), x.unit === 'ml' ? 'ml' : 'g'].join('|');
@@ -814,10 +849,11 @@ function logQOpenSheet(q){
 function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return; ks.filter(k => k.startsWith('m:')).slice(0, ks.length - 500).forEach(k => { delete logPhr[k]; }); }
 
 async function logQSend(txt, ch){
-  const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready' };
-  let parts = Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all
+  const prev = logQPrev && FC[logQPrev.id] && logQPrev.items.length ? logQPrev : null, fix = prev && AI.hasKey() && logQIsFix(txt) ? prev : null;
+  const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready', fixOf: fix };
+  let parts = !fix && Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all (a correction always asks)
   if(!parts && AI.hasKey()){
-    try{ let r = await ch.ask(logQPrompt(txt, ch), null, { task: 'food-coach' }) || {}, intent = String(r.intent || 'log');
+    try{ let r = await ch.ask(logQPrompt(txt, ch, '', fix), null, { task: fix ? 'food-coach-fix' : 'food-coach' }) || {}, intent = String(r.intent || 'log');
       reply = logQReply(r.reply);
       if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
       parts = logQClean(r.items);
@@ -825,7 +861,7 @@ async function logQSend(txt, ch){
       const odd = p => (p || []).map((x, i) => [i, x, logQOdd(x)]).filter(z => z[2]);
       if(intent === 'log' && (!(parts && parts.length) || odd(parts).length)){
         const why = parts && parts.length ? odd(parts).map(([i, x, w]) => `item ${i} "${x.name}": ${w}`).join('; ') : 'you said it is a log but returned no items';
-        try{ const r2 = await ch.ask(logQPrompt(txt, ch, `\nYour first answer had problems: ${why}. Give a realistic version: re-check each amount and the values per 100 g, and make total_kcal equal kcal × grams / 100. Return the full JSON again.`), null, { task: 'food-coach-retry' }) || {};
+        try{ const r2 = await ch.ask(logQPrompt(txt, ch, `\nYour first answer had problems: ${why}. Give a realistic version: re-check each amount and the values per 100 g, and make total_kcal equal kcal × grams / 100. Return the full JSON again.`, fix), null, { task: 'food-coach-retry' }) || {};
           const p2 = String(r2.intent || 'log') === 'log' ? logQClean(r2.items) : null;
           if(p2 && p2.length && (!(parts && parts.length) || odd(p2).length <= odd(parts).length)){ parts = p2; reply = logQReply(r2.reply) || reply; } }
         catch(e){ if(e.cancelled) throw e; }
@@ -837,8 +873,9 @@ async function logQSend(txt, ch){
   }
   if(!parts) parts = logQSplit(txt);
   if(!parts.length){ ch.say(reply || t('logQFail')); return; }
-  ch.say(note || reply || t('logQGot'));
-  m.items = parts.map(p => ({ ...p, busy: true }));
+  if(m.fixOf && !m.parts) m.fixOf = null;   // the AI did not answer: this is a new list, not a correction
+  ch.say((note || reply || t('logQGot')) + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
+  m.items = parts.map(p => ({ ...p, busy: true })); logQPrev = m;
   const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }] }]);
   FC[m.id] = { m, card, ch }; logQRedraw(m);
   try{ await logQMatchAll(m, ch); }
@@ -854,27 +891,40 @@ async function logQSuggest(ch, reply){
   cards.forEach((card, i) => PLANCH.push({ m: r.meals[i], card, ch }));
 }
 
+// what Add teaches: an amount the AI guessed and you changed, a food you swapped, or a food you corrected in the chat
+function logQLearn(m, it, r){
+  const guessed = it.qty == null && it.g0 > 0, moved = guessed && Math.abs(r.g - it.g0) > Math.max(10, it.g0 * .15);
+  const before = m.fixOf && m.fixOf.items.find(p => logQKey(p.text || p.name) === logQKey(it.text || it.name) && p.st);
+  const pr = before ? lwCalc(before.st) : null, chat = pr && (Math.abs(pr.g - r.g) > Math.max(10, pr.g * .1) || Math.abs(pr.kcal - r.kcal) > Math.max(30, pr.kcal * .1));
+  if(!moved && !it.swapped && !chat) return;
+  const per = it.g0 > 0 && it.st ? r.kcal / r.g : 0;
+  logQFixNote(it, { g: r.g, kcal: r.kcal, aiG: chat ? pr.g : moved ? it.g0 : null, aiKcal: chat ? pr.kcal : moved && per ? it.g0 * per : null, to: it.swapped ? it.st.info.name : null });
+}
 function logQLogAll(m){
   const x = FC[m.id]; if(!x || m.state === 'logged') return;
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
   const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
+  const fx = m.fixOf; if(fx && fx.state === 'logged' && fx.undo) fx.undo();   // a correction replaces the list it corrects
   const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [];
   ok.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
     let info = st.info;
     if(info.gen) info = fInfo_(saveGeneric(info.gen));
     info = { ...info, per: lwPer(st) };
     logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]);
+    logQLearn(m, it, r);
     const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
     try{ if(key.foodId ? stockOf(key.foodId) > 0 : mealStock(key.mealId) > 0) takeFromFridge(key, r.g); }catch(e){}
   });
   if(!added.length){ toast(t('needAmount')); return; }
-  if(m.parts) logPhr[m.mk] = m.parts;
-  logQTrim(); logQSavePhr();
+  if(m.parts && !m.fixOf) logPhr[m.mk] = m.parts;
+  if(m.parts && fx && fx.mk) logPhr[fx.mk] = m.parts;   // the first message now gives the corrected list next time
+  logQTrim(); logQSavePhr(); logQFixSave();
   const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k });
   let undone = false;
   const undo = () => { if(undone) return; undone = true;
     const ids = new Set(added.map(e => e.id)); dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog();
-    m.state = 'ready'; x.card.done = ''; x.card.undo = null; renderAll(); logQRedraw(m); };
+    m.state = 'ready'; m.undo = null; x.card.done = ''; x.card.undo = null; renderAll(); logQRedraw(m); };
+  m.undo = undo;
   m.state = 'logged'; x.card.body = fcHtml(m); x.ch.update(x.card, { done: msg, undo }); renderAll();
   toast(msg, t('undo'), undo);
 }
@@ -893,7 +943,7 @@ function logQWire(){
     if(e.target.closest('[data-qswap]')){ it.swap = true; logQRedraw(m); focusQ(); return; }
     const pk = e.target.closest('[data-qpick]'); if(pk){ const [src, info] = (it.sres || [])[+pk.dataset.qpick] || []; if(!info) return;
       const g = it.st ? lwCalc(it.st).g : +it.grams || 0;
-      it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; logQRedraw(m); return; }
+      it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; it.swapped = true; it.doubt = false; logQRedraw(m); return; }
     const st = it.st; if(!st) return;
     const dd = e.target.closest('[data-ldd]'); if(dd){ lddToggle(row, dd); return; }
     const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size, sz = st.units[j].size;
