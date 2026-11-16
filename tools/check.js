@@ -355,11 +355,51 @@ try {
   if (bad.length) bad.forEach(b => fail('stats: ' + b)); else ok('stats: 12 new training stats right on a fake history, hide without data, empty history is safe');
 } catch (e) { fail('could not check the stats: ' + e.message); }
 
+// 13. Rank plates (img/rank): all 30 files exist, are offline (sw.js SHELL), and are exactly the paths rankIcon() builds
+try {
+  const g = read('js/gym.js'), pick = re => { const m = g.match(re); if (!m) throw new Error('not found in gym.js: ' + re); return m[0]; };
+  const rc = { esc: s => String(s), t: k => ({ tier_bronze: 'Bronze', tier_silver: 'Silver', tier_gold: 'Gold', tier_platinum: 'Platinum', tier_diamond: 'Diamond' })[k] || k }; vm.createContext(rc);
+  vm.runInContext([(read('js/data/gym.js').match(/^const TIERS = .*$/m) || [''])[0], pick(/^const ROMAN = .*$/m), pick(/^const tierName = .*$/m), pick(/^const rankSrc = .*$/m),
+    pick(/^function rankIcon\(tier, n, size\)\{[\s\S]*?\n.*\}$/m)].join('\n').replace(/^const /gm, 'var ') + '\n;this.__K = { TIERS, rankIcon };', rc);
+  const { TIERS, rankIcon } = rc.__K, bad = [], files = [];
+  for (const size of ['large', 'small']) for (const tier of TIERS) for (const r of ['III', 'II', 'I']) files.push(`img/rank/${size}/${tier}-${r}.svg`);
+  files.forEach(f => { if (!fs.existsSync(path.join(root, f))) bad.push(`${f} is missing`); else if (!shell.includes(f)) bad.push(`${f} is not in the sw.js offline list`); });
+  const built = new Set();
+  for (let n = 0; n < 15; n++) for (const size of [20, 30, 35, 36, 44, 120]) {
+    const tier = TIERS[Math.floor(n / 3)], html = rankIcon(tier, n, size), src = (html.match(/src="([^"]+)"/) || [])[1];
+    const want = `img/rank/${size < 36 ? 'small' : 'large'}/${tier}-${['III', 'II', 'I'][n % 3]}.svg`; built.add(src);
+    if (src !== want) bad.push(`rankIcon(${tier}, ${n}, ${size}) draws ${src}, expected ${want}`);
+    if (!/^<img\b/.test(html) || !html.includes(`width="${size}"`) || !html.includes(`height="${size}"`)) bad.push(`rankIcon(${tier}, ${n}, ${size}) is not an <img> with a fixed size`);
+    const alt = (html.match(/alt="([^"]*)"/) || [])[1]; if (!alt || !alt.endsWith(' ' + ['III', 'II', 'I'][n % 3])) bad.push(`rankIcon(${tier}, ${n}, ${size}) has alt "${alt}"`);
+  }
+  files.filter(f => !built.has(f)).forEach(f => bad.push(`${f} is never drawn by rankIcon()`));
+  if (bad.length) bad.slice(0, 20).forEach(b => fail('rank plates: ' + b)); else ok(`rank plates: ${files.length} files, offline, and rankIcon() builds every path (n 0–14, small + large)`);
+} catch (e) { fail('could not check the rank plates: ' + e.message); }
+
+// 14. Rank Up / Rank Changed (js/rank-fx.js): a fake before and after rank list gives the right windows
+try {
+  const rc = {}; vm.createContext(rc);
+  vm.runInContext(read('js/rank-fx.js') + '\n;this.__C = rankChanges;', rc);
+  const rankChanges = rc.__C, bad = [];
+  const before = { bench: 4, squat: 5, deadlift: 9, ohp: 7, row: 3 };
+  const after = { bench: 5, squat: 6, deadlift: 8, ohp: 7, row: 3, curl: 0 };
+  const got = Object.fromEntries(rankChanges(before, after).map(c => [c.exId, c]));
+  const want = { bench: ['up', 4, 5], squat: ['tierup', 5, 6], deadlift: ['down', 9, 8], curl: ['first', null, 0] };
+  for (const [id, [kind, from, to]] of Object.entries(want)) { const c = got[id];
+    if (!c || c.kind !== kind || c.from !== from || c.to !== to) bad.push(`${id}: expected ${kind} ${from}→${to}, got ${c ? `${c.kind} ${c.from}→${c.to}` : 'nothing'}`); }
+  ['ohp', 'row'].forEach(id => { if (got[id]) bad.push(`${id}: same rank as last seen must show nothing`); });
+  if (Object.keys(got).length !== 4) bad.push(`${Object.keys(got).length} windows, expected 4`);
+  if (rankChanges({ bench: 5 }, {}).length) bad.push('an exercise with no rank now must show nothing');
+  if (rankChanges(before, after, ['bench']).length !== 1) bad.push('the exercise list (one workout) is not respected');
+  if (rankChanges(undefined, { bench: 2 })[0].kind !== 'first') bad.push('nothing seen yet must count as first rank');
+  if (bad.length) bad.forEach(b => fail('rank change: ' + b)); else ok('rank change: up, tier up, first rank, demote and no change give the right windows');
+} catch (e) { fail('could not check rank changes: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
   const http = require('http');
-  const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+  const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
   const srv = http.createServer((q, r) => {
     let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
     const f = path.join(root, p);

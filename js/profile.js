@@ -30,13 +30,13 @@ function rankList(){
     .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
 }
 const rankPicks = ranks => { const ids = Array.isArray(profile.rankPick) ? profile.rankPick : [], got = ids.map(id => ranks.find(r => r.exId === id)).filter(Boolean).slice(0, 3); return got.length ? got : ranks.slice(0, 1); };
-const rankMini = (r, size) => `<span class="pftier rk tr-${r.tier}" role="img" aria-label="${esc(r.label)}">${rankIcon(r.tier, r.n, size)}</span>`;
+const rankMini = (r, size) => `<span class="pftier rk tr-${r.tier}">${rankIcon(r.tier, r.n, size)}</span>`;
 function openRankPick(){ $('rkSearch').value = ''; drawRankPick(); open('ovRank'); }
 function drawRankPick(){
   const q = $('rkSearch').value.trim().toLowerCase(), ranks = rankList(), picked = Array.isArray(profile.rankPick) ? profile.rankPick : [];
   $('rkCount').textContent = t('rkPicked', { n: picked.filter(id => ranks.some(r => r.exId === id)).length });
   $('rkList').innerHTML = ranks.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => { const on = picked.includes(r.exId);
-    return `<button type="button" class="rkrow${on ? ' on' : ''}" data-rkpick="${esc(r.exId)}" aria-pressed="${on}">${rankMini(r, 30)}<span class="pfrn"><b>${esc(r.name)}</b><small>${esc(r.label)}</small></span>${on ? svgIcon('check', 20, 2.4) : ''}</button>`; }).join('')
+    return `<button type="button" class="rkrow${on ? ' on' : ''}" data-rkpick="${esc(r.exId)}" aria-pressed="${on}">${rankMini(r, 30)}<span class="pfrn tr-${r.tier}"><b>${esc(r.name)}</b><small class="rkink">${esc(r.label)}</small></span>${on ? svgIcon('check', 20, 2.4) : ''}</button>`; }).join('')
     || `<p class="pfempty">${esc(t('rkNone'))}</p>`;
 }
 function togglePick(exId){
@@ -49,12 +49,12 @@ function resetRankPick(){ delete profile.rankPick; saveProfile(); Phone.haptic()
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
 //   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
-//   tierOf : (exId, e1) => null | { label, tier, n, color? }   (0.7.9: drawn as the rank emblem, rankIcon in gym.js)   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
+//   tierOf : (exId, e1) => null | { label, tier, n }   (0.7.10.2: drawn as the rank plate, rankIcon in gym.js)   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
 function profileData(){
   const me = Account.current(), today = todayKey();
   const streak = gymStreak();                              // gym-streak (gym.js)
-  // gym-tiers: Bronze 3 … Diamond 1 from tierFor() (gym.js); colour = the tier's theme-aware colour (workout.css --tier-*)
-  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, tier: tf.tier, n: tf.n, color: `var(--tier-${tf.tier})` } : null; };
+  // gym-tiers: Bronze 3 … Diamond 1 from tierFor() (gym.js); drawn as the tier's plate
+  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, tier: tf.tier, n: tf.n } : null; };
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
   const wts = Object.entries(weights || {}).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).slice(-30).map(([d, w]) => ({ d, w: +w }));
@@ -216,8 +216,8 @@ function renderProfile(){
     : `<div class="pfrk3">${picks.map(r => `<span class="pfrkc">${rankMini(r, 34)}<small>${esc(r.name)}</small></span>`).join('')}</div>`;
   const rkBtns = `<span class="pfrkb"><button class="pflink" type="button" data-rkcustom>${esc(t('rkCustomize'))}</button>${custom ? `<button class="pflink" type="button" data-rkreset>${esc(t('rkReset'))}</button>` : ''}</span>`;
   const strMode = boardMode() === 'str';
-  const rows = d.boards.map(b => `<div class="pfrow"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
-      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${strMode ? (b.str ? `${b.str.toFixed(2)} <small>${esc(t('pfXBw'))}</small>` : '–') : b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
+  const rows = d.boards.map(b => `<div class="pfrow${b.tier ? ' tr-' + b.tier.tier : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
+      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${strMode ? (b.str ? `${b.str.toFixed(2)} <small>${esc(t('pfXBw'))}</small>` : '–') : b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
   const boardSw = `<div class="seg pfboardsw" id="pfBoardSw" role="group" aria-label="${esc(t('pfBoards'))}"><button type="button" data-pfboard="max" class="${strMode ? '' : 'on'}">${esc(t('pfMaxPR'))}</button><button type="button" data-pfboard="str" class="${strMode ? 'on' : ''}">${esc(t('pfStrength'))}</button></div>`;
   const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
   const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
@@ -225,7 +225,7 @@ function renderProfile(){
   box.innerHTML = circles
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
-        <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div></div>`
+        <div class="pfcard pfpr${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div></div>`
     + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t(strMode ? 'pfBoardsSubStr' : 'pfBoardsSub'))}</p>${boardSw}${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
     + wCard
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`

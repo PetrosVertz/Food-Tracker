@@ -58,3 +58,6 @@ $('exsBody').addEventListener('click', e => {
 
 // 0.7.9.6 Pick Exercise: the back arrow sits in the title row of the solid top strip
 { const b = $('ovExPick').querySelector('.sheet>.sback'); if(b) $('pkBar').prepend(b); }
+
+// 0.7.10.2 the app opens: a rank lower than last seen (a long break, say) shows once as Rank Changed (rank-fx.js)
+setTimeout(() => { if(ui.setupDone) RankFx.onOpen(); }, 900);
