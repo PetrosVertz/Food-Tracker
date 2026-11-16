@@ -309,6 +309,52 @@ try {
   if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank: ' + b)); else ok(`rank: ${Object.keys(TIER_STD).length} lifts fair (monotonic, body weight, steady, Diamond reachable)`);
 } catch (e) { fail('could not check the rank rating: ' + e.message); }
 
+// 12. Social Hub stats (STATS in js/profile.js): each new stat gives the expected value on a small fake history, hides without data, and nothing throws on an empty history
+try {
+  const mk = (date, hh, sets, prs) => ({ date, start: `${date}T${hh}:00`, end: `${date}T${String(+hh.slice(0, 2) + 1).padStart(2, '0')}${hh.slice(2)}:00`, prs: prs || [], exercises: sets });
+  const ex = (exId, ...rw) => ({ exId, sets: rw.map(([w, r]) => ({ w, r, done: true })) });
+  const run = (sessions, extra) => {
+    const g = { sessions, lang: 'en', weights: {}, targets: { bw: 80 }, profile: {}, ui: {}, console: { log() {} } };
+    g.t = (k, p) => k === 'wdFull' ? 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday' : k + (p ? JSON.stringify(p) : '');
+    g.exById = id => ({ m: 'chest' }); g.exName = id => id; g.isMainSet = st => st.type !== 'W' && st.side !== 'R' && !st.drop; g.loadOf = (id, w) => +w || 0;
+    g.e1rm = (w, r) => r >= 1 && r <= 20 && +w > 0 ? +w * (1 + r / 30) : 0; g.bodyW = () => 80; g.latestWeight = () => 80; g.GROUPS = { chest: ['Chest', 'Στήθος'] };
+    g.addDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+    g.fmtDate = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7); g.esc = x => String(x); g.rankIcon = () => ''; g.todayKey = () => '2026-11-16';
+    g.tierStd = id => id === 'bench' || id === 'squat' || id === 'deadlift' ? {} : null; g.tierFor = id => id === 'bench' ? { next: { kg: 2.5, tier: 'silver', n: 3, label: 'Silver 3' } } : id === 'squat' ? { next: { kg: 10, tier: 'silver', n: 3, label: 'Silver 3' } } : null;
+    Object.assign(g, extra); vm.createContext(g);
+    vm.runInContext(read('js/profile.js').replace(/^const /gm, 'var ') + '\n;this.__ST = { STATS, statsCtx };', g);
+    const c = g.__ST.statsCtx(), out = {}; g.__ST.STATS.forEach(x => { out[x.id] = x.calc(c) || null; }); return out;
+  };
+  const bad = [], none = run([]);
+  for (const [id, v] of Object.entries(none)) if (v) bad.push(`${id} shows with no workouts`);
+  const hist = [
+    mk('2026-01-05', '06:30', [ex('bench', [100, 5], [100, 5])], [{ kind: 'w' }]),                 // Mon, dawn
+    mk('2026-02-02', '22:00', [ex('bench', [1, 120]), ex('squat', [120, 5])], [{ kind: 'w' }]),    // Mon, night; 120 reps is ignored by Rep King
+    mk('2026-02-16', '18:00', [ex('bench', [80, 30]), ex('squat', [130, 3]), ex('deadlift', [150, 3]), ex('curl', [10, 8])], [{ kind: 'w' }, { kind: 'v' }]),   // Mon
+    mk('2026-03-10', '18:00', [ex('bench', [100, 1])]) ];
+  const o = run(hist);
+  const eq = (id, f, want) => { const got = o[id] && f(o[id]); if (got !== want) bad.push(`${id}: expected ${want}, got ${JSON.stringify(o[id])}`); };
+  eq('bestDay', r => r.v, '3,320 kg'); eq('bestDay', r => r.k, 'bdCar');
+  if (o.mountain) bad.push('mountain should hide while under 0.01 Everest');
+  const mt = run([mk('2026-01-05', '18:00', [ex('bench', [100, 5000])])]).mountain; if (!mt || mt.v !== '0.4x') bad.push('mountain: expected 0.4x, got ' + JSON.stringify(mt));   // 5000 reps x 100 kg x 0.5 m x 9.81 / (8849 m x 80 kg x 9.81)
+  eq('luckyDay', r => r.v, 'Monday'); eq('luckyDay', r => r.p.n, 4);
+  eq('night', r => r.v, '1'); eq('dawn', r => r.v, '1');
+  eq('couch', r => r.v, '28 stUnitDays'); eq('couch', r => r.p.a + '>' + r.p.b, '05/01>02/02');
+  eq('nextRank', r => r.v, '+2.5 kg'); eq('nextRank', r => r.p.n, 'bench');
+  eq('ratio', r => r.v, '2.1x'); eq('ratio', r => r.p.n, 'deadlift');
+  eq('repKing', r => r.v, '30 stUnitReps'); eq('repKing', r => r.p.n, 'bench');
+  eq('big3', r => r.v, '424.7 kg'); eq('big3', r => r.k, 'big3Bw');
+  eq('explorer', r => r.v, '4'); eq('explorer', r => r.p.n, 'curl');
+  eq('loyal', r => r.v, 'bench'); eq('loyal', r => r.p.n, 3);
+  if (o.bestVol) bad.push('Best Session Volume should be gone');
+  for (const id of ['proteinRun', 'kcalDays', 'meals', 'topFood', 'foodDays']) if (id in o) bad.push(`food stat ${id} is still in STATS`);
+  // hiding rules
+  const few = run([mk('2026-01-05', '18:00', [ex('bench', [100, 5])], [{ kind: 'w' }])]);
+  for (const id of ['luckyDay', 'night', 'dawn', 'couch', 'big3', 'loyal']) if (few[id]) bad.push(`${id} should hide (not enough data)`);
+  if (run(hist, { latestWeight: () => 0, targets: {} }).ratio) bad.push('ratio should hide without body weight');
+  if (bad.length) bad.forEach(b => fail('stats: ' + b)); else ok('stats: 12 new training stats right on a fake history, hide without data, empty history is safe');
+} catch (e) { fail('could not check the stats: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }

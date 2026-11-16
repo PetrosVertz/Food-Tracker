@@ -784,7 +784,7 @@ Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
   aiuYes: ['Clear', 'Καθαρισμός'], aiuDone: ['AI usage cleared', 'Τα στοιχεία χρήσης καθαρίστηκαν'],
 });
 
-// ---------- 0.7.10 Social Hub: Stats (20 facts; title stt_<id>, subtitle sts_<id>) ----------
+// ---------- 0.7.10 Social Hub: Stats (training facts; title stt_<id>, subtitle sts_<id>) ----------
 Object.assign(S, {
   stt_workouts: ['Total Workouts', 'Σύνολο Προπονήσεων'], sts_workouts: ['Every workout you have finished.', 'Κάθε προπόνηση που ολοκλήρωσες.'],
   stt_sets: ['Total Sets', 'Σύνολο Σετ'], sts_sets: ['Finished working sets, no warm-ups.', 'Ολοκληρωμένα σετ, χωρίς προθέρμανση.'],
@@ -794,19 +794,25 @@ Object.assign(S, {
   stt_favEx: ['Favourite Exercise', 'Αγαπημένη Άσκηση'], sts_favEx: ['Done in {n} sets.', 'Σε {n} σετ.'],
   stt_favMuscle: ['Favourite Muscle', 'Αγαπημένος Μυς'], sts_favMuscle: ['Trained in {n} sets.', 'Προπονήθηκε σε {n} σετ.'],
   stt_heaviest: ['Heaviest Lift', 'Βαρύτερο Σήκωμα'], sts_heaviest: ['On {n}, up to 12 reps.', 'Στην άσκηση {n}, έως 12 επαναλήψεις.'],
-  stt_bestVol: ['Biggest Session', 'Μεγαλύτερη Προπόνηση'], sts_bestVol: ['Most kg moved in one workout.', 'Τα περισσότερα κιλά σε μία προπόνηση.'],
   stt_longest: ['Longest Workout', 'Μεγαλύτερη Προπόνηση σε Διάρκεια'], sts_longest: ['Your longest time in the gym.', 'Ο μεγαλύτερος χρόνος σου στο γυμναστήριο.'],
   stt_earliest: ['Earliest Workout', 'Πιο Πρωινή Προπόνηση'], sts_earliest: ['The earliest you ever started.', 'Η πιο πρωινή ώρα έναρξης.'],
   stt_latest: ['Latest Workout', 'Πιο Βραδινή Προπόνηση'], sts_latest: ['The latest you ever started.', 'Η πιο βραδινή ώρα έναρξης.'],
   stt_weekday: ['Favourite Day', 'Αγαπημένη Μέρα'], sts_weekday: ['Your most-trained weekday, {n} workouts.', 'Η μέρα που προπονείσαι περισσότερο, {n} προπονήσεις.'],
   stt_hours: ['Time Training', 'Χρόνος Προπόνησης'], sts_hours: ['Total time in the gym.', 'Συνολικός χρόνος στο γυμναστήριο.'],
-  stt_proteinRun: ['Protein Streak', 'Σερί Πρωτεΐνης'], sts_proteinRun: ['Days in a row at your protein target.', 'Μέρες στη σειρά στον στόχο πρωτεΐνης.'],
-  stt_kcalDays: ['Calorie Days', 'Μέρες Θερμίδων'], sts_kcalDays: ['Days within 10% of your calorie target.', 'Μέρες εντός 10% του στόχου θερμίδων.'],
-  stt_meals: ['Foods Logged', 'Καταγραφές Φαγητού'], sts_meals: ['Every food or meal you have logged.', 'Κάθε φαγητό ή γεύμα που έχεις καταγράψει.'],
-  stt_topFood: ['Most-Logged Food', 'Πιο Συχνό Φαγητό'], sts_topFood: ['Logged {n} times.', 'Καταγράφηκε {n} φορές.'],
   stt_prs: ['Records Set', 'Ρεκόρ'], sts_prs: ['Personal records from your workouts.', 'Προσωπικά ρεκόρ από τις προπονήσεις σου.'],
-  stt_foodDays: ['Days Logged', 'Μέρες Καταγραφής'], sts_foodDays: ['Days you logged food.', 'Μέρες που κατέγραψες φαγητό.'],
+  stt_bestDay: ['Heaviest Day', 'Βαρύτερη Μέρα'], sts_bdBag: ['About {n} bags of cement (25 kg), on {d}.', 'Περίπου {n} σακιά τσιμέντο (25 kg), στις {d}.'], sts_bdCar: ['About {n} cars, on {d}.', 'Περίπου {n} αυτοκίνητα, στις {d}.'], sts_bdEl: ['About {n} elephants, on {d}.', 'Περίπου {n} ελέφαντες, στις {d}.'], sts_bdWhale: ['About {n} blue whales, on {d}.', 'Περίπου {n} γαλάζιες φάλαινες, στις {d}.'],
+  stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Climbs of Everest, carrying your own body weight.', 'Ανεβάσματα του Έβερεστ, κουβαλώντας το δικό σου βάρος.'],
+  stt_luckyDay: ['Lucky Weekday', 'Τυχερή Μέρα'], sts_luckyDay: ['{n} personal records set on this day.', '{n} προσωπικά ρεκόρ αυτή τη μέρα.'],
+  stt_night: ['Midnight Iron', 'Σίδερα τα Μεσάνυχτα'], sts_night: ['Workouts started after 9 pm.', 'Προπονήσεις που ξεκίνησαν μετά τις 9 μ.μ.'],
+  stt_dawn: ['Dawn Patrol', 'Πρωινή Περίπολος'], sts_dawn: ['Workouts started before 7 am.', 'Προπονήσεις που ξεκίνησαν πριν τις 7 π.μ.'],
+  stt_couch: ['Couch Potato', 'Καναπές'], sts_couch: ['Your longest break, {a} to {b}.', 'Η μεγαλύτερη διακοπή σου, {a} έως {b}.'], stUnitDay: ['day', 'μέρα'], stUnitDays: ['days', 'μέρες'], stUnitReps: ['reps', 'επαναλήψεις'],
+  stt_nextRank: ['Closest to Ranking Up', 'Κοντά σε Νέα Βαθμίδα'], sts_nextRank: ['{n}, to reach {r}.', '{n}, για να φτάσεις {r}.'],
+  stt_ratio: ['Strongest for Your Weight', 'Δύναμη για το Βάρος σου'], sts_ratio: ['Times your body weight, on {n}.', 'Φορές το σωματικό σου βάρος, στην άσκηση {n}.'],
+  stt_repKing: ['Rep King', 'Βασιλιάς Επαναλήψεων'], sts_repKing: ['Most reps in one set, on {n}.', 'Οι περισσότερες επαναλήψεις σε ένα σετ, στην άσκηση {n}.'],
+  stt_big3: ['Big Three Total', 'Σύνολο Big Three'], sts_big3: ['Bench, squat and deadlift, best estimated 1RMs added.', 'Πάγκος, καθίσματα και άρσεις θανάτου, με τα καλύτερα εκτιμώμενα 1RM.'], sts_big3Bw: ['{n} times your body weight.', '{n} φορές το σωματικό σου βάρος.'],
+  stt_explorer: ['Exercise Explorer', 'Εξερευνητής Ασκήσεων'], sts_explorer: ['Different exercises. Newest: {n}.', 'Διαφορετικές ασκήσεις. Νεότερη: {n}.'],
+  stt_loyal: ['Loyalty', 'Πίστη'], sts_loyal: ['{n} months in a row.', '{n} μήνες στη σειρά.'],
   sts_kgEl: ['About {n} elephants.', 'Περίπου {n} ελέφαντες.'], sts_kgCar: ['About {n} cars.', 'Περίπου {n} αυτοκίνητα.'], sts_kgBag: ['About {n} bags of cement (25 kg).', 'Περίπου {n} σακιά τσιμέντο (25 kg).'],
   stPin: ['Pin This Stat', 'Καρφίτσωμα Στατιστικού'], stUnpin: ['Unpin This Stat', 'Ξεκαρφίτσωμα Στατιστικού'], stPinMax: ['You can pin up to 5 stats.', 'Μπορείς να καρφιτσώσεις έως 5 στατιστικά.'],
-  stShuffle: ['Shuffle Stats', 'Ανακάτεμα Στατιστικών'], stEmpty: ['Finish a workout or log a meal to see your stats.', 'Ολοκλήρωσε μια προπόνηση ή κατέγραψε ένα γεύμα για να δεις τα στατιστικά σου.'],
+  stShuffle: ['Shuffle Stats', 'Ανακάτεμα Στατιστικών'], stEmpty: ['Finish a workout to see your stats.', 'Ολοκλήρωσε μια προπόνηση για να δεις τα στατιστικά σου.'],
 });
