@@ -328,7 +328,7 @@ async function boot() {
     page.on('pageerror', e => errs.push(`[${scheme}] ${e.message}`));
     page.on('console', m => { if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errs.push(`[${scheme}] console: ${m.text()}`); });
     await page.goto(`http://localhost:${port}/`, { waitUntil: 'load' });
-    for (const h of ['#foods', '#today', '#gym', '#fridge']) { await page.evaluate(x => { location.hash = x; }, h); await page.waitForTimeout(250); }
+    for (const h of ['#foods', '#meals', '#supps', '#today', '#gym', '#fridge', '#profile', '#settings']) { await page.evaluate(x => { location.hash = x; }, h); await page.waitForTimeout(250); }
     await page.close();
   }
   await browser.close(); srv.close();
