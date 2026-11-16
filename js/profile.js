@@ -87,6 +87,18 @@ const STATS = [
   { id: 'latest',     calc: c => c.late != null && { v: c.hm(c.late), p: {} } },
   { id: 'weekday',    calc: c => c.wdBest != null && { v: t('wdFull').split(' ')[c.wdBest], p: { n: c.wdN }, big: 1 } },
   { id: 'hours',      calc: c => c.totMin >= 30 && { v: c.dur(c.totMin), p: {} } },
+  { id: 'bestDay',    calc: c => c.dayBest && { v: `${c.num(Math.round(c.dayBest.kg))} kg`, ...c.cmp(c.dayBest.kg, 'bd', 1), p: { ...c.cmp(c.dayBest.kg, 'bd', 1).p, d: fmtDate(c.dayBest.date + 'T12:00:00') } } },
+  { id: 'mountain',   calc: c => c.climb > 0 && { v: `${(Math.round(c.climb * 10) / 10).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}x`, p: {} } },
+  { id: 'luckyDay',   calc: c => c.prs >= 3 && c.luckyN > 0 && { v: t('wdFull').split(' ')[c.luckyWd], p: { n: c.luckyN }, big: 1 } },
+  { id: 'night',      calc: c => c.nights > 0 && { v: c.num(c.nights), p: {} } },
+  { id: 'dawn',       calc: c => c.dawns > 0 && { v: c.num(c.dawns), p: {} } },
+  { id: 'couch',      calc: c => c.couch && { v: `${c.num(c.couch.n)} ${t(c.couch.n === 1 ? 'stUnitDay' : 'stUnitDays')}`, p: { a: fmtDate(c.couch.a + 'T12:00:00'), b: fmtDate(c.couch.b + 'T12:00:00') } } },
+  { id: 'nextRank',   calc: c => c.nextRank && { v: `+${c.num(c.nextRank.kg)} kg`, p: { n: c.nextRank.name, r: c.nextRank.label }, ico: rankMini(c.nextRank, 16) } },
+  { id: 'ratio',      calc: c => c.ratio && { v: `${c.ratio.x.toFixed(1)}x`, p: { n: c.ratio.name } } },
+  { id: 'repKing',    calc: c => c.repKing && { v: `${c.num(c.repKing.r)} ${t('stUnitReps')}`, p: { n: c.repKing.name } } },
+  { id: 'big3',       calc: c => c.big3 && { v: `${c.num(Math.round(c.big3 * 10) / 10)} kg`, k: c.bw ? 'big3Bw' : 'big3', p: { n: (c.big3 / c.bw).toFixed(1) } } },
+  { id: 'explorer',   calc: c => c.explorer && { v: c.num(c.explorer.n), p: { n: c.explorer.name } } },
+  { id: 'loyal',      calc: c => c.loyal && { v: c.loyal.name, p: { n: c.loyal.n }, big: 1 } },
   { id: 'prs',        calc: c => c.prs && { v: c.num(c.prs), p: {} } },
 ];
 // everything the table needs, worked out once per draw
@@ -94,17 +106,27 @@ function statsCtx(){
   const num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB'), ses = sessions, c = { ses, num };
   const top = m => { let b = null; m.forEach((n, k) => { if(!b || n > b.n) b = { k, n }; }); return b; };
   const ex = new Map(), mus = new Map(), wk = new Map(), wd = [0, 0, 0, 0, 0, 0, 0], days = new Set();
+  const e1s = new Map(), firstSeen = new Map(), months = new Map(), wdPr = [0, 0, 0, 0, 0, 0, 0], dates = [];
+  c.bw = (typeof latestWeight === 'function' && latestWeight()) || (targets && +targets.bw) || 0; if(!(c.bw > 30)) c.bw = 0;
+  c.climb = 0; c.dayBest = null; c.nights = 0; c.dawns = 0; c.repKing = null;
+  c.cmp = (kg, pre, whale) => { const w = kg / 150000, el = kg / 5000, car = kg / 1500, bag = kg / 25, r1 = n => c.num(Math.round(n * 10) / 10);   // a friendly comparison: blue whales, elephants, cars, then 25 kg bags
+    return whale && w >= 1 ? { k: pre + 'Whale', p: { n: r1(w) } } : el >= 1 ? { k: pre + 'El', p: { n: r1(el) } } : car >= 1 ? { k: pre + 'Car', p: { n: r1(car) } } : { k: pre + 'Bag', p: { n: c.num(Math.round(bag)) } }; };
   c.sets = 0; c.kg = 0; c.volBest = 0; c.heavy = null; c.longMin = 0; c.totMin = 0; c.early = null; c.late = null; c.prs = 0;
-  ses.forEach(s => {
-    let vol = 0; days.add(s.date); c.prs += (s.prs || []).length;
+  ses.slice().sort((a, b) => String(a.start).localeCompare(String(b.start))).forEach(s => {
+    let vol = 0; days.add(s.date); c.prs += (s.prs || []).length; wdPr[new Date(s.date + 'T12:00:00').getDay()] += (s.prs || []).length; dates.push(s.date);
     s.exercises.forEach(x => { const m = exById(x.exId).m, sets = x.sets.filter(st => st.done && isMainSet(st));
+      if(sets.length){ if(!firstSeen.has(x.exId)) firstSeen.set(x.exId, s.start); const mk = s.date.slice(0, 7); if(!months.has(x.exId)) months.set(x.exId, new Set()); months.get(x.exId).add(mk); }
       if(sets.length){ ex.set(x.exId, (ex.get(x.exId) || 0) + sets.length); if(m && m !== 'cardio' && m !== 'other') mus.set(m, (mus.get(m) || 0) + sets.length); }
       sets.forEach(st => { c.sets++; const w = +st.w || 0, r = +st.r || 0; vol += w * r;
-        const kg = loadOf(x.exId, w); if(r > 0 && r <= 12 && kg > 0 && (!c.heavy || kg > c.heavy.kg)) c.heavy = { kg, name: exName(x.exId) }; }); });
-    const sv = +s.vol || vol; c.kg += sv; c.volBest = Math.max(c.volBest, sv);
+        const kg = loadOf(x.exId, w); c.climb += r * kg * 0.5 * 9.81;   // 0.5 m of bar travel per rep
+        if(r > 0 && r <= 100 && (!c.repKing || r > c.repKing.r)) c.repKing = { r, name: exName(x.exId) };
+        if(r >= 1 && r <= 12 && kg > 0){ const e = e1rm(w, r, x.exId); if(e > (e1s.get(x.exId) || 0)) e1s.set(x.exId, e); }
+        if(r > 0 && r <= 12 && kg > 0 && (!c.heavy || kg > c.heavy.kg)) c.heavy = { kg, name: exName(x.exId) }; }); });
+    const sv = +s.vol || vol; c.kg += sv; c.volBest = Math.max(c.volBest, sv); if(sv > 0 && (!c.dayBest || sv > c.dayBest.kg)) c.dayBest = { kg: sv, date: s.date };
     const a = new Date(s.start), b = s.end ? new Date(s.end) : null, min = b ? (b - a) / 6e4 : 0;
     if(min >= 5 && min <= 360){ c.longMin = Math.max(c.longMin, Math.round(min)); c.totMin += min; }
     const hm = a.getHours() * 60 + a.getMinutes(); if(!isNaN(hm)){ c.early = c.early == null ? hm : Math.min(c.early, hm); c.late = c.late == null ? hm : Math.max(c.late, hm); }
+    if(!isNaN(hm)){ if(hm >= 21 * 60) c.nights++; if(hm < 7 * 60) c.dawns++; }
     wd[a.getDay()]++;   // Sunday = 0, as in wdFull
     const mon = addDays(s.date, -((new Date(s.date + 'T12:00:00').getDay() + 6) % 7)); wk.set(mon, (wk.get(mon) || 0) + 1);
   });
@@ -114,6 +136,18 @@ function statsCtx(){
   // longest streak: workouts in a row with at most 2 days off between them
   const ds = [...days].sort(); let run = 0, best = 0, prev = null;
   ds.forEach(d => { const n = ses.filter(s => s.date === d).length; run = prev && (new Date(d) - new Date(prev)) / 864e5 <= 3 ? run + n : n; best = Math.max(best, run); prev = d; }); c.streakBest = best;
+  c.climb = c.climb / (8849 * bodyW() * 9.81);   // Everest climbed carrying your own body weight (75 kg if unknown)
+  const lw = Math.max(...wdPr); c.luckyN = lw; c.luckyWd = lw > 0 ? wdPr.indexOf(lw) : null;
+  const ud = [...new Set(dates)].sort(); c.couch = null;
+  if(ses.length >= 2) for(let i = 1; i < ud.length; i++){ const n = Math.round((new Date(ud[i] + 'T12:00:00') - new Date(ud[i - 1] + 'T12:00:00')) / 864e5); if(n >= 1 && (!c.couch || n > c.couch.n)) c.couch = { n, a: ud[i - 1], b: ud[i] }; }
+  c.nextRank = null; c.ratio = null;
+  e1s.forEach((e, id) => { const tf = tierFor(id); if(tf && tf.next && (!c.nextRank || tf.next.kg < c.nextRank.kg)) c.nextRank = { kg: tf.next.kg, name: exName(id), tier: tf.next.tier, n: tf.next.n, label: tf.next.label };
+    if(c.bw && tierStd(id) && (!c.ratio || e / c.bw > c.ratio.x)) c.ratio = { x: e / c.bw, name: exName(id) }; });
+  c.big3 = ['bench', 'squat', 'deadlift'].every(id => e1s.get(id) > 0) ? ['bench', 'squat', 'deadlift'].reduce((a, id) => a + e1s.get(id), 0) : 0;
+  let nw = null; firstSeen.forEach((st, id) => { if(!nw || st >= nw.st) nw = { st, id }; }); c.explorer = nw && { n: firstSeen.size, name: exName(nw.id) };
+  c.loyal = null; months.forEach((set, id) => { const ms = [...set].map(m => +m.slice(0, 4) * 12 + +m.slice(5, 7)).sort((a, b) => a - b); let run = 1, best = 1, last = ms[0];
+    ms.forEach((m, i) => { if(!i) return; run = m === ms[i - 1] + 1 ? run + 1 : 1; if(run >= best){ best = run; last = m; } });
+    if(best >= 2 && (!c.loyal || best > c.loyal.n || (best === c.loyal.n && last > c.loyal.last))) c.loyal = { n: best, last, name: exName(id) }; });
   c.hm = m => { const h = Math.floor(m / 60), mi = String(m % 60).padStart(2, '0'); return `${String(h).padStart(2, '0')}:${mi}`; };
   c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
   return c;
@@ -132,7 +166,7 @@ function statCards(){
   const c = statsCtx(), all = STATS.map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = Array.isArray(profile.statPins) ? profile.statPins : [];
   return all.length ? statsPick(all).map(x => { const on = pins.includes(x.id), r = x.r;
     return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}">${pfIcon(ICO_PIN, 16)}</button>
-      <small>${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${esc(t('sts_' + (r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
+      <small>${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
 }
 function togglePin(id){
   const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).slice();
