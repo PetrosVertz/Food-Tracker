@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank Simulator</title>
+<style>
+  :root { --bg: #f5f6f8; --card: #fff; --ink: #14171c; --mut: #5b6470; --line: #d9dde3; --acc: #1f5fd0; --warn: #9a5b00; --warnbg: #fff4dc; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f1216; --card: #191d23; --ink: #eef1f5; --mut: #a3acb8; --line: #2c333c; --acc: #7fb0ff; --warn: #ffcf7a; --warnbg: #3a2c10; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 15px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 28px; margin: 4px 0 4px; } h2 { font-size: 20px; margin: 0 0 12px; }
+  p { margin: 0 0 12px; } .mut { color: var(--mut); font-size: 13px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  label { display: block; font-size: 12px; color: var(--mut); margin: 0 0 4px; }
+  input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 44px; }
+  button { cursor: pointer; font-weight: 500; width: auto; } button.pri { background: var(--acc); color: var(--card); border-color: var(--acc); }
+  .sets .row { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 8px; margin: 0 0 8px; }
+  .sets .row button { padding: 0; width: 44px; }
+  .chk { display: flex; gap: 8px; align-items: center; margin: 8px 0; } .chk input { width: 20px; min-height: 20px; height: 20px; }
+  .rank { font-size: 32px; font-weight: 700; margin: 0 0 4px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; } .tag { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: 12px; color: var(--mut); }
+  .warn { background: var(--warnbg); color: var(--warn); border-radius: 10px; padding: 10px 12px; margin: 0 0 12px; font-size: 13px; }
+  .tw { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; } th:first-child, td:first-child { text-align: left; }
+  th { color: var(--mut); font-weight: 500; }
+  .bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin: 8px 0 4px; } .bar i { display: block; height: 100%; background: var(--acc); transform-origin: left; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Rank Simulator</h1>
+  <p class="mut">The new rank engine (not live in the app yet). Enter an exercise, a person and one or more sets. Ranks are a game for motivation: they do not represent real-world lifting ability.</p>
+
+  <section>
+    <h2>Person And Exercise</h2>
+    <div class="grid">
+      <div><label for="ex">Exercise</label><select id="ex"></select></div>
+      <div><label for="sex">Sex Category</label><select id="sex"><option value="m">Male</option><option value="f">Female</option></select></div>
+      <div><label for="age">Age</label><input id="age" type="number" inputmode="numeric" min="18" max="90" value="30"></div>
+      <div><label for="bw">Body Weight (kg)</label><input id="bw" type="number" inputmode="decimal" min="35" max="250" step="0.1" value="80"></div>
+    </div>
+    <div class="chk"><input id="syn" type="checkbox"><label for="syn" style="margin:0">Also show synthetic test exercises (pull-ups, curls: invented numbers, ranks mean nothing)</label></div>
+  </section>
+
+  <section>
+    <h2>Sets</h2>
+    <p class="mut" id="unit"></p>
+    <div class="sets" id="sets"></div>
+    <button type="button" id="add">Add Set</button>
+    <div class="chk"><input id="twice" type="checkbox"><label for="twice" style="margin:0">Done in two workouts on different days (confirms Platinum and Diamond)</label></div>
+  </section>
+
+  <section id="out" aria-live="polite"></section>
+  <section><h2>Kilograms For Each Rank</h2><p class="mut" id="needNote"></p><div class="tw" id="need"></div></section>
+  <p class="mut">Benchmarks: GymStreak (2026), How lifters actually train, CC BY 4.0. This page uses data from the OpenPowerlifting project, https://www.openpowerlifting.org. You may download a copy of the data at https://data.openpowerlifting.org. Method: RANKING_ALGORITHM.md.</p>
+</main>
+<script src="../js/data/rank-bench.js"></script>
+<script src="../js/rank-engine.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id), esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const f1 = x => (Math.round(x * 10) / 10).toFixed(1), half = x => String(Math.ceil(x * 2 - 1e-9) / 2);
+  let eng = RankEngine.create(RANK_BENCH), synDb = null, sets = [{ w: 80, reps: 8 }];
+  const names = () => { const d = eng.db, o = {}; Object.values(d.exercises).forEach(e => { o[e.id] = e.name; });
+    Object.entries(d.variants).forEach(([id, v]) => { o[id] = id.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()) + ' (estimate from ' + d.exercises[v.anchor].name + ')'; }); return o; };
+  function fillEx(){ const cur = $('ex').value, n = names(); $('ex').innerHTML = Object.entries(n).map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join(''); if(n[cur]) $('ex').value = cur; }
+  function drawSets(){ $('sets').innerHTML = sets.map((s, i) => `<div class="row"><div><label for="w${i}">Kilograms</label><input id="w${i}" data-i="${i}" data-k="w" type="number" inputmode="decimal" step="0.5" value="${s.w}"></div>
+    <div><label for="r${i}">Reps</label><input id="r${i}" data-i="${i}" data-k="reps" type="number" inputmode="numeric" min="1" max="50" value="${s.reps}"></div>
+    <div><label>&nbsp;</label><button type="button" data-del="${i}" aria-label="Remove set ${i + 1}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button></div></div>`).join(''); }
+  function run(){ const ex = $('ex').value, body = { sex: $('sex').value, age: +$('age').value || undefined, bw: +$('bw').value };
+    const d = eng.db, v = d.variants[ex], base = d.exercises[v ? v.anchor : ex], lt = (v && v.loadType) || base.loadType;
+    $('unit').textContent = lt === 'bodyweight' ? 'Kilograms = weight added to your body (0 for body weight only).' : lt === 'assisted' ? 'Kilograms = assistance from the machine (taken off your body weight).' : 'Kilograms = ' + base.unit + '.';
+    if(!(body.bw > 30)){ $('out').innerHTML = '<h2>Result</h2><p>Enter a body weight.</p>'; return; }
+    const ok = sets.filter(s => +s.w === +s.w && +s.reps >= 1), ses = [{ day: 0, bw: body.bw, sets: ok }]; if($('twice').checked) ses.push({ day: 7, bw: body.bw, sets: ok });
+    const r = eng.evaluate(ex, body, ses, ses.length > 1 ? 7 : 0), syn = d.synthetic && !RANK_BENCH.exercises[v ? v.anchor : ex];
+    let h = '<h2>Result</h2>';
+    if(syn) h += '<div class="warn">Synthetic test benchmark: invented numbers, not data. This rank means nothing.</div>';
+    if(!r.ranked) h += `<p class="rank">No Rank</p><p>${esc(r.none ? 'Enter at least one set with a weight and reps.' : 'Reason: ' + r.reason + '.')}</p>`;
+    else { h += `<p class="rank">${esc(r.name)}</p>`;
+      h += `<div class="bar"><i style="transform:scaleX(${r.frac.toFixed(3)})"></i></div><p class="mut">${r.next ? (r.pending || r.capped ? 'Next: ' + esc(r.next.name) : esc(half(Math.max(0.5, r.next.kg))) + ' kg more on your best sets for ' + esc(r.next.name)) : 'Top rank'}</p>`;
+      h += '<div class="tags">' + [`Score ${f1(r.score)}`, `Volume percentile ${f1(r.pctVolume)}`, `Max-load percentile ${f1(r.pctLoad)}`, `Confidence: ${r.confidence}`, r.estimate ? 'Estimate, based on ' + d.exercises[r.estimate].name : 'Direct benchmark'].map(x => `<span class="tag">${esc(x)}</span>`).join('') + '</div>';
+      if(r.pending) h += `<div class="warn">${esc(r.pending.name)} pending: reach the same level in a second workout on another day (within 8 weeks) to confirm it.</div>`;
+      h += `<p class="mut">Best volume set: ${esc(f1(r.bestVolume.w))} kg x ${r.bestVolume.reps} (volume ${esc(f1(r.bestVolume.volume))}; reps above ${eng.model(ex, body.sex).m.repCap} add no volume). Heaviest weight: ${esc(f1(r.bestLoad.w))} kg.</p>`; }
+    if(r.checks && r.checks.length) h += `<div class="warn">Check this set: ${r.checks.map(c => esc(c.w + ' kg x ' + c.reps)).join(', ')} is far above what the benchmark data says anyone lifts, so it is ignored until confirmed.</div>`;
+    if(r.ranked || r.none){ h += '<div class="tw"><table><tr><th>Set</th><th>Counted Load</th><th>Volume</th><th>Volume Pct</th><th>Max-Load Pct</th><th>Alone</th></tr>' + ok.map(s => { const o = eng.scoreSet(ex, body, s);
+        return o.ranked ? `<tr><td>${esc(s.w)} x ${esc(s.reps)}</td><td>${f1(o.load)}</td><td>${f1(o.volume)}</td><td>${f1(o.pctVolume)}</td><td>${f1(o.pctLoad)}</td><td>${esc(o.name)}${o.check ? ' (check)' : ''}</td></tr>` : ''; }).join('') + '</table></div>'; }
+    $('out').innerHTML = h;
+    const reps = [5, 8, 10], mo = eng.model(ex, body.sex);
+    $('needNote').textContent = mo.none ? '' : 'The weight at which one set on its own reaches each rank, for this person. The rank follows the better of your heaviest weight and your best set volume.';
+    $('need').innerHTML = mo.none ? '<p>No benchmark for this exercise and sex.</p>' : '<table><tr><th>Rank</th>' + reps.map(n => `<th>${n} Reps</th>`).join('') + '</tr>' + d.ranks.slice(1).map(l => `<tr><td>${esc(l.name)}</td>${reps.map(n => { const w = eng.need(ex, body, l.n, n); return `<td>${w == null ? 'n/a' : esc(half(w))}</td>`; }).join('')}</tr>`).join('') + '</table>'; }
+  $('sets').addEventListener('input', e => { const i = e.target.dataset.i; if(i == null) return; sets[+i][e.target.dataset.k] = e.target.value === '' ? NaN : +e.target.value; run(); });
+  $('sets').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if(!b) return; sets.splice(+b.dataset.del, 1); if(!sets.length) sets.push({ w: 0, reps: 1 }); drawSets(); run(); });
+  $('add').addEventListener('click', () => { const l = sets[sets.length - 1]; sets.push({ w: l.w, reps: l.reps }); drawSets(); run(); });
+  ['ex', 'sex', 'age', 'bw', 'twice'].forEach(id => $(id).addEventListener('input', run));
+  $('syn').addEventListener('change', async () => { if($('syn').checked && !synDb){ try { synDb = await (await fetch('../data/rank/synthetic-test.json')).json(); } catch(e){ $('syn').checked = false; $('unit').textContent = 'The synthetic test file could not be loaded.'; return; } }
+    const d = JSON.parse(JSON.stringify(RANK_BENCH)); if($('syn').checked){ Object.assign(d.exercises, synDb.exercises); Object.assign(d.variants, synDb.variants); d.synthetic = true; }
+    eng = RankEngine.create(d); fillEx(); run(); });
+  fillEx(); drawSets(); run();
+})();
+</script>
+</body>
+</html>

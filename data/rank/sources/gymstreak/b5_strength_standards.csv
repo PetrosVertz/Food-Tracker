@@ -1,0 +1,79 @@
+split,ex,sex,band,n_users,n_sets,max_user_share,p25_kg,p50_kg,p75_kg,p90_kg,n_users_with_bw,p25_bw_mult,p50_bw_mult,p75_bw_mult,p90_bw_mult
+sex,Barbell_Bench_Press,female,,1709,19477,0.015,30.0,37.3,46.3,57.0,1500,0.4,0.5,0.63,0.79
+sex,Barbell_Bench_Press,male,,10244,135497,0.004,48.8,66.7,87.7,108.5,8854,0.56,0.78,1.02,1.24
+sex_x_age,Barbell_Bench_Press,female,18-24,523,5928,0.047,30.0,36.0,45.4,55.5,483,0.41,0.51,0.64,0.81
+sex_x_age,Barbell_Bench_Press,female,25-34,727,7963,0.037,30.0,37.4,46.7,57.0,598,0.4,0.5,0.62,0.76
+sex_x_age,Barbell_Bench_Press,female,35-44,261,3026,0.044,30.2,38.0,45.4,54.6,233,0.4,0.48,0.61,0.78
+sex_x_age,Barbell_Bench_Press,male,18-24,3734,40096,0.009,46.7,64.0,81.6,100.7,3351,0.57,0.79,1.02,1.23
+sex_x_age,Barbell_Bench_Press,male,25-34,4332,59780,0.006,49.3,68.0,89.1,111.9,3487,0.55,0.78,1.02,1.25
+sex_x_age,Barbell_Bench_Press,male,35-44,1559,24000,0.02,50.7,72.0,93.3,117.2,1444,0.56,0.78,1.01,1.24
+sex_x_age,Barbell_Bench_Press,male,45-54,523,9251,0.048,53.3,73.5,93.7,117.8,484,0.58,0.79,1.03,1.22
+sex_x_bodyweight,Barbell_Bench_Press,female,50-59 kg,188,2096,0.064,28.5,35.4,42.3,51.7,188,0.52,0.64,0.77,0.94
+sex_x_bodyweight,Barbell_Bench_Press,female,60-69 kg,422,5344,0.052,29.9,36.7,44.8,54.4,422,0.46,0.56,0.69,0.84
+sex_x_bodyweight,Barbell_Bench_Press,female,70-79 kg,343,4388,0.067,29.3,36.3,45.4,54.6,343,0.39,0.48,0.6,0.73
+sex_x_bodyweight,Barbell_Bench_Press,female,80-89 kg,229,2898,0.05,31.7,39.3,48.4,57.5,229,0.37,0.46,0.57,0.68
+sex_x_bodyweight,Barbell_Bench_Press,female,90-99 kg,140,1268,0.112,30.2,39.3,46.6,55.6,140,0.32,0.41,0.49,0.58
+sex_x_bodyweight,Barbell_Bench_Press,male,100-109 kg,863,11183,0.035,53.3,74.8,95.1,120.0,863,0.51,0.71,0.91,1.14
+sex_x_bodyweight,Barbell_Bench_Press,male,110-119 kg,433,4974,0.03,54.6,76.0,100.5,122.5,433,0.47,0.66,0.87,1.06
+sex_x_bodyweight,Barbell_Bench_Press,male,120-129 kg,247,3202,0.071,57.5,80.0,103.3,133.3,247,0.46,0.64,0.83,1.07
+sex_x_bodyweight,Barbell_Bench_Press,male,130-139 kg,168,2041,0.062,57.5,81.6,106.3,137.3,168,0.43,0.6,0.79,1.02
+sex_x_bodyweight,Barbell_Bench_Press,male,50-59 kg,186,1438,0.082,37.9,46.7,62.6,72.0,186,0.69,0.85,1.14,1.31
+sex_x_bodyweight,Barbell_Bench_Press,male,60-69 kg,1072,10792,0.019,39.7,53.3,69.5,81.7,1072,0.61,0.82,1.07,1.26
+sex_x_bodyweight,Barbell_Bench_Press,male,70-79 kg,2010,30101,0.012,45.6,63.3,80.4,96.0,2010,0.61,0.84,1.07,1.28
+sex_x_bodyweight,Barbell_Bench_Press,male,80-89 kg,2120,31324,0.015,50.7,69.5,88.7,106.7,2120,0.6,0.82,1.04,1.25
+sex_x_bodyweight,Barbell_Bench_Press,male,90-99 kg,1597,19935,0.013,53.3,74.0,93.3,114.0,1597,0.56,0.78,0.98,1.2
+sex,Barbell_Deadlift,female,,1610,15547,0.018,37.0,51.7,71.4,92.5,1417,0.5,0.71,1.02,1.3
+sex,Barbell_Deadlift,male,,3554,35738,0.012,53.3,81.6,117.9,147.6,3020,0.63,0.98,1.37,1.74
+sex_x_age,Barbell_Deadlift,female,18-24,416,3886,0.06,35.4,51.4,72.8,93.3,378,0.48,0.75,1.08,1.36
+sex_x_age,Barbell_Deadlift,female,25-34,725,6365,0.022,39.0,53.3,71.5,92.3,602,0.5,0.72,1.0,1.27
+sex_x_age,Barbell_Deadlift,female,35-44,286,2915,0.079,36.3,50.7,66.7,84.0,263,0.49,0.64,0.91,1.2
+sex_x_age,Barbell_Deadlift,male,18-24,1031,8425,0.019,53.3,83.3,121.0,154.0,917,0.69,1.08,1.49,1.9
+sex_x_age,Barbell_Deadlift,male,25-34,1585,16382,0.009,54.4,82.7,117.1,146.5,1250,0.63,0.96,1.36,1.72
+sex_x_age,Barbell_Deadlift,male,35-44,683,7646,0.037,53.3,81.6,117.8,145.7,623,0.57,0.94,1.31,1.62
+sex_x_age,Barbell_Deadlift,male,45-54,212,2809,0.147,54.4,78.0,111.6,140.0,190,0.56,0.89,1.24,1.57
+sex_x_bodyweight,Barbell_Deadlift,female,50-59 kg,202,2497,0.07,38.0,51.4,66.7,82.0,202,0.69,0.93,1.21,1.49
+sex_x_bodyweight,Barbell_Deadlift,female,60-69 kg,411,4123,0.069,37.3,50.7,68.7,89.1,411,0.57,0.78,1.06,1.37
+sex_x_bodyweight,Barbell_Deadlift,female,70-79 kg,310,3277,0.071,39.3,51.7,71.5,93.0,310,0.52,0.69,0.95,1.24
+sex_x_bodyweight,Barbell_Deadlift,female,80-89 kg,228,2036,0.064,37.0,53.3,77.6,100.8,228,0.44,0.63,0.91,1.19
+sex_x_bodyweight,Barbell_Deadlift,female,90-99 kg,106,832,0.071,34.7,53.3,81.6,99.0,106,0.36,0.56,0.86,1.04
+sex_x_bodyweight,Barbell_Deadlift,male,100-109 kg,296,3196,0.129,62.3,93.7,128.3,164.7,296,0.59,0.89,1.22,1.57
+sex_x_bodyweight,Barbell_Deadlift,male,110-119 kg,145,1055,0.063,53.3,93.7,132.0,169.6,145,0.46,0.82,1.15,1.48
+sex_x_bodyweight,Barbell_Deadlift,male,60-69 kg,310,3040,0.041,46.7,71.5,101.3,129.7,310,0.72,1.1,1.56,1.99
+sex_x_bodyweight,Barbell_Deadlift,male,70-79 kg,724,8345,0.019,53.3,80.0,113.1,139.3,724,0.71,1.07,1.51,1.86
+sex_x_bodyweight,Barbell_Deadlift,male,80-89 kg,772,8363,0.034,53.3,81.6,120.0,148.0,772,0.63,0.96,1.41,1.74
+sex_x_bodyweight,Barbell_Deadlift,male,90-99 kg,567,5272,0.02,57.5,88.7,124.0,160.0,567,0.6,0.93,1.31,1.68
+sex,Barbell_Squats,female,,1937,21334,0.011,36.3,50.7,66.5,81.6,1711,0.48,0.7,0.93,1.21
+sex,Barbell_Squats,male,,4773,59482,0.01,53.3,80.0,108.0,136.1,4130,0.63,0.94,1.27,1.59
+sex_x_age,Barbell_Squats,female,18-24,598,5726,0.031,37.3,51.4,66.7,83.3,539,0.51,0.74,1.01,1.26
+sex_x_age,Barbell_Squats,female,25-34,860,9168,0.025,36.3,50.7,66.1,80.0,727,0.48,0.68,0.9,1.15
+sex_x_age,Barbell_Squats,female,35-44,290,3820,0.064,33.3,46.0,63.3,80.0,266,0.42,0.62,0.84,1.18
+sex_x_age,Barbell_Squats,male,18-24,1623,17128,0.014,53.3,81.6,109.1,133.3,1450,0.7,1.03,1.35,1.64
+sex_x_age,Barbell_Squats,male,25-34,2099,27768,0.011,53.3,80.0,109.3,136.1,1704,0.63,0.94,1.26,1.56
+sex_x_age,Barbell_Squats,male,35-44,772,10545,0.057,53.3,80.0,106.7,136.1,715,0.6,0.88,1.21,1.52
+sex_x_age,Barbell_Squats,male,45-54,241,3449,0.087,52.0,76.0,101.3,136.1,226,0.56,0.81,1.16,1.43
+sex_x_bodyweight,Barbell_Squats,female,50-59 kg,275,3289,0.074,33.3,45.4,63.3,80.0,275,0.61,0.82,1.15,1.45
+sex_x_bodyweight,Barbell_Squats,female,60-69 kg,493,6033,0.037,38.0,51.4,66.0,81.7,493,0.58,0.79,1.02,1.26
+sex_x_bodyweight,Barbell_Squats,female,70-79 kg,401,4833,0.044,33.9,51.7,66.7,81.6,401,0.45,0.69,0.89,1.09
+sex_x_bodyweight,Barbell_Squats,female,80-89 kg,260,2555,0.069,38.0,53.3,66.7,82.3,260,0.45,0.63,0.78,0.97
+sex_x_bodyweight,Barbell_Squats,female,90-99 kg,114,995,0.067,36.9,51.4,70.0,92.3,114,0.39,0.54,0.74,0.97
+sex_x_bodyweight,Barbell_Squats,male,100-109 kg,394,4544,0.066,57.0,87.7,120.0,149.3,394,0.54,0.84,1.14,1.42
+sex_x_bodyweight,Barbell_Squats,male,110-119 kg,191,1760,0.081,58.6,93.7,120.0,145.5,191,0.51,0.82,1.04,1.27
+sex_x_bodyweight,Barbell_Squats,male,60-69 kg,480,4785,0.033,44.3,66.7,88.7,108.0,480,0.68,1.03,1.36,1.66
+sex_x_bodyweight,Barbell_Squats,male,70-79 kg,1010,14401,0.022,53.3,77.6,104.0,124.0,1010,0.71,1.03,1.39,1.65
+sex_x_bodyweight,Barbell_Squats,male,80-89 kg,1006,14257,0.042,56.0,81.7,109.1,139.3,1006,0.66,0.96,1.28,1.64
+sex_x_bodyweight,Barbell_Squats,male,90-99 kg,763,8539,0.016,54.7,84.0,116.7,140.0,763,0.58,0.88,1.23,1.47
+sex,Standing_Barbell_Shoulder_Press,female,,445,3462,0.087,26.5,27.3,35.3,40.0,391,0.34,0.41,0.48,0.6
+sex,Standing_Barbell_Shoulder_Press,male,,2702,23887,0.01,31.7,40.0,51.9,63.2,2237,0.36,0.47,0.6,0.73
+sex_x_age,Standing_Barbell_Shoulder_Press,female,18-24,113,758,0.087,25.7,27.2,34.4,39.7,104,0.34,0.39,0.48,0.62
+sex_x_age,Standing_Barbell_Shoulder_Press,female,25-34,195,1674,0.179,26.6,28.3,36.0,40.0,163,0.34,0.4,0.48,0.6
+sex_x_age,Standing_Barbell_Shoulder_Press,male,18-24,727,5076,0.02,30.2,38.0,49.3,59.1,632,0.37,0.48,0.59,0.73
+sex_x_age,Standing_Barbell_Shoulder_Press,male,25-34,1254,11763,0.019,33.3,40.0,53.3,64.1,956,0.37,0.47,0.61,0.74
+sex_x_age,Standing_Barbell_Shoulder_Press,male,35-44,521,4634,0.022,32.9,40.1,53.3,63.3,467,0.36,0.47,0.58,0.71
+sex_x_age,Standing_Barbell_Shoulder_Press,male,45-54,178,2050,0.121,32.1,40.0,52.6,65.9,161,0.36,0.47,0.59,0.69
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,female,60-69 kg,120,828,0.057,25.3,27.2,32.5,40.0,120,0.39,0.42,0.5,0.62
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,100-109 kg,206,1838,0.136,33.3,46.3,56.6,66.2,206,0.32,0.44,0.54,0.63
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,110-119 kg,116,713,0.084,32.5,42.7,56.6,69.3,116,0.28,0.37,0.49,0.6
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,60-69 kg,207,1359,0.05,28.3,34.8,42.0,53.3,207,0.44,0.54,0.65,0.82
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,70-79 kg,541,5467,0.022,30.2,39.0,48.4,56.7,541,0.4,0.52,0.65,0.76
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,80-89 kg,581,5296,0.041,31.7,40.0,50.7,60.5,581,0.37,0.47,0.6,0.71
+sex_x_bodyweight,Standing_Barbell_Shoulder_Press,male,90-99 kg,418,3599,0.058,33.3,40.0,53.3,66.7,418,0.35,0.42,0.56,0.7
