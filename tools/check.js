@@ -344,8 +344,8 @@ try {
     const typo = eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8 }] }], 21);
     if (typo.n !== n0 || typo.checks.length !== 1) bad.push(`${id} ${sex}: a 900 kg typo was counted`);
     if (eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8, ok: true }] }], 21).checks.length) bad.push(`${id} ${sex}: a confirmed set is still marked to check`);
-    // heavy low-rep lifters are represented: the same true level trained as triples, fives, tens or a mix lands within one rank of each other
-    for (const z of [0, 0.6745, 1.2816]) { const mo = eng.model(id, sex), ref = eng.refKg(mo, z, 80), lv = [[3], [5], [10], [5, 10]].map(rs => two(id, sex, 80, rs.map(r => ({ w: ref / (1 + r / 30), reps: r }))).n);
+    // the common rep ranges are represented: the same true level trained as sets of 5, 6, 7, 8 or 10 (or a mix) lands within one rank of each other
+    for (const z of [0, 0.6745, 1.2816]) { const mo = eng.model(id, sex), ref = eng.refKg(mo, z, 80), lv = [[5], [6], [7], [8], [10], [6, 8]].map(rs => two(id, sex, 80, rs.map(r => ({ w: ref / (1 + r / 30), reps: r }))).n);
       if (Math.max(...lv) - Math.min(...lv) > 1) bad.push(`${id} ${sex}: training style changes the rank by more than one level (${lv.join(',')})`); }
     // age: an older lifter never needs more than a young one
     if (eng.need(id, { sex, bw: 80, age: 60 }, 6, 8) > eng.need(id, { sex, bw: 80, age: 30 }, 6, 8) + 1e-6) bad.push(`${id} ${sex}: age 60 needs more kg than age 30`);

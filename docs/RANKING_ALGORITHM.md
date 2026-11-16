@@ -21,7 +21,7 @@ No estimated one-rep max is applied to what the user logged, no total workout vo
 For one exercise and one person:
 
 ```
-set volume        V = load × min(reps, repCap)          repCap = 10
+set volume        V = load × min(reps, repCap)          repCap = 8
 set load          L = load                               (load = the weight the set really moved, see section 6)
 
 volume percentile pV = percentile of the best V   (best finished normal set, last 12 months)
@@ -37,9 +37,9 @@ rank  = the band the score falls in (section 5)
 - Each set is compared using **the body weight on the day of that set**.
 - Doing the same set once or five times gives the same rank (tested in `tools/check.js`).
 
-### Why reps above 10 add no volume
+### Why reps above 8 add no volume
 
-Without a limit, kg × reps keeps growing as the weight drops: 30 easy reps would beat 10 hard ones. Ten is the median set in the GymStreak data and the top of the 1 to 10 rep window its strength figures are built on. A set of 15 still counts, as 10 of its reps.
+Without a limit, kg × reps keeps growing as the weight drops: 30 easy reps would beat 8 hard ones. Eight is the top of the 6 to 8 rep range most people train in today, and the yardstick below is built on a set of 8. A set of 12 still counts, as 8 of its reps.
 
 ## 2. The reference curves (where the percentiles come from)
 
@@ -57,15 +57,15 @@ reference(p, bodyweight) = a_p × (bodyweight / refBw) ^ k_p
 
 The fitted values:
 
-| Exercise | Sex | Lifters | Body weights covered | a: 25th / 50th / 75th / 90th (kg) | k: 25th / 50th / 75th / 90th / 98th+ | Reps of the max-load set | Fit error (median) | Confidence |
+| Exercise | Sex | Lifters | Body weights covered | a: 25th / 50th / 75th / 90th (kg) | k: 25th / 50th / 75th / 90th / 98th+ | Reps of the max-load reference set | Fit error (median) | Confidence |
 |---|---|---:|---|---|---|---:|---:|---|
-| Bench press | Men | 10,244 | 50 to 139 kg | 47.1 / 64.7 / 82.5 / 99.5 | 0.547 / 0.6 / 0.654 / 0.702 / 0.734 | 5 | 3.6% | high |
-| Bench press | Women | 1,709 | 50 to 99 kg | 29.4 / 36.5 / 44.6 / 53.7 | 0.16 / 0.17 / 0.18 / 0.189 / 0.506 | 5 | 1.8% | medium |
-| Back squat | Men | 4,773 | 60 to 119 kg | 52.5 / 78.1 / 104.9 / 128.1 | 0.417 / 0.478 / 0.538 / 0.593 / 0.706 | 5 | 3.1% | high |
-| Back squat | Women | 1,937 | 50 to 99 kg | 35.5 / 50 / 65.2 / 81.2 | 0.174 / 0.168 / 0.162 / 0.157 / 0.57 | 5 | 2.3% | medium |
-| Deadlift | Men | 3,554 | 60 to 119 kg | 52.9 / 81 / 114.9 / 144.2 | 0.405 / 0.439 / 0.474 / 0.504 / 0.556 | 5 | 1.8% | high |
-| Deadlift | Women | 1,610 | 50 to 99 kg | 37.8 / 51.2 / 69.8 / 88.1 | 0 / 0.112 / 0.288 / 0.446 / 0.453 | 5 | 1.5% | medium |
-| Overhead press | Men | 2,702 | 60 to 119 kg | 30.9 / 39 / 49.1 / 58.9 | 0.312 / 0.389 / 0.465 / 0.534 / 0.534 | 5 | 2.2% | medium |
+| Bench press | Men | 10,244 | 50 to 139 kg | 47.1 / 64.7 / 82.5 / 99.5 | 0.547 / 0.6 / 0.654 / 0.702 / 0.734 | 6 | 3.6% | high |
+| Bench press | Women | 1,709 | 50 to 99 kg | 29.4 / 36.5 / 44.6 / 53.7 | 0.16 / 0.17 / 0.18 / 0.189 / 0.506 | 6 | 1.8% | medium |
+| Back squat | Men | 4,773 | 60 to 119 kg | 52.5 / 78.1 / 104.9 / 128.1 | 0.417 / 0.478 / 0.538 / 0.593 / 0.706 | 6 | 3.1% | high |
+| Back squat | Women | 1,937 | 50 to 99 kg | 35.5 / 50 / 65.2 / 81.2 | 0.174 / 0.168 / 0.162 / 0.157 / 0.57 | 6 | 2.3% | medium |
+| Deadlift | Men | 3,554 | 60 to 119 kg | 52.9 / 81 / 114.9 / 144.2 | 0.405 / 0.439 / 0.474 / 0.504 / 0.556 | 6 | 1.8% | high |
+| Deadlift | Women | 1,610 | 50 to 99 kg | 37.8 / 51.2 / 69.8 / 88.1 | 0 / 0.112 / 0.288 / 0.446 / 0.453 | 6 | 1.5% | medium |
+| Overhead press | Men | 2,702 | 60 to 119 kg | 30.9 / 39 / 49.1 / 58.9 | 0.312 / 0.389 / 0.465 / 0.534 / 0.534 | 6 | 2.2% | medium |
 
 "Fit error" is how far the smooth curves are from GymStreak's published band values: 1.5% to 3.6%.
 
@@ -74,11 +74,11 @@ The fitted values:
 GymStreak publishes one number per lifter: their best set of 1 to 10 reps, written as `weight × (1 + reps ÷ 30)`. It does not publish the heaviest weight or the best set volume. No open source does. So each reference value is turned back into two real sets with GymStreak's own formula:
 
 ```
-max-load reference = reference ÷ (1 + 5 ÷ 30)        = a heavy set of 5 reps
-volume reference   = 10 × reference ÷ (1 + 10 ÷ 30)  = a set of 10 reps
+max-load reference = reference ÷ (1 + 6 ÷ 30)        = a set of 6 reps
+volume reference   = 8 × reference ÷ (1 + 8 ÷ 30)    = a set of 8 reps
 ```
 
-In words: the reference lifter's heaviest set is taken to be a heavy set of 5 (GymStreak counts sets of 1 to 5 reps as the heavy ones), and their best-volume set a set of 10 (the median set). **Which set is a person's heaviest or best-volume set is an assumption**, chosen so that a lifter of the same strength gets about the same rank whether they train in fives or in tens. The formula is used only to rebuild the reference, never on the user's own sets. These two constants (`kL`, `kV` in the data file) are the weakest part of the system and the first to replace with measured values once the app can collect anonymous data with consent.
+In words: the reference lifter's heaviest set is taken to be a set of 6 and their best-volume set a set of 8: the two ends of the 6 to 8 rep range that is so common today (in GymStreak's data the 25th-percentile set is 7 or 8 reps on these lifts). **Which set is a person's heaviest or best-volume set is an assumption**, chosen so that a lifter of the same strength gets the same rank whether they train in sets of 5, 6, 7, 8 or 10. The formula is used only to rebuild the reference, never on the user's own sets. These two constants (`kL`, `kV` in the data file) are the weakest part of the system and the first to replace with measured values once the app can collect anonymous data with consent.
 
 ## 3. Sex, age and body weight
 
@@ -88,83 +88,91 @@ In words: the reference lifter's heaviest set is taken to be a heavy set of 5 (G
 
 | Age | Rank |
 |---|---:|
-| 25 | Gold I |
-| 40 | Gold I |
-| 50 | Gold I |
-| 60 | Gold I (Platinum II pending) |
-| 70 | Gold I (Platinum I pending) |
+| 25 | Gold I (Platinum III pending) |
+| 40 | Gold I (Platinum III pending) |
+| 50 | Gold I (Platinum III pending) |
+| 60 | Gold I (Platinum I pending) |
+| 70 | Gold I (Diamond III pending) |
 
-## 4. Why the better of the two (low-volume lifters must be represented)
+## 4. Why the better of the two (the 6 to 8 rep lifter must be represented)
 
-The brief's first guess was an average: 60% volume and 40% max load, with 50/50 and 70/30 to test. Petros then added (16 November 2026) that lifters who train with high intensity and low volume must be represented too. Invented lifters of the same true strength were given different training styles:
+The brief's first guess was an average: 60% volume and 40% max load, with 50/50 and 70/30 to test. Petros then added (16 November 2026) that lifters who train with high intensity and low volume, in the 6 to 8 rep range, must be represented. Invented lifters of the same true strength were given different training styles:
 
 **The better of the two measurements (chosen)**
 
-| Style | 20th pct lifter | 50th | 75th | 90th | 98th |
+| Style | 20th pct lifter | 50th | 75th | 92nd | 98.5th |
 |---|---:|---:|---:|---:|---:|
-| Heavy singles only | Bronze II | Silver II | Gold I | Platinum II | Diamond II |
-| Triples only | Bronze II | Silver II | Gold II | Platinum III | Diamond III |
+| Heavy singles only | Bronze I | Silver I | Gold I | Platinum I | Diamond II |
+| Triples only | Bronze II | Silver II | Gold II | Platinum II | Diamond II |
 | 5 x 5 only | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
-| Sets of 6 | Bronze II | Silver III | Gold III | Gold I | Platinum I |
-| Sets of 8 | Bronze II | Bronze I | Silver I | Gold II | Platinum I |
-| Sets of 10 | Bronze II | Silver III | Gold III | Platinum III | Platinum I |
-| Sets of 12 | Bronze II | Silver III | Silver I | Gold I | Platinum I |
+| Sets of 6 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 7 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 6 to 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 10 | Bronze II | Silver III | Silver I | Gold I | Platinum I |
+| Sets of 12 | Bronze III | Bronze I | Silver I | Gold I | Platinum I |
 | Sets of 15 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
 | Sets of 5 and 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
-| A single and sets of 10 | Bronze II | Silver II | Gold I | Platinum II | Diamond II |
+| A single and sets of 10 | Bronze I | Silver I | Gold I | Platinum I | Diamond II |
 
 **Average, 50% volume / 50% max load**
 
-| Style | 20th pct lifter | 50th | 75th | 90th | 98th |
+| Style | 20th pct lifter | 50th | 75th | 92nd | 98.5th |
 |---|---:|---:|---:|---:|---:|
-| Heavy singles only | Bronze III | Bronze I | Bronze I | Silver III | Silver III |
-| Triples only | Bronze III | Bronze II | Bronze I | Silver III | Silver II |
-| 5 x 5 only | Bronze III | Bronze I | Silver III | Silver I | Gold II |
-| Sets of 6 | Bronze III | Bronze I | Silver III | Silver I | Gold I |
-| Sets of 8 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
+| Heavy singles only | Bronze II | Bronze I | Bronze I | Silver III | Silver III |
+| Triples only | Bronze III | Bronze I | Silver III | Silver II | Silver I |
+| 5 x 5 only | Bronze III | Bronze I | Silver II | Gold III | Platinum III |
+| Sets of 6 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
+| Sets of 7 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
+| Sets of 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 6 to 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
 | Sets of 10 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
-| Sets of 12 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
-| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum III |
+| Sets of 12 | Bronze III | Bronze I | Silver II | Gold II | Platinum I |
+| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum II |
 | Sets of 5 and 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
-| A single and sets of 10 | Bronze II | Silver II | Gold II | Platinum III | Diamond III |
+| A single and sets of 10 | Bronze II | Silver II | Gold III | Platinum III | Diamond III |
 
 **Average, 60% volume / 40% max load (the brief's first guess)**
 
-| Style | 20th pct lifter | 50th | 75th | 90th | 98th |
+| Style | 20th pct lifter | 50th | 75th | 92nd | 98.5th |
 |---|---:|---:|---:|---:|---:|
 | Heavy singles only | Bronze III | Bronze II | Bronze I | Bronze I | Bronze I |
-| Triples only | Bronze III | Bronze II | Bronze I | Bronze I | Silver III |
-| 5 x 5 only | Bronze III | Bronze II | Silver III | Silver II | Gold III |
-| Sets of 6 | Bronze III | Bronze I | Silver III | Silver I | Gold I |
-| Sets of 8 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
-| Sets of 10 | Bronze II | Silver III | Silver I | Gold I | Platinum I |
-| Sets of 12 | Bronze III | Bronze I | Silver I | Gold II | Platinum II |
-| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum III |
-| Sets of 5 and 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
-| A single and sets of 10 | Bronze II | Silver II | Gold II | Platinum III | Diamond III |
-
-**Average, 70% volume / 30% max load**
-
-| Style | 20th pct lifter | 50th | 75th | 90th | 98th |
-|---|---:|---:|---:|---:|---:|
-| Heavy singles only | Bronze III | Bronze II | Bronze II | Bronze II | Bronze II |
-| Triples only | Bronze III | Bronze II | Bronze II | Bronze I | Silver III |
-| 5 x 5 only | Bronze III | Bronze II | Bronze I | Silver III | Gold III |
-| Sets of 6 | Bronze III | Bronze II | Silver III | Silver II | Gold II |
-| Sets of 8 | Bronze III | Bronze I | Silver II | Gold III | Platinum II |
-| Sets of 10 | Bronze II | Silver III | Silver I | Gold I | Platinum I |
-| Sets of 12 | Bronze II | Bronze I | Silver I | Gold II | Platinum II |
-| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum III |
+| Triples only | Bronze III | Bronze II | Bronze I | Silver III | Silver II |
+| 5 x 5 only | Bronze III | Bronze I | Silver III | Gold III | Gold I |
+| Sets of 6 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
+| Sets of 7 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
+| Sets of 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 6 to 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 10 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
+| Sets of 12 | Bronze III | Bronze I | Silver II | Gold II | Platinum I |
+| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum II |
 | Sets of 5 and 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
 | A single and sets of 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
 
-A lifter truly at the 20th / 50th / 75th / 90th / 98th percentile should read Bronze II / Silver III / Gold III / Platinum III / Platinum I (the 98th percentile is the last step before Diamond III).
+**Average, 70% volume / 30% max load**
+
+| Style | 20th pct lifter | 50th | 75th | 92nd | 98.5th |
+|---|---:|---:|---:|---:|---:|
+| Heavy singles only | Bronze III | Bronze II | Bronze II | Bronze II | Bronze I |
+| Triples only | Bronze III | Bronze II | Bronze I | Bronze I | Silver II |
+| 5 x 5 only | Bronze III | Bronze I | Silver III | Silver I | Gold I |
+| Sets of 6 | Bronze III | Bronze I | Silver II | Gold II | Platinum II |
+| Sets of 7 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
+| Sets of 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 6 to 8 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| Sets of 10 | Bronze II | Bronze I | Silver I | Gold I | Platinum I |
+| Sets of 12 | Bronze III | Bronze I | Silver II | Gold II | Platinum I |
+| Sets of 15 | Bronze III | Bronze I | Silver II | Gold III | Platinum II |
+| Sets of 5 and 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+| A single and sets of 10 | Bronze II | Silver III | Gold III | Platinum III | Diamond III |
+
+A lifter truly at the 20th / 50th / 75th / 92nd / 98.5th percentile should read Bronze II / Silver III / Gold III / Platinum III / Diamond III.
 
 What this shows:
-- **With any average, people who only do low reps are ranked far too low**, because a set of 3 is a small kg × reps. At 60/40 a lifter in the top 2% who only does triples would be Silver III.
-- **With "the better of the two", every style lands within about one rank of the true level.** Heavy singles, triples and 5 × 5 are carried by the heaviest weight; sets of 10 and 12 by the set volume; people who do both get the same rank as either.
-- What is left over: a true all-out single reads about one rank high, and sets of 8 or 15 about one rank low. Those are the edges of the two measurements; removing them fully would need an estimated one-rep max, which the brief rules out.
-- Volume still matters exactly as the brief intended for everyone who trains with reps: the best single set counts, not the number of sets.
+- **With any average, people who do lower reps are ranked too low**, because a set of 3 to 6 is a small kg × reps. At 60/40 a lifter in the top 2% who only does triples would be Silver III.
+- **With "the better of the two", the common ranges are exact.** Sets of 5, 6, 7, 8, a 6 to 8 mix and sets of 10 of the same strength give the same rank (sets of 10 at most one level lower). This is the range Petros asked to be represented (16 November 2026: "6 to 8 rep lifters, which are really common nowadays").
+- What is left over at the edges: an all-out single or triple reads about one rank high, and people who only ever do 12 reps or more read one to two ranks low. Removing that fully would need an estimated one-rep max, which the brief rules out.
+- The best single set counts, never the number of sets.
 
 The choice is one number in `data/rank/rank-config.json` (`wBest`: 1 = the better of the two, 0 = the plain average with `wVolume` and `wLoad`).
 
@@ -247,62 +255,62 @@ The loads are exact (from the engine). The times are a reading of the GymStreak 
 
 | Rank | Man 65 kg | Man 80 kg | Woman 65 kg | Woman 80 kg |
 |---|---:|---:|---:|---:|
-| Bronze II | 30.5 | 34.5 | 22.5 | 23.5 |
-| Bronze I | 39 | 43.5 | 26.5 | 27.5 |
-| Silver III | 46.5 | 52.5 | 30.5 | 31.5 |
-| Silver II | 51.5 | 58.5 | 32.5 | 34 |
-| Silver I | 55.5 | 63.5 | 35 | 36.5 |
-| Gold III | 60 | 68.5 | 37.5 | 39 |
-| Gold II | 64.5 | 74 | 40 | 41.5 |
-| Gold I | 69 | 79.5 | 43 | 44.5 |
-| Platinum III | 74 | 85.5 | 46.5 | 48 |
-| Platinum II | 79.5 | 92 | 49.5 | 52.5 |
-| Platinum I | 85 | 99 | 53.5 | 57.5 |
-| Diamond III | 93 | 108.5 | 58.5 | 65 |
-| Diamond II | 101.5 | 118 | 63.5 | 70.5 |
-| Diamond I | 115.5 | 134.5 | 72.5 | 80.5 |
+| Bronze II | 28 | 31.5 | 21 | 21.5 |
+| Bronze I | 36 | 40 | 24.5 | 25.5 |
+| Silver III | 43 | 48.5 | 28 | 29 |
+| Silver II | 47.5 | 53.5 | 30 | 31 |
+| Silver I | 51.5 | 58.5 | 32.5 | 33.5 |
+| Gold III | 55.5 | 63.5 | 34.5 | 36 |
+| Gold II | 59.5 | 68 | 37 | 38.5 |
+| Gold I | 63.5 | 73 | 39.5 | 41 |
+| Platinum III | 68 | 79 | 42.5 | 44.5 |
+| Platinum II | 73 | 84.5 | 46 | 48.5 |
+| Platinum I | 78.5 | 91 | 49 | 53 |
+| Diamond III | 86 | 100 | 54 | 60 |
+| Diamond II | 93.5 | 108.5 | 58.5 | 65 |
+| Diamond I | 106.5 | 123.5 | 66.5 | 74 |
 
 **Back squat**: kg for one set of 8 reps on its own
 
 | Rank | Man 65 kg | Man 80 kg | Woman 65 kg | Woman 80 kg |
 |---|---:|---:|---:|---:|
-| Bronze II | 33.5 | 36.5 | 25.5 | 26.5 |
-| Bronze I | 45 | 49.5 | 33 | 34.5 |
-| Silver III | 56.5 | 62.5 | 40.5 | 42 |
-| Silver II | 64 | 71 | 45.5 | 47 |
-| Silver I | 70.5 | 78.5 | 49.5 | 51.5 |
-| Gold III | 77.5 | 86.5 | 54 | 56 |
-| Gold II | 84 | 94 | 59 | 61 |
-| Gold I | 90 | 101.5 | 64 | 66 |
-| Platinum III | 97.5 | 110 | 70 | 72 |
-| Platinum II | 104.5 | 118.5 | 76 | 80.5 |
-| Platinum I | 112 | 128.5 | 82.5 | 90 |
-| Diamond III | 122.5 | 142 | 92 | 104 |
-| Diamond II | 134 | 155 | 102 | 114.5 |
-| Diamond I | 154 | 178 | 118.5 | 133.5 |
+| Bronze II | 31 | 33.5 | 23.5 | 24.5 |
+| Bronze I | 41.5 | 45.5 | 30.5 | 31.5 |
+| Silver III | 52 | 57.5 | 37.5 | 38.5 |
+| Silver II | 59 | 65.5 | 41.5 | 43 |
+| Silver I | 65 | 72.5 | 45.5 | 47.5 |
+| Gold III | 71.5 | 80 | 50 | 51.5 |
+| Gold II | 77.5 | 86.5 | 54 | 56 |
+| Gold I | 83 | 93.5 | 59 | 61 |
+| Platinum III | 89.5 | 101.5 | 64.5 | 66.5 |
+| Platinum II | 96 | 109.5 | 70 | 74 |
+| Platinum I | 103 | 118.5 | 76 | 83 |
+| Diamond III | 113 | 130.5 | 85 | 95.5 |
+| Diamond II | 123.5 | 143 | 94 | 105.5 |
+| Diamond I | 142 | 164 | 109 | 123 |
 
 **Deadlift**: kg for one set of 8 reps on its own
 
 | Rank | Man 65 kg | Man 80 kg | Woman 65 kg | Woman 80 kg |
 |---|---:|---:|---:|---:|
-| Bronze II | 33.5 | 36.5 | 28 | 28 |
-| Bronze I | 46 | 50 | 35 | 35 |
-| Silver III | 59 | 64.5 | 41.5 | 42.5 |
-| Silver II | 68 | 74.5 | 46.5 | 48 |
-| Silver I | 76.5 | 84 | 52 | 54 |
-| Gold III | 85.5 | 94 | 57.5 | 61 |
-| Gold II | 94 | 103.5 | 63 | 67.5 |
-| Gold I | 102 | 113 | 69 | 74.5 |
-| Platinum III | 111.5 | 124 | 75.5 | 83 |
-| Platinum II | 121.5 | 135 | 83 | 91 |
-| Platinum I | 132 | 147.5 | 90.5 | 99.5 |
-| Diamond III | 147 | 165 | 102 | 112 |
-| Diamond II | 163 | 183 | 113 | 124 |
-| Diamond I | 191 | 214 | 132.5 | 146 |
+| Bronze II | 31 | 33.5 | 25.5 | 25.5 |
+| Bronze I | 42.5 | 46 | 32 | 32.5 |
+| Silver III | 54 | 59.5 | 38.5 | 39 |
+| Silver II | 62.5 | 68.5 | 43 | 44.5 |
+| Silver I | 70.5 | 77 | 48 | 50 |
+| Gold III | 78.5 | 86.5 | 53 | 56 |
+| Gold II | 86.5 | 95.5 | 58 | 62 |
+| Gold I | 94 | 104 | 63.5 | 69 |
+| Platinum III | 103 | 114 | 70 | 76.5 |
+| Platinum II | 111.5 | 124.5 | 76.5 | 83.5 |
+| Platinum I | 121.5 | 136 | 83.5 | 91.5 |
+| Diamond III | 135.5 | 152 | 94 | 103 |
+| Diamond II | 150 | 168.5 | 104 | 114.5 |
+| Diamond I | 176 | 197.5 | 122.5 | 134.5 |
 
 **Barbell curl and pull-up: no table.** No open benchmark data exists for them (see the research report), so the new engine gives them no rank and there are no honest loads to print. With a licence or in-app data they get the same kind of table.
 
-Reading the tables: this is the heaviest weight needed. Any set of 1 to 8 reps at that weight reaches the rank (the max-load measurement carries it); with a set of 10 reps about 12% less weight is enough (the volume measurement carries it). The simulator shows any combination.
+Reading the tables: a set of 8 to 10 reps at this weight reaches the rank through the volume measurement. With fewer reps (1 to 6) about 5% more weight is needed, through the max-load measurement. The simulator shows any combination.
 
 ## 6. Exercise types
 
@@ -337,7 +345,7 @@ With the real database the same sets give: no rank (no open benchmark data for t
 | Spider curl (SYNTHETIC) | Gold I (Platinum III pending) |
 | Bayesian cable curl (SYNTHETIC) | Silver I |
 
-A sourced variation factor (real): Smith machine squat, 65 kg woman, 60 x 8: Gold III (Estimate, based on Back squat); the same set as a free back squat: Gold II; a man on the Smith machine: no rank (the variation factor has no evidence for this sex).
+A sourced variation factor (real): Smith machine squat, 65 kg woman, 60 x 8: Gold II (Estimate, based on Back squat); the same set as a free back squat: Gold I; a man on the Smith machine: no rank (the variation factor has no evidence for this sex).
 
 Note the first three rows: one set of 9, three sets, four sets all give the same rank. That is the pull-up complaint fixed by design.
 
@@ -361,29 +369,29 @@ Version 1.0.0 has one: Smith machine squat = 1.092 × back squat, women only, lo
 
 | Situation | Rank shown |
 |---|---:|
-| Four weeks of 60 x 10 | Gold III |
-| … then one workout of 130 x 8 (first time) | Gold I (Diamond II pending) |
-| … and 130 x 8 again a week later | Platinum II |
-| … and a third time | Diamond III |
-| Very first workout ever: 130 x 8 | Gold I (Diamond II pending) |
-| A typo: 600 x 10 | Gold III; 1 set marked "Check this set" |
-| One bad day after the four weeks (40 x 10) | Gold III |
+| Four weeks of 60 x 10 | Silver I |
+| … then one workout of 130 x 8 (first time) | Gold II (Diamond I pending) |
+| … and 130 x 8 again a week later | Platinum III |
+| … and a third time | Platinum I |
+| Very first workout ever: 130 x 8 | Gold I (Diamond I pending) |
+| A typo: 600 x 10 | Silver I; 1 set marked "Check this set" |
+| One bad day after the four weeks (40 x 10) | Silver I |
 | Strong lifter (100 x 8, 115 x 3) stops training: after 0 weeks | Diamond III |
 | Strong lifter (100 x 8, 115 x 3) stops training: after 26 weeks | Diamond III |
-| Strong lifter (100 x 8, 115 x 3) stops training: after 52 weeks | Diamond III |
+| Strong lifter (100 x 8, 115 x 3) stops training: after 52 weeks | Diamond III (Diamond II pending) |
 | Strong lifter (100 x 8, 115 x 3) stops training: after 65 weeks | Platinum I |
 | Strong lifter (100 x 8, 115 x 3) stops training: after 80 weeks | Platinum III |
 | Strong lifter (100 x 8, 115 x 3) stops training: after 104 weeks | Platinum III |
 
 | Profile | Set | Rank | Diamond III would need (one set of 8) |
 |---|---:|---:|---:|
-| Man 50 kg, bench | 30 x 10 | Bronze I | 77 kg |
-| Man 50 kg, squat | 40 x 10 | Bronze I | 116 kg |
-| Man 50 kg, deadlift | 50 x 8 | Bronze I | 141 kg |
-| Woman 50 kg, bench | 20 x 10 | Bronze II | 51.5 kg |
-| Woman 50 kg, squat | 30 x 10 | Bronze I | 79.5 kg |
-| Woman 50 kg, deadlift | 40 x 8 | Bronze I | 90.5 kg |
-| Man 50 kg, ohp | 20 x 10 | Bronze II | 55 kg |
+| Man 50 kg, bench | 30 x 10 | Bronze II | 71 kg |
+| Man 50 kg, squat | 40 x 10 | Bronze I | 106.5 kg |
+| Man 50 kg, deadlift | 50 x 8 | Bronze I | 130 kg |
+| Woman 50 kg, bench | 20 x 10 | Bronze II | 47.5 kg |
+| Woman 50 kg, squat | 30 x 10 | Bronze I | 73 kg |
+| Woman 50 kg, deadlift | 40 x 8 | Silver III | 83.5 kg |
+| Man 50 kg, ohp | 20 x 10 | Bronze II | 50.5 kg |
 
 Same percentile, different bodies (rule 5):
 
@@ -421,14 +429,14 @@ Same percentile, different bodies (rule 5):
 
 | Body weight | Set | Load percentile | Volume percentile | Score | Rank from this one set |
 |---|---:|---:|---:|---:|---:|
-| 50 kg man | 120 kg x 1 | 100.0 | 0.8 | 100.0 | Gold I (Diamond I pending) |
-| 75 kg man | 100 kg x 1 | 97.4 | 0.1 | 97.4 | Gold I (Platinum I pending) |
-| 100 kg man | 100 kg x 1 | 90.2 | 0.0 | 90.2 | Gold I (Platinum III pending) |
-| 150 kg man | 100 kg x 1 | 73.9 | 0.0 | 73.9 | Gold III |
-| 50 kg man | 120 kg x 8 | 100.0 | 99.9 | 100.0 | Gold I (Diamond I pending) |
-| 75 kg man | 100 kg x 8 | 97.4 | 95.1 | 97.4 | Gold I (Platinum I pending) |
-| 100 kg man | 100 kg x 8 | 90.2 | 84.5 | 90.2 | Gold I (Platinum III pending) |
-| 150 kg man | 100 kg x 8 | 73.9 | 66.2 | 73.9 | Gold III |
+| 50 kg man | 120 kg x 1 | 100.0 | 2.0 | 100.0 | Gold I (Diamond I pending) |
+| 75 kg man | 100 kg x 1 | 98.0 | 0.2 | 98.0 | Gold I (Platinum I pending) |
+| 100 kg man | 100 kg x 1 | 91.6 | 0.1 | 91.6 | Gold I (Platinum III pending) |
+| 150 kg man | 100 kg x 1 | 76.2 | 0.0 | 76.2 | Gold III |
+| 50 kg man | 120 kg x 8 | 100.0 | 100.0 | 100.0 | Gold I (Diamond I pending) |
+| 75 kg man | 100 kg x 8 | 98.0 | 98.7 | 98.7 | Gold I (Diamond III pending) |
+| 100 kg man | 100 kg x 8 | 91.6 | 93.9 | 93.9 | Gold I (Platinum II pending) |
+| 150 kg man | 100 kg x 8 | 76.2 | 80.7 | 80.7 | Gold II |
 
 The 150 kg man is measured at 139 kg: the heaviest body-weight band the open data covers.
 
@@ -436,12 +444,12 @@ A single heavy rep scores high on max load and almost nothing on volume; the ran
 
 | Set | Volume (kg x reps) | Load percentile | Volume percentile | Alone it would be |
 |---|---:|---:|---:|---:|
-| 100 x 1 | 100 | 96.4 | 0.0 | Platinum I |
-| 90 x 3 | 270 | 92.7 | 10.7 | Platinum III |
-| 80 x 6 | 480 | 85.9 | 49.1 | Gold I |
-| 70 x 10 | 700 | 74.1 | 85.9 | Gold I |
+| 100 x 1 | 100 | 97.1 | 0.1 | Platinum I |
+| 90 x 3 | 270 | 93.9 | 18.9 | Platinum II |
+| 80 x 6 | 480 | 87.8 | 67.3 | Gold I |
+| 70 x 10 | 560 | 76.9 | 81.8 | Gold II |
 
-All four together: **Gold I**. Best volume set: 70 x 10 (700, percentile 85.9). Heaviest weight: the 100 kg single (percentile 96.4). The rank follows the better of the two: score 96.4.
+All four together: **Gold I**. Best volume set: 70 x 10 (560, percentile 81.8). Heaviest weight: the 100 kg single (percentile 97.1). The rank follows the better of the two: score 97.1.
 
 ## 10. Confidence
 
@@ -466,6 +474,6 @@ Benchmarks are versioned (`version`, `calibrated` in the data file). A change of
 
 1. The two bridge constants (section 2) are assumptions.
 2. Everything above the 90th percentile is a continued curve. Platinum II and above are estimates in the strict sense.
-3. A true all-out single reads about one rank high, and lifters who only do sets of 8 or of 15 and more read about one rank low (section 4).
+3. An all-out single or triple reads about one rank high, and lifters who only do 12 reps or more read one to two ranks low (section 4).
 4. The reference population is gym-app users. If they are keener than the average gym-goer, the ranks are slightly hard; if casual users dominate, slightly easy.
 5. Body weight in the source is in 10 kg bands and self-reported.

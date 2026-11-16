@@ -17,7 +17,7 @@ const half = x => (Math.ceil(x * 2 - 1e-9) / 2).toString();
 const table = (head, rows) => ['| ' + head.join(' | ') + ' |', '|' + head.map((h, i) => i ? '---:' : '---').join('|') + '|', ...rows.map(r => '| ' + r.join(' | ') + ' |')].join('\n');
 const once = (e, ex, body, sets, bw) => e.evaluate(ex, body, [{ day: 0, bw, sets }], 0);
 const show = r => r.ranked ? `${r.name}${r.pending ? ` (${r.pending.name} pending)` : ''}` : `no rank (${r.reason})`;
-const Zs = { 20: -0.8416, 50: 0, 75: 0.6745, 90: 1.2816, 98: 2.0537 };
+const Zs = { 20: -0.8416, 50: 0, 75: 0.6745, 90: 1.2816, 92: 1.4051, 98: 2.0537, 98.5: 2.1701 };
 // SYNTHETIC lifter: someone whose strength sits at percentile p of the reference curve, doing sets of the given reps.
 // Weights come from the source's own set formula turned round (weight = reference ÷ (1 + reps/30)); used here to invent test sets only.
 const synSets = (e, ex, sex, bw, p, repsList, age) => { const ref = e.refKg(e.model(ex, sex), Zs[p], bw, age); return repsList.map(r => ({ w: ref / (1 + r / 30), reps: r })); };
@@ -38,12 +38,12 @@ const all = () => {
   P(`\nAll four together: **${r4.name}**. Best volume set: ${r4.bestVolume.w} x ${r4.bestVolume.reps} (${f0(r4.bestVolume.volume)}, percentile ${f1(r4.pctVolume)}). Heaviest weight: the ${r4.bestLoad.w} kg single (percentile ${f1(r4.pctLoad)}). The rank follows the better of the two: score ${f1(r4.score)}.`);
 
   H('3. Scoring: the same true strength, different training styles (80 kg man, bench, SYNTHETIC lifters)');
-  const styles = { 'Heavy singles only': [1], 'Triples only': [3], '5 x 5 only': [5], 'Sets of 6': [6], 'Sets of 8': [8], 'Sets of 10': [10], 'Sets of 12': [12], 'Sets of 15': [15], 'Sets of 5 and 10': [5, 10], 'A single and sets of 10': [1, 10] };
+  const styles = { 'Heavy singles only': [1], 'Triples only': [3], '5 x 5 only': [5], 'Sets of 6': [6], 'Sets of 7': [7], 'Sets of 8': [8], 'Sets of 6 to 8': [6, 7, 8], 'Sets of 10': [10], 'Sets of 12': [12], 'Sets of 15': [15], 'Sets of 5 and 10': [5, 10], 'A single and sets of 10': [1, 10] };
   for(const [title, wB, wV] of [['The better of the two measurements (chosen)', 1, 0.5], ['Average, 50% volume / 50% max load', 0, 0.5], ['Average, 60% volume / 40% max load (the brief\'s first guess)', 0, 0.6], ['Average, 70% volume / 30% max load', 0, 0.7]]){ const e = weights(wB, wV);
     P(`\n**${title}**\n`);
-    P(table(['Style', '20th pct lifter', '50th', '75th', '90th', '98th'], Object.entries(styles).map(([name, rs]) => [name, ...[20, 50, 75, 90, 98].map(p => { const sets = synSets(e, 'bench', 'm', 80, p, rs, 30);
+    P(table(['Style', '20th pct lifter', '50th', '75th', '92nd', '98.5th'], Object.entries(styles).map(([name, rs]) => [name, ...[20, 50, 75, 92, 98.5].map(p => { const sets = synSets(e, 'bench', 'm', 80, p, rs, 30);
       return e.evaluate('bench', { sex: 'm', age: 30 }, [0, 7, 14, 21].map(day => ({ day, bw: 80, sets })), 21).name; })]))); }
-  P('\nA lifter truly at the 20th / 50th / 75th / 90th / 98th percentile should read Bronze II / Silver III / Gold III / Platinum III / Platinum I (the 98th percentile is the last step before Diamond III).');
+  P('\nA lifter truly at the 20th / 50th / 75th / 92nd / 98.5th percentile should read Bronze II / Silver III / Gold III / Platinum III / Diamond III.');
 
   H('4. Same percentile, different body sizes (rule 5)');
   const bodies = [['f', 50], ['f', 60], ['f', 75], ['f', 95], ['m', 55], ['m', 70], ['m', 85], ['m', 100], ['m', 130]];
