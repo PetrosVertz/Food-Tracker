@@ -814,9 +814,12 @@ section.page>header{position:relative;top:auto}
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
-body::before{content:'';position:fixed;z-index:8;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--t-bg)!important;pointer-events:none}
-/* 0.7.9.5: full-screen windows (their sheet reaches the top of the screen) get the same solid strip above them, so scrolled content never shows under the clock */
-body:has(.overlay.open>.sheet:is(.setpage,.formpage,.themepage,.pksheet,.wqsheet,.rcptsheet))::before,body:has(#ovTargets.open)::before,body:has(#ovSummary.open)::before{z-index:11}
+/* 0.7.10.7: the solid strip under the clock / Wi-Fi / battery is the top layer of the app: above every page, window, sheet, chat and the robot bubble
+   (windows get z-index 11, 12, 13 … from open() in ui.js), below only the toast. It takes the colour of what sits under it (data-strip, set by stripSync in ui.js):
+   the page colour, the page dimmed by a floating window's scrim, or the white QR page. */
+body::before{content:'';position:fixed;z-index:99998;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--t-bg)!important;pointer-events:none}
+body[data-strip="dim"]::before{background:linear-gradient(var(--t-scrim),var(--t-scrim)),var(--t-bg)!important}
+body[data-strip="paper"]::before{background:#fff!important}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
