@@ -80,9 +80,15 @@ $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
   if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; if(e.target.matches('[data-cal]')) s.cal = e.target.value; if(e.target.matches('[data-lvl]')) s.lvl = e.target.value; saveG('act');
 });
-$('sesBody').addEventListener('input', e => { const i = e.target.closest('[data-sx]'); if(!i) return; const x = exAt(i), row = i.closest('[data-sxrow]'); if(!x || !row) return; const s = x.sets[+row.dataset.sxrow]; if(!s) return;
-  const v = i.value.replace(/\D/g, ''); if(v === '') delete s[i.dataset.sx]; else s[i.dataset.sx] = Math.min(99, +v); saveG('act');
-});
+// 0.7.10.4: half reps / negatives are picked on the scroll wheel (openSx in gym.js), not typed
+$('sesBody').addEventListener('click', e => { const b = e.target.closest('[data-sxpick]'); if(!b) return; const x = exAt(b), row = b.closest('[data-sxrow]'); if(!x || !row) return; Phone.haptic(); openSx(x, +row.dataset.sxrow, b.dataset.sxpick); });
+$('sxWheel').addEventListener('scroll', e => { const w = e.target; if(!SX || !w._set) return; const n = Math.max(0, Math.min(30, Math.round(w.scrollTop / 30)));
+  if(n !== (SX.v || 0)){ SX.v = n; Phone.vibrate(5); w.querySelectorAll('[data-wn]').forEach(d => d.classList.toggle('on', +d.dataset.wn === n)); } });
+$('sxWheel').addEventListener('click', e => { const d = e.target.closest('[data-wn]'); if(d) $('sxWheel').scrollTo({ top: +d.dataset.wn * 30, behavior: 'smooth' }); });
+$('sxDone').addEventListener('click', () => { close('ovSx'); sxSave(); });
+$('sxClear').addEventListener('click', () => { if(SX) SX.v = null; close('ovSx'); sxSave(); });
+$('ovSx').addEventListener('click', e => { if(e.target === $('ovSx')) sxSave(); });   // tapping outside saves (the generic handler closes the window)
+
 
 $('sesBody').addEventListener('click', e => {
   const ab = e.target.closest('[data-attempt]'); if(ab) return atToggle(+ab.closest('.exc').dataset.x);   // trophy: Leaderboard Attempt on this exercise
