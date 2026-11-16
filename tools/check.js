@@ -282,6 +282,33 @@ async function aiTests() {
   if (bad.length) bad.forEach(b => fail('AI provider: ' + b)); else ok('AI provider layer + usage: tries, errors, retries, tiers, cancel, tokens, privacy, 30-day limit');
 }
 
+// 11. Rank rating (RANK … rankGap in js/data/gym.js): fair and steady (see docs/notes/rank-fairness.md)
+try {
+  const r = {}; vm.createContext(r);
+  vm.runInContext(read('js/data/gym.js').replace(/^const /gm, 'var ') + '\n;this.__R = { TIER_STD, rankParts, rankScore, rankSteps, rankLevel, rankRefParts };', r);
+  const { TIER_STD, rankParts, rankScore, rankSteps, rankLevel, rankRefParts } = r.__R, bad = [];
+  const ses = (ago, w, reps, n) => ({ ago, e1s: Array(n).fill(w * (1 + reps / 30)), vol: w * reps * n });
+  const lvl = (list, bw, sex, lift) => { const std = { s: TIER_STD[lift], k: 1 }, b = { bw, sex }; return rankLevel(rankScore(rankParts(list), b, std), rankSteps(b, std)); };
+  const kgFor = (n, bw, sex, lift) => { const std = { s: TIER_STD[lift], k: 1 }, b = { bw, sex }, st = rankSteps(b, std)[n]; let a = 0, z = 3000;
+    for (let i = 0; i < 50; i++) { const m = (a + z) / 2; if (rankScore(rankRefParts(m), b, std) >= st) z = m; else a = m; } return z; };
+  for (const lift of Object.keys(TIER_STD)) for (const sex of ['m', 'f']) {
+    for (const bw of [55, 80, 120]) {
+      let last = 0; for (let w = 2.5; w <= 400; w += 2.5) { const n = lvl([ses(0, w, 5, 3)], bw, sex, lift); if (n < last) { bad.push(`${lift} ${sex} ${bw} kg: more weight gave a lower level at ${w} kg`); break; } last = n; }
+      last = 0; for (let reps = 1; reps <= 12; reps++) { const n = lvl([ses(0, 0.5 * bw, reps, 3)], bw, sex, lift); if (n < last) { bad.push(`${lift} ${sex} ${bw} kg: more reps gave a lower level at ${reps}`); break; } last = n; }
+      // eight weekly workouts of 4 × 8, then one bad workout (lower level?) or one lucky heavy single (more than one level up?)
+      for (const f of [0.3, 0.6, 0.9, 1.2]) { const w = f * TIER_STD[lift][sex][2] * bw * 0.75, hist = Array.from({ length: 8 }, (_, i) => ses(7 * (8 - i), w, 8, 4)), n0 = lvl(hist, bw, sex, lift);
+        if (lvl([...hist, ses(0, w * 0.6, 8, 3)], bw, sex, lift) < n0) bad.push(`${lift} ${sex} ${bw} kg: one bad workout lowered the level`);
+        if (lvl([...hist, { ago: 0, e1s: [w * 1.25 * (1 + 8 / 30)], vol: w * 1.25 }], bw, sex, lift) > n0 + 1) bad.push(`${lift} ${sex} ${bw} kg: one lucky set jumped more than one level`); }
+      // the same lift scaled by body weight^0.67 gets the same level as at 80 kg
+      const at80 = lvl([ses(0, 100, 5, 3)], 80, sex, lift), scaled = lvl([ses(0, 100 * Math.pow(bw / 80, 0.67), 5, 3)], bw, sex, lift);
+      if (at80 !== scaled) bad.push(`${lift} ${sex}: the same relative lift is level ${scaled} at ${bw} kg but ${at80} at 80 kg`);
+    }
+    for (let n = 1; n < 15; n++) { const k = [55, 65, 80, 100, 120].map(bw => kgFor(n, bw, sex, lift)); if (k.some((v, i) => i && v <= k[i - 1])) { bad.push(`${lift} ${sex}: level ${n} doesn't need more kg for a heavier lifter`); break; } }
+    for (const bw of [65, 80]) { const d1 = kgFor(14, bw, sex, lift), elite = TIER_STD[lift][sex][4] * bw; if (!(d1 > elite * 0.95 && d1 < elite * 1.25)) bad.push(`${lift} ${sex} ${bw} kg: Diamond 1 needs ${Math.round(d1)} kg (Elite standard ${Math.round(elite)})`); }
+  }
+  if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank: ' + b)); else ok(`rank: ${Object.keys(TIER_STD).length} lifts fair (monotonic, body weight, steady, Diamond reachable)`);
+} catch (e) { fail('could not check the rank rating: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }

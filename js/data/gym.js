@@ -1083,17 +1083,20 @@ const RANK = {
   fade: 0.01, fadeMin: 0.75,                // older sets still count, 1 % less per week past the window, never below 75 % (a long break lowers it slowly)
   refVol: 24,                               // the "normal training" behind a standard: 4 sets × 8 reps at 75 % of your 1RM = 24 × 1RM of volume
   refWork: 0.95,                            // … and its top 3 sets each worth 95 % of your best 1RM (8 reps at 75 %)
+  confirm: 0.05,                            // a peak from one lucky workout counts at most 5 % above your best from any other workout
   diaCap: 0.15,                             // Diamond's band above Elite: as wide as Advanced→Elite, but at most 15 % of Elite
 };
 // kg → standard units for this body weight: divide by bw^0.67 (scaled so the reference body weight is unchanged), times the variant strength
 const rankUnit = (body, std) => std.k / (Math.pow(body.bw, RANK.bwExp) * Math.pow(RANK.refBw[body.sex], 1 - RANK.bwExp));
 // the three parts in kg, best of each across your workouts (older ones faded): peak 1RM, average of the top 3 sets of your best workout, most volume
-function rankParts(list){ let P = 0, W = 0, V = 0;
+function rankParts(list){ let P = 0, P2 = 0, W = 0, V = 0;
   (list || []).forEach(s => { const a = Math.max(0, (+s.ago || 0) / 7 - RANK.weeks), f = Math.max(RANK.fadeMin, 1 - RANK.fade * a);
     const top = (s.e1s || []).filter(v => v > 0).sort((x, y) => y - x);
-    if(top.length) P = Math.max(P, top[0] * f);
+    if(top.length){ const p = top[0] * f; if(p > P){ P2 = P; P = p; } else if(p > P2) P2 = p; }
     W = Math.max(W, ((top[0] || 0) + (top[1] || 0) + (top[2] || 0)) / 3 * f);   // missing sets count as 0: one lone set is only a third of this part
     V = Math.max(V, (+s.vol || 0) * f); });
+  // a lucky day: the peak counts at most 5 % above your best from any other workout (it counts in full once a second workout confirms it)
+  if(P2 > 0) P = Math.min(P, P2 * (1 + RANK.confirm));
   return { P, W, V }; }
 // the rating from the parts (kg) → standard units
 function rankScore(parts, body, std){ const u = rankUnit(body, std), mid = std.s[body.sex][2];
