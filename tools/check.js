@@ -335,7 +335,8 @@ try {
   const o = run(hist);
   const eq = (id, f, want) => { const got = o[id] && f(o[id]); if (got !== want) bad.push(`${id}: expected ${want}, got ${JSON.stringify(o[id])}`); };
   eq('bestDay', r => r.v, '3,320 kg'); eq('bestDay', r => r.k, 'bdCar');
-  eq('mountain', r => r.v.endsWith('x') && r.v.length > 2, true);
+  if (o.mountain) bad.push('mountain should hide while under 0.01 Everest');
+  const mt = run([mk('2026-01-05', '18:00', [ex('bench', [100, 5000])])]).mountain; if (!mt || mt.v !== '0.4x') bad.push('mountain: expected 0.4x, got ' + JSON.stringify(mt));   // 5000 reps x 100 kg x 0.5 m x 9.81 / (8849 m x 80 kg x 9.81)
   eq('luckyDay', r => r.v, 'Monday'); eq('luckyDay', r => r.p.n, 4);
   eq('night', r => r.v, '1'); eq('dawn', r => r.v, '1');
   eq('couch', r => r.v, '28 stUnitDays'); eq('couch', r => r.p.a + '>' + r.p.b, '05/01>02/02');
