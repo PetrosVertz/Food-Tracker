@@ -101,7 +101,8 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .overlay{background:transparent}
 /* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
 .overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
-.overlay.open>.sheet{will-change:transform}
+/* 0.7.9.5: no permanent will-change on windows: it kept every window (title, back arrow, text) in its own raster layer, which can look soft; the opening animation and the drag helper promote the layer only while moving */
+.overlay.open>.sheet{will-change:auto}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
