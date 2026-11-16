@@ -69,7 +69,7 @@ function profileData(){
   };
 }
 
-// ---------- 0.7.10 Stats: 20 facts from your own history. One row each: id, calc(c) → null (no data yet, hidden) or { v: number text, p: subtitle values, k?: other subtitle key } ----------
+// ---------- 0.7.10 Stats: facts from your own history. One row each: id, calc(c) → null (no data yet, hidden) or { v: number text, p: subtitle values, k?: other subtitle key } ----------
 // Words live in strings.js: title = stt_<id>, one-line subtitle = sts_<id> (or sts_<k>). To add a stat: add a row here and its two strings.
 const STATS = [
   { id: 'workouts',   calc: c => c.ses.length && { v: c.num(c.ses.length), p: {} } },
@@ -87,12 +87,7 @@ const STATS = [
   { id: 'latest',     calc: c => c.late != null && { v: c.hm(c.late), p: {} } },
   { id: 'weekday',    calc: c => c.wdBest != null && { v: t('wdFull').split(' ')[c.wdBest], p: { n: c.wdN }, big: 1 } },
   { id: 'hours',      calc: c => c.totMin >= 30 && { v: c.dur(c.totMin), p: {} } },
-  { id: 'proteinRun', calc: c => c.protRun > 1 && { v: c.num(c.protRun), p: {} } },
-  { id: 'kcalDays',   calc: c => c.kcalDays && { v: c.num(c.kcalDays), p: {} } },
-  { id: 'meals',      calc: c => c.meals && { v: c.num(c.meals), p: {} } },
-  { id: 'topFood',    calc: c => c.topFood && { v: c.topFood.name, p: { n: c.topFood.n }, big: 1 } },
   { id: 'prs',        calc: c => c.prs && { v: c.num(c.prs), p: {} } },
-  { id: 'foodDays',   calc: c => c.foodDays && { v: c.num(c.foodDays), p: {} } },
 ];
 // everything the table needs, worked out once per draw
 function statsCtx(){
@@ -121,14 +116,6 @@ function statsCtx(){
   ds.forEach(d => { const n = ses.filter(s => s.date === d).length; run = prev && (new Date(d) - new Date(prev)) / 864e5 <= 3 ? run + n : n; best = Math.max(best, run); prev = d; }); c.streakBest = best;
   c.hm = m => { const h = Math.floor(m / 60), mi = String(m % 60).padStart(2, '0'); return `${String(h).padStart(2, '0')}:${mi}`; };
   c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
-  // food: days in a row at your protein target, days near your calorie target, meals, most-logged food
-  const dl = Object.keys(dayLog || {}).filter(d => (dayLog[d] || []).length).sort(); c.foodDays = dl.length; c.meals = 0; c.kcalDays = 0; c.protRun = 0;
-  const foods = new Map(); let prun = 0, pprev = null;
-  dl.forEach(d => { const es = dayLog[d]; c.meals += es.length; es.forEach(e => { if(e.name) foods.set(e.name, (foods.get(e.name) || 0) + 1); });
-    const tg = targetFor(d), tot = dayTotals(d); if(!tg || !(tg.p > 0)){ prun = 0; pprev = d; return; }
-    if(tg.k > 0 && Math.abs(tot.kcal - tg.k) <= tg.k * .1) c.kcalDays++;
-    prun = tot.p >= tg.p * .95 ? (pprev && addDays(pprev, 1) === d ? prun + 1 : 1) : 0; pprev = d; c.protRun = Math.max(c.protRun, prun); });
-  const tf = top(foods); c.topFood = tf && { name: tf.k, n: tf.n }; c.foodDays = dl.length;
   return c;
 }
 // today's five: pinned first, then a shuffle seeded by the date (stable all day, new tomorrow); the shuffle button bumps ui.statShuf.n
