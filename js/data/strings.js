@@ -527,6 +527,7 @@ Object.assign(S, {
   logQLogged: ['Added {n} foods · {k} kcal', 'Προστέθηκαν {n} τρόφιμα · {k} kcal'],
   logQStd: ['built-in', 'βασικό'], logQEst: ['estimate', 'εκτίμηση'],
   logQWebTag: ['FROM THE WEB', 'ΑΠΟ ΤΟ ΔΙΑΔΙΚΤΥΟ'], logQEstTag: ['AI ESTIMATE', 'ΕΚΤΙΜΗΣΗ AI'],
+  logQDoubt: ['Rough estimate: tap to check the amount', 'Πρόχειρη εκτίμηση: πάτα για να ελέγξεις την ποσότητα'],
   logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
   logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
   logQNoMatch: ['Nothing matches “{q}”', 'Τίποτα για «{q}»'],

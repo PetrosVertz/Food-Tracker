@@ -671,6 +671,19 @@ function logQClean(a){
     kcal: n(x.kcal) !== null && n(x.kcal) >= 0 ? n(x.kcal) : null, protein: Math.max(0, n(x.protein) || 0), carbs: Math.max(0, n(x.carbs) || 0), fat: Math.max(0, n(x.fat) || 0),
     total: n(x.total_kcal) > 0 ? n(x.total_kcal) : null }));
 }
+// Athlete OS step 3: is one food's estimate believable? General checks only (no food names, no fixed calorie numbers):
+// '' when fine, else a short reason for the one retry. Drinks skip the macro check (alcohol has calories outside protein / carbs / fat).
+function logQOdd(x){
+  if(x.kcal === null) return 'no kcal per 100 g';
+  if(x.kcal > 902) return 'kcal per 100 g above pure fat';
+  if(x.protein + x.carbs + x.fat > 101) return 'protein + carbs + fat above 100 g per 100 g';
+  const mk = x.protein * 4 + x.carbs * 4 + x.fat * 9;
+  if(!x.ml && Math.abs(mk - x.kcal) > Math.max(40, x.kcal * .3)) return `kcal per 100 g (${Math.round(x.kcal)}) do not match its protein, carbs and fat (${Math.round(mk)})`;
+  if(x.grams > 5000) return 'amount too large for one person';
+  if(x.total && x.grams){ const calc = x.kcal * x.grams / 100;
+    if(Math.abs(calc - x.total) > Math.max(60, Math.max(calc, x.total) * .25)) return `total_kcal ${Math.round(x.total)} but kcal × grams / 100 = ${Math.round(calc)}`; }
+  return '';
+}
 // without a key (or when the AI fails): split at commas, "and", "+", new lines; the recipe reader finds the amounts
 function logQSplit(txt){
   return txt.split(/\s*(?:[,;\n+]|\band\b|\s(?:και|κ\.)\s)\s*/i).map(s => s.trim()).filter(s => s.length > 1).slice(0, 25).map(s => {
@@ -761,7 +774,7 @@ function logQRowHtml(m, it, i){
   const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
   const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
   return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
-    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${it.busy ? AI.dots(sub) : esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}</button>
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${it.busy ? AI.dots(sub) : esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}${it.doubt && it.st && !done ? `<small class="ls aiassume lqdoubt">${t('logQDoubt')}</small>` : ''}</button>
     ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}">${svgIcon('x', 14, 2.6)}</button>`}</div>
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }
@@ -785,6 +798,7 @@ function logQSwapRes(it){
 // typing an amount / changing the unit or cooking: only that row and the card's total change
 function logQUpd(m, row, it){
   lwUpdate(row, it.st);
+  if(it.doubt){ it.doubt = false; const d = row.querySelector('.lqdoubt'); if(d) d.remove(); }   // checked by the user: the note goes
   const card = row.closest('.lqcard'), tot = logQTot(m), k = card && card.querySelector('.lqfoot .lk'), mm = card && card.querySelector('.lqfoot .lm');
   if(k) k.textContent = Math.round(tot.kcal) + ' kcal';
   if(mm) mm.innerHTML = `<b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b>`;
@@ -803,10 +817,20 @@ async function logQSend(txt, ch){
   const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready' };
   let parts = Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all
   if(!parts && AI.hasKey()){
-    try{ const r = await ch.ask(logQPrompt(txt, ch), null, { task: 'food-coach' }) || {}, intent = String(r.intent || 'log');
+    try{ let r = await ch.ask(logQPrompt(txt, ch), null, { task: 'food-coach' }) || {}, intent = String(r.intent || 'log');
       reply = logQReply(r.reply);
       if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
       parts = logQClean(r.items);
+      // one retry, only when a "log" answer is empty or a food looks implausible; never more than one extra call
+      const odd = p => (p || []).map((x, i) => [i, x, logQOdd(x)]).filter(z => z[2]);
+      if(intent === 'log' && (!(parts && parts.length) || odd(parts).length)){
+        const why = parts && parts.length ? odd(parts).map(([i, x, w]) => `item ${i} "${x.name}": ${w}`).join('; ') : 'you said it is a log but returned no items';
+        try{ const r2 = await ch.ask(logQPrompt(txt, ch, `\nYour first answer had problems: ${why}. Give a realistic version: re-check each amount and the values per 100 g, and make total_kcal equal kcal × grams / 100. Return the full JSON again.`), null, { task: 'food-coach-retry' }) || {};
+          const p2 = String(r2.intent || 'log') === 'log' ? logQClean(r2.items) : null;
+          if(p2 && p2.length && (!(parts && parts.length) || odd(p2).length <= odd(parts).length)){ parts = p2; reply = logQReply(r2.reply) || reply; } }
+        catch(e){ if(e.cancelled) throw e; }
+        odd(parts).forEach(([, x]) => { x.doubt = true; });   // still doubtful: shown as an estimate with "check the amount"
+      }
       if(intent !== 'log' && !(parts && parts.length)){ ch.say(reply || t('coachFail', { e: '?' })); return; }
       if(parts && parts.length) m.parts = parts; else parts = null; }
     catch(err){ if(err.cancelled) throw err; note = t('logQAIFail', { e: err.message }); }
