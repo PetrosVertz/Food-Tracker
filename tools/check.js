@@ -376,6 +376,25 @@ try {
   if (bad.length) bad.slice(0, 20).forEach(b => fail('rank plates: ' + b)); else ok(`rank plates: ${files.length} files, offline, and rankIcon() builds every path (n 0–14, small + large)`);
 } catch (e) { fail('could not check the rank plates: ' + e.message); }
 
+// 14. Rank Up / Rank Changed (js/rank-fx.js): a fake before and after rank list gives the right windows
+try {
+  const rc = {}; vm.createContext(rc);
+  vm.runInContext(read('js/rank-fx.js') + '\n;this.__C = rankChanges;', rc);
+  const rankChanges = rc.__C, bad = [];
+  const before = { bench: 4, squat: 5, deadlift: 9, ohp: 7, row: 3 };
+  const after = { bench: 5, squat: 6, deadlift: 8, ohp: 7, row: 3, curl: 0 };
+  const got = Object.fromEntries(rankChanges(before, after).map(c => [c.exId, c]));
+  const want = { bench: ['up', 4, 5], squat: ['tierup', 5, 6], deadlift: ['down', 9, 8], curl: ['first', null, 0] };
+  for (const [id, [kind, from, to]] of Object.entries(want)) { const c = got[id];
+    if (!c || c.kind !== kind || c.from !== from || c.to !== to) bad.push(`${id}: expected ${kind} ${from}→${to}, got ${c ? `${c.kind} ${c.from}→${c.to}` : 'nothing'}`); }
+  ['ohp', 'row'].forEach(id => { if (got[id]) bad.push(`${id}: same rank as last seen must show nothing`); });
+  if (Object.keys(got).length !== 4) bad.push(`${Object.keys(got).length} windows, expected 4`);
+  if (rankChanges({ bench: 5 }, {}).length) bad.push('an exercise with no rank now must show nothing');
+  if (rankChanges(before, after, ['bench']).length !== 1) bad.push('the exercise list (one workout) is not respected');
+  if (rankChanges(undefined, { bench: 2 })[0].kind !== 'first') bad.push('nothing seen yet must count as first rank');
+  if (bad.length) bad.forEach(b => fail('rank change: ' + b)); else ok('rank change: up, tier up, first rank, demote and no change give the right windows');
+} catch (e) { fail('could not check rank changes: ' + e.message); }
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
