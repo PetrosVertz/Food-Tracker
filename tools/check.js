@@ -309,6 +309,56 @@ try {
   if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank: ' + b)); else ok(`rank: ${Object.keys(TIER_STD).length} lifts fair (monotonic, body weight, steady, Diamond reachable)`);
 } catch (e) { fail('could not check the rank rating: ' + e.message); }
 
+// 11b. New rank engine (ranking-1; js/rank-engine.js + js/data/rank-bench.js). Not live: these checks keep it honest until the switch.
+try {
+  const bad = [], RankEngine = require(path.join(root, 'js/rank-engine.js')), BENCH = require(path.join(root, 'js/data/rank-bench.js'));
+  try { execFileSync(process.execPath, [path.join(root, 'tools/rank/build-bench.js'), '--check'], { stdio: 'pipe' }); }
+  catch (e) { bad.push('benchmark files are not up to date with data/rank/rank-config.json and the sources: run node tools/rank/build-bench.js'); }
+  if (BENCH.synthetic !== false) bad.push('the app benchmark file must not be synthetic');
+  if (/strength ?level|symmetric ?strength|buffro/i.test(JSON.stringify({ e: BENCH.exercises, v: BENCH.variants, s: BENCH.sources }))) bad.push('a proprietary site is named as a source of benchmark values');
+  for (const [id, e] of Object.entries(BENCH.exercises)) for (const [sx, m] of Object.entries(e.models)) {
+    if (!m.sources || !m.sources.length || m.sources.some(k => !BENCH.sources[k])) bad.push(`${id} ${sx}: no listed source`);
+    if (!(m.n >= 100)) bad.push(`${id} ${sx}: fewer than 100 lifters behind the benchmark`); }
+  for (const [id, v] of Object.entries(BENCH.variants)) { if (!v.source || !(v.n > 0)) bad.push(`variation ${id}: no source or sample size`); if (BENCH.variants[v.anchor]) bad.push(`variation ${id}: chained to another variation`); }
+  const eng = RankEngine.create(BENCH), one = (ex, sex, bw, sets, age) => eng.evaluate(ex, { sex, age }, [{ day: 0, bw, sets }], 0);
+  const two = (ex, sex, bw, sets) => eng.evaluate(ex, { sex }, [{ day: 0, bw, sets }, { day: 7, bw, sets }], 7);
+  for (const [id, e] of Object.entries(BENCH.exercises)) for (const sex of Object.keys(e.models)) {
+    for (const bw of [50, 65, 80, 100, 130]) {
+      let last = 0; for (let w = 10; w <= 320; w += 2.5) { const n = two(id, sex, bw, [{ w, reps: 8 }]).n; if (n < last) { bad.push(`${id} ${sex} ${bw} kg: more weight gave a lower rank at ${w} kg`); break; } last = n; }
+      last = 0; for (let reps = 1; reps <= 20; reps++) { const n = two(id, sex, bw, [{ w: 0.6 * bw, reps }]).n; if (n < last) { bad.push(`${id} ${sex} ${bw} kg: more reps gave a lower rank at ${reps}`); break; } last = n; }
+      // best single set only: the same set done once or four times is the same rank
+      for (const w of [0.4 * bw, 0.8 * bw, 1.2 * bw]) if (one(id, sex, bw, [{ w, reps: 9 }]).n !== one(id, sex, bw, Array(4).fill({ w, reps: 9 })).n) bad.push(`${id} ${sex} ${bw} kg: doing more sets changed the rank`);
+      // a first workout never shows Platinum or Diamond, however heavy; a beginner's light set is Bronze
+      if (one(id, sex, bw, [{ w: 2 * bw, reps: 8 }]).n > 8) bad.push(`${id} ${sex} ${bw} kg: a first workout reached Platinum`);
+      if (one(id, sex, bw, [{ w: 20, reps: 10 }]).n > 2) bad.push(`${id} ${sex} ${bw} kg: 20 kg x 10 is above Bronze`);
+    }
+    // the same percentile at every body weight is the same rank (rule 5)
+    for (const z of [-0.84, 0.1, 0.9, 1.5, 2.2]) { const mo = eng.model(id, sex), ranks = [50, 60, 75, 90, 110].map(bw => { const ref = eng.refKg(mo, z, bw); return two(id, sex, bw, [{ w: ref * mo.m.kL, reps: 1 }, { w: ref * mo.m.kV / 10, reps: 10 }]).n; });
+      if (new Set(ranks).size > 1) bad.push(`${id} ${sex}: the same percentile is a different rank at different body weights (${ranks.join(',')})`); }
+    for (let n = 1; n < 15; n++) { const k = [55, 70, 85, 100, 120].map(bw => eng.need(id, { sex, bw }, n, 8)); if (k.some((v, i) => i && v < k[i - 1] - 1e-6)) { bad.push(`${id} ${sex}: rank ${n} needs less kg for a heavier lifter`); break; } }
+    // rule 3 (at most two levels per workout), rule 4 (one bad day never lowers), rule 2 (a typo is not counted)
+    const hist = [0, 7, 14].map(day => ({ day, bw: 80, sets: [{ w: eng.need(id, { sex, bw: 80 }, 3, 8), reps: 8 }] })), n0 = eng.evaluate(id, { sex }, hist, 14).n;
+    const jump = eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: eng.need(id, { sex, bw: 80 }, 8, 8), reps: 8 }] }], 21);
+    if (jump.n > n0 + 2) bad.push(`${id} ${sex}: one workout raised the rank by ${jump.n - n0} levels`);
+    if (eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 20, reps: 5 }] }], 21).n < n0) bad.push(`${id} ${sex}: one bad workout lowered the rank`);
+    const typo = eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8 }] }], 21);
+    if (typo.n !== n0 || typo.checks.length !== 1) bad.push(`${id} ${sex}: a 900 kg typo was counted`);
+    if (eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8, ok: true }] }], 21).checks.length) bad.push(`${id} ${sex}: a confirmed set is still marked to check`);
+    // age: an older lifter never needs more than a young one
+    if (eng.need(id, { sex, bw: 80, age: 60 }, 6, 8) > eng.need(id, { sex, bw: 80, age: 30 }, 6, 8) + 1e-6) bad.push(`${id} ${sex}: age 60 needs more kg than age 30`);
+  }
+  if (one('pullup', 'm', 70, [{ w: 0, reps: 9 }]).ranked) bad.push('pull-ups have a rank without open benchmark data');
+  if (one('bench', 'm', 80, []).none !== true) bad.push('no sets must give "none"');
+  // the live ranking stays untouched and the new one stays off
+  const v2 = read('js/rank-v2.js'), gymJs = read('js/gym.js');
+  if (!/const RANK2 = \{ on: false \}/.test(v2)) bad.push('RANK2.on must stay false until the switch is approved');
+  if (/RANK2|rank2For|RankEngine/.test(gymJs + read('js/data/gym.js') + read('js/profile.js') + read('js/rank-fx.js'))) bad.push('the live rank code refers to the new engine');
+  const libIds = new Set([...read('js/data/gym.js').matchAll(/^ \['([a-z0-9_]+)',/gm)].map(m => m[1]));
+  [...Object.keys(BENCH.exercises), ...Object.keys(BENCH.variants)].forEach(id => { if (!libIds.has(id)) bad.push(`benchmark exercise ${id} is not in the exercise library`); });
+  if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank v2: ' + b));
+  else ok(`rank v2 (not live): ${Object.keys(BENCH.exercises).length} lifts + ${Object.keys(BENCH.variants).length} variation from open data; single set, body weight, age, confirm, typo and step rules hold; switch is off`);
+} catch (e) { fail('could not check the new rank engine: ' + e.message); }
+
 // 12. Social Hub stats (STATS in js/profile.js): each new stat gives the expected value on a small fake history, hides without data, and nothing throws on an empty history
 try {
   const mk = (date, hh, sets, prs) => ({ date, start: `${date}T${hh}:00`, end: `${date}T${String(+hh.slice(0, 2) + 1).padStart(2, '0')}${hh.slice(2)}:00`, prs: prs || [], exercises: sets });
