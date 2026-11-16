@@ -86,8 +86,9 @@ function warmupFor(exId, w){
 const gx = () => settings.gx || (settings.gx = {});
 // 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
 // The old single switch (hideMarks) becomes all three hidden.
-// 0.7.9.5: simple on/off switches in Exercise Settings that are on unless switched off (gx()[k] === false)
-const gOn = k => gx()[k] !== false;
+// 0.7.9.6: ONE place for the Exercise Settings defaults: only the three pills are on; a switch someone has changed keeps their choice
+const GX_DEF = { uniPill: true, formPill: true, swapPill: true, lbAtt: false, warnSore: false, tips: false, uniBoth: false, half: false, neg: false, rir: false, sound: false };
+const gOn = k => { const v = gx()[k]; return v === undefined || v === null ? !!GX_DEF[k] : !!v; };
 function hideM(k){ const G = gx(); if(G.hideMarks){ G.hideM = { W: true, D: true, F: true }; delete G.hideMarks; Store.save('settings', settings); } return !!(G.hideM && G.hideM[k]); }
 let EXS_MK = false;   // the Hide Set Markers list is open
 function setGx(k, v){ gx()[k] = v; Store.save('settings', settings); }
@@ -152,7 +153,7 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ const mate = gx().uniBoth && x.uni && s.side === 'L' && x.sets[si + 1] && x.sets[si + 1].side === 'R' ? x.sets[si + 1] : null; if(mate){ mate.done = false; delete mate.at; }   // the tall tick reopens both sides
+  if(s.done){ const mate = gOn('uniBoth') && x.uni && s.side === 'L' && x.sets[si + 1] && x.sets[si + 1].side === 'R' ? x.sets[si + 1] : null; if(mate){ mate.done = false; delete mate.at; }   // the tall tick reopens both sides
     s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(atOn(x) && s.type !== 'W') s.r = '1';   // attempt mode: a ticked set is a single
@@ -166,7 +167,7 @@ function tickSet(x, s, row, xi, si){
       if(cur > prev && !active.prs.some(p => p.exId === x.exId && p.kind === kind && p.v >= cur)){ active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === kind)); active.prs.push({ exId: x.exId, kind, v: cur }); s.pr = kind; celebrate(); toast(t(kind === 't' ? 'prT' : 'prD', { n: exName(x.exId), v: fmt(cur) })); } }); }
   }
   let both = false;   // one-sided exercise + the setting: finishing L finishes R too
-  if(gx().uniBoth && x.uni && s.side === 'L'){ const o = x.sets[si + 1]; if(o && o.side === 'R' && !o.done){ if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); both = true; si++; } }
+  if(gOn('uniBoth') && x.uni && s.side === 'L'){ const o = x.sets[si + 1]; if(o && o.side === 'R' && !o.done){ if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); both = true; si++; } }
   if(!card && s.type !== 'W'){
     const hist = exHistory(x.exId, active.id), same = active.exercises.filter(z => z.exId === x.exId);
     if(hist.length){
@@ -200,7 +201,7 @@ function tickSet(x, s, row, xi, si){
 // name; pressing it turns the name gold and puts that exercise in attempt mode (x.attempt): each set row is just the weight and a tick, a ticked
 // single (reps = 1) that beats your best goes to the leaderboard (boardBest reads ticked singles) with a celebration.
 const ICO_TROPHY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M9 20h6M10 17h4"/></svg>';
-const atAvail = x => !!gx().lbAtt && isBoardLift(x.exId) && !isCardio(x.exId);
+const atAvail = x => gOn('lbAtt') && isBoardLift(x.exId) && !isCardio(x.exId);
 const atOn = x => atAvail(x) && !!x.attempt;
 function atToggle(xi){ const x = active && active.exercises[xi]; if(!x || !atAvail(x)) return;
   if(x.attempt) delete x.attempt; else x.attempt = true; saveG('act'); Phone.haptic(); renderSession(); }
@@ -241,7 +242,7 @@ function addDrop(x, j){ const s = x.sets[j]; x.sets.splice(j + 1, 0, { ...newSet
 
 function tickRest(){
   if(!REST) return; const left = REST.end - Date.now();
-  if(left <= 0 && !REST.rang){ REST.rang = true; if(gx().sound !== false) Phone.sound('bell'); Phone.vibrate([300, 120, 300]); if(!$('ovSession').classList.contains('open')) toast(t('restDone'));
+  if(left <= 0 && !REST.rang){ REST.rang = true; if(gOn('sound')) Phone.sound('bell'); Phone.vibrate([300, 120, 300]); if(!$('ovSession').classList.contains('open')) toast(t('restDone'));
     setTimeout(() => { const w = $('rbWrap'); if(w) w.classList.add('fold'); setTimeout(() => { if(REST && REST.rang){ REST = null; if(active && $('ovSession').classList.contains('open')) renderSession(); } }, 360); }, 900); }
 }
 
@@ -759,17 +760,17 @@ function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exe
 
 // per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
 // 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
-function extrasHtml(s, j){ const G = gx(); if(!(G.half || G.neg || G.rir) || s.type === 'W' || s.done) return '';
+function extrasHtml(s, j){ const G = gx(); if(!(gOn('half') || gOn('neg') || gOn('rir')) || s.type === 'W' || s.done) return '';
   const num = (k, lbl, v) => `<label class="sxn"><span>${lbl}</span><input data-sx="${k}" inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${lbl}"></label>`;
-  return `<div class="setx" data-sxrow="${j}">${G.half ? num('hr', t('halfReps'), s.hr) : ''}${G.neg ? num('ng', t('negReps'), s.ng) : ''}${G.rir ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
+  return `<div class="setx" data-sxrow="${j}">${gOn('half') ? num('hr', t('halfReps'), s.hr) : ''}${gOn('neg') ? num('ng', t('negReps'), s.ng) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
 
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
-function drawExSet(){ const G = gx(), dRow = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] !== false ? 'on' : ''}" data-gx="${k}" data-def="1" type="button" role="switch" aria-checked="${G[k] !== false}" aria-label="${t(a)}"><i></i></button></div>`, row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${G[k] ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${!!G[k]}" aria-label="${t(a)}"><i></i></button></div>`;
+function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${gOn(k) ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${gOn(k)}" aria-label="${t(a)}"><i></i></button></div>`;
   const mk = [['W', t('mkW')], ['D', t('mkD')], ['F', t('mkF')]].map(([k, l]) => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${l}</button>`).join('');
-  $('exsBody').innerHTML = `<h3 class="exsh first">${t('exsVisH')}</h3>` + row('lbAtt', 'atTitle', 'atSub') + dRow('warnSore', 'exsWarn', 'exsWarnS') + dRow('uniPill', 'exsUniPill', 'exsUniPillS') + dRow('formPill', 'exsFormPill', 'exsFormPillS') + dRow('swapPill', 'exsSwapPill', 'exsSwapPillS') + dRow('tips', 'exsTips', 'exsTipsS') +
+  $('exsBody').innerHTML = `<h3 class="exsh first">${t('exsVisH')}</h3>` + row('lbAtt', 'atTitle', 'atSub') + row('warnSore', 'exsWarn', 'exsWarnS') + row('uniPill', 'exsUniPill', 'exsUniPillS') + row('formPill', 'exsFormPill', 'exsFormPillS') + row('swapPill', 'exsSwapPill', 'exsSwapPillS') + row('tips', 'exsTips', 'exsTipsS') +
     `<h3 class="exsh">${t('exsExtH')}</h3>` + row('uniBoth', 'exsUni', 'exsUniS') +
-    `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + dRow('sound', 'exsSound', 'exsSoundS'); }
+    `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + row('sound', 'exsSound', 'exsSoundS'); }
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
@@ -802,7 +803,7 @@ function cardHtml(x, i){
     const lastDrop = !hideM('D') && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
-    const merge = G.uniBoth && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = G.uniBoth && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
+    const merge = gOn('uniBoth') && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = gOn('uniBoth') && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
     const xtra = merge ? '' : (mate ? extrasHtml(x.sets[j - 1], j - 1) : '') + extrasHtml(s, j);
     return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
