@@ -876,7 +876,7 @@ async function logQSend(txt, ch){
   if(m.fixOf && !m.parts) m.fixOf = null;   // the AI did not answer: this is a new list, not a correction
   ch.say((note || reply || t('logQGot')) + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
   m.items = parts.map(p => ({ ...p, busy: true })); logQPrev = m;
-  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }] }]);
+  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }, { label: t('logQAddSave'), run: () => logQLogAll(m, true) }] }]);
   FC[m.id] = { m, card, ch }; logQRedraw(m);
   try{ await logQMatchAll(m, ch); }
   finally{ m.items.forEach(it => { if(it.busy){ it.busy = false; if(!it.st) it.src = 'none'; } }); logQRedraw(m); }
@@ -900,17 +900,36 @@ function logQLearn(m, it, r){
   const per = it.g0 > 0 && it.st ? r.kcal / r.g : 0;
   logQFixNote(it, { g: r.g, kcal: r.kcal, aiG: chat ? pr.g : moved ? it.g0 : null, aiKcal: chat ? pr.kcal : moved && per ? it.g0 * per : null, to: it.swapped ? it.st.info.name : null });
 }
-function logQLogAll(m){
+// Add & Save: the foods on the card also become one meal in the library (AI estimates too), so the same plate is one tap next time.
+// Each food is already in My Foods (logQSaveFound); the meal keeps them together with these amounts. A meal on the card adds its own ingredients.
+function logQSaveMeal(rows){
+  const ings = [];
+  rows.forEach(({ info, g }) => {
+    if(info.food){ ings.push({ ref: { ...foods_ref(info.food), per: info.per }, grams: r1(g) }); return; }
+    const ml = info.meal, f = ml && ml.cookedWeight > 0 ? g / ml.cookedWeight : 0;
+    if(f && (ml.ingredients || []).length) ml.ingredients.forEach(i => ings.push({ ref: i.ref, grams: r1(i.grams * f) }));
+  });
+  if(!ings.length) return null;
+  const tot = mealTotals(ings), w = tot.raw; if(!(w > 0)) return null;
+  const names = rows.map(r => bareName(r.info.name)), name = (names.slice(0, 3).join(' + ') + (names.length > 3 ? ' +' + (names.length - 3) : '')).slice(0, 60);
+  const k = 100 / w, now = new Date().toISOString();
+  const m = { id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, name, ingredients: ings, rawWeight: Math.round(w), cookedWeight: Math.round(w), cookedEstimated: true, quick: true, via: 'coach',
+    kcal: Math.round(tot.kcal * k), protein: r1(tot.protein * k), carbs: r1(tot.carbs * k), fat: r1(tot.fat * k), fiber: r1(tot.fib * k), salt: Math.round(tot.na * k / 400 * 100) / 100, potassium: Math.round(tot.k * k),
+    total: { kcal: Math.round(tot.kcal), protein: r1(tot.protein), carbs: r1(tot.carbs), fat: r1(tot.fat) }, recipe: null, updatedAt: now };
+  meals.push(m); if(!saveMeals()){ meals.pop(); return null; }
+  return m;
+}
+function logQLogAll(m, keep){
   const x = FC[m.id]; if(!x || m.state === 'logged') return;
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
   const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
   const fx = m.fixOf; if(fx && fx.state === 'logged' && fx.undo) fx.undo();   // a correction replaces the list it corrects
-  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [];
+  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], rows = [];
   ok.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
     let info = st.info;
     if(info.gen) info = fInfo_(saveGeneric(info.gen));
     info = { ...info, per: lwPer(st) };
-    logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]);
+    logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]); rows.push({ info, g: r.g });
     logQLearn(m, it, r);
     const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
     try{ if(key.foodId ? stockOf(key.foodId) > 0 : mealStock(key.mealId) > 0) takeFromFridge(key, r.g); }catch(e){}
@@ -919,10 +938,12 @@ function logQLogAll(m){
   if(m.parts && !m.fixOf) logPhr[m.mk] = m.parts;
   if(m.parts && fx && fx.mk) logPhr[fx.mk] = m.parts;   // the first message now gives the corrected list next time
   logQTrim(); logQSavePhr(); logQFixSave();
-  const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k });
+  const meal = keep ? logQSaveMeal(rows) : null;
+  const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k }) + (meal ? ' · ' + t('mealSaved', { n: meal.name }) : keep ? ' · ' + t('logQNoMeal') : '');
   let undone = false;
   const undo = () => { if(undone) return; undone = true;
     const ids = new Set(added.map(e => e.id)); dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog();
+    if(meal){ const i = meals.findIndex(z => z.id === meal.id); if(i > -1){ meals.splice(i, 1); saveMeals(); } }
     m.state = 'ready'; m.undo = null; x.card.done = ''; x.card.undo = null; renderAll(); logQRedraw(m); };
   m.undo = undo;
   m.state = 'logged'; x.card.body = fcHtml(m); x.ch.update(x.card, { done: msg, undo }); renderAll();

@@ -528,6 +528,7 @@ Object.assign(S, {
   logQStd: ['built-in', 'βασικό'], logQEst: ['estimate', 'εκτίμηση'],
   logQWebTag: ['FROM THE WEB', 'ΑΠΟ ΤΟ ΔΙΑΔΙΚΤΥΟ'], logQEstTag: ['AI ESTIMATE', 'ΕΚΤΙΜΗΣΗ AI'],
   logQDoubt: ['Rough estimate: tap to check the amount', 'Πρόχειρη εκτίμηση: πάτα για να ελέγξεις την ποσότητα'],
+  logQAddSave: ['Add & Save', 'Προσθήκη & Αποθήκευση'], logQNoMeal: ['could not save it as a meal', 'δεν αποθηκεύτηκε ως γεύμα'],
   logQFixNote: ['Add replaces what you logged a moment ago.', 'Η Προσθήκη θα αντικαταστήσει ό,τι κατέγραψες πριν λίγο.'],
   logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
   logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
