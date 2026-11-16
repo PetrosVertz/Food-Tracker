@@ -649,17 +649,26 @@ function logQFixAsk(prev){
   const rows = prev.items.map(it => { const r = it.st ? lwCalc(it.st) : null; return `- ${it.st ? it.st.info.name : it.name}: ${r ? `${Math.round(r.g)} g, ${Math.round(r.kcal)} kcal` : 'not found'}`; });
   return `\nThe user is correcting the list you gave last:\n${rows.join('\n')}\nAnswer "log" with the WHOLE corrected list: change what they corrected, keep the rest as it was, and make the corrected values realistic.`;
 }
-// the user's own saved foods that share a word with the message (name, brand, kcal per 100 g), so names and estimates stay in line with them.
-// Only a hint for the AI: matching itself still goes through the web lookup (logQWeb), as since 0.7.5.
-function logQLib(txt){
+// the user's own library that shares a word with the message: saved foods (name, brand, kcal per 100) and saved meals (the user's own
+// name, the name the AI found, what is in it). One source among several: the AI still makes its own estimate and the web lookup still
+// runs for every food (logQWeb gets the same lines to compare with). mode 'web' words the lines for the web lookup.
+function logQLib(txt, mode){
   const ws = new Set(logQKey(txt).split(' ').filter(w => w.length > 2)); if(!ws.size) return '';
+  const hits = s => logQKey(s).split(' ').filter(w => ws.has(w)).length;
   const seen = new Set(), hit = foods.filter(f => f && f.name && isFinite(+f.kcal) && +f.kcal >= 0)
-    .map(f => ({ f, n: logQKey(f.name + ' ' + (f.brand || '')).split(' ').filter(w => ws.has(w)).length + (f.source === 'estimate' ? 0 : .5) }))
+    .map(f => ({ f, n: hits(f.name + ' ' + (f.brand || '')) + (f.source === 'estimate' ? 0 : .5) }))
     .filter(x => x.n >= 1).sort((a, b) => b.n - a.n)
     .filter(({ f }) => { const k = norm(f.name) + '|' + norm(f.brand || ''); if(seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
-  if(!hit.length) return '';
-  return `\nThe user's own saved foods that may be the same (name | brand | kcal per 100): when a food is clearly one of these, use its name and values.\n`
-    + hit.map(({ f }) => `- ${String(f.name).slice(0, 50)}${f.brand ? ' | ' + String(f.brand).slice(0, 30) : ''} | ${Math.round(+f.kcal)} kcal/100 ${f.unit === 'ml' ? 'ml' : 'g'}`).join('\n');
+  const ml = mode === 'web' ? [] : meals.filter(m => m && m.name).map(m => ({ m, n: hits(m.name) * 2 + hits(m.aiName || '') + hits((m.ingredients || []).map(x => x.ref && x.ref.name).join(' ')) }))
+    .filter(x => x.n >= 1).sort((a, b) => b.n - a.n).slice(0, 4);
+  let out = '';
+  if(hit.length) out += (mode === 'web'
+    ? `\nThe user's own saved values for foods with similar names (name | brand | kcal per 100; "estimate" = an earlier AI estimate). One more source: compare them with what you find; when one is clearly the same product and its values agree with a reliable source, keep them.\n`
+    : `\nThe user's own saved foods that may be the same (name | brand | kcal per 100; "estimate" = an earlier AI estimate). One source among several: compare them with your own estimate; when one is clearly the same food and its values are realistic, use its name and values.\n`)
+    + hit.map(({ f }) => `- ${String(f.name).slice(0, 50)}${f.brand ? ' | ' + String(f.brand).slice(0, 30) : ''} | ${Math.round(+f.kcal)} kcal/100 ${f.unit === 'ml' ? 'ml' : 'g'}${f.source === 'estimate' ? ' | estimate' : ''}`).join('\n');
+  if(ml.length) out += `\nThe user's saved meals that may be meant (when the message names one of these, list its foods with these amounts):\n`
+    + ml.map(({ m }) => `- "${String(m.name).slice(0, 60)}"${m.aiName && norm(m.aiName) !== norm(m.name) ? ` (the user's own name for what you found as "${String(m.aiName).slice(0, 60)}")` : ''}: ${(m.ingredients || []).filter(x => x.ref).map(x => `${x.ref.name} ${Math.round(x.grams)} g`).join(', ') || `${Math.round(m.cookedWeight || 0)} g`}; ${Math.round((m.total && m.total.kcal) || 0)} kcal`).join('\n');
+  return out;
 }
 // the reply as shown: plain text, and never a claim that something was logged (only the Add button logs)
 function logQReply(s){
@@ -771,7 +780,7 @@ Carbs as on EU labels (fibre not included). name: short name in ${lang === 'el' 
 assumed: one short phrase in ${lang === 'el' ? 'Greek' : 'English'} saying what you assumed about the amount or the food, e.g. "1 slice ≈ 30 g"; "" if nothing was assumed.
 Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml","assumed":string}]}
 Foods (with the amount the person said):
-${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}"${it.qty ? `, amount: ${it.qty} ${it.unit || ''}`.trimEnd() : ''})`).join('\n')}${AI.dietRules()}`, null, { search: true, task: 'food-web' });
+${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}"${it.qty ? `, amount: ${it.qty} ${it.unit || ''}`.trimEnd() : ''})`).join('\n')}${logQLib(list.map(it => `${it.text} ${it.name} ${it.name_en || ''} ${it.brand || ''}`).join(' '), 'web')}${AI.dietRules()}`, null, { search: true, task: 'food-web' });
     (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i]; if(!it || it.st) return;
       if(w.assumed) it.assumed = String(w.assumed).slice(0, 80);
       if(!w.found) return;
@@ -803,7 +812,10 @@ function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, i
 function logQCardHtml(m){
   const tot = logQTot(m), done = m.state === 'logged';
   const foot = done ? '' : `<div class="lqfoot"><div class="lres"><span class="lk">${Math.round(tot.kcal)} kcal</span><span class="lm"><b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b></span></div></div>`;
-  return `<div class="lqcard ${done ? 'logged' : ''}">${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}</div>`;
+  const nm = m.naming && !done ? `<div class="lqname"><small class="ls">${esc(t('logQNameSub', { n: logQAutoName(m.items.filter(it => it.st).map(it => it.st.info)) }))}</small>
+    <div class="lqnrow"><input class="lqsq" type="text" data-qname value="${esc(m.mname || '')}" placeholder="${t('logQNamePh')}" autocomplete="off" enterkeyhint="done" aria-label="${t('logQNamePh')}" maxlength="60">
+    <button class="lqswapbtn" type="button" data-qnameok>${t('save')}</button></div></div>` : '';
+  return `<div class="lqcard ${done ? 'logged' : ''}">${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}${nm}</div>`;
 }
 function logQRowHtml(m, it, i){
   const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
@@ -876,7 +888,7 @@ async function logQSend(txt, ch){
   if(m.fixOf && !m.parts) m.fixOf = null;   // the AI did not answer: this is a new list, not a correction
   ch.say((note || reply || t('logQGot')) + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
   m.items = parts.map(p => ({ ...p, busy: true })); logQPrev = m;
-  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }, { label: t('logQAddSave'), run: () => logQLogAll(m, true) }] }]);
+  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }, { label: t('logQAddSave'), run: () => logQNameAsk(m) }] }]);
   FC[m.id] = { m, card, ch }; logQRedraw(m);
   try{ await logQMatchAll(m, ch); }
   finally{ m.items.forEach(it => { if(it.busy){ it.busy = false; if(!it.st) it.src = 'none'; } }); logQRedraw(m); }
@@ -902,7 +914,21 @@ function logQLearn(m, it, r){
 }
 // Add & Save: the foods on the card also become one meal in the library (AI estimates too), so the same plate is one tap next time.
 // Each food is already in My Foods (logQSaveFound); the meal keeps them together with these amounts. A meal on the card adds its own ingredients.
-function logQSaveMeal(rows){
+const logQAutoName = infos => { const n = infos.map(i => bareName(i.name)); return (n.slice(0, 3).join(' + ') + (n.length > 3 ? ' +' + (n.length - 3) : '')).slice(0, 60); };
+// Add & Save: first the name YOU use for this plate (the card shows a name box); the meal keeps both names, so the AI learns that yours means this
+function logQNameAsk(m){
+  if(m.state === 'logged') return;
+  if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
+  if(!m.items.some(it => it.st)){ toast(t('logQNothing')); return; }
+  m.naming = true; logQRedraw(m);
+  setTimeout(() => { const i = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qname]`); if(i){ try{ i.focus(); }catch(e){} } }, 30);
+}
+function logQNameOk(m){
+  const name = String(m.mname || '').trim().slice(0, 60);
+  if(!name){ toast(t('needMealName')); const i = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qname]`); if(i) i.focus(); return; }
+  m.naming = false; logQLogAll(m, name);
+}
+function logQSaveMeal(rows, name){
   const ings = [];
   rows.forEach(({ info, g }) => {
     if(info.food){ ings.push({ ref: { ...foods_ref(info.food), per: info.per }, grams: r1(g) }); return; }
@@ -911,15 +937,15 @@ function logQSaveMeal(rows){
   });
   if(!ings.length) return null;
   const tot = mealTotals(ings), w = tot.raw; if(!(w > 0)) return null;
-  const names = rows.map(r => bareName(r.info.name)), name = (names.slice(0, 3).join(' + ') + (names.length > 3 ? ' +' + (names.length - 3) : '')).slice(0, 60);
+  const aiName = logQAutoName(rows.map(r => r.info));
   const k = 100 / w, now = new Date().toISOString();
-  const m = { id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, name, ingredients: ings, rawWeight: Math.round(w), cookedWeight: Math.round(w), cookedEstimated: true, quick: true, via: 'coach',
+  const m = { id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, name, aiName, ingredients: ings, rawWeight: Math.round(w), cookedWeight: Math.round(w), cookedEstimated: true, quick: true, via: 'coach',
     kcal: Math.round(tot.kcal * k), protein: r1(tot.protein * k), carbs: r1(tot.carbs * k), fat: r1(tot.fat * k), fiber: r1(tot.fib * k), salt: Math.round(tot.na * k / 400 * 100) / 100, potassium: Math.round(tot.k * k),
     total: { kcal: Math.round(tot.kcal), protein: r1(tot.protein), carbs: r1(tot.carbs), fat: r1(tot.fat) }, recipe: null, updatedAt: now };
   meals.push(m); if(!saveMeals()){ meals.pop(); return null; }
   return m;
 }
-function logQLogAll(m, keep){
+function logQLogAll(m, keep){   // keep: the meal name for Add & Save
   const x = FC[m.id]; if(!x || m.state === 'logged') return;
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
   const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
@@ -938,7 +964,7 @@ function logQLogAll(m, keep){
   if(m.parts && !m.fixOf) logPhr[m.mk] = m.parts;
   if(m.parts && fx && fx.mk) logPhr[fx.mk] = m.parts;   // the first message now gives the corrected list next time
   logQTrim(); logQSavePhr(); logQFixSave();
-  const meal = keep ? logQSaveMeal(rows) : null;
+  const meal = keep ? logQSaveMeal(rows, keep) : null;
   const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k }) + (meal ? ' · ' + t('mealSaved', { n: meal.name }) : keep ? ' · ' + t('logQNoMeal') : '');
   let undone = false;
   const undo = () => { if(undone) return; undone = true;
@@ -957,6 +983,7 @@ function logQWire(){
   const msgOf = el => { const b = el.closest('[data-mid]'); const x = b && FC[b.dataset.mid]; return x ? x.m : null; };
   list.addEventListener('click', e => {
     const m = msgOf(e.target); if(!m || m.state === 'logged') return;
+    if(e.target.closest('[data-qnameok]')){ Phone.haptic(); logQNameOk(m); return; }
     const row = e.target.closest('[data-qi]'); if(!row) return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
     if(e.target.closest('[data-qrm]')){ m.items.splice(i, 1); logQRedraw(m); return; }
     const focusQ = () => setTimeout(() => { const r = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qi="${i}"] .lqsq`); if(r) r.focus(); }, 30);
@@ -972,8 +999,11 @@ function logQWire(){
       row.querySelector('.lan').value = fmt(st.n); row.querySelector('.ldm').classList.add('hide'); logQUpd(m, row, it); return; }
     const ck = e.target.closest('[data-lck]'); if(ck){ st.ck = +ck.dataset.lck; row.querySelectorAll('[data-lck]').forEach(b => b.classList.toggle('on', b === ck)); logQUpd(m, row, it); }
   });
+  list.addEventListener('keydown', e => { if(e.key !== 'Enter' || !e.target.matches('[data-qname]') || e.isComposing) return; e.preventDefault(); const m = msgOf(e.target); if(m && m.state !== 'logged') logQNameOk(m); });
   list.addEventListener('input', e => {
-    const m = msgOf(e.target), row = e.target.closest('[data-qi]'); if(!m || !row) return; const it = m.items[+row.dataset.qi]; if(!it) return;
+    const m = msgOf(e.target), row = e.target.closest('[data-qi]');
+    if(m && e.target.matches('[data-qname]')){ m.mname = e.target.value; logQKeep(m); return; }
+    if(!m || !row) return; const it = m.items[+row.dataset.qi]; if(!it) return;
     if(e.target.matches('[data-qsq]')){ it.sq = e.target.value; row.querySelector('.lqsres').innerHTML = logQSwapRes(it); logQKeep(m); return; }
     if(e.target.classList.contains('lan') && it.st){ it.st.n = e.target.value; logQUpd(m, row, it); }
   });
