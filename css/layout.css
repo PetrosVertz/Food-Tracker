@@ -289,6 +289,7 @@ html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-are
 /* other short windows: a steady, bigger size */
 .overlay.center .sheet{min-height:min(440px,60vh)}
 #ovAsk .sheet,#ovPick .sheet{min-height:0!important}
+.overlay.center .sheet:not(.tall){min-height:0}   /* 0.7.9.5: small windows (Add Shopping, Quick Add, Units …) end right after their last button instead of keeping a 440px minimum height */
 /* Fridge: tidier spacing; no Fridge/Freezer tabs */
 #fLoc{display:none!important}
 #pgFridge .fgseg{margin:6px 0 var(--s3)} #pgFridge .search{margin:0 0 var(--s3)} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
