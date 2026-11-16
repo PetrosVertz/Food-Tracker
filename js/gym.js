@@ -764,8 +764,18 @@ function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exe
 // per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
 // 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
 function extrasHtml(s, j){ const G = gx(); if(!(gOn('half') || gOn('neg') || gOn('rir')) || s.type === 'W' || s.done) return '';
-  const num = (k, lbl, v) => `<label class="sxn"><span>${lbl}</span><input data-sx="${k}" inputmode="numeric" value="${v ?? ''}" placeholder="0" aria-label="${lbl}"></label>`;
-  return `<div class="setx" data-sxrow="${j}">${gOn('half') ? num('hr', t('halfReps'), s.hr) : ''}${gOn('neg') ? num('ng', t('negReps'), s.ng) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
+  // 0.7.10.4: half reps / negatives are buttons under the kg and reps columns; tapping one opens the scroll wheel (openSx). Same fields as before: s.hr, s.ng
+  const num = (k, lbl, v, col) => `<div class="sxn" style="grid-column:${col}"><span>${lbl}</span><button type="button" class="sxb${v > 0 ? '' : ' zero'}" data-sxpick="${k}" aria-label="${lbl}">${v > 0 ? v : 0}</button></div>`;
+  return `<div class="setx${s.drop ? " drop" : ""}" data-sxrow="${j}">${gOn('half') ? num('hr', t('halfReps'), s.hr, 2) : ''}${gOn('neg') ? num('ng', t('negReps'), s.ng, 3) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
+
+// the 0–30 scroll wheel for half reps / negatives (the same .wheel as the shopping count wheel; its rows are 30 px)
+let SX = null;
+function openSx(x, j, k){ const s = x.sets[j]; if(!s) return; SX = { x, s, k, v: +s[k] > 0 ? +s[k] : null };
+  $('sxT').textContent = t(k === 'hr' ? 'halfReps' : 'negReps');
+  const w = $('sxWheel'), cur = SX.v || 0; w._set = false;
+  w.innerHTML = Array.from({ length: 31 }, (_, i) => `<div data-wn="${i}" class="${i === cur ? 'on' : ''}">${i}</div>`).join('');
+  open('ovSx'); w.style.scrollBehavior = 'auto'; requestAnimationFrame(() => { w.scrollTop = cur * 30; w._set = true; }); }
+function sxSave(){ if(!SX) return; const { s, k, v } = SX; if(v > 0) s[k] = v; else delete s[k]; SX = null; saveG('act'); renderSession(); }
 
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }

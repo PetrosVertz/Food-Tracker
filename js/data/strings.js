@@ -824,4 +824,5 @@ Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
   rfxDownMsg: ['Your {ex} rank is now {rank}. Train it to win it back.', 'Η κατάταξή σου στο {ex} είναι τώρα {rank}. Προπονήσου για να την ξανακερδίσεις.'],
   rfxNice: ['Nice', 'Τέλεια'], rfxGotIt: ['Got It', 'Εντάξει'],
   rfxMore: ['And {n} More Rank Changes', 'Και {n} Ακόμα Αλλαγές Κατάταξης'], rfxMore1: ['And 1 More Rank Change', 'Και 1 Ακόμα Αλλαγή Κατάταξης'],
+  sxClear: ['Clear', 'Καθαρισμός'],
 });
