@@ -801,7 +801,7 @@ Object.assign(S, {
   stt_hours: ['Time Training', 'Χρόνος Προπόνησης'], sts_hours: ['Total time in the gym.', 'Συνολικός χρόνος στο γυμναστήριο.'],
   stt_prs: ['Records Set', 'Ρεκόρ'], sts_prs: ['Personal records from your workouts.', 'Προσωπικά ρεκόρ από τις προπονήσεις σου.'],
   stt_bestDay: ['Heaviest Day', 'Βαρύτερη Μέρα'], sts_bdBag: ['About {n} bags of cement (25 kg), on {d}.', 'Περίπου {n} σακιά τσιμέντο (25 kg), στις {d}.'], sts_bdCar: ['About {n} cars, on {d}.', 'Περίπου {n} αυτοκίνητα, στις {d}.'], sts_bdEl: ['About {n} elephants, on {d}.', 'Περίπου {n} ελέφαντες, στις {d}.'], sts_bdWhale: ['About {n} blue whales, on {d}.', 'Περίπου {n} γαλάζιες φάλαινες, στις {d}.'],
-  stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Times up Everest, if all your lifting was a climb with your own weight on your back.', 'Φορές στο Έβερεστ, αν όλο το βάρος που σήκωσες ήταν ανάβαση με το δικό σου βάρος στην πλάτη.'],
+  stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Climbs of Everest, carrying your own body weight.', 'Ανεβάσματα του Έβερεστ, κουβαλώντας το δικό σου βάρος.'],
   stt_luckyDay: ['Lucky Weekday', 'Τυχερή Μέρα'], sts_luckyDay: ['{n} personal records set on this day.', '{n} προσωπικά ρεκόρ αυτή τη μέρα.'],
   stt_night: ['Midnight Iron', 'Σίδερα τα Μεσάνυχτα'], sts_night: ['Workouts started after 9 pm.', 'Προπονήσεις που ξεκίνησαν μετά τις 9 μ.μ.'],
   stt_dawn: ['Dawn Patrol', 'Πρωινή Περίπολος'], sts_dawn: ['Workouts started before 7 am.', 'Προπονήσεις που ξεκίνησαν πριν τις 7 π.μ.'],

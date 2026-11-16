@@ -87,7 +87,7 @@ const STATS = [
   { id: 'weekday',    calc: c => c.wdBest != null && { v: t('wdFull').split(' ')[c.wdBest], p: { n: c.wdN }, big: 1 } },
   { id: 'hours',      calc: c => c.totMin >= 30 && { v: c.dur(c.totMin), p: {} } },
   { id: 'bestDay',    calc: c => c.dayBest && { v: `${c.num(Math.round(c.dayBest.kg))} kg`, ...c.cmp(c.dayBest.kg, 'bd', 1), p: { ...c.cmp(c.dayBest.kg, 'bd', 1).p, d: fmtDate(c.dayBest.date + 'T12:00:00') } } },
-  { id: 'mountain',   calc: c => c.climb > 0 && { v: `${(Math.round(c.climb * 10) / 10).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}x`, p: {} } },
+  { id: 'mountain',   calc: c => c.climb >= 0.01 && { v: `${c.climb.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB', { minimumFractionDigits: c.climb < 0.1 ? 2 : 1, maximumFractionDigits: c.climb < 0.1 ? 2 : 1 })}x`, p: {} } },   // one decimal; two while it is still under 0.1 so a new lifter doesn't see 0.0x
   { id: 'luckyDay',   calc: c => c.prs >= 3 && c.luckyN > 0 && { v: t('wdFull').split(' ')[c.luckyWd], p: { n: c.luckyN }, big: 1 } },
   { id: 'night',      calc: c => c.nights > 0 && { v: c.num(c.nights), p: {} } },
   { id: 'dawn',       calc: c => c.dawns > 0 && { v: c.num(c.dawns), p: {} } },
