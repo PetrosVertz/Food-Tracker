@@ -781,6 +781,7 @@ Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
   aiuK_network: ['Offline', 'Χωρίς σύνδεση'], aiuK_bad_output: ['Unreadable', 'Μη αναγνώσιμο'], aiuK_cancelled: ['Cancelled', 'Ακυρώθηκε'], aiuK_unsupported: ['Not Built', 'Δεν υπάρχει'], aiuK_other: ['Other', 'Άλλο'],
   aiuReset: ['Reset Usage', 'Επαναφορά Χρήσης'], aiuAsk: ['Clear the AI usage numbers on this phone? Nothing else changes.', 'Να σβηστούν τα στοιχεία χρήσης του AI σε αυτό το κινητό; Τίποτα άλλο δεν αλλάζει.'],
   aiuYes: ['Clear', 'Καθαρισμός'], aiuDone: ['AI usage cleared', 'Τα στοιχεία χρήσης καθαρίστηκαν'],
+});
 
 // ---------- 0.7.10 Social Hub: Stats (20 facts; title stt_<id>, subtitle sts_<id>) ----------
 Object.assign(S, {
