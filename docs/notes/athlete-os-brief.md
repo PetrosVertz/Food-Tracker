@@ -69,15 +69,23 @@ Good, adopt:
 2. Do you want the live-workout "!" suggestion badge in the first Gym Coach branch, or later? (Default: with the Gym Coach branch.)
 3. Should the Brain's memory ever be exported/shared with friends? (Default: never.)
 
-## 4. Build plan: one branch per chat, in order (each merged before the next), Opus
+## 4. Build plan: one branch per chat (each merged before the next), Opus
 
-Rules for every branch: follow CLAUDE.md; plain HTML/CSS/JS, no build step; `Store` only; `AI.*` only; `Phone.*` only; no wrappers; do not change what already works; do not bump VERSION except the last branch.
+**Order changed (decided with Petros after athlete-1):** small coach upgrades first, the big Brain last. Branch names stay the same, so the order is **athlete-1, athlete-3, athlete-4, athlete-2, athlete-5, athlete-6**. Athlete-3 and athlete-4 use simple rules and do not wait for the Brain. The events they would send (FOOD_LOGGED, FOOD_CORRECTED, workout and set events, suggestion accepted / rejected) are added in athlete-2, once the Brain exists.
 
-1. **athlete-1: audit and provider layer.** Write `docs/notes/athlete-os-audit.md` (every place that makes an AI request, which need a model, which do not). Add the provider abstraction (normalized request/response/usage/errors/capabilities), `GeminiProvider` working through it, model tiers (default / advanced) from settings, bounded retries with backoff, error normalisation, local telemetry and Settings › AI › Usage. Existing behaviour unchanged. Tests.
-2. **athlete-2: Brain store, events, context builder.** Evolve `know.js` into the athlete model with provenance (value, source, confidence, timestamp, count), the event types in Spec A (idempotent, no model calls), the Context Builder (small task-specific packages with freshness), memory correction/delete UI. Fixtures of fake histories in `tools/`.
-3. **athlete-3: Food Coach upgrade.** Section 2 above: personality, library hint, `total_kcal` check, correction retry, no keyword overrides, correction memory (per user), events `FOOD_LOGGED / FOOD_CORRECTED`. Keep cards, Add, Greek/English, per-100 g data.
-4. **athlete-4: Gym Coach upgrade.** Section 3 picks: workout offering (previous AI workout with progression), progression rules, recovery-aware smart selection, weak-point focus only when a workout is requested, live "!" badge with Apply / Not Now, events for workouts and sets. Research rules recorded with sources.
-5. **athlete-5: Supervisor and Fridge AI.** Deterministic router, mixed-intent handling, intervention priority levels 0-4, conflict-resolution order from Spec A 7.4, Fridge AI using ingredients + remaining macros + training context, meal accepted/rejected events.
-6. **athlete-6: quality.** Benchmark suites per domain, routing/memory/event tests, cost report, review against the Spec B success list, switch-provider instructions in `docs/notes/athlete-os-switching.md`, VERSION and CACHE bump.
+Rules for every branch: follow CLAUDE.md; plain HTML/CSS/JS, no build step; `Store` only; `AI.*` only; `Phone.*` only; no wrappers; do not change what already works; do not bump VERSION except the last branch. **No "Advanced Model" box in Settings** (Petros decided).
+
+1. **athlete-1: audit and provider layer. DONE (pull request #84).** `docs/notes/athlete-os-audit.md`; `js/platform/ai-provider.js` (normalized request / answer / error, `GeminiProvider` working, `AnthropicProvider` a labelled stub, default / advanced tiers, bounded retries); `js/platform/ai-usage.js` (local telemetry); Settings › AI › Usage. Existing behaviour unchanged.
+2. **athlete-3: Food Coach upgrade (do next).** Section 2 above: personality, library hint, `total_kcal` check, correction retry, no keyword overrides, correction memory (per user, on the phone through `Store`). Keep cards, Add, Greek/English, per-100 g data. Needs the pasted Grok Food Coach code in the chat. Pass `opts.task` on the AI calls it touches so Usage can split by job.
+3. **athlete-4: Gym Coach upgrade.** Section 3 picks: workout offering (previous AI workout with progression), progression rules, recovery-aware smart selection, weak-point focus only when a workout is requested, live "!" badge with Apply / Not Now, at most one suggestion per exercise per session. Research first; rules recorded with sources in `docs/notes/ai-coach-evidence.md`.
+4. **athlete-2: Brain store, events, context builder, decision ledger.** Evolve `know.js` into the athlete model with provenance (value, source, confidence, timestamp, count); the 20 event types in Spec A (idempotent, no model calls); the Context Builder; memory edit / delete screen; **the decision ledger** (recommendation, reason, accepted or rejected, outcome) so Not Now and failed suggestions are learned from; wire the food and gym events from steps 2 and 3. Fixtures of fake histories in `tools/`. Experiments (Spec A 5.3) stay out until the ledger works.
+5. **athlete-5: Supervisor and Fridge AI.** Deterministic router, mixed-intent handling (one main coach, shared context, one AI call), intervention priority levels 0-4, conflict order from Spec A 7.4, Fridge AI using ingredients + remaining macros + training context, meal accepted / rejected events.
+6. **athlete-6: quality.** Benchmark suites per domain, routing / memory / event tests, cost report, review against the Spec B success list, switch-provider instructions in `docs/notes/athlete-os-switching.md`, VERSION and CACHE bump.
 
 Each branch's pull request must list what was done, what was skipped, what Petros must decide, and test results (nothing claimed that was not tested).
+
+## 5. Specs received (what is and is not in the repo)
+
+- **Spec A (Master Intelligence System):** received parts 1-7.4 (cut off mid-sentence at "The user's explicit decision remains"). Matches this plan; the decision ledger and experiments were missing from the first plan, so the ledger is now in athlete-2.
+- **Spec B (Provider-agnostic infrastructure):** never received. Athlete-1 followed the summary in section 3. If it turns up, compare it with `js/platform/ai-provider.js` before athlete-6.
+- **Grok Food Coach code:** not received yet; paste it into the athlete-3 chat.
