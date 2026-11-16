@@ -1028,3 +1028,6 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pfpin{position:absolute;top:2px;right:2px;width:36px;height:36px;display:grid;place-items:center;border:0;background:none;color:var(--t-muted);border-radius:var(--r-pill)}
 .pfstat.pinned .pfpin{color:var(--t-accent-ink,var(--t-accent))}
 .pfstat.pinned .pfpin svg{fill:currentColor;fill-opacity:.2}
+/* athlete-3: Food Coach Add & Save asks your own name for the plate */
+.lqname{display:flex;flex-direction:column;gap:var(--s2,8px);padding-top:10px;border-top:1px solid var(--t-line,rgba(127,127,127,.2));margin-top:10px}
+.lqnrow{display:flex;gap:8px;align-items:center}.lqnrow .lqsq{flex:1;min-width:0}.lqnrow .lqswapbtn{align-self:center;flex:none}
