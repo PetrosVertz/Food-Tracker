@@ -155,7 +155,7 @@ Return ONLY JSON: {"reply": string}`, img);
   // The overlay already matches the visible screen above the keyboard (fit), so with the keyboard up the window shrinks to stay fully in view.
   let saP = null;   // a hidden probe that reads the phone's safe areas (notch / home bar)
   const safe = () => { if(!saP){ saP = document.createElement('div'); saP.setAttribute('aria-hidden', 'true');
-    saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
+    saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:calc(env(safe-area-inset-top) + var(--topgap,12px));visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
     return { t: saP.offsetHeight, b: saP.offsetWidth }; };
   const M = 12, WMAX = 560, HMIN = 320;
   const FR = 26;   // the face's radius (theme.css .coachface is 52 px)

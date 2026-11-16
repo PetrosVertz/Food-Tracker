@@ -99,7 +99,7 @@ body.sorting{overscroll-behavior:none}
 .hg5{animation:flip 300s ease-in-out infinite} .hg5 .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 300s linear infinite} .hg5 .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 300s linear infinite}
 
 /* header: centred title (no back arrow, 0.7.10.5) · 28 px italic clock + hourglass (flips every 5 min) */
-.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr;align-items:center;padding:calc(var(--s2) + env(safe-area-inset-top)) 48px var(--s2);margin-bottom:var(--s2);background:var(--t-bg)}   /* 0.7.9.5: the bar owns the safe-area strip, so it is solid above scrolling sets */
+.seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr;align-items:center;padding:calc(var(--s2) + env(safe-area-inset-top) + var(--topgap)) 48px var(--s2);margin-bottom:var(--s2);background:var(--t-bg)}   /* 0.7.9.5: the bar owns the safe-area strip, so it is solid above scrolling sets */
 .seshead3 h2{margin:0;max-width:100%;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);letter-spacing:0;color:var(--t-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seshead3 h2:empty{display:none}
 .wmid{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -217,7 +217,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #ovExPick.overlay>.sheet.pksheet{position:relative;display:flex;flex-direction:column;overflow:hidden;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;padding:0!important;
   border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--pkbg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .pksheet>*{flex:0 0 auto}
-.pktop{display:flex;flex-direction:column;gap:var(--s3);padding:calc(env(safe-area-inset-top) + var(--s2)) var(--pkpad) var(--s3);background:var(--pkbg);border-bottom:1px solid var(--t-edge)}
+.pktop{display:flex;flex-direction:column;gap:var(--s3);padding:calc(env(safe-area-inset-top) + var(--topgap) + var(--s2)) var(--pkpad) var(--s3);background:var(--pkbg);border-bottom:1px solid var(--t-edge)}
 .pkbar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;min-height:44px;margin:0 -6px}
 .pkbar>.sback{grid-column:1;float:none;position:static;display:flex;margin:0}
 .pkbar h2{grid-column:2;margin:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -407,7 +407,7 @@ body.inses .coachbub{display:none!important}
 #ovWkQR{--qr-paper:#fff;--qr-ink:#000;--qr-soft:#3d4249}
 #ovWkQR .sheet.wqsheet{height:100%!important;max-height:none!important;width:100%!important;max-width:none;border-radius:0!important;border:0!important;margin:0;
   background:var(--qr-paper)!important;color:var(--qr-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+  padding:calc(env(safe-area-inset-top) + var(--topgap) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
 #ovWkQR .sheet.wqsheet::before,#ovWkQR .sheet.wqsheet::after{display:none}
 #ovWkQR.center{align-items:stretch!important}
 #ovWkQR h2{color:var(--qr-ink);margin:0 0 var(--s1);max-width:100%;overflow-wrap:anywhere}
@@ -419,7 +419,7 @@ body.inses .coachbub{display:none!important}
 .wqhow{color:var(--qr-soft);font-size:13px;margin:0 0 22px;max-width:340px}
 #ovWkQR .btn.wqclose{flex:0 0 auto;background:var(--qr-paper);color:var(--qr-ink);border:1.5px solid var(--qr-ink);min-width:160px}
 #ovWkQR .sheet.wqsheet{position:relative}
-#ovWkQR .sback{position:absolute!important;top:calc(env(safe-area-inset-top) + 10px)!important;left:10px!important;margin:0!important;color:var(--qr-ink)!important;background:none!important}
+#ovWkQR .sback{position:absolute!important;top:calc(env(safe-area-inset-top) + var(--topgap) + 10px)!important;left:10px!important;margin:0!important;color:var(--qr-ink)!important;background:none!important}
 .qrbtn{margin-right:6px}
 .wsbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin:0 0 var(--s3)}
 #ovWkScan .wscam .frame{left:22%;right:22%;top:14%;bottom:14%}
