@@ -48,7 +48,7 @@ Proposed reference percentile bands (evaluate before finalising):
 The actual thresholds are stored as fixed exercise-specific values, never calculated from the current app user population.
 
 ## 2b. Calibration targets and purpose (Petros's update: this REPLACES the percentile table above where they disagree)
-**Purpose.** Ranks are for **friends to compare with each other**, not for a global leaderboard. A user adds friends and sees their best ranks and what they did (the Social Hub). So the ranks must be **coherent and believable between two friends of different size, sex and age**, and they must "sound realistic" to the person who earned them.
+**Purpose.** Ranks are **motivation for the user, a bit of fun**, not a competition. There is **no compare-with-a-friend screen, no head-to-head and no global leaderboard**: comparing would defeat the purpose. A user can simply show their ranks to a friend, and the Social Hub shows their best rank (the Highest Rank card that already exists). So the ranks must be **coherent and believable to the person who earned them**, and a 60 kg woman's Gold II and a 100 kg man's Gold II must mean similar relative effort, so showing them to each other feels fair.
 
 **The average user is Silver III.** The reference population is **regular gym-goers who actually train that exercise** (not the general public). Their median lands at **Silver III**, and the ordinary regular lifter ranges from **Silver III to Gold I** (that is the "middle ground"). Build the 15 levels around that, with real fixed thresholds. As a starting point to test (the chat must evaluate it against real data and adjust, and report the final bands):
 - Median regular gym-goer: **Silver III**.
@@ -65,9 +65,9 @@ These percentile numbers are a draft; keep the shape: **the middle of the scale 
 2. **Implausible sets do not count** until confirmed: a set far above what the benchmark data says anyone lifts for that exercise (for example above the sex-specific record range for that body weight) is shown with "Check this set" and is ignored by the rank until the user confirms it.
 3. **Ranks move gradually after the first session**: after the first ranked session, a single session can raise the rank by at most **two levels** (it takes a second session to go further). A rank never drops because of one bad day (see the stability rule below).
 4. **Stability.** A rank is based on the best confirmed performance in a rolling window (suggest 12 months for the top ranks, because strength is slow to lose) and only falls if the user stops training that exercise for a long time, then slowly.
-5. **Fair between friends:** body weight, sex and age adjustments must make a 60 kg woman and a 100 kg man comparable, so that "both Gold II" means comparable relative effort. Include a check of this in the simulator (several body weights at the same percentile must give the same rank).
+5. **Fair across body sizes:** body weight, sex and age adjustments must make a 60 kg woman and a 100 kg man comparable, so that the same rank means comparable relative effort. Include a check of this in the simulator (several body weights at the same percentile must give the same rank).
 6. **Beginners are protected from Diamond by the data, not only by the rules**: the Diamond thresholds must be so high that no beginner reaches them at a realistic weight; test with beginner profiles (50 kg bodyweight, light weights) and show the result.
-7. **Friends comparison needs a server (0.8).** For now, build the engine so two profiles can be compared on the same exercise (rank, best set, max load) from the stored result; the sharing itself comes with accounts.
+7. **No friend comparison feature** is built or planned (Petros decided it defeats the purpose). Do not add compare screens, comparison metrics or leaderboards of ranks.
 
 ## 3. The performance metrics
 **No estimated one-rep max.** No Epley, Brzycki, Wathan or any other 1RM formula in the ranking algorithm. Evaluate what the user actually logged. Two primary measurements:
