@@ -128,7 +128,8 @@ const Know = (() => {
     }catch(e){ console.warn('aiKnow', e); }   // never in the way of starting the app
   }
   // Settings › AI › Reset What AI Knows: forget everything; learning starts again from tomorrow's look-back (only logs after today)
-  function reset(){ Store.save('aiKnow', { day: todayKey(), since: todayKey(), body: '', food: '', foodShort: '', gym: '', gymShort: '' }); }
+  function reset(){ Store.save('aiKnow', { day: todayKey(), since: todayKey(), body: '', food: '', foodShort: '', gym: '', gymShort: '' });
+    if(typeof logFix !== 'undefined'){ logFix = {}; Store.save('foodFix', {}); } }   // Athlete OS step 3: Food Coach's remembered corrections too
 
   setTimeout(() => daily(), 1500);   // after start-up has drawn the app
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') setTimeout(() => daily(), 1500); });   // opened again on a new day
