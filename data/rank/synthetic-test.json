@@ -1,0 +1,543 @@
+{
+ "_about": "SYNTHETIC TEST VALUES. Invented round numbers, NOT data, NOT calibrated, never loaded by the app. They exist only so docs/rank-simulator.html and tools/rank/sim.js can show how the engine treats bodyweight, weighted, assisted and curl-variation exercises (brief section 9). No rank computed from this file means anything. None of these numbers comes from any website or study.",
+ "synthetic": true,
+ "exercises": {
+  "pullup": {
+   "id": "pullup",
+   "name": "Pull-up (SYNTHETIC)",
+   "equipment": "bodyweight",
+   "loadType": "bodyweight",
+   "bwShare": 1,
+   "unit": "added kg (0 = body weight only)",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      80,
+      100,
+      120,
+      140
+     ],
+     "k": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      50,
+      65,
+      80,
+      95
+     ],
+     "k": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  },
+  "bb_curl": {
+   "id": "bb_curl",
+   "name": "Barbell curl (SYNTHETIC)",
+   "equipment": "barbell",
+   "loadType": "external",
+   "unit": "bar + plates, kg",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      20,
+      30,
+      40,
+      50
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      10,
+      15,
+      20,
+      25
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  },
+  "strict_curl": {
+   "id": "strict_curl",
+   "name": "Strict standing curl (SYNTHETIC)",
+   "equipment": "barbell",
+   "loadType": "external",
+   "unit": "bar + plates, kg",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      18,
+      26,
+      34,
+      42
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      9,
+      13,
+      17,
+      21
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  },
+  "ez_preacher": {
+   "id": "ez_preacher",
+   "name": "Preacher curl (SYNTHETIC)",
+   "equipment": "barbell",
+   "loadType": "external",
+   "unit": "bar + plates, kg",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      16,
+      24,
+      32,
+      40
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      8,
+      12,
+      16,
+      20
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  },
+  "spider_curl": {
+   "id": "spider_curl",
+   "name": "Spider curl (SYNTHETIC)",
+   "equipment": "dumbbell",
+   "loadType": "external",
+   "unit": "one dumbbell, kg",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      6,
+      9,
+      12,
+      15
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      3,
+      5,
+      7,
+      9
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  },
+  "bayesian_curl": {
+   "id": "bayesian_curl",
+   "name": "Bayesian cable curl (SYNTHETIC)",
+   "equipment": "cable",
+   "loadType": "external",
+   "unit": "stack, kg",
+   "models": {
+    "m": {
+     "refBw": 80,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      8,
+      12,
+      16,
+      20
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    },
+    "f": {
+     "refBw": 65,
+     "bwRange": [
+      45,
+      140
+     ],
+     "z": [
+      -0.6745,
+      0,
+      0.6745,
+      1.2816,
+      2.0537
+     ],
+     "a": [
+      4,
+      6,
+      8,
+      10
+     ],
+     "k": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "kL": 0.8,
+     "kV": 7.5,
+     "loadReps": 8,
+     "volumeReps": 10,
+     "repCap": 10,
+     "n": 0,
+     "age": null,
+     "ceiling": null,
+     "confidence": "synthetic",
+     "sources": [
+      "synthetic"
+     ]
+    }
+   }
+  }
+ },
+ "variants": {
+  "assisted_pullup": {
+   "anchor": "pullup",
+   "factor": {
+    "m": 1,
+    "f": 1
+   },
+   "loadType": "assisted",
+   "confidence": "synthetic",
+   "source": "SYNTHETIC",
+   "n": 1,
+   "notes": "Same movement as the pull-up: the typed kg is the assistance, taken off the body weight."
+  }
+ }
+}
