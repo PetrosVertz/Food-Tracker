@@ -47,6 +47,28 @@ Proposed reference percentile bands (evaluate before finalising):
 
 The actual thresholds are stored as fixed exercise-specific values, never calculated from the current app user population.
 
+## 2b. Calibration targets and purpose (Petros's update: this REPLACES the percentile table above where they disagree)
+**Purpose.** Ranks are for **friends to compare with each other**, not for a global leaderboard. A user adds friends and sees their best ranks and what they did (the Social Hub). So the ranks must be **coherent and believable between two friends of different size, sex and age**, and they must "sound realistic" to the person who earned them.
+
+**The average user is Silver III.** The reference population is **regular gym-goers who actually train that exercise** (not the general public). Their median lands at **Silver III**, and the ordinary regular lifter ranges from **Silver III to Gold I** (that is the "middle ground"). Build the 15 levels around that, with real fixed thresholds. As a starting point to test (the chat must evaluate it against real data and adjust, and report the final bands):
+- Median regular gym-goer: **Silver III**.
+- Bronze (III, II, I): beginners and people under the typical level; roughly the bottom 45% of regular gym-goers, so a true beginner in the first months is Bronze, usually Bronze III or II.
+- Silver III to Gold I: the solid middle (roughly the 45th to 90th percentile).
+- Platinum: strong, multi-year lifters (roughly the top 5 to 10%).
+- Diamond III, II, I: very rare (roughly the top 2%, 1%, 0.3% and so on); Diamond I is competition level.
+These percentile numbers are a draft; keep the shape: **the middle of the scale is Silver III to Gold I, Platinum is hard, Diamond is rare.**
+
+**Time-to-rank sanity table (required deliverable in `RANKING_ALGORITHM.md`).** For Bench, Squat, Deadlift, Barbell Curl and Pull-up, for a man and a woman at 65 and 80 kg, list the load needed for each rank and say about how long a typical natural lifter training consistently needs to reach it (months or years), from the sources. The table must read as believable: a beginner after 3 months is Bronze; a year of consistent training is around Silver; Gold takes years; Platinum many years; Diamond is exceptional.
+
+**Coherence rules (so a rank never looks silly):**
+1. **No Diamond on the first try.** A rank from Platinum upwards needs the performance to be **confirmed**: the same level reached in a **second workout on a different day** within about 8 weeks. Until then the user sees the highest rank that is already confirmed (at most Gold I) and a small "Platinum pending" note. A strong person who really lifts that much confirms it at the next session; a typo or a lucky day does not stick.
+2. **Implausible sets do not count** until confirmed: a set far above what the benchmark data says anyone lifts for that exercise (for example above the sex-specific record range for that body weight) is shown with "Check this set" and is ignored by the rank until the user confirms it.
+3. **Ranks move gradually after the first session**: after the first ranked session, a single session can raise the rank by at most **two levels** (it takes a second session to go further). A rank never drops because of one bad day (see the stability rule below).
+4. **Stability.** A rank is based on the best confirmed performance in a rolling window (suggest 12 months for the top ranks, because strength is slow to lose) and only falls if the user stops training that exercise for a long time, then slowly.
+5. **Fair between friends:** body weight, sex and age adjustments must make a 60 kg woman and a 100 kg man comparable, so that "both Gold II" means comparable relative effort. Include a check of this in the simulator (several body weights at the same percentile must give the same rank).
+6. **Beginners are protected from Diamond by the data, not only by the rules**: the Diamond thresholds must be so high that no beginner reaches them at a realistic weight; test with beginner profiles (50 kg bodyweight, light weights) and show the result.
+7. **Friends comparison needs a server (0.8).** For now, build the engine so two profiles can be compared on the same exercise (rank, best set, max load) from the stored result; the sharing itself comes with accounts.
+
 ## 3. The performance metrics
 **No estimated one-rep max.** No Epley, Brzycki, Wathan or any other 1RM formula in the ranking algorithm. Evaluate what the user actually logged. Two primary measurements:
 
