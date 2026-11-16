@@ -99,6 +99,15 @@ Existing application: do not rebuild it. Before writing code: inspect the projec
 - **E. Initial implementation:** the modular engine in the app, **kept separate from the live ranking** until real benchmark data exists (a switch in code, off by default).
 - **F. Final report:** what changed, what works, what remains uncalibrated, which benchmarks have real supporting data, which exercises still need research, how to test.
 
+## Variation factors (Petros's idea, adopted)
+Niche variations (preacher curl, spider curl, Bayesian curl, incline presses, and so on) are ranked from a well-supported **anchor lift** of the same family (barbell curl, bench, squat, deadlift, row, pulldown...) using a **difficulty factor**: the variation's thresholds are the anchor's thresholds multiplied by the factor. This is step 2 of the hierarchy in section 7 (a validated model using closely related variations). Rules:
+- **Sourced factors only.** A factor must come from a published comparison of the two exercises (cite it, with sample size and sex/age of the subjects), or from the app's own anonymous data later (0.8, with consent): the ratio between one person's best set on the variation and on the anchor, averaged across many people, then frozen in a numbered benchmark version. Never invent a factor. The existing `TIER_VARIANT` numbers in `js/data/gym.js` (for example incline bench 0.85) are unsourced guesses: treat them as provisional, list them in the report, and replace or flag each one.
+- **Same family and same equipment type** (barbell with barbell, dumbbell with dumbbell, cable with cable, machine with machine). A factor between different equipment types needs its own evidence.
+- **No chains**: a variation of a variation is not ranked.
+- **Shown honestly in the app**: a rank from a factor is marked "Estimate" with its anchor (for example "Estimate, based on Barbell Curl"); an exercise with no usable anchor shows no rank.
+- Factors can depend on sex and body size; check whether the ratio is stable across them before using one number.
+- The research report lists every exercise in the app, its anchor (if any), its factor, the source and the confidence, so Petros can see exactly what is real and what is missing.
+
 ## Final instructions
 Fairness matters more than speed. No mathematically sophisticated but arbitrary ranks. An understandable, consistent system backed by real-world lifting data. Do not use estimated 1RM, total workout volume, user-entered ROM or technique, comparisons between exercise cards, user-count-based thresholds, invented benchmark values, or changes to unrelated parts of the app. Investigate the existing implementation and the available data first, then build the foundations. The goal: a fun social feature where a rank on each exercise feels deserved.
 
