@@ -373,8 +373,12 @@ body.inses .coachbub{display:none!important}
 .ormrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--t-line)}
 .ormrow b{display:block;font-weight:var(--w-med)} .ormrow small{display:block;color:var(--t-muted);font-size:var(--fs-label)}
 .pfrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
-:root{--tier-bronze:#e39a62;--tier-silver:#c3cad6;--tier-gold:#f5c542;--tier-platinum:#7fe0d4;--tier-diamond:#7cc4ff}
-:root[data-theme="light"]{--tier-bronze:#94481a;--tier-silver:#56606d;--tier-gold:#7d5a00;--tier-platinum:#0d6e66;--tier-diamond:#1f5fb0}
+/* 0.7.10.2 tier colours, taken from the rank plates (img/rank): --tier-x for bars, lines and glows, --tier-x-ink for text.
+   Dark: the plate's own metal (≥ 6.4:1 on every dark card). Light: a deeper metal (≥ 4.6:1 on white, card2 and the page), ink deeper still. */
+:root{--tier-bronze:#d9a070;--tier-silver:#c4ccd6;--tier-gold:#f2c14e;--tier-platinum:#5fe3c8;--tier-diamond:#7fb8ff;
+  --tier-bronze-ink:#d9a070;--tier-silver-ink:#c4ccd6;--tier-gold-ink:#f2c14e;--tier-platinum-ink:#5fe3c8;--tier-diamond-ink:#7fb8ff}
+:root[data-theme="light"]{--tier-bronze:#8f4f22;--tier-silver:#5b6573;--tier-gold:#7a5800;--tier-platinum:#0b6f5c;--tier-diamond:#1d5fb8;
+  --tier-bronze-ink:#7a4019;--tier-silver-ink:#4b5461;--tier-gold-ink:#654900;--tier-platinum-ink:#075a4a;--tier-diamond-ink:#164f9c}
 /* 0.7.10 rank bubble: [current icon] bar in the current tier's colour [next icon]; the kg still needed once, above */
 .tiergap{width:min(260px,calc(100vw - 32px))}
 .tiergap .tgkg{display:block;text-align:center;font-weight:var(--w-bold);margin-bottom:6px}
@@ -383,7 +387,14 @@ body.inses .coachbub{display:none!important}
 .tgend small{font-size:11px;color:var(--t-muted);white-space:nowrap}
 .tgbar{flex:1;height:8px;border-radius:var(--r-pill);background:var(--t-card2);box-shadow:inset 0 0 0 1px var(--t-line);overflow:hidden;margin-bottom:16px}
 .tgbar i{display:block;height:100%;background:var(--trc);transform-origin:left center;border-radius:inherit}
-.tr-bronze{--trc:var(--tier-bronze)}.tr-silver{--trc:var(--tier-silver)}.tr-gold{--trc:var(--tier-gold)}.tr-platinum{--trc:var(--tier-platinum)}.tr-diamond{--trc:var(--tier-diamond)}
+.tr-bronze{--trc:var(--tier-bronze);--trci:var(--tier-bronze-ink)}.tr-silver{--trc:var(--tier-silver);--trci:var(--tier-silver-ink)}
+.tr-gold{--trc:var(--tier-gold);--trci:var(--tier-gold-ink)}.tr-platinum{--trc:var(--tier-platinum);--trci:var(--tier-platinum-ink)}.tr-diamond{--trc:var(--tier-diamond);--trci:var(--tier-diamond-ink)}
+/* Social Hub: a leaderboard row gets a stripe in its tier colour; the Highest Rank card a tier-coloured edge and the rank name in tier ink */
+.pfrow[class*="tr-"]{position:relative;padding-left:12px}
+.pfrow[class*="tr-"]::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:var(--r-pill);background:var(--trc)}
+.pfpr[class*="tr-"]{border-color:color-mix(in srgb,var(--trc) 55%,var(--t-edge))}
+:root:not([data-theme="light"]) .pfpr[class*="tr-"]{box-shadow:var(--t-shadow),0 0 18px -6px color-mix(in srgb,var(--trc) 55%,transparent)}
+.pfpr .pfrk1 .pfrn small,.rkrow .pfrn small.rkink{color:var(--trci);font-weight:var(--w-med)}
 /* Profile › Leaderboards: the prompt when body weight or sex is missing */
 .pfneed{display:block;margin:0 0 var(--s3);padding:0;text-align:left}
 
@@ -415,8 +426,8 @@ body.inses .coachbub{display:none!important}
 
 /* 0.7.9.1 Leaderboard Attempt: trophy button above the exercise name (top centre); gold name in attempt mode; set rows = weight + tick */
 .attbtn{width:44px;height:44px;margin:-6px 0 -8px;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.attbtn.on{color:var(--tier-gold)}
-.exname.gold{color:var(--tier-gold)}
+.attbtn.on{color:var(--tier-gold-ink)}
+.exname.gold{color:var(--tier-gold-ink)}
 .sethead.attset,.setrow.attset{grid-template-columns:40px 1fr 38px!important}
 /* 0.7.9.1 Hide Set Markers drop-down */
 .mkrow{padding:0}
