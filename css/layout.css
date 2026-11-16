@@ -4,7 +4,7 @@ section.page.wrap{position:fixed;inset:0;max-width:none;margin:0;overflow-y:auto
   padding:0 max(calc(62px + env(safe-area-inset-right)),calc((100vw - 640px) / 2 + 48px)) calc(130px + env(safe-area-inset-bottom)) max(14px,calc((100vw - 640px) / 2))!important}
 /* 0.7.3: every page header is the same height (title never jumps between tabs) and sits just under the notch: --hpad = the status bar / notch, then a 48 px title row */
 :root{--hpad:calc(max(8px,env(safe-area-inset-top)) + var(--topgap,12px))}   /* 0.7.10.7: + --topgap (theme.css), so no title sits right against the status bar */
-section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 52px);min-height:0;padding:var(--hpad) 4px 4px;margin:0 -4px;isolation:isolate}
+section.page > header{position:sticky;top:0;z-index:5;height:calc(var(--hpad) + 52px);min-height:0;padding:var(--hpad) 4px 4px;margin:0 -4px}   /* 0.7.10.7: no isolation:isolate (nothing needed it; it only put the title on its own layer) */
 .hbtns{display:flex;gap:6px}
 /* side strip */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

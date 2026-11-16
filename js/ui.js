@@ -442,9 +442,15 @@ function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')
   const full = top && (top.matches('#ovTargets,#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
   document.body.dataset.strip = !top ? '' : !full ? 'dim' : top.id === 'ovWkQR' ? 'paper' : ''; }
 
+// 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still
+// holds its last frame keeps the window on its own layer, and iPhone draws the text on such a layer softly (the chat window grew from scale .2 and stayed "scale 1")
+function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) return; sh.classList.remove('settled');
+  const done = e => { if(e.target !== sh) return; sh.removeEventListener('animationend', done); if(el.classList.contains('open')) sh.classList.add('settled'); };
+  sh.addEventListener('animationend', done); }
+
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen'); stripSync();
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }

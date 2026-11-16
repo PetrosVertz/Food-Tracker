@@ -822,6 +822,8 @@ section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formp
 body::before{content:'';position:fixed;z-index:99998;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--t-bg)!important;pointer-events:none}
 body[data-strip="dim"]::before{background:linear-gradient(var(--t-scrim),var(--t-scrim)),var(--t-bg)!important}
 body[data-strip="paper"]::before{background:#fff!important}
+/* 0.7.10.7: sharp titles. A window's opening animation is removed once it has played (settle() in ui.js), so the settled window has no transform left */
+.overlay.open>.sheet.settled,#ovCoach.open .sheet.coachwin.settled{animation:none!important}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
