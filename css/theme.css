@@ -816,7 +816,7 @@ section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:backgroun
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
 body::before{content:'';position:fixed;z-index:8;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--t-bg)!important;pointer-events:none}
 /* 0.7.9.5: full-screen windows (their sheet reaches the top of the screen) get the same solid strip above them, so scrolled content never shows under the clock */
-body:has(.overlay.open>.sheet:is(.setpage,.formpage,.themepage,.pksheet,.wqsheet,.rcptsheet))::before,body:has(#ovTargets.open)::before{z-index:11}
+body:has(.overlay.open>.sheet:is(.setpage,.formpage,.themepage,.pksheet,.wqsheet,.rcptsheet))::before,body:has(#ovTargets.open)::before,body:has(#ovSummary.open)::before{z-index:11}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
@@ -986,3 +986,14 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 #pgToday details.sectfold{margin-top:var(--foldgap)}
 #pgToday details.sectfold>summary{padding:0 0 var(--foldgap)}
 #pgFoods,#pgToday{padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}
+
+/* 0.7.9.5 Workout Done: a proper full window. Solid, inside the safe area, the stats scroll, Done is pinned above the bottom edge. */
+#ovSummary .sheet{position:relative;width:100%!important;max-width:480px!important;height:100%!important;max-height:none!important;margin:0 auto!important;border-radius:0!important;border:0!important;
+  background:var(--t-bg)!important;display:flex;flex-direction:column;overflow:hidden;padding:var(--topP) 16px 0!important}
+#ovSummary .sheet>.sback{position:absolute;top:var(--topP);left:6px;margin:0;float:none;z-index:4}
+#ovSummary #smBody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#ovSummary #smBody>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s1)}
+#ovSummary #smBody>.sub{text-align:center}
+#ovSummary .actions{flex:0 0 auto;margin:0;padding-top:var(--s2)}
+#ovSummary .actions .btn{flex:1 1 100%}
+#ovSummary .actions:last-child{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
