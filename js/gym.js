@@ -129,9 +129,7 @@ function renderSession(){
   $('sesHg').innerHTML = hourglass('hg5', 24, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
-  const warn = sessionRecoveryWarn();
   $('sesSupps').innerHTML = (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
-    (warn ? `<div class="alert red" style="cursor:default">${warn}</div>` : '') +
     (sp.length ? `<div class="slots" style="margin:0 0 10px"><small class="rmeta" style="align-self:center">${t('suppsNow')}</small>${sp.map(s => { const sl = s.times.find(x => x === 'pre' || x === 'post') || s.times[0]; const k = `${s.id}|${sl}`;
       return `<button class="slot ${day[k] ? 'taken' : ''}" data-ssup="${k}">${day[k] ? svgIcon('check', 14, 2.6) + ' ' : ''}${suppIcon(s)} ${esc(suppName(s))}</button>`; }).join('')}</div>` : '');
   if(active.clock0 === undefined) active.clock0 = active.exercises.length ? new Date(active.start).getTime() : null;   // workouts started before 0.6.0
@@ -416,14 +414,6 @@ function recoveryWarnings(){
   const di = dayInfo(tk);
   if(di.type === 'rest'){ const rd = groupReadiness(Date.now()), bad = Object.keys(rd).filter(g => rd[g] < .8); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => ML(g)).join(', ') })); }
   return out;
-}
-
-function sessionRecoveryWarn(){
-  if(!active) return '';
-  const rd = groupReadiness(new Date(active.start).getTime() - 60000), gs = new Set();
-  active.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h]) gs.add(HEADS[h][2]); }));
-  const bad = [...gs].filter(g => rd[g] !== undefined && rd[g] < .6);
-  return bad.length ? t('recWarnToday', { m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) }) : '';
 }
 
 // Recovery (0.7.4.2): an information screen — front and back side by side, nothing on it reacts to taps.

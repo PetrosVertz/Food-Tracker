@@ -260,7 +260,6 @@ Object.assign(S, {
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
  recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
  recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
- recWarnToday:['{m} still recovering (~{p}%). Go lighter today or swap exercises.','{m} ακόμα αναρρώνουν (~{p}%). Πήγαινε πιο ελαφριά σήμερα ή άλλαξε ασκήσεις.'],
  recRestDay:['Rest day: {m} still recovering. Good call resting.','Μέρα ξεκούρασης: {m} ακόμα αναρρώνουν. Καλά κάνεις και ξεκουράζεσαι.'],
  notInFridge:['Not in fridge','Όχι στο ψυγείο'],
 });
