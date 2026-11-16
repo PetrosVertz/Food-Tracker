@@ -117,9 +117,12 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* cards */
 #sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
 .exc.open{position:relative;display:flex;flex-direction:column;gap:var(--s2)}
-/* 0.7.7: card top row, pulled into the card's corner: [tier badge slot][settings gear 44 px] */
-.extop{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:44px;margin:-14px -10px -18px 0}
-.extier{display:flex;align-items:center;min-width:0}
+/* 0.7.10: card top row, pulled into the card's corners: [rank badge][sore warning] … [settings gear 44 px] */
+.extop{display:flex;align-items:center;justify-content:space-between;gap:6px;height:44px;margin:-14px -10px -18px -8px}
+.extier{display:flex;align-items:center;gap:2px;min-width:0;margin-right:auto}
+.extop .exgear{margin-left:auto}
+.extop.has{margin-bottom:-6px}   /* badge row drawn: the title starts below it, full width */
+.extier .sorewarn{margin:0}
 .extier:empty{display:none}
 .exgear{flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exc.ssarm .exgear{visibility:hidden}

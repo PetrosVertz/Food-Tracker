@@ -754,6 +754,7 @@ Object.assign(S, {
   aiKnowDone: ['The AI has forgotten what it learned', 'Το AI ξέχασε όσα είχε μάθει'],
 });
 Object.assign(S, {
+  exsRank: ['Rank Badge', 'Σήμα Κατάταξης'], exsRankS: ['Your rank for this lift on the card. Tap it to see how far the next rank is.', 'Η κατάταξή σου στην άσκηση, πάνω στην κάρτα. Πάτα το για να δεις πόσο απέχει η επόμενη.'],
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
   soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
   soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
