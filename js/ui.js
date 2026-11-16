@@ -187,7 +187,7 @@ function goBack(){
   const opens = [...document.querySelectorAll('.overlay.open')].filter(o => o.id !== 'ovLang').sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0));
   if(opens.length){
     const top = opens[0].id;
-    if(top === 'ovExPick' && (PK.group || PK.eq)){ PK.fwd = { group: PK.group, head: PK.head, eq: PK.eq }; if(PK.eq) PK.eq = null; else { PK.group = null; PK.head = null; } drawExPick(); return; }
+    if(top === 'ovExPick' && (PK.group || PK.eq)){ if(PK.eq) PK.eq = null; else { PK.group = null; PK.head = null; } drawExPick(); return; }
     if(top === 'ovCoach'){ Coach.minimize(); return; }   // 0.7.4.3: Back shrinks the coach chat into its robot bubble
     if(top === 'ovSession'){ close('ovSession'); renderAll(); } else close(top); return;
   }
@@ -197,12 +197,6 @@ function goBack(){
   const prev = NAVI > 0 ? NAV[NAVI - 1] : null;
   if(prev && prev !== h && tabOf(prev) === tab){ NAVI--; navTo(prev); return; }
   NAV = [root]; NAVI = 0; navTo(root);
-}
-
-function goForward(){
-  if(document.querySelector('#ovExPick.open') && PK.fwd){ Object.assign(PK, PK.fwd); PK.fwd = null; drawExPick(); return; }
-  if(document.querySelector('.overlay.open')) return;
-  if(NAVI < NAV.length - 1 && tabOf(NAV[NAVI + 1]) === tabOf(location.hash.slice(1))){ NAVI++; navTo(NAV[NAVI]); }
 }
 
 // ---------- tabs: My Food Log → Gym → Food Library → Kitchen, switched from the side strip or a short pull past the end ----------

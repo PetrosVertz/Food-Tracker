@@ -330,17 +330,6 @@ $('gProgV').addEventListener('change', e => { if(e.target.id === 'gLast'){ profi
 
 $('gProgV').addEventListener('click', e => { const c = e.target.closest('[data-ses]'); if(c){ const s = sessions.find(x => x.id === c.dataset.ses); if(s) showSummary(s); } });
 
-// ---------- swipe from the left edge = back ----------
-(() => {
-  let sx = null, sy = 0, st = 0;
-  document.addEventListener('touchstart', e => { const t0 = e.touches[0]; if(t0.clientX < innerWidth * .45 && !e.target.closest('input,select,textarea,.mxs,.stepper,.hscroll,.chips,.tchips,.wrapchips,.seg,.swipebox .card,.swipebox .exc,.swipebox .tpcard,.bodymap,.wtchart')){ sx = t0.clientX; sy = t0.clientY; st = Date.now(); } else sx = null; }, { passive: true });
-  document.addEventListener('touchend', e => {
-    if(sx === null) return; const t1 = e.changedTouches[0], dx = t1.clientX - sx, dy = Math.abs(t1.clientY - sy); sx = null;
-    if(dx < 80 || dy > 50 || dy > dx * .6 || Date.now() - st > 700) return;
-    goBack();
-  }, { passive: true });
-})();
-
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
 
 // Progress: folds; weight chart Day / Week / Month
