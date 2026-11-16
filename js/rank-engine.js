@@ -37,7 +37,8 @@ const RankEngine = (() => {
     function zOf(mo, metric, value, bw, age){ if(!(value > 0)) return -9; const c = metric === 'L' ? mo.m.kL : mo.m.kV; let lo = -9, hi = 9;
       for(let i = 0; i < 44; i++){ const mid = (lo + hi) / 2; if(refKg(mo, mid, bw, age) * c > value) hi = mid; else lo = mid; } return (lo + hi) / 2; }
     const pct = z => phi(z) * 100;
-    const score = (zL, zV) => S.wLoad * pct(zL) + S.wVolume * pct(zV);
+    // the score (0-100): wBest of it follows the better of the two percentiles, the rest is the weighted mix of both
+    const score = (zL, zV) => { const pL = pct(zL), pV = pct(zV); return S.wBest * Math.max(pL, pV) + (1 - S.wBest) * (S.wLoad * pL + S.wVolume * pV); };
     // rankThresholdMapper
     const level = sc => { let n = 0; while(n < TOP && sc >= LV[n + 1].from - 1e-9) n++; return n; };
 

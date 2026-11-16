@@ -30,7 +30,7 @@ Ranks are a game for motivation. Nothing here measures real-world lifting abilit
 ## What is an estimate
 
 1. **Platinum II and everything above it, and the very bottom of Bronze.** The open data stops at the 90th percentile (the start of Platinum III). Above that the curve is simply continued. It was checked against competition lifters and looks right (Diamond I is around a good competitor's level), but it is not measured.
-2. **The two "bridge" numbers.** The brief wants two measurements: best single-set volume and heaviest weight. No open source publishes those. GymStreak publishes one figure per person (their best set of 1 to 10 reps), so I had to assume which set is a typical person's heaviest (a set of 7 or 8 reps) and which is their best-volume set (a set of 10). This is the weakest part of the system.
+2. **The two "bridge" numbers.** The brief wants two measurements: best single-set volume and heaviest weight. No open source publishes those. GymStreak publishes one figure per person (their best set of 1 to 10 reps), so I had to assume which set is a typical person's heaviest (a heavy set of 5 reps) and which is their best-volume set (a set of 10). This is the weakest part of the system.
 3. **The time-to-rank table from Gold II upwards.** The progress data covers 12 months only; "several years" and "many years" are judgement from how rare those levels are.
 4. **The age adjustment** comes from competition lifters, who may age differently from casual gym-goers. It errs on the kind side for older users. It also does nothing yet, because the app does not store age.
 5. **Smith machine squat** (women): one small study, marked "Estimate" and low confidence.
@@ -46,19 +46,21 @@ Ranks are a game for motivation. Nothing here measures real-world lifting abilit
 
 - On your phone: open `docs/rank-simulator.html` from the published site. Pick an exercise, sex, age, body weight, add sets. It shows both percentiles, the score, the rank, "pending" and "Check this set", and the kg needed for every rank. Tick "synthetic test exercises" to try pull-ups and curls with invented numbers (the page says so in a warning).
 - All the brief's test cases, with results: `node tools/rank/sim.js` (the same tables are in the algorithm document).
-- `node tools/check.js --boot` passes and now also tests the new engine: more weight or reps never lowers a rank, more sets change nothing, the same percentile is the same rank at every body weight, a first workout never shows Platinum, a 900 kg typo is not counted, one bad day never lowers a rank, and the switch is off.
+- `node tools/check.js --boot` passes and now also tests the new engine: more weight or reps never lowers a rank, more sets change nothing, low-rep and high-rep training of the same strength give the same rank within one level, the same percentile is the same rank at every body weight, a first workout never shows Platinum, a 900 kg typo is not counted, one bad day never lowers a rank, and the switch is off.
 
 Some results to judge whether it feels right (80 kg man, bench press, one set of 8 reps):
 
 | Rank | Weight for 8 reps |
 |---|---:|
-| Silver III (the median lifter) | 53.5 kg |
-| Gold III | 70 kg |
-| Platinum III | 88 kg |
-| Diamond III | 112 kg |
-| Diamond I | 139.5 kg |
+| Silver III (the median lifter) | 52.5 kg |
+| Gold III | 68.5 kg |
+| Platinum III | 85.5 kg |
+| Diamond III | 108.5 kg |
+| Diamond I | 134.5 kg |
 
-For a 65 kg woman: Silver III at 30.5 kg, Gold III at 38.5 kg, Platinum III at 47.5 kg, Diamond I at 75 kg.
+For a 65 kg woman: Silver III at 30.5 kg, Gold III at 37.5 kg, Platinum III at 46.5 kg, Diamond I at 72.5 kg.
+
+The same weights work for any set of 1 to 8 reps; with a set of 10 reps about 12% less is enough.
 
 ## What you must decide
 
@@ -68,8 +70,8 @@ For a 65 kg woman: Silver III at 30.5 kg, Gold III at 38.5 kg, Platinum III at 4
    - **Collect anonymous data in the app** (the 0.8 plan, with consent). Free and it fixes the weakest part of the system too, but it needs a few hundred users per exercise before a rank can be trusted.
    - **Stay with the barbell lifts** and add variation estimates as studies are found.
 3. **When to switch the live rank.** With only 5 exercises ranked, switching now would remove the rank from 66 exercises. My suggestion: do not switch yet; decide points 1 and 2 first.
-4. **People who only train with low reps rank low.** Someone who only ever does sets of 3 lands several ranks below their real level, because kg × reps is small. This follows from the two measurements in the brief (it is what stops max-strength-only training from being over-rewarded). I tested 60/40, 50/50 and 70/30 and chose **50/50** because it is the fairest of the three; 60/40 and 70/30 make this worse. Keep it, or tell me to soften it (for example 40% volume, 60% max load).
-5. **The new scale is more generous than the old one.** Example: a 70 kg man benching 75 kg for sets of 10 is about Silver I in the live app and Platinum III in the new engine, because the real median gym-goer is weaker than the old table assumed. This matches your "average user is Silver III" rule, but ranks would jump on the day of the switch.
+4. **High-intensity, low-volume lifters are now represented (changed after your message).** The first version averaged the two measurements, which pushed people who only do heavy sets of 1 to 5 reps several ranks too low. Now **the rank follows the better of your two measurements**: the heaviest weight for low-rep lifters, the best set volume for higher-rep lifters. In the tests, someone doing only triples or 5 × 5 lands within one rank of an equally strong person doing sets of 10. What is left: a true all-out single reads about one rank high, and people who only do sets of 8, or 15 and more, read about one rank low. Say if you want it nudged either way.
+5. **The new scale is more generous than the old one.** Example: a 70 kg man benching 75 kg for sets of 10 is about Silver I in the live app and Platinum II in the new engine, because the real median gym-goer is weaker than the old table assumed. This matches your "average user is Silver III" rule, but ranks would jump on the day of the switch.
 6. **Reps above 10 add no volume.** Needed so that 30 easy reps cannot beat 10 hard ones. A set of 15 counts as 10 of its reps. Say if you prefer 12.
 7. **Age.** The engine can adjust for age from 40 on, but the app has no birth year. Add one to the profile, or leave age out.
 8. **Credit lines.** If these ranks go live, the app must show the GymStreak and OpenPowerlifting credit somewhere (for example Settings › About). Wording is in `data/rank/README.md`.

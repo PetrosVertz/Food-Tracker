@@ -13,7 +13,6 @@ const cfg = JSON.parse(fs.readFileSync(P('data/rank/rank-config.json'), 'utf8'))
 const csv = f => { const [h, ...rows] = fs.readFileSync(P(f), 'utf8').trim().split(/\r?\n/).map(l => l.split(','));
   return rows.map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]))); };
 const b5 = csv('data/rank/sources/gymstreak/b5_strength_standards.csv');
-const reps = csv('data/rank/sources/gymstreak/q2_rep_percentiles.csv');
 const opl = JSON.parse(fs.readFileSync(P('data/rank/sources/openpowerlifting-summary.json'), 'utf8'));
 
 const PCT = [25, 50, 75, 90], Z = [-0.6745, 0, 0.6745, 1.2816], Z_TOP = 2.0537;   // z of the 98th percentile: where Diamond starts
@@ -40,7 +39,7 @@ function fit(ex, sexKey){ const c = cfg.exercises[ex], sex = sexKey === 'm' ? 'm
   // the fit error: how far the fitted curves are from the published band values (median absolute, %)
   const errs = []; bands.forEach(b => PCT.forEach((p, i) => errs.push(Math.abs(Math.exp(s[i] + kAt(Z[i]) * Math.log((b.lo + 5) / ref)) / b.q[i] - 1))));
   errs.sort((a, b) => a - b);
-  const rr = reps.find(r => r.scope === c.gymstreakReps), rL = +rr[cfg.conversion.loadRepsFrom], rV = cfg.conversion.volumeReps;
+  const rL = cfg.conversion.loadReps, rV = cfg.conversion.volumeReps;
   const m = {
     refBw: ref, bwRange: [bands[0].lo, bands[bands.length - 1].lo + 9],
     z: z.map(r3), a: s.slice(0, 4).map(v => r1(Math.exp(v))), k: k.map(r3),

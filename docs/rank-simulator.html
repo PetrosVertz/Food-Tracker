@@ -89,7 +89,7 @@
         return o.ranked ? `<tr><td>${esc(s.w)} x ${esc(s.reps)}</td><td>${f1(o.load)}</td><td>${f1(o.volume)}</td><td>${f1(o.pctVolume)}</td><td>${f1(o.pctLoad)}</td><td>${esc(o.name)}${o.check ? ' (check)' : ''}</td></tr>` : ''; }).join('') + '</table></div>'; }
     $('out').innerHTML = h;
     const reps = [5, 8, 10], mo = eng.model(ex, body.sex);
-    $('needNote').textContent = mo.none ? '' : 'The weight at which one set on its own reaches each rank, for this person. Mixing a heavier low-rep set with a set of 8 to 10 reaches a rank with less weight.';
+    $('needNote').textContent = mo.none ? '' : 'The weight at which one set on its own reaches each rank, for this person. The rank follows the better of your heaviest weight and your best set volume.';
     $('need').innerHTML = mo.none ? '<p>No benchmark for this exercise and sex.</p>' : '<table><tr><th>Rank</th>' + reps.map(n => `<th>${n} Reps</th>`).join('') + '</tr>' + d.ranks.slice(1).map(l => `<tr><td>${esc(l.name)}</td>${reps.map(n => { const w = eng.need(ex, body, l.n, n); return `<td>${w == null ? 'n/a' : esc(half(w))}</td>`; }).join('')}</tr>`).join('') + '</table>'; }
   $('sets').addEventListener('input', e => { const i = e.target.dataset.i; if(i == null) return; sets[+i][e.target.dataset.k] = e.target.value === '' ? NaN : +e.target.value; run(); });
   $('sets').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if(!b) return; sets.splice(+b.dataset.del, 1); if(!sets.length) sets.push({ w: 0, reps: 1 }); drawSets(); run(); });

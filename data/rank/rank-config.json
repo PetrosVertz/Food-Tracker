@@ -23,7 +23,8 @@
     ]
   },
   "scoring": {
-    "_about": "score = wVolume x volume percentile + wLoad x max-load percentile. Coherence rules from the brief, section 2b.",
+    "_about": "score = wBest x the better of the two percentiles (volume, max load) + (1 - wBest) x (wVolume x volume percentile + wLoad x max-load percentile). wBest 1 = the rank follows your stronger side, so heavy low-rep lifters and higher-rep lifters are both represented (Petros, 16 Nov 2026). wBest 0 = the plain weighted mix of the first draft. Coherence rules from the brief, section 2b.",
+    "wBest": 1,
     "wVolume": 0.5,
     "wLoad": 0.5,
     "confirmFrom": 9,
@@ -36,10 +37,10 @@
     "ceilingMargin": 1.05
   },
   "conversion": {
-    "_about": "ASSUMPTION, not data. GymStreak publishes each lifter's best set of 1-10 reps as weight x (1 + reps/30). No open source publishes the heaviest weight or the best single-set volume directly, so the two reference values are that same published figure turned back into a real set: the max-load reference is the weight of a set at the lift's 25th-percentile rep count (q2_rep_percentiles.csv), the volume reference is a 10-rep set (the median set, and the top of GymStreak's 1-10 window). Reps above repCap add no volume. Replace with measured values when in-app data exists.",
+    "_about": "ASSUMPTION, not data. GymStreak publishes each lifter's best set of 1-10 reps as weight x (1 + reps/30). No open source publishes the heaviest weight or the best single-set volume directly, so the two reference values are that same published figure turned back into a real set: the max-load reference is the weight of a heavy set of 5 reps (the top of GymStreak's 1-5 rep heavy-set bucket), the volume reference is a 10-rep set (the median set, and the top of GymStreak's 1-10 window). Reps above repCap add no volume. Replace with measured values when in-app data exists.",
     "volumeReps": 10,
     "repCap": 10,
-    "loadRepsFrom": "p25_reps"
+    "loadReps": 5
   },
   "exercises": {
     "bench": { "name": "Bench press", "equipment": "barbell", "loadType": "external", "unit": "bar + plates, kg", "gymstreak": "Barbell_Bench_Press", "gymstreakReps": "Barbell Bench Press", "opl": "bench", "refBw": { "m": 80, "f": 65 } },

@@ -96,6 +96,7 @@
   }
  ],
  "scoring": {
+  "wBest": 1,
   "wVolume": 0.5,
   "wLoad": 0.5,
   "confirmFrom": 9,
@@ -107,7 +108,7 @@
   "implausibleZ": 4.5,
   "ceilingMargin": 1.05
  },
- "conversionNote": "ASSUMPTION, not data. GymStreak publishes each lifter's best set of 1-10 reps as weight x (1 + reps/30). No open source publishes the heaviest weight or the best single-set volume directly, so the two reference values are that same published figure turned back into a real set: the max-load reference is the weight of a set at the lift's 25th-percentile rep count (q2_rep_percentiles.csv), the volume reference is a 10-rep set (the median set, and the top of GymStreak's 1-10 window). Reps above repCap add no volume. Replace with measured values when in-app data exists.",
+ "conversionNote": "ASSUMPTION, not data. GymStreak publishes each lifter's best set of 1-10 reps as weight x (1 + reps/30). No open source publishes the heaviest weight or the best single-set volume directly, so the two reference values are that same published figure turned back into a real set: the max-load reference is the weight of a heavy set of 5 reps (the top of GymStreak's 1-5 rep heavy-set bucket), the volume reference is a 10-rep set (the median set, and the top of GymStreak's 1-10 window). Reps above repCap add no volume. Replace with measured values when in-app data exists.",
  "sources": {
   "gymstreak_train": {
    "name": "GymStreak (2026). How lifters actually train: GymStreak Training Data Study",
@@ -173,9 +174,9 @@
       0.702,
       0.734
      ],
-     "kL": 0.811,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 7,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 10244,
@@ -303,9 +304,9 @@
       0.189,
       0.506
      ],
-     "kL": 0.811,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 7,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 1709,
@@ -438,9 +439,9 @@
       0.593,
       0.706
      ],
-     "kL": 0.789,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 8,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 4773,
@@ -564,9 +565,9 @@
       0.157,
       0.57
      ],
-     "kL": 0.789,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 8,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 1937,
@@ -699,9 +700,9 @@
       0.504,
       0.556
      ],
-     "kL": 0.811,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 7,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 3554,
@@ -825,9 +826,9 @@
       0.446,
       0.453
      ],
-     "kL": 0.811,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 7,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 1610,
@@ -960,9 +961,9 @@
       0.534,
       0.534
      ],
-     "kL": 0.789,
+     "kL": 0.857,
      "kV": 7.5,
-     "loadReps": 8,
+     "loadReps": 5,
      "volumeReps": 10,
      "repCap": 10,
      "n": 2702,

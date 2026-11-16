@@ -344,6 +344,9 @@ try {
     const typo = eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8 }] }], 21);
     if (typo.n !== n0 || typo.checks.length !== 1) bad.push(`${id} ${sex}: a 900 kg typo was counted`);
     if (eng.evaluate(id, { sex }, [...hist, { day: 21, bw: 80, sets: [{ w: 900, reps: 8, ok: true }] }], 21).checks.length) bad.push(`${id} ${sex}: a confirmed set is still marked to check`);
+    // heavy low-rep lifters are represented: the same true level trained as triples, fives, tens or a mix lands within one rank of each other
+    for (const z of [0, 0.6745, 1.2816]) { const mo = eng.model(id, sex), ref = eng.refKg(mo, z, 80), lv = [[3], [5], [10], [5, 10]].map(rs => two(id, sex, 80, rs.map(r => ({ w: ref / (1 + r / 30), reps: r }))).n);
+      if (Math.max(...lv) - Math.min(...lv) > 1) bad.push(`${id} ${sex}: training style changes the rank by more than one level (${lv.join(',')})`); }
     // age: an older lifter never needs more than a young one
     if (eng.need(id, { sex, bw: 80, age: 60 }, 6, 8) > eng.need(id, { sex, bw: 80, age: 30 }, 6, 8) + 1e-6) bad.push(`${id} ${sex}: age 60 needs more kg than age 30`);
   }
@@ -356,7 +359,7 @@ try {
   const libIds = new Set([...read('js/data/gym.js').matchAll(/^ \['([a-z0-9_]+)',/gm)].map(m => m[1]));
   [...Object.keys(BENCH.exercises), ...Object.keys(BENCH.variants)].forEach(id => { if (!libIds.has(id)) bad.push(`benchmark exercise ${id} is not in the exercise library`); });
   if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank v2: ' + b));
-  else ok(`rank v2 (not live): ${Object.keys(BENCH.exercises).length} lifts + ${Object.keys(BENCH.variants).length} variation from open data; single set, body weight, age, confirm, typo and step rules hold; switch is off`);
+  else ok(`rank v2 (not live): ${Object.keys(BENCH.exercises).length} lifts + ${Object.keys(BENCH.variants).length} variation from open data; single set, low-rep and high-rep styles, body weight, age, confirm, typo and step rules hold; switch is off`);
 } catch (e) { fail('could not check the new rank engine: ' + e.message); }
 
 // 12. Social Hub stats (STATS in js/profile.js): each new stat gives the expected value on a small fake history, hides without data, and nothing throws on an empty history

@@ -11,7 +11,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const eng = RankEngine.create(BENCH);
 // real + synthetic benchmarks together: for the test cases that have no open data (pull-ups, curls). Never used by the app.
 const withSyn = () => { const d = clone(BENCH); Object.assign(d.exercises, SYN.exercises); Object.assign(d.variants, SYN.variants); d.synthetic = true; return RankEngine.create(d); };
-const weights = wV => { const d = clone(BENCH); d.scoring.wVolume = wV; d.scoring.wLoad = 1 - wV; return RankEngine.create(d); };
+const weights = (wBest, wV) => { const d = clone(BENCH); d.scoring.wBest = wBest; d.scoring.wVolume = wV; d.scoring.wLoad = 1 - wV; return RankEngine.create(d); };
 const f1 = x => (Math.round(x * 10) / 10).toFixed(1), f0 = x => String(Math.round(x));
 const half = x => (Math.ceil(x * 2 - 1e-9) / 2).toString();
 const table = (head, rows) => ['| ' + head.join(' | ') + ' |', '|' + head.map((h, i) => i ? '---:' : '---').join('|') + '|', ...rows.map(r => '| ' + r.join(' | ') + ' |')].join('\n');
@@ -35,14 +35,15 @@ const all = () => {
   const four = [[100, 1], [90, 3], [80, 6], [70, 10]].map(([w, reps]) => ({ w, reps }));
   P(table(['Set', 'Volume (kg x reps)', 'Load percentile', 'Volume percentile', 'Alone it would be'], four.map(s => { const r = eng.scoreSet('bench', { sex: 'm', bw: 80, age: 30 }, s); return [`${s.w} x ${s.reps}`, f0(r.volume), f1(r.pctLoad), f1(r.pctVolume), r.name]; })));
   const r4 = once(eng, 'bench', { sex: 'm', age: 30 }, four, 80);
-  P(`\nAll four together: **${r4.name}**. The volume part comes from ${r4.bestVolume.w} x ${r4.bestVolume.reps} (${f0(r4.bestVolume.volume)}), the max-load part from the ${r4.bestLoad.w} kg single. Score ${f1(r4.score)}.`);
+  P(`\nAll four together: **${r4.name}**. Best volume set: ${r4.bestVolume.w} x ${r4.bestVolume.reps} (${f0(r4.bestVolume.volume)}, percentile ${f1(r4.pctVolume)}). Heaviest weight: the ${r4.bestLoad.w} kg single (percentile ${f1(r4.pctLoad)}). The rank follows the better of the two: score ${f1(r4.score)}.`);
 
-  H('3. Scoring weights: the same true strength, different training styles (80 kg man, bench, SYNTHETIC lifters)');
-  const styles = { 'Singles only': [1], 'Triples only': [3], '5 x 5 only': [5], 'Sets of 8': [8], 'Sets of 10': [10], 'Sets of 12': [12], 'Sets of 15': [15], 'Sets of 5 and 10': [5, 10], 'A single and sets of 10': [1, 10] };
-  for(const wV of [0.5, 0.6, 0.7]){ const e = weights(wV);
-    P(`\n**${wV * 100}% volume / ${100 - wV * 100}% max load**\n`);
+  H('3. Scoring: the same true strength, different training styles (80 kg man, bench, SYNTHETIC lifters)');
+  const styles = { 'Heavy singles only': [1], 'Triples only': [3], '5 x 5 only': [5], 'Sets of 6': [6], 'Sets of 8': [8], 'Sets of 10': [10], 'Sets of 12': [12], 'Sets of 15': [15], 'Sets of 5 and 10': [5, 10], 'A single and sets of 10': [1, 10] };
+  for(const [title, wB, wV] of [['The better of the two measurements (chosen)', 1, 0.5], ['Average, 50% volume / 50% max load', 0, 0.5], ['Average, 60% volume / 40% max load (the brief\'s first guess)', 0, 0.6], ['Average, 70% volume / 30% max load', 0, 0.7]]){ const e = weights(wB, wV);
+    P(`\n**${title}**\n`);
     P(table(['Style', '20th pct lifter', '50th', '75th', '90th', '98th'], Object.entries(styles).map(([name, rs]) => [name, ...[20, 50, 75, 90, 98].map(p => { const sets = synSets(e, 'bench', 'm', 80, p, rs, 30);
-      return e.evaluate('bench', { sex: 'm', age: 30 }, [{ day: 0, bw: 80, sets }, { day: 7, bw: 80, sets }], 7).name; })]))); }
+      return e.evaluate('bench', { sex: 'm', age: 30 }, [0, 7, 14, 21].map(day => ({ day, bw: 80, sets })), 21).name; })]))); }
+  P('\nA lifter truly at the 20th / 50th / 75th / 90th / 98th percentile should read Bronze II / Silver III / Gold III / Platinum III / Platinum I (the 98th percentile is the last step before Diamond III).');
 
   H('4. Same percentile, different body sizes (rule 5)');
   const bodies = [['f', 50], ['f', 60], ['f', 75], ['f', 95], ['m', 55], ['m', 70], ['m', 85], ['m', 100], ['m', 130]];
