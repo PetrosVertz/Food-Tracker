@@ -4,6 +4,7 @@
 $('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
 
 $('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
+$('aiuReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiuAsk'), t('aiuYes')))) return; AIUsage.reset(); AIUsage.draw(); toast(t('aiuDone')); });   // Athlete OS step 1: Settings › AI › Usage
 $('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });
 
 document.querySelectorAll('#sLang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.v)));

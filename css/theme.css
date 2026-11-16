@@ -997,3 +997,9 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 #ovSummary .actions{flex:0 0 auto;margin:0;padding-top:var(--s2)}
 #ovSummary .actions .btn{flex:1 1 100%}
 #ovSummary .actions:last-child{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+
+/* AI Usage (Settings › AI): a small three-column table */
+.aiu{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:var(--s2) var(--s3);font-size:13px;margin-top:var(--s2);color:var(--t-text)}
+.aiu>b{font-weight:500;color:var(--t-muted);text-align:right}
+.aiu>span:nth-child(3n+2),.aiu>span:nth-child(3n){text-align:right;font-variant-numeric:tabular-nums}
+.aiu>span:nth-child(3n+1){color:var(--t-muted)}

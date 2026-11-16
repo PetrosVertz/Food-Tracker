@@ -254,7 +254,32 @@ async function aiTests() {
   // an unimplemented provider says so
   r = mk([]); r.c.settings.provider = 'anthropic'; e = await fails(() => r.P.AIProvider.run(req));
   if (!e || e.kind !== 'unsupported' || r.calls.length) bad.push('Anthropic stub must refuse, not pretend');
-  if (bad.length) bad.forEach(b => fail('AI provider: ' + b)); else ok('AI provider layer: tries, errors, retries, usage, tiers, cancel');
+
+  // telemetry (js/platform/ai-usage.js): counts, tokens only when reported, no message text, 30 days kept
+  {
+    const mem = {}; const c = { ...mk([]).c }; for (const k of ['AIProvider','GeminiProvider','AnthropicProvider']) delete c[k]; const c0 = c; const fresh = {}; for (const k of Object.keys(c0)) if (!/^(AI|Gemini|Anthropic|__)/.test(k)) fresh[k] = c0[k]; vm.createContext(fresh);
+    const c1 = fresh; c1.Store = { load: (k, d) => k === 'models' ? { at: Date.now(), tag: 'k', list: ['m1', 'm2'] } : (k in mem ? JSON.parse(JSON.stringify(mem[k])) : d), save: (k, v) => { mem[k] = JSON.parse(JSON.stringify(v)); return true; } };
+    c1.todayKey = () => '2026-11-16'; c1.lang = 'en';
+    const q = [good('{"a":1}', { promptTokenCount: 7, candidatesTokenCount: 3, totalTokenCount: 10 }), good('nope'), good('{"a":2}'), { status: 503, body: { error: { message: 'busy' } } }];
+    let n = 0; c1.fetchT = async () => { const r = q[n++] || { status: 500, body: { error: { message: 'x' } } }; return { ok: r.status < 300, status: r.status, json: async () => r.body }; };
+    vm.runInContext(read('js/platform/ai-provider.js') + '\n' + read('js/platform/ai-usage.js') + '\n;this.__U = { AIProvider, AIUsage };', c1);
+    const { AIProvider, AIUsage } = c1.__U;
+    await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, task: 'chat' });                   // 1 try, with tokens
+    await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, tier: 'advanced' });              // unreadable, then ok: 2 tries, no tokens
+    await fails(() => AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, search: true }));     // every model busy: failed
+    const d = JSON.parse(JSON.stringify(mem.aiUsage)).days['2026-11-16'], s1 = AIUsage.sum(1);
+    if (!d || d.calls !== 3 || d.ok !== 2 || d.failed !== 1) bad.push('usage: request counts wrong ' + JSON.stringify(d && [d.calls, d.ok, d.failed]));
+    if (d.tokIn !== 7 || d.tokOut !== 3 || d.tokTries !== 1) bad.push('usage: tokens must be summed only where reported');
+    if (d.bad !== 1) bad.push('usage: unreadable answer not counted');
+    if (d.mode.text !== 1 || d.mode.advanced !== 1 || d.mode.search !== 1) bad.push('usage: modes wrong');
+    if (JSON.stringify(mem.aiUsage).includes('SECRET')) bad.push('usage: message text was stored');
+    if (s1.calls !== 3 || s1.tries < 4) bad.push('usage: sum wrong');
+    for (let i = 0; i < 40; i++) { const u = JSON.parse(JSON.stringify(mem.aiUsage)); u.days['2026-01-' + String(i + 1).padStart(2, '0')] = { calls: 1 }; mem.aiUsage = u; }
+    AIUsage.record({ ok: true, tier: 'default', ms: 5, tries: [{ model: 'm', ok: true }] });
+    if (Object.keys(mem.aiUsage.days).length > 30) bad.push('usage: more than 30 days kept');
+    AIUsage.reset(); if (Object.keys(mem.aiUsage.days).length) bad.push('usage: reset did not clear');
+  }
+  if (bad.length) bad.forEach(b => fail('AI provider: ' + b)); else ok('AI provider layer + usage: tries, errors, retries, tiers, cancel, tokens, privacy, 30-day limit');
 }
 
 // 7. Optional: open the app and catch start-up errors
