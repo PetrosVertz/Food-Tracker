@@ -108,6 +108,9 @@ Niche variations (preacher curl, spider curl, Bayesian curl, incline presses, an
 - Factors can depend on sex and body size; check whether the ratio is stable across them before using one number.
 - The research report lists every exercise in the app, its anchor (if any), its factor, the source and the confidence, so Petros can see exactly what is real and what is missing.
 
+## It is for fun (Petros)
+Ranks are a game, not a measurement. In the app: the user can **switch ranks off in Settings** (see `docs/fixes-0.7.10.6.md`), and the switch has a small grey description under it: *"Ranks do not represent real-world lifting ability. They are there to give you a more fun experience while lifting and hitting goals."* Every rank-related screen the new engine adds must respect that switch, and the research and algorithm documents should say plainly that the system is for motivation, not for judging anyone.
+
 ## Final instructions
 Fairness matters more than speed. No mathematically sophisticated but arbitrary ranks. An understandable, consistent system backed by real-world lifting data. Do not use estimated 1RM, total workout volume, user-entered ROM or technique, comparisons between exercise cards, user-count-based thresholds, invented benchmark values, or changes to unrelated parts of the app. Investigate the existing implementation and the available data first, then build the foundations. The goal: a fun social feature where a rank on each exercise feels deserved.
 
