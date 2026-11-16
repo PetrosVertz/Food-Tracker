@@ -921,7 +921,6 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pfboards{padding:4px var(--s4)}
 .pfrow{display:flex;align-items:center;gap:var(--s2);min-height:52px;border-bottom:1px solid var(--t-line)}
 .pfrow:last-child{border-bottom:0}
-.pfrow.bonus{border-top:1px dashed var(--t-line)}
 .pfrn{flex:1;min-width:0;display:flex;flex-direction:column}
 .pfrn b{font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfrn small{font-size:var(--fs-label);color:var(--t-muted)}
@@ -1003,3 +1002,6 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .aiu>b{font-weight:500;color:var(--t-muted);text-align:right}
 .aiu>span:nth-child(3n+2),.aiu>span:nth-child(3n){text-align:right;font-variant-numeric:tabular-nums}
 .aiu>span:nth-child(3n+1){color:var(--t-muted)}
+/* 0.7.10: Max PR | Strength switch above the leaderboard rows */
+.pfboardsw{margin:0 0 var(--s3)}
+.pfrv small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-med)}

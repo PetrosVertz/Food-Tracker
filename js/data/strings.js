@@ -687,8 +687,9 @@ Object.assign(S, {
   frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
   pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfLatestPR: ['Latest PR', 'Τελευταίο Ρεκόρ'], pfNoPR: ['No PRs yet. Your next record shows up here.', 'Κανένα ρεκόρ ακόμα. Το επόμενο θα εμφανιστεί εδώ.'],
   pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your heaviest single (one rep) per lift, entered by you or ticked in a workout. With friends soon.', 'Το βαρύτερο μονό σου (μία επανάληψη) ανά άσκηση, που το έγραψες εσύ ή το τσέκαρες σε προπόνηση. Με φίλους σύντομα.'],
-  pfMChest: ['Chest', 'Στήθος'], pfMShoulders: ['Shoulders', 'Ώμοι'], pfMBack: ['Back', 'Πλάτη'], pfMUpperBack: ['Upper Back', 'Άνω Πλάτη'], pfMQuads: ['Quads', 'Τετρακέφαλοι'],
-  pfMHams: ['Hamstrings', 'Οπίσθιοι Μηριαίοι'], pfMGlutes: ['Glutes', 'Γλουτοί'], pfMArms: ['Arms', 'Χέρια'], pfMBonus: ['Bonus', 'Μπόνους'],
+  pfMChest: ['Chest', 'Στήθος'], pfMQuads: ['Quads', 'Τετρακέφαλοι'], pfMBack: ['Back', 'Πλάτη'],
+  pfMaxPR: ['Max PR', 'Μέγιστο Ρεκόρ'], pfStrength: ['Strength', 'Δύναμη'], pfXBw: ['× body weight', '× βάρος σώματος'],
+  pfBoardsSubStr: ['Your heaviest single divided by your body weight, so a lighter lifter can top the board. With friends soon.', 'Το βαρύτερο μονό σου διαιρεμένο με το βάρος σώματός σου, ώστε και ένας ελαφρύτερος αθλητής να είναι πρώτος. Με φίλους σύντομα.'],
   pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
   pfPRs: ['PRs', 'Ρεκόρ'], pfWorkouts: ['Workouts', 'Προπονήσεις'], pfSets: ['Sets', 'Σετ'], pfVolume: ['Volume', 'Όγκος'], pfFoodDays: ['Days Logged Food', 'Μέρες με Καταγραφή'],
 });

@@ -1,13 +1,12 @@
-// Profile tab (0.7.7): your circle, Share a Workout, streak, latest PR, leaderboards, stats. Settings opens from the gear (index.html).
+// Social Hub tab (was Profile; 0.7.7): your circle, Share a Workout, streak, latest PR, leaderboards, stats. Settings opens from the gear (index.html).
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 // Everything here is this phone's own data. Friends, live status and friend boards need accounts (0.8+): only their spaces are drawn.
 
 // The board lifts: one leaderboard row each (lbl = string key of the muscle it stands for). Petros may still change this list.
-const BOARD_LIFTS = [
-  { id: 'bench', lbl: 'pfMChest' }, { id: 'ohp', lbl: 'pfMShoulders' }, { id: 'pullup', lbl: 'pfMBack' }, { id: 'bb_row', lbl: 'pfMUpperBack' },
-  { id: 'squat', lbl: 'pfMQuads' }, { id: 'rdl', lbl: 'pfMHams' }, { id: 'hip_thrust', lbl: 'pfMGlutes' }, { id: 'bb_curl', lbl: 'pfMArms' },
-  { id: 'deadlift', lbl: 'pfMBonus', bonus: true },
-];
+const BOARD_LIFTS = [{ id: 'bench', lbl: 'pfMChest' }, { id: 'squat', lbl: 'pfMQuads' }, { id: 'deadlift', lbl: 'pfMBack' }];   // 0.7.10: the three main lifts; other exercises keep their rank on their own
+// 0.7.10: Max PR = the heaviest real lift in kg; Strength = that lift per kg of body weight (the rank rating of the rank branch can replace it later, so a lighter lifter can top the board)
+const boardMode = () => ui.pfBoard === 'str' ? 'str' : 'max';
+const strengthOf = kg => { const bw = bodyW(); return bw > 0 && kg > 0 ? kg / bw : 0; };
 
 // 0.7.9: a leaderboard entry is a REAL 1RM only: one you entered (profile.orm: { id, exId, w, date }) or a single rep at that weight,
 // ticked in a workout (normal set, no warm-up, not the right side of L/R). w = the weight you typed; the board shows the lifted load
@@ -40,7 +39,8 @@ function profileData(){
     live: !!active, trainedToday: sessions.some(s => s.date === today),
     streak, latestPR, prCount: prs.length,
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
-    boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best),   // 0.7.9: only lifts with a real 1RM
+    boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, str: best ? strengthOf(best.kg) : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best)
+      .sort((x, y) => boardMode() === 'str' ? y.str - x.str : y.e1 - x.e1),   // 0.7.9: only lifts with a real 1RM
     weights: wts,
     totals: {
       workouts: sessions.length,
@@ -90,8 +90,10 @@ function renderProfile(){
     </div>`;
   const pr = d.latestPR ? `<b class="pfbig">${esc(exName(d.latestPR.exId))}</b><span class="pfline">${kg(d.latestPR.w)} × ${d.latestPR.r} · ${esc(fmtDate(d.latestPR.date + 'T12:00:00'))}</span>`
     : `<span class="pfline">${esc(t('pfNoPR'))}</span>`;
-  const rows = d.boards.map(b => `<div class="pfrow${b.bonus ? ' bonus' : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
-      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
+  const strMode = boardMode() === 'str';
+  const rows = d.boards.map(b => `<div class="pfrow"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
+      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" role="img" aria-label="${esc(b.tier.label)}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${strMode ? (b.str ? `${b.str.toFixed(2)} <small>${esc(t('pfXBw'))}</small>` : '–') : b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
+  const boardSw = `<div class="seg pfboardsw" id="pfBoardSw" role="group" aria-label="${esc(t('pfBoards'))}"><button type="button" data-pfboard="max" class="${strMode ? '' : 'on'}">${esc(t('pfMaxPR'))}</button><button type="button" data-pfboard="str" class="${strMode ? 'on' : ''}">${esc(t('pfStrength'))}</button></div>`;
   const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
   const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
       ${w.length > 1 ? pfWeightChart(w) : `<span class="pfline">${esc(t('pfNoWeight'))}</span>`}</div>`;
@@ -100,7 +102,7 @@ function renderProfile(){
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
     + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
         <div class="pfcard pfpr"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfLatestPR'))}</small>${pr}</div></div>`
-    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
+    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t(strMode ? 'pfBoardsSubStr' : 'pfBoardsSub'))}</p>${boardSw}${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span></h3>`
     + wCard
     + `<div class="pfstats">${stat(num(d.prCount), 'pfPRs')}${stat(num(d.totals.workouts), 'pfWorkouts')}${stat(num(d.totals.sets), 'pfSets')}${stat(`${num(d.totals.volume)} <small>kg</small>`, 'pfVolume')}${stat(num(d.totals.foodDays), 'pfFoodDays')}</div>`;
