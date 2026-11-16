@@ -340,10 +340,10 @@ body.inses .coachbub{display:none!important}
 .setx{display:grid;grid-template-columns:40px 1fr 1fr 38px;gap:var(--s1) var(--s2);align-items:end;margin:-2px 0 var(--s2)}
 .sxn{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:0;font-size:var(--fs-label);color:var(--t-muted);text-transform:none;letter-spacing:0;text-align:center}
 .sxn span{font-size:var(--fs-label);line-height:1.2}
-.sxb{height:30px;width:100%;padding:0;border-radius:var(--r-input);background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-text);font-size:16px;font-variant-numeric:tabular-nums;cursor:pointer}
+.sxb{height:34px;width:34px;align-self:center;padding:0;border-radius:50%;background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-text);font-size:16px;font-variant-numeric:tabular-nums;cursor:pointer}
 .sxb.zero{color:var(--t-muted)}
 .setx.drop{margin-left:14px}
-.setx .sxr{grid-column:1 / -1;flex-wrap:wrap}
+.setx .sxr{grid-column:1 / -1;flex-wrap:wrap;justify-content:center}
 .sxsheet .sxw{width:120px;margin:var(--s3) auto 0}
 .sxr{display:flex;align-items:center;gap:var(--s1);font-size:var(--fs-label);color:var(--t-muted)}
 .sxr span{margin-right:2px}
