@@ -784,7 +784,7 @@ Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
   aiuYes: ['Clear', 'Καθαρισμός'], aiuDone: ['AI usage cleared', 'Τα στοιχεία χρήσης καθαρίστηκαν'],
 });
 
-// ---------- 0.7.10 Social Hub: Stats (20 facts; title stt_<id>, subtitle sts_<id>) ----------
+// ---------- 0.7.10 Social Hub: Stats (training facts; title stt_<id>, subtitle sts_<id>) ----------
 Object.assign(S, {
   stt_workouts: ['Total Workouts', 'Σύνολο Προπονήσεων'], sts_workouts: ['Every workout you have finished.', 'Κάθε προπόνηση που ολοκλήρωσες.'],
   stt_sets: ['Total Sets', 'Σύνολο Σετ'], sts_sets: ['Finished working sets, no warm-ups.', 'Ολοκληρωμένα σετ, χωρίς προθέρμανση.'],
