@@ -210,7 +210,7 @@ const S = {
 };
 
 // =====================================================================
-// v1.6 — GYM · LIVE WORKOUTS · PROGRESS · SWIPE BACK
+// v1.6 — GYM · LIVE WORKOUTS · PROGRESS
 // =====================================================================
 Object.assign(S, {
  tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'],
