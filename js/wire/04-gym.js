@@ -95,7 +95,6 @@ $('sesBody').addEventListener('click', e => {
   // tiers need body weight + sex: open Settings › Body on top of the workout; after Save the cards redraw with their tier
   if(e.target.closest('[data-tierbody]')){ Phone.haptic(); fillSettings(); open('ovSBody'); $('sBodySave').addEventListener('click', () => { if(active) renderSession(); }, { once: true }); return; }
   const rr = e.target.closest('[data-rir]'); if(rr){ const rx = exAt(rr), rw = rr.closest('[data-sxrow]'), rs2 = rx && rw && rx.sets[+rw.dataset.sxrow]; if(rs2){ const k = +rr.dataset.rir; if(rs2.rir === k) delete rs2.rir; else rs2.rir = k; saveG('act'); renderSession(); } return; }
-  const sw_ = e.target.closest('[data-sore]'); if(sw_){ const sx = exAt(sw_), sv = sx && exSore(sx.exId); if(sv){ Phone.haptic(); toast(t('soreHint', { m: ML(exById(sx.exId).h), h: Math.ceil(sv.h) })); } return; }
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
@@ -221,7 +220,7 @@ async function finishWorkout(auto){
   active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); return true; }
-  if(gx().sound !== false) Phone.sound('done');
+  if(gOn('sound')) Phone.sound('done');
   showSummary(ses); renderAll();
   if(!ses.tplId) askSaveTpl(ses);
   return true;

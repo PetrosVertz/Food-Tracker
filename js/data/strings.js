@@ -260,7 +260,6 @@ Object.assign(S, {
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
  recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
  recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
- recWarnToday:['{m} still recovering (~{p}%). Go lighter today or swap exercises.','{m} ακόμα αναρρώνουν (~{p}%). Πήγαινε πιο ελαφριά σήμερα ή άλλαξε ασκήσεις.'],
  recRestDay:['Rest day: {m} still recovering. Good call resting.','Μέρα ξεκούρασης: {m} ακόμα αναρρώνουν. Καλά κάνεις και ξεκουράζεσαι.'],
  notInFridge:['Not in fridge','Όχι στο ψυγείο'],
 });
@@ -752,7 +751,8 @@ Object.assign(S, {
 });
 Object.assign(S, {
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
-  soreHint: ['{m} is still recovering: about {h} h left', 'Ο μυς ({m}) αναρρώνει ακόμα: περίπου {h} ώρες ακόμα'],
+  soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
+  soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
 });
 Object.assign(S, {
   exsVisH: ['Visual', 'Εμφάνιση'], exsExtH: ['Extras', 'Πρόσθετα'],

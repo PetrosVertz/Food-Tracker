@@ -427,3 +427,4 @@ body.inses .coachbub{display:none!important}
 .exnrow{display:flex;align-items:center;justify-content:center;gap:var(--s2);max-width:100%}
 .sorewarn{flex:0 0 auto;width:32px;height:32px;margin:-6px 0;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--t-fail,#e5484d);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exsh.first{margin-top:0}
+.tippop .tipsub{display:block;margin-top:2px;font-size:11px;color:var(--t-muted,var(--muted))}   /* 0.7.9.6: hours-left line in the red warning icon bubble */
