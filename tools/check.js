@@ -187,6 +187,101 @@ try {
   if (bad.length) bad.forEach(b => fail('workout QR: ' + b)); else ok(`workout QR: supersets round-trip, ${code.length} characters, ${n}×${n} QR`);
 } catch (e) { fail('could not check workout QR codes: ' + e.message); }
 
+
+// 10. AI provider layer (js/platform/ai-provider.js): fake network, no key needed. Tries, errors, retries, usage, cancel.
+async function aiTests() {
+  const bad = [];
+  const mk = script => {   // script: list of replies in order; a reply is { status, body } or { throw: 'AbortError' | 'net' }
+    const calls = [];
+    const c = { console: { log() {}, warn() {} }, setTimeout, clearTimeout, Promise, JSON, Date, Math, Object, Error, Array, Set, String, Number, AbortController,
+      settings: { geminiKey: 'k', model: 'm1' }, DEFAULT_MODEL: 'm1', Store: { load: () => ({ at: Date.now(), tag: 'k', list: ['m1', 'm2', 'm3'] }), save() {} },
+      t: (k, v) => k + (v && v.e ? ':' + v.e : '') };
+    c.fetchT = async (url) => {
+      calls.push(decodeURIComponent(url.split('/models/')[1] || url));
+      const r = script.shift() || { status: 200, body: { candidates: [{ content: { parts: [{ text: '{"ok":1}' }] } }] } };
+      if (r.throw) { const e = new Error(r.throw); e.name = r.throw === 'AbortError' ? 'AbortError' : 'TypeError'; throw e; }
+      return { ok: r.status >= 200 && r.status < 300, status: r.status, json: async () => r.body };
+    };
+    vm.createContext(c);
+    vm.runInContext(read('js/platform/ai-provider.js') + '\n;this.__P = { AIProvider, GeminiProvider, AnthropicProvider };', c);
+    return { P: c.__P, calls, c };
+  };
+  const good = (text, usage) => ({ status: 200, body: { candidates: [{ content: { parts: [{ text }] } }], ...(usage ? { usageMetadata: usage } : {}) } });
+  const fails = async (f) => { try { await f(); return null; } catch (e) { return e; } };
+  const req = { prompt: 'x', json: true };
+  let r;
+  // success, JSON in a fence, usage normalised
+  r = mk([good('```json\n{"a":2}\n```', { promptTokenCount: 10, candidatesTokenCount: 4, thoughtsTokenCount: 6, totalTokenCount: 20 })]);
+  let res = await r.P.AIProvider.run(req);
+  if (!res.json || res.json.a !== 2) bad.push('fenced JSON not read');
+  if (!res.usage || res.usage.input !== 10 || res.usage.output !== 10 || res.usage.total !== 20) bad.push('usage not normalised');
+  // no usage reported = null, never 0
+  r = mk([good('{"a":1}')]); res = await r.P.AIProvider.run(req);
+  if (res.usage !== null) bad.push('missing usage must be null');
+  // unreadable answer → next model, counted as a failed try
+  r = mk([good('nope'), good('{"a":3}')]); res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 3 || r.calls.length !== 2 || res.model !== 'gemini-flash-latest') bad.push('unreadable answer did not move on to the next model');
+  // bad key: stops on the first model, kind auth, fatal
+  r = mk([{ status: 401, body: { error: { message: 'API key not valid. Please pass a valid API key.' } } }]);
+  let e = await fails(() => r.P.AIProvider.run(req));
+  if (!e || e.kind !== 'auth' || !e.fatal || r.calls.length !== 1 || !/^keyBad/.test(e.message)) bad.push('bad key must stop at once as kind auth');
+  // busy (503) and rate limit (429): next model, with a pause, kinds normalised
+  r = mk([{ status: 429, body: { error: { message: 'quota' } } }, { status: 503, body: { error: { message: 'overloaded' } } }, good('{"a":4}')]);
+  const t0 = Date.now(); res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 4 || r.calls.join() !== 'm1:generateContent,gemini-flash-latest:generateContent,gemini-flash-lite-latest:generateContent' || Date.now() - t0 < 600) bad.push('429/503 must try the next model after a short pause');
+  // every model fails: one error with the old text, kind of the last failure
+  r = mk(Array(10).fill({ status: 503, body: { error: { message: 'busy' } } }));
+  r.P.AIProvider.onDone = tr => { r.trace = tr; };
+  e = await fails(() => r.P.AIProvider.run(req));
+  if (!e || e.kind !== 'overloaded' || e.message !== 'allBusy:busy' || !r.trace || r.trace.ok || r.trace.tries.length < 3) bad.push('all-fail error/trace wrong');
+  // timeout reads as before
+  r = mk([{ throw: 'AbortError' }, good('{"a":5}')]); res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 5) bad.push('timeout must move on');
+  r = mk(Array(10).fill({ throw: 'AbortError' })); e = await fails(() => r.P.AIProvider.run(req));
+  if (!e || e.message !== 'allBusy:timedOut' || e.kind !== 'timeout') bad.push('timeout text changed');
+  // opt-in retry on the same model, bounded
+  r = mk([{ status: 503, body: {} }, good('{"a":6}')]); res = await r.P.AIProvider.run({ ...req, retries: 1 });
+  if (res.model !== 'm1' || r.calls.length !== 2) bad.push('retries:1 must retry the same model once');
+  r = mk(Array(10).fill({ status: 503, body: {} })); await fails(() => r.P.AIProvider.run({ ...req, retries: 99 }));
+  if (r.calls.length > 10 * 3) bad.push('retries must be bounded');
+  // cancel
+  const ctl = new r.c.AbortController(); ctl.abort(); r = mk([]); e = await fails(() => r.P.AIProvider.run(req, { outer: ctl.signal }));
+  if (!e || !e.cancelled || e.kind !== 'cancelled') bad.push('cancel must give a cancelled error');
+  // tiers: advanced puts the strongest first; default starts with Settings model
+  r = mk([good('{"a":1}')]); r.c.settings.modelAdvanced = 'mx'; await r.P.AIProvider.run({ ...req, tier: 'advanced' });
+  if (r.calls[0] !== 'mx:generateContent') bad.push('advanced tier ignores settings.modelAdvanced');
+  r = mk([good('{"a":1}')]); await r.P.AIProvider.run(req); if (r.calls[0] !== 'm1:generateContent') bad.push('default tier must start with settings.model');
+  // an unimplemented provider says so
+  r = mk([]); r.c.settings.provider = 'anthropic'; e = await fails(() => r.P.AIProvider.run(req));
+  if (!e || e.kind !== 'unsupported' || r.calls.length) bad.push('Anthropic stub must refuse, not pretend');
+
+  // telemetry (js/platform/ai-usage.js): counts, tokens only when reported, no message text, 30 days kept
+  {
+    const mem = {}; const c = { ...mk([]).c }; for (const k of ['AIProvider','GeminiProvider','AnthropicProvider']) delete c[k]; const c0 = c; const fresh = {}; for (const k of Object.keys(c0)) if (!/^(AI|Gemini|Anthropic|__)/.test(k)) fresh[k] = c0[k]; vm.createContext(fresh);
+    const c1 = fresh; c1.Store = { load: (k, d) => k === 'models' ? { at: Date.now(), tag: 'k', list: ['m1', 'm2'] } : (k in mem ? JSON.parse(JSON.stringify(mem[k])) : d), save: (k, v) => { mem[k] = JSON.parse(JSON.stringify(v)); return true; } };
+    c1.todayKey = () => '2026-11-16'; c1.lang = 'en';
+    const q = [good('{"a":1}', { promptTokenCount: 7, candidatesTokenCount: 3, totalTokenCount: 10 }), good('nope'), good('{"a":2}'), { status: 503, body: { error: { message: 'busy' } } }];
+    let n = 0; c1.fetchT = async () => { const r = q[n++] || { status: 500, body: { error: { message: 'x' } } }; return { ok: r.status < 300, status: r.status, json: async () => r.body }; };
+    vm.runInContext(read('js/platform/ai-provider.js') + '\n' + read('js/platform/ai-usage.js') + '\n;this.__U = { AIProvider, AIUsage };', c1);
+    const { AIProvider, AIUsage } = c1.__U;
+    await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, task: 'chat' });                   // 1 try, with tokens
+    await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, tier: 'advanced' });              // unreadable, then ok: 2 tries, no tokens
+    await fails(() => AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, search: true }));     // every model busy: failed
+    const d = JSON.parse(JSON.stringify(mem.aiUsage)).days['2026-11-16'], s1 = AIUsage.sum(1);
+    if (!d || d.calls !== 3 || d.ok !== 2 || d.failed !== 1) bad.push('usage: request counts wrong ' + JSON.stringify(d && [d.calls, d.ok, d.failed]));
+    if (d.tokIn !== 7 || d.tokOut !== 3 || d.tokTries !== 1) bad.push('usage: tokens must be summed only where reported');
+    if (d.bad !== 1) bad.push('usage: unreadable answer not counted');
+    if (d.mode.text !== 1 || d.mode.advanced !== 1 || d.mode.search !== 1) bad.push('usage: modes wrong');
+    if (JSON.stringify(mem.aiUsage).includes('SECRET')) bad.push('usage: message text was stored');
+    if (s1.calls !== 3 || s1.tries < 4) bad.push('usage: sum wrong');
+    for (let i = 0; i < 40; i++) { const u = JSON.parse(JSON.stringify(mem.aiUsage)); u.days['2026-01-' + String(i + 1).padStart(2, '0')] = { calls: 1 }; mem.aiUsage = u; }
+    AIUsage.record({ ok: true, tier: 'default', ms: 5, tries: [{ model: 'm', ok: true }] });
+    if (Object.keys(mem.aiUsage.days).length > 30) bad.push('usage: more than 30 days kept');
+    AIUsage.reset(); if (Object.keys(mem.aiUsage.days).length) bad.push('usage: reset did not clear');
+  }
+  if (bad.length) bad.forEach(b => fail('AI provider: ' + b)); else ok('AI provider layer + usage: tries, errors, retries, tiers, cancel, tokens, privacy, 30-day limit');
+}
+
 // 7. Optional: open the app and catch start-up errors
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
@@ -213,7 +308,7 @@ async function boot() {
   if (errs.length) [...new Set(errs)].forEach(e => fail('start-up: ' + e)); else ok('boot: app starts with no errors (dark + light)');
 }
 
-(process.argv.includes('--boot') ? boot() : Promise.resolve()).then(() => {
+aiTests().then(() => process.argv.includes('--boot') ? boot() : null).then(() => {
   console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.');
   process.exit(fails ? 1 : 0);
 });

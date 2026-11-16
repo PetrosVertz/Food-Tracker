@@ -764,3 +764,17 @@ Object.assign(S, {
   pkNone: ['No exercise matches “{q}”.', 'Καμία άσκηση δεν ταιριάζει με «{q}».'],
   exsTips: ['Tips', 'Συμβουλές'], exsTipsS: ['Shows a suggestion like "Try 7 kg for 8 reps", based on your other exercises.', 'Εμφανίζει πρόταση όπως «Δοκίμασε 7 kg για 8 επαναλήψεις», με βάση τις άλλες ασκήσεις σου.'],
 });
+Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
+  aiuT: ['Usage', 'Χρήση'],
+  aiuSub: ['How much the AI is used on this phone: counts, time and tokens. Kept only here. No messages, photos or answers are saved.', 'Πόσο χρησιμοποιείται το AI σε αυτό το κινητό: πλήθος, χρόνος και tokens. Μένουν μόνο εδώ. Δεν αποθηκεύονται μηνύματα, φωτογραφίες ή απαντήσεις.'],
+  aiuToday: ['Today', 'Σήμερα'], aiu7: ['Last 7 Days', 'Τελευταίες 7 Ημέρες'],
+  aiuReq: ['Requests', 'Αιτήματα'], aiuFail: ['Failed', 'Αποτυχημένα'], aiuTries: ['Tries per Request', 'Προσπάθειες ανά αίτημα'],
+  aiuTime: ['Average Time', 'Μέσος χρόνος'], aiuTok: ['Tokens In / Out', 'Tokens Εισόδου / Εξόδου'], aiuBad: ['Unreadable Answers', 'Μη αναγνώσιμες απαντήσεις'],
+  aiuNA: ['Unavailable', 'Μη διαθέσιμο'], aiuNone: ['No AI requests in the last 7 days.', 'Κανένα αίτημα AI τις τελευταίες 7 ημέρες.'],
+  aiuTokNote: ['Tokens are counted only when Google reports them: {a} of {b} tries.', 'Τα tokens μετρώνται μόνο όταν τα δίνει η Google: {a} από {b} προσπάθειες.'],
+  aiuFailBy: ['Failures', 'Αποτυχίες'],
+  aiuK_auth: ['Bad Key', 'Λάθος κλειδί'], aiuK_rate: ['Rate Limit', 'Όριο χρήσης'], aiuK_overloaded: ['Busy', 'Φόρτωση'], aiuK_timeout: ['Timeout', 'Λήξη χρόνου'],
+  aiuK_network: ['Offline', 'Χωρίς σύνδεση'], aiuK_bad_output: ['Unreadable', 'Μη αναγνώσιμο'], aiuK_cancelled: ['Cancelled', 'Ακυρώθηκε'], aiuK_unsupported: ['Not Built', 'Δεν υπάρχει'], aiuK_other: ['Other', 'Άλλο'],
+  aiuReset: ['Reset Usage', 'Επαναφορά Χρήσης'], aiuAsk: ['Clear the AI usage numbers on this phone? Nothing else changes.', 'Να σβηστούν τα στοιχεία χρήσης του AI σε αυτό το κινητό; Τίποτα άλλο δεν αλλάζει.'],
+  aiuYes: ['Clear', 'Καθαρισμός'], aiuDone: ['AI usage cleared', 'Τα στοιχεία χρήσης καθαρίστηκαν'],
+});

@@ -10,6 +10,8 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/data/config.js',
   'js/platform/store.js',
   'js/platform/phone.js',
+  'js/platform/ai-provider.js',
+  'js/platform/ai-usage.js',
   'js/platform/ai.js',
   'js/data/strings.js',
   'js/data/foods.js',
