@@ -41,7 +41,18 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/wire/07-fridge-stack-motion.js',
   'js/wire/08-settings-boot.js',
   'js/wire/09-tabs-targets-recovery.js',
-  'js/wire/10-workout.js'];
+  'js/wire/10-workout.js',
+  // 0.7.10.2 rank plates (rankIcon in gym.js): 15 ranks, large (36 px and up) and small
+  'img/rank/large/bronze-III.svg', 'img/rank/large/bronze-II.svg', 'img/rank/large/bronze-I.svg',
+  'img/rank/large/silver-III.svg', 'img/rank/large/silver-II.svg', 'img/rank/large/silver-I.svg',
+  'img/rank/large/gold-III.svg', 'img/rank/large/gold-II.svg', 'img/rank/large/gold-I.svg',
+  'img/rank/large/platinum-III.svg', 'img/rank/large/platinum-II.svg', 'img/rank/large/platinum-I.svg',
+  'img/rank/large/diamond-III.svg', 'img/rank/large/diamond-II.svg', 'img/rank/large/diamond-I.svg',
+  'img/rank/small/bronze-III.svg', 'img/rank/small/bronze-II.svg', 'img/rank/small/bronze-I.svg',
+  'img/rank/small/silver-III.svg', 'img/rank/small/silver-II.svg', 'img/rank/small/silver-I.svg',
+  'img/rank/small/gold-III.svg', 'img/rank/small/gold-II.svg', 'img/rank/small/gold-I.svg',
+  'img/rank/small/platinum-III.svg', 'img/rank/small/platinum-II.svg', 'img/rank/small/platinum-I.svg',
+  'img/rank/small/diamond-III.svg', 'img/rank/small/diamond-II.svg', 'img/rank/small/diamond-I.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
