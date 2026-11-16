@@ -827,3 +827,7 @@ Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
   rfxMore: ['And {n} More Rank Changes', 'Και {n} Ακόμα Αλλαγές Κατάταξης'], rfxMore1: ['And 1 More Rank Change', 'Και 1 Ακόμα Αλλαγή Κατάταξης'],
   sxClear: ['Clear', 'Καθαρισμός'],
 });
+Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
+  thBar: ['Status Bar', 'Γραμμή Κατάστασης'], thBarClear: ['Transparent', 'Διάφανη'], thBarSolid: ['Solid', 'Συμπαγής'],
+  thBarNote: ['Takes effect the next time you open the app. If nothing changes, remove the icon and add it again.', 'Ισχύει την επόμενη φορά που θα ανοίξεις την εφαρμογή. Αν δεν αλλάξει τίποτα, αφαίρεσε το εικονίδιο και πρόσθεσέ το ξανά.'],
+});

@@ -89,6 +89,7 @@ function applyTheme(){
 function drawTheme(){
   const { mode, p, look } = themeNow(), L = look === 'light';
   setSeg('#thMode', mode); $('thNote').textContent = t(mode === 'auto' ? 'thAutoNote' : 'thLightNote');
+  setSeg('#thBar', ((typeof ui === 'object' && ui && ui.theme) || {}).bar === 'solid' ? 'solid' : 'clear');   // 0.7.10.7: read at start-up by index.html
   $('thSw').innerHTML = THEMES.map(x => `<button type="button" data-preset="${x[0]}" class="${x[0] === p[0] ? 'on' : ''}" style="--sw:${L ? x[4] : x[2]}" aria-label="${x[1]}" aria-pressed="${x[0] === p[0]}"><i></i><span>${x[1]}</span></button>`).join('');
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }

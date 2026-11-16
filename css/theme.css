@@ -249,7 +249,7 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 .themepage>:not(.sback):not(h2){margin-top:var(--s4)}
 .themepage>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px}
 .thl{font-size:var(--fs-label);color:var(--t-muted);padding:0 var(--s1);margin-bottom:calc(-1 * var(--s2))}
-#thMode,#thNote{margin-bottom:0}
+#thMode,#thNote,#thBar{margin-bottom:0}
 .thsw{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2)}
 .thsw button{height:72px;border-radius:var(--r-row);background:var(--t-card);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);cursor:pointer;font-family:inherit;color:var(--t-text);transition:border-color .2s}
 .thsw button.on{border-color:var(--sw)}

@@ -14,13 +14,16 @@
 <script>
 // 0.6.9 theme (device setting in ft.ui.v1): applied before the first paint so there's no flash. The full logic is THEME in js/ui.js.
 (function(){ try{ var raw = localStorage.getItem('ft.ui.v1'), u = JSON.parse(raw || '{}'), th = u.theme || {}, m = th.mode || (raw ? 'dark' : 'auto');
-  var look = m === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : m; document.documentElement.setAttribute('data-theme', look); }catch(e){} })();
+  var look = m === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : m; document.documentElement.setAttribute('data-theme', look);
+  // 0.7.10.7 Settings › Theme › Status Bar: Solid = the solid black status bar, so the page starts below the clock (iPhone reads this only when the app opens)
+  if(th.bar === 'solid'){ document.documentElement.classList.add('sbsolid'); var sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]'); if(sb) sb.setAttribute('content', 'black'); } }catch(e){} })();
 </script>
 <script>
 // Home Screen app on iPhone: size everything to the real screen (the reported viewport can be shorter, leaving a black strip at the bottom). In Safari nothing changes.
 (function(){ var pwa = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); if(!pwa) return;
   var de = document.documentElement; de.classList.add('pwa');
-  function fit(){ var portrait = innerHeight >= innerWidth, h = portrait ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
+  // 0.7.10.7: with the Solid status bar the page starts below it, so the full screen height would be too tall: use the real viewport
+  function fit(){ var portrait = innerHeight >= innerWidth, h = portrait && !de.classList.contains('sbsolid') ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
   fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -267,6 +270,9 @@
   <span class="thl" data-t="thAppearance"></span>
   <div class="mpill" id="thMode"><button data-v="dark" data-t="thDark"></button><button data-v="light" data-t="thLight"></button><button data-v="auto" data-t="thAuto"></button></div>
   <span class="thl" id="thNote"></span>
+  <span class="thl" data-t="thBar"></span>
+  <div class="mpill" id="thBar"><button data-v="clear" data-t="thBarClear"></button><button data-v="solid" data-t="thBarSolid"></button></div>
+  <span class="thl" data-t="thBarNote"></span>
   <span class="thl" data-t="thColour"></span>
   <div class="thsw" id="thSw"></div>
   <span class="thl" data-t="thPreview"></span>

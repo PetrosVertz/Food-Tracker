@@ -131,6 +131,7 @@ setTimeout(async () => {
 applyTheme(); drawTheme();
 $('sThemeBtn').addEventListener('click', () => { drawTheme(); open('ovTheme'); });
 $('thMode').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b) setTheme({ mode: b.dataset.v }); });
+$('thBar').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b) setTheme({ bar: b.dataset.v }); });   // 0.7.10.7: Status Bar (takes effect at the next launch)
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
