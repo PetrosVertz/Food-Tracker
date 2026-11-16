@@ -718,25 +718,19 @@ function tierList(exId){ const out = [];
     if(e1s.length || vol > 0) out.push({ ago: Math.max(0, -daysUntil(s.date)), e1s, vol }); };
   sessions.forEach(add); if(active) add(active); return out; }
 const tierName = n => `${t('tier_' + TIERS[Math.floor(n / 3)])} ${3 - n % 3}`;
-// 0.7.10: league-style rank badges. A different crest shape per tier, getting grander as you climb:
-// Bronze plain shield + round gem · Silver shield + small wings + diamond gem · Gold shield + laurels + star ·
-// Platinum hexagon crest + wings + cut gem · Diamond crowned diamond crest + big wings + facets. Tier colour, soft fill;
-// the level as three pips under the crest (Level 3 = one lit, Level 1 = all three). viewBox 32 × 34, crisp from 20 px up.
-// Each tier: [crest outline (soft fill), wings / laurels (lines), centre piece (solid), centre lines]
-const RANK_SHIELD = 'M16 4l7.5 2.8v6.6c0 5.1-3.2 8.7-7.5 10.4-4.3-1.7-7.5-5.3-7.5-10.4V6.8z';
-const RANK_WING = 'M8.5 9.2L2.6 7.4l1.6 4.4-1.9 1.6 3.6 1.9 2.6.2M23.5 9.2l5.9-1.8-1.6 4.4 1.9 1.6-3.6 1.9-2.6.2';
+// 0.7.10: rank badges. PLACEHOLDERS: Petros is drawing the final tier icons. To use them, put each tier's SVG drawing (the inside of an
+// <svg>, made for a 32 × 34 box, the crest in the top 26, use currentColor so the tier colour applies) into RANK_ART below. The code draws the
+// level pips under it (Level 3 = one lit, Level 1 = all three) and colours it; nothing else needs to change.
 const RANK_ART = {
-  bronze: [RANK_SHIELD, '', 'M16 11a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 1 0 0-5.2z', 'M11.5 8.4L16 6.8l4.5 1.6'],
-  silver: [RANK_SHIELD, 'M8.5 9.4L4 8l1.4 3.5-1.2 1.3 4.3 1.3M23.5 9.4L28 8l-1.4 3.5 1.2 1.3-4.3 1.3', 'M16 9.2l3.3 4.3-3.3 4.3-3.3-4.3z', ''],
-  gold: [RANK_SHIELD, 'M9.6 24.4C5.4 22.4 3.4 17.6 4.2 11.2M11.4 25.6C7.6 25.1 5.5 23.5 4.8 21.4M6.5 20.9L3.2 19.4M4.7 16.6l-2.6-1.9M4.4 12.3l-1.9-2.4M22.4 24.4c4.2-2 6.2-6.8 5.4-13.2M20.6 25.6c3.8-.5 5.9-2.1 6.6-4.2M25.5 20.9l3.3-1.5M27.3 16.6l2.6-1.9M27.6 12.3l1.9-2.4',
-    'M16 8.8l1.6 3.2 3.5.4-2.6 2.4.7 3.5-3.2-1.8-3.2 1.8.7-3.5-2.6-2.4 3.5-.4z', ''],
-  platinum: ['M16 2.8l8 4.4v9.6l-8 7-8-7V7.2z', RANK_WING, 'M16 9l3.6 3-3.6 6.4-3.6-6.4z', 'M12.4 12h7.2'],
-  diamond: ['M9.5 6.5l3.2-3.6L16 5.6l3.3-2.7 3.2 3.6 3 4.9L16 25 6.5 11.4z', 'M7.6 8.2L1.6 6.2l1.7 4.6-2 1.7 4.1 2.6 3.3.5M24.4 8.2l6-2-1.7 4.6 2 1.7-4.1 2.6-3.3.5',
-    'M16 12.4l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z', 'M7.4 10.2h17.2'] };
+  bronze: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  silver: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  gold: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  platinum: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>',
+  diamond: '<circle cx="16" cy="13.5" r="10" fill="currentColor" fill-opacity=".18" stroke-dasharray="3 2.4"/>' };
 function rankIcon(tier, n, size){
-  const a = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26, sw = h < 24 ? 1.9 : 1.6;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips; thicker lines when small
+  const art = RANK_ART[tier] || RANK_ART.bronze, lit = (n % 3) + 1, h = size || 26, sw = h < 24 ? 1.9 : 1.6;   // n = 0…14: level 3/2/1 inside the tier = 1/2/3 lit pips; thicker lines when small
   return `<svg class="rankic tr-${tier}" width="${Math.round(h * 32 / 34)}" height="${h}" viewBox="0 0 32 34" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    ${a[1] ? `<path d="${a[1]}"/>` : ''}<path d="${a[0]}" fill="currentColor" fill-opacity=".18"/><path d="${a[2]}" fill="currentColor" stroke-width="1"/>${a[3] ? `<path d="${a[3]}" stroke-opacity=".7"/>` : ''}${[10.5, 16, 21.5].map((x, i) => `<circle cx="${x}" cy="30.6" r="1.9"${i < lit ? ' fill="currentColor" stroke="none"' : ' fill="none" stroke-opacity=".55" stroke-width="1.2"'}/>`).join('')}</svg>`;
+    ${art}${[10.5, 16, 21.5].map((x, i) => `<circle cx="${x}" cy="30.6" r="1.9"${i < lit ? ' fill="currentColor" stroke="none"' : ' fill="none" stroke-opacity=".55" stroke-width="1.2"'}/>`).join('')}</svg>`;
 }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
 const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 26)}</button>`;
