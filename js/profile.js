@@ -81,7 +81,6 @@ const STATS = [
   { id: 'favEx',      calc: c => c.favEx && { v: c.favEx.name, p: { n: c.favEx.n }, big: 1 } },
   { id: 'favMuscle',  calc: c => c.favMuscle && { v: c.favMuscle.name, p: { n: c.favMuscle.n }, big: 1 } },
   { id: 'heaviest',   calc: c => c.heavy && { v: `${c.num(Math.round(c.heavy.kg * 2) / 2)} kg`, p: { n: c.heavy.name } } },
-  { id: 'bestVol',    calc: c => c.volBest > 0 && { v: `${c.num(Math.round(c.volBest))} kg`, p: {} } },
   { id: 'longest',    calc: c => c.longMin && { v: c.dur(c.longMin), p: {} } },
   { id: 'earliest',   calc: c => c.early != null && { v: c.hm(c.early), p: {} } },
   { id: 'latest',     calc: c => c.late != null && { v: c.hm(c.late), p: {} } },
@@ -111,7 +110,7 @@ function statsCtx(){
   c.climb = 0; c.dayBest = null; c.nights = 0; c.dawns = 0; c.repKing = null;
   c.cmp = (kg, pre, whale) => { const w = kg / 150000, el = kg / 5000, car = kg / 1500, bag = kg / 25, r1 = n => c.num(Math.round(n * 10) / 10);   // a friendly comparison: blue whales, elephants, cars, then 25 kg bags
     return whale && w >= 1 ? { k: pre + 'Whale', p: { n: r1(w) } } : el >= 1 ? { k: pre + 'El', p: { n: r1(el) } } : car >= 1 ? { k: pre + 'Car', p: { n: r1(car) } } : { k: pre + 'Bag', p: { n: c.num(Math.round(bag)) } }; };
-  c.sets = 0; c.kg = 0; c.volBest = 0; c.heavy = null; c.longMin = 0; c.totMin = 0; c.early = null; c.late = null; c.prs = 0;
+  c.sets = 0; c.kg = 0; c.heavy = null; c.longMin = 0; c.totMin = 0; c.early = null; c.late = null; c.prs = 0;
   ses.slice().sort((a, b) => String(a.start).localeCompare(String(b.start))).forEach(s => {
     let vol = 0; days.add(s.date); c.prs += (s.prs || []).length; wdPr[new Date(s.date + 'T12:00:00').getDay()] += (s.prs || []).length; dates.push(s.date);
     s.exercises.forEach(x => { const m = exById(x.exId).m, sets = x.sets.filter(st => st.done && isMainSet(st));
@@ -122,7 +121,7 @@ function statsCtx(){
         if(r > 0 && r <= 100 && (!c.repKing || r > c.repKing.r)) c.repKing = { r, name: exName(x.exId) };
         if(r >= 1 && r <= 12 && kg > 0){ const e = e1rm(w, r, x.exId); if(e > (e1s.get(x.exId) || 0)) e1s.set(x.exId, e); }
         if(r > 0 && r <= 12 && kg > 0 && (!c.heavy || kg > c.heavy.kg)) c.heavy = { kg, name: exName(x.exId) }; }); });
-    const sv = +s.vol || vol; c.kg += sv; c.volBest = Math.max(c.volBest, sv); if(sv > 0 && (!c.dayBest || sv > c.dayBest.kg)) c.dayBest = { kg: sv, date: s.date };
+    const sv = +s.vol || vol; c.kg += sv; if(sv > 0 && (!c.dayBest || sv > c.dayBest.kg)) c.dayBest = { kg: sv, date: s.date };
     const a = new Date(s.start), b = s.end ? new Date(s.end) : null, min = b ? (b - a) / 6e4 : 0;
     if(min >= 5 && min <= 360){ c.longMin = Math.max(c.longMin, Math.round(min)); c.totMin += min; }
     const hm = a.getHours() * 60 + a.getMinutes(); if(!isNaN(hm)){ c.early = c.early == null ? hm : Math.min(c.early, hm); c.late = c.late == null ? hm : Math.max(c.late, hm); }

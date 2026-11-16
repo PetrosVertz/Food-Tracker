@@ -794,7 +794,6 @@ Object.assign(S, {
   stt_favEx: ['Favourite Exercise', 'Αγαπημένη Άσκηση'], sts_favEx: ['Done in {n} sets.', 'Σε {n} σετ.'],
   stt_favMuscle: ['Favourite Muscle', 'Αγαπημένος Μυς'], sts_favMuscle: ['Trained in {n} sets.', 'Προπονήθηκε σε {n} σετ.'],
   stt_heaviest: ['Heaviest Lift', 'Βαρύτερο Σήκωμα'], sts_heaviest: ['On {n}, up to 12 reps.', 'Στην άσκηση {n}, έως 12 επαναλήψεις.'],
-  stt_bestVol: ['Biggest Session', 'Μεγαλύτερη Προπόνηση'], sts_bestVol: ['Most kg moved in one workout.', 'Τα περισσότερα κιλά σε μία προπόνηση.'],
   stt_longest: ['Longest Workout', 'Μεγαλύτερη Προπόνηση σε Διάρκεια'], sts_longest: ['Your longest time in the gym.', 'Ο μεγαλύτερος χρόνος σου στο γυμναστήριο.'],
   stt_earliest: ['Earliest Workout', 'Πιο Πρωινή Προπόνηση'], sts_earliest: ['The earliest you ever started.', 'Η πιο πρωινή ώρα έναρξης.'],
   stt_latest: ['Latest Workout', 'Πιο Βραδινή Προπόνηση'], sts_latest: ['The latest you ever started.', 'Η πιο βραδινή ώρα έναρξης.'],
