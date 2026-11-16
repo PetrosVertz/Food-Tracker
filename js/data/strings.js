@@ -529,6 +529,7 @@ Object.assign(S, {
   logQWebTag: ['FROM THE WEB', 'ΑΠΟ ΤΟ ΔΙΑΔΙΚΤΥΟ'], logQEstTag: ['AI ESTIMATE', 'ΕΚΤΙΜΗΣΗ AI'],
   logQDoubt: ['Rough estimate: tap to check the amount', 'Πρόχειρη εκτίμηση: πάτα για να ελέγξεις την ποσότητα'],
   logQAddSave: ['Add & Save', 'Προσθήκη & Αποθήκευση'], logQNoMeal: ['could not save it as a meal', 'δεν αποθηκεύτηκε ως γεύμα'],
+  logQNameSub: ['The AI found “{n}”. What do you call it? Food Coach will know both names.', 'Το AI βρήκε «{n}». Πώς το λες εσύ; Ο Food Coach θα ξέρει και τα δύο ονόματα.'], logQNamePh: ['Your Name for This Meal', 'Το Δικό σου Όνομα'],
   logQFixNote: ['Add replaces what you logged a moment ago.', 'Η Προσθήκη θα αντικαταστήσει ό,τι κατέγραψες πριν λίγο.'],
   logQNone: ['Not found · tap to pick a food', 'Δεν βρέθηκε · πάτα για να διαλέξεις'],
   logQSwap: ['Swap Food', 'Αλλαγή τροφίμου'], logQSwapPh: ['Search foods', 'Αναζήτηση τροφίμων'], logQRm: ['Remove', 'Αφαίρεση'],
