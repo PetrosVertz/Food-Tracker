@@ -64,7 +64,7 @@
 
 /* ---------- base ---------- */
 html,body{background:var(--t-bg)!important;color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-reg)}
-body::before{display:none!important}   /* no coloured blobs behind the app: plain black / soft grey */
+/* no coloured blobs behind the app: the old glass.css blobs are replaced by the solid status-bar strip (end of this file) */
 button,input,select,textarea{font-family:inherit}
 h1,h2{font-size:var(--fs-title)!important;font-weight:var(--w-bold)!important;letter-spacing:-.4px}
 h3{font-size:var(--fs-body);font-weight:var(--w-bold)}
@@ -101,7 +101,8 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .overlay{background:transparent}
 /* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
 .overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
-.overlay.open>.sheet{will-change:transform}
+/* 0.7.9.5: no permanent will-change on windows: it kept every window (title, back arrow, text) in its own raster layer, which can look soft; the opening animation and the drag helper promote the layer only while moving */
+.overlay.open>.sheet{will-change:auto}
 
 /* ---------- colour roles ---------- */
 .mrow.hero.p .hbar i{background:var(--t-p)} .mrow.hero.c .hbar i{background:var(--t-c)} .mrow.hero.f .hbar i{background:var(--t-f)}
@@ -796,7 +797,7 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
    Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
    (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
-.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback{display:flex;margin:0 0 -44px -10px}
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback{display:flex;margin:var(--topP) 0 -44px -10px}   /* 0.7.9.5: the top margin is the safe area + 8px, so the arrow and the title start where the sticky arrow rests (they used to start at 0 and the first card slid under the title on notched phones) */
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
 .overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
@@ -809,11 +810,13 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:var(--topP);z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:0;z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
 section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
-body::before{content:'';position:fixed;z-index:8;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--t-bg);pointer-events:none}
+body::before{content:'';position:fixed;z-index:8;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--t-bg)!important;pointer-events:none}
+/* 0.7.9.5: full-screen windows (their sheet reaches the top of the screen) get the same solid strip above them, so scrolled content never shows under the clock */
+body:has(.overlay.open>.sheet:is(.setpage,.formpage,.themepage,.pksheet,.wqsheet,.rcptsheet))::before,body:has(#ovTargets.open)::before,body:has(#ovSummary.open)::before{z-index:11}
 /* ==== end shell ==== */
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
@@ -983,3 +986,14 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 #pgToday details.sectfold{margin-top:var(--foldgap)}
 #pgToday details.sectfold>summary{padding:0 0 var(--foldgap)}
 #pgFoods,#pgToday{padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}
+
+/* 0.7.9.5 Workout Done: a proper full window. Solid, inside the safe area, the stats scroll, Done is pinned above the bottom edge. */
+#ovSummary .sheet{position:relative;width:100%!important;max-width:480px!important;height:100%!important;max-height:none!important;margin:0 auto!important;border-radius:0!important;border:0!important;
+  background:var(--t-bg)!important;display:flex;flex-direction:column;overflow:hidden;padding:var(--topP) 16px 0!important}
+#ovSummary .sheet>.sback{position:absolute;top:var(--topP);left:6px;margin:0;float:none;z-index:4}
+#ovSummary #smBody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#ovSummary #smBody>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s1)}
+#ovSummary #smBody>.sub{text-align:center}
+#ovSummary .actions{flex:0 0 auto;margin:0;padding-top:var(--s2)}
+#ovSummary .actions .btn{flex:1 1 100%}
+#ovSummary .actions:last-child{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
