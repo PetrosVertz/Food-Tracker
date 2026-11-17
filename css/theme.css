@@ -101,7 +101,7 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
 .overlay{background:transparent}
-/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
+/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window opens or closes); the window gets its own layer from the moment it opens */
 .overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
 /* 0.7.9.5: no permanent will-change on windows: it kept every window (title, back arrow, text) in its own raster layer, which can look soft; the opening animation and the drag helper promote the layer only while moving */
 .overlay.open>.sheet{will-change:auto}
@@ -222,7 +222,6 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 :root[data-theme="light"] #ovSwap .swrow{background:var(--t-card)}
 #ovSwap .sback{position:absolute;left:8px;top:22px;float:none;margin:0}
 #ovSwap .swhead{padding-left:40px}
-.grab{align-self:center;width:40px;height:4px;border-radius:4px;background:#44484d;flex:0 0 4px}
 .swhead{display:flex;flex-direction:column;gap:var(--s1)} .swhead h2{margin:0} .swhead .sub{font-size:var(--fs-label);color:var(--t-muted);margin:0}
 #swList{display:flex;flex-direction:column;gap:var(--s3)}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);text-align:left;min-height:64px;padding:var(--s3) var(--s4);border-radius:var(--r-row);border:0;background:var(--t-card);color:var(--t-text);font-family:inherit;cursor:pointer;width:100%}
