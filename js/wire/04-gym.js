@@ -198,7 +198,7 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
 function gymDropEmpty(){ if(!active || active.exercises.length) return; if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); keepAwake(false); }
 
-holdButton($('sesDiscard'), 1000, 'holdDiscard', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;   // hold, then still asked: a discard can't be undone
+holdButton($('sesDiscard'), 1000, 'holdDiscard', () => {   // the hold is the confirmation: no second question
   if(active && active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }   // the day goes back to how it was
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); close('ovSession'); renderAll(); });
 
@@ -207,10 +207,9 @@ holdButton($('sesFinish'), 800, 'holdEnd', () => finishWorkout());
 // save the workout. auto = true: ended by itself (no questions, no summary); 'asked': you answered Finish to "Finished Your Workout?".
 // Both end at your last logged set.
 async function finishWorkout(auto){
+  if(!auto) active.exercises.forEach(x => x.sets.forEach(s => { if(!s.done && s.w !== '' && s.r !== ''){ s.done = true; s.at = Date.now(); if(!x.t0) x.t0 = s.at; } }));   // kilograms and reps typed but not ticked: counts as done
   const doneSets = active.exercises.flatMap(x => x.sets.filter(s => s.done));
   if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
-  const filled = active.exercises.some(x => x.sets.some(s => !s.done && (s.w !== '' || s.r !== '')));
-  if(!auto && filled && !(await ask(t('unfinished')))) return false;
   const end = auto ? new Date(lastSetAt()) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
   const bw = bodyW(), kcal = Math.round(active.exercises.reduce((a, x) => a + x.sets.filter(s => s.done).reduce((b, s) => b + gymSetKcal(x.exId, s, bw), 0), 0) / 5) * 5;
   const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets), 0));

@@ -524,7 +524,7 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
 /* the bottom card: slim, the workout time big on the left, the Gym Coach on the right on the same line */
 .sesdock{flex:0 0 auto;position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s2);margin:0 0 max(10px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);
-  box-shadow:0 -14px 34px -12px color-mix(in srgb,var(--t-accent) 55%,transparent),0 8px 24px rgba(0,0,0,.28)}   /* the theme-colour glow rises from behind the top edge */
+  box-shadow:0 -14px 34px -12px color-mix(in srgb,var(--t-accent) 16%,transparent),0 8px 24px rgba(0,0,0,.28)}   /* the theme-colour glow rises from behind the top edge */
 .dkrow1{display:flex;align-items:center;justify-content:space-between;height:50px}
 .dkrow1 .wclock{padding-left:var(--s2)}
 .sesdock #sesClock{font-size:44px;line-height:1}

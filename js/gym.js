@@ -117,6 +117,7 @@ function startSession(tpl){
   const tk = todayKey(), di = dayInfo(tk); active.dayBefore = days[tk] ? { ...days[tk] } : null;
   days[tk] = { ...di, type: 'gym', work: workKind(active.type), time: profile.realStart || !di.time || di.type !== 'gym' ? fromMin(now.getHours() * 60 + now.getMinutes()) : di.time }; delete days[tk].guessed; saveDays();
   close('ovStart'); renderAll(); openSession();
+  if(!active.exercises.length) $('sesAddEx').click();   // an empty workout goes straight to the exercise list; picking one starts it
 }
 
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
