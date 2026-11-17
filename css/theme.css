@@ -356,7 +356,6 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
 .exc.ssarm::after,.tpcard.ssarm::after{content:attr(data-ssl);position:absolute;right:12px;top:10px;padding:var(--s1) 10px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold);font-style:italic}
 .sslbl{text-transform:none!important;letter-spacing:0!important;font-size:var(--fs-label)!important;font-weight:var(--w-bold)!important}
-.swapq{display:inline-flex!important;align-items:center;justify-content:center;width:36px!important;height:36px!important;background:var(--t-sel)!important;border:0!important;color:var(--t-text)!important}
 .exc .exhead .exname{font-size:var(--fs-clock)!important;line-height:1.15}
 /* Recovery is look-only (0.6.9) */
 .reccard svg,.reccard svg *{pointer-events:none;cursor:default!important}

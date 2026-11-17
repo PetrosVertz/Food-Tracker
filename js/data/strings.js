@@ -764,7 +764,6 @@ Object.assign(S, {
   soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
 });
 Object.assign(S, {
-  exsVisH: ['Visual', 'Εμφάνιση'], exsExtH: ['Extras', 'Πρόσθετα'],
   exsUniPill: ['Unilateral Pill', 'Κουμπί Μίας Πλευράς'], exsUniPillS: ['Shows the L | R pill on exercise cards.', 'Εμφανίζει το κουμπί L | R στις κάρτες ασκήσεων.'],
   exsFormPill: ['Form Pill', 'Κουμπί Τεχνικής'], exsFormPillS: ['Shows the Form pill on exercise cards.', 'Εμφανίζει το κουμπί Τεχνικής στις κάρτες ασκήσεων.'],
   exsSwapPill: ['Swap Pill', 'Κουμπί Αλλαγής'], exsSwapPillS: ['Shows the Swap pill and the swap button on exercise cards.', 'Εμφανίζει το κουμπί Αλλαγής στις κάρτες ασκήσεων.'],
@@ -830,6 +829,12 @@ Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
 Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
   thBar: ['Status Bar', 'Γραμμή Κατάστασης'], thBarClear: ['Transparent', 'Διάφανη'], thBarSolid: ['Solid', 'Συμπαγής'],
   thBarNote: ['Takes effect the next time you open the app. If nothing changes, remove the icon and add it again.', 'Ισχύει την επόμενη φορά που θα ανοίξεις την εφαρμογή. Αν δεν αλλάξει τίποτα, αφαίρεσε το εικονίδιο και πρόσθεσέ το ξανά.'],
+});
+Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings tabs, Workout Done
+  holdEnd: ['Hold To End Workout', 'Κράτα Για Τέλος Προπόνησης'], holdDiscard: ['Hold To Discard', 'Κράτα Για Απόρριψη'],
+  sxHalf: ['Half Reps', 'Μισές'], sxNeg: ['Negatives', 'Αρνητικές'],   // the short titles beside the circles on a set
+  swipeAdd: ['Swipe To Add Exercise', 'Σύρε Για Νέα Άσκηση'], swipeNext: ['Swipe For Next Exercise', 'Σύρε Για Επόμενη Άσκηση'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
+  exsTabSocial: ['Social', 'Κοινωνικά'], exsTabButtons: ['Buttons', 'Κουμπιά'], exsTabSets: ['Sets', 'Σετ'], exsTabAlerts: ['Alerts', 'Ειδοποιήσεις'],
 });
 Object.assign(S, {   // Refinements #2: the Gym Buddy carousel (Partner has no screen yet)
   hubPartner: ['Partner', 'Συνεργάτης'], carSoon: ['Coming Soon', 'Σύντομα'],

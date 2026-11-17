@@ -122,12 +122,11 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 40 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
   gymHeadRobot('sesCoach');   // 0.7.7: the Gym Coach robot, top right of the header
-  $('sesHg').innerHTML = hourglass('hg5', 24, sesMs() / 1000);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
   $('sesSupps').innerHTML = (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
@@ -136,15 +135,52 @@ function renderSession(){
   if(active.clock0 === undefined) active.clock0 = active.exercises.length ? new Date(active.start).getTime() : null;   // workouts started before 0.6.0
   if(!active.clock0 && active.exercises.length){ active.clock0 = Date.now(); saveG('act'); }   // 0.6.0: the clock starts with the first exercise
   normalizeSS(active.exercises);
-  const shown = active.exercises.map((x, i) => cardHtml(x, i)).join('');
-  $('sesBody').innerHTML = shown || `<div class="empty">${t('noExYet')}</div>`;
-  SES_ADD = SES_ADD || $('sesAddEx'); $('sesBody').appendChild(SES_ADD);   // Add Exercise always sits under the last exercise
+  const shown = active.exercises.map((x, i) => cardHtml(x, i)).join(''), body = $('sesBody'), st = body.scrollTop;
+  body.innerHTML = shown || `<div class="empty">${t('noExYet')}</div>`;
+  SES_ADD = SES_ADD || $('sesAddEx'); body.appendChild(SES_ADD);   // Add Exercise is the last page, under the last exercise
+  body.scrollTop = st; fitUniTicks(); fitPages(); markPages();
 }
+// the pages: room under the last card so the Add Exercise page can reach the top like every other page (the card sizes are natural; only the peek above is fixed)
+const PEEK = 64;
+function fitPages(){ const body = $('sesBody'), add = $('sesAddEx'); if(!body || !add.isConnected) return;
+  body.style.setProperty('--peek', PEEK + 'px'); body.style.paddingBottom = Math.max(0, body.clientHeight - add.offsetHeight - PEEK) + 'px'; }
+addEventListener('resize', () => { if(active) fitPages(); });
+// at rest only the card you are on (and the bottom of the one above) shows; the cards below fade in while you swipe (opacity only).
+// The tip above the bottom card says Swipe For Next when there is another exercise below, else Swipe To Add.
+function markPages(){ const body = $('sesBody'); if(!body) return; const top = body.getBoundingClientRect().top + PEEK + 24, cards = [...body.querySelectorAll(':scope>.exc')];
+  let cur = 0; cards.forEach((c, i) => { if(c.getBoundingClientRect().top <= top) cur = i; });
+  cards.forEach((c, i) => c.classList.toggle('after', i > cur));
+  const tip = $('sesTip').querySelector('span'), k = cur < cards.length - 1 ? 'swipeNext' : 'swipeAdd'; if(tip.dataset.t !== k){ tip.dataset.t = k; tip.textContent = t(k); }
+  // where you are: one small dot per exercise in the bottom card (the one you're on is a longer accent pill, finished ones green); 13 or more = "3 / 14"
+  const dots = $('sesDots'), n = cards.length, ex = active ? active.exercises : [];
+  dots.innerHTML = n < 2 ? '' : n > 12 ? `<span class="dkcount">${cur + 1} / ${n}</span>` : cards.map((c, i) => `<button type="button" class="dkdot${i === cur ? ' on' : ''}${ex[+c.dataset.x] && ex[+c.dataset.x].ended ? ' done' : ''}" data-dot="${i}" aria-label="${i + 1} / ${n}"></button>`).join('');
+  body.dataset.cur = cur; return cur; }
+// press and hold (End Workout, Discard): a fill sweeps across the button and the action runs when it is full. Letting go early does nothing
+// (a quick tap shows how it works). Enter / Space still work for keyboards.
+function holdButton(btn, ms, hint, fn){
+  const fill = document.createElement('i'); fill.className = 'hfill'; fill.setAttribute('aria-hidden', 'true'); btn.prepend(fill); btn.classList.add('holdbtn'); btn.style.setProperty('--hold', ms + 'ms');
+  let tm = 0, t0 = 0;
+  const stop = () => { if(!tm) return; clearTimeout(tm); tm = 0; btn.classList.remove('holding'); if(Date.now() - t0 < ms * .5) toast(t(hint)); };
+  btn.addEventListener('pointerdown', e => { if(e.button > 0 || tm) return; t0 = Date.now(); btn.classList.add('holding'); Phone.haptic();
+    tm = setTimeout(() => { tm = 0; btn.classList.remove('holding'); Phone.haptic(); fn(); }, ms); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => btn.addEventListener(k, stop));
+  btn.addEventListener('click', e => { if(e.detail === 0) fn(); });
+  btn.addEventListener('contextmenu', e => e.preventDefault()); }
+// one tall tick spans both hands (and their extras) of a unilateral set: size it from the real rows after each draw
+function fitUniTicks(){ document.querySelectorAll('#sesBody .setrow.lmerge').forEach(row => { const ok = row.querySelector('.sok'); if(!ok) return;
+  let last = row.nextElementSibling; while(last && !last.classList.contains('rmate')) last = last.nextElementSibling;   // the R row
+  if(!last) return; const after = last.nextElementSibling; if(after && after.classList.contains('setx')) last = after;
+  const h = Math.round(last.getBoundingClientRect().bottom - row.getBoundingClientRect().top), own = Math.round(row.getBoundingClientRect().height);
+  if(h > own){ ok.style.height = h + 'px'; ok.style.marginBottom = -(h - own) + 'px'; } }); }
 let SES_ADD = null;
 const sesMs = () => active && active.clock0 ? Date.now() - active.clock0 : 0;
 
 const clk = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}` : `${m}:${String(ss).padStart(2, '0')}`; };
 const exTime = x => clk((x.t1 || Date.now()) - x.t0);
+// the Gym Coach robot cheers when a set is finished (bigger when it is a record or the last set of the exercise); transform only
+function coachCheer(kind){ const b = $('sesCoach'); if(!b || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  b.classList.remove('cheer1', 'cheer2', 'cheer3'); void b.offsetWidth; b.classList.add(kind === 'pr' ? 'cheer3' : kind === 'last' ? 'cheer2' : 'cheer1');
+  clearTimeout(b._ct); b._ct = setTimeout(() => b.classList.remove('cheer1', 'cheer2', 'cheer3'), 1300); }
 function tickClock(){ if(!active || !$('ovSession').classList.contains('open')) return;
   $('sesClock').textContent = clk(sesMs());
   document.querySelectorAll('#sesBody [data-xt]').forEach(el => { const x = active.exercises[+el.dataset.xt]; if(x && x.t0) el.textContent = exTime(x); }); }
@@ -161,6 +197,7 @@ function tickSet(x, s, row, xi, si){
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   s.done = true; s.at = Date.now(); Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
+  coachCheer(x.sets.every(z => z.done) ? 'last' : 'set');
   if(card){   // cardio records: longest time, farthest distance (only against earlier workouts)
     const hist = exHistory(x.exId, active.id);
     if(hist.length){ [['t', 'r'], ['d', 'w']].forEach(([kind, k]) => { const prev = Math.max(...hist.flatMap(h => h.sets.map(z => +z[k] || 0))), cur = +s[k] || 0;
@@ -180,6 +217,7 @@ function tickSet(x, s, row, xi, si){
       else if(x.volPR){ const p = active.prs.find(p => p.exId === x.exId && p.kind === 'v'); if(p) p.vol = Math.round(curVol); }
     }
   }
+  if(s.pr) coachCheer('pr');
   saveG('act');
   SSNEXT = null; const nxt = x.sets[si + 1], moreDrop = nxt && nxt.drop && !nxt.done;   // no rest between drops
   if(!card && !(x.uni && s.side === 'L' && !both) && !moreDrop){
@@ -355,7 +393,7 @@ function estimateRecovery(ses){ const L = headLoads(ses), g = {};
   Object.entries(L).forEach(([h, l]) => { if(l < .5) return; const gr = HEADS[h][2]; g[gr] = Math.max(g[gr] || 0, readyHours(h, l)); }); return g; }
 function headFatigue(atTs){
   const out = {};
-  const list = sessions.concat(active ? [{ ...active, end: new Date().toISOString() }] : []);
+  const list = sessions;   // Refinements: finished workouts only; a workout in progress changes recovery after it ends, not while you train
   list.forEach(s => {
     const end = new Date(s.end || s.start).getTime(), hrs = (atTs - end) / 3.6e6; if(hrs < 0 || hrs > 144) return;
     Object.entries(headLoads(s)).forEach(([h, l]) => { const gr = HEADS[h][2], base = headHours(h, l);
@@ -725,7 +763,7 @@ const rankSrc = (tier, n, size) => `img/rank/${(size || 26) < 36 ? 'small' : 'la
 function rankIcon(tier, n, size){ const h = size || 26;
   return `<img class="rankic" src="${rankSrc(tier, n, h)}" width="${h}" height="${h}" alt="${esc(tierName(n))}" decoding="async" draggable="false">`; }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
-const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 26)}</button>`;
+const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 52)}</button>`;
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
@@ -758,15 +796,13 @@ const ICO_SWAP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 const ICO_TICK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
 // line hourglass; the sand drains and it flips every `period` seconds (delay = seconds already gone, so a redraw doesn't restart it)
 const hourglass = (cls, size, delay) => `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="animation-delay:-${delay || 0}s"><path class="sandT" style="animation-delay:-${delay || 0}s" d="M8.6 5.2h6.8v.9L12 9.6 8.6 6.1z" fill="currentColor"/><path class="sandB" style="animation-delay:-${delay || 0}s" d="M8.6 20.5h6.8v-2.4L12 14.6l-3.4 3.5z" fill="currentColor"/><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-function curEx(){ const ex = active.exercises; if(active.cur != null && ex[active.cur]) return active.cur; return ex.findIndex(x => !x.ended); }
-function isOpenEx(i){ const c = curEx(), x = active.exercises[i], y = active.exercises[c]; return i === c || !!(x && y && x.ss && x.ss === y.ss); }
 
 // per-set extras (switched on in Exercise Settings): half reps, negatives, reps in reserve 0–5. Optional fields on the set, so old data needs no change.
 // 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
 function extrasHtml(s, j){ const G = gx(); if(!(gOn('half') || gOn('neg') || gOn('rir')) || s.type === 'W' || s.done) return '';
   // 0.7.10.4: half reps / negatives are buttons under the kg and reps columns; tapping one opens the scroll wheel (openSx). Same fields as before: s.hr, s.ng
   const num = (k, lbl, v, col) => `<div class="sxn" style="grid-column:${col}"><span>${lbl}</span><button type="button" class="sxb${v > 0 ? '' : ' zero'}" data-sxpick="${k}" aria-label="${lbl}">${v > 0 ? v : 0}</button></div>`;
-  return `<div class="setx${s.drop ? " drop" : ""}" data-sxrow="${j}">${gOn('half') ? num('hr', t('halfReps'), s.hr, 2) : ''}${gOn('neg') ? num('ng', t('negReps'), s.ng, 3) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
+  return `<div class="setx${s.drop ? " drop" : ""}" data-sxrow="${j}">${gOn('half') ? num('hr', t('sxHalf'), s.hr, 2) : ''}${gOn('neg') ? num('ng', t('sxNeg'), s.ng, 3) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
 
 // the 0–30 scroll wheel for half reps / negatives (the same .wheel as the shopping count wheel; its rows are 30 px)
 let SX = null;
@@ -779,20 +815,23 @@ function sxSave(){ if(!SX) return; const { s, k, v } = SX; if(v > 0) s[k] = v; e
 
 // the one Exercise Settings sheet (same for every exercise)
 function openExSet(){ drawExSet(); open('ovExSet'); }
-function drawExSet(){ const G = gx(), row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${gOn(k) ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${gOn(k)}" aria-label="${t(a)}"><i></i></button></div>`;
+// Refinements: Exercise Settings in four tabs. Social (ranks, leaderboards) · Buttons (the pills on the card) · Sets (one-tick sides, markers, half reps, negatives, reps in reserve) · Alerts (warnings, tips, sounds)
+let EXS_TAB = 'social';
+const EXS_TABS = [['social', 'exsTabSocial'], ['buttons', 'exsTabButtons'], ['sets', 'exsTabSets'], ['alerts', 'exsTabAlerts']];
+function drawExSet(){ const row = (k, a, b) => `<div class="exsrow"><div><b>${t(a)}</b><small>${t(b)}</small></div><button class="switch ${gOn(k) ? 'on' : ''}" data-gx="${k}" type="button" role="switch" aria-checked="${gOn(k)}" aria-label="${t(a)}"><i></i></button></div>`;
   const mk = [['W', t('mkW')], ['D', t('mkD')], ['F', t('mkF')]].map(([k, l]) => `<button type="button" class="mkopt${hideM(k) ? ' off' : ''}" data-hm="${k}" aria-pressed="${!hideM(k)}">${l}</button>`).join('');
-  $('exsBody').innerHTML = `<h3 class="exsh first">${t('exsVisH')}</h3>` + row('lbAtt', 'atTitle', 'atSub') + row('rank', 'exsRank', 'exsRankS') + row('warnSore', 'exsWarn', 'exsWarnS') + row('uniPill', 'exsUniPill', 'exsUniPillS') + row('formPill', 'exsFormPill', 'exsFormPillS') + row('swapPill', 'exsSwapPill', 'exsSwapPillS') + row('tips', 'exsTips', 'exsTipsS') +
-    `<h3 class="exsh">${t('exsExtH')}</h3>` + row('uniBoth', 'exsUni', 'exsUniS') +
-    `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}` + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS') + row('sound', 'exsSound', 'exsSoundS'); }
+  const marks = `<div class="exsrow mkrow"><button type="button" class="mkhead" data-hmopen aria-expanded="${EXS_MK}"><span><b>${t('exsMarks')}</b><small>${t('exsMarksS')}</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>${EXS_MK ? `<div class="mklist">${mk}</div>` : ''}`;
+  const tabs = $('exsTabs'); if(!tabs.querySelector('button')) tabs.innerHTML = EXS_TABS.map(([k, l]) => `<button type="button" data-exstab="${k}">${t(l)}</button>`).join('');
+  tabs.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.exstab === EXS_TAB));
+  $('exsBody').innerHTML = EXS_TAB === 'social' ? row('rank', 'exsRank', 'exsRankS') + row('lbAtt', 'atTitle', 'atSub')
+    : EXS_TAB === 'buttons' ? row('uniPill', 'exsUniPill', 'exsUniPillS') + row('formPill', 'exsFormPill', 'exsFormPillS') + row('swapPill', 'exsSwapPill', 'exsSwapPillS')
+    : EXS_TAB === 'sets' ? row('uniBoth', 'exsUni', 'exsUniS') + marks + row('half', 'halfReps', 'exsHalfS') + row('neg', 'negReps', 'exsNegS') + row('rir', 'exsRir', 'exsRirS')
+    : row('warnSore', 'exsWarn', 'exsWarnS') + row('tips', 'exsTips', 'exsTipsS') + row('sound', 'exsSound', 'exsSoundS'); }
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
-  if(!x.ended && !isOpenEx(i)){   // short card: tap to open (0.7.4.2: a finished exercise stays open with its sets)
-    const n = x.ended ? doneN : x.sets.filter(z => isMainSet(z) && !(z.auto && !z.done)).length;   // the waiting auto set doesn't count
-    return `<div class="exc mini ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}" data-openex${ssStyle}>${ssl}<div class="mtxt"><b>${esc(exName(ex))}</b><small>${ML(ex.h)} · ${EL(ex.e)} · ${t('nSets', { n })}</small></div>${fresh && gOn('swapPill') ? `<button class="swapq" data-replace aria-label="${t('swapEx')}">${ICO_SWAP.replace(/width="12" height="12"/, 'width="16" height="16"')}</button>` : ''}</div>`;
-  }
   const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || ex.e === 'barbell' || !gOn('uniPill') ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
@@ -817,13 +856,13 @@ function cardHtml(x, i){
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     const merge = gOn('uniBoth') && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = gOn('uniBoth') && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
-    const xtra = merge ? '' : (mate ? extrasHtml(x.sets[j - 1], j - 1) : '') + extrasHtml(s, j);
+    const xtra = extrasHtml(s, j);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
     return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
-  return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
+  return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${x.uni && gOn('uniBoth') ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
     ${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
@@ -1027,6 +1066,7 @@ function recBlock(ses, r, note){
     <p class="hint">${note}</p></div>`;
 }
 // moreRanks (0.7.10.2): rank changes beyond the 3 shown as Rank Up windows (rank-fx.js), listed here
+let SM_SES = null;
 function showSummary(ses, moreRanks){
   const tg = targetFor(ses.date), wins = carbWindows(ses.date), post = wins.find(w => w.k === 'winPost');
   $('smBody').innerHTML = `<h2>${t('smTitle')}</h2><p class="sub">${esc(ses.name)} · ${fmtDate(ses.start)}</p>
@@ -1035,7 +1075,9 @@ function showSummary(ses, moreRanks){
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
       : p.kind === 't' || p.kind === 'd' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.kind === 't' ? 'prTLine' : 'prDLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.v)} ${p.kind === 't' ? 'min' : 'km'}</b></li>` : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
     ${moreRanks && moreRanks.length ? `<h3><span class="ric">${svgIcon('medal', 16, 2)}</span>${esc(moreRanks.length === 1 ? t('rfxMore1') : t('rfxMore', { n: moreRanks.length }))}</h3><ul class="feed rfxmore">${moreRanks.map(c => `<li>${rankIcon(TIERS[Math.floor(c.to / 3)], c.to, 24)}<span>${esc(exName(c.exId))}: <b>${esc(tierName(c.to))}</b></span></li>`).join('')}</ul>` : ''}
-    ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}`;
+    ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}
+    ${!ses.tplId && ses.exercises.some(x => !isCardio(x.exId)) ? `<button type="button" class="btn smtpl" data-smtpl>${svgIcon('plus', 16, 2.4)} ${t('smSaveTpl')}</button>` : ''}`;
+  SM_SES = ses;
   if(ses.prs.length) celebrate();
   open('ovSummary');
   const r = ses.recov || estimateRecovery(ses); if(!Object.keys(r).length) return;
@@ -1120,14 +1162,14 @@ let SV = null;
 function askSaveTpl(ses){
   if(!ses || !ses.exercises.some(x => !isCardio(x.exId))) return; SV = ses;
   $('svName').value = ses.name && ses.name !== t('emptyWorkout') ? ses.name : typeLabel_(inferDayType(ses.exercises));
-  setTimeout(() => open('ovSaveTpl'), 350);
+  open('ovSaveTpl');
 }
 function saveSessionAsTpl(){
   if(!SV) return; const name = $('svName').value.trim() || typeLabel_(inferDayType(SV.exercises));
   const tpl = { id: uid(), name, type: inferDayType(SV.exercises),
     exercises: SV.exercises.map(x => ({ exId: x.exId, sets: x.sets.filter(isMainSet).length || 3, reps: x.reps, rest: x.rest, ...(x.ss ? { ss: x.ss } : {}), ...(x.uni ? { uni: true } : {}) })) };
   tpls.push(tpl); saveG('tpl'); SV.tplId = tpl.id; SV.name = name; saveG('ses'); SV = null;
-  close('ovSaveTpl'); renderAll(); toast(t('tplSavedT', { n: name }));
+  close('ovSaveTpl'); document.querySelectorAll('[data-smtpl]').forEach(b => b.remove()); renderAll(); toast(t('tplSavedT', { n: name }));
 }
 
 // ---------- 0.6.1: rest in 30 s steps (0:30 – 5:00); long press to drag a block up or down ----------
