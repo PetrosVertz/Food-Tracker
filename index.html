@@ -22,8 +22,11 @@
 // Home Screen app on iPhone: size everything to the real screen (the reported viewport can be shorter, leaving a black strip at the bottom). In Safari nothing changes.
 (function(){ var pwa = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); if(!pwa) return;
   var de = document.documentElement; de.classList.add('pwa');
-  // 0.7.10.7: with the Solid status bar the page starts below it, so the full screen height would be too tall: use the real viewport
-  function fit(){ var portrait = innerHeight >= innerWidth, h = portrait && !de.classList.contains('sbsolid') ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
+  // 0.7.10.7: with the Solid status bar the page starts below it, so the full screen height would be too tall: use the real viewport.
+  // But newer iPhones can ignore Solid and still draw the page under the clock (then the status-bar safe area is not 0): the viewport is short again, so use the full screen
+  // height, or the bottom bar and main button float ~60 px too high.
+  var probe; function underBar(){ try{ if(!probe){ probe = document.createElement('div'); probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; de.appendChild(probe); } return probe.offsetHeight > 0; }catch(e){ return true; } }
+  function fit(){ var portrait = innerHeight >= innerWidth, full = !de.classList.contains('sbsolid') || underBar(), h = portrait && full ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
   fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
