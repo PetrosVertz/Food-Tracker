@@ -355,14 +355,14 @@ function route(){
 //   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
 //   page: { area, views }  (Refinements #4) swiping the page sideways moves to the next or previous pill, like flipping photos:
 //   the section follows the finger 1:1 (shared drag helper), then slides out while the next one slides in. views() = what is showing.
-const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1;   // neighbours: opacity down to .4, scale down to .9
+const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1, CAR_TURN = 38, CAR_PERSP = 360;   // neighbours: opacity down to .4, scale down to .9, turned away CAR_TURN degrees like the side of a wheel
 function carFade(els){   // the content under the carousel: a light cross fade, never from blank
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   els.forEach(el => el && el.animate && el.animate(reduce ? [{ opacity: .6 }, { opacity: 1 }] : [{ opacity: .35, transform: 'translate3d(0,4px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: reduce ? 120 : 240, easing: 'cubic-bezier(.3,1.3,.6,1)' }));
 }
 // Endless (Refinements #4, Petros): the pills are drawn three times in a row and the row always rests on the middle copy; after it
 // settles on a copy to the left or right it jumps (unseen: same labels in the same places) back to the middle, so it never runs out.
-function swipePages(page, car, stepTo){
+function swipePages(page, car, stepTo, pills){
   const NO = 'input,textarea,select,button.stepper,.pcar,.swipebox [data-id],.swipebox .exc,.swipebox .tpcard,.mxr,[data-noswipe],svg.anat,.anatomy';
   let w = 0, vs = [];
   const sideScroll = t => { for(let e = t; e && e !== page.area; e = e.parentElement){ if(e.scrollWidth > e.clientWidth + 2){ const ox = getComputedStyle(e).overflowX; if(ox === 'auto' || ox === 'scroll') return true; } } return false; };
@@ -370,13 +370,14 @@ function swipePages(page, car, stepTo){
     item: e => car.classList.contains('hide') || document.querySelector('.overlay.open') || e.target.closest(NO) || sideScroll(e.target) ? null : page.area,
     start: () => { w = page.area.clientWidth || 360; vs = page.views(); vs.forEach(v => { v.getAnimations().forEach(a => a.cancel()); v.style.willChange = 'transform,opacity'; }); },
     move: s => { const tr = `translate3d(${s.dx.toFixed(1)}px,0,0)`, op = (1 - Math.min(.5, Math.abs(s.dx) / w * .6)).toFixed(3);
-      vs.forEach(v => { v.style.transform = tr; v.style.opacity = op; }); },
+      vs.forEach(v => { v.style.transform = tr; v.style.opacity = op; }); pills.drag(-s.dx / w); },
     end: (s, ok) => { const dx = s.dx, dir = dx < 0 ? 1 : -1, op0 = 1 - Math.min(.5, Math.abs(dx) / w * .6);
       const clear = v => { v.style.transform = ''; v.style.opacity = ''; v.style.willChange = ''; };
       const go = ok && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
-      if(!go){ vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
+      if(!go){ pills.back(); vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
+      pills.lead(dir);
       vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w * .6 }, { x: s.vx }, { k: 420, damp: 1, fill: 'forwards', op: [op0, 0] }); });
-      setTimeout(() => { const old = vs; if(!stepTo(dir)){ old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
+      setTimeout(() => { const old = vs; if(!stepTo(dir)){ pills.back(); old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
         old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
         page.views().forEach(v => springTo(v, { x: dir * w * .45 }, { x: 0 }, { x: s.vx }, { k: 300, op: [0, 1] })); }, 130); } });
 }
@@ -388,6 +389,15 @@ function pillCarousel(el, { items, onPick, page }){
   const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], itm = i => items[i % n];
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
+  // Petros: while the page under the pills is swiped, the pills turn with it like a wheel (the chosen label slides out of the highlight while
+  // the next slides in). off = how far the strip is pushed past its scroll spot (transform only, never scrollLeft while the finger moves).
+  let off = 0, offRaf = 0;
+  function dragOff(f){ if(!step) return; cancelAnimationFrame(offRaf); offRaf = 0; off = Math.max(-step, Math.min(step, f * step)); frame(); }
+  function slideOff(to, ms, done){ cancelAnimationFrame(offRaf); const from = off, t0 = performance.now();
+    if(reduce() || !step){ off = to; frame(); offRaf = 0; if(done) done(); return; }
+    const tick = now => { const p = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - p, 3); off = from + (to - from) * e; frame();
+      if(p < 1) offRaf = requestAnimationFrame(tick); else { offRaf = 0; if(done) done(); } };
+    offRaf = requestAnimationFrame(tick); }
   function measure(){   // only when labels or the width changed (never during a scroll)
     const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
     if(txt === labels && rw === w) return true;
@@ -397,9 +407,10 @@ function pillCarousel(el, { items, onPick, page }){
     el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
   }
   function frame(){ raf = 0; if(!step) return;
-    const x = row.scrollLeft, red = reduce();
-    btns.forEach((b, i) => { const a = Math.min(1, Math.abs(i * step - x) / step);
-      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)); });
+    const x = row.scrollLeft + off, red = reduce(), tx = off ? `translate3d(${(-off).toFixed(1)}px,0,0) ` : '';
+    btns.forEach((b, i) => { const d = Math.max(-1.5, Math.min(1.5, (i * step - x) / step)), a = Math.min(1, Math.abs(d));
+      b.style.transform = red ? tx : `${tx}perspective(${CAR_PERSP}px) rotateY(${(d * CAR_TURN).toFixed(1)}deg) scale(${(1 - CAR_SHRINK * a).toFixed(3)})`;
+      b.style.opacity = String((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)); });
     const k = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
     if(k !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = k; }   // a light tick each time a new pill reaches the middle
   }
@@ -420,8 +431,12 @@ function pillCarousel(el, { items, onPick, page }){
   function stepTo(dir){   // the next (1) or previous (-1) pill that can be chosen, round the loop; false if there is none
     if(cur < 0) return false; let i = cur;
     for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!itm(i).soon) break; }
-    if(i % n === cur % n) return false; mark(i); onPick(itm(i).key); centre(i, true); return true; }
-  if(page) swipePages(page, el, stepTo);
+    if(i % n === cur % n) return false;
+    const from = cur, pushed = off !== 0 || offRaf; mark(i); onPick(itm(i).key);
+    if(!pushed){ centre(i, true); return true; }
+    slideOff((i - from) * step, 240, () => { off = 0; jumping = true; near = i; row.scrollLeft = i * step; frame(); setTimeout(() => { jumping = false; wrap(); }, 60); });
+    return true; }
+  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260), lead: dir => slideOff(dir * step * .7, 130) });
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
   return {
     set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
