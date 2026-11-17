@@ -122,7 +122,7 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 60 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
