@@ -113,7 +113,8 @@ $('sesBody').addEventListener('click', e => {
     saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-ok]') && s){ tickSet(x, s, row, xi, +row.dataset.s); return; }
   if(e.target.closest('[data-addset]')){ if(!x.t0) x.t0 = Date.now(); if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
-  if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || (!z.auto && (z.w !== '' || z.r !== ''))); delete active.cur; saveG('act'); renderSession();
+  if(e.target.closest('[data-endex]')){ if(REST && REST.xi === xi){ REST = null; autoEndMark(0); }   // ending the exercise stops its rest timer
+    x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || (!z.auto && (z.w !== '' || z.r !== ''))); delete active.cur; saveG('act'); renderSession();
     const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => (next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')).scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); return; }
   if(e.target.closest('[data-reopen]')){ x.ended = false; x.t1 = null; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-rest]')){ const opts = [60, 90, 120, 150, 180, 240, 300]; x.rest = opts[(opts.indexOf(x.rest) + 1) % opts.length] || 90; saveG('act'); renderSession(); return; }
@@ -197,11 +198,11 @@ Reply in ${lang === 'el' ? 'Greek' : 'English'} for the "why". Return ONLY JSON:
 function gymDropEmpty(){ if(!active || active.exercises.length) return; if(active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); keepAwake(false); }
 
-$('sesDiscard').addEventListener('click', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;
+holdButton($('sesDiscard'), 1000, 'holdDiscard', async () => { if(!(await ask(t('discardQ2'), t('discardBtn'), t('keepBtn')))) return;   // hold, then still asked: a discard can't be undone
   if(active && active.dayBefore !== undefined){ if(active.dayBefore) days[active.date] = active.dayBefore; else delete days[active.date]; saveDays(); }   // the day goes back to how it was
   active = null; saveG('act'); REST = null; $('restBar').classList.add('hide'); close('ovSession'); renderAll(); });
 
-$('sesFinish').addEventListener('click', () => finishWorkout());
+holdButton($('sesFinish'), 800, 'holdEnd', () => finishWorkout());
 
 // save the workout. auto = true: ended by itself (no questions, no summary); 'asked': you answered Finish to "Finished Your Workout?".
 // Both end at your last logged set.

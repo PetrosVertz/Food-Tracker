@@ -574,3 +574,18 @@ body.inses .coachbub{display:none!important}
 .swipetip .swarr{animation:swBob 1.6s ease-in-out infinite}
 @keyframes swBob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
 @media(prefers-reduced-motion:reduce){.swipetip .swarr{animation:none}}
+/* where you are: small dots between the time and the Gym Coach */
+.dkdots{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:2px;padding:0 var(--s2)}
+.dkdot{width:14px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dkdot::before{content:"";width:6px;height:6px;border-radius:3px;background:var(--t-line);transition:width .25s cubic-bezier(.3,.7,.3,1),background .25s}
+.dkdot.done::before{background:color-mix(in srgb,var(--t-done) 70%,transparent)}
+.dkdot.on{width:24px}
+.dkdot.on::before{width:18px;background:var(--t-accent)}
+.dkcount{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);font-variant-numeric:tabular-nums}
+/* hold to end / discard: the fill sweeps left to right while you hold (transform only) */
+.holdbtn{position:relative;overflow:hidden;isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.hfill{position:absolute;inset:0;z-index:-1;display:block;transform:scaleX(0);transform-origin:left center;transition:transform .25s ease-out;pointer-events:none}
+.holdbtn.holding .hfill{transform:scaleX(1);transition:transform var(--hold,800ms) linear}
+.pillbtn.primary .hfill{background:color-mix(in srgb,var(--t-on) 24%,transparent)}
+.pillbtn.danger .hfill{background:color-mix(in srgb,var(--t-danger) 30%,transparent)}
+@media(prefers-reduced-motion:reduce){.holdbtn.holding .hfill{transition:transform var(--hold,800ms) steps(4)}}

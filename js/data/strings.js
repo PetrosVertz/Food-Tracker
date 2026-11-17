@@ -831,6 +831,7 @@ Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
   thBarNote: ['Takes effect the next time you open the app. If nothing changes, remove the icon and add it again.', 'Ισχύει την επόμενη φορά που θα ανοίξεις την εφαρμογή. Αν δεν αλλάξει τίποτα, αφαίρεσε το εικονίδιο και πρόσθεσέ το ξανά.'],
 });
 Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings tabs, Workout Done
+  holdEnd: ['Hold To End Workout', 'Κράτα Για Τέλος Προπόνησης'], holdDiscard: ['Hold To Discard', 'Κράτα Για Απόρριψη'],
   sxHalf: ['Half Reps', 'Μισές'], sxNeg: ['Negatives', 'Αρνητικές'],   // the short titles beside the circles on a set
   swipeAdd: ['Swipe To Add Exercise', 'Σύρε Για Νέα Άσκηση'], swipeNext: ['Swipe For Next Exercise', 'Σύρε Για Επόμενη Άσκηση'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
   exsTabSocial: ['Social', 'Κοινωνικά'], exsTabButtons: ['Buttons', 'Κουμπιά'], exsTabSets: ['Sets', 'Σετ'], exsTabAlerts: ['Alerts', 'Ειδοποιήσεις'],

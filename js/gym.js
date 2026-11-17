@@ -150,7 +150,22 @@ addEventListener('resize', () => { if(active) fitPages(); });
 function markPages(){ const body = $('sesBody'); if(!body) return; const top = body.getBoundingClientRect().top + PEEK + 24, cards = [...body.querySelectorAll(':scope>.exc')];
   let cur = 0; cards.forEach((c, i) => { if(c.getBoundingClientRect().top <= top) cur = i; });
   cards.forEach((c, i) => c.classList.toggle('after', i > cur));
-  const tip = $('sesTip').querySelector('span'), k = cur < cards.length - 1 ? 'swipeNext' : 'swipeAdd'; if(tip.dataset.t !== k){ tip.dataset.t = k; tip.textContent = t(k); } }
+  const tip = $('sesTip').querySelector('span'), k = cur < cards.length - 1 ? 'swipeNext' : 'swipeAdd'; if(tip.dataset.t !== k){ tip.dataset.t = k; tip.textContent = t(k); }
+  // where you are: one small dot per exercise in the bottom card (the one you're on is a longer accent pill, finished ones green); 13 or more = "3 / 14"
+  const dots = $('sesDots'), n = cards.length, ex = active ? active.exercises : [];
+  dots.innerHTML = n < 2 ? '' : n > 12 ? `<span class="dkcount">${cur + 1} / ${n}</span>` : cards.map((c, i) => `<button type="button" class="dkdot${i === cur ? ' on' : ''}${ex[+c.dataset.x] && ex[+c.dataset.x].ended ? ' done' : ''}" data-dot="${i}" aria-label="${i + 1} / ${n}"></button>`).join('');
+  body.dataset.cur = cur; return cur; }
+// press and hold (End Workout, Discard): a fill sweeps across the button and the action runs when it is full. Letting go early does nothing
+// (a quick tap shows how it works). Enter / Space still work for keyboards.
+function holdButton(btn, ms, hint, fn){
+  const fill = document.createElement('i'); fill.className = 'hfill'; fill.setAttribute('aria-hidden', 'true'); btn.prepend(fill); btn.classList.add('holdbtn'); btn.style.setProperty('--hold', ms + 'ms');
+  let tm = 0, t0 = 0;
+  const stop = () => { if(!tm) return; clearTimeout(tm); tm = 0; btn.classList.remove('holding'); if(Date.now() - t0 < ms * .5) toast(t(hint)); };
+  btn.addEventListener('pointerdown', e => { if(e.button > 0 || tm) return; t0 = Date.now(); btn.classList.add('holding'); Phone.haptic();
+    tm = setTimeout(() => { tm = 0; btn.classList.remove('holding'); Phone.haptic(); fn(); }, ms); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => btn.addEventListener(k, stop));
+  btn.addEventListener('click', e => { if(e.detail === 0) fn(); });
+  btn.addEventListener('contextmenu', e => e.preventDefault()); }
 // one tall tick spans both hands (and their extras) of a unilateral set: size it from the real rows after each draw
 function fitUniTicks(){ document.querySelectorAll('#sesBody .setrow.lmerge').forEach(row => { const ok = row.querySelector('.sok'); if(!ok) return;
   let last = row.nextElementSibling; while(last && !last.classList.contains('rmate')) last = last.nextElementSibling;   // the R row
