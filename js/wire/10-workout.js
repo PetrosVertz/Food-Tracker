@@ -12,18 +12,20 @@ $('blBody').addEventListener('click', e => {
 });
 
 // Refinements: swipe on past the last exercise and the exercise menu opens (the same as tapping Add Exercise). Closing it without a pick returns to the last exercise.
-{ const bd = $('sesBody'), pk = $('ovExPick'); let tm = 0, raf = 0, drag = false, pv = 0, atAdd = false, cool = 0, touching = false, base = 0;
+{ const bd = $('sesBody'), pk = $('ovExPick'); let tm = 0, raf = 0, drag = false, pv = 0, atAdd = false, cool = 0, touching = false, s0 = 0, armed = false;
   const onAdd = () => { const a = $('sesAddEx'); return !!(active && a.isConnected && active.exercises.length && a.getBoundingClientRect().top - bd.getBoundingClientRect().top <= PEEK + 24); };
-  // how far the last exercise has been pushed up (0 = resting, 1 = gone): the exercise menu rises from the bottom by the same amount, in the same frame (transform only)
   const lastTop = () => { const cards = bd.querySelectorAll(':scope>.exc'), last = cards[cards.length - 1]; return last ? [last.getBoundingClientRect().top - bd.getBoundingClientRect().top, last.offsetHeight] : null; };
-  const prog = () => { if(!active || !active.exercises.length) return 0; const m = lastTop(); if(!m) return 0; return Math.max(0, Math.min(1, (base - m[0]) / Math.max(120, m[1] * .7))); };
+  // progress = how far you are along the swipe from where the last exercise rested to the Add page at the top: the menu is 0 % at the start and fully up exactly when
+  // the Add page arrives, so the menu and the exercise moving up are one movement (no separate speed)
+  const prog = () => { if(!armed || !active || !active.exercises.length) return 0; const room = bd.scrollHeight - bd.clientHeight - s0; return room < 40 ? 0 : Math.max(0, Math.min(1, (bd.scrollTop - s0) / room)); };
   // only your own finger or wheel drives it (not the scroll the app does itself); where the last exercise rested when you started is "0"
-  const grab = () => { if(touching) return; touching = true; const m = lastTop(); base = m ? m[0] : 0; };
+  const grab = () => { if(touching) return; touching = true; s0 = bd.scrollTop; const m = lastTop(); armed = !!m && Math.abs(m[0] - PEEK) < 40; };   // only when you start on the last exercise
   ['touchstart', 'pointerdown', 'wheel'].forEach(k => bd.addEventListener(k, grab, { passive: true }));
   const frame = () => { raf = 0; if(pk.classList.contains('open') && !drag) return; if(!touching || (!drag && Date.now() < cool)) return; const p = prog();
     if(!drag && p > .02){ drag = true; pk.classList.remove('pkcancel'); pk.style.setProperty('--pkp', 0); pk.classList.add('pkdrag'); $('sesAddEx').click(); }
     if(drag){ pv = p; pk.style.setProperty('--pkp', p); } };
-  const settleDrag = () => { if(!drag) return; drag = false; const commit = pv >= .4;
+  const settleDrag = () => { if(!drag) return; drag = false; const commit = pv >= .5;   // the page snaps to the nearer end, so the menu does too
+   
     pk.classList.add('pksnap'); pk.style.setProperty('--pkp', commit ? 1 : 0);
     setTimeout(() => { pk.classList.remove('pksnap'); if(commit) return; cool = Date.now() + 1200; { const cs = bd.querySelectorAll(':scope>.exc'), l = cs[cs.length - 1]; if(l) l.scrollIntoView({ behavior: 'smooth', block: 'start' }); } pk.classList.add('pkcancel'); close('ovExPick'); }, 270); };   // pkcancel stays while it is closed (the next opening clears it)
   $('sesAddEx').addEventListener('click', () => { if(drag) return; pk.classList.remove('pkdrag', 'pkcancel', 'pksnap'); pk.style.removeProperty('--pkp'); }, true);
