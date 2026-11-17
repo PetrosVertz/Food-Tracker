@@ -565,7 +565,7 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody>.exc{transition:opacity .22s ease,transform .18s ease,box-shadow .18s}
 #ovSession #sesBody:not(.moving)>.exc.after{opacity:0;pointer-events:none}
 /* "Swipe To Add Exercise" / "Swipe For Next Exercise": one slim line resting on the bottom card (frosted behind it); the glow rises from behind the card */
-.swipetip{flex:0 0 auto;position:relative;height:34px;margin:-34px calc(-1 * var(--s4)) 0;padding:0 0 4px;display:flex;align-items:flex-end;justify-content:center;gap:4px;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
+.swipetip{flex:0 0 auto;position:relative;height:34px;margin:-34px calc(-1 * var(--s4)) 0;padding:0 0 4px;display:flex;align-items:flex-end;justify-content:center;gap:var(--s2);border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
   background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 60%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px);mask-image:linear-gradient(to bottom,transparent 0,#000 14px);
   color:#fff;font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);letter-spacing:.2px;line-height:16px}
