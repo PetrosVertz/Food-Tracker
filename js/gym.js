@@ -118,10 +118,14 @@ function startSession(tpl){
   const tk = todayKey(), di = dayInfo(tk); active.dayBefore = days[tk] ? { ...days[tk] } : null;
   days[tk] = { ...di, type: 'gym', work: workKind(active.type), time: profile.realStart || !di.time || di.type !== 'gym' ? fromMin(now.getHours() * 60 + now.getMinutes()) : di.time }; delete days[tk].guessed; saveDays();
   close('ovStart'); renderAll(); openSession();
-  if(!active.exercises.length) $('sesAddEx').click();   // an empty workout goes straight to the exercise list; picking one starts it
+  if(!active.exercises.length){ EMPTY_START = true; $('sesAddEx').click(); }   // an empty workout goes straight to the exercise list; picking one starts it
 }
+// backing out of that first exercise list: no workout is started, back to the Gym Hub with Start Workout
+let EMPTY_START = false;
+function gymEmptyBack(){ if(!EMPTY_START) return; EMPTY_START = false;
+  setTimeout(() => { if(!active || active.exercises.length) return; gymDropEmpty(); close('ovSession'); renderAll(); }, 0); }
 
-function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
+function openSession(){ if(!active) return; renderSession(); open('ovSession'); fitPages(); keepAwake(true); }   // fitPages after open: the window only has a height once it is showing
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
 function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }

@@ -588,3 +588,10 @@ body.inses .coachbub{display:none!important}
 .pillbtn.primary .hfill{background:color-mix(in srgb,var(--t-on) 24%,transparent)}
 .pillbtn.danger .hfill{background:color-mix(in srgb,var(--t-danger) 30%,transparent)}
 @media(prefers-reduced-motion:reduce){.holdbtn.holding .hfill{transition:transform var(--hold,800ms) steps(4)}}
+
+/* Swipe past the last exercise: the exercise menu rises from the bottom as the card goes up (js/wire/10-workout.js). Transform only, no blur. */
+#ovExPick.pkdrag:not(.closing){background:transparent!important;animation:none!important}
+#ovExPick.pkdrag:not(.closing)::before{animation:none!important;opacity:0}
+#ovExPick.pkdrag:not(.closing)>.sheet{animation:none!important;transform:translate3d(0,calc((1 - var(--pkp,1)) * 100%),0);will-change:transform}
+#ovExPick.pkdrag.pksnap>.sheet{transition:transform .26s cubic-bezier(.2,.9,.25,1)}
+#ovExPick.pkcancel{display:none!important}
