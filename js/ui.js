@@ -74,11 +74,11 @@ function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}
 // 0.7.9.2: the icon on the selected-tab marker uses whichever of the theme's text-on-accent, white or near-black reads best (≥ 4.5:1) on the accent
 const lumHex = c => { const f = v => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; return .2126 * f(parseInt(c.slice(1, 3), 16)) + .7152 * f(parseInt(c.slice(3, 5), 16)) + .0722 * f(parseInt(c.slice(5, 7), 16)); };
 const contrastHex = (a, b) => { const x = lumHex(a), y = lumHex(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
-function bestOn(acc, pref){ return [pref, '#0f1113', '#ffffff'].reduce((best, c) => contrastHex(acc, c) > contrastHex(acc, best) + .01 ? c : best, pref); }
+function bestOn(acc){ return contrastHex(acc, '#000000') >= contrastHex(acc, '#ffffff') ? '#000000' : '#ffffff'; }   // letters on a coloured button: pure black or pure white, whichever reads better
 function applyTheme(){
   const { p, look } = themeNow(), L = look === 'light', mono = p[0] === 'mono', r = document.documentElement, set = (k, v) => r.style.setProperty(k, v);
   r.setAttribute('data-theme', look);
-  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-knob-on', bestOn(L ? p[4] : p[2], L ? p[5] : p[3])); set('--t-accent-ink', L ? p[6] : p[2]);
+  set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-knob-on', bestOn(L ? p[4] : p[2])); set('--t-accent-ink', L ? p[6] : p[2]);
   set('--t-toast-act', L ? (mono ? '#ffffff' : p[2]) : p[6]);              // toast is near-black in Light (bright accent), near-white in Dark (dark ink)
   set('--t-mp-text', mono ? (L ? '#ffffff' : '#0a0a0b') : p[2]);                 // the main pill keeps the bright accent (on black in Light)
   set('--t-mp-stroke', !L && !mono ? '2.4px #0b0d0f' : '0');
