@@ -15,8 +15,8 @@ $('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fse
 const FOOD_CAR = pillCarousel($('fTabs'), {
   items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
     { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
-  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route();
-    carFade(['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide'))); }
+  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
+  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide')) }
 });
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
