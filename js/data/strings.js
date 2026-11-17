@@ -832,6 +832,6 @@ Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
 });
 Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings tabs, Workout Done
   sxHalf: ['Half Reps', 'Μισές'], sxNeg: ['Negatives', 'Αρνητικές'],   // the short titles beside the circles on a set
-  swipeAdd: ['Swipe To Add', 'Σύρε Για Προσθήκη'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
+  swipeAdd: ['Swipe To Add', 'Σύρε Για Προσθήκη'], swipeNext: ['Swipe For Next', 'Σύρε Για Επόμενη'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
   exsTabSocial: ['Social', 'Κοινωνικά'], exsTabButtons: ['Buttons', 'Κουμπιά'], exsTabSets: ['Sets', 'Σετ'], exsTabAlerts: ['Alerts', 'Ειδοποιήσεις'],
 });

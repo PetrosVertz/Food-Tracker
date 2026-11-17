@@ -92,9 +92,8 @@ body.sorting{overscroll-behavior:none}
 @keyframes fillup{0%{transform:scaleY(0)}95%,100%{transform:scaleY(1)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @keyframes drawIn{from{stroke-dashoffset:-100}to{stroke-dashoffset:0}}
-.hg,.hg5{flex-shrink:0;color:inherit}
+.hg{flex-shrink:0;color:inherit}
 .hg{animation:flip 30s ease-in-out infinite} .hg .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 30s linear infinite} .hg .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 30s linear infinite}
-.hg5{animation:flip 300s ease-in-out infinite} .hg5 .sandT{transform-box:fill-box;transform-origin:50% 100%;animation:drain 300s linear infinite} .hg5 .sandB{transform-box:fill-box;transform-origin:50% 100%;animation:fillup 300s linear infinite}
 
 /* header: centred title (no back arrow, 0.7.10.5) · 28 px italic clock + hourglass (flips every 5 min) */
 .seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr;align-items:center;padding:calc(var(--s2) + env(safe-area-inset-top) + var(--topgap)) 48px var(--s2);margin-bottom:var(--s2);background:var(--t-bg)}   /* 0.7.9.5: the bar owns the safe-area strip, so it is solid above scrolling sets */
@@ -108,7 +107,7 @@ body:has(#ovCoach.open) .sescoach{visibility:hidden}
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)} .sthead h2{margin:0;min-width:0} .sthead .sescoach{margin-right:-8px;flex:0 0 auto}
 body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesClock{font-size:34px;line-height:1.1;font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
-#sesHg{display:flex}
+#sesWatch{display:flex;color:var(--t-clock)}
 
 /* cards */
 #sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
@@ -527,14 +526,15 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
 /* the bottom card */
 .sesdock{flex:0 0 auto;position:relative;z-index:3;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s2);margin:var(--s1) 0 max(12px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.dkrow1{display:flex;align-items:center;justify-content:space-between;min-height:56px}
+.dkrow1{display:flex;align-items:center;justify-content:space-between;min-height:64px}
 .dkrow1 .wclock{padding-left:var(--s2)}
 .sesdock #sesClock{font-size:34px}
 .dkrow2{display:flex;align-items:center;gap:var(--s3)}
 .dkrow2 .pillbtn{height:46px;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
 .dkrow2 .pillbtn.danger{flex:0 0 96px}
 .dkrow2 .pillbtn.primary{flex:1 1 0}
-.dkrow1 .sescoach{position:relative;flex:0 0 60px;width:60px;height:60px;min-height:0;margin:-4px -2px -4px 0;justify-self:auto}
+.dkrow1 .sescoach{position:relative;flex:0 0 60px;width:60px;height:60px;min-height:0;margin:0 var(--s1) 0 0;justify-self:auto;overflow:visible}
+.dkrow1 .sescoach svg.robot{display:block;margin-top:-10px}   /* the drawing has the antenna above the head: lift it so the head sits in the middle */
 /* the Gym Coach cheers when a set is finished (transform + opacity only) */
 .sescoach::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
 @keyframes ccHop{0%{transform:none}16%{transform:translateY(2px) scale(1.08,.9)}42%{transform:translateY(-12px) rotate(-9deg) scale(.96,1.06)}64%{transform:translateY(-3px) rotate(7deg)}82%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
@@ -561,8 +561,23 @@ body.inses .coachbub{display:none!important}
 #ovExSet #exsBody{min-height:300px}
 .smtpl{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin-top:var(--s3)}
 
-/* "Swipe To Add" tip between the cards and the bottom card: small glow, arrow bobs (transform only) */
-.swipetip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:0;margin:0 auto;padding:var(--s1) var(--s4) 0;border:0;background:none;color:var(--t-accent-ink,var(--t-accent));font:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer;-webkit-tap-highlight-color:transparent;text-shadow:0 0 10px color-mix(in srgb,var(--t-accent) 55%,transparent)}
-.swipetip .swarr{margin-top:-2px;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--t-accent) 60%,transparent));animation:swBob 1.6s ease-in-out infinite}
+/* the cards below the one you are on show only while you swipe */
+#ovSession #sesBody>.exc{transition:opacity .22s ease,transform .18s ease,box-shadow .18s}
+#ovSession #sesBody:not(.moving)>.exc.after{opacity:0;pointer-events:none}
+/* the chronograph stopwatch beside the workout time: the hand sweeps once a minute */
+.wclock{gap:var(--s2)}
+.swatch .swhand{transform-box:view-box;transform-origin:12px 14px;animation:swSweep 60s linear infinite}
+.swatch.still .swhand{animation-play-state:paused}
+@keyframes swSweep{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.swatch .swhand{animation:none}}
+/* "Swipe To Add" / "Swipe For Next": a frosted strip over the bottom of the pages, a soft theme-colour glow behind the words */
+.swipetip{flex:0 0 auto;position:relative;z-index:2;height:64px;margin:-64px calc(-1 * var(--s4)) 0;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px);mask-image:linear-gradient(to bottom,transparent 0,#000 22px);
+  color:#fff;font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);letter-spacing:.2px}
+.swipetip::before{content:"";position:absolute;left:50%;top:56%;width:170px;height:46px;margin:-23px 0 0 -85px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--t-accent) 42%,transparent),transparent);pointer-events:none}
+.swipetip span,.swipetip .swarr{position:relative}
+.swipetip .swarr{margin-top:-1px;animation:swBob 1.6s ease-in-out infinite}
+:root[data-theme="light"] .swipetip{color:var(--t-text)}
 @keyframes swBob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 @media(prefers-reduced-motion:reduce){.swipetip .swarr{animation:none}}
