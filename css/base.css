@@ -178,7 +178,7 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .rc{flex:0 0 auto;padding:var(--s2) 9px;border-radius:9px;border:1px solid #6b3f12;background:#2a1a08;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer}
 .rc.ck{border-color:#1f4060;background:#0e1d2c;color:var(--p)}
 .ipick.vague{border-color:#6b3f12} .ipick small{display:block;font-size:11px;color:var(--orange)}
-.kcal{color:var(--kc)} .m.fi b{color:var(--fi)} .m.kc b{color:var(--kc)}
+.kcal{color:var(--t-text,var(--text))} .m.fi b{color:var(--fi)} .m.kc b{color:var(--t-text,var(--text))}   /* Refinements #4: kcal numbers are plain black / white everywhere */
 .mrow.fi .mbar i{background:var(--fi)} .mrow:not(.p):not(.c):not(.f):not(.fi) .mbar i{background:var(--kc)}
 .elec{margin-top:10px;padding-top:var(--s2);border-top:1px dashed var(--line);cursor:pointer}
 .macroline{display:flex;gap:var(--s3);align-items:baseline;flex-wrap:wrap;margin:6px 0 10px;font-size:15px}

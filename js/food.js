@@ -46,19 +46,21 @@ function render(){
     .filter(f => ui.cat === 'all' || (f.cat || 'none') === ui.cat)
     .filter(f => !tokens.length || Search.matches(q, f))
     .sort(ui.sort === 'recent' ? (a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'') : (a,b) => norm(foodName(a)).localeCompare(norm(foodName(b))) || norm(a.brand).localeCompare(norm(b.brand)));
-  $('count').textContent = foods.length ? (items.length === 1 ? t('nFood') : t('nFoods', { n: items.length })) : '';
   if(!foods.length){ $('list').innerHTML = `<div class="empty">${t('noFoods')}</div>`; return; }
   if(!items.length){ $('list').innerHTML = `<div class="empty">${q ? t('nothingMatches', { q: esc($('search').value) }) : t('nothingHere')}</div>`; return; }
   const cardOf = f => {
     const pt = portion(f), x = pt.amt / 100;
     const sc = v => (v === null || v === undefined || isNaN(v)) ? null : v * x;
-    return `<div class="card" data-id="${f.id}" style="position:relative">
+    // Refinements #4 (change 9): the name is the hero; a bigger category icon with the brand quietly beside it (no "No Brand" label);
+    // kcal in the plain text colour; P, C, F in their macro colours (fibre stays in the food's details); basis and fridge stock as muted text
+    const brand = !f.noBrand && f.brand ? `<span class="fbrand">${esc(f.brand)}</span>` : '';
+    return `<div class="card frow" data-id="${f.id}" style="position:relative">
       <div class="body">
-        <div class="row"><div class="brand">${esc(f.noBrand ? t('noBrand') : (f.brand || '—'))}</div><div class="kcalcol"><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div>${stockBadge(f)}</div></div>
-        <div class="name">${catIcon(f.cat)}${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
-        <div class="row" style="margin-top:2px">
-          <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span>${f.fiber != null ? `<span class="m fi">Fi <b>${fmt(sc(f.fiber))}</b></span>` : ''}</div>
-          <span class="chip ${f.state==='uncooked'?'raw':f.state==='cooked'?'cooked':''}">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
+        <div class="row frhead"><span class="fric">${catIcon(f.cat, 24)}${brand}</span><div class="kcalcol"><div class="kcal">${f.kcal == null ? '–' : Math.round(f.kcal * x)} <small>kcal</small></div>${stockBadge(f)}</div></div>
+        <div class="name">${esc(foodName(f))}${f.checked ? ` <span class="fchk" title="${t('chkTick')}" aria-label="${t('chkTick')}">${svgIcon('check', 10, 3.4)}</span>` : ''}</div>
+        <div class="row frfoot">
+          <div class="macros"><span class="m p">P <b>${fmt(sc(f.protein))}</b></span><span class="m c">C <b>${fmt(sc(f.carbs))}</b></span><span class="m f">F <b>${fmt(sc(f.fat))}</b></span></div>
+          <span class="fbasis">${pt.label}${pt.size ? ' · ' + pt.size : ''}${f.state !== 'ready' ? ' · ' + t(STATE_KEY[f.state]).toLowerCase() : ''}</span>
         </div>
       </div></div>`;
   };
