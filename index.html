@@ -60,7 +60,7 @@
     <div class="list" id="list"></div>
   </div>
   <div id="mealsView" class="hide">
-    <div class="recTop"><button class="btn recBtn" id="recSuggestBtn" type="button"><span class="recFace" aria-hidden="true"></span><span data-t="cookSuggest"></span></button><button class="btn recBtn" id="recQuickBtn" type="button"><span class="recFace" aria-hidden="true"></span><span data-t="foodsQrOpt"></span></button></div>
+    <div class="recOpts" id="recOpts"><button class="opt bigopt" id="cookSuggestBtn" type="button"><span class="recFace" aria-hidden="true"></span><span><b data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookQuickBtn" type="button"><span class="recFace" aria-hidden="true"></span><span><b data-t="foodsQrOpt"></b><small data-t="foodsQrOptSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn" type="button"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button></div>
     <div class="logfX"><input class="search" id="mSearch" type="search" data-tp="searchMeals" autocomplete="off"></div>
     <div class="bar"><span id="mCount"></span></div>
     <div class="list" id="mList"></div>
@@ -473,11 +473,6 @@
 </div></div>
 
 <!-- ============ COOK A MEAL ============ -->
-<div class="overlay" id="ovCookPick"><div class="sheet">
-  <h2 data-t="cookMeal"></h2>
-  <div id="cookPickOpts"><button class="opt bigopt" id="cookSuggestBtn"><span><b class="aiafter" data-t="cookSuggest"></b><small data-t="cookSuggestSub"></small></span></button><button class="opt bigopt" id="cookOwnBtn"><span><b data-t="cookOwn"></b><small data-t="cookOwnSub"></small></span></button>
-  <button class="opt bigopt" id="cookQuickBtn"><span><b class="aiafter" data-t="foodsQrOpt"></b><small data-t="foodsQrOptSub"></small></span></button></div>
-</div></div>
 <div class="overlay" id="ovCook"><div class="sheet tall">
   <h2 id="cookTitle"></h2>
   <div id="useUp"></div>

@@ -21,13 +21,12 @@ const FOOD_CAR = pillCarousel($('fTabs'), {
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
-  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
+  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop');
   else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
-// Recipes view: Suggest a Recipe and Quick Recipe sit at the top, each with the chef robot face on the left
-document.querySelectorAll('.recFace').forEach(f => { f.innerHTML = AI.robot('chef', 24); });
-$('recSuggestBtn').addEventListener('click', () => $('cookSuggestBtn').click());
-$('recQuickBtn').addEventListener('click', () => $('cookQuickBtn').click());
+// Refinements #4 (change 22A): Recipes shows its three options stacked: Suggest a Recipe and Quick Recipe (the Food Coach chef face
+// on the left, no AI badge), then My Own Recipe. They replace the Cook a Meal button and its choice window.
+document.querySelectorAll('.recFace').forEach(f => { f.innerHTML = AI.robot('chef', 34); });
 $('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ shopCamera(); return; } pendingBarcode = null; startScan(); });
 
 

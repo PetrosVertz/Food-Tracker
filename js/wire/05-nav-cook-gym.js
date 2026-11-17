@@ -33,11 +33,11 @@ const fibTarget = tg => { const k = tg ? tg.k : 2500, cut = targets && targets.g
 
 $('dTotals').addEventListener('click', e => { if(e.target.closest('[data-elec]')){ ui.elecMg = !ui.elecMg; saveUI(); renderToday(); } });
 
-$('cookSuggestBtn').addEventListener('click', () => { close('ovCookPick'); $('cName').value = ''; SG.time = null; openSuggest(); setSeg('#sgTime', ''); $('sgLeft').textContent = t('sgAdult'); setTimeout(() => $('sgIn').focus(), 150); });
+$('cookSuggestBtn').addEventListener('click', () => { $('cName').value = ''; SG.time = null; openSuggest(); setSeg('#sgTime', ''); $('sgLeft').textContent = t('sgAdult'); setTimeout(() => $('sgIn').focus(), 150); });
 
-$('cookOwnBtn').addEventListener('click', () => { close('ovCookPick'); openCook(null, 'new'); setTimeout(() => $('cName').focus(), 150); });
+$('cookOwnBtn').addEventListener('click', () => { openCook(null, 'new'); setTimeout(() => $('cName').focus(), 150); });
 
-$('cookQuickBtn').addEventListener('click', () => { close('ovCookPick'); open('ovQRec'); setTimeout(() => $('foodsQrIn').focus(), 150); });
+$('cookQuickBtn').addEventListener('click', () => { open('ovQRec'); setTimeout(() => $('foodsQrIn').focus(), 150); });
 $('foodsQrGo').addEventListener('click', foodsQuickRecipe);
 
 $('pasteBtn').addEventListener('click', () => $('ownBtn').click());

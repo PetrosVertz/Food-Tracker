@@ -79,7 +79,6 @@ body{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
 /* 0.6.1 · AI loader, cook picker, own recipe quick add */
 @keyframes aiSpin{to{transform:rotate(360deg)}}
 #cookStart{display:none!important}
-#cookPickOpts .bigopt{width:100%;margin-top:10px}
 #recipeBox .actions,#pasteBtn{display:none!important}
 #cWeighLink{display:block;margin:14px 0 var(--s1);color:var(--muted)}
 #sgIn{width:100%;margin-top:var(--s2)}
@@ -330,8 +329,9 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .toast{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 150px)!important;width:min(calc(100vw - 32px),440px);padding:7px var(--s2) 7px 18px;justify-content:space-between;white-space:normal;text-align:left;line-height:1.3;min-height:38px}   /* 0.7.2: wide and slim, above the main button (Log Food / Start Workout), never on it */
 .toast:has(#toastAct.hide){justify-content:center;text-align:center;padding-right:18px}
 .toast button{flex:0 0 auto;padding:6px var(--s3);border-radius:999px}
-.recTop{display:flex;gap:10px;margin:0 0 10px}
-.recBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:10px 8px;font-size:14px;white-space:normal;line-height:1.15}
+.recOpts{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}   /* Refinements #4: Suggest, Quick, My Own stacked */
+.recOpts .opt{margin:0}
+.recOpts .opt small{display:block;color:var(--muted);font-size:13px;margin-top:2px;line-height:1.3}
 .recFace{display:inline-flex;flex:0 0 auto}
 /* Refinements #4: the Food Library hub. Store Bought (main) + My Meals (smaller, Coming Soon) on one row, Recipes and Supplements full width. Same tiles as the Gym Buddy hub */
 .fhub{grid-template-columns:1.55fr 1fr;margin-top:12px}

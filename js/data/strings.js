@@ -93,7 +93,7 @@ const S = {
  unsetIng:['Choose a food for every ingredient (orange ones)','Διάλεξε τρόφιμο για κάθε υλικό (τα πορτοκαλί)'], needGrams:['Some ingredients have no amount','Κάποια υλικά δεν έχουν ποσότητα'],
  potNegative:['The empty pot weighs more than the full one, check the numbers','Η άδεια κατσαρόλα ζυγίζει περισσότερο από τη γεμάτη, έλεγξε τους αριθμούς'],
  mealSaved:['Saved {n}','Αποθηκεύτηκε: {n}'], deleteMeal:['Delete “{n}”?','Διαγραφή «{n}»;'],
- noMeals:['<b>No meals yet</b>Tap “Cook a meal” the next time you cook.','<b>Δεν έχεις φαγητά ακόμα</b>Πάτα «Μαγείρεψε» την επόμενη φορά που μαγειρεύεις.'],
+ noMeals:['<b>No meals yet</b>Pick one of the options above the next time you cook.','<b>Δεν έχεις φαγητά ακόμα</b>Διάλεξε μία από τις επιλογές πάνω την επόμενη φορά που μαγειρεύεις.'],
  recipeBadge:['recipe','συνταγή'], per100cooked:['per 100 g cooked','ανά 100 g μαγειρεμένο'],
  chooseIngredient:['Choose ingredient','Διάλεξε υλικό'], ingSearchPh:['Type a food, e.g. minced beef','Γράψε τρόφιμο, π.χ. κιμάς'],
  grpMine:['My foods','Τα τρόφιμά μου'], grpStd:['Standard foods','Βασικά τρόφιμα'], grpOnline:['Online · Open Food Facts','Online · Open Food Facts'],
@@ -548,7 +548,7 @@ Object.assign(S, {
   logAAmount: ['Amount', 'Ποσότητα'], logAScan: ['Scan a barcode', 'Σάρωση barcode'], logATrack: ['Food Library', 'Βιβλιοθήκη Τροφίμων'],
   // ==== end log ====
   // ==== branch: foods (new My Foods & Search text goes on the lines below) ====
-  cookFab: ['Cook a Meal', 'Μαγείρεψε'], cookSuggest: ['Suggest a Recipe', 'Πρότεινέ μου συνταγή'], cookOwn: ['My Own Recipe', 'Δική μου συνταγή'],
+  cookSuggest: ['Suggest a Recipe', 'Πρότεινέ μου συνταγή'], cookOwn: ['My Own Recipe', 'Δική μου συνταγή'],
   foodsQrOpt: ['Quick Recipe', 'Γρήγορη συνταγή'], foodsQrOptSub: ['Type it, the chef builds the meal', 'Γράψ’ την, ο σεφ φτιάχνει το φαγητό'],
   foodsQrT: ['Quick Recipe', 'Γρήγορη συνταγή'], foodsQrGo: ['Build Meal', 'Φτιάξε το φαγητό'],
   foodsQrPh: ['e.g. 500 g chicken, 300 g rice, 2 tbsp olive oil, 1 onion, 3 portions', 'π.χ. 500 g κοτόπουλο, 300 g ρύζι, 2 κ.σ. ελαιόλαδο, 1 κρεμμύδι, 3 μερίδες'],
@@ -609,7 +609,7 @@ function titleCase(str){
   'tMeals', 'tScan', 'tSupps', 'tToday', 'tabFood', 'tabFridge', 'tabGym', 'tabMeals', 'tabStore', 'tabToday', 'targetsT', 'testKey', 'typeIt',
   'uncooked', 'upper', 'useRecipe', 'useUpT', 'usuals', 'wArms', 'wBack', 'wCardio', 'wChest', 'wCore', 'wFull', 'wGlutes', 'wLegs', 'wLower',
   'wPull', 'wPush', 'wShoulders', 'wUpper', 'weighOne', 'whereKept', 'whole', 'wiSave', 'wiT', 'winEvening', 'winMidday', 'winMorning', 'winPost',
-  'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'planMyDay', 'logFab', 'fridgeFab', 'cookFab', 'addFoodFab',
+  'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'planMyDay', 'logFab', 'fridgeFab', 'addFoodFab',
   'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'endEx', 'newSet', 'addYesterday',
   'createWorkout', 'mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking', 'startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes', 'yourBody',
   'recalcYes', 'recalcNo', 'tabSupps', 'scanFoodFab', 'scanReceipt', 'allFoods'

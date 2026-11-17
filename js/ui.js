@@ -333,10 +333,9 @@ function route(){
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  { const fl = page === 'today' ? t('logFab') : tab === 'meals' ? t('cookFab') : page === 'fridge' ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  fab.classList.toggle('hide', (page === 'foods' && tab === 'meals' && !fhub) || page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
-  if(tab === 'meals') fab.innerHTML = `${svgIcon('pot', 20, 2.1)}<span>${esc(t('cookFab'))}</span>`;
   fab.dataset.action = tab === 'meals' ? 'meals' : ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }

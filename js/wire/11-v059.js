@@ -55,12 +55,7 @@ function aiWait(){}   // the AI works in a bubble in the corner (see below), so 
     aiWait(true, () => ctl.abort());
     try{ return await g0(prompt, img, onTry, ctl.signal); } finally{ aiWait(false); } }; }
 
-// ---------- 0.6.1: Cook a meal = two choices, each in its own window ----------
-['cookSuggestBtn', 'cookOwnBtn'].forEach(id => $('cookPickOpts').appendChild($(id)));
-$('ovCookPick').addEventListener('click', e => { if(e.target === $('ovCookPick')) close('ovCookPick'); });
-$('fab').addEventListener('click', e => { if($('fab').dataset.action === 'meals'){ e.stopImmediatePropagation(); open('ovCookPick'); } }, true);
-$('cookSuggestBtn').addEventListener('click', e => { e.stopImmediatePropagation(); close('ovCookPick'); $('cName').value = ''; SG.time = null; openSuggest(); setSeg('#sgTime', ''); $('sgLeft').textContent = t('sgAdult'); setTimeout(() => $('sgIn').focus(), 150); }, true);
-$('cookOwnBtn').addEventListener('click', e => { e.stopImmediatePropagation(); close('ovCookPick'); openCook(null, 'new'); setTimeout(() => $('cName').focus(), 150); }, true);
+// Refinements #4 (change 22A): the cook options sit in the Recipes section itself (wire/02 and wire/05); no Cook a Meal step
 { const oc = openCook; openCook = function(...a){ const r = oc.apply(this, a); cookStep(true); return r; }; }
 $('rYes').addEventListener('click', () => { if(!$('ovCook').classList.contains('open') && pendingRecipe){ const r = pendingRecipe; openCook(null, 'new'); if(r.title) $('cName').value = r.title; } }, true);
 $('sgIn').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); e.stopImmediatePropagation(); $('sgGo').click(); } }, true);
