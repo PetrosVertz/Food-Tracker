@@ -15,11 +15,11 @@ $('suppAddBtn').addEventListener('click', () => openSupp(null));
 // 0.7.2: no more pulling past the end of a page to change tabs; the bottom bar does it
 
 // ---------- targets: linked macro sliders, fibre suggestion ----------
-$('ovTargets').addEventListener('input', e => { const r = e.target.closest('.mxr'); if(r){ moveMx(r.dataset.p, r.dataset.k, +r.value); return; }
+$('tgBox').addEventListener('input', e => { const r = e.target.closest('.mxr'); if(r){ moveMx(r.dataset.p, r.dataset.k, +r.value); return; }
   const id = e.target.id || ''; const m = id.match(/^tg([GR])([kpcf])$/); if(!m) return;
   if(m[2] === 'k'){ if(MX[m[1]]){ mxKeepLock(m[1]); drawMx(m[1], true); } } else { MX[m[1]] = mxFromGrams(m[1]); drawMx(m[1], false); }
   if(m[2] === 'k') drawFibSug(); });
-$('ovTargets').addEventListener('click', e => {
+$('tgBox').addEventListener('click', e => {
   if(e.target.closest('#fibUse')){ $('tgFib').value = fibSuggest(); return; }
   if(e.target.closest('#tgGoal button') || e.target.closest('#tgCalc,[data-calc]') || /calc/i.test(e.target.id || '')) setTimeout(() => { ['G', 'R'].forEach(P => { if($('mx' + P)){ MX[P] = mxFromGrams(P); drawMx(P, false); } }); drawFibSug(); }, 0);
 });

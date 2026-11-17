@@ -485,12 +485,15 @@ function weightTrend(){
   return { perWeek: slope * 7, days: Math.round(span), last: rec[rec.length - 1][1], pts: rec.map(p => p[1]) };
 }
 
-function openTargets(){
+// Refinements 20B: the Daily Targets live open on Settings › Body and Goals. fillTargets() fills them (fillSettings calls it);
+// openTargets() (Today's Food shortcuts) opens that page on top of the current one, scrolled to the targets
+function openTargets(){ fillSettings(); open('ovSBody'); requestAnimationFrame(() => $('tgBox').scrollIntoView({ block: 'start' })); }
+function fillTargets(){
   const tg = targets || { goal: 'bulk', bw: '', gym: {}, rest: {} };
   setSeg('#tgGoal', tg.goal || 'bulk'); TG.goal = tg.goal || 'bulk'; $('tgBw').value = latestWeight() || tg.bw || ''; $('tgFib').value = '';
   $('tgCalcHint').textContent = $('tgBw').value ? t('calcFrom', { w: fmt(+$('tgBw').value) }) : t('calcNeedW');
   [['G', tg.gym || {}], ['R', tg.rest || {}]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x] ?? ''));
-  tgCheck(); open('ovTargets');
+  tgCheck();
   initMacroSliders();
   const lk = (targets && targets.lock) || {};   // padlocks are remembered
   ['G', 'R'].forEach(P => { MXL[P] = lk[P] || null; MXLG[P] = MXL[P] ? +$('tg' + P + MXL[P]).value || 0 : 0; }); drawLocks();

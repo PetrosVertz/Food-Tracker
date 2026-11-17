@@ -204,7 +204,7 @@ $('lScan').addEventListener('click', () => { close('ovLog'); startScan('log'); }
 document.querySelectorAll('#tgGoal button').forEach(b => b.addEventListener('click', () => { TG.goal = b.dataset.v; setSeg('#tgGoal', TG.goal); }));
 
 $('tgCalc').addEventListener('click', () => {
-  const bw = num('tgBw'); if(!(bw > 30)){ toast(t('calcNeedW')); close('ovTargets'); go('gym-prog'); return; }   // Calculate uses your latest weigh-in (Gym → Progress)
+  const bw = num('tgBw'); if(!(bw > 30)){ toast(t('calcNeedW')); close('ovSBody'); go('gym-prog'); return; }   // Calculate uses your latest weigh-in (Gym → Progress)
   const ct = calcTargets(bw, TG.goal), g = ct.gym, r = ct.rest;   // 0.6.2: uses sex + height when known
   [['G', g], ['R', r]].forEach(([p, o]) => ['k', 'p', 'c', 'f'].forEach(x => $('tg' + p + x).value = o[x])); tgCheck();
 });
@@ -215,7 +215,7 @@ $('tgSave').addEventListener('click', () => {
   const rd = p => { const o = {}; ['k', 'p', 'c', 'f'].forEach(x => o[x] = num('tg' + p + x)); if(!o.k && o.p !== null && o.c !== null && o.f !== null) o.k = Math.round(o.p * 4 + o.c * 4 + o.f * 9); return o; };
   targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null, lock: { G: MXL.G, R: MXL.R } };
   if(!targets.rest.k) targets.rest = { ...targets.gym };
-  Store.save('targets', targets); close('ovTargets'); renderAll(); toast(t('targetsSaved'));
+  Store.save('targets', targets); renderAll(); toast(t('targetsSaved'));   // 20B: the targets sit on Body and Goals: Save keeps you there, like the body Save
 });
 
 $('planShow').addEventListener('click', e => {
@@ -277,9 +277,9 @@ $('advSw').addEventListener('change', () => { const b = $('advBody'); b.classLis
 makeSwipeDelete($('dLog'), '.card[data-eid]', c => delEntry(c.dataset.eid));
 makeSwipeDelete($('planShow'), '.card[data-pi]', c => planDrop(+c.dataset.pi));   // 0.7.4.3: swipe a Fill My Macros suggestion away
 // Daily Targets: padlocks
-$('ovTargets').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
+$('tgBox').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
   MXL[P] = MXL[P] === k ? null : k; MXLG[P] = +$('tg' + P + k).value || 0; drawLocks(); });
-$('ovTargets').addEventListener('input', e => { const id = e.target.id || '', m = id.match(/^tg([GR])([pcf])$/); if(m && MXL[m[1]] === m[2]) MXLG[m[1]] = +e.target.value || 0; });
+$('tgBox').addEventListener('input', e => { const id = e.target.id || '', m = id.match(/^tg([GR])([pcf])$/); if(m && MXL[m[1]] === m[2]) MXLG[m[1]] = +e.target.value || 0; });
 // Fridge: no Fridge/Freezer tabs; "Frozen" is a switch when adding, frozen things show ❄️
 ui.floc = 'all';
 $('faFrozen').addEventListener('change', () => { const b = $('faLoc').querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); });
