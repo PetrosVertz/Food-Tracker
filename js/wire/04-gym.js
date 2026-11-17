@@ -207,6 +207,7 @@ holdButton($('sesFinish'), 800, 'holdEnd', () => finishWorkout());
 // save the workout. auto = true: ended by itself (no questions, no summary); 'asked': you answered Finish to "Finished Your Workout?".
 // Both end at your last logged set.
 async function finishWorkout(auto){
+  if(!auto) active.exercises.forEach(x => x.sets.forEach(s => { if(!s.done && s.w !== '' && s.r !== ''){ s.done = true; s.at = Date.now(); if(!x.t0) x.t0 = s.at; } }));   // kilograms and reps typed but not ticked: counts as done
   const doneSets = active.exercises.flatMap(x => x.sets.filter(s => s.done));
   if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
   const end = auto ? new Date(lastSetAt()) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
