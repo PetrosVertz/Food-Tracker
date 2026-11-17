@@ -15,6 +15,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/data/strings.js` | Every text in English + Greek |
 | `js/data/foods.js`, `js/data/foods-more.js`, `js/data/gym.js` | Built-in foods (700, incl. ~370 cooked foods and dishes added in 0.6.7) / exercises, muscles, equipment |
 | `js/core.js` | Helpers: text, food records, fetch with timeout, Claude export |
+| `js/draft.js` | **Draft memory (Refinements)**: a window keeps what you typed for 3 minutes after it closes (`DRAFT_MS`); `Draft.put / get / clear` for other features (hub memory). Device only, never in backups |
 | `js/ui.js` | Line icons (`ICON`, `svgIcon`, `BACK_SVG`), sliding pills (one knob per selector follows `.on`), themes (`THEMES`, `applyTheme`), navigation, tabs, sheets (open/close), setup, settings, backup, swipe-to-delete |
 | `js/coach.js` | **Coach chat (0.7.4.3)**: the one chat window Food Coach and Gym Coach share (`Coach.setup` / `Coach.open`), its robot bubble, the coach pills beside the main button |
 | `js/food.js` | Food Track: food list, food form, barcode, cooking, meals |
@@ -33,7 +34,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `sw.js` | Offline cache (bump `CACHE` and list new files when adding any) |
 
 ## Rules
-- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow (this device only).
+- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow, aiUsage, drafts (this device only).
 - Changing the shape of saved data: raise `SCHEMA` in store.js and add a migration (it also upgrades old backups in `upgradeBackup`).
 - The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads, and set the iPhone status bar style from the theme's Status Bar choice (`ui.theme.bar`, 0.7.10.7). Nothing else may.
 - Phone APIs only through `Phone.*`; AI only through `gemini()` / `AI.*`.

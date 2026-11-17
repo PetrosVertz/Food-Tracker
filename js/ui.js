@@ -431,7 +431,7 @@ function fixNum(inp){
 
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovCoach' && was) Coach.closed();
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); if(was) Draft.closed(id); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovCoach' && was) Coach.closed();
   // body.ovopen stays on until the 200 ms close animation ends, so a sliding-out sheet never passes under the title bar
   const sync = () => document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open,.overlay.closing'));
   stripSync();
@@ -451,7 +451,7 @@ function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) retur
 
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; if(!el.classList.contains('open')) Draft.opened(id); el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }
