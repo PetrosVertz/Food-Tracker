@@ -22,7 +22,7 @@ $('qaName').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventD
 $('dExtrasBody').addEventListener('click', e => { if(e.target.closest('[data-elec]')){ ui.elecMg = !ui.elecMg; saveUI(); renderToday(); } });
 
 // Daily Targets: Calculate uses your latest weigh-in (Gym → Progress)
-$('tgCalc').addEventListener('click', e => { if(num('tgBw') > 30) return; e.stopImmediatePropagation(); toast(t('calcNeedW')); close('ovTargets'); go('gym-prog'); }, true);
+$('tgCalc').addEventListener('click', e => { if(num('tgBw') > 30) return; e.stopImmediatePropagation(); toast(t('calcNeedW')); close('ovSBody'); go('gym-prog'); }, true);
 
 // ---------- 0.6.0: Progress folds, weight chart Day / Week / Month ----------
 $('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if(!b) return; PG.open[b.dataset.pg] = !PG.open[b.dataset.pg]; renderProgress(); });
@@ -168,12 +168,12 @@ function mxKeepLock(P){ const L = MXL[P], k = +$('tg' + P + 'k').value || 0; if(
     const m = MX[P], third = ['p', 'c', 'f'].find(x => x !== key && x !== L); v = Math.max(5, Math.min(100 - m[L] - 5, v)); m[key] = v; m[third] = 100 - m[L] - v; drawMx(P, true); }; }
 function drawLocks(){ ['G', 'R'].forEach(P => { const box = $('mx' + P); if(!box) return; box.querySelectorAll('[data-lock]').forEach(b => { const on = MXL[P] === b.dataset.lock; b.textContent = on ? '🔒' : '🔓'; b.classList.toggle('on', on); });
   box.querySelectorAll('.mxr').forEach(r => { r.disabled = MXL[P] === r.dataset.k; }); }); }
-$('ovTargets').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
+$('tgBox').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
   MXL[P] = MXL[P] === k ? null : k; MXLG[P] = +$('tg' + P + k).value || 0; drawLocks(); });
 { const ot = openTargets; openTargets = function(...a){ const r = ot.apply(this, a); const lk = (targets && targets.lock) || {};
     ['G', 'R'].forEach(P => { MXL[P] = lk[P] || null; MXLG[P] = MXL[P] ? +$('tg' + P + MXL[P]).value || 0 : 0; }); drawLocks(); return r; }; }
 $('tgSave').addEventListener('click', () => setTimeout(() => { if(targets){ targets.lock = { G: MXL.G, R: MXL.R }; store(TGKEY, targets); } }, 0));
-$('ovTargets').addEventListener('input', e => { const id = e.target.id || '', m = id.match(/^tg([GR])([pcf])$/); if(m && MXL[m[1]] === m[2]) MXLG[m[1]] = +e.target.value || 0; });
+$('tgBox').addEventListener('input', e => { const id = e.target.id || '', m = id.match(/^tg([GR])([pcf])$/); if(m && MXL[m[1]] === m[2]) MXLG[m[1]] = +e.target.value || 0; });
 
 // Settings → Your Body: sex, height, weight; offers to recalculate targets
 { const os = openSettings; openSettings = function(...a){ const r = os.apply(this, a); setSeg('#sSex', ui.sex || ''); $('sH').value = ui.height || ''; $('sW').value = latestWeight() || (targets && targets.bw) || ''; return r; }; }
@@ -184,7 +184,7 @@ $('sBodySave').addEventListener('click', async () => {
   if(w > 30 && w < 300){ weights[todayKey()] = w; store(WKEY, weights); if(targets){ targets.bw = w; store(TGKEY, targets); } }
   renderAll(); toast(t('bodySaved'));
   const bw = w > 30 ? w : latestWeight() || (targets && targets.bw);
-  if(bw && await ask(t('recalcQ'), t('recalcYes'), t('recalcNo'))){ const tg = calcTargets(bw, (targets && targets.goal) || 'bulk'); targets = { ...(targets || {}), ...tg }; store(TGKEY, targets); renderAll(); toast(t('targetsSaved')); }
+  if(bw && await ask(t('recalcQ'), t('recalcYes'), t('recalcNo'))){ const tg = calcTargets(bw, (targets && targets.goal) || 'bulk'); targets = { ...(targets || {}), ...tg }; store(TGKEY, targets); renderAll(); fillTargets(); toast(t('targetsSaved')); }   // 20B: the new numbers show in the targets on this page
 });
 
 // ---------- 0.6.3.1 ----------
@@ -196,7 +196,7 @@ $('fab').addEventListener('click', e => { if($('fab').dataset.action === 'gymlib
 { const mv = moveMx; moveMx = function(P, key, v){ const L = MXL[P];
     if(L && L === key){ MXL[P] = null; mv(P, key, v); MXL[P] = L; const k = +$('tg' + P + 'k').value || 0; MXLG[P] = k ? Math.round(k * MX[P][L] / 100 / MXK[L]) : 0; return; }
     return mv(P, key, v); }; }
-{ const dl = drawLocks; drawLocks = function(){ dl(); document.querySelectorAll('#ovTargets .mxr').forEach(r => { r.disabled = false; }); }; }
+{ const dl = drawLocks; drawLocks = function(){ dl(); document.querySelectorAll('#tgBox .mxr').forEach(r => { r.disabled = false; }); }; }
 
 // Supplements: name + dose only; a Take button logs the time (change it if you took it earlier); take it again later the same day
 const takesOf = (d, id) => ((suppLog[d] || {}).takes || {})[id] || [];

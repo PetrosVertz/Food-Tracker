@@ -160,9 +160,8 @@ header .left h1,header>h1{position:absolute;left:0;right:0;top:0;bottom:0;margin
 h1,h2{letter-spacing:-.3px;font-weight:750} h3{letter-spacing:-.1px}
 .kcnum,.pct,.kcal,.mrow b,.wthead b,.mxrow b{font-variant-numeric:tabular-nums}
 .btn{border-radius:14px;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s,box-shadow .18s}
-.btn.primary{box-shadow:0 6px 20px color-mix(in srgb,var(--t-accent) 18%,transparent)}
 .overlay.open .sheet{animation-duration:.34s!important;animation-timing-function:cubic-bezier(.16,1,.3,1)!important}
-.sheet{box-shadow:0 -4px 16px rgba(0,0,0,.28)}   /* 0.7.9.2: a small shadow is cheap to carry while a window is pulled down */
+.sheet{box-shadow:0 -4px 16px rgba(0,0,0,.28)}   /* 0.7.9.2: a small shadow is cheap to carry while a window slides */
 input,textarea,select{transition:border-color .18s,box-shadow .18s}
 input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--t-accent) 16%,transparent)}
 .foldb,.catbody,.pgsub,#cantScan{animation:rowIn .26s cubic-bezier(.2,.9,.25,1)}

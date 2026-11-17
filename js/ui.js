@@ -204,7 +204,25 @@ function goBack(){
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
+  if(HUB_TABS.includes(tab)) return TAB_ROOT[tab];   // the hub rule: a hub tab always opens on its hub
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
+
+// ---------- Refinements: the hub rule, one rule for every tab that opens on a hub (change 7) ----------
+// 1. Leaving a hub tab and coming back lands on the hub (tabTarget above). 2. Pressing a tab from inside a section goes to that
+// tab's hub (the bottom bar, wire/09). 3. Leaving the app inside a section and coming back within the draft time (Draft, js/draft.js,
+// the same 3 minutes as the windows) shows the same section at the same scroll place; later, the hub. The timer starts on leaving.
+const HUB_TABS = ['gym'];   // tabs whose main page is a hub of sections (the Food Library joins in Refinements #4)
+const hubSec = h => { const tab = tabOf(h); return HUB_TABS.includes(tab) && h !== TAB_ROOT[tab]; };
+function hubLeave(){   // the app is going to the background or closing
+  const h = location.hash.slice(1), pg = document.querySelector('section.page:not(.hide)');
+  if(hubSec(h)) Draft.put('hub', { h, y: pg ? Math.round(pg.scrollTop) : 0 }); else Draft.clear('hub'); }
+function hubReturn(){   // back from the background: past the draft time, a section goes back to its hub (not under an open window)
+  const h = location.hash.slice(1); if(!hubSec(h) || Draft.get('hub') || document.querySelector('.overlay.open')) return;
+  NAV = [TAB_ROOT[tabOf(h)]]; NAVI = 0; history.replaceState(null, '', '#' + TAB_ROOT[tabOf(h)]); route(); }
+function hubBoot(){   // a fresh start: within the draft time, open the section that was left, at the same place
+  const d = Draft.get('hub'); if(!d || !hubSec(d.h)) return;
+  history.replaceState(null, '', '#' + d.h); NAV = [TAB_ROOT[tabOf(d.h)], d.h]; NAVI = 1;
+  if(d.y) setTimeout(() => { const pg = document.querySelector('section.page:not(.hide)'); if(pg && location.hash.slice(1) === d.h) pg.scrollTop = d.y; }, 80); }
 // ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
 // 0.7.9.1: copies of the old pills drop out of view together (so their text never changes mid-way), then the new pills rise
 // together as one unit: same curve, same time, no stagger, no overshoot (~300 ms down, ~350 ms up with a soft settle).
@@ -264,16 +282,16 @@ function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pill
 // and slides in 28 px; what its edge uncovers is the plain page colour, never the old page. 320 ms, the same ease as the bottom bar's circle.
 // Reduce Motion = a plain swap. A tap during the motion is remembered and played right after, so the circle and the page stay in step.
 const TAB_EASE = 'cubic-bezier(.45,0,.2,1)', TAB_MS = 320;
-function switchTab(dir, toTab){
+function switchTab(dir, toTab, to){   // to: open this page of the tab instead of its usual one
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur) return;
   if(SWITCHING){ switchTab.next = tab; return; }
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!pg || !pg.animate || reduce){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
+  if(!pg || !pg.animate || reduce){ const tg = to || tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   SWITCHING = true; switchTab.next = null; pillSwap();
-  const target = tabTarget(tab); let np = null, finished = false, tm = 0;
+  const target = to || tabTarget(tab); let np = null, finished = false, tm = 0;
   const done = () => { if(finished) return; finished = true; clearTimeout(tm); removeEventListener('hashchange', run);
     document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew')); SWITCHING = false;
     const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
@@ -319,6 +337,60 @@ function route(){
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
+}
+
+// ---------- Refinements: the rotating pill carousel on top of a hub's sections (like the iPhone camera mode picker) ----------
+// One shared component (Gym Buddy now, the Food Library next). The chosen pill always sits in the middle under a still highlight
+// (the .mpill knob look); the row is a native scroll-snap strip, so swiping or tapping glides another pill into the middle.
+// All pills are as wide as the longest label (measured when labels or the width change, never while moving), so every pill's
+// place is known in advance and a frame only reads scrollLeft and writes transform + opacity. A disabled pill (Coming Soon)
+// can be seen but never chosen. Reduce Motion: instant jumps, no scaling.
+//   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true? }], onPick: key => … })
+//   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
+const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1;   // neighbours: opacity down to .4, scale down to .9
+function carFade(els){   // the content under the carousel: a light cross fade, never from blank
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  els.forEach(el => el && el.animate && el.animate(reduce ? [{ opacity: .6 }, { opacity: 1 }] : [{ opacity: .35, transform: 'translate3d(0,4px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: reduce ? 120 : 240, easing: 'cubic-bezier(.3,1.3,.6,1)' }));
+}
+function pillCarousel(el, { items, onPick }){
+  el.classList.add('pcar'); el.setAttribute('role', 'tablist');
+  el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${items.map((it, i) =>
+    `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}><b></b>${it.soon ? '<small></small>' : ''}</button>`).join('')}<i class="pcsp"></i></div>`;
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')];
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
+  function measure(){   // only when labels or the width changed (never during a scroll)
+    const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
+    if(txt === labels && rw === w) return true;
+    labels = txt; w = rw;
+    btns.forEach((b, i) => { b.querySelector('b').textContent = items[i].label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
+    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
+    el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
+  }
+  function frame(){ raf = 0; if(!step) return;
+    const x = row.scrollLeft, red = reduce();
+    btns.forEach((b, i) => { const a = Math.min(1, Math.abs(i * step - x) / step);
+      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (items[i].soon ? .5 : 1)); });
+    const n = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
+    if(n !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = n; }   // a light tick each time a new pill reaches the middle
+  }
+  function mark(i){ cur = i; btns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', String(j === i)); }); }
+  function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
+  function pick(i){ if(i < 0 || items[i].soon) { centre(cur, true); return; }
+    if(i === cur) return; mark(i); onPick(items[i].key); }
+  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); }
+  row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
+  row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
+  row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
+    if(items[i].soon){ Phone.haptic(); return; }
+    if(i === cur) return; Phone.haptic(); mark(i); onPick(items[i].key); centre(i, true); });
+  if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
+  return {
+    set(key){ const i = items.findIndex(it => it.key === key); if(i < 0 || !measure()) { if(i >= 0) mark(i); return; }
+      if(i === cur && gliding) return;   // a tap's glide is still on its way there
+      if(i !== cur) mark(i);
+      if(Math.abs(row.scrollLeft - i * step) > 1){ jumping = true; near = i; centre(i, false); setTimeout(() => { jumping = false; }, 60); } else frame(); }
+  };
 }
 
 // ---------- Food Preferences (setup step + Settings): allergies and foods you don't eat, saved in profile.foodPrefs (optional field) ----------
@@ -431,7 +503,7 @@ function fixNum(inp){
 
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovCoach' && was) Coach.closed();
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); if(was) Draft.closed(id); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovCoach' && was) Coach.closed();
   // body.ovopen stays on until the 200 ms close animation ends, so a sliding-out sheet never passes under the title bar
   const sync = () => document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open,.overlay.closing'));
   stripSync();
@@ -440,7 +512,7 @@ function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const wa
 
 // 0.7.10.7: the solid strip under the clock (body::before, theme.css) matches what is under it: the page, the page dimmed behind a floating window, or a full-screen window
 function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')].sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0)).pop();
-  const full = top && (top.matches('#ovTargets,#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
+  const full = top && (top.matches('#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
   document.body.dataset.strip = !top ? '' : !full ? 'dim' : top.id === 'ovWkQR' ? 'paper' : ''; }
 
 // 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still
@@ -451,7 +523,7 @@ function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) retur
 
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; if(!el.classList.contains('open')) Draft.opened(id); el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }
@@ -464,7 +536,7 @@ function open(id){
 // 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
 function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
-  setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); }
+  setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); fillTargets(); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
   if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
 
@@ -541,7 +613,7 @@ function makeSwipeDelete(box, itemSel, onDelete, opts){
 }
 
 // ---------- 0.7.9.1: ONE drag helper for everything you move with a finger ----------
-// Robot bubbles + the trash circle (AI.drag), swipe-to-delete rows (makeSwipeDelete), sheets pulled down to close (sheetDrag),
+// Robot bubbles + the trash circle (AI.drag), swipe-to-delete rows (makeSwipeDelete),
 // reordering exercise cards (makeSortable), the profile photo crop. Pointer events with pointer capture; the finger's position is
 // only stored on pointermove and drawn once per frame (requestAnimationFrame); layout is read at the start, never during the move.
 // A drag that has been claimed blocks the page's scroll (non-passive touchmove), so iPhone never takes it over half-way.
@@ -603,25 +675,4 @@ function springTo(el, from, to, v, o){
   keys[keys.length - 1].offset = 1;
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return el.animate([keys[keys.length - 1], keys[keys.length - 1]], { duration: 1, fill: o.fill || 'none' });
   return el.animate(keys, { duration: T * 1000, easing: 'linear', fill: o.fill || 'none' });
-}
-// ---------- windows: pull a floating or bottom window down to close it (only from the top of its scroll, never the full-screen pages) ----------
-const SHEET_NODRAG = '#ovCoach,#ovSession,#ovSetup,#ovAsk,#ovScan,#ovLang';
-function sheetDrag(ov){
-  const sh = ov.querySelector(':scope>.sheet'); if(!sh || ov.matches(SHEET_NODRAG)) return;
-  const atTop = t => { for(let n = t; n && n !== ov; n = n.parentElement){ if(n.scrollTop > 0) return false; } return true; };
-  let h = 0, scrim = null;
-  dragger(sh, { axis: 'y',
-    item: e => matchMedia('(max-width: 699px)').matches && !sh.matches('.setpage,.formpage,.themepage') && sh.offsetHeight < innerHeight - 40   // floating and bottom windows, not full-screen pages
-      && !e.target.closest('input,textarea,select,button,.stepper,.wheel,.hscroll,[data-nodrag],.swipebox,.sortbox,canvas,.phcirc') && atTop(e.target) ? sh : null,
-    claim: (dx, dy) => dy > 0,
-    start: () => { h = sh.offsetHeight; sh.style.transition = 'none'; scrim = ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, fill: 'both', pseudoElement: '::before' }); scrim.pause(); },
-    move: s => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120); sh.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`; if(scrim) scrim.currentTime = Math.min(1, Math.max(0, y / h)) * 1000; },   // the dim fades on its own layer
-    end: (s, ok) => { const y = s.dy >= 0 ? s.dy : rubber(s.dy, 120), p = Math.min(1, Math.max(0, y / h)), sc = scrim; scrim = null; sh.style.transform = '';
-      const fade = (from, to, ms) => { const f = ov.animate([{ opacity: from }, { opacity: to }], { duration: ms, easing: 'ease-out', fill: 'forwards', pseudoElement: '::before' }); if(sc) sc.cancel(); return f; };
-      if(ok && (y > h * .28 || (s.vy > .5 && y > 30))){   // far enough or flicked: it carries on down; the window really closes only once it is out of sight (nothing else redraws meanwhile)
-        const a = springTo(sh, { y }, { y: h + 40 }, { y: Math.max(s.vy, .8) }, { k: 200, damp: 1, fill: 'forwards' }), f = fade(1 - p, 0, 260); Phone.haptic();
-        const fin = () => { close(ov.id); setTimeout(() => { a.cancel(); f.cancel(); sh.style.transition = ''; }, 260); };
-        a.finished.then(fin, fin); return; }
-      const f = fade(1 - p, 1, 260), back = springTo(sh, { y }, { y: 0 }, { y: s.vy });
-      back.finished.then(() => { sh.style.transition = ''; f.cancel(); }, () => { f.cancel(); }); } });
 }

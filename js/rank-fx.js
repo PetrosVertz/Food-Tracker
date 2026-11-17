@@ -56,7 +56,7 @@ const RankFx = (() => {
     timers.push(setTimeout(() => { ov.classList.add('rc-' + kind); }, W));
     if(c.kind !== 'down') timers.push(setTimeout(() => Phone.haptic(), W + ({ up: 900, first: 450, reduce: 400 })[kind])); }
   function stop(){ timers.forEach(clearTimeout); timers = []; }
-  // one window; resolves once it has closed (Nice / Got It, a tap outside, or pulled down)
+  // one window; resolves once it has closed (Nice / Got It, or a tap outside)
   function show(c){ return new Promise(res => { const ov = $('ovRankFx'); stop(); draw(c); open('ovRankFx'); animate(c);
     const mo = new MutationObserver(() => { if(ov.classList.contains('open')) return; mo.disconnect(); stop(); setTimeout(res, 260); });   // 260: the close animation ends before the next one opens
     mo.observe(ov, { attributes: true, attributeFilter: ['class'] }); }); }

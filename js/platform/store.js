@@ -25,6 +25,7 @@ const Store = (() => {
     logPhr: ['ft.logphr.v1', 'map', 1],   // 0.7.1 Quick Log: typed phrase → food, so repeats need no AI matching
     foodFix: ['ft.foodfix.v1', 'map', 1],   // Athlete OS step 3: Food Coach corrections you made (food words → your portion), so the AI learns your portions
     aiKnow: ['ft.aiknow.v1', 'one', 0],   // 0.7.9 what the AI has learned from your logs (js/know.js); this device only, rebuilt daily
+    drafts: ['ft.drafts.v1', 'one', 0],   // Refinements: what you typed in a window, kept 3 minutes after it closes (js/draft.js); this device only, never in backups
     aiUsage: ['ft.aiusage.v1', 'one', 0],   // Athlete OS step 1: AI request counts, tokens and timings (js/platform/ai-usage.js); this device only, no message text
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],
   };

@@ -4,7 +4,7 @@
   --p:#5ab0ff; --c:#ffb547; --f:#ff6b8b; --danger:#ff5c5c; --r:14px;
 }
 *{box-sizing:border-box}
-/* 0.7.9.1: no scroll bars anywhere (pages, windows, lists, chat, pickers): it should feel like an app. Scrolling, momentum and pull-to-close still work */
+/* 0.7.9.1: no scroll bars anywhere (pages, windows, lists, chat, pickers): it should feel like an app. Scrolling and momentum still work */
 html,*{scrollbar-width:none} *::-webkit-scrollbar{display:none;width:0;height:0}
 html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 body{padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}

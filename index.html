@@ -111,7 +111,7 @@
       <button class="tile" data-sec="gym-week"><span class="e hubic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></span><span><b data-t="hubWeek"></b><small data-t="hubWeekSub"></small></span></button>
     </div>
   </div>
-  <div class="mpill hide" id="gTabs" style="margin:4px 0 16px"><button data-sec="gym-lib" data-t="gtLib"></button><button data-sec="gym-prog" data-t="gtProgress"></button><button data-sec="gym-week" data-t="gtPlanner"></button></div>
+  <div class="hide" id="gTabs"></div>
   <div id="gPlanV"></div>
   <div id="gTplV" class="hide"></div>
   <div class="hide" id="gWeigh"><h3 class="sect" style="margin-top:4px"><span data-t="wtTitle"></span></h3><div class="wtcard" id="gWChart"></div>
@@ -254,7 +254,29 @@
 <div class="overlay" id="ovSBody"><div class="sheet tall setpage"><h2 data-t="stBody"></h2><div class="bodybox"><h3 data-t="yourBody"></h3>
     <div class="seg" id="sSex"><button data-v="m" data-t="suMale"></button><button data-v="f" data-t="suFemale"></button></div>
     <div class="grid" style="margin-top:8px"><div><label for="sH" data-t="suHeight"></label><input id="sH" type="number" inputmode="numeric" placeholder="cm"></div><div><label for="sW" data-t="bodyweight"></label><input id="sW" type="number" inputmode="decimal" step="any" placeholder="kg"></div></div>
-    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div><div class="pgroup" style="margin-top:16px"><button class="prow" type="button" id="sTargetsBtn"><span data-t="dailyTargets"></span><span class="sv"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div></div></div>
+    <button class="btn" id="sBodySave" style="width:100%;margin-top:10px" data-t="save"></button></div>
+  <!-- Refinements 20B: Daily Targets sit open on this page (they were a separate window, ovTargets) -->
+  <div class="bodybox tgbox" id="tgBox">
+  <h3 data-t="targetsT"></h3>
+  <p class="hint" data-t="targetsSub"></p>
+  <label data-t="goal"></label>
+  <div class="seg" id="tgGoal"><button data-v="bulk" data-t="gBulk"></button><button data-v="recomp" data-t="gRecomp"></button><button data-v="cut" data-t="gCut"></button></div>
+  <input id="tgBw" type="hidden"><input id="tgFib" type="hidden">
+  <div class="actions" style="margin-top:10px"><button class="btn" id="tgCalc" data-t="calcStart"></button></div>
+  <div class="hint" id="tgCalcHint"></div>
+  <h3><span data-t="gymDayTargets"></span> <button class="ibtn" type="button" data-tip="tipMacroSl" data-ta="logAInfo" aria-label="Info"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/></svg></button></h3>
+  <div class="grid4">
+    <div><label>kcal</label><input id="tgGk" type="number" inputmode="numeric"></div><div><label data-t="protein"></label><input id="tgGp" type="number" inputmode="numeric"></div>
+    <div><label data-t="carbs"></label><input id="tgGc" type="number" inputmode="numeric"></div><div><label data-t="fat"></label><input id="tgGf" type="number" inputmode="numeric"></div>
+  </div>
+  <h3 data-t="restDayTargets"></h3>
+  <div class="grid4">
+    <div><label>kcal</label><input id="tgRk" type="number" inputmode="numeric"></div><div><label data-t="protein"></label><input id="tgRp" type="number" inputmode="numeric"></div>
+    <div><label data-t="carbs"></label><input id="tgRc" type="number" inputmode="numeric"></div><div><label data-t="fat"></label><input id="tgRf" type="number" inputmode="numeric"></div>
+  </div>
+  <div class="hint" id="tgCheck"></div>
+  <button class="btn primary" id="tgSave" style="width:100%;margin-top:10px" data-t="save"></button>
+</div></div></div>
 <div class="overlay" id="ovSProfile"><div class="sheet tall setpage"><h2 data-t="stProfile"></h2><div class="phwrap"><div class="phcirc" id="phCirc"></div><p class="hint hide" id="phHint" data-t="phDrag"></p></div><div class="actions" id="phBtns"><button class="btn" id="phCam" type="button"></button><button class="btn" id="phLib" type="button"></button></div><div class="actions hide" id="phCropBtns"><button class="btn" id="phCancel" type="button" data-t="cancel"></button><button class="btn primary" id="phUse" type="button" data-t="phUse"></button></div><button class="linkbtn hide" id="phDel" type="button" data-t="phRemove"></button><label for="phName" data-t="phName"></label><input id="phName" autocomplete="off" maxlength="40" data-tp="phNamePh"><p class="hint" data-t="phNameSub"></p></div></div>
 <div class="overlay" id="ovSFood"><div class="sheet tall setpage"><h2 data-t="stFoodPrefs"></h2><div id="sFoodBody"></div><div class="actions"><button class="btn primary" id="sFoodSave" data-t="save"></button></div></div></div>
 <div class="overlay" id="ovSAI"><div class="sheet tall setpage"><h2 data-t="stAI"></h2><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><label data-t="aiKnowT"></label><p class="hint" data-t="aiKnowSub"></p><div class="actions"><button class="btn danger" id="aiKnowReset" data-t="aiKnowReset"></button></div><label data-t="aiuT"></label><p class="hint" data-t="aiuSub"></p><div id="aiUsage"></div><div class="actions"><button class="btn danger" id="aiuReset" data-t="aiuReset"></button></div></div></div>
@@ -623,7 +645,6 @@
 
 <!-- ============ TAKEN → SWAP ============ -->
 <div class="overlay" id="ovRank"><div class="sheet tall">
-  <span class="grab" aria-hidden="true"></span>
   <h2 data-t="rkTitle"></h2>
   <div class="hint" data-t="rkSub"></div>
   <input class="search" id="rkSearch" type="search" data-tp="rkSearch" autocomplete="off">
@@ -632,7 +653,6 @@
   <div class="actions"><button class="btn" id="rkReset" type="button" data-t="rkReset"></button><button class="btn primary" data-close data-t="close"></button></div>
 </div></div>
 <div class="overlay" id="ovOrm"><div class="sheet">
-  <span class="grab" aria-hidden="true"></span>
   <h2 data-t="ormAdd"></h2>
   <div class="hint" data-t="ormSub"></div>
   <label for="ormEx" data-t="ormLift"></label>
@@ -649,13 +669,11 @@
   </div>
 </div></div>
 <div class="overlay" id="ovSx"><div class="sheet sxsheet">
-  <span class="grab" aria-hidden="true"></span>
   <h2 id="sxT"></h2>
   <div class="wheelw sxw"><div class="wheel" id="sxWheel" role="listbox"></div></div>
   <div class="actions"><button class="btn" id="sxClear" data-t="sxClear"></button><button class="btn primary" id="sxDone" data-t="done"></button></div>
 </div></div>
 <div class="overlay" id="ovExSet"><div class="sheet">
-  <span class="grab" aria-hidden="true"></span>
   <h2 data-t="exSettings"></h2>
   <div class="seg" id="exsTabs"></div>
   <div id="exsBody"></div>
@@ -663,7 +681,6 @@
 </div></div>
 
 <div class="overlay" id="ovSwap"><div class="sheet swapsheet">
-  <span class="grab" aria-hidden="true"></span>
   <div class="swhead"><h2 id="swTitle"></h2><span class="sub" data-t="swapSub"></span></div>
   <div id="swList"></div>
 </div></div>
@@ -776,29 +793,6 @@
   <div class="lwlist" id="lResults"></div>
 </div></div>
 
-<!-- ============ TARGETS ============ -->
-<div class="overlay" id="ovTargets"><div class="sheet tall">
-  <h2 data-t="targetsT"></h2>
-  <p class="sub" data-t="targetsSub"></p>
-  <label data-t="goal"></label>
-  <div class="seg" id="tgGoal"><button data-v="bulk" data-t="gBulk"></button><button data-v="recomp" data-t="gRecomp"></button><button data-v="cut" data-t="gCut"></button></div>
-  <input id="tgBw" type="hidden"><input id="tgFib" type="hidden">
-  <div class="actions" style="margin-top:10px"><button class="btn" id="tgCalc" data-t="calcStart"></button></div>
-  <div class="hint" id="tgCalcHint"></div>
-  <h3><span data-t="gymDayTargets"></span> <button class="ibtn" type="button" data-tip="tipMacroSl" data-ta="logAInfo" aria-label="Info"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/></svg></button></h3>
-  <div class="grid4">
-    <div><label>kcal</label><input id="tgGk" type="number" inputmode="numeric"></div><div><label data-t="protein"></label><input id="tgGp" type="number" inputmode="numeric"></div>
-    <div><label data-t="carbs"></label><input id="tgGc" type="number" inputmode="numeric"></div><div><label data-t="fat"></label><input id="tgGf" type="number" inputmode="numeric"></div>
-  </div>
-  <h3 data-t="restDayTargets"></h3>
-  <div class="grid4">
-    <div><label>kcal</label><input id="tgRk" type="number" inputmode="numeric"></div><div><label data-t="protein"></label><input id="tgRp" type="number" inputmode="numeric"></div>
-    <div><label data-t="carbs"></label><input id="tgRc" type="number" inputmode="numeric"></div><div><label data-t="fat"></label><input id="tgRf" type="number" inputmode="numeric"></div>
-  </div>
-  <div class="hint" id="tgCheck"></div>
-  <div class="actions"><button class="btn" data-close data-t="cancel"></button><button class="btn primary" id="tgSave" data-t="save"></button></div>
-</div></div>
-
 <!-- ============ SUGGEST A RECIPE ============ -->
 <div class="overlay" id="ovSuggest"><div class="sheet">
   <h2 data-t="sgT"></h2>
@@ -873,6 +867,7 @@
 <script src="js/data/gym-anatomy.js"></script>
 <script src="js/data/rank-bench.js"></script>
 <script src="js/core.js"></script>
+<script src="js/draft.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/coach.js"></script>
 <script src="js/food.js"></script>

@@ -87,9 +87,9 @@ input,select,textarea{background:var(--t-card2);border:1px solid var(--t-line);b
 .mbar,.hbar{background:var(--t-track)!important}
 
 /* ---------- buttons ---------- */
-.btn{background:var(--t-sel);border:0;color:var(--t-text);font-weight:var(--w-med);border-radius:var(--r-input2)}
-.btn.primary,.fab{background:var(--t-accent)!important;color:var(--t-on)!important;font-weight:var(--w-bold)!important;font-size:var(--fs-body)!important}
-.btn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
+.btn{border:0;color:var(--t-text);font-weight:var(--w-med);border-radius:var(--r-input2)}
+.btn.primary,.fab{font-weight:var(--w-bold)!important;font-size:var(--fs-body)!important}
+.btn.danger{color:var(--t-danger)}
 /* press feedback: scale and dim while pressed, spring back */
 button:not(.fab){transition:transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
 button:not(.fab):active{transform:scale(.96);opacity:.85}
@@ -101,7 +101,7 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .sheet{background:color-mix(in srgb,var(--t-card2) 72%,var(--t-bg))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--t-glass-edge)!important}
 .rail{background:var(--t-glass)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;border:1px solid var(--t-glass-edge)!important}
 .overlay{background:transparent}
-/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window is pulled down); the window gets its own layer from the moment it opens */
+/* 0.7.9.2: the dim behind a window is its own layer that fades by opacity only (no repaint while a window opens or closes); the window gets its own layer from the moment it opens */
 .overlay::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--t-scrim);pointer-events:none;will-change:opacity}
 /* 0.7.9.5: no permanent will-change on windows: it kept every window (title, back arrow, text) in its own raster layer, which can look soft; the opening animation and the drag helper promote the layer only while moving */
 .overlay.open>.sheet{will-change:auto}
@@ -222,7 +222,6 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 :root[data-theme="light"] #ovSwap .swrow{background:var(--t-card)}
 #ovSwap .sback{position:absolute;left:8px;top:22px;float:none;margin:0}
 #ovSwap .swhead{padding-left:40px}
-.grab{align-self:center;width:40px;height:4px;border-radius:4px;background:#44484d;flex:0 0 4px}
 .swhead{display:flex;flex-direction:column;gap:var(--s1)} .swhead h2{margin:0} .swhead .sub{font-size:var(--fs-label);color:var(--t-muted);margin:0}
 #swList{display:flex;flex-direction:column;gap:var(--s3)}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);text-align:left;min-height:64px;padding:var(--s3) var(--s4);border-radius:var(--r-row);border:0;background:var(--t-card);color:var(--t-text);font-family:inherit;cursor:pointer;width:100%}
@@ -270,7 +269,7 @@ html{transition:background-color .3s}
 .lwtop{padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3);border-bottom:1px solid var(--t-line)}
 .lwrow{display:flex;justify-content:space-between;align-items:center} .lwrow h2{margin:0}
 .lwtl{display:flex;align-items:center;min-width:0} #ovLog .lwback{float:none;margin:0 2px 0 -12px}
-.lwdone{border:0;border-radius:12px;background:var(--t-accent);color:var(--t-on);padding:var(--s2) var(--s4);min-height:36px;font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
+.lwdone{border:0;border-radius:12px;padding:var(--s2) var(--s4);min-height:36px;font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .lwsearch{display:flex;gap:var(--s2)}
 .lwsearch input{flex:1;min-width:0;padding:var(--s3) var(--s4);border-radius:14px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none;box-shadow:none}
 .lwscan{flex:0 0 46px;border-radius:14px;border:0;background:var(--t-sel);color:var(--t-text);display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -285,7 +284,7 @@ html{transition:background-color .3s}
 .lrh{display:flex;align-items:center;gap:var(--s2)}
 .lrn{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--s1);border:0;background:none;padding:0;text-align:left;color:var(--t-text);font-family:inherit;cursor:pointer}
 .lrn .nm{font-size:var(--fs-body);font-weight:var(--w-med)} .lrn .ls{font-size:var(--fs-label);color:var(--t-muted)}
-.lplus{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:12px;background:var(--t-accent);color:var(--t-on);font-size:20px;font-weight:var(--w-bold);cursor:pointer;font-family:inherit}
+.lplus{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:12px;font-size:20px;font-weight:var(--w-bold);cursor:pointer;font-family:inherit}
 .lpn{display:flex;flex-direction:column;gap:var(--s3);animation:lpIn .2s ease-out}
 @keyframes lpIn{from{opacity:0;transform:translateY(-4px)}}
 .lamt{display:grid;grid-template-columns:72px 1fr;gap:var(--s2)}
@@ -303,11 +302,11 @@ html{transition:background-color .3s}
 .lres{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2)}
 .lk{font-size:var(--fs-title);font-weight:var(--w-bold);font-style:italic}
 .lm{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)} .lm .p{color:var(--t-p)} .lm .c{color:var(--t-c)} .lm .f{color:var(--t-f)} .lm b{font-weight:var(--w-med)}
-.lgo{width:100%;height:48px;border:0;border-radius:14px;background:var(--t-accent);color:var(--t-on);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
+.lgo{width:100%;height:48px;border:0;border-radius:14px;font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .lmore{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s1);width:100%;padding:var(--s3) var(--s4);border-radius:var(--r-row);border:1px dashed var(--t-line);background:none;color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);text-align:left;cursor:pointer}
 .lmore small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-reg)}
 /* + Log Food button (Phones.dc.html): centred, 24 above the bottom bar, 16/32 padding, soft accent glow */
-.fab{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 88px)!important;padding:var(--s4) var(--s8)!important;border-radius:999px!important;box-shadow:0 0 28px 2px color-mix(in srgb,var(--t-accent) 34%,transparent)!important}   /* 0.7.4.3: no x/y offset, so the glow stays centred behind the button in every state */
+.fab{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) - 10px)) + 88px)!important;padding:var(--s4) var(--s8)!important;border-radius:999px!important}   /* Refinements: the glow lives with the frosted look at the end of this file. 0.7.4.3: no x/y offset, so the glow stays centred behind the button in every state */
 html.pwa .fab{bottom:auto!important;top:calc(var(--appH,100vh) - max(24px,calc(env(safe-area-inset-bottom) - 10px)) - 64px - 24px - 50px)!important}
 body.twofab .fab{padding:var(--s4) var(--s5)!important}
 #ovLog .lwlist{flex:1 1 auto;min-height:0}
@@ -338,7 +337,7 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .eatrow.sugg{display:flex;align-items:center;justify-content:space-between;gap:var(--s3)}
 #planShow .eatrow.sugg>.et,#planShow .eatrow.sugg>.ekc,.ccard.dim .eatrow.sugg>.et,.ccard.dim .eatrow.sugg>.ekc{opacity:.55} .eatrow.sugg .et{flex:1}
 .ccard.dim>.eatrow.sugg{opacity:1}
-.sgadd{flex:0 0 auto;min-height:40px;padding:0 18px;border:0;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
+.sgadd{flex:0 0 auto;min-height:40px;padding:0 18px;border:0;border-radius:999px;font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
 .sgadd:active{transform:scale(.97)}
 .sttag.ready{background:color-mix(in srgb,var(--t-warm) 18%,transparent);color:var(--t-warm);border:1px solid color-mix(in srgb,var(--t-warm) 45%,transparent)}
 :root[data-theme="light"] .sttag.raw{color:#2a6fa8} :root[data-theme="light"] .sttag.cooked{color:#1f8a4c}
@@ -357,7 +356,6 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
 .exc.ssarm::after,.tpcard.ssarm::after{content:attr(data-ssl);position:absolute;right:12px;top:10px;padding:var(--s1) 10px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold);font-style:italic}
 .sslbl{text-transform:none!important;letter-spacing:0!important;font-size:var(--fs-label)!important;font-weight:var(--w-bold)!important}
-.swapq{display:inline-flex!important;align-items:center;justify-content:center;width:36px!important;height:36px!important;background:var(--t-sel)!important;border:0!important;color:var(--t-text)!important}
 .exc .exhead .exname{font-size:var(--fs-clock)!important;line-height:1.15}
 /* Recovery is look-only (0.6.9) */
 .reccard svg,.reccard svg *{pointer-events:none;cursor:default!important}
@@ -451,8 +449,8 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 :root[data-theme="light"]{--t-p:#2f73b8;--t-c:#8a6100;--t-f:#c4553f}
 
 /* Scan Food / Scan Receipt: no underglow; clear edge so they stand off the black */
-.fab2{box-shadow:none!important;background:#2b2d31!important;border:1px solid rgba(255,255,255,.16)!important;color:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-:root[data-theme="light"] .fab2{background:#ffffff!important;border:1px solid rgba(0,0,0,.12)!important;color:var(--t-text)!important}
+.fab2{border:1px solid transparent!important;color:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-theme="light"] .fab2{color:var(--t-text)!important}
 #ovStart #stEmpty{flex:0 0 auto!important;min-height:52px!important;height:52px!important;max-height:52px;padding:14px var(--s5)!important;font-size:var(--fs-body)!important;border-radius:999px!important;animation:none!important}
 
 /* ===================== 0.7 — shopping in ===================== */
@@ -513,8 +511,8 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .gitem2 .infr{color:var(--t-done);font-weight:var(--w-med)}
 /* Food Tracker: Check My Foods (AI) + the tick on checked foods */
 .barbtns{display:inline-flex;gap:14px;align-items:center}
-.chkbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border:0;border-radius:999px;background:var(--t-sel);color:var(--t-text);font-family:var(--font);font-size:13px;font-weight:var(--w-med);white-space:nowrap;cursor:pointer;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s}
-.chkbtn:active{transform:scale(.96);background:var(--t-press)} .chkbtn .aibadge{margin:0} .chkbtn.busy{opacity:.6}
+.chkbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border:0;border-radius:999px;color:var(--t-text);font-family:var(--font);font-size:13px;font-weight:var(--w-med);white-space:nowrap;cursor:pointer;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s}
+.chkbtn:active{transform:scale(.96)} .chkbtn .aibadge{margin:0} .chkbtn.busy{opacity:.6}
 .fchk{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:999px;background:var(--t-done);color:var(--t-on);vertical-align:1px;margin-left:var(--s1)}
 .chksum{display:flex;gap:var(--s2);margin:var(--s1) 0 10px}
 .chksum span{flex:1;padding:10px;border-radius:var(--r-row);background:var(--t-card2);color:var(--t-muted);font-size:var(--fs-label);text-align:center}
@@ -560,8 +558,7 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .lqrow.miss .ls{color:var(--t-danger)}
 .lqx{flex:0 0 36px;width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .lqrow .lan{background:var(--t-bg)}
-.lqswapbtn{align-self:flex-start;display:inline-flex;align-items:center;min-height:36px;border:0;border-radius:999px;background:var(--t-sel);padding:0 14px;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
-.lqswapbtn:active{background:var(--t-press,var(--t-sel))}
+.lqswapbtn{align-self:flex-start;display:inline-flex;align-items:center;min-height:36px;border:0;border-radius:999px;padding:0 14px;color:var(--t-accent-ink,var(--t-accent));font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
 .lqswap{display:flex;flex-direction:column;gap:6px}
 .lqsq{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none}
 .lqsres{display:flex;flex-direction:column;gap:var(--s1)} .lqsres:empty{display:none}
@@ -682,19 +679,15 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .ssearch input{flex:1;min-width:0;height:100%;padding:0;border:0!important;background:none!important;box-shadow:none!important;outline:0;color:var(--t-text);font-family:inherit;font-size:16px;-webkit-appearance:none;appearance:none}
 .ssearch input::-webkit-search-cancel-button{display:none} .ssearch input:focus{outline:0!important}
 .ssx{flex:0 0 32px;height:32px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--t-sel);color:var(--t-muted);padding:0}
-.bknow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:0 0 var(--s3);padding:var(--s3) 18px;border:0;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-family:inherit;font-size:var(--fs-body);cursor:pointer}
+.bknow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:0 0 var(--s3);padding:var(--s3) 18px;border:0;border-radius:999px;font-family:inherit;font-size:var(--fs-body);cursor:pointer}
 .bknow b{font-weight:var(--w-bold)} .bknow small{margin-left:auto;font-size:var(--fs-label);font-weight:var(--w-med);opacity:.7;white-space:nowrap}
 .prow.pmain{justify-content:center;text-align:center;font-weight:var(--w-bold)} .prow.pmain>span:first-child{flex:0 1 auto}
 .sres .sv{font-size:var(--fs-label)} .snone{margin:var(--s3) 4px;color:var(--t-muted);font-size:var(--fs-body);text-align:center}
 .sfound{border-radius:12px;animation:sfound 1.8s ease-out}
 @keyframes sfound{0%,35%{box-shadow:0 0 0 2px var(--t-accent),0 0 18px 2px color-mix(in srgb,var(--t-accent) 45%,transparent)}100%{box-shadow:0 0 0 2px transparent,0 0 0 0 transparent}}
 @media (prefers-reduced-motion: reduce){ .sfound{animation:none;box-shadow:0 0 0 2px var(--t-accent)} }
-/* 0.7.3 Daily Targets opens as its own full window (like Settings pages / the workout screens), clear of the title fade */
-#ovTargets .sheet{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
-  background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
-  padding:var(--topP) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
-#ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
-html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
+/* Refinements 20B: Daily Targets sit open on Settings › Body and Goals (#tgBox, a card like the body card), with their section titles shown */
+.setpage .tgbox{margin-top:var(--s4);scroll-margin-top:calc(var(--topP,16px) + 56px)} .setpage .tgbox .grid4 input{padding-left:6px;padding-right:6px;min-width:0} .setpage .tgbox h3{display:flex;align-items:center;gap:var(--s1);margin:var(--s4) 0 var(--s2)} .setpage .tgbox>h3:first-child{margin-top:0}
 /* 0.7.4.3 · the shared coach chat (js/coach.js), styled like the Claude app's chat: plain robot answers on the left,
    your messages as round bubbles on the right, one big round box pinned at the bottom with a round accent send button.
    0.7.9.2: a small floating window above the dimmed page and BELOW the robot bubble (.aibub sits higher): rounded, a margin all round;
@@ -733,8 +726,7 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .ctag.web{color:var(--t-rest);background:color-mix(in srgb,var(--t-rest) 14%,transparent);border-color:color-mix(in srgb,var(--t-rest) 45%,transparent)}
 .ctag.est{color:var(--t-warm);background:none;border:1px dashed color-mix(in srgb,var(--t-warm) 70%,transparent)}
 .ccacts{display:flex;justify-content:flex-end;gap:var(--s2)}
-.ccbtn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
-.ccbtn.pri{background:var(--t-accent);color:var(--t-on);border-color:transparent}
+.ccbtn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid transparent;color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-bold);cursor:pointer}
 /* 0.7.9.6: suggestion chips under a coach's opening message (coach.js starters), lined up with the text, not the face */
 .cstart{display:flex;flex-wrap:wrap;gap:var(--s2);margin:-2px 0 0 38px}
 .cschip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--t-line);background:none;color:var(--t-text);font-family:inherit;font-size:14px;font-weight:var(--w-med);cursor:pointer;text-align:left}
@@ -753,8 +745,8 @@ html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
 .cbox:focus-within{border-color:color-mix(in srgb,var(--t-text) 30%,var(--t-line))}
 .cbox textarea{flex:1;width:auto;min-width:0;min-height:40px;max-height:148px;resize:none;margin:0;padding:9px 0;border:0!important;border-radius:0;background:none!important;box-shadow:none!important;outline:0!important;color:var(--t-text);font-size:16px;line-height:21px;overflow-y:auto;scrollbar-width:none}
 .cbox textarea::-webkit-scrollbar{display:none}
-.csend{flex:0 0 40px;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:var(--t-accent);color:var(--t-on);display:grid;place-items:center;cursor:pointer;transition:opacity .15s}
-.csend:disabled{background:var(--t-sel);color:var(--t-muted);cursor:default}
+.csend{flex:0 0 40px;width:40px;height:40px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:opacity .15s}
+.csend:disabled{color:var(--t-muted);cursor:default}
 .ccam{flex:0 0 48px;width:48px;height:48px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:var(--t-sel);color:var(--t-text);display:grid;place-items:center;cursor:pointer} .ccam.hide{display:none}
 /* 0.7.9.6: Gym Coach has no bubble. From its pill the window opens centred at the top with this robot face fixed on its top right
    corner (coach.js lay() places it); the window grows out of the face and shrinks back into it. Not draggable; tapping it closes the chat */
@@ -799,11 +791,11 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
    Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
    (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
-.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback{display:flex;margin:var(--topP) 0 -44px -10px}   /* 0.7.9.5: the top margin is the safe area + 8px, so the arrow and the title start where the sticky arrow rests (they used to start at 0 and the first card slid under the title on notched phones) */
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback{display:flex;margin:var(--topP) 0 -44px -10px}   /* 0.7.9.5: the top margin is the safe area + 8px, so the arrow and the title start where the sticky arrow rests (they used to start at 0 and the first card slid under the title on notched phones) */
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
 /* 0.7.9.2: the Gym Coach button made this row 52 px tall, so the title sat 4–8 px under the arrow; the row is now exactly the arrow's 44 px */
 .overlay .sheet>.sback+.sthead{height:44px!important;min-height:44px;margin-top:-12px!important}
 .overlay .sheet>.sback+.sthead .sescoach{height:44px}
@@ -812,10 +804,10 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:0;z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2{position:relative;top:0;z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
-section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
+section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
 /* 0.7.10.7: the solid strip under the clock / Wi-Fi / battery is the top layer of the app: above every page, window, sheet, chat and the robot bubble
    (windows get z-index 11, 12, 13 … from open() in ui.js), below only the toast. It takes the colour of what sits under it (data-strip, set by stripSync in ui.js):
    the page colour, the page dimmed by a floating window's scrim, or the white QR page. */
@@ -828,17 +820,15 @@ body[data-strip="paper"]::before{background:#fff!important}
 /* 0.7.4.0.5 Light mode: alert boxes as theme colours (soft tint + dark text in Light) */
 :root{--t-alert-bg:#2a1a08;--t-alert-edge:#6b3f12;--t-alert-ink:#ffcf9e;--t-alert-red-bg:#2a0e0e;--t-alert-red-edge:#6b1f1f;--t-alert-red-ink:#ffb3b3;--t-alert-ok-bg:#12261a;--t-alert-ok-edge:#2a5a3a;--t-alert-ok-ink:#bff0d0}
 :root[data-theme="light"]{--t-alert-bg:#fbefd9;--t-alert-edge:#e8c891;--t-alert-ink:#6b4200;--t-alert-red-bg:#fbe4e2;--t-alert-red-edge:#ebb0aa;--t-alert-red-ink:#8f1d17;--t-alert-ok-bg:#e1f3e8;--t-alert-ok-edge:#a6d6b8;--t-alert-ok-ink:#0f5a31}
-/* 0.7.4.0.5 Light mode: the grey secondary button vanished on the grey page; white with a hairline (zero-specificity :where, so .btn.primary / .btn.danger still win) */
-:where(:root[data-theme="light"]) .btn:where(:not(.primary,.danger)){background:#ffffff;border:1px solid rgba(0,0,0,.12);box-shadow:var(--t-shadow)}
 
 /* ============================================================================================
    ONE TOP BAR (shell-2). Title, back arrow and header buttons sit on a SOLID var(--t-bg), with a clean edge (no fade, no blur: nothing soft at the top).
    Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
 :root{--topP:calc(8px + env(safe-area-inset-top) + var(--topgap))}
-.overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
-.setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
-.setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
+.overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
+.setpage>.sback,.formpage>.sback,.themepage>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
+.setpage>h2,.formpage>h2,.themepage>h2{position:sticky;top:var(--topP);z-index:3}
 /* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: solid sticky head */
 
 /* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
@@ -1038,3 +1028,48 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* athlete-3: Food Coach Add & Save asks your own name for the plate */
 .lqname{display:flex;flex-direction:column;gap:var(--s2,8px);padding-top:10px;border-top:1px solid var(--t-line,rgba(127,127,127,.2));margin-top:10px}
 .lqnrow{display:flex;gap:8px;align-items:center}.lqnrow .lqsq{flex:1;min-width:0}.lqnrow .lqswapbtn{align-self:center;flex:none}
+
+/* ======================= Refinements (change 12): one frosted button style ======================= */
+/* Every button takes the look of the bottom bar's selected-tab bubble (.rail>.knob above): a see-through fill, a faint light highlight
+   at the top and a soft 1 px light edge with a gentle inner glow. No live blur (buttons sit on solid cards), so scrolling stays smooth.
+   The coloured values point at the bubble's own variables, so changing the bubble changes every button.
+   Coloured = accent buttons. Uncoloured = grey / white buttons and the soft red / green ones: the same highlight and edge over their own fill (--fb-own).
+   Tabs, sliding pills (.mpill, .seg and their knob) and tiles are not buttons here and keep their look. */
+:root{--fb-fill:var(--t-knob-bg);--fb-hi:var(--t-knob-hi);--fb-edge:var(--t-knob-edge);--fb-ink:var(--t-knob-on,var(--t-on));
+  --fb-n-hi:rgba(255,255,255,.07);--fb-n-edge:inset 0 0 0 1px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 8px rgba(255,255,255,.05)}
+/* Light: buttons sit on white or pale cards, where the bubble's 10 % see-through only washes the colour out (Violet and Racing Red fell under 4.5:1),
+   so the fill is the full accent; the highlight and edge still come from the bubble */
+:root[data-theme="light"]{--fb-fill:var(--t-accent);--fb-n-hi:rgba(255,255,255,.7);--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.08)}
+.btn.primary,.fab,.pillbtn.primary,.lwdone,.lplus,.lgo,.sgadd,.bknow,.ccbtn.pri,.csend:not(:disabled){
+  background:linear-gradient(180deg,var(--fb-hi),transparent 55%),var(--fb-fill)!important;box-shadow:var(--fb-edge)!important;color:var(--fb-ink)!important;border-color:transparent!important}
+.fab{box-shadow:var(--fb-edge),0 0 28px 2px color-mix(in srgb,var(--t-accent) 34%,transparent)!important}   /* the main button keeps its glow: it floats */
+.btn,.ccbtn,.chkbtn,.csend:disabled{--fb-own:var(--t-sel)}
+:root[data-theme="light"] .btn{--fb-own:#ffffff}   /* Light: white, so it shows on the grey page */
+.fab2{--fb-own:#2b2d31} :root[data-theme="light"] .fab2{--fb-own:#ffffff}
+.newset{--fb-own:var(--t-glass-btn)} :root[data-theme="light"] .newset{--fb-own:var(--t-card)}
+.lqswapbtn{--fb-own:var(--t-sel)}
+.btn.danger,.pillbtn.danger{--fb-own:var(--t-danger-soft)}
+.endex2{--fb-own:var(--t-done-soft)}
+.btn:not(.primary):not(.fillbtn):not(.wqclose),.fab2,.ccbtn:not(.pri),.chkbtn,.lqswapbtn,.csend:disabled,.newset,.pillbtn.danger,.endex2{
+  background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--fb-own)!important;box-shadow:var(--fb-n-edge)!important;border-color:transparent!important}
+
+/* ======================= Refinements (change 11): rotating pill carousel (pillCarousel() in ui.js) ======================= */
+/* The same track and white/near-black highlight as .mpill, but the highlight stays in the middle and the pills glide under it.
+   Every pill is --pw wide (the longest label); spacers let the first and last pill reach the middle. Only transform and opacity
+   change while it moves (set per frame in JS); the chosen pill's bold italic text is set once it has settled. */
+.pcar{position:relative;margin:4px 0 16px;padding:var(--s1) 0;background:var(--t-card2);border-radius:var(--r-pill);--pw:120px}
+.pcar.hide{display:none}
+.pcknob{position:absolute;z-index:0;top:var(--s1);bottom:var(--s1);left:50%;width:var(--pw);margin-left:calc(var(--pw) / -2);border-radius:var(--r-pill);background:var(--t-mp-bg);box-shadow:var(--t-mp-shadow);pointer-events:none}
+.pcrow{position:relative;z-index:1;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:var(--r-pill)}
+.pcrow::-webkit-scrollbar{display:none}
+.pcsp{flex:0 0 calc(50% - var(--pw) / 2 - 4px)}
+.pcrow>button{flex:0 0 var(--pw);min-width:0;min-height:44px;padding:4px 6px;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  border:0;background:none;border-radius:var(--r-pill);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);line-height:1.15;letter-spacing:-.2px;color:var(--t-muted);cursor:pointer;
+  will-change:transform,opacity;transform-origin:50% 50%;transition:color .2s}
+.pcrow>button:active{transform:none}
+.pcrow>button b{display:block;max-width:100%;font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcrow>button.on{color:var(--t-mp-text);font-weight:var(--w-bold);font-style:italic;-webkit-text-stroke:var(--t-mp-stroke);paint-order:stroke fill}
+.pcrow>button.soon{cursor:default}
+.pcrow>button small{font-size:10px;font-weight:var(--w-med);font-style:normal;letter-spacing:.2px;color:var(--t-muted);-webkit-text-stroke:0}
+.pcar.meas .pcrow>button{flex:0 0 auto;font-weight:var(--w-bold);font-style:italic}
+.pcar.meas .pcrow>button b{overflow:visible}

@@ -22,7 +22,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'licenses/body-muscles/LICENSE.txt',
   'licenses/body-muscles/NOTICE.txt',
   'js/core.js',
-  'js/ui.js', 'js/coach.js',
+  'js/draft.js', 'js/ui.js', 'js/coach.js',
   'js/food.js',
   'js/search.js',
   'js/supplements.js',

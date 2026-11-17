@@ -3,7 +3,7 @@
 // your messages as bubbles on the right, the robot's answers as plain text on the left with its small face, results as cards.
 // 0.7.9.2: the chat is a small floating window, not a whole page. Tapping a coach bubble leaves the bubble where it is; the window grows out
 // of it (scale from the bubble, transform + opacity only) on a layer above the page and below the bubble, its corner tucked under the bubble.
-// Back (the arrow, the phone's back), a tap on the dimmed page or a swipe down shrinks it back into the bubble; tap the bubble to carry on.
+// Back (the arrow, the phone's back), or a tap on the dimmed page shrinks it back into the bubble; tap the bubble to carry on.
 //
 // Other parts use it like this:
 //   Coach.setup(id, { kind, title, first, placeholder, camera, send })   once, to say how that coach answers (all optional)
@@ -246,21 +246,6 @@ Return ONLY JSON: {"reply": string}`, img);
       const a = e.target.closest('[data-ca]'); if(!a) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run) return;
       Phone.haptic(); Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
     });
-    // 0.7.9.2: swipe the window down (from its title row, or from the messages when they are scrolled to the top) and it follows the
-    // finger 1:1 (transform only); let go past a quarter of its height (or flick) and it shrinks from there into its bubble, else it springs back
-    const sh = $('ovCoach').querySelector('.sheet'); let chH = 0;
-    const cdy = s => s.dy >= 0 ? s.dy : rubber(s.dy, 40);
-    dragger(sh, { axis: 'y', slop: 10,
-      item: e => { if(!cur || e.target.closest('textarea,input,.ccacts,.cpimg,.cbar')) return null; const l = $('coachList');
-        return e.target.closest('.chead') || (l.contains(e.target) && l.scrollTop <= 0) ? sh : null; },
-      claim: (dx, dy) => dy > 0,
-      start: () => { chH = sh.offsetHeight; sh.getAnimations().forEach(a => a.cancel()); },   // the finished grow no longer holds it
-      move: s => { sh.style.transform = `translate3d(0,${cdy(s).toFixed(1)}px,0)`; },
-      end: (s, ok) => { const y = cdy(s); sh.style.transform = '';
-        if(ok && (y > chH / 4 || (s.vy > .5 && y > 40))){ Phone.haptic();
-          if(!rmo()) sh.animate([{ transform: `translate3d(0,${y}px,0)`, opacity: 1 }, { transform: 'scale(.2)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' });
-          close('ovCoach'); return; }
-        springTo(sh, { y }, { y: 0 }, { y: s.vy }); } });
     if(window.visualViewport){
       visualViewport.addEventListener('resize', () => { if(!$('ovCoach').classList.contains('open')) return; fit(); const l = $('coachList'); l.scrollTop = l.scrollHeight; });
       addEventListener('resize', () => { if($('ovCoach').classList.contains('open')) fit(); });
