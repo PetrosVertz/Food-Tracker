@@ -149,8 +149,8 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
    highlight at the top. Only transform and opacity animate. The icon on it uses the normal text colour, so it reads in Light and Dark. */
 /* 0.7.9.2: the selected-tab marker is the vibrant accent (same colour as Start Workout / Log Food) with only a slight frosted look on top:
    a faint light highlight at the top, a soft 1 px light edge and a gentle inner glow. Still no live blur, so it slides smoothly. Icon colour = --t-on. */
-:root{--t-knob-bg:color-mix(in srgb,var(--t-accent) 88%,transparent);--t-knob-hi:rgba(255,255,255,.2);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 8px rgba(255,255,255,.12)}
-:root[data-theme="light"]{--t-knob-bg:color-mix(in srgb,var(--t-accent) 90%,transparent);--t-knob-hi:rgba(255,255,255,.26);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 8px rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.12)}
+:root{--t-knob-bg:var(--t-accent);--t-knob-hi:rgba(255,255,255,.2);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 8px rgba(255,255,255,.12)}
+:root[data-theme="light"]{--t-knob-bg:var(--t-accent);--t-knob-hi:rgba(255,255,255,.26);--t-knob-edge:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 8px rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.12)}
 .rail>.knob{background:linear-gradient(180deg,var(--t-knob-hi),transparent 55%),var(--t-knob-bg);box-shadow:var(--t-knob-edge);border-radius:50%;-webkit-backdrop-filter:none;backdrop-filter:none}
 .rail>button.on{color:var(--t-knob-on,var(--t-on))}
 
@@ -1045,11 +1045,11 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .fab{box-shadow:var(--fb-edge),0 0 28px 2px color-mix(in srgb,var(--t-accent) 34%,transparent)!important}   /* the main button keeps its glow: it floats */
 .btn,.ccbtn,.chkbtn,.csend:disabled{--fb-own:var(--t-sel)}
 :root[data-theme="light"] .btn{--fb-own:#ffffff}   /* Light: white, so it shows on the grey page */
-.fab2{--fb-own:#2b2d31} :root[data-theme="light"] .fab2{--fb-own:#ffffff}
-.newset{--fb-own:var(--t-glass-btn)} :root[data-theme="light"] .newset{--fb-own:var(--t-card)}
+.fab2{--fb-own:#3a3d43;--fb-n-edge:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.22)} :root[data-theme="light"] .fab2{--fb-own:#ffffff}
+.newset{--fb-own:color-mix(in srgb,var(--t-card) 93%,#fff)} :root[data-theme="light"] .newset{--fb-own:var(--t-card)}
 .lqswapbtn{--fb-own:var(--t-sel)}
-.btn.danger,.pillbtn.danger{--fb-own:var(--t-danger-soft)}
-.endex2{--fb-own:var(--t-done-soft)}
+.btn.danger,.pillbtn.danger{--fb-own:color-mix(in srgb,var(--t-danger) 16%,var(--t-card2))}
+.endex2{--fb-own:color-mix(in srgb,var(--t-done) 18%,var(--t-card2))}
 .btn:not(.primary):not(.fillbtn):not(.wqclose),.fab2,.ccbtn:not(.pri),.chkbtn,.lqswapbtn,.csend:disabled,.newset,.pillbtn.danger,.endex2{
   background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--fb-own)!important;box-shadow:var(--fb-n-edge)!important;border-color:transparent!important}
 
