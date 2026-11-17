@@ -72,7 +72,7 @@ $('sBodySave').addEventListener('click', async () => {
   if(w > 30 && w < 300){ weights[todayKey()] = w; Store.save('weights', weights); if(targets){ targets.bw = w; Store.save('targets', targets); } }
   renderAll(); toast(t('bodySaved'));
   const bw = w > 30 ? w : latestWeight() || (targets && targets.bw);
-  if(bw && await ask(t('recalcQ'), t('recalcYes'), t('recalcNo'))){ const tg = calcTargets(bw, (targets && targets.goal) || 'bulk'); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets); renderAll(); toast(t('targetsSaved')); }
+  if(bw && await ask(t('recalcQ'), t('recalcYes'), t('recalcNo'))){ const tg = calcTargets(bw, (targets && targets.goal) || 'bulk'); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets); renderAll(); fillTargets(); toast(t('targetsSaved')); }   // 20B: the new numbers show in the targets on this page
 });
 addEventListener('hashchange', () => { if(location.hash === '#settings') fillSettings(); });
 $('pfGear').addEventListener('click', () => { Phone.haptic(); go('settings'); });   // 0.7.7: Settings opens from the gear on Profile
@@ -136,7 +136,6 @@ $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-pre
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
 document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
-$('sTargetsBtn').addEventListener('click', () => openTargets());
 function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
   document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
 [['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;

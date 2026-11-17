@@ -440,7 +440,7 @@ function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const wa
 
 // 0.7.10.7: the solid strip under the clock (body::before, theme.css) matches what is under it: the page, the page dimmed behind a floating window, or a full-screen window
 function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')].sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0)).pop();
-  const full = top && (top.matches('#ovTargets,#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
+  const full = top && (top.matches('#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
   document.body.dataset.strip = !top ? '' : !full ? 'dim' : top.id === 'ovWkQR' ? 'paper' : ''; }
 
 // 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still
@@ -464,7 +464,7 @@ function open(id){
 // 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
 function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
-  setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); }
+  setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); fillTargets(); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;
   if(tabOf(h) === 'profile') go('settings'); else { ui.lastIn_profile = 'settings'; saveUI(); switchTab(0, 'profile'); } }
 

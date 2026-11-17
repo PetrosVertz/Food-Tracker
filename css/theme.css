@@ -688,12 +688,8 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .sfound{border-radius:12px;animation:sfound 1.8s ease-out}
 @keyframes sfound{0%,35%{box-shadow:0 0 0 2px var(--t-accent),0 0 18px 2px color-mix(in srgb,var(--t-accent) 45%,transparent)}100%{box-shadow:0 0 0 2px transparent,0 0 0 0 transparent}}
 @media (prefers-reduced-motion: reduce){ .sfound{animation:none;box-shadow:0 0 0 2px var(--t-accent)} }
-/* 0.7.3 Daily Targets opens as its own full window (like Settings pages / the workout screens), clear of the title fade */
-#ovTargets .sheet{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;margin:0!important;
-  background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
-  padding:var(--topP) 16px calc(32px + env(safe-area-inset-bottom))!important;overflow-y:auto}
-#ovTargets .sheet>h2{min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 44px var(--s4)}
-html.pwa #ovTargets .sheet{height:var(--appH,100vh)!important}
+/* Refinements 20B: Daily Targets sit open on Settings › Body and Goals (#tgBox, a card like the body card), with their section titles shown */
+.setpage .tgbox{margin-top:var(--s4);scroll-margin-top:calc(var(--topP,16px) + 56px)} .setpage .tgbox .grid4 input{padding-left:6px;padding-right:6px;min-width:0} .setpage .tgbox h3{display:flex;align-items:center;gap:var(--s1);margin:var(--s4) 0 var(--s2)} .setpage .tgbox>h3:first-child{margin-top:0}
 /* 0.7.4.3 · the shared coach chat (js/coach.js), styled like the Claude app's chat: plain robot answers on the left,
    your messages as round bubbles on the right, one big round box pinned at the bottom with a round accent send button.
    0.7.9.2: a small floating window above the dimmed page and BELOW the robot bubble (.aibub sits higher): rounded, a margin all round;
@@ -798,11 +794,11 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    Full-screen windows (Settings pages, Daily Targets, Theme, Form, Add Exercise): title centred on the arrow's line.
    Card windows: title right after the arrow; this also holds when the window lays out as a column (flex), where a float can't.
    (The .overlay prefix outranks the 0.7.8 sticky-bar rules further down.) */
-.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback,.overlay#ovTargets .sheet>.sback{display:flex;margin:var(--topP) 0 -44px -10px}   /* 0.7.9.5: the top margin is the safe area + 8px, so the arrow and the title start where the sticky arrow rests (they used to start at 0 and the first card slid under the title on notched phones) */
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
-.overlay:not(#ovTargets):not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
+.overlay .setpage>.sback,.overlay .formpage>.sback,.overlay .themepage>.sback{display:flex;margin:var(--topP) 0 -44px -10px}   /* 0.7.9.5: the top margin is the safe area + 8px, so the arrow and the title start where the sticky arrow rests (they used to start at 0 and the first card slid under the title on notched phones) */
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback:is(:has(+h2),:has(+.row),:has(+.sthead)){float:none;display:flex;position:relative;z-index:4;margin:-8px 0 -44px -12px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+h2{min-height:44px;display:flex;align-items:center;margin-top:0;padding-left:36px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead){min-height:44px;align-items:center;margin-top:-8px;padding-left:36px}
+.overlay:not(#ovExPick):not(#ovSwap):not(#ovLog):not(#ovCal):not(#ovCoach) .sheet:not(.setpage):not(.formpage):not(.themepage)>.sback+:is(.row,.sthead)>h2{margin-top:0;margin-bottom:0}
 /* 0.7.9.2: the Gym Coach button made this row 52 px tall, so the title sat 4–8 px under the arrow; the row is now exactly the arrow's 44 px */
 .overlay .sheet>.sback+.sthead{height:44px!important;min-height:44px;margin-top:-12px!important}
 .overlay .sheet>.sback+.sthead .sescoach{height:44px}
@@ -811,10 +807,10 @@ body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[
    back arrows stay pinned at the top-left of pages and full-screen windows, on a small round backing once the content
    scrolls under them (.scrolled, set in ui.js). Only the status bar area keeps a solid strip, so the clock never sits on content. */
 section.page>header{position:relative;top:auto}
-.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2,.overlay#ovTargets .sheet>h2{position:relative;top:0;z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
+.overlay .setpage>h2,.overlay .formpage>h2,.overlay .themepage>h2{position:relative;top:0;z-index:1}   /* 0.7.9.2: the back arrow is pinned 8px down, so the title sits 8px down too: same centre */
 section.page>header .left>.backarrow{position:fixed;z-index:6;top:calc(var(--hpad) + 4px);left:calc(max(16px,(100vw - 640px) / 2) - 10px);margin:0}
 section.page>header .left>.backarrow,.overlay .sheet>.sback{transition:background-color .2s,box-shadow .2s;border-radius:50%!important}
-section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback,#ovTargets .sheet.scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
+section.page.scrolled>header .left>.backarrow,.overlay .sheet:is(.setpage,.formpage,.themepage).scrolled>.sback{background:var(--t-card)!important;box-shadow:0 0 0 1px var(--t-edge),0 4px 14px rgba(0,0,0,.28)!important}
 /* 0.7.10.7: the solid strip under the clock / Wi-Fi / battery is the top layer of the app: above every page, window, sheet, chat and the robot bubble
    (windows get z-index 11, 12, 13 … from open() in ui.js), below only the toast. It takes the colour of what sits under it (data-strip, set by stripSync in ui.js):
    the page colour, the page dimmed by a floating window's scrim, or the white QR page. */
@@ -835,9 +831,9 @@ body[data-strip="paper"]::before{background:#fff!important}
    Full-screen windows (Settings pages, forms, Theme, Targets, Pick Exercise, Workout):
    a sticky bar layer, a sticky back arrow and a sticky title in one stack. ==================================== */
 :root{--topP:calc(8px + env(safe-area-inset-top) + var(--topgap))}
-.overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage,#ovTargets .sheet.tall{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
-.setpage>.sback,.formpage>.sback,.themepage>.sback,#ovTargets .sheet>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
-.setpage>h2,.formpage>h2,.themepage>h2,#ovTargets .sheet>h2{position:sticky;top:var(--topP);z-index:3}
+.overlay .sheet.setpage,#ovDemo .sheet.formpage,#ovTheme .sheet.themepage{padding-top:0!important}   /* the bar owns the top gap, so sticky offsets don't depend on the scroller's padding */
+.setpage>.sback,.formpage>.sback,.themepage>.sback{position:sticky;top:var(--topP);z-index:4;float:none;margin:0 0 -44px 0}
+.setpage>h2,.formpage>h2,.themepage>h2{position:sticky;top:var(--topP);z-index:3}
 /* Pick Exercise: a solid sheet (the page behind no longer shows through); Workout screen: solid sticky head */
 
 /* 0.7.4.1 · Food Tracker rows: fridge amount as a soft-green pill under the kcal; only our own clear X in search boxes */
