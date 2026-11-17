@@ -179,12 +179,14 @@ function aiCtl(el){ const c = el && el.closest && el.closest('button,label,a,[ro
 function aiNeedKey(){ Phone.haptic(); toast(t('aiNeedKey'), t('aiKeyGo'), () => { openSettings(); setTimeout(() => { fillSettings(); open('ovSAI'); }, 360); }); }
 document.addEventListener('click', e => { if(AI.hasKey() || !aiCtl(e.target)) return; e.preventDefault(); e.stopImmediatePropagation(); aiNeedKey(); }, true);
 
-function go(h){ if(location.hash === '#' + h) route(); else location.hash = h; }
+// Refinements #4: moving around inside the app never adds a browser history step, so the iPhone's swipe from the left edge has
+// nothing to go back to (the app's own back arrow keeps its own list, NAV)
+function go(h){ if(location.hash === '#' + h) route(); else location.replace('#' + h); }
 
 // ---------- cooking: choose first, then the details ----------
 function cookStep(main){ $('cookStart').classList.toggle('hide', main); $('cookMain').classList.toggle('hide', !main); }
 
-function navTo(h){ if(location.hash.slice(1) === h){ route(); return; } navMode = true; location.hash = h; }
+function navTo(h){ if(location.hash.slice(1) === h){ route(); return; } navMode = true; location.replace('#' + h); }
 
 function goBack(){
   const opens = [...document.querySelectorAll('.overlay.open')].filter(o => o.id !== 'ovLang').sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0));
@@ -351,6 +353,8 @@ function route(){
 // can be seen but never chosen. Reduce Motion: instant jumps, no scaling.
 //   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true? }], onPick: key => … })
 //   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
+//   page: { area, views }  (Refinements #4) swiping the page sideways moves to the next or previous pill, like flipping photos:
+//   the section follows the finger 1:1 (shared drag helper), then slides out while the next one slides in. views() = what is showing.
 const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1;   // neighbours: opacity down to .4, scale down to .9
 function carFade(els){   // the content under the carousel: a light cross fade, never from blank
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -358,7 +362,25 @@ function carFade(els){   // the content under the carousel: a light cross fade, 
 }
 // Endless (Refinements #4, Petros): the pills are drawn three times in a row and the row always rests on the middle copy; after it
 // settles on a copy to the left or right it jumps (unseen: same labels in the same places) back to the middle, so it never runs out.
-function pillCarousel(el, { items, onPick }){
+function swipePages(page, car, stepTo){
+  const NO = 'input,textarea,select,button.stepper,.pcar,.swipebox [data-id],.swipebox .exc,.swipebox .tpcard,.mxr,[data-noswipe],svg.anat,.anatomy';
+  let w = 0, vs = [];
+  const sideScroll = t => { for(let e = t; e && e !== page.area; e = e.parentElement){ if(e.scrollWidth > e.clientWidth + 2){ const ox = getComputedStyle(e).overflowX; if(ox === 'auto' || ox === 'scroll') return true; } } return false; };
+  dragger(page.area, { axis: 'x', slop: 12,
+    item: e => car.classList.contains('hide') || document.querySelector('.overlay.open') || e.target.closest(NO) || sideScroll(e.target) ? null : page.area,
+    start: () => { w = page.area.clientWidth || 360; vs = page.views(); vs.forEach(v => { v.getAnimations().forEach(a => a.cancel()); v.style.willChange = 'transform,opacity'; }); },
+    move: s => { const tr = `translate3d(${s.dx.toFixed(1)}px,0,0)`, op = (1 - Math.min(.5, Math.abs(s.dx) / w * .6)).toFixed(3);
+      vs.forEach(v => { v.style.transform = tr; v.style.opacity = op; }); },
+    end: (s, ok) => { const dx = s.dx, dir = dx < 0 ? 1 : -1, op0 = 1 - Math.min(.5, Math.abs(dx) / w * .6);
+      const clear = v => { v.style.transform = ''; v.style.opacity = ''; v.style.willChange = ''; };
+      const go = ok && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
+      if(!go){ vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
+      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w * .6 }, { x: s.vx }, { k: 420, damp: 1, fill: 'forwards', op: [op0, 0] }); });
+      setTimeout(() => { const old = vs; if(!stepTo(dir)){ old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
+        old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
+        page.views().forEach(v => springTo(v, { x: dir * w * .45 }, { x: 0 }, { x: s.vx }, { k: 300, op: [0, 1] })); }, 130); } });
+}
+function pillCarousel(el, { items, onPick, page }){
   const n = items.length, R = 3;
   el.classList.add('pcar'); el.setAttribute('role', 'tablist');
   el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${Array.from({ length: n * R }, (_, i) => { const it = items[i % n], mid = i >= n && i < 2 * n;
@@ -386,14 +408,20 @@ function pillCarousel(el, { items, onPick }){
   function wrap(){   // back to the same pill in the middle copy, without any visible change
     if(cur < 0 || (cur >= n && cur < 2 * n) || !step) return; const j = n + cur % n;
     jumping = true; near = j; mark(j); row.scrollLeft = j * step; frame(); setTimeout(() => { jumping = false; }, 60); }
+  const fade = () => { if(page) carFade(page.views()); };
   function pick(i){ if(i < 0 || itm(i).soon) { centre(cur, true); return; }
-    if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same) onPick(itm(i).key); }
+    if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ onPick(itm(i).key); fade(); } }
   function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding) wrap(); }
   row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
   row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
   row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
     if(itm(i).soon){ Phone.haptic(); return; }
-    if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same) onPick(itm(i).key); centre(i, true); });
+    if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ onPick(itm(i).key); fade(); } centre(i, true); });
+  function stepTo(dir){   // the next (1) or previous (-1) pill that can be chosen, round the loop; false if there is none
+    if(cur < 0) return false; let i = cur;
+    for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!itm(i).soon) break; }
+    if(i % n === cur % n) return false; mark(i); onPick(itm(i).key); centre(i, true); return true; }
+  if(page) swipePages(page, el, stepTo);
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
   return {
     set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
