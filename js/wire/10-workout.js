@@ -11,6 +11,12 @@ $('blBody').addEventListener('click', e => {
   const ex = e.target.closest('[data-ex]'); if(ex){ close('ovBulb'); close('ovExPick'); addToSession(ex.dataset.ex); }
 });
 
+// Refinements: swipe on past the last exercise and the exercise menu opens (the same as tapping Add Exercise). Closing it without a pick returns to the last exercise.
+{ const bd = $('sesBody'); let tm = 0, atAdd = false;
+  const onAdd = () => { const a = $('sesAddEx'); return !!(active && a.isConnected && active.exercises.length && a.getBoundingClientRect().top - bd.getBoundingClientRect().top <= PEEK + 24); };
+  bd.addEventListener('scroll', () => { clearTimeout(tm); tm = setTimeout(() => { if($('ovExPick').classList.contains('open')) return; const on = onAdd(); if(on && !atAdd){ atAdd = true; $('sesAddEx').click(); } else if(!on) atAdd = false; }, 160); }, { passive: true });
+  new MutationObserver(() => { if($('ovExPick').classList.contains('open')) return;
+    setTimeout(() => { if(!onAdd()) return; const cards = bd.querySelectorAll('.exc'), last = cards[cards.length - 1]; if(last) last.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 450); }).observe($('ovExPick'), { attributes: true, attributeFilter: ['class'] }); }
 // Workout Done: Save As Workout (the old pop-up after finishing now lives here)
 $('smBody').addEventListener('click', e => { if(e.target.closest('[data-smtpl]') && SM_SES){ Phone.haptic(); askSaveTpl(SM_SES); } });
 // save an empty workout for later

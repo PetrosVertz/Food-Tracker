@@ -519,33 +519,24 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesSupps{flex:0 0 auto}
 #ovSession #sesSupps:empty{display:none}
 #ovSession #sesSupps .slots{flex-wrap:nowrap;overflow-x:auto;margin:0 0 var(--s2)}
-/* the pages: swipe up / down, one exercise at a time, a sliver of the neighbours shows above and below */
-#ovSession #sesBody{--peek:28px;flex:1 1 0;min-height:0;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:var(--peek) 0;box-sizing:border-box}
-#ovSession #sesBody>.exc,#ovSession #sesBody>.addexbig{box-sizing:border-box;min-height:100%;margin:0 0 var(--s3);scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--peek)}
-#ovSession #sesBody>.addexbig{flex-direction:column;border-style:dashed;border-radius:var(--r-card)}
-#ovSession #sesBody>.empty{min-height:100%;display:grid;place-items:center;scroll-snap-align:start;margin:0 0 var(--s3)}
-.exc.open .newset{margin-top:auto}
-.exc.open .exdone{margin-top:auto}
+/* the pages: swipe up / down, one exercise at a time; cards keep their natural size (they only grow downwards) and the bottom of the card above shows */
+#ovSession #sesBody{--peek:64px;flex:1 1 0;min-height:0;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:8px 0 0;box-sizing:border-box}
+#ovSession #sesBody>.exc,#ovSession #sesBody>.addexbig{box-sizing:border-box;margin:0 0 var(--s3);scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--peek)}
+#ovSession #sesBody>.exc:first-child{scroll-margin-top:8px}
+#ovSession #sesBody>.addexbig{border-style:dashed;border-radius:var(--r-card);min-height:88px}
+#ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
 /* the bottom card */
 .sesdock{flex:0 0 auto;position:relative;z-index:3;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s2);margin:var(--s1) 0 max(12px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.dkrow1{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:var(--s3);min-height:48px}
+.dkrow1{display:flex;align-items:center;justify-content:space-between;min-height:56px}
 .dkrow1 .wclock{padding-left:var(--s2)}
-.sesdock #sesClock{font-size:26px}
-.dkrow2{display:flex;align-items:center;gap:var(--s2)}
-.dkrow2 .pillbtn{height:46px;min-width:0;flex:1 1 0;padding:0 10px;font-size:15px;white-space:nowrap}
-.dkrow2 .pillbtn.primary{flex:1.8 1 0}
-.dkrow2 .sescoach{position:relative;flex:0 0 48px;width:48px;height:46px;min-height:0;margin:0;justify-self:auto}
-.dkrest .rbwrap{max-height:none;margin:0}
-.dkrest .rbwrap.fold{max-height:none;margin:0}
-.dkrest .rbk{height:48px;gap:var(--s2);padding:0 6px 0 var(--s3)}
-.dkrest .rbk .hg{display:none}
-.dkrest .rbt{font-size:var(--fs-title);min-width:0}
-.dkrest .rbb{gap:4px}
-.dkrest .rbb button{width:34px;height:34px}
-.dkrest .rbb .skip{width:auto;padding:0 var(--s2)}
-.rbidle{height:48px;border-radius:12px;border:1px dashed var(--t-line);display:flex;align-items:center;justify-content:center;color:var(--t-muted);font-size:var(--fs-label)}
+.sesdock #sesClock{font-size:34px}
+.dkrow2{display:flex;align-items:center;gap:var(--s3)}
+.dkrow2 .pillbtn{height:46px;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
+.dkrow2 .pillbtn.danger{flex:0 0 96px}
+.dkrow2 .pillbtn.primary{flex:1 1 0}
+.dkrow1 .sescoach{position:relative;flex:0 0 60px;width:60px;height:60px;min-height:0;margin:-4px -2px -4px 0;justify-self:auto}
 /* the Gym Coach cheers when a set is finished (transform + opacity only) */
-.sescoach::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
+.sescoach::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
 @keyframes ccHop{0%{transform:none}16%{transform:translateY(2px) scale(1.08,.9)}42%{transform:translateY(-12px) rotate(-9deg) scale(.96,1.06)}64%{transform:translateY(-3px) rotate(7deg)}82%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
 @keyframes ccDouble{0%{transform:none}14%{transform:translateY(-12px) rotate(-8deg)}28%{transform:translateY(0)}42%{transform:translateY(-16px) rotate(8deg) scale(1.08)}58%{transform:translateY(0) scale(1.06,.94)}72%{transform:rotate(-5deg)}86%{transform:rotate(4deg)}100%{transform:none}}
 @keyframes ccSpin{0%{transform:none}25%{transform:translateY(-16px) scale(1.2) rotate(-14deg)}75%{transform:translateY(-10px) scale(1.2) rotate(360deg)}100%{transform:rotate(360deg)}}

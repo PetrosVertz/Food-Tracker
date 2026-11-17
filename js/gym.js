@@ -122,7 +122,7 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 40 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
@@ -139,9 +139,13 @@ function renderSession(){
   const shown = active.exercises.map((x, i) => cardHtml(x, i)).join(''), body = $('sesBody'), st = body.scrollTop;
   body.innerHTML = shown || `<div class="empty">${t('noExYet')}</div>`;
   SES_ADD = SES_ADD || $('sesAddEx'); body.appendChild(SES_ADD);   // Add Exercise is the last page, under the last exercise
-  $('dkRest').innerHTML = REST ? restBracket() : `<div class="rbidle">${t('restIdle')}</div>`;   // the rest timer lives in the bottom card
-  body.scrollTop = st; fitUniTicks();
+  body.scrollTop = st; fitUniTicks(); fitPages();
 }
+// the pages: room under the last card so the Add Exercise page can reach the top like every other page (the card sizes are natural; only the peek above is fixed)
+const PEEK = 64;
+function fitPages(){ const body = $('sesBody'), add = $('sesAddEx'); if(!body || !add.isConnected) return;
+  body.style.setProperty('--peek', PEEK + 'px'); body.style.paddingBottom = Math.max(0, body.clientHeight - add.offsetHeight - PEEK) + 'px'; }
+addEventListener('resize', () => { if(active) fitPages(); });
 // one tall tick spans both hands (and their extras) of a unilateral set: size it from the real rows after each draw
 function fitUniTicks(){ document.querySelectorAll('#sesBody .setrow.lmerge').forEach(row => { const ok = row.querySelector('.sok'); if(!ok) return;
   let last = row.nextElementSibling; while(last && !last.classList.contains('rmate')) last = last.nextElementSibling;   // the R row
@@ -829,13 +833,14 @@ function cardHtml(x, i){
     const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
     const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = !hideM('D') && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
-    if(card) return cardioRow(x, s, j);
+    const restHere = REST && REST.xi === i && REST.si === j;
+    if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     const merge = gOn('uniBoth') && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = gOn('uniBoth') && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
     const xtra = extrasHtml(s, j);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
     return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
-      (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '');
+      (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${x.uni && gOn('uniBoth') ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
