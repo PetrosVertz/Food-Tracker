@@ -579,14 +579,17 @@
 
 <!-- ============ LIVE WORKOUT ============ -->
 <div class="overlay" id="ovSession"><div class="sheet tall session">
-  <div class="seshead3"><div class="wmid"><span class="wclock"><span id="sesClock">0:00</span><span id="sesHg"></span></span><h2 id="sesName"></h2></div><button class="sescoach" id="sesCoach" type="button"></button></div>
-  <button class="addexbig" id="sesAddEx"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><b data-t="addExercise"></b></button>
+  <div class="seshead3"><h2 id="sesName"></h2></div>
   <div id="sesSupps"></div>
   <div id="sesBody"></div>
+  <button class="addexbig" id="sesAddEx"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><b data-t="addExercise"></b></button>
   <div class="actions hide"><button class="btn" id="sesNext" data-t="whatNext"></button></div>
-  <div style="height:96px"></div>
   <div class="hide" id="restBar"></div>
-  <div class="endbar2"><button class="pillbtn danger" id="sesDiscard" data-t="discardBtn"></button><button class="pillbtn primary" id="sesFinish" data-t="endWorkoutPill"></button></div>
+  <!-- Refinements: the bottom card, always there during a workout: total time, rest timer, Gym Coach, Discard, End Workout -->
+  <div class="sesdock" id="sesDock">
+    <div class="dkrow1"><span class="wclock"><span id="sesClock">0:00</span><span id="sesHg"></span></span><div class="dkrest" id="dkRest"></div></div>
+    <div class="dkrow2"><button class="pillbtn danger" id="sesDiscard" data-t="discardBtn"></button><button class="pillbtn primary" id="sesFinish" data-t="endWorkoutPill"></button><button class="sescoach" id="sesCoach" type="button"></button></div>
+  </div>
 </div></div>
 
 <!-- ============ PICK EXERCISE ============ -->
@@ -653,6 +656,7 @@
 <div class="overlay" id="ovExSet"><div class="sheet">
   <span class="grab" aria-hidden="true"></span>
   <h2 data-t="exSettings"></h2>
+  <div class="seg" id="exsTabs"></div>
   <div id="exsBody"></div>
   <div class="actions"><button class="btn" data-close data-t="close"></button></div>
 </div></div>

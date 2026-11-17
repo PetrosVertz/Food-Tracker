@@ -11,6 +11,8 @@ $('blBody').addEventListener('click', e => {
   const ex = e.target.closest('[data-ex]'); if(ex){ close('ovBulb'); close('ovExPick'); addToSession(ex.dataset.ex); }
 });
 
+// Workout Done: Save As Workout (the old pop-up after finishing now lives here)
+$('smBody').addEventListener('click', e => { if(e.target.closest('[data-smtpl]') && SM_SES){ Phone.haptic(); askSaveTpl(SM_SES); } });
 // save an empty workout for later
 $('svSave').addEventListener('click', saveSessionAsTpl);
 $('svSkip').addEventListener('click', () => { SV = null; close('ovSaveTpl'); });
@@ -27,7 +29,8 @@ $('sesBody').addEventListener('click', e => { const ok = e.target.closest('[data
   const x = ok.closest('[data-x]'), r = ok.closest('[data-s]'); if(!x || !r) return; const xi = x.dataset.x, si = r.dataset.s;
   setTimeout(() => { if(SSNEXT) return; const rows = [...document.querySelectorAll('#sesBody .exc:not(.ended) .setrow')], cur = document.querySelector(`#sesBody [data-x="${xi}"] [data-s="${si}"]`);
     if(!cur || !cur.classList.contains('done')) return; const i = rows.indexOf(cur), next = rows.slice(i + 1).find(el => !el.classList.contains('done'));
-    if(next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120); });
+    const bd = $('sesBody'), card = next && next.closest('.exc');   // the page already shows the whole card: nothing to scroll
+    if(next && !(card === cur.closest('.exc') && card.offsetHeight <= bd.clientHeight)) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120); });
 
 // keep the screen on (it's released automatically when you switch apps)
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('ovSession').classList.contains('open')) keepAwake(true); });
@@ -50,7 +53,8 @@ $('sesCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gyml
     document.body.classList.toggle('inses', on);
     if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
-// Exercise Settings sheet: switches save at once and the open workout redraws
+// Exercise Settings sheet: switches save at once and the open workout redraws; the four tabs switch the list
+$('exsTabs').addEventListener('click', e => { const b = e.target.closest('[data-exstab]'); if(!b || b.dataset.exstab === EXS_TAB) return; Phone.haptic(); EXS_TAB = b.dataset.exstab; drawExSet(); $('exsBody').scrollTop = 0; });
 $('exsBody').addEventListener('click', e => {
   if(e.target.closest('[data-hmopen]')){ EXS_MK = !EXS_MK; Phone.haptic(); drawExSet(); return; }
   const hm = e.target.closest('[data-hm]'); if(hm){ Phone.haptic(); const G = gx(); hideM('W'); G.hideM = G.hideM || {}; if(G.hideM[hm.dataset.hm]) delete G.hideM[hm.dataset.hm]; else G.hideM[hm.dataset.hm] = true; Store.save('settings', settings); drawExSet(); if(active) renderSession(); return; }

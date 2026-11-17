@@ -93,8 +93,6 @@ $('ovSx').addEventListener('click', e => { if(e.target === $('ovSx')) sxSave(); 
 $('sesBody').addEventListener('click', e => {
   const ab = e.target.closest('[data-attempt]'); if(ab) return atToggle(+ab.closest('.exc').dataset.x);   // trophy: Leaderboard Attempt on this exercise
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
-  const oc = e.target.closest('[data-openex]'); if(oc && !e.target.closest('[data-replace]')){ active.cur = +oc.dataset.x; saveG('act'); renderSession();   // open a short card
-    setTimeout(() => { const el = document.querySelector(`.exc[data-x="${oc.dataset.x}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); return; }
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
   const tb = e.target.closest('[data-tierinfo]'); if(tb){ Phone.haptic(); return showTierGap(tb); }
@@ -113,11 +111,10 @@ $('sesBody').addEventListener('click', e => {
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
     if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
     saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-replace]')) return openSwap(xi);   // 0.6.9.3: the same Swap menu as inside the open exercise
   if(e.target.closest('[data-ok]') && s){ tickSet(x, s, row, xi, +row.dataset.s); return; }
   if(e.target.closest('[data-addset]')){ if(!x.t0) x.t0 = Date.now(); if(x.uni) x.sets.push(...uniPair()); else x.sets.push(newSet()); saveG('act'); renderSession(); focusSet(xi, x.sets.length - (x.uni ? 2 : 1)); return; }
   if(e.target.closest('[data-endex]')){ x.ended = true; if(x.t0 && !x.t1) x.t1 = Date.now(); x.sets = x.sets.filter(z => z.done || (!z.auto && (z.w !== '' || z.r !== ''))); delete active.cur; saveG('act'); renderSession();
-    const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => (next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')).scrollIntoView({ behavior: 'smooth', block: 'center' }), 60); return; }
+    const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => (next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')).scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); return; }
   if(e.target.closest('[data-reopen]')){ x.ended = false; x.t1 = null; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-rest]')){ const opts = [60, 90, 120, 150, 180, 240, 300]; x.rest = opts[(opts.indexOf(x.rest) + 1) % opts.length] || 90; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-warm]')){ const sug = suggestFor(x.exId, x.reps); x.sets.unshift(...warmupFor(x.exId, sug.w).map(w => ({ id: uid(), type: 'W', w: String(w.w), r: String(w.r), done: false }))); saveG('act'); renderSession(); return; }
@@ -224,12 +221,11 @@ async function finishWorkout(auto){
   sessions.push(ses); saveG('ses');
   const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed: up to 3 windows, the rest listed in Workout Done
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
-  active = null; saveG('act'); REST = null; SSNEXT = null; $('restBar').classList.add('hide');
+  active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
   showSummary(ses, rk.slice(3)); renderAll();
-  if(!ses.tplId) askSaveTpl(ses);
   RankFx.play(rk.slice(0, 3));
   return true;
 }
@@ -348,12 +344,7 @@ $('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-w
 makeSortable($('tpList'), '.tpcard', (a, b, out) => { ssMove(TP.exercises, a, b, out); drawTpl(); },
   (a, b) => { ssMerge(TP.exercises, a, b); drawTpl(); toast(t('ssMade')); },
   (a, b) => !isCardio(TP.exercises[a].exId) && !isCardio(TP.exercises[b].exId));   // cardio doesn't superset
-makeSortable($('sesBody'), '.exc', (a, b, out) => { const ex = active.exercises; ssMove(ex, a, b, out);
-  if(REST && typeof REST.xi === 'number') REST.xi = REST.xi === a ? b : REST.xi > a && REST.xi <= b ? REST.xi - 1 : REST.xi < a && REST.xi >= b ? REST.xi + 1 : REST.xi;
-  saveG('act'); renderSession(); },
-  (a, b) => { const ex = active.exercises, rx = REST && typeof REST.xi === 'number' ? ex[REST.xi] : null;
-    ssMerge(ex, a, b); if(rx) REST.xi = ex.indexOf(rx); saveG('act'); renderSession(); toast(t('ssMade')); },
-  (a, b) => !isCardio(active.exercises[a].exId) && !isCardio(active.exercises[b].exId));
+// the live workout is one exercise per page now, so hold-to-reorder / hold-to-superset live in the workout editor only (the list above)
 
 // swipe to delete: exercises (live workout + workout editor) and sets, with Undo
 makeSwipeDelete($('sesBody'), '.exc', c => { const i = +c.dataset.x, gone = active.exercises.splice(i, 1)[0]; if(!gone) return;

@@ -26,7 +26,6 @@
 /* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
 .exc.ended{opacity:1;border-style:solid}
 .exdone{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--line);font-size:13px;color:var(--ok)}
-#sesBody .addexbig{margin-top:var(--s3)}
 /* 0.6.0 · Progress: weight chart, compact weigh-in, strength by muscle */
 .wtcard{padding:var(--s3) var(--s3) 6px;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
 .wthead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
@@ -65,7 +64,6 @@ body.sorting{overscroll-behavior:none}
 .setrow.ssnext{box-shadow:0 0 0 2px var(--ok);background:rgba(89,211,140,.10)}
 .exc.ss,.tpcard.ss{border-left:4px solid var(--ssc)!important}
 .sslbl{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ssc);margin:-2px 0 6px}
-.swapq{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-size:16px;cursor:pointer;display:grid;place-items:center;padding:0}
 
 /* 0.6.8 · exercise picker: full screen, no sideways movement, compact rows with mini muscle maps */
 .exrows{display:flex;flex-direction:column;gap:6px}
@@ -102,12 +100,10 @@ body.sorting{overscroll-behavior:none}
 .seshead3{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr;align-items:center;padding:calc(var(--s2) + env(safe-area-inset-top) + var(--topgap)) 48px var(--s2);margin-bottom:var(--s2);background:var(--t-bg)}   /* 0.7.9.5: the bar owns the safe-area strip, so it is solid above scrolling sets */
 .seshead3 h2{margin:0;max-width:100%;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);letter-spacing:0;color:var(--t-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seshead3 h2:empty{display:none}
-.wmid{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
 .wclock{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--t-clock)}
 /* 0.7.7: the Gym Coach robot, top right; it steps aside while the chat is open */
 .sescoach{justify-self:end;width:48px;min-height:44px;height:52px;margin-right:-8px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 body:has(#ovCoach.open) .sescoach{visibility:hidden}
-.seshead3 .sescoach{position:absolute;right:0;top:50%;transform:translateY(-50%);margin-right:0}   /* 0.7.10.5: pinned right so the title stays centred */
 /* 0.7.8: Start Workout window: title on the left, the Gym Coach robot at the right end of the title bar */
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)} .sthead h2{margin:0;min-width:0} .sthead .sescoach{margin-right:-8px;flex:0 0 auto}
 body.noai .sescoach{opacity:.42;filter:grayscale(1)}
@@ -118,7 +114,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
 .exc.open{position:relative;display:flex;flex-direction:column;gap:var(--s2)}
 /* 0.7.10: card top row, pulled into the card's corners: [rank badge][sore warning] … [settings gear 44 px] */
-.extop{display:flex;align-items:center;justify-content:space-between;gap:6px;height:44px;margin:-14px -10px -18px -8px}
+.extop{display:flex;align-items:center;justify-content:space-between;gap:6px;height:56px;margin:-14px -10px -18px -8px}
 .extier{display:flex;align-items:center;gap:2px;min-width:0;margin-right:auto}
 .extop .exgear{margin-left:auto}
 .extop.has{margin-bottom:-6px}   /* badge row drawn: the title starts below it, full width */
@@ -126,10 +122,6 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .extier:empty{display:none}
 .exgear{flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .exc.ssarm .exgear{visibility:hidden}
-.exc.mini{display:flex;align-items:center;gap:var(--s2);cursor:pointer}
-.exc.mini .mtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--s1)}
-.exc.mini .mtxt b{font-size:var(--fs-body);font-weight:var(--w-med)}
-.exc.mini .mtxt small{font-size:var(--fs-label);color:var(--t-muted)}
 .exhead{display:flex;flex-direction:column;align-items:center;gap:var(--s1);margin-bottom:var(--s1);text-align:center}
 .exname{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
 .exhead small{font-size:var(--fs-label);color:var(--t-muted)}
@@ -190,7 +182,6 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .endex2{width:100%;height:40px;border-radius:var(--r-pill);background:var(--t-done-soft);border:1px solid var(--t-done);color:var(--t-done);font-size:var(--fs-body);font-weight:var(--w-setter);cursor:pointer}
 
 /* bottom: Discard (soft red) + End Workout (accent), matching full pills */
-.endbar2{position:sticky;bottom:0;margin-top:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);padding:12px 0 calc(24px + env(safe-area-inset-bottom));background:linear-gradient(rgba(0,0,0,0),var(--t-bg) 40%);z-index:3}
 .pillbtn{height:52px;border-radius:var(--r-pill);border:0;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer}
 .pillbtn.primary{background:var(--t-accent);color:var(--t-on)}
 .pillbtn.danger{background:var(--t-danger-soft);color:var(--t-danger)}
@@ -370,7 +361,7 @@ body.inses .coachbub{display:none!important}
 /* ---------- 0.7.7 tiers (Bronze 3 … Diamond 1) ---------- */
 .tierneed{background:none;border:0;padding:2px 6px;font:inherit;font-size:var(--fs-label);color:var(--t-muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* tier badge: line style, top right of the exercise card just left of the gear; tier colour as text + border (≥ 4.5:1 in Dark and Light) */
-.tierbadge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--trc);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tierbadge{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--trc);cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* 0.7.10.2 rank plate (rankIcon): an <img> of img/rank/…; fixed size from its width/height so nothing jumps while it loads */
 .rankic{display:block;flex:0 0 auto;object-fit:contain;-webkit-user-drag:none;user-select:none}
 .pfempty{margin:0;padding:var(--s2) 0;color:var(--t-muted);font-size:var(--fs-label);line-height:1.45}
@@ -521,3 +512,60 @@ body.inses .coachbub{display:none!important}
 #ovRankFx .actions .btn{flex:1}
 /* Workout Done: the rank changes beyond the first three */
 .rfxmore li{display:flex;align-items:center;gap:var(--s2)}
+
+/* ===== Refinements: live workout = one exercise per page + the bottom card ===== */
+#ovSession .sheet.session{overflow:hidden!important}
+#ovSession .seshead3{margin-bottom:0;padding-left:var(--s4);padding-right:var(--s4)}
+#ovSession #sesSupps{flex:0 0 auto}
+#ovSession #sesSupps:empty{display:none}
+#ovSession #sesSupps .slots{flex-wrap:nowrap;overflow-x:auto;margin:0 0 var(--s2)}
+/* the pages: swipe up / down, one exercise at a time, a sliver of the neighbours shows above and below */
+#ovSession #sesBody{--peek:28px;flex:1 1 0;min-height:0;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:var(--peek) 0;box-sizing:border-box}
+#ovSession #sesBody>.exc,#ovSession #sesBody>.addexbig{box-sizing:border-box;min-height:100%;margin:0 0 var(--s3);scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--peek)}
+#ovSession #sesBody>.addexbig{flex-direction:column;border-style:dashed;border-radius:var(--r-card)}
+#ovSession #sesBody>.empty{min-height:100%;display:grid;place-items:center;scroll-snap-align:start;margin:0 0 var(--s3)}
+.exc.open .newset{margin-top:auto}
+.exc.open .exdone{margin-top:auto}
+/* the bottom card */
+.sesdock{flex:0 0 auto;position:relative;z-index:3;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s2);margin:var(--s1) 0 max(12px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.dkrow1{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:var(--s3);min-height:48px}
+.dkrow1 .wclock{padding-left:var(--s2)}
+.sesdock #sesClock{font-size:26px}
+.dkrow2{display:flex;align-items:center;gap:var(--s2)}
+.dkrow2 .pillbtn{height:46px;min-width:0;flex:1 1 0;padding:0 10px;font-size:15px;white-space:nowrap}
+.dkrow2 .pillbtn.primary{flex:1.8 1 0}
+.dkrow2 .sescoach{position:relative;flex:0 0 48px;width:48px;height:46px;min-height:0;margin:0;justify-self:auto}
+.dkrest .rbwrap{max-height:none;margin:0}
+.dkrest .rbwrap.fold{max-height:none;margin:0}
+.dkrest .rbk{height:48px;gap:var(--s2);padding:0 6px 0 var(--s3)}
+.dkrest .rbk .hg{display:none}
+.dkrest .rbt{font-size:var(--fs-title);min-width:0}
+.dkrest .rbb{gap:4px}
+.dkrest .rbb button{width:34px;height:34px}
+.dkrest .rbb .skip{width:auto;padding:0 var(--s2)}
+.rbidle{height:48px;border-radius:12px;border:1px dashed var(--t-line);display:flex;align-items:center;justify-content:center;color:var(--t-muted);font-size:var(--fs-label)}
+/* the Gym Coach cheers when a set is finished (transform + opacity only) */
+.sescoach::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
+@keyframes ccHop{0%{transform:none}16%{transform:translateY(2px) scale(1.08,.9)}42%{transform:translateY(-12px) rotate(-9deg) scale(.96,1.06)}64%{transform:translateY(-3px) rotate(7deg)}82%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
+@keyframes ccDouble{0%{transform:none}14%{transform:translateY(-12px) rotate(-8deg)}28%{transform:translateY(0)}42%{transform:translateY(-16px) rotate(8deg) scale(1.08)}58%{transform:translateY(0) scale(1.06,.94)}72%{transform:rotate(-5deg)}86%{transform:rotate(4deg)}100%{transform:none}}
+@keyframes ccSpin{0%{transform:none}25%{transform:translateY(-16px) scale(1.2) rotate(-14deg)}75%{transform:translateY(-10px) scale(1.2) rotate(360deg)}100%{transform:rotate(360deg)}}
+@keyframes ccRing{0%{opacity:.8;transform:scale(.5)}100%{opacity:0;transform:scale(1.9)}}
+.sescoach.cheer1 svg.robot{animation:ccHop .75s cubic-bezier(.3,.7,.3,1)}
+.sescoach.cheer2 svg.robot{animation:ccDouble 1s cubic-bezier(.3,.7,.3,1)}
+.sescoach.cheer3 svg.robot{animation:ccSpin 1.1s cubic-bezier(.3,.7,.3,1)}
+.sescoach.cheer1::after,.sescoach.cheer2::after,.sescoach.cheer3::after{animation:ccRing .8s ease-out}
+@media(prefers-reduced-motion:reduce){.sescoach svg.robot,.sescoach::after{animation:none!important}}
+/* half reps / negatives: the title sits left of the circle, the pair centred under the kg and reps boxes */
+.setx{align-items:center;margin:0 0 var(--s2)}
+.sxn{flex-direction:row;align-items:center;justify-content:center;gap:6px;min-width:0}
+.sxn span{font-size:13.5px;font-weight:var(--w-med);line-height:1.1;text-align:right;min-width:0;white-space:nowrap;color:var(--t-text);opacity:.78}
+@media(max-width:375px){.sxn{gap:6px}.sxn span{font-size:12px}.sxb{flex-basis:28px;width:28px;height:28px;font-size:14px}.exc.unib .sethead,.exc.unib .setrow,.exc.unib .setx{grid-template-columns:34px 1fr 1fr 44px!important}.exc.unib .setrow.lmerge .sok{width:44px}}
+.sxb{flex:0 0 32px;width:32px;height:32px}
+/* one tick for both hands: bigger */
+.exc.unib .sethead,.exc.unib .setrow,.exc.unib .setx{grid-template-columns:40px 1fr 1fr 48px!important}
+.exc.unib .setrow.lmerge .sok{width:48px;border-radius:14px}
+.exc.unib .setrow.lmerge .sok svg{width:24px;height:24px}
+/* Exercise Settings tabs */
+#exsTabs{margin:var(--s2) 0 var(--s1)}
+#ovExSet #exsBody{min-height:300px}
+.smtpl{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin-top:var(--s3)}
