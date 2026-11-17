@@ -839,3 +839,7 @@ Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings
 Object.assign(S, {   // Refinements #2: the Gym Buddy carousel (Partner has no screen yet)
   hubPartner: ['Partner', 'Συνεργάτης'], carSoon: ['Coming Soon', 'Σύντομα'],
 });
+Object.assign(S, {   // Refinements #4: the Food Library hub
+  tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'], fhFoods: ['Foods', 'Τρόφιμα'],
+  nRecipes: ['{n} Recipes', '{n} Συνταγές'], nRecipe1: ['1 Recipe', '1 Συνταγή'], nSupps: ['{n} Supplements', '{n} Συμπληρώματα'], nSupp1: ['1 Supplement', '1 Συμπλήρωμα'],
+});

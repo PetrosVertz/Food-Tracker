@@ -44,7 +44,15 @@
     <div class="left"><button class="backarrow hide" id="backBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="tabFood"></h1></div>
     <div class="hbtns"><button class="iconbtn plainic" id="fScanBtn" aria-label="Scan"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
   </header>
-  <div class="mpill" id="foodTabs"><button data-v="store" data-t="tabStore"></button><button data-v="meals" data-t="tabMeals"></button><button data-v="supps" data-t="tabSupps"></button></div>
+  <div id="fHub" class="hide">
+    <div class="tiles fhub">
+      <button class="tile fhmain" data-fsec="foods"><span class="e hubic" data-fic="bag"></span><span><b data-t="tabStore"></b><em data-t="fhFoods"></em><small id="fhStoreN"></small></span></button>
+      <button class="tile soon fhsoon" type="button" aria-disabled="true" tabindex="-1"><span class="e hubic" data-fic="bowl"></span><span><b data-t="tabMyMeals"></b><small data-t="carSoon"></small></span></button>
+      <button class="tile wide" data-fsec="meals"><span class="e hubic" data-fic="pot"></span><span><b data-t="tabMeals"></b><small id="fhRecN"></small></span></button>
+      <button class="tile wide" data-fsec="supps"><span class="e hubic" data-fic="capsule"></span><span><b data-t="tabSupps"></b><small id="fhSuppN"></small></span></button>
+    </div>
+  </div>
+  <div class="hide" id="fTabs"></div>
   <div id="storeView">
     <div class="logfX"><input class="search" id="search" type="search" data-tp="searchFoods" autocomplete="off"></div>
     <div class="chips" id="catChips"></div>

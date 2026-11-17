@@ -8,7 +8,16 @@ $('backBtn').addEventListener('click', () => goBack());
 $('backBtn2').addEventListener('click', () => goBack());
 
 
-$('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : b.dataset.v === 'supps' ? 'supps' : 'foods')), route(); });
+// Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
+// My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
+document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
+$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); else if(e.target.closest('.fhsoon')) Phone.haptic(); });
+const FOOD_CAR = pillCarousel($('fTabs'), {
+  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
+    { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
+  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route();
+    carFade(['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide'))); }
+});
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;

@@ -333,3 +333,13 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .recTop{display:flex;gap:10px;margin:0 0 10px}
 .recBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:10px 8px;font-size:14px;white-space:normal;line-height:1.15}
 .recFace{display:inline-flex;flex:0 0 auto}
+/* Refinements #4: the Food Library hub. Store Bought (main) + My Meals (smaller, Coming Soon) on one row, Recipes and Supplements full width. Same tiles as the Gym Buddy hub */
+.fhub{grid-template-columns:1.55fr 1fr;margin-top:12px}
+.fhub .tile{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;min-height:0;padding:var(--s4);text-align:left}
+.fhub .tile>span:not(.e){flex:1;min-width:0}
+.fhub .tile.wide{grid-column:1/-1}
+.fhub .tile b{overflow-wrap:anywhere}
+.fhub .tile em{display:block;font-style:normal;font-weight:400;color:var(--muted);font-size:15px;line-height:1.2}
+.fhub .fhsoon{flex-direction:column;align-items:flex-start;gap:6px;cursor:default;pointer-events:auto}
+.fhub .fhsoon:active{transform:none}
+.fhub .fhsoon small{font-size:12px}

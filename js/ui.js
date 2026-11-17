@@ -26,6 +26,8 @@ const ICON = {
   scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/>',
   camera: '<path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
   keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/>',
+  bag: '<path d="M5 8h14l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/>',   // Refinements #4: Food Library hub
+  bowl: '<path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 21h8M9 7c0-1.5 1-2 1-3.5M14 7c0-1.5 1-2 1-3.5"/>',
   pot: '<path d="M4 11h16v4.5a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5z"/><path d="M2 11h2M20 11h2M8.5 11a3.5 1.5 0 0 1 7 0"/><path d="M10 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5M14 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>',
   // 0.7.4.0.5: shared line icons for every branch (they replace the old text glyphs)
@@ -211,7 +213,7 @@ function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today
 // 1. Leaving a hub tab and coming back lands on the hub (tabTarget above). 2. Pressing a tab from inside a section goes to that
 // tab's hub (the bottom bar, wire/09). 3. Leaving the app inside a section and coming back within the draft time (Draft, js/draft.js,
 // the same 3 minutes as the windows) shows the same section at the same scroll place; later, the hub. The timer starts on leaving.
-const HUB_TABS = ['gym'];   // tabs whose main page is a hub of sections (the Food Library joins in Refinements #4)
+const HUB_TABS = ['gym', 'food'];   // tabs whose main page is a hub of sections (Refinements #4: the Food Library too)
 const hubSec = h => { const tab = tabOf(h); return HUB_TABS.includes(tab) && h !== TAB_ROOT[tab]; };
 function hubLeave(){   // the app is going to the background or closing
   const h = location.hash.slice(1), pg = document.querySelector('section.page:not(.hide)');
@@ -320,10 +322,13 @@ function route(){
   // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
   $('fridgeView').classList.toggle('hide', kv !== 'fridge'); $('pgGroc').classList.toggle('hide', kv !== 'groc');
   const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
-  setSeg('#foodTabs', tab);
-  $('storeView').classList.toggle('hide', tab !== 'store');
-  $('mealsView').classList.toggle('hide', tab !== 'meals');
-  $('foodSupps').classList.toggle('hide', tab !== 'supps');
+  const fhub = page === 'foods' && !['foods', 'meals', 'supps'].includes(h);   // Refinements #4: the Food Library opens on its hub
+  $('fHub').classList.toggle('hide', !fhub); $('fTabs').classList.toggle('hide', fhub); $('backBtn').classList.toggle('hide', fhub);
+  $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', meals: 'tabMeals', supps: 'tabSupps' }[tab]);
+  if(fhub) renderFoodHub(); else if(page === 'foods' && typeof FOOD_CAR === 'object') FOOD_CAR.set(h);
+  $('storeView').classList.toggle('hide', fhub || tab !== 'store');
+  $('mealsView').classList.toggle('hide', fhub || tab !== 'meals');
+  $('foodSupps').classList.toggle('hide', fhub || tab !== 'supps');
   document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === kv)));
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();

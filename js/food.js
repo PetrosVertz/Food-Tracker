@@ -23,6 +23,13 @@ function syncFab2(){ const a = $('fab').dataset.action, hid = $('fab').classList
   const scan = l => `<span class="fabic">${svgIcon('scan', 18)}</span>${esc(l)}`;
   if(on && a === 'fridge'){ $('fab2').innerHTML = scan(t('scanReceipt')); $('fab').textContent = t('addFridgeFab'); } else $('fab2').innerHTML = scan(t('scanFoodFab')); }
 
+// Refinements #4: the counts under the Food Library hub tiles
+function renderFoodHub(){
+  $('fhStoreN').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
+  $('fhRecN').textContent = meals.length === 1 ? t('nRecipe1') : t('nRecipes', { n: meals.length });
+  $('fhSuppN').textContent = supps.length === 1 ? t('nSupp1') : t('nSupps', { n: supps.length });
+}
+
 // ======================= store-bought list =======================
 const FCAT = {};   // open categories in My foods
 function render(){
