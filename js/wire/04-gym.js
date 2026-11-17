@@ -275,8 +275,8 @@ $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = today
 const GYM_CAR = pillCarousel($('gTabs'), {
   items: [{ key: 'gym-lib', label: () => t('hubLib') }, { key: 'gym-prog', label: () => t('hubProg') }, { key: 'gym-week', label: () => t('hubWeek') },
     { key: 'gym-partner', label: () => t('hubPartner'), soon: true }, { key: 'gym-rec', label: () => t('hubRec') }],
-  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route();
-    carFade(['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide'))); }
+  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
+  page: { area: $('pgGym'), views: () => ['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide')) }
 });
 
 $('gStart').addEventListener('click', () => {

@@ -8,17 +8,25 @@ $('backBtn').addEventListener('click', () => goBack());
 $('backBtn2').addEventListener('click', () => goBack());
 
 
-$('foodTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b) history.replaceState(null, '', '#' + (b.dataset.v === 'meals' ? 'meals' : b.dataset.v === 'supps' ? 'supps' : 'foods')), route(); });
+// Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
+// My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
+document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
+$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); else if(e.target.closest('.fhsoon')) Phone.haptic(); });
+const FOOD_CAR = pillCarousel($('fTabs'), {
+  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
+    { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
+  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
+  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide')) }
+});
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
 $('fab').addEventListener('click', () => { const a = $('fab').dataset.action;
-  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop'); else if(a === 'meals') open('ovCookPick');
+  if(a === 'supps') openSupp(null); else if(a === 'today') openLogSearch(); else if(a === 'fridge') open('ovShop');
   else if(a === 'gym') $('gStart').click(); else if(a === 'gymlib') openTpl(null);
   else { pendingBarcode = null; openForm({}, null, 'new'); } });   // Food Track: ＋ Add Food = type it in
-// Recipes view: Suggest a Recipe and Quick Recipe sit at the top, each with the chef robot face on the left
-document.querySelectorAll('.recFace').forEach(f => { f.innerHTML = AI.robot('chef', 24); });
-$('recSuggestBtn').addEventListener('click', () => $('cookSuggestBtn').click());
-$('recQuickBtn').addEventListener('click', () => $('cookQuickBtn').click());
+// Refinements #4 (change 22A): Recipes shows its three options stacked: Suggest a Recipe and Quick Recipe (the Food Coach chef face
+// on the left, no AI badge), then My Own Recipe. They replace the Cook a Meal button and its choice window.
+document.querySelectorAll('.recFace').forEach(f => { f.innerHTML = AI.robot('chef', 34); });
 $('fab2').addEventListener('click', () => { if($('fab').dataset.action === 'fridge'){ shopCamera(); return; } pendingBarcode = null; startScan(); });
 
 
