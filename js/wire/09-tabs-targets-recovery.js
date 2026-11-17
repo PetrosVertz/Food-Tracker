@@ -8,6 +8,9 @@ $('rail').addEventListener('click', e => { const b = e.target.closest('[data-tab
   if(tabOf(h) === tab){ if(h !== TAB_ROOT[tab]) go(TAB_ROOT[tab]); else { const pg = document.querySelector('section.page:not(.hide)'); if(pg) pg.scrollTo({ top: 0, behavior: 'smooth' }); } }
   else switchTab(0, tab); });
 addEventListener('resize', () => markRail(tabOf(location.hash.slice(1))));
+// Refinements: the hub rule (ui.js) — remember the section when the app goes away, back to the hub if it was away too long
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') hubLeave(); else hubReturn(); });
+addEventListener('pagehide', hubLeave);
 document.querySelectorAll('.fgseg').forEach(sg => sg.addEventListener('click', e => { const b = e.target.closest('[data-fg]'); if(b && location.hash.slice(1) !== b.dataset.fg) go(b.dataset.fg); }));
 $('fScanBtn').addEventListener('click', () => startScan());
 $('suppAddBtn').addEventListener('click', () => openSupp(null));

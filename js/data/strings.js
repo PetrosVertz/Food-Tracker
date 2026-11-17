@@ -213,7 +213,7 @@ const S = {
 // v1.6 — GYM · LIVE WORKOUTS · PROGRESS
 // =====================================================================
 Object.assign(S, {
- tGym:['Gym','Γυμναστήριο'], gtProgress:['Progress','Πρόοδος'], gtLib:['Workouts','Προπονήσεις'], gtPlanner:['Planner','Πρόγραμμα'],
+ tGym:['Gym','Γυμναστήριο'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
  exAlso:['Same Exercise · {n}','Ίδια Άσκηση · {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
@@ -830,4 +830,7 @@ Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
 Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
   thBar: ['Status Bar', 'Γραμμή Κατάστασης'], thBarClear: ['Transparent', 'Διάφανη'], thBarSolid: ['Solid', 'Συμπαγής'],
   thBarNote: ['Takes effect the next time you open the app. If nothing changes, remove the icon and add it again.', 'Ισχύει την επόμενη φορά που θα ανοίξεις την εφαρμογή. Αν δεν αλλάξει τίποτα, αφαίρεσε το εικονίδιο και πρόσθεσέ το ξανά.'],
+});
+Object.assign(S, {   // Refinements #2: the Gym Buddy carousel (Partner has no screen yet)
+  hubPartner: ['Partner', 'Συνεργάτης'], carSoon: ['Coming Soon', 'Σύντομα'],
 });

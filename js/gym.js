@@ -1000,8 +1000,8 @@ function renderGym(){
   const h = location.hash.slice(1), sec = GSEC[h] || null;
   $('gHub').classList.toggle('hide', !!sec);
   $('gBackBtn').classList.toggle('hide', !sec);
-  $('gTabs').classList.toggle('hide', !sec || sec === 'rec');
-  $('gTabs').querySelectorAll('[data-sec]').forEach(b => b.classList.toggle('on', b.dataset.sec === h));
+  $('gTabs').classList.toggle('hide', !sec);   // Refinements: Recovery is in the carousel too
+  if(sec && typeof GYM_CAR === 'object') GYM_CAR.set(h);
   // 0.7.4.0.5: the section name is the page title (no second title under the header)
   $('pgGym').querySelector('header h1').textContent = t(sec ? { plan: 'hubWeek', tpl: 'hubLib', prog: 'hubProg', rec: 'hubRec' }[sec] : 'tabGym');
   ['plan', 'tpl', 'prog', 'rec'].forEach(k => $({ plan: 'gPlanV', tpl: 'gTplV', prog: 'gProgV', rec: 'gRecV' }[k]).classList.toggle('hide', sec !== k));

@@ -275,7 +275,13 @@ setInterval(checkAbandoned, 15000);
 
 $('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
-$('gTabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; if(location.hash.slice(1) !== b.dataset.sec) history.replaceState(null, '', '#' + b.dataset.sec), route(); });
+// Refinements: the Gym Buddy sections are a rotating pill carousel (pillCarousel in ui.js). Partner has no screen yet: a Coming Soon pill.
+const GYM_CAR = pillCarousel($('gTabs'), {
+  items: [{ key: 'gym-lib', label: () => t('hubLib') }, { key: 'gym-prog', label: () => t('hubProg') }, { key: 'gym-week', label: () => t('hubWeek') },
+    { key: 'gym-partner', label: () => t('hubPartner'), soon: true }, { key: 'gym-rec', label: () => t('hubRec') }],
+  onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route();
+    carFade(['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide'))); }
+});
 
 $('gStart').addEventListener('click', () => {
   if(active) return openSession();

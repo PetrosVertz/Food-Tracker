@@ -204,7 +204,25 @@ function goBack(){
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
+  if(HUB_TABS.includes(tab)) return TAB_ROOT[tab];   // the hub rule: a hub tab always opens on its hub
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
+
+// ---------- Refinements: the hub rule, one rule for every tab that opens on a hub (change 7) ----------
+// 1. Leaving a hub tab and coming back lands on the hub (tabTarget above). 2. Pressing a tab from inside a section goes to that
+// tab's hub (the bottom bar, wire/09). 3. Leaving the app inside a section and coming back within the draft time (Draft, js/draft.js,
+// the same 3 minutes as the windows) shows the same section at the same scroll place; later, the hub. The timer starts on leaving.
+const HUB_TABS = ['gym'];   // tabs whose main page is a hub of sections (the Food Library joins in Refinements #4)
+const hubSec = h => { const tab = tabOf(h); return HUB_TABS.includes(tab) && h !== TAB_ROOT[tab]; };
+function hubLeave(){   // the app is going to the background or closing
+  const h = location.hash.slice(1), pg = document.querySelector('section.page:not(.hide)');
+  if(hubSec(h)) Draft.put('hub', { h, y: pg ? Math.round(pg.scrollTop) : 0 }); else Draft.clear('hub'); }
+function hubReturn(){   // back from the background: past the draft time, a section goes back to its hub (not under an open window)
+  const h = location.hash.slice(1); if(!hubSec(h) || Draft.get('hub') || document.querySelector('.overlay.open')) return;
+  NAV = [TAB_ROOT[tabOf(h)]]; NAVI = 0; history.replaceState(null, '', '#' + TAB_ROOT[tabOf(h)]); route(); }
+function hubBoot(){   // a fresh start: within the draft time, open the section that was left, at the same place
+  const d = Draft.get('hub'); if(!d || !hubSec(d.h)) return;
+  history.replaceState(null, '', '#' + d.h); NAV = [TAB_ROOT[tabOf(d.h)], d.h]; NAVI = 1;
+  if(d.y) setTimeout(() => { const pg = document.querySelector('section.page:not(.hide)'); if(pg && location.hash.slice(1) === d.h) pg.scrollTop = d.y; }, 80); }
 // ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
 // 0.7.9.1: copies of the old pills drop out of view together (so their text never changes mid-way), then the new pills rise
 // together as one unit: same curve, same time, no stagger, no overshoot (~300 ms down, ~350 ms up with a soft settle).
@@ -264,16 +282,16 @@ function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pill
 // and slides in 28 px; what its edge uncovers is the plain page colour, never the old page. 320 ms, the same ease as the bottom bar's circle.
 // Reduce Motion = a plain swap. A tap during the motion is remembered and played right after, so the circle and the page stay in step.
 const TAB_EASE = 'cubic-bezier(.45,0,.2,1)', TAB_MS = 320;
-function switchTab(dir, toTab){
+function switchTab(dir, toTab, to){   // to: open this page of the tab instead of its usual one
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur) return;
   if(SWITCHING){ switchTab.next = tab; return; }
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!pg || !pg.animate || reduce){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
+  if(!pg || !pg.animate || reduce){ const tg = to || tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   SWITCHING = true; switchTab.next = null; pillSwap();
-  const target = tabTarget(tab); let np = null, finished = false, tm = 0;
+  const target = to || tabTarget(tab); let np = null, finished = false, tm = 0;
   const done = () => { if(finished) return; finished = true; clearTimeout(tm); removeEventListener('hashchange', run);
     document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew')); SWITCHING = false;
     const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
@@ -319,6 +337,60 @@ function route(){
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
+}
+
+// ---------- Refinements: the rotating pill carousel on top of a hub's sections (like the iPhone camera mode picker) ----------
+// One shared component (Gym Buddy now, the Food Library next). The chosen pill always sits in the middle under a still highlight
+// (the .mpill knob look); the row is a native scroll-snap strip, so swiping or tapping glides another pill into the middle.
+// All pills are as wide as the longest label (measured when labels or the width change, never while moving), so every pill's
+// place is known in advance and a frame only reads scrollLeft and writes transform + opacity. A disabled pill (Coming Soon)
+// can be seen but never chosen. Reduce Motion: instant jumps, no scaling.
+//   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true? }], onPick: key => … })
+//   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
+const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1;   // neighbours: opacity down to .4, scale down to .9
+function carFade(els){   // the content under the carousel: a light cross fade, never from blank
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  els.forEach(el => el && el.animate && el.animate(reduce ? [{ opacity: .6 }, { opacity: 1 }] : [{ opacity: .35, transform: 'translate3d(0,4px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: reduce ? 120 : 240, easing: 'cubic-bezier(.3,1.3,.6,1)' }));
+}
+function pillCarousel(el, { items, onPick }){
+  el.classList.add('pcar'); el.setAttribute('role', 'tablist');
+  el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${items.map((it, i) =>
+    `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}><b></b>${it.soon ? '<small></small>' : ''}</button>`).join('')}<i class="pcsp"></i></div>`;
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')];
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
+  function measure(){   // only when labels or the width changed (never during a scroll)
+    const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
+    if(txt === labels && rw === w) return true;
+    labels = txt; w = rw;
+    btns.forEach((b, i) => { b.querySelector('b').textContent = items[i].label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
+    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
+    el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
+  }
+  function frame(){ raf = 0; if(!step) return;
+    const x = row.scrollLeft, red = reduce();
+    btns.forEach((b, i) => { const a = Math.min(1, Math.abs(i * step - x) / step);
+      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (items[i].soon ? .5 : 1)); });
+    const n = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
+    if(n !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = n; }   // a light tick each time a new pill reaches the middle
+  }
+  function mark(i){ cur = i; btns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', String(j === i)); }); }
+  function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
+  function pick(i){ if(i < 0 || items[i].soon) { centre(cur, true); return; }
+    if(i === cur) return; mark(i); onPick(items[i].key); }
+  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); }
+  row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
+  row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
+  row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
+    if(items[i].soon){ Phone.haptic(); return; }
+    if(i === cur) return; Phone.haptic(); mark(i); onPick(items[i].key); centre(i, true); });
+  if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
+  return {
+    set(key){ const i = items.findIndex(it => it.key === key); if(i < 0 || !measure()) { if(i >= 0) mark(i); return; }
+      if(i === cur && gliding) return;   // a tap's glide is still on its way there
+      if(i !== cur) mark(i);
+      if(Math.abs(row.scrollLeft - i * step) > 1){ jumping = true; near = i; centre(i, false); setTimeout(() => { jumping = false; }, 60); } else frame(); }
+  };
 }
 
 // ---------- Food Preferences (setup step + Settings): allergies and foods you don't eat, saved in profile.foodPrefs (optional field) ----------
