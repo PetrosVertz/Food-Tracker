@@ -356,42 +356,50 @@ function carFade(els){   // the content under the carousel: a light cross fade, 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   els.forEach(el => el && el.animate && el.animate(reduce ? [{ opacity: .6 }, { opacity: 1 }] : [{ opacity: .35, transform: 'translate3d(0,4px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: reduce ? 120 : 240, easing: 'cubic-bezier(.3,1.3,.6,1)' }));
 }
+// Endless (Refinements #4, Petros): the pills are drawn three times in a row and the row always rests on the middle copy; after it
+// settles on a copy to the left or right it jumps (unseen: same labels in the same places) back to the middle, so it never runs out.
 function pillCarousel(el, { items, onPick }){
+  const n = items.length, R = 3;
   el.classList.add('pcar'); el.setAttribute('role', 'tablist');
-  el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${items.map((it, i) =>
-    `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}><b></b>${it.soon ? '<small></small>' : ''}</button>`).join('')}<i class="pcsp"></i></div>`;
-  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')];
+  el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${Array.from({ length: n * R }, (_, i) => { const it = items[i % n], mid = i >= n && i < 2 * n;
+    return `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}${mid ? '' : ' tabindex="-1" aria-hidden="true"'}><b></b>${it.soon ? '<small></small>' : ''}</button>`; }).join('')}<i class="pcsp"></i></div>`;
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], itm = i => items[i % n];
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
   function measure(){   // only when labels or the width changed (never during a scroll)
     const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
     if(txt === labels && rw === w) return true;
     labels = txt; w = rw;
-    btns.forEach((b, i) => { b.querySelector('b').textContent = items[i].label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
-    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
+    btns.forEach((b, i) => { b.querySelector('b').textContent = itm(i).label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
+    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.slice(n, 2 * n).map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
     el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
   }
   function frame(){ raf = 0; if(!step) return;
     const x = row.scrollLeft, red = reduce();
     btns.forEach((b, i) => { const a = Math.min(1, Math.abs(i * step - x) / step);
-      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (items[i].soon ? .5 : 1)); });
-    const n = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
-    if(n !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = n; }   // a light tick each time a new pill reaches the middle
+      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)); });
+    const k = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
+    if(k !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = k; }   // a light tick each time a new pill reaches the middle
   }
   function mark(i){ cur = i; btns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', String(j === i)); }); }
   function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
-  function pick(i){ if(i < 0 || items[i].soon) { centre(cur, true); return; }
-    if(i === cur) return; mark(i); onPick(items[i].key); }
-  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); }
+  function wrap(){   // back to the same pill in the middle copy, without any visible change
+    if(cur < 0 || (cur >= n && cur < 2 * n) || !step) return; const j = n + cur % n;
+    jumping = true; near = j; mark(j); row.scrollLeft = j * step; frame(); setTimeout(() => { jumping = false; }, 60); }
+  function pick(i){ if(i < 0 || itm(i).soon) { centre(cur, true); return; }
+    if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same) onPick(itm(i).key); }
+  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding) wrap(); }
   row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
   row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
   row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
-    if(items[i].soon){ Phone.haptic(); return; }
-    if(i === cur) return; Phone.haptic(); mark(i); onPick(items[i].key); centre(i, true); });
+    if(itm(i).soon){ Phone.haptic(); return; }
+    if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same) onPick(itm(i).key); centre(i, true); });
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
   return {
-    set(key){ const i = items.findIndex(it => it.key === key); if(i < 0 || !measure()) { if(i >= 0) mark(i); return; }
-      if(i === cur && gliding) return;   // a tap's glide is still on its way there
+    set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
+      const i = cur >= 0 && cur % n === k ? cur : n + k;   // keep the copy it is on (a tap's glide may still be on its way there)
+      if(!measure()) { mark(i); return; }
+      if(i === cur && gliding) return;
       if(i !== cur) mark(i);
       if(Math.abs(row.scrollLeft - i * step) > 1){ jumping = true; near = i; centre(i, false); setTimeout(() => { jumping = false; }, 60); } else frame(); }
   };
