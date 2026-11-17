@@ -345,7 +345,7 @@ Carbs as on EU labels (fibre not included).
 Return ONLY JSON: {"foods":[{"i":number,"status":"ok"|"off"|"notfound","kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"source":string|null}]}
 Foods:
 ${batch.map((f, j) => JSON.stringify({ i: j, name: f.name, brand: f.noBrand ? null : f.brand || null, barcode: f.barcode || null, state: f.state, unit: f.unit, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat }, notes: f.notes || undefined })).join('\n')}`,
-        null, null, CHK.ctl.signal, { quiet: true, search: true, robot: 'fridge' });
+        null, null, CHK.ctl.signal, { quiet: true, search: true, robot: kitchenOn() ? 'fridge' : 'chef' });
       const seen = new Set();
       (r && Array.isArray(r.foods) ? r.foods : []).forEach(a => { const f = batch[+a.i]; if(!f || seen.has(f.id)) return; seen.add(f.id);
         if(a.status === 'ok'){ f.checked = { at: todayKey(), how: 'ok' }; CHK.ok++; return; }

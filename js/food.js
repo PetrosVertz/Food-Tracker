@@ -558,7 +558,7 @@ function updateTake(){
 }
 
 function renderUseUp(mode){
-  const box = $('useUp'); $('cLeft').checked = mode !== 'edit'; $('cLeftWrap').classList.toggle('hide', mode === 'edit');
+  const box = $('useUp'), kit = kitchenOn(); $('cLeft').checked = kit && mode !== 'edit'; $('cLeftWrap').classList.toggle('hide', mode === 'edit' || !kit);   // Refinements #4: no leftovers toggle with Kitchen off
   if(mode === 'edit'){ box.innerHTML = ''; return; }
   box.innerHTML = '';   // 0.7: the "use these soon" ideas went with the expiry dates
 }

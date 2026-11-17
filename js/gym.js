@@ -3,6 +3,7 @@
 
 // ran out (or below your level) → onto the grocery list by itself
 function checkRestock(foodId){
+  if(!kitchenOn()) return false;   // Refinements #4: Kitchen off = the Groceries top-up never runs
   const f = foods.find(x => x.id === foodId); if(!f || f.noAutoGrocery) return false;
   const have = stockOf(foodId), min = f.minStock || 0;
   const low = min > 0 ? have < min : have <= 0;

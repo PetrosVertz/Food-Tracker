@@ -64,8 +64,7 @@ Electrolytes so far: sodium ${Math.round(tot.na || 0)} mg (guideline ~2300), pot
 ${workFor(curDay) ? `They are at WORK ${workFor(curDay).from}-${workFor(curDay).to}: meals in that window must be portable and simple; plan a solid meal before and after work.` : 'No work today: proper meals at home are fine.'}
 Already eaten today: ${eaten || 'nothing'} (totals ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)}, C ${Math.round(tot.c)}, F ${Math.round(tot.f)}).
 ${isToday ? `Time now: ${nowHM()}. Only plan meals from now on.` : 'Plan the whole day.'}
-In the fridge/cupboard (use these FIRST): ${fr || 'nothing logged'}.
-Their saved foods: ${fl || 'none'}.
+${kitchenOn() ? `In the fridge/cupboard (use these FIRST): ${fr || 'nothing logged'}.\n` : ''}Their saved foods: ${fl || 'none'}.
 Their home-cooked meals: ${ml || 'none'}.
 Carb timing: ${di.type !== 'gym' ? 'spread carbs evenly; protein every 3-4 h.' : di.work === 'legs' || di.work === 'full' ? 'put most carbs in the meals 2-3 h before and within 2 h after the workout.' : di.work === 'cardio' ? 'light carb snack 1-2 h before, normal carbs after; remind to hydrate.' : 'moderate carbs before and after, rest spread out.'}
 REMAINING for the rest of today (plan exactly this, NEVER more): ${Math.max(0, Math.round(tg.k - tot.kcal))} kcal, protein ${Math.max(0, Math.round(tg.p - tot.p))} g, carbs ${Math.max(0, Math.round(tg.c - tot.c))} g, fat ${Math.max(0, Math.round(tg.f - tot.f))} g.
@@ -93,7 +92,7 @@ function planLogMeal(day, m){
       if(f) info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; }
     if(!info){ miss++; return; }
     logEntry(day, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM()); const l = dayLog[day]; added.push(l[l.length - 1]);
-    if(it.from === 'fridge'){ const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }; try{ takeFromFridge(key, g); took.push(1); }catch(e){} }
+    if(it.from === 'fridge' && kitchenOn()){ const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }; try{ takeFromFridge(key, g); took.push(1); }catch(e){} }
   });
   if(!added.length){ toast(t('planUnmatched', { n: miss })); return null; }
   m.logged = true; Store.save('plans', plans); renderAll();

@@ -73,8 +73,7 @@ $('sgGo').addEventListener('click', async () => {
 ${dish ? `Dish name they gave: "${dish}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
 ${SG.time ? `Total cooking time: ${{ quick: '20 minutes or less', mid: '20 to 60 minutes', long: 'over 60 minutes is fine' }[SG.time]}.` : ''}
 ONE serving is a normal adult portion of a main meal (roughly 600–800 kcal, high protein), whatever they have eaten today.
-In their fridge (use these when they fit): ${fr || 'unknown'}.
-Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"perServing":{"kcal":number,"protein":number,"carbs":number,"fat":number},"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
+${kitchenOn() ? `In their fridge (use these when they fit): ${fr || 'unknown'}.\n` : ''}Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"perServing":{"kcal":number,"protein":number,"carbs":number,"fat":number},"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
 Rules: ONE plate only — servings = 1, no leftovers, no batch cooking. Amounts in grams for that one plate, raw as they go in (dry pasta/rice, raw meat). Include cooking oil. No steps about weighing the cooked food. 3–10 ingredients, 4–10 short steps. name_en = plain generic English food name (e.g. "chicken breast", "olive oil").${AI.dietRules()}${AI.knows('food')}`, null, (i, n) => { if(sgCtl === ctl) btn.textContent = t('cancelRec', { i, n }); }, ctl.signal);
     if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
     pendingRecipe = r; close('ovSuggest');
