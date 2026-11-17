@@ -17,6 +17,7 @@ $('blBody').addEventListener('click', e => {
   bd.addEventListener('scroll', () => { clearTimeout(tm); tm = setTimeout(() => { if($('ovExPick').classList.contains('open')) return; const on = onAdd(); if(on && !atAdd){ atAdd = true; $('sesAddEx').click(); } else if(!on) atAdd = false; }, 160); }, { passive: true });
   new MutationObserver(() => { if($('ovExPick').classList.contains('open')) return;
     setTimeout(() => { if(!onAdd()) return; const cards = bd.querySelectorAll('.exc'), last = cards[cards.length - 1]; if(last) last.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 450); }).observe($('ovExPick'), { attributes: true, attributeFilter: ['class'] }); }
+$('sesTip').addEventListener('click', () => { Phone.haptic(); $('sesAddEx').click(); });
 // Workout Done: Save As Workout (the old pop-up after finishing now lives here)
 $('smBody').addEventListener('click', e => { if(e.target.closest('[data-smtpl]') && SM_SES){ Phone.haptic(); askSaveTpl(SM_SES); } });
 // save an empty workout for later

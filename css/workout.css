@@ -523,7 +523,7 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody{--peek:64px;flex:1 1 0;min-height:0;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:8px 0 0;box-sizing:border-box}
 #ovSession #sesBody>.exc,#ovSession #sesBody>.addexbig{box-sizing:border-box;margin:0 0 var(--s3);scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--peek)}
 #ovSession #sesBody>.exc:first-child{scroll-margin-top:8px}
-#ovSession #sesBody>.addexbig{border-style:dashed;border-radius:var(--r-card);min-height:88px}
+#ovSession #sesBody>.addexbig{visibility:hidden;border:0;min-height:88px}   /* the last page is only the landing spot for the swipe; the tip above the bottom card is what you see */
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
 /* the bottom card */
 .sesdock{flex:0 0 auto;position:relative;z-index:3;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s2);margin:var(--s1) 0 max(12px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 8px 24px rgba(0,0,0,.28)}
@@ -560,3 +560,9 @@ body.inses .coachbub{display:none!important}
 #exsTabs{margin:var(--s2) 0 var(--s1)}
 #ovExSet #exsBody{min-height:300px}
 .smtpl{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin-top:var(--s3)}
+
+/* "Swipe To Add" tip between the cards and the bottom card: small glow, arrow bobs (transform only) */
+.swipetip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:0;margin:0 auto;padding:var(--s1) var(--s4) 0;border:0;background:none;color:var(--t-accent-ink,var(--t-accent));font:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer;-webkit-tap-highlight-color:transparent;text-shadow:0 0 10px color-mix(in srgb,var(--t-accent) 55%,transparent)}
+.swipetip .swarr{margin-top:-2px;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--t-accent) 60%,transparent));animation:swBob 1.6s ease-in-out infinite}
+@keyframes swBob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media(prefers-reduced-motion:reduce){.swipetip .swarr{animation:none}}
