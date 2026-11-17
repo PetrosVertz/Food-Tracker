@@ -92,7 +92,7 @@ let lastAutoFridge = null;
 
 let sgCtl = null;
 
-const TAB_ROOT = { today: 'today', gym: 'gym', food: 'foods', fridge: 'fridge', profile: 'profile' };   // 0.7.7: Settings is a page inside Profile
+const TAB_ROOT = { today: 'today', gym: 'gym', food: 'food', fridge: 'fridge', profile: 'profile' };   // 0.7.7: Settings is a page inside Profile
 
 let LOGON = { q: '', res: [], busy: false, timer: null };
 

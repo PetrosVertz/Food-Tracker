@@ -510,7 +510,6 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 /* Groceries: bought = in the fridge */
 .gitem2 .infr{color:var(--t-done);font-weight:var(--w-med)}
 /* Food Tracker: Check My Foods (AI) + the tick on checked foods */
-.barbtns{display:inline-flex;gap:14px;align-items:center}
 .chkbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border:0;border-radius:999px;color:var(--t-text);font-family:var(--font);font-size:13px;font-weight:var(--w-med);white-space:nowrap;cursor:pointer;transition:transform .14s cubic-bezier(.3,1.4,.6,1),background-color .18s}
 .chkbtn:active{transform:scale(.96)} .chkbtn .aibadge{margin:0} .chkbtn.busy{opacity:.6}
 .fchk{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:999px;background:var(--t-done);color:var(--t-on);vertical-align:1px;margin-left:var(--s1)}

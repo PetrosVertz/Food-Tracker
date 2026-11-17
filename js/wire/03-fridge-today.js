@@ -17,9 +17,9 @@ const fromMin = m => { m = Math.max(0, Math.min(1439, Math.round(m))); return `$
 
 const nowHM = () => fromMin(new Date().getHours() * 60 + new Date().getMinutes());
 
-const stockOf = foodId => r1(fridge.filter(it => it.foodId === foodId).reduce((s, it) => s + it.qty, 0));
+const stockOf = foodId => !kitchenOn() ? 0 : r1(fridge.filter(it => it.foodId === foodId).reduce((s, it) => s + it.qty, 0));
 
-const mealStock = mealId => r1(fridge.filter(it => it.mealId === mealId).reduce((s, it) => s + it.qty, 0));
+const mealStock = mealId => !kitchenOn() ? 0 : r1(fridge.filter(it => it.mealId === mealId).reduce((s, it) => s + it.qty, 0));
 
 $('fSearch').addEventListener('input', renderFridge);
 

@@ -16,10 +16,12 @@ function fmtAmt(qty, info){
   return fmtSize(qty, info.unit);
 }
 
-function liveItems(){ return fridge.map(it => ({ it, info: itemInfo(it) })).filter(x => x.info); }
+function liveItems(){ if(!kitchenOn()) return [];   // Refinements #4: Kitchen off = the app (and the AI) sees an empty fridge
+  return fridge.map(it => ({ it, info: itemInfo(it) })).filter(x => x.info); }
 
 // take an amount out of the fridge, oldest pack first; returns how much was actually there
 function takeFromFridge(key, amount){
+  if(!kitchenOn()) return { took: 0, added: false };   // Refinements #4: Kitchen off = logging never touches the fridge or Groceries
   let left = amount; const mine = fridge.filter(it => key.foodId ? it.foodId === key.foodId : it.mealId === key.mealId);
   mine
     .sort((a, b) => (a.addedAt || '').localeCompare(b.addedAt || ''))
@@ -31,6 +33,7 @@ function takeFromFridge(key, amount){
 }
 
 function addToFridge(rec){
+  if(!kitchenOn()) return;   // Refinements #4: Kitchen off = nothing goes into the fridge
   fridge.push({ id: uid(), addedAt: new Date().toISOString(), ...rec }); saveFridge();
   // bought it → no longer needed on the list
   if(rec.foodId){ const before = groc.length; groc = groc.filter(g => !(g.foodId === rec.foodId && !g.done)); if(groc.length !== before) saveGroc(); }
@@ -102,6 +105,7 @@ function fridgeKeyForRef(ref){
 }
 
 function autoFridge(f){
+  if(!kitchenOn()) return null;   // Refinements #4: a new food does not go into the fridge when Kitchen is off
   const loc = defaultLoc(f), size = f.usualPack || (f.pieces !== 'none' && (f.piece || f.serving) ? (f.piece || f.serving) * (f.cat === 'eggs' ? 6 : 1) : 100);
   const it = { id: uid(), addedAt: new Date().toISOString(), foodId: f.id, qty: r1(size), packSize: size, unit: f.unit, loc, qtyGuess: !f.usualPack };
   fridge.push(it); saveFridge(); lastAutoFridge = it; return it;
