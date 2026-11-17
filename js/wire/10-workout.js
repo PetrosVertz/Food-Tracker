@@ -12,12 +12,26 @@ $('blBody').addEventListener('click', e => {
 });
 
 // Refinements: swipe on past the last exercise and the exercise menu opens (the same as tapping Add Exercise). Closing it without a pick returns to the last exercise.
-{ const bd = $('sesBody'); let tm = 0, atAdd = false;
+{ const bd = $('sesBody'), pk = $('ovExPick'); let tm = 0, raf = 0, drag = false, pv = 0, atAdd = false, cool = 0, touching = false, base = 0;
   const onAdd = () => { const a = $('sesAddEx'); return !!(active && a.isConnected && active.exercises.length && a.getBoundingClientRect().top - bd.getBoundingClientRect().top <= PEEK + 24); };
-  bd.addEventListener('scroll', () => { bd.classList.add('moving'); clearTimeout(tm); tm = setTimeout(() => { const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
-    if($('ovExPick').classList.contains('open')) return; const on = onAdd(); if(on && !atAdd){ atAdd = true; $('sesAddEx').click(); } else if(!on) atAdd = false; }, 160); }, { passive: true });
-  new MutationObserver(() => { if($('ovExPick').classList.contains('open')) return;
-    setTimeout(() => { if(!onAdd()) return; const cards = bd.querySelectorAll('.exc'), last = cards[cards.length - 1]; if(last) last.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 450); }).observe($('ovExPick'), { attributes: true, attributeFilter: ['class'] }); }
+  // how far the last exercise has been pushed up (0 = resting, 1 = gone): the exercise menu rises from the bottom by the same amount, in the same frame (transform only)
+  const lastTop = () => { const cards = bd.querySelectorAll(':scope>.exc'), last = cards[cards.length - 1]; return last ? [last.getBoundingClientRect().top - bd.getBoundingClientRect().top, last.offsetHeight] : null; };
+  const prog = () => { if(!active || !active.exercises.length) return 0; const m = lastTop(); if(!m) return 0; return Math.max(0, Math.min(1, (base - m[0]) / Math.max(120, m[1] * .7))); };
+  // only your own finger or wheel drives it (not the scroll the app does itself); where the last exercise rested when you started is "0"
+  const grab = () => { if(touching) return; touching = true; const m = lastTop(); base = m ? m[0] : 0; };
+  ['touchstart', 'pointerdown', 'wheel'].forEach(k => bd.addEventListener(k, grab, { passive: true }));
+  const frame = () => { raf = 0; if(pk.classList.contains('open') && !drag) return; if(!touching || (!drag && Date.now() < cool)) return; const p = prog();
+    if(!drag && p > .02){ drag = true; pk.classList.remove('pkcancel'); pk.style.setProperty('--pkp', 0); pk.classList.add('pkdrag'); $('sesAddEx').click(); }
+    if(drag){ pv = p; pk.style.setProperty('--pkp', p); } };
+  const settleDrag = () => { if(!drag) return; drag = false; const commit = pv >= .4;
+    pk.classList.add('pksnap'); pk.style.setProperty('--pkp', commit ? 1 : 0);
+    setTimeout(() => { pk.classList.remove('pksnap'); if(commit) return; cool = Date.now() + 1200; { const cs = bd.querySelectorAll(':scope>.exc'), l = cs[cs.length - 1]; if(l) l.scrollIntoView({ behavior: 'smooth', block: 'start' }); } pk.classList.add('pkcancel'); close('ovExPick'); }, 270); };   // pkcancel stays while it is closed (the next opening clears it)
+  $('sesAddEx').addEventListener('click', () => { if(drag) return; pk.classList.remove('pkdrag', 'pkcancel', 'pksnap'); pk.style.removeProperty('--pkp'); }, true);
+  bd.addEventListener('scroll', () => { bd.classList.add('moving'); if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(() => { const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
+    touching = false; if(drag){ settleDrag(); return; }
+    if(pk.classList.contains('open')) return; const on = onAdd(); if(on && !atAdd){ atAdd = true; $('sesAddEx').click(); } else if(!on) atAdd = false; }, 120); }, { passive: true });
+  new MutationObserver(() => { if(pk.classList.contains('open')) return;
+    setTimeout(() => { if(!onAdd() || Date.now() < cool) return; const cards = bd.querySelectorAll('.exc'), last = cards[cards.length - 1]; if(last) last.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 450); }).observe(pk, { attributes: true, attributeFilter: ['class'] }); }
 $('sesDots').addEventListener('click', e => { const d = e.target.closest('[data-dot]'); if(!d) return; const c = $('sesBody').querySelectorAll(':scope>.exc')[+d.dataset.dot]; if(c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('sesTip').addEventListener('click', () => { Phone.haptic(); $('sesAddEx').click(); });
 // Workout Done: Save As Workout (the old pop-up after finishing now lives here)

@@ -124,7 +124,7 @@ let EMPTY_START = false;
 function gymEmptyBack(){ if(!EMPTY_START) return; EMPTY_START = false;
   setTimeout(() => { if(!active || active.exercises.length) return; gymDropEmpty(); close('ovSession'); renderAll(); }, 0); }
 
-function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
+function openSession(){ if(!active) return; renderSession(); open('ovSession'); fitPages(); keepAwake(true); }   // fitPages after open: the window only has a height once it is showing
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
 function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
