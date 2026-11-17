@@ -4,6 +4,10 @@ Plain HTML/CSS/JS PWA, no build step. GitHub Pages serves `main` as is. See READ
 
 The owner (Petros) is not a programmer: explain results in plain words, no code talk.
 
+## How to report (all chats)
+- When given a coding/command task, don't narrate or explain changes while working. Spend no tokens on commentary.
+- Send one final message only: a plain list of what changed in that specific prompt, plus any screenshots taken while making it (so Petros can reuse them to ask for follow-up changes).
+
 ## Workflow
 - One branch per session, named like `gym-0.7.4.0.5`. Never push to `main`.
 - Work list: `docs/fixes-<round>.md` — do only your branch's section. Background: `docs/audit-<round>.md`.
