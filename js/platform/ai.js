@@ -109,25 +109,25 @@ const AI = (() => {
     b.setAttribute('aria-label', run ? t('aiThinking') : t('aiReady')); if(st === 'ready') Phone.haptic(); }
 
   // 0.7.3: any robot bubble can be dragged up and down; let go and it snaps to the nearest side (left / right edge) and remembers the spot (ui[key]).
-  // Dragging shows a faint trash circle at the bottom centre: over it the bubble glows red and the robot's eyes turn to X's; let go there and onGone() runs.
+  // With onGone (the AI-job bubble): dragging shows a faint trash circle at the bottom centre; over it the bubble glows red and the robot's eyes
+  // turn to X's; let go there and onGone() runs. Refinements (change 18): coach bubbles pass no onGone, so they have no bin; they pass
+  // h = { start(), move(cx, cy) (the bubble's centre, once per frame), end(p, s) → true when it took the bubble (p = its offset, s = the drag) }.
   const EDGE = 14, BSZ = 64, rmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   function bubTrash(on){ let tr = $('aiTrash');
     if(!tr){ if(!on) return; tr = document.createElement('div'); tr.id = 'aiTrash'; tr.className = 'aitrash'; tr.setAttribute('aria-hidden', 'true');
       tr.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M18 7l-.9 12.1a2 2 0 0 1-2 1.9H8.9a2 2 0 0 1-2-1.9L6 7M10 11v6M14 11v6"/></svg>';
       document.body.appendChild(tr); tr.getBoundingClientRect(); }
     tr.classList.toggle('show', on); if(!on) tr.classList.remove('hot'); return tr; }
-  function bubLimits(el){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
+  function bubLimits(){ const H = innerHeight, hd = document.querySelector('section.page:not(.hide)>header'), rail = $('rail');
     const top = (hd ? hd.getBoundingClientRect().bottom : 60) + 6, rt = rail && rail.getClientRects().length ? rail.getBoundingClientRect().top : H - 24;
-    // 0.7.9.2: a coach bubble stays high enough that its chat (which always opens below it, coach.js lay) has room: about 400 px under its top
-    const cb = el && el.classList.contains('coachbub') ? H - 400 : Infinity;
-    return { top, bot: Math.max(top, Math.min(rt - BSZ - 12, cb)) }; }
+    return { top, bot: Math.max(top, rt - BSZ - 12) }; }   // Refinements: a coach chat opens from the top right wherever its bubble rests, so a coach bubble may rest low too
   function place(el, key){ const p = typeof ui !== 'undefined' && ui[key]; if(!p){ ['left', 'top', 'right', 'bottom'].forEach(k => el.style.removeProperty(k)); return; }
-    const L = bubLimits(el), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
+    const L = bubLimits(), y = Math.min(L.bot, Math.max(L.top, p.y * innerHeight));
     el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.top = y + 'px'; el.style.left = (p.s === 'l' ? EDGE : innerWidth - BSZ - EDGE) + 'px'; }
   // 0.7.9.1: on the shared drag helper (ui.js dragger): the bubble follows the finger 1:1 as a transform (its left/top stay put while
   // moving), rubber-bands past the screen edges, then springs to its side carrying the finger's speed. Dropped on the trash: it shrinks
-  // and fades into the circle, the circle closes, then onGone() runs (the coach pill rises back, coach.js).
-  function drag(el, onGone, key){ let base = null, tc = null, tr = null, hot = false;
+  // and fades into the circle, the circle closes, then onGone() runs.
+  function drag(el, onGone, key, h){ let base = null, tc = null, tr = null, hot = false; h = h || {};
     place(el, key); addEventListener('resize', () => { if(el.isConnected && !el._home) place(el, key); });
     const pos = s => { const W = innerWidth - el.offsetWidth, H = innerHeight - el.offsetWidth, L = base.x + s.ox + s.dx, T = base.y + s.oy + s.dy;   // where the finger puts it, edges rubber-banded
       const x = L < 0 ? rubber(L, 80) : L > W ? W + rubber(L - W, 80) : L, y = T < 0 ? rubber(T, 80) : T > H ? H + rubber(T - H, 80) : T;
@@ -136,19 +136,23 @@ const AI = (() => {
       item: () => el._home || el.classList.contains('gone') ? null : el,   // _home: a coach bubble whose chat is open holds still
       start: s => { const r = el.getBoundingClientRect(); el.getAnimations().forEach(a => a.cancel());
         base = { x: el.offsetLeft, y: el.offsetTop }; s.ox = r.left - base.x; s.oy = r.top - base.y;   // a glide still under way carries on from where it is
-        el.style.transition = 'none'; el.style.willChange = 'transform'; el.classList.add('drag'); tr = bubTrash(true); hot = false;
-        const t = tr.getBoundingClientRect(); tc = { x: t.left + t.width / 2, y: t.top + t.height / 2 }; },
+        el.style.transition = 'none'; el.style.willChange = 'transform'; el.classList.add('drag'); hot = false;
+        if(onGone){ tr = bubTrash(true); const t = tr.getBoundingClientRect(); tc = { x: t.left + t.width / 2, y: t.top + t.height / 2 }; }
+        if(h.start) h.start(); },
       move: s => { const p = pos(s), w = el.offsetWidth; el.style.transform = `translate3d(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px,0)`;
-        const h = Math.hypot(base.x + p.x + w / 2 - tc.x, base.y + p.y + w / 2 - tc.y) < 56;
-        if(h !== hot){ hot = h; el.classList.toggle('kill', h); tr.classList.toggle('hot', h); if(h) Phone.haptic(); } },
+        if(h.move) h.move(base.x + p.x + w / 2, base.y + p.y + w / 2);
+        if(!onGone) return;
+        const near = Math.hypot(base.x + p.x + w / 2 - tc.x, base.y + p.y + w / 2 - tc.y) < 56;
+        if(near !== hot){ hot = near; el.classList.toggle('kill', near); tr.classList.toggle('hot', near); if(near) Phone.haptic(); } },
       end: (s, ok) => { const p = pos(s), w = el.offsetWidth; el.classList.remove('drag'); el.style.willChange = '';
         el._dragged = true; setTimeout(() => { el._dragged = false; }, 60);
-        if(hot && ok){ el.classList.add('gone'); Phone.haptic(); tr.classList.remove('hot');
+        if(h.end && h.end(p, ok ? s : null)) return;   // taken (a coach bubble landing in its pill)
+        if(onGone && hot && ok){ el.classList.add('gone'); Phone.haptic(); tr.classList.remove('hot');
           const to = { x: tc.x - w / 2 - base.x, y: tc.y - w / 2 - base.y, s: .25 };
           springTo(el, { x: p.x, y: p.y }, to, null, { k: 320, damp: 1, fill: 'forwards', op: [1, 0] });
-          setTimeout(() => bubTrash(false), rmo() ? 0 : 200); setTimeout(onGone, rmo() ? 0 : 380); return; }   // into the bin, the bin closes, then the pill comes back
-        bubTrash(false); el.classList.remove('kill');
-        const L = bubLimits(el), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
+          setTimeout(() => bubTrash(false), rmo() ? 0 : 200); setTimeout(onGone, rmo() ? 0 : 380); return; }   // into the bin, the bin closes, then onGone
+        if(onGone) bubTrash(false); el.classList.remove('kill');
+        const L = bubLimits(), side = base.x + p.x + w / 2 < innerWidth / 2 ? 'l' : 'r', y = Math.min(L.bot, Math.max(L.top, base.y + p.y));
         if(typeof ui !== 'undefined'){ ui[key] = { s: side, y: y / innerHeight }; saveUI(); }
         const from = { x: base.x + p.x, y: base.y + p.y }; el.style.transform = ''; place(el, key);   // its new spot, in one layout change...
         const nb = { x: el.offsetLeft, y: el.offsetTop };

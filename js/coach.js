@@ -1,9 +1,9 @@
 // ---------- 0.7.4.3 Coach chat: ONE chat window that Food Coach (chef robot) and Gym Coach (sweatband robot) share ----------
 // Looks like the Claude app's chat: a big round box pinned at the bottom that grows with the text, a round accent send button,
 // your messages as bubbles on the right, the robot's answers as plain text on the left with its small face, results as cards.
-// 0.7.9.2: the chat is a small floating window, not a whole page. Tapping a coach bubble leaves the bubble where it is; the window grows out
-// of it (scale from the bubble, transform + opacity only) on a layer above the page and below the bubble, its corner tucked under the bubble.
-// Back (the arrow, the phone's back), or a tap on the dimmed page shrinks it back into the bubble; tap the bubble to carry on.
+// Refinements (changes 13 + 18): one component for Food Coach and Gym Coach. Pill → robot bubble; tapping the bubble glides it to the top
+// right and the chat opens as a big panel hanging from that corner (transform + opacity only); Back (the arrow, the phone's back), a tap on
+// the dimmed page or on the bubble shrinks it back and the bubble glides home. Drag the bubble onto its pill's spot to turn it back into the pill.
 //
 // Other parts use it like this:
 //   Coach.setup(id, { kind, title, first, placeholder, camera, send })   once, to say how that coach answers (all optional)
@@ -13,8 +13,9 @@
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
 //     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
+//                             (a third argument, a rect, is where the bubble starts from: the pill's face; coach.js only)
 //   Coach.minimize(id)        puts that chat on screen as its robot bubble without opening it
-//   Coach.dismiss(id)         ends that chat (its bubble goes, the coach pill comes back)
+//   Coach.dismiss(id)         ends that chat and forgets it (its bubble goes, the coach pill comes back)
 //   Coach.has(id)             true while that chat's bubble is on screen
 // The chat object given to send():
 //   chat.say(text)            the robot answers with plain text
@@ -120,67 +121,83 @@ Return ONLY JSON: {"reply": string}`, img);
       if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } }   // answered while shrunk: a dot on the bubble
   }
 
-  // ---- open / shrink into the bubble / dismiss ----
-  // 0.7.8: chats reached only from a header robot (live workout, Start Workout window) never make a floating bubble; the window hangs from that robot
-  // 0.7.9.6: no Gym Coach chat makes a bubble. From the Gym Coach pill the window opens centred at the top with the robot face
-  // fixed on its top right corner (#coachFace, part of the window, not draggable) and shrinks back into that face
-  const NOBUB = id => kindOf(id) === 'gym';
-  const FACE = id => NOBUB(id) && id !== 'gymlive' && id !== 'gymstart';
-  function open_(id, first){
+  // ---- open / shrink into the bubble (Refinements, change 13) ----
+  // ONE component for both coaches: Food Coach (pill beside Log Food) and Gym Coach (pill beside Create a Workout) behave the same.
+  // Tap the pill: it turns into the robot bubble. Tap the bubble (wherever it rests): it glides to a fixed spot at the top right and the
+  // chat opens as a big panel hanging from that corner; the panel starts growing about half way through the glide (one movement).
+  // Closing is the reverse: the panel shrinks first and the bubble glides back to exactly where it rested as the panel finishes.
+  // Only transform and opacity move; the resting spot is its left/top (ai.js place), so nothing extra is saved. Reduce Motion: a fade, the bubble jumps.
+  // Chats opened from a header robot (live workout, Start Workout window) never make a bubble: the window hangs from that robot, as before.
+  const HEAD = id => id === 'gymlive' || id === 'gymstart';
+  const GLIDE = 300, LAG = 130, SPRING = 'cubic-bezier(.3,1.3,.6,1)';   // the glide; the panel starts LAG ms in (theme.css --cgd)
+  const tr = (x, y, s) => `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)${s != null ? ` scale(${s})` : ''}`;
+  let spot = null;   // the bubble's top-left at the top right corner while its chat is open (set by lay)
+  function open_(id, first, from){
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
-    if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob) ob._home = false; }
-    // the bubble stays exactly where it is (opened from a pill: it appears at its own spot) and holds still while its chat is open
-    const b = NOBUB(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
-    anc = b || (FACE(id) ? null : [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null);
-    cur = id; head(); faceSet(); $('coachIn').value = c.draft || ''; preview(); draw();
+    if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob){ ob._home = false; glide(ob, false); } }   // the other coach's bubble goes back to its spot
+    const b = HEAD(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
+    anc = HEAD(id) ? [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null : null;
+    cur = id; head(); $('coachIn').value = c.draft || ''; preview(); draw();
     sh.getAnimations().forEach(a => a.cancel()); sh.style.transform = '';
-    if(!again) open('ovCoach'); fit(); pillSync();
+    sh.style.setProperty('--cgd', b && !again && !rmo() ? LAG + 'ms' : '0ms');   // the panel grows out of the bubble half way through its glide
+    if(!again) open('ovCoach'); fit(); if(b) glide(b, true, from); pillSync();
     requestAnimationFrame(() => { const el = $('coachList'); el.scrollTop = c.end === false ? c.sy : el.scrollHeight; });   // back where you left off (bottom unless you had scrolled up)
   }
+  // the bubble's glide: up = to the top right spot (from = a rect it starts from, e.g. the pill's face), else back to its resting spot.
+  // The end state is set as its transform; the animation only carries it there with the spring.
+  function glide(b, up, from){
+    const r = b.getBoundingClientRect(), w = b.offsetWidth, bx = b.offsetLeft, by = b.offsetTop;
+    b.getAnimations().forEach(a => a.cancel()); b._up = up;
+    const to = up && spot ? { x: spot.x - bx, y: spot.y - by } : { x: 0, y: 0 };
+    const f = from ? { x: from.left + from.width / 2 - w / 2 - bx, y: from.top + from.height / 2 - w / 2 - by, s: Math.min(1, from.width / w) } : { x: r.left - bx, y: r.top - by, s: 1 };
+    b.style.transition = 'none'; b.style.transform = up ? tr(to.x, to.y) : '';
+    if(rmo() || (Math.hypot(to.x - f.x, to.y - f.y) < 1 && f.s === 1)) return;
+    b.animate([{ transform: tr(f.x, f.y, f.s) }, { transform: tr(to.x, to.y, 1) }], { duration: GLIDE, easing: SPRING });
+  }
   function keep(){ const c = cur && CH[cur]; if(c) c.draft = $('coachIn').value; }
-  // close() calls this whenever the chat window closes (Back, the phone's back, a tap outside, the swipe, opening Settings…); the bubble just stays
+  // close() calls this whenever the chat window closes (Back, the phone's back, a tap outside, tapping the bubble, opening Settings…):
+  // the panel shrinks into the bubble's corner (theme.css #ovCoach.closing) and the bubble glides home as it finishes
   function closed(){ if(!cur) return; const id = cur; keep(); cur = null; anc = null;
-    if(!NOBUB(id)){ bubble(id)._home = false; } pillSync(); }
-  // Back: shrink into the bubble (theme.css #ovCoach.closing = coachShrink toward the bubble)
+    const b = !HEAD(id) && $('cb-' + id); if(b){ b._home = false; setTimeout(() => { if(!b._home && b.isConnected) glide(b, false); }, rmo() ? 0 : 100); }
+    pillSync(); }
+  // Back: shrink into the bubble
   function minimize(id){
-    if(id && NOBUB(id)) return;
+    if(id && HEAD(id)) return;
     if(id && id !== cur){ chat(id); if(!CH[id].msgs.length) CH[id].msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; bubble(id); pillSync(); return; }
     if(!cur) return; Phone.haptic(); close('ovCoach');
   }
-  // ---- where the window sits (0.7.9.2) ----
-  // Rounded, a margin all round, at most 560 wide. Always BELOW the bubble: its top corner on the bubble's side sits under the bubble's centre
-  // (the bubble's own spot is near the top right, theme.css .coachbub). A bubble dragged low still opens a usable window (at least HMIN tall)
-  // that then starts a little above it, with the bubble resting on its side.
-  // The overlay already matches the visible screen above the keyboard (fit), so with the keyboard up the window shrinks to stay fully in view.
+  // ---- where the window sits ----
+  // Rounded, a margin all round, at most 560 wide. A bubble's chat always hangs from the top right spot: the panel's top right corner sits under
+  // the bubble's centre and it reaches down to the bottom margin. A header robot's chat hangs from that robot (on its side), as before.
+  // The overlay already matches the visible screen above the keyboard (fit), so with the keyboard up the panel shrinks to stay fully in view,
+  // and the bubble moves with its corner.
   let saP = null;   // a hidden probe that reads the phone's safe areas (notch / home bar)
   const safe = () => { if(!saP){ saP = document.createElement('div'); saP.setAttribute('aria-hidden', 'true');
     saP.style.cssText = 'position:fixed;left:0;top:0;width:env(safe-area-inset-bottom);height:calc(env(safe-area-inset-top) + var(--topgap,12px));visibility:hidden;pointer-events:none'; document.body.appendChild(saP); }
     return { t: saP.offsetHeight, b: saP.offsetWidth }; };
   const M = 12, WMAX = 560, HMIN = 320;
-  const FR = 26;   // the face's radius (theme.css .coachface is 52 px)
-  function faceSet(){ const f = $('coachFace'), on = FACE(cur); f.classList.toggle('hide', !on); if(on && f.dataset.k !== 'gym'){ f.innerHTML = AI.robot('gym', 34); f.dataset.k = 'gym'; } }
   function lay(){ const ov = $('ovCoach'), sh = ov && ov.querySelector('.sheet'); if(!sh || !cur) return;
     const W = ov.clientWidth, H = ov.clientHeight, sa = safe(), kb = ov.classList.contains('kb'), y0 = (kb ? 0 : sa.t) + M, y1 = H - (kb ? 0 : sa.b) - M, oy = ov.getBoundingClientRect().top;
-    const w = Math.min(W - 2 * M, WMAX); let x, top, bot, side = 'r', ax = W - M - 34, ay = y0;
-    if(anc && anc.isConnected && anc.getClientRects().length){ const r = anc.getBoundingClientRect(); ax = r.left + r.width / 2; ay = r.top + r.height / 2 - oy; }
-    side = ax < W / 2 ? 'l' : 'r';
+    const w = Math.min(W - 2 * M, WMAX), b = !HEAD(cur) && $('cb-' + cur); let x, top, side = 'r', ax = W - M - 34, ay = y0;
+    if(b){ const bw = b.offsetWidth || 60; spot = { x: W - M - bw, y: oy + y0 }; ax = spot.x + bw / 2; ay = y0 + bw / 2;   // the fixed top right spot
+      if(b._up && !b.getAnimations().length) b.style.transform = tr(spot.x - b.offsetLeft, spot.y - b.offsetTop); }   // the keyboard moved the corner: the bubble stays on it
+    else if(anc && anc.isConnected && anc.getClientRects().length){ const r = anc.getBoundingClientRect(); ax = r.left + r.width / 2; ay = r.top + r.height / 2 - oy; side = ax < W / 2 ? 'l' : 'r'; }
     x = side === 'r' ? Math.min(W - M, ax + 34) - w : Math.max(M, ax - 34); x = Math.max(M, Math.min(W - M - w, x));
-    top = Math.max(y0, Math.min(ay, y1 - HMIN)); bot = y1;   // hang from the bubble (or the header robot), down to the bottom margin
-    if(FACE(cur)){ side = 'r'; x = (W - w) / 2; ax = x + w - 34; ay = y0 + FR; top = ay;   // centred at the top, the face on its top right corner
-      const f = $('coachFace'); f.style.left = (ax - FR) + 'px'; f.style.top = (ay - FR) + 'px'; }
-    sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (bot - top) + 'px';
+    top = Math.max(y0, Math.min(ay, y1 - HMIN));   // hang from the bubble (or the header robot), down to the bottom margin
+    sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (y1 - top) + 'px';
     sh.style.transformOrigin = `${(ax - x).toFixed(1)}px ${(ay - top).toFixed(1)}px`;   // grows from / shrinks into the bubble's centre
-    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !FACE(cur) && (!anc || NOBUB(cur))); }
+    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !b); }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;
-    b.dataset.area = 'food';   // 0.7.9.2: shows only in its coach's area (ai.js areaSync); 0.7.9.6: only Food Coach has a bubble
+    b.dataset.area = k === 'gym' ? 'gym' : 'food';   // shows only in its coach's area (ai.js areaSync)
     b.innerHTML = `<span class="rcore">${AI.robot(k, 40)}</span>`; b.setAttribute('aria-label', t('coachBubA', { n: title(id) }));
     document.body.appendChild(b);
     b.addEventListener('click', () => { if(b._dragged){ b._dragged = false; return; } Phone.haptic();
-      if(cur === id) minimize(); else open_(id); });   // 0.7.9.2: the bubble never moves; tap it again to put the chat away
-    AI.drag(b, () => dismiss(id), 'coachBub_' + id); AI.areaSync();
+      if(cur === id) minimize(); else open_(id); });   // tap it again to put the chat away
+    // no trash bin (change 18): drag it near its pill's spot and a ghost pill shows; let go there and it turns back into the pill
+    AI.drag(b, null, 'coachBub_' + id, { start: () => ghostStart(id), move: ghostMove, end: (p, s) => ghostEnd(b, p, s) }); AI.areaSync();
     return b;
   }
   function dismiss(id){
@@ -190,15 +207,52 @@ Return ONLY JSON: {"reply": string}`, img);
     pillSync();
   }
 
+  // ---- drag the bubble back into its pill (Refinements, change 18) ----
+  // While the bubble is dragged on the page where its pill lives, a quiet ghost pill (the frosted look of change 12) marks the pill's spot: it fades
+  // in when the bubble comes within reach (and the main button slides aside to make room, by a transform) and out when it moves away.
+  // Let go close to it: the bubble springs into the pill's face and fades as the pill fades back in, exactly as before it was pressed.
+  // The chat itself is kept: tapping the pill again carries on where you left off. Let go anywhere else: the bubble stays where it was dropped.
+  // Layout is read once when the drag starts; while moving only transform / opacity / a class change.
+  const REACH = 140, SNAP = 40;   // px from the ghost's edge: it shows / you can let go there
+  let gh = null;
+  function ghostAt(id){ const p = $('cp-' + id), f = $('fab'), pl = PILLS.find(x => x[0] === id);
+    return p && f && pl && !f.classList.contains('hide') && f.dataset.action === pl[1] && f.getClientRects().length ? { p, f } : null; }
+  function ghostStart(id){ ghostDrop(); const at = ghostAt(id); if(!at) return; const { p, f } = at;
+    const g = document.createElement('div'); g.className = 'coachpill cghost'; g.setAttribute('aria-hidden', 'true'); g.innerHTML = p.innerHTML; g.querySelector('.cpl').textContent = title(id);
+    document.body.appendChild(g);
+    // where pillPlace() will put the pill: the main button and the pill sit centred together
+    const cs = getComputedStyle(f), L = parseFloat(cs.left) || 0, R = parseFloat(cs.right) || 0, W = document.documentElement.clientWidth, pw = g.offsetWidth, ph = g.offsetHeight, fr = f.getBoundingClientRect();
+    const right = (L + W - (R + pw + 10)) / 2 + f.offsetWidth / 2, x = right + 10, y = fr.top + (fr.height - ph) / 2;
+    g.style.left = x + 'px'; g.style.top = y + 'px'; g.style.zIndex = cs.zIndex;
+    gh = { id, g, f, r: { x, y, w: pw, h: ph }, fdx: right - fr.right, on: false, hot: false }; }
+  function ghostMove(cx, cy){ if(!gh) return; const r = gh.r;   // cx / cy: the bubble's centre
+    const d = Math.hypot(Math.max(r.x - cx, 0, cx - r.x - r.w), Math.max(r.y - cy, 0, cy - r.y - r.h)), on = d < REACH, hot = d < SNAP;
+    if(on !== gh.on){ gh.on = on; gh.g.classList.toggle('on', on); gh.f.style.transform = on ? `translate3d(${gh.fdx.toFixed(1)}px,0,0)` : ''; }
+    if(hot !== gh.hot){ gh.hot = hot; gh.g.classList.toggle('hot', hot); if(hot) Phone.haptic(); } }
+  function ghostDrop(){ if(!gh) return; const g = gh; gh = null; g.f.style.transform = ''; g.g.classList.remove('on', 'hot'); setTimeout(() => g.g.remove(), 250); }
+  function ghostEnd(b, p, s){ if(!gh) return false; if(!gh.hot || !s){ ghostDrop(); return false; }
+    const g = gh, id = g.id; gh = null; Phone.haptic();
+    b.id = ''; b.classList.add('gone'); b._home = true;   // no longer this coach's bubble: has() is false, so the pill comes back
+    // the main button already sits where the pill needs it (by its transform), so the layout change underneath is invisible
+    noRise = true; pillPlace(); noRise = false; g.f.style.transition = 'none'; g.f.style.transform = ''; g.f.offsetWidth; g.f.style.transition = '';
+    const pill = $('cp-' + id), fc = pill.querySelector('.cpface').getBoundingClientRect(), w = b.offsetWidth;
+    pill.animate([{ opacity: 0 }, { opacity: 1 }], { duration: rmo() ? 120 : 220, delay: rmo() ? 0 : 90, easing: 'ease-out', fill: 'backwards' });
+    g.g.remove();
+    const to = { x: fc.left + fc.width / 2 - w / 2 - b.offsetLeft, y: fc.top + fc.height / 2 - w / 2 - b.offsetTop, s: fc.width / w };
+    const a = rmo() ? b.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' })
+      : springTo(b, { x: p.x, y: p.y }, to, { x: s.vx, y: s.vy }, { k: 320, damp: .9, fill: 'forwards', op: [1, 0] });
+    const fin = () => b.remove(); a.finished.then(fin, fin);
+    return true; }
+
   // ---- the coach pills beside the main button (Food Coach next to Log Food, Gym Coach next to Create a Workout) ----
   // the pills show the robot's face instead of the AI badge: a robot face means a chat, the AI badge means a one-tap AI action
   const PILLS = [['chef', 'today'], ['gym', 'gymlib']];   // [chat id, the main button's data-action it sits beside]
   function pills(){ PILLS.forEach(([id]) => { if($('cp-' + id)) return;
     const b = document.createElement('button'); b.type = 'button'; b.id = 'cp-' + id; b.className = 'coachpill hide'; b.dataset.coachPill = id;
     b.innerHTML = `<span class="cpface" aria-hidden="true">${AI.robot(kindOf(id), 24)}</span><span class="cpl"></span>`;
-    b.addEventListener('click', () => { Phone.haptic(); open_(id); }); document.body.appendChild(b); }); }
-  let pq = 0; const pillSync = () => { cancelAnimationFrame(pq); pq = requestAnimationFrame(pillPlace); };
-  // 0.7.9.1: when the pill comes back (its bubble went in the bin) or steps aside, it rises like on a tab switch (ui.js pillsIn) and
+    b.addEventListener('click', () => { Phone.haptic(); open_(id, null, b.querySelector('.cpface').getBoundingClientRect()); }); document.body.appendChild(b); }); }   // the pill turns into the bubble: it starts from the pill's face
+  let pq = 0, noRise = false; const pillSync = () => { cancelAnimationFrame(pq); pq = requestAnimationFrame(pillPlace); };
+  // 0.7.9.1: when the pill comes back or steps aside, it rises like on a tab switch (ui.js pillsIn) and
   // the main button slides over by a transform (FLIP: measured before and after, then animated back from the old spot), never by layout
   function pillPlace(){
     const f = $('fab'); if(!f) return; let shown = null;
@@ -216,7 +270,7 @@ Return ONLY JSON: {"reply": string}`, img);
     document.body.style.setProperty('--cpr', cpr + 'px'); document.body.classList.add('has-coachpill');
     const fr = f.getBoundingClientRect(), right = (L + W - cpr) / 2 + f.offsetWidth / 2;
     shown.style.left = (right + 10) + 'px'; shown.style.top = (fr.top + (fr.height - shown.offsetHeight) / 2) + 'px'; shown.style.zIndex = cs.zIndex;
-    if(anim && shown !== was) pillsIn([shown]);   // the pill rises into place
+    if(anim && shown !== was && !noRise) pillsIn([shown]);   // the pill rises into place (not when a bubble is landing in it: it fades in under the bubble, ghostEnd)
     slide();
   }
 
@@ -227,8 +281,6 @@ Return ONLY JSON: {"reply": string}`, img);
     addEventListener('resize', pillSync); addEventListener('hashchange', pillSync); setTimeout(pillSync, 300);
     $('coachBack').innerHTML = BACK_SVG;
     $('coachBack').addEventListener('click', () => minimize());
-    $('coachFace').addEventListener('click', () => minimize());   // tap the face: the chat shrinks back into it
-    if(typeof ui !== 'undefined' && ui.coachBub_gym){ delete ui.coachBub_gym; saveUI(); }   // 0.7.9.6: the old Gym Coach bubble's saved spot
     $('coachForm').addEventListener('submit', e => { e.preventDefault(); send(); });
     $('coachIn').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing && !matchMedia('(pointer: coarse)').matches){ e.preventDefault(); send(); } });
     $('coachIn').addEventListener('input', grow);
