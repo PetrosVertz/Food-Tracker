@@ -53,6 +53,7 @@ $('importInput').addEventListener('change', async e => {
 // ======================= go =======================
 applyLang();
 
+hubBoot();   // Refinements: back within 3 minutes of leaving a Gym Buddy section → that section
 route();
 
 if(!ui.setupDone) openSetup();
@@ -115,7 +116,7 @@ $('phName').addEventListener('change', e => phName(e.target.value));
 railAvatar();
 
 // 0.7.7 Profile: Share a Workout opens the saved workouts list in Gym Buddy, unfolded (each row has its QR button, gym-qr)
-$('pfBody').addEventListener('click', e => { if(!e.target.closest('#pfShare')) return; Phone.haptic(); LIBF.saved = true; ui.lastIn_gym = 'gym-lib'; saveUI(); switchTab(0, 'gym'); });
+$('pfBody').addEventListener('click', e => { if(!e.target.closest('#pfShare')) return; Phone.haptic(); LIBF.saved = true; switchTab(0, 'gym', 'gym-lib'); });
 addEventListener('hashchange', () => setTimeout(syncFab2, 0));
 
 // Backup reminder when the app opens (iPhone can't show anything when a web app closes)

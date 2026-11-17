@@ -204,7 +204,25 @@ function goBack(){
 let navKeepScroll = false, SWITCHING = false;
 function markRail(tab){ const rail = $('rail'); if(!rail) return; rail.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); }
 function tabTarget(tab){ if(tab === 'today'){ curDay = todayKey(); return 'today'; }
+  if(HUB_TABS.includes(tab)) return TAB_ROOT[tab];   // the hub rule: a hub tab always opens on its hub
   const last = ui['lastIn_' + tab]; return last && tabOf(last) === tab ? last : TAB_ROOT[tab]; }
+
+// ---------- Refinements: the hub rule, one rule for every tab that opens on a hub (change 7) ----------
+// 1. Leaving a hub tab and coming back lands on the hub (tabTarget above). 2. Pressing a tab from inside a section goes to that
+// tab's hub (the bottom bar, wire/09). 3. Leaving the app inside a section and coming back within the draft time (Draft, js/draft.js,
+// the same 3 minutes as the windows) shows the same section at the same scroll place; later, the hub. The timer starts on leaving.
+const HUB_TABS = ['gym'];   // tabs whose main page is a hub of sections (the Food Library joins in Refinements #4)
+const hubSec = h => { const tab = tabOf(h); return HUB_TABS.includes(tab) && h !== TAB_ROOT[tab]; };
+function hubLeave(){   // the app is going to the background or closing
+  const h = location.hash.slice(1), pg = document.querySelector('section.page:not(.hide)');
+  if(hubSec(h)) Draft.put('hub', { h, y: pg ? Math.round(pg.scrollTop) : 0 }); else Draft.clear('hub'); }
+function hubReturn(){   // back from the background: past the draft time, a section goes back to its hub (not under an open window)
+  const h = location.hash.slice(1); if(!hubSec(h) || Draft.get('hub') || document.querySelector('.overlay.open')) return;
+  NAV = [TAB_ROOT[tabOf(h)]]; NAVI = 0; history.replaceState(null, '', '#' + TAB_ROOT[tabOf(h)]); route(); }
+function hubBoot(){   // a fresh start: within the draft time, open the section that was left, at the same place
+  const d = Draft.get('hub'); if(!d || !hubSec(d.h)) return;
+  history.replaceState(null, '', '#' + d.h); NAV = [TAB_ROOT[tabOf(d.h)], d.h]; NAVI = 1;
+  if(d.y) setTimeout(() => { const pg = document.querySelector('section.page:not(.hide)'); if(pg && location.hash.slice(1) === d.h) pg.scrollTop = d.y; }, 80); }
 // ---------- the action pills above the bottom bar (main button, scan button, coach pill) when they change ----------
 // 0.7.9.1: copies of the old pills drop out of view together (so their text never changes mid-way), then the new pills rise
 // together as one unit: same curve, same time, no stagger, no overshoot (~300 ms down, ~350 ms up with a soft settle).
@@ -264,16 +282,16 @@ function pillsBoot(){ if(pillReduce()) return; document.body.classList.add('pill
 // and slides in 28 px; what its edge uncovers is the plain page colour, never the old page. 320 ms, the same ease as the bottom bar's circle.
 // Reduce Motion = a plain swap. A tap during the motion is remembered and played right after, so the circle and the page stay in step.
 const TAB_EASE = 'cubic-bezier(.45,0,.2,1)', TAB_MS = 320;
-function switchTab(dir, toTab){
+function switchTab(dir, toTab, to){   // to: open this page of the tab instead of its usual one
   const h = location.hash.slice(1), cur = tabOf(h), i = tabIdx(cur);   // Profile is the last tab
   const tab = toTab || [...TABS3, 'profile'][i + dir]; if(!tab || tab === cur) return;
   if(SWITCHING){ switchTab.next = tab; return; }
   if(!dir) dir = tabIdx(tab) > i ? 1 : -1;
   document.querySelectorAll('.pghost').forEach(g => g.remove()); document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew'));
   const pg = document.querySelector('section.page:not(.hide)'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!pg || !pg.animate || reduce){ const tg = tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
+  if(!pg || !pg.animate || reduce){ const tg = to || tabTarget(tab); if(location.hash.slice(1) === tg) route(); else location.replace('#' + tg); return; }
   SWITCHING = true; switchTab.next = null; pillSwap();
-  const target = tabTarget(tab); let np = null, finished = false, tm = 0;
+  const target = to || tabTarget(tab); let np = null, finished = false, tm = 0;
   const done = () => { if(finished) return; finished = true; clearTimeout(tm); removeEventListener('hashchange', run);
     document.querySelectorAll('.pgnew').forEach(g => g.classList.remove('pgnew')); SWITCHING = false;
     const nx = switchTab.next; switchTab.next = null; if(nx) switchTab(0, nx); };
