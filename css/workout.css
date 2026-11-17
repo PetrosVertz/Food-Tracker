@@ -107,7 +107,6 @@ body:has(#ovCoach.open) .sescoach{visibility:hidden}
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)} .sthead h2{margin:0;min-width:0} .sthead .sescoach{margin-right:-8px;flex:0 0 auto}
 body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #sesClock{font-size:34px;line-height:1.1;font-weight:var(--w-bold);font-style:italic;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--t-clock)}
-#sesWatch{display:flex;color:var(--t-clock)}
 
 /* cards */
 #sesBody .exc{margin-bottom:var(--s4);border-radius:var(--r-card)!important;padding:var(--s4)}
@@ -524,19 +523,20 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody>.exc:first-child{scroll-margin-top:8px}
 #ovSession #sesBody>.addexbig{visibility:hidden;border:0;min-height:88px}   /* the last page is only the landing spot for the swipe; the tip above the bottom card is what you see */
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
-/* the bottom card */
-.sesdock{flex:0 0 auto;position:relative;z-index:3;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s2);margin:var(--s1) 0 max(12px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.dkrow1{display:flex;align-items:center;justify-content:space-between;min-height:64px}
+/* the bottom card: slim, the workout time big on the left, the Gym Coach on the right on the same line */
+.sesdock{flex:0 0 auto;position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s2);margin:0 0 max(10px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);
+  box-shadow:0 -14px 34px -12px color-mix(in srgb,var(--t-accent) 55%,transparent),0 8px 24px rgba(0,0,0,.28)}   /* the theme-colour glow rises from behind the top edge */
+.dkrow1{display:flex;align-items:center;justify-content:space-between;height:50px}
 .dkrow1 .wclock{padding-left:var(--s2)}
-.sesdock #sesClock{font-size:34px}
+.sesdock #sesClock{font-size:44px;line-height:1}
 .dkrow2{display:flex;align-items:center;gap:var(--s3)}
-.dkrow2 .pillbtn{height:46px;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
+.dkrow2 .pillbtn{height:44px;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
 .dkrow2 .pillbtn.danger{flex:0 0 96px}
 .dkrow2 .pillbtn.primary{flex:1 1 0}
-.dkrow1 .sescoach{position:relative;flex:0 0 60px;width:60px;height:60px;min-height:0;margin:0 var(--s1) 0 0;justify-self:auto;overflow:visible}
-.dkrow1 .sescoach svg.robot{display:block;margin-top:-10px}   /* the drawing has the antenna above the head: lift it so the head sits in the middle */
+.dkrow1 .sescoach{position:relative;flex:0 0 50px;width:50px;height:50px;min-height:0;margin:0 var(--s1) 0 0;justify-self:auto;overflow:visible}
+.dkrow1 .sescoach svg.robot{display:block;margin-top:-8px}   /* the antenna sits above the head: lift the drawing so the head is level with the time */
 /* the Gym Coach cheers when a set is finished (transform + opacity only) */
-.sescoach::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
+.sescoach::after{content:"";position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;border:2px solid var(--t-accent);opacity:0;pointer-events:none}
 @keyframes ccHop{0%{transform:none}16%{transform:translateY(2px) scale(1.08,.9)}42%{transform:translateY(-12px) rotate(-9deg) scale(.96,1.06)}64%{transform:translateY(-3px) rotate(7deg)}82%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
 @keyframes ccDouble{0%{transform:none}14%{transform:translateY(-12px) rotate(-8deg)}28%{transform:translateY(0)}42%{transform:translateY(-16px) rotate(8deg) scale(1.08)}58%{transform:translateY(0) scale(1.06,.94)}72%{transform:rotate(-5deg)}86%{transform:rotate(4deg)}100%{transform:none}}
 @keyframes ccSpin{0%{transform:none}25%{transform:translateY(-16px) scale(1.2) rotate(-14deg)}75%{transform:translateY(-10px) scale(1.2) rotate(360deg)}100%{transform:rotate(360deg)}}
@@ -564,20 +564,13 @@ body.inses .coachbub{display:none!important}
 /* the cards below the one you are on show only while you swipe */
 #ovSession #sesBody>.exc{transition:opacity .22s ease,transform .18s ease,box-shadow .18s}
 #ovSession #sesBody:not(.moving)>.exc.after{opacity:0;pointer-events:none}
-/* the chronograph stopwatch beside the workout time: the hand sweeps once a minute */
-.wclock{gap:var(--s2)}
-.swatch .swhand{transform-box:view-box;transform-origin:12px 14px;animation:swSweep 60s linear infinite}
-.swatch.still .swhand{animation-play-state:paused}
-@keyframes swSweep{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.swatch .swhand{animation:none}}
-/* "Swipe To Add" / "Swipe For Next": a frosted strip over the bottom of the pages, a soft theme-colour glow behind the words */
-.swipetip{flex:0 0 auto;position:relative;z-index:2;height:64px;margin:-64px calc(-1 * var(--s4)) 0;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 72%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px);mask-image:linear-gradient(to bottom,transparent 0,#000 22px);
-  color:#fff;font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);letter-spacing:.2px}
-.swipetip::before{content:"";position:absolute;left:50%;top:56%;width:170px;height:46px;margin:-23px 0 0 -85px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--t-accent) 42%,transparent),transparent);pointer-events:none}
-.swipetip span,.swipetip .swarr{position:relative}
-.swipetip .swarr{margin-top:-1px;animation:swBob 1.6s ease-in-out infinite}
+/* "Swipe To Add Exercise" / "Swipe For Next Exercise": one slim line resting on the bottom card (frosted behind it); the glow rises from behind the card */
+.swipetip{flex:0 0 auto;position:relative;height:34px;margin:-34px calc(-1 * var(--s4)) 0;padding:0 0 4px;display:flex;align-items:flex-end;justify-content:center;gap:4px;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 60%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px);mask-image:linear-gradient(to bottom,transparent 0,#000 14px);
+  color:#fff;font:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);letter-spacing:.2px;line-height:16px}
 :root[data-theme="light"] .swipetip{color:var(--t-text)}
-@keyframes swBob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.swipetip span,.swipetip .swarr{position:relative}
+.swipetip .swarr{animation:swBob 1.6s ease-in-out infinite}
+@keyframes swBob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
 @media(prefers-reduced-motion:reduce){.swipetip .swarr{animation:none}}

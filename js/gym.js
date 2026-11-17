@@ -122,12 +122,11 @@ function startSession(tpl){
 function openSession(){ if(!active) return; renderSession(); open('ovSession'); keepAwake(true); }
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
-function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 52 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
+function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 44 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
 function renderSession(){
   if(!active) return;
   $('sesName').textContent = active.name && active.name !== t('emptyWorkout') ? active.name : ''; tickClock();   // 0.7.3: blank until the workout has a name
   gymHeadRobot('sesCoach');   // 0.7.7: the Gym Coach robot, top right of the header
-  $('sesWatch').innerHTML = stopwatch(26, sesMs() / 1000, !!active.clock0);
   const cb = comebackFactor();
   const day = suppLog[todayKey()] || {}, sp = supps.filter(s => s.often === 'training' || s.times.some(x => x === 'pre' || x === 'post'));
   $('sesSupps').innerHTML = (cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>` : '') +
@@ -152,10 +151,6 @@ function markPages(){ const body = $('sesBody'); if(!body) return; const top = b
   let cur = 0; cards.forEach((c, i) => { if(c.getBoundingClientRect().top <= top) cur = i; });
   cards.forEach((c, i) => c.classList.toggle('after', i > cur));
   const tip = $('sesTip').querySelector('span'), k = cur < cards.length - 1 ? 'swipeNext' : 'swipeAdd'; if(tip.dataset.t !== k){ tip.dataset.t = k; tip.textContent = t(k); } }
-// the live workout clock's icon: a chronograph stopwatch whose hand sweeps once a minute, in step with the workout time (transform only)
-const stopwatch = (size, secs, run) => `<svg class="swatch${run ? '' : ' still'}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M10 2.5h4M12 2.5v3"/><path d="M18.4 6.6l1.4-1.4"/><circle cx="12" cy="14" r="8"/><path d="M12 7.6v1.2M18.4 14h-1.2M12 20.4v-1.2M5.6 14h1.2" stroke-width="1.6"/>
-  <g class="swhand" style="animation-delay:-${(secs % 60).toFixed(2)}s"><path d="M12 14V9.4"/></g><circle cx="12" cy="14" r="1.1" fill="currentColor" stroke="none"/></svg>`;
 // one tall tick spans both hands (and their extras) of a unilateral set: size it from the real rows after each draw
 function fitUniTicks(){ document.querySelectorAll('#sesBody .setrow.lmerge').forEach(row => { const ok = row.querySelector('.sok'); if(!ok) return;
   let last = row.nextElementSibling; while(last && !last.classList.contains('rmate')) last = last.nextElementSibling;   // the R row
