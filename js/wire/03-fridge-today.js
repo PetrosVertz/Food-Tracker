@@ -259,8 +259,7 @@ $('realStart').addEventListener('change', () => { profile.realStart = $('realSta
     const t_ = profile.realStart ? real : pl && pl.time; if(t_){ d.time = t_; saveDays(); } }
   renderAll(); });
 
-// Log food sheet: Food Coach (0.7.4.3, was Quick Log), yesterday's food
-$('lQuickTop').addEventListener('click', () => { close('ovLog'); logQOpenSheet(); });
+// Log food sheet: Food Library, yesterday's food (Refinements: its Food Coach button is gone; the pill beside Log Food on Today opens the coach)
 logQWire(); logCalWire(); logFabWire();
 $('lTrack').addEventListener('click', () => { close('ovLog'); go('foods'); });
 $('lYesterday').addEventListener('click', () => { close('ovLog'); $('copyYesterday').click(); });

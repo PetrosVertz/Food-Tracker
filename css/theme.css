@@ -273,8 +273,8 @@ html{transition:background-color .3s}
 .lwsearch{display:flex;gap:var(--s2)}
 .lwsearch input{flex:1;min-width:0;padding:var(--s3) var(--s4);border-radius:14px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none;box-shadow:none}
 .lwscan{flex:0 0 46px;border-radius:14px;border:0;background:var(--t-sel);color:var(--t-text);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.lwacts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px;gap:var(--s2)}
-.lwacts button{height:40px;border-radius:12px;border:0;background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer;padding:0 var(--s1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lwacts{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:var(--s2)}   /* Refinements (change 18): Fill My Macros takes the whole row (the Food Coach button left; its pill on Today stays) */
+.lwacts button{height:48px;border-radius:12px;border:0;background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer;padding:0 var(--s1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lwadded{display:flex;gap:6px;flex-wrap:wrap} .lwadded:empty{display:none}
 .lchip{font-size:var(--fs-label);padding:var(--s1) 10px;border-radius:999px;background:var(--t-done-soft);border:1px solid color-mix(in srgb,var(--t-done) 45%,transparent);color:var(--t-done)}
 .lwlist{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
@@ -548,7 +548,7 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .lwacts .lwico{display:flex;align-items:center;justify-content:center;padding:0}
 /* 0.7.9.1: buttons that open a chat show the helper's robot face before the text (AI.face), not the AI tag */
 .aiface{display:inline-flex;align-items:center;flex:0 0 auto;line-height:0} .aiface .robot{display:block}
-.aifbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:6px} .aifln{display:inline-flex;align-items:center;gap:var(--s2)}
+.aifln{display:inline-flex;align-items:center;gap:var(--s2)}
 
 /* 0.7.4.3 · Food Coach answers (was Quick Log): the food list inside a coach chat card (js/coach.js draws the card) */
 .lqcard{display:flex;flex-direction:column;margin:-6px 0 0}
