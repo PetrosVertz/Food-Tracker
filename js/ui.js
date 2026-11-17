@@ -321,6 +321,60 @@ function route(){
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
+// ---------- Refinements: the rotating pill carousel on top of a hub's sections (like the iPhone camera mode picker) ----------
+// One shared component (Gym Buddy now, the Food Library next). The chosen pill always sits in the middle under a still highlight
+// (the .mpill knob look); the row is a native scroll-snap strip, so swiping or tapping glides another pill into the middle.
+// All pills are as wide as the longest label (measured when labels or the width change, never while moving), so every pill's
+// place is known in advance and a frame only reads scrollLeft and writes transform + opacity. A disabled pill (Coming Soon)
+// can be seen but never chosen. Reduce Motion: instant jumps, no scaling.
+//   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true? }], onPick: key => … })
+//   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
+const CAR_GAP = 4, CAR_FADE = .6, CAR_SHRINK = .1;   // neighbours: opacity down to .4, scale down to .9
+function carFade(els){   // the content under the carousel: a light cross fade, never from blank
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  els.forEach(el => el && el.animate && el.animate(reduce ? [{ opacity: .6 }, { opacity: 1 }] : [{ opacity: .35, transform: 'translate3d(0,4px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: reduce ? 120 : 240, easing: 'cubic-bezier(.3,1.3,.6,1)' }));
+}
+function pillCarousel(el, { items, onPick }){
+  el.classList.add('pcar'); el.setAttribute('role', 'tablist');
+  el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${items.map((it, i) =>
+    `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}><b></b>${it.soon ? '<small></small>' : ''}</button>`).join('')}<i class="pcsp"></i></div>`;
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')];
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
+  function measure(){   // only when labels or the width changed (never during a scroll)
+    const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
+    if(txt === labels && rw === w) return true;
+    labels = txt; w = rw;
+    btns.forEach((b, i) => { b.querySelector('b').textContent = items[i].label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
+    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
+    el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
+  }
+  function frame(){ raf = 0; if(!step) return;
+    const x = row.scrollLeft, red = reduce();
+    btns.forEach((b, i) => { const a = Math.min(1, Math.abs(i * step - x) / step);
+      b.style.transform = red ? '' : `scale(${1 - CAR_SHRINK * a})`; b.style.opacity = String((1 - CAR_FADE * a) * (items[i].soon ? .5 : 1)); });
+    const n = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
+    if(n !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = n; }   // a light tick each time a new pill reaches the middle
+  }
+  function mark(i){ cur = i; btns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', String(j === i)); }); }
+  function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
+  function pick(i){ if(i < 0 || items[i].soon) { centre(cur, true); return; }
+    if(i === cur) return; mark(i); onPick(items[i].key); }
+  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); }
+  row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
+  row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
+  row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
+    if(items[i].soon){ Phone.haptic(); return; }
+    if(i === cur) return; Phone.haptic(); mark(i); onPick(items[i].key); centre(i, true); });
+  if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
+  return {
+    set(key){ const i = items.findIndex(it => it.key === key); if(i < 0 || !measure()) { if(i >= 0) mark(i); return; }
+      if(i === cur && gliding) return;   // a tap's glide is still on its way there
+      if(i !== cur) mark(i);
+      if(Math.abs(row.scrollLeft - i * step) > 1){ jumping = true; near = i; centre(i, false); setTimeout(() => { jumping = false; }, 60); } else frame(); }
+  };
+}
+
 // ---------- Food Preferences (setup step + Settings): allergies and foods you don't eat, saved in profile.foodPrefs (optional field) ----------
 const FP_ALLERGY = ['peanuts', 'tree_nuts', 'milk', 'eggs', 'fish', 'shellfish', 'soy', 'gluten', 'sesame'];
 const FP_AVOID = ['vegetarian', 'vegan', 'pescatarian', 'pork', 'beef', 'lamb', 'alcohol', 'mushrooms'];

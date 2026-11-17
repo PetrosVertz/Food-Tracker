@@ -1053,3 +1053,24 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .endex2{--fb-own:var(--t-done-soft)}
 .btn:not(.primary):not(.fillbtn):not(.wqclose),.fab2,.ccbtn:not(.pri),.chkbtn,.lqswapbtn,.csend:disabled,.newset,.pillbtn.danger,.endex2{
   background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--fb-own)!important;box-shadow:var(--fb-n-edge)!important;border-color:transparent!important}
+
+/* ======================= Refinements (change 11): rotating pill carousel (pillCarousel() in ui.js) ======================= */
+/* The same track and white/near-black highlight as .mpill, but the highlight stays in the middle and the pills glide under it.
+   Every pill is --pw wide (the longest label); spacers let the first and last pill reach the middle. Only transform and opacity
+   change while it moves (set per frame in JS); the chosen pill's bold italic text is set once it has settled. */
+.pcar{position:relative;margin:4px 0 16px;padding:var(--s1) 0;background:var(--t-card2);border-radius:var(--r-pill);--pw:120px}
+.pcar.hide{display:none}
+.pcknob{position:absolute;z-index:0;top:var(--s1);bottom:var(--s1);left:50%;width:var(--pw);margin-left:calc(var(--pw) / -2);border-radius:var(--r-pill);background:var(--t-mp-bg);box-shadow:var(--t-mp-shadow);pointer-events:none}
+.pcrow{position:relative;z-index:1;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:var(--r-pill)}
+.pcrow::-webkit-scrollbar{display:none}
+.pcsp{flex:0 0 calc(50% - var(--pw) / 2 - 4px)}
+.pcrow>button{flex:0 0 var(--pw);min-width:0;min-height:44px;padding:4px 6px;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  border:0;background:none;border-radius:var(--r-pill);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);line-height:1.15;letter-spacing:-.2px;color:var(--t-muted);cursor:pointer;
+  will-change:transform,opacity;transform-origin:50% 50%;transition:color .2s}
+.pcrow>button:active{transform:none}
+.pcrow>button b{display:block;max-width:100%;font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcrow>button.on{color:var(--t-mp-text);font-weight:var(--w-bold);font-style:italic;-webkit-text-stroke:var(--t-mp-stroke);paint-order:stroke fill}
+.pcrow>button.soon{cursor:default}
+.pcrow>button small{font-size:10px;font-weight:var(--w-med);font-style:normal;letter-spacing:.2px;color:var(--t-muted);-webkit-text-stroke:0}
+.pcar.meas .pcrow>button{flex:0 0 auto;font-weight:var(--w-bold);font-style:italic}
+.pcar.meas .pcrow>button b{overflow:visible}
