@@ -89,6 +89,7 @@ function applyTheme(){
 function drawTheme(){
   const { mode, p, look } = themeNow(), L = look === 'light';
   setSeg('#thMode', mode); $('thNote').textContent = t(mode === 'auto' ? 'thAutoNote' : 'thLightNote');
+  setSeg('#thBar', ((typeof ui === 'object' && ui && ui.theme) || {}).bar === 'solid' ? 'solid' : 'clear');   // 0.7.10.7: read at start-up by index.html
   $('thSw').innerHTML = THEMES.map(x => `<button type="button" data-preset="${x[0]}" class="${x[0] === p[0] ? 'on' : ''}" style="--sw:${L ? x[4] : x[2]}" aria-label="${x[1]}" aria-pressed="${x[0] === p[0]}"><i></i><span>${x[1]}</span></button>`).join('');
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
@@ -433,12 +434,24 @@ function fixNum(inp){
 function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovCoach' && was) Coach.closed();
   // body.ovopen stays on until the 200 ms close animation ends, so a sliding-out sheet never passes under the title bar
   const sync = () => document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open,.overlay.closing'));
+  stripSync();
   if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => { el.classList.remove('closing'); sync(); }, 200); }
   sync(); }
 
+// 0.7.10.7: the solid strip under the clock (body::before, theme.css) matches what is under it: the page, the page dimmed behind a floating window, or a full-screen window
+function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')].sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0)).pop();
+  const full = top && (top.matches('#ovTargets,#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
+  document.body.dataset.strip = !top ? '' : !full ? 'dim' : top.id === 'ovWkQR' ? 'paper' : ''; }
+
+// 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still
+// holds its last frame keeps the window on its own layer, and iPhone draws the text on such a layer softly (the chat window grew from scale .2 and stayed "scale 1")
+function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) return; sh.classList.remove('settled');
+  const done = e => { if(e.target !== sh) return; sh.removeEventListener('animationend', done); if(el.classList.contains('open')) sh.classList.add('settled'); };
+  sh.addEventListener('animationend', done); }
+
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen');
+  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }

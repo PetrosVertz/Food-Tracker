@@ -208,7 +208,7 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .prog small{display:block;color:var(--muted);font-size:12px}
 .pct{font-weight:800;text-align:right} .pct.up{color:var(--ok)} .pct.down{color:var(--danger)} .pct.flat{color:var(--muted)}
 .feed li{margin:6px 0} .feed .ok{color:var(--ok)}
-.burst{position:fixed;inset:0;pointer-events:none;z-index:100000;overflow:hidden}
+.burst{position:fixed;inset:0;pointer-events:none;z-index:99997;overflow:hidden}
 .burst span{position:absolute;font-size:28px;animation:fly 1.2s ease-out forwards}
 @keyframes fly{0%{transform:translate(0,0) scale(.6);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(var(--rot));opacity:0}}
 /* v1.5 */

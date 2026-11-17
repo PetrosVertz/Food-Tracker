@@ -35,7 +35,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 ## Rules
 - Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow (this device only).
 - Changing the shape of saved data: raise `SCHEMA` in store.js and add a migration (it also upgrades old backups in `upgradeBackup`).
-- The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads. Nothing else may.
+- The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads, and set the iPhone status bar style from the theme's Status Bar choice (`ui.theme.bar`, 0.7.10.7). Nothing else may.
 - Phone APIs only through `Phone.*`; AI only through `gemini()` / `AI.*`.
 - No wrappers: change the real function instead of re-assigning it later.
 
