@@ -1051,12 +1051,14 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
   background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--fb-own)!important;box-shadow:var(--fb-n-edge)!important;border-color:transparent!important}
 /* Petros: Discard (Active Workout) looked washed out, worst in Light: a stronger red. Light = solid red with white text (white on #c93a3a ≈ 4.9:1);
    Dark = a deeper red tint. The hold fill darkens it so the sweep still shows. */
-#sesDiscard{--fb-own:color-mix(in srgb,var(--t-danger) 26%,var(--t-card2))}
+#sesDiscard{--fb-own:color-mix(in srgb,var(--t-danger) 50%,#a00000);color:#fff!important;--fb-n-hi:rgba(255,255,255,.10);--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.18)}   /* Dark too: a full red, not a tint (white on it ≈ 4.8:1) */
+#sesDiscard .hfill{background:rgba(0,0,0,.24)}
 :root[data-theme="light"] #sesDiscard{--fb-own:var(--t-danger);color:#fff!important;--fb-n-hi:rgba(255,255,255,.22);--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.3),0 1px 3px rgba(0,0,0,.12)}
 :root[data-theme="light"] #sesDiscard .hfill{background:rgba(0,0,0,.22)}
 /* Petros: End Exercise in pale frosted green did not look good: a full green button with the green's own ink (dark text on bright green in Dark,
    white on deep green in Light), with the same soft highlight and edge as every button */
-.endex2{--fb-own:var(--t-done);color:var(--t-done-ink)!important;--fb-n-hi:rgba(255,255,255,.18);--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.28)}
+/* Petros: and exactly the green of a finished set's tick: no white sheen over it */
+.endex2{--fb-own:var(--t-done);color:var(--t-done-ink)!important;--fb-n-hi:transparent;--fb-n-edge:none}
 
 /* ======================= Refinements (change 11): rotating pill carousel (pillCarousel() in ui.js) ======================= */
 /* The same track and white/near-black highlight as .mpill, but the highlight stays in the middle and the pills glide under it.

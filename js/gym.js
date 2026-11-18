@@ -147,14 +147,22 @@ function renderSession(){
   body.scrollTop = st; fitUniTicks(); fitPages(); markPages();
 }
 // the pages: room under the last card so the Add Exercise page can reach the top like every other page (the card sizes are natural; only the peek above is fixed)
-const PEEK = 64;
+// Petros: the card you are on rests at the BOTTOM, DOCKGAP above the bottom card (room for the Swipe tip); the card above shows over it.
+// The first card gets room on top so it can rest there too; a card taller than the screen rests at the top instead (.tall).
+const PEEK = 64, DOCKGAP = 40;
 function fitPages(){ const body = $('sesBody'), add = $('sesAddEx'); if(!body || !add.isConnected) return;
-  body.style.setProperty('--peek', PEEK + 'px'); body.style.paddingBottom = Math.max(0, body.clientHeight - add.offsetHeight - PEEK) + 'px'; }
+  body.style.setProperty('--peek', PEEK + 'px'); body.style.setProperty('--dockgap', DOCKGAP + 'px');
+  const H = body.clientHeight, cards = body.querySelectorAll(':scope>.exc');
+  cards.forEach(c => c.classList.toggle('tall', c.offsetHeight > H - DOCKGAP - 8));
+  body.style.setProperty('--lead', (cards[0] && !cards[0].classList.contains('tall') ? Math.max(0, H - DOCKGAP - 8 - cards[0].offsetHeight) : 0) + 'px');   // room above the first card (a margin: padding would stretch the page)
+  body.style.paddingBottom = Math.max(0, H - add.offsetHeight - PEEK) + 'px'; }
+// bring an exercise (or the Add page) to where it rests
+function showCard(el, smooth){ if(!el) return; el.scrollIntoView({ behavior: smooth === false ? 'auto' : 'smooth', block: el.matches('.exc:not(.tall)') ? 'end' : 'start' }); }
 addEventListener('resize', () => { if(active) fitPages(); });
 // at rest only the card you are on (and the bottom of the one above) shows; the cards below fade in while you swipe (opacity only).
 // The tip above the bottom card says Swipe For Next when there is another exercise below, else Swipe To Add.
-function markPages(){ const body = $('sesBody'); if(!body) return; const top = body.getBoundingClientRect().top + PEEK + 24, cards = [...body.querySelectorAll(':scope>.exc')];
-  let cur = 0; cards.forEach((c, i) => { if(c.getBoundingClientRect().top <= top) cur = i; });
+function markPages(){ const body = $('sesBody'); if(!body) return; const r = body.getBoundingClientRect(), line = r.bottom - DOCKGAP - 24, cards = [...body.querySelectorAll(':scope>.exc')];
+  let cur = 0; cards.forEach((c, i) => { if(c.getBoundingClientRect().top <= line) cur = i; });   // the card you are on = the lowest one that has come up past the line near the bottom
   cards.forEach((c, i) => c.classList.toggle('after', i > cur));
   const tip = $('sesTip').querySelector('span'), k = cur < cards.length - 1 ? 'swipeNext' : 'swipeAdd'; if(tip.dataset.t !== k){ tip.dataset.t = k; tip.textContent = t(k); }
   // where you are: one small dot per exercise in the bottom card (the one you're on is a longer accent pill, finished ones green); 13 or more = "3 / 14"
@@ -310,7 +318,7 @@ function pkHave(){ const op = id => $(id).classList.contains('open');
 // ---------- exercise details: muscles %, form, common mistakes ----------
 function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
   active.exercises.push(x); active.cur = active.exercises.length - 1; saveG('act'); renderSession();
-  const i = active.exercises.length - 1; setTimeout(() => { const el = document.querySelector(`.exc[data-x="${i}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); }
+  const i = active.exercises.length - 1; setTimeout(() => { showCard(document.querySelector(`.exc[data-x="${i}"]`)); }, 60); }
 
 // unilateral exercises: L and R sets in pairs; rest starts after the R side
 const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|split squat|lunge|step[- ]?up|pistol|concentration|kickback|suitcase/i;

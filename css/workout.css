@@ -520,11 +520,15 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody{--peek:64px;flex:1 1 0;min-height:0;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:8px 0 0;box-sizing:border-box}
 #ovSession #sesBody>.exc,#ovSession #sesBody>.addexbig{box-sizing:border-box;margin:0 0 var(--s3);scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--peek)}
 #ovSession #sesBody>.exc:first-child{scroll-margin-top:8px}
+/* Petros: the exercise you are on rests at the bottom, right above "Swipe For Next" (the card above shows over it); a card taller than the screen rests at the top */
+#ovSession #sesBody>.exc{scroll-snap-align:end;scroll-margin-bottom:var(--dockgap,40px)}
+#ovSession #sesBody>.exc.tall{scroll-snap-align:start}
+#ovSession #sesBody>.exc:first-child{margin-top:var(--lead,0px)}
 #ovSession #sesBody>.addexbig{visibility:hidden;border:0;min-height:88px}   /* the last page is only the landing spot for the swipe; the tip above the bottom card is what you see */
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
 /* the bottom card: slim, the workout time big on the left, the Gym Coach on the right on the same line */
 .sesdock{flex:0 0 auto;position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s2);margin:0 0 max(10px,env(safe-area-inset-bottom));border-radius:var(--r-card);background:var(--t-card);border:1px solid var(--t-line);
-  box-shadow:0 -14px 34px -12px color-mix(in srgb,var(--t-accent) 16%,transparent),0 8px 24px rgba(0,0,0,.28)}   /* the theme-colour glow rises from behind the top edge */
+  box-shadow:0 -14px 40px -6px color-mix(in srgb,var(--t-accent) 42%,transparent),0 -2px 70px 0 color-mix(in srgb,var(--t-accent) 18%,transparent),0 8px 24px rgba(0,0,0,.28)}   /* the theme-colour glow rises from behind the top edge */
 .dkrow1{display:flex;align-items:center;justify-content:space-between;height:50px}
 .dkrow1 .wclock{padding-left:var(--s2)}
 .sesdock #sesClock{font-size:44px;line-height:1}
@@ -563,6 +567,7 @@ body.inses .coachbub{display:none!important}
 /* the cards below the one you are on show only while you swipe */
 #ovSession #sesBody>.exc{transition:opacity .22s ease,transform .18s ease,box-shadow .18s}
 #ovSession #sesBody:not(.moving)>.exc.after{opacity:0;pointer-events:none}
+#ovSession #sesBody>.exc.enter{animation-fill-mode:backwards}   /* the slide-in must not hold opacity 1 afterwards (it hid nothing: the card below peeked under the tip) */
 /* "Swipe To Add Exercise" / "Swipe For Next Exercise": one slim line resting on the bottom card (frosted behind it); the glow rises from behind the card */
 .swipetip{flex:0 0 auto;position:relative;height:34px;margin:-34px calc(-1 * var(--s4)) 0;padding:0 0 4px;display:flex;align-items:flex-end;justify-content:center;gap:var(--s2);border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
   background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 60%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
@@ -592,6 +597,8 @@ body.inses .coachbub{display:none!important}
 /* Swipe past the last exercise: the exercise menu rises from the bottom as the card goes up (js/wire/10-workout.js). Transform only, no blur. */
 #ovExPick.pkdrag:not(.closing){background:transparent!important;animation:none!important}
 #ovExPick.pkdrag:not(.closing)::before{animation:none!important;opacity:0}
-#ovExPick.pkdrag:not(.closing)>.sheet{animation:none!important;transform:translate3d(0,calc((1 - var(--pkp,1)) * 100%),0);will-change:transform}
-#ovExPick.pkdrag.pksnap>.sheet{transition:transform .26s cubic-bezier(.2,.9,.25,1)}
+#ovExPick.pkdrag:not(.closing)>.sheet{animation:none!important;will-change:transform}   /* moved by an inline transform each frame (wire/10), then a spring */
 #ovExPick.pkcancel{display:none!important}
+/* live workout: pulling the menu down from its top strip (or its list at the top) drops it; the browser keeps only the other directions as scrolls */
+#ovExPick.pklive .pktop{touch-action:pan-x}
+#ovExPick.pklive.pkattop #pkBody{touch-action:pan-x pan-down}
