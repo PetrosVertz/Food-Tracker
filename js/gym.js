@@ -472,7 +472,7 @@ function recoveryWarnings(){
 // Recovery (0.7.4.2): an information screen — front and back side by side, nothing on it reacts to taps.
 // Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
 function recFigure(){ const m = recMap();
-  return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', front: t('front'), back: t('backSide') }); }
+  return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', labels: false }); }   // Refinements #7: no Front / Back text under the feet
 // 0.7.9.1: does the food since the last workout support recovery? ALL the rules live in recFoodVerdict() so the AI coach brain
 // (docs/notes/ai-coach-brief.md) can replace them later with the researched rules. Reads the food log and targets, nothing new is stored.
 // Returns null (say nothing) or { v: 'ok' | 'bit' | 'low', tip, gap? }.
@@ -501,15 +501,58 @@ function recFoodVerdict(){
 }
 function recFoodLine(){ const r = recFoodVerdict(); if(!r) return '';
   return `<div class="alert" style="cursor:default;margin-bottom:12px"><b>${t({ ok: 'recVOk', bit: 'recVBit', low: 'recVLow' }[r.v])}</b>${r.tip ? ' · ' + t(r.tip) : ''}${r.gap > 0 ? ' · ' + t('recGap', { g: r.gap }) : ''}</div>`; }
+// Refinements #7: under the body, a tile for each muscle that is NOT ready (most hours left first, then by name), two per row:
+// the name, that muscle cut from the same body drawing and lit in its state colour, and a clock with the hours left.
+// Every muscle ready: one full-width "All Muscles Ready" card. The Ready / Needs Rest bar sits inside the body card.
+// Hours come from recMap() (unchanged maths); once a minute recTick() updates the numbers and lets a ready muscle's tile fade out.
+let REC_T = 0;
 function renderRecovery(){
   const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
-  const all = Object.entries(m).sort((a, b) => b[1].h - a[1].h);   // 0.7.9.1: every muscle, state + hours left ("Needs Rest · 48 h", "Recovering · 14 h", "Ready"), always hours
-  const row = ([g, v]) => `<div class="recrow"><span class="rn">${esc(ML(g))}</span><span class="rs ${v.st}">${v.st === 'ok' ? t('recReady') : `${t(v.st === 'low' ? 'recLow' : 'recMid')} · ${v.h} h`}</span></div>`;
-  $('gRecV').innerHTML = `<div class="reccard" id="recFig">${recFigure()}</div>
-    <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small>${t('recReady')}</small><small>${t('recLow')}</small></span></div>
+  const sore = Object.entries(m).filter(([, v]) => v.st !== 'ok').sort((a, b) => b[1].h - a[1].h || ML(a[0]).localeCompare(ML(b[0])));
+  $('gRecV').innerHTML = `<div class="reccard"><div id="recFig">${recFigure()}</div>
+      <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small class="ok">${t('recReady')}</small><small class="low">${t('recLow')}</small></span></div></div>
     ${recFoodLine()}
-    <div class="reclist">${all.map(row).join('')}</div>
+    ${sore.length ? `<div class="rectiles" id="recTiles">${sore.map(recTile).join('')}</div>` : `<div class="recall">${svgIcon('check', 22, 2.6)}<b>${t('recAllReady')}</b></div>`}
     <p class="hint">${t('recHint')}</p>`;
+  clearInterval(REC_T); REC_T = sore.length ? setInterval(recTick, 60000) : 0;
+}
+const recTile = ([g, v]) => `<div class="rectile ${v.st}" data-rg="${g}" data-h="${v.h}"><b class="rtn">${esc(ML(g))}</b><div class="rtpic">${recMuscleSVG(g, REC_COL[v.st])}</div>
+  <span class="rth">${gymIco('clock', 16, 2)}<b>${v.h}</b><small>${t('recHrs')}</small></span></div>`;
+// one muscle group, cut from the body the page draws (male: Body Muscles shapes; female: the older drawing), on the side
+// where it has more shapes; muscles on both arms or legs show one side only, so the crop is big enough to read
+function recMuscleSVG(g, col){
+  const fem = profile.sex === 'f', nums = d => d.match(/-?\d+(?:\.\d+)?/g).map(Number), pts = { f: [], b: [] }, cnt = { f: 0, b: 0 };
+  ['f', 'b'].forEach(sd => {
+    if(fem) ANAT[sd].forEach(([h, d]) => { if(ANAT_HEAD_GROUP[h] !== g) return; cnt[sd]++; const a = nums(d);
+      for(let i = 0; i + 1 < a.length; i += 2){ const x = femX(a[i], a[i + 1]); pts[sd].push([x, a[i + 1]], [200 - x, a[i + 1]]); } });
+    else GYM_BM[sd].mus.forEach(([k, d]) => { if(!GYM_BM_HEADS[k].some(h => ANAT_HEAD_GROUP[h] === g)) return; cnt[sd]++; const a = nums(d);
+      for(let i = 0; i + 1 < a.length; i += 2) pts[sd].push([a[i], a[i + 1]]); }); });
+  const side = cnt.b > cnt.f ? 'b' : 'f'; let p = pts[side]; if(!p.length) return '';
+  if(Math.max(...p.filter(q => q[0] < 100).map(q => q[0]), 0) < 92) p = p.filter(q => q[0] >= 100);   // two limbs apart: the right-hand one only
+  const xs = p.map(q => q[0]), ys = p.map(q => q[1]), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const A = 1.5;   // about the shape of the picture box in a tile, so the muscle sits in the middle
+  let w = Math.max(40, (Math.max(...xs) - Math.min(...xs)) * 1.18), h = Math.max(40, (Math.max(...ys) - Math.min(...ys)) * 1.18); w = Math.max(w, h * A); h = Math.max(h, w / A);
+  const vb = `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
+  return anatomySVG({ mode: 'rec', colors: { [g]: col }, side, vb, w: '100%', h: '100%', idp: 'rt' + g, labels: false });
+}
+function recTick(){
+  const box = $('recTiles'); if(!box || !box.isConnected){ clearInterval(REC_T); return; }
+  if(document.hidden || $('gRecV').classList.contains('hide')) return;
+  const m = recMap(), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if([...box.children].some(el => +el.dataset.h !== m[el.dataset.rg].h)){ const f = $('recFig'); if(f) f.innerHTML = recFigure(); }   // the body's colours move with the hours
+  const gone = [];
+  [...box.children].forEach(el => { const v = m[el.dataset.rg]; if(v.st === 'ok'){ gone.push(el); return; }
+    el.dataset.h = v.h; el.querySelector('.rth b').textContent = v.h;
+    if(!el.classList.contains(v.st)){ el.classList.remove('low', 'mid'); el.classList.add(v.st); el.querySelector('.rtpic').innerHTML = recMuscleSVG(el.dataset.rg, REC_COL[v.st]); } });
+  if(!gone.length) return;
+  if(gone.length === box.children.length || still){ if(gone.length === box.children.length) renderRecovery(); else gone.forEach(el => el.remove()); return; }
+  // the ready tile fades out, then the others glide into place (transform and opacity only)
+  gone.forEach(el => el.classList.add('out'));
+  setTimeout(() => { const rest = [...box.children].filter(el => !gone.includes(el)), r0 = rest.map(el => el.getBoundingClientRect());
+    gone.forEach(el => el.remove());
+    rest.forEach((el, i) => { const r1 = el.getBoundingClientRect(), dx = r0[i].left - r1.left, dy = r0[i].top - r1.top; if(!dx && !dy) return;
+      el.style.transition = 'none'; el.style.transform = `translate(${dx}px,${dy}px)`;
+      requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = 'transform .34s cubic-bezier(.2,.9,.25,1)'; el.style.transform = ''; })); }); }, 240);
 }
 
 // 0.7.2: the new body (Body Muscles by Ivan Vulović, Apache 2.0, rounded shapes; data in js/data/gym-anatomy.js).
@@ -529,7 +572,7 @@ function gymBodySVG(o){
   const fig = (side, ox, label) => `<g transform="translate(${ox} 0)"><path class="gbm-edge" d="${GYM_BM[side].base}" style="pointer-events:none"/><path class="gbm-base" d="${GYM_BM[side].base}" style="pointer-events:none"/>${GYM_BM[side].mus.map(shape).join('')}
       ${o.labels === false || o.side ? '' : `<text x="100" y="460" text-anchor="middle" fill="var(--t-muted)" font-size="13" font-family="var(--font)">${label}</text>`}</g>`;
   if(o.side){
-    const vb1 = o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446';
+    const vb1 = o.vb || (o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446');
     return `<svg viewBox="${vb1}" width="${o.w || 46}" height="${o.h || 56}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${fig(o.side, 0, '')}</svg>`;
   }
   const vb = o.half === 'up' ? '22 4 336 262' : o.half === 'low' ? '22 196 336 252' : `0 0 420 ${o.labels === false ? 446 : 468}`;
@@ -557,7 +600,7 @@ function anatomySVG(o){
       ${half(side)}<g transform="translate(200 0) scale(-1 1)">${half(side)}</g>
       ${o.labels === false || o.side ? '' : `<text x="100" y="438" text-anchor="middle" fill="#8b949c" font-size="13" font-family="system-ui">${label}</text>`}</g>`;
   if(o.side){   // one figure only (mini maps): front or back, whole or half
-    const vb1 = o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446';
+    const vb1 = o.vb || (o.half === 'up' ? '24 4 152 250' : o.half === 'low' ? '24 196 152 250' : '0 0 200 446');
     return `<svg viewBox="${vb1}" width="${o.w || 46}" height="${o.h || 56}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><defs><radialGradient id="${idp}shade" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient></defs>${fig(o.side, 0, '')}</svg>`;
   }
   const vb = o.half === 'up' ? '22 4 336 262' : o.half === 'low' ? '22 196 336 252' : '0 0 420 446';   // 0.6.4: half a body, bigger
