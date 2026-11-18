@@ -644,7 +644,8 @@ Rules for items (only for "log"):
 - kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
 - total_kcal: the calories of the WHOLE amount eaten. It must equal kcal × grams / 100; check it before answering.
 Real portions: estimate what a real person is actually served, not the smallest textbook portion. Restaurant, takeaway and street food are usually bigger and richer than home cooking; count the cooking oil, sauces, cheese and sides that come with a dish. When the amount is not written, use the typical real serving.${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}${extra || ''}${AI.dietRules()}${AI.knows('food')}
-Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"total_kcal":number}]}`;
+complex: true only when the message is ONE composed dish or one meal of three or more foods eaten together (a gyro pita, a burger menu, pasta with mince); false for separate simple foods.
+Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"complex":boolean,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"total_kcal":number}]}`;
 }
 // the correction case: the list being corrected, so the AI changes only what the user corrected
 function logQFixAsk(prev){
@@ -796,8 +797,22 @@ function logQLast(it){
     logQSaveFound(it, { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g', kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }, 'est'); return; }
   it.st = null; it.src = 'none';
 }
+// Refinements #5 (change 24 A, simple path): your own saved foods and meals, then the built-in list, before the web and the AI estimate.
+// Your own product always wins (Fage stays Fage). Foods Food Coach saved itself (via:'coach') and old AI estimates are not read back.
+function logQLocal(it){
+  for(const q of [[it.brand, it.text || it.name].filter(Boolean).join(' '), it.name_en]){
+    if(!q || !logQKey(q)) continue;
+    const loc = qaLocal(q); if(!loc) continue;
+    if(loc.kind === 'meal') return { info: logQMealInfo(loc.m), src: 'meal' };
+    if(loc.kind === 'gen') return { info: logQGenInfo(loc.g), src: 'std' };
+    if(loc.f.via !== 'coach' && loc.f.source !== 'estimate') return { info: fInfo_(loc.f), src: 'mine' };
+  }
+  return null;
+}
 async function logQMatchAll(m, ch){
   const done = it => { it.busy = false; logQRedraw(m); };
+  m.items.filter(it => it.busy).forEach(it => { const l = logQLocal(it); if(l){ logQSet(it, l.info, l.src); done(it); } });
+  if(!m.items.some(it => it.busy)) return;
   if(ch.status) ch.status(t('coachStWeb'));
   await logQWeb(m.items.filter(it => it.busy), ch);
   m.items.filter(it => it.busy).forEach(it => { if(!it.st) logQLast(it); done(it); });
@@ -807,7 +822,7 @@ async function logQMatchAll(m, ch){
 // Each answer is one card: the foods it understood as a compact list (tap a row to change the amount, unit or food; X removes it)
 // with the total underneath, and ONE Add button that logs every food on the list.
 const FC = {};   // answer id → { m, card, ch }
-const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${logQCardHtml(m)}</div>`;
+const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${m.meal ? mealCardHtml(m) : logQCardHtml(m)}</div>`;   // m.meal: a complex meal (js/meal.js)
 function logQRedraw(m){ const x = FC[m.id]; if(x) x.ch.update(x.card, { body: fcHtml(m) }); }
 function logQKeep(m){ const x = FC[m.id]; if(x) x.card.body = fcHtml(m); }   // after an in-place change: the next redraw shows the same thing
 function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, it) => { const r = lwCalc(it.st); return { kcal: a.kcal + r.kcal, p: a.p + r.p, c: a.c + r.c, f: a.f + r.f }; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
@@ -864,6 +879,8 @@ function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return
 
 async function logQSend(txt, ch){
   const prev = logQPrev && FC[logQPrev.id] && logQPrev.items.length ? logQPrev : null, fix = prev && AI.hasKey() && logQIsFix(txt) ? prev : null;
+  // Refinements #5: a complex meal (a known dish, or three or more foods) is one AI call and one card (js/meal.js)
+  if(!fix){ const det = mealDetect(txt); if(det.complex && await mealSend(txt, ch, det)) return; }
   const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready', fixOf: fix };
   let parts = !fix && Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all (a correction always asks)
   if(!parts && AI.hasKey()){
@@ -882,6 +899,8 @@ async function logQSend(txt, ch){
         odd(parts).forEach(([, x]) => { x.doubt = true; });   // still doubtful: shown as an estimate with "check the amount"
       }
       if(intent !== 'log' && !(parts && parts.length)){ ch.say(reply || t('coachFail', { e: '?' })); return; }
+      // the AI's second opinion: one composed meal after all → its foods become the parts of one meal card (no second call)
+      if(intent === 'log' && r.complex === true && !fix){ const mi = mealFromItems(parts, r); if(mi && mealShow(txt, ch, mealDetect(txt), mi)) return; }
       if(parts && parts.length) m.parts = parts; else parts = null; }
     catch(err){ if(err.cancelled) throw err; note = t('logQAIFail', { e: err.message }); }
   }
@@ -920,8 +939,8 @@ const logQAutoName = infos => { const n = infos.map(i => bareName(i.name)); retu
 // Add & Save: first the name YOU use for this plate (the card shows a name box); the meal keeps both names, so the AI learns that yours means this
 function logQNameAsk(m){
   if(m.state === 'logged') return;
-  if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
-  if(!m.items.some(it => it.st)){ toast(t('logQNothing')); return; }
+  if(!m.meal && m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
+  if(!m.meal && !m.items.some(it => it.st)){ toast(t('logQNothing')); return; }
   m.naming = true; logQRedraw(m);
   setTimeout(() => { const i = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qname]`); if(i){ try{ i.focus(); }catch(e){} } }, 30);
 }
@@ -948,6 +967,7 @@ function logQSaveMeal(rows, name){
   return m;
 }
 function logQLogAll(m, keep){   // keep: the meal name for Add & Save
+  if(m.meal) return mealLog(m, keep);   // a complex meal: one Eaten entry (js/meal.js)
   const x = FC[m.id]; if(!x || m.state === 'logged') return;
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
   const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
@@ -986,6 +1006,7 @@ function logQWire(){
   list.addEventListener('click', e => {
     const m = msgOf(e.target); if(!m || m.state === 'logged') return;
     if(e.target.closest('[data-qnameok]')){ Phone.haptic(); logQNameOk(m); return; }
+    if(m.meal){ mealClick(e, m); return; }
     const row = e.target.closest('[data-qi]'); if(!row) return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
     if(e.target.closest('[data-qrm]')){ m.items.splice(i, 1); logQRedraw(m); return; }
     const focusQ = () => setTimeout(() => { const r = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qi="${i}"] .lqsq`); if(r) r.focus(); }, 30);
@@ -1005,6 +1026,7 @@ function logQWire(){
   list.addEventListener('input', e => {
     const m = msgOf(e.target), row = e.target.closest('[data-qi]');
     if(m && e.target.matches('[data-qname]')){ m.mname = e.target.value; logQKeep(m); return; }
+    if(m && m.meal){ mealInput(e, m); return; }
     if(!m || !row) return; const it = m.items[+row.dataset.qi]; if(!it) return;
     if(e.target.matches('[data-qsq]')){ it.sq = e.target.value; row.querySelector('.lqsres').innerHTML = logQSwapRes(it); logQKeep(m); return; }
     if(e.target.classList.contains('lan') && it.st){ it.st.n = e.target.value; logQUpd(m, row, it); }

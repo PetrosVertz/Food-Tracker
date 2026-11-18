@@ -843,3 +843,13 @@ Object.assign(S, {   // Refinements #4: the Food Library hub
   tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'], fhFoods: ['Foods', 'Τρόφιμα'],
   nRecipes: ['{n} Recipes', '{n} Συνταγές'], nRecipe1: ['1 Recipe', '1 Συνταγή'], nSupps: ['{n} Supplements', '{n} Συμπληρώματα'], nSupp1: ['1 Supplement', '1 Συμπλήρωμα'],
 });
+Object.assign(S, {   // Refinements #5 · Food Coach complex meals: one card (js/meal.js)
+  mealOil: ['Cooking Oil', 'Λάδι Μαγειρέματος'],
+  mealSize_small: ['Small Portion', 'Μικρή Μερίδα'], mealSize_normal: ['Normal Portion', 'Κανονική Μερίδα'], mealSize_large: ['Large Portion', 'Μεγάλη Μερίδα'], mealSize_xl: ['Extra Large Portion', 'Πολύ Μεγάλη Μερίδα'],
+  mealSz_small: ['Small', 'Μικρή'], mealSz_normal: ['Normal', 'Κανονική'], mealSz_large: ['Large', 'Μεγάλη'], mealSizeL: ['Portion Size', 'Μέγεθος Μερίδας'],
+  mealConf_high: ['Confidence: High', 'Βεβαιότητα: Υψηλή'], mealConf_medium: ['Confidence: Medium', 'Βεβαιότητα: Μέτρια'], mealConf_low: ['Confidence: Low', 'Βεβαιότητα: Χαμηλή'],
+  mealWhy: ['Main Uncertainty: {w}', 'Αβέβαιο: {w}'], mealAnd: [' and ', ' και '],
+  mealWhy_portion: ['portion size', 'μέγεθος μερίδας'], mealWhy_oil: ['oil', 'λάδι'], mealWhy_sauce: ['sauces', 'σάλτσες'],
+  mealRange: ['{s}: about {k} kcal', '{s}: περίπου {k} kcal'], mealGramsL: ['Grams of {n}', 'Γραμμάρια για {n}'],
+  mealLogged: ['Added {n} · {k} kcal', 'Προστέθηκε: {n} · {k} kcal'],
+});
