@@ -168,7 +168,7 @@ textarea.big{min-height:180px;font-size:16px;line-height:1.45}
 .daycard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px var(--s3);margin-bottom:var(--s2)}
 .daycard.today{border-color:var(--accent)}
 .dch{display:flex;gap:var(--s2);align-items:baseline;margin-bottom:6px} .dch b{font-size:15px} .dch small{color:var(--muted)} .dch .chip{margin-left:auto}
-.dcrow{display:flex;gap:6px;align-items:center;margin-top:6px} .dcrow select{flex:1} .dcrow input[type=time]{flex:0 0 104px;padding:var(--s2)} .dcl{width:22px;text-align:center}
+.dcrow{display:flex;gap:6px;align-items:center;margin-top:6px} .dcrow select{flex:1} .dcrow .wptime{flex:0 0 104px} .dcl{width:22px;text-align:center}
 .wrapchips{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
 .bigopt{padding:18px var(--s4)} .bigopt b{font-size:17px}
 .hchip i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hc);margin-right:6px}

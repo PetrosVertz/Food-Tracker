@@ -351,6 +351,9 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 #dBlocks .gymdayic{flex:0 0 auto;display:inline-flex;color:var(--t-accent-ink,var(--t-accent))}
 #dBlocks .rmrec{position:relative;z-index:2}
 .remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
+/* Refinements: Week Planner times are text; the phone's own time wheel (.remtime) lies invisible on top */
+.wptime{position:relative;align-self:stretch;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;margin:0;padding:0 var(--s2);text-transform:none;letter-spacing:0;font-weight:var(--w-reg);background:var(--t-card2);border:1px solid var(--t-line);border-radius:var(--r-input2);color:var(--t-text);font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer}
+.wptime .remtime,.wptime .remtime:disabled{opacity:0} .wptime.off{opacity:.4;cursor:default} .wptime:focus-within{outline:2px solid var(--accent);outline-offset:-1px}
 .fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
 /* superset by holding one exercise over another (0.6.9) */
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}

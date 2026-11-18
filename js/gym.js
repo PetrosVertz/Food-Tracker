@@ -582,6 +582,14 @@ function applyRecipe(r, own){
   drawRecipeBox(); drawRows(); cookStep(true);
 }
 
+// Refinements: a planner time is plain text with the phone's own time wheel laid over it, invisible (like the gym card on Today's Food, .remtime).
+// Stored as "HH:MM", as before. Shown in the phone's 12 or 24 hour style, with the app language's words.
+function wpTime(v){ const m = /^(\d{1,2}):(\d{2})/.exec(v || ''); if(!m) return '--:--';
+  let hc; try { hc = new Intl.DateTimeFormat([], { hour: 'numeric' }).resolvedOptions().hourCycle; } catch(e){}
+  const h24 = hc === 'h23' || hc === 'h24', d = new Date(2000, 0, 1, +m[1], +m[2]);
+  return d.toLocaleTimeString(lang === 'el' ? 'el-GR' : 'en-GB', { hour: h24 ? '2-digit' : 'numeric', minute: '2-digit', hourCycle: h24 ? 'h23' : 'h12' }); }
+const wpTimeBox = (attr, v, lbl, off) => `<label class="wptime ${off ? 'off' : ''}"><span>${esc(wpTime(v))}</span><input type="time" class="remtime" ${attr} value="${esc(v || '')}" aria-label="${esc(t(lbl))}" ${off ? 'disabled' : ''}></label>`;
+
 function renderGymPlan(){
   const tk = todayKey(), twd = new Date(tk + 'T12:00:00').getDay(), monday = addDays(tk, -((twd + 6) % 7));
   // Advanced off: just GYM or REST per day. On: saved workouts, times and work hours.
@@ -594,8 +602,8 @@ function renderGymPlan(){
       return head + `<div class="seg wpseg"><button data-wpset="gym" class="${gym ? 'on' : ''}">${t('gymL')}</button><button data-wpset="rest" class="${p.tpl === 'rest' ? 'on' : ''}">${t('restDayS')}</button></div></div>`; }
     return head + `
       <div class="dcrow"><span class="dcl lic">${gymIco('card', 18, 1.8)}</span><select data-ptpl><option value="">—</option><option value="rest" ${p.tpl === 'rest' ? 'selected' : ''}>${t('restDayL')}</option><option value="gym" ${p.tpl === 'gym' ? 'selected' : ''}>${t('gymAnyOpt')}</option>${tpls.map(x => `<option value="${x.id}" ${p.tpl === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
-        <input type="time" data-ptime value="${p.time || ''}" ${!p.tpl || p.tpl === 'rest' ? 'disabled' : ''}></div>
-      ${p.work ? `<div class="dcrow"><span class="dcl lic">${gymIco('work', 18, 1.8)}</span><input type="time" data-wfrom value="${p.work.from}"><span class="rmeta">–</span><input type="time" data-wto value="${p.work.to}"><button class="irm" data-wrm aria-label="${t('remove')}">${svgIcon('x', 16, 2.2)}</button></div>`
+        ${wpTimeBox('data-ptime', p.time, 'workoutAt', !p.tpl || p.tpl === 'rest')}</div>
+      ${p.work ? `<div class="dcrow"><span class="dcl lic">${gymIco('work', 18, 1.8)}</span>${wpTimeBox('data-wfrom', p.work.from, 'suFrom')}<span class="rmeta">–</span>${wpTimeBox('data-wto', p.work.to, 'suTo')}<button class="irm" data-wrm aria-label="${t('remove')}">${svgIcon('x', 16, 2.2)}</button></div>`
         : `<button class="linkbtn" data-wadd>${t('addWork')}</button>`}</div>`; }).join('');
 }
 
