@@ -26,7 +26,6 @@ $('tgCalc').addEventListener('click', e => { if(num('tgBw') > 30) return; e.stop
 
 // ---------- 0.6.0: Progress folds, weight chart Day / Week / Month ----------
 $('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if(!b) return; PG.open[b.dataset.pg] = !PG.open[b.dataset.pg]; renderProgress(); });
-$('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
 
 // ---------- 0.6.1: long press to reorder exercises (template editor + live workout) ----------
 makeSortable($('tpList'), '.tpcard', (a, b) => { TP.exercises.splice(b, 0, TP.exercises.splice(a, 1)[0]); drawTpl(); });

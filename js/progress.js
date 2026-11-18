@@ -63,19 +63,26 @@ function renderProgress(){
     fold('up', t('pgUpper')) + fold('low', t('pgLower'));
 }
 
-// ---------- body weight chart: Day / Week / Month ----------
-function weightSeries(mode){
+// ---------- body weight chart: zooms out on its own (Refinements) ----------
+// From the first weigh-in to the latest: up to BW_DAILY_DAYS = a point per day; up to BW_WEEKLY_DAYS = a point per week
+// (the average of that week's weigh-ins, weeks start Monday); longer = a point per month (that month's average).
+// A week or month with no weigh-ins simply has no point. The level follows the time span only, never the number of weigh-ins.
+const BW_DAILY_DAYS = 28, BW_WEEKLY_DAYS = 183;
+function weightPoints(){
   const pts = Object.entries(weights).filter(([, w]) => +w > 0).map(([d, w]) => ({ d, w: +w })).sort((a, b) => a.d.localeCompare(b.d));
-  if(mode === 'day') return pts.slice(-31).map(p => ({ k: p.d, w: p.w, lbl: new Date(p.d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }) }));
-  const key = d => { const x = new Date(d + 'T12:00:00'); if(mode === 'month') return d.slice(0, 7);
-    const m = new Date(x); m.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return m.toISOString().slice(0, 10); };   // week starts Monday
+  const span = pts.length ? (new Date(pts[pts.length - 1].d + 'T12:00:00') - new Date(pts[0].d + 'T12:00:00')) / 864e5 : 0;
+  const level = span <= BW_DAILY_DAYS ? 'day' : span <= BW_WEEKLY_DAYS ? 'week' : 'month', loc = lang === 'el' ? 'el-GR' : 'en-GB';
+  const dayLbl = d => new Date(d + 'T12:00:00').toLocaleDateString(loc, { day: 'numeric', month: 'short' });
+  if(level === 'day') return { level, pts: pts.map(p => ({ k: p.d, w: p.w, lbl: dayLbl(p.d) })) };
+  const key = d => { if(level === 'month') return d.slice(0, 7);
+    const m = new Date(d + 'T12:00:00'); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m.toLocaleDateString('en-CA'); };   // week starts Monday
   const g = {}; pts.forEach(p => { const k = key(p.d); (g[k] = g[k] || []).push(p.w); });
-  return Object.keys(g).sort().slice(mode === 'week' ? -26 : -24).map(k => ({ k, w: g[k].reduce((a, b) => a + b, 0) / g[k].length,
-    lbl: mode === 'month' ? new Date(k + '-15T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { month: 'short', year: '2-digit' }) : new Date(k + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }) }));
+  return { level, pts: Object.keys(g).sort().map(k => ({ k, w: g[k].reduce((a, b) => a + b, 0) / g[k].length,
+    lbl: level === 'month' ? new Date(k + '-15T12:00:00').toLocaleDateString(loc, { month: 'short', year: '2-digit' }) : dayLbl(k) })) };
 }
 function weightChart(){
-  const mode = ui.wtMode || 'day', s = weightSeries(mode).map(p => ({ ...p, w: bwOut(p.w) })), all = Object.entries(weights).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).map(([d, w]) => [d, bwOut(w)]);
-  const seg = `<div class="mpill wtseg">${['day', 'week', 'month'].map(m => `<button data-wt="${m}" class="${m === mode ? 'on' : ''}">${t('wt_' + m)}</button>`).join('')}</div>`;
+  const wp = weightPoints(), mode = wp.level, s = wp.pts.map(p => ({ ...p, w: bwOut(p.w) })), all = Object.entries(weights).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).map(([d, w]) => [d, bwOut(w)]);
+  const seg = s.length >= 2 ? `<small class="wtlvl">${t({ day: 'wtLvl_day', week: 'wtLvl_week', month: 'wtLvl_month' }[mode])}</small>` : '';
   const last = all.length ? +all[all.length - 1][1] : null, firstW = all.length ? +all[0][1] : null;
   const head = `<div class="wthead"><span><b>${last !== null ? fmt(last) + ' ' + bwU() : '–'}</b>${all.length > 1 ? `<small class="${last - firstW > 0 ? 'up' : last - firstW < 0 ? 'down' : ''}">${last - firstW > 0 ? '+' : ''}${fmt(Math.round((last - firstW) * 10) / 10)} ${bwU()} ${t('wtSince', { d: fmtDate(all[0][0] + 'T12:00:00') })}</small>` : ''}</span>${seg}</div>`;
   if(s.length < 2) return head + `<div class="wtempty">${t('wtNeed')}</div>`;

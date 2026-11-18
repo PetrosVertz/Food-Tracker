@@ -344,7 +344,7 @@ $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){
 
 // Progress: folds; weight chart Day / Week / Month
 $('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if(!b) return; PG.open[b.dataset.pg] = !PG.open[b.dataset.pg]; renderProgress(); });
-$('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
+if('wtMode' in ui){ delete ui.wtMode; saveUI(); }   // Refinements #7: the Day / Week / Month choice is gone, the chart picks its own level
 
 // long press to reorder exercises (workout editor + live workout)
 makeSortable($('tpList'), '.tpcard', (a, b, out) => { ssMove(TP.exercises, a, b, out); drawTpl(); },

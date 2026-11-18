@@ -355,7 +355,7 @@ Object.assign(S, {
 // ---------- 0.6.0 ----------
 Object.assign(S, {
   exDone: ['Done', 'Τέλος'], reopenEx: ['Reopen', 'Ξανά άνοιγμα'],
-  wtTitle: ['Body weight', 'Σωματικό βάρος'], wtChart: ['Body weight chart', 'Γράφημα σωματικού βάρους'], wt_day: ['Day', 'Μέρα'], wt_week: ['Week', 'Εβδομάδα'], wt_month: ['Month', 'Μήνας'],
+  wtTitle: ['Body weight', 'Σωματικό βάρος'], wtChart: ['Body weight chart', 'Γράφημα σωματικού βάρους'],
   wtSince: ['since {d}', 'από {d}'], wtNeed: ['Weigh in twice and your chart starts here.', 'Ζυγίσου δύο φορές και το γράφημα ξεκινά εδώ.'],
   pgStrength: ['Strength by muscle', 'Δύναμη ανά μυ'], pgUpper: ['Upper body', 'Πάνω σώμα'], pgLower: ['Lower body', 'Κάτω σώμα'],
   pgSets: ['~{n} sets a week', '~{n} σετ την εβδομάδα'], pgOnce: ['1 workout', '1 προπόνηση'], pgNoMonth: ['Nothing for this in the past month.', 'Τίποτα τον τελευταίο μήνα.'],
@@ -610,7 +610,7 @@ function titleCase(str){
   'uncooked', 'upper', 'useRecipe', 'useUpT', 'usuals', 'wArms', 'wBack', 'wCardio', 'wChest', 'wCore', 'wFull', 'wGlutes', 'wLegs', 'wLower',
   'wPull', 'wPush', 'wShoulders', 'wUpper', 'weighOne', 'whereKept', 'whole', 'wiSave', 'wiT', 'winEvening', 'winMidday', 'winMorning', 'winPost',
   'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'planMyDay', 'logFab', 'fridgeFab', 'addFoodFab',
-  'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'endEx', 'newSet', 'addYesterday',
+  'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'pgStrength', 'pgUpper', 'pgLower', 'endEx', 'newSet', 'addYesterday',
   'createWorkout', 'mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking', 'startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes', 'yourBody',
   'recalcYes', 'recalcNo', 'tabSupps', 'scanFoodFab', 'scanReceipt', 'allFoods'
 ].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
@@ -852,4 +852,7 @@ Object.assign(S, {   // Refinements #5 · Food Coach complex meals: one card (js
   mealWhy_portion: ['portion size', 'μέγεθος μερίδας'], mealWhy_oil: ['oil', 'λάδι'], mealWhy_sauce: ['sauces', 'σάλτσες'],
   mealRange: ['{s}: about {k} kcal', '{s}: περίπου {k} kcal'], mealGramsL: ['Grams of {n}', 'Γραμμάρια για {n}'],
   mealLogged: ['Added {n} · {k} kcal', 'Προστέθηκε: {n} · {k} kcal'],
+});
+Object.assign(S, {   // Refinements #7: the body weight chart picks its own level (Progress)
+  wtLvl_day: ['Daily', 'Ημερήσια'], wtLvl_week: ['Weekly Average', 'Μέσος Όρος Εβδομάδας'], wtLvl_month: ['Monthly Average', 'Μέσος Όρος Μήνα'],
 });

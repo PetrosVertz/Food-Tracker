@@ -132,7 +132,7 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .seg>button.on{color:var(--t-sp-text)!important;font-weight:var(--w-bold)}
 /* selectors with many choices wrap onto rows of three; the knob still glides between them */
 .seg.wrapseg,#dWork,#fDisplay,#sLang{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:22px!important}
-.wtseg{margin:0;flex:0 0 auto;min-width:200px} .wtseg>button{min-height:36px;padding:var(--s2) 6px}
+.wthead .wtlvl{flex:0 0 auto;margin-top:6px;text-align:right}   /* Refinements #7: which level the weight chart shows */
 .wpseg{margin-top:var(--s2)}
 #pgFridge .fgseg{margin:var(--s2) 0 var(--s3)}
 
