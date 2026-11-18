@@ -22,7 +22,7 @@
 .recbig small{text-align:center}
 /* tab slide: the old page as a picture moving out */
 .pghost{pointer-events:none;z-index:2}
-.pgnew{background:var(--t-bg);z-index:3;opacity:1!important}   /* 0.7.9.3: during a tab switch the new page is fully solid and sits above the old copy */
+.pgnew{background:var(--t-bg);z-index:3;opacity:1!important;will-change:transform;backface-visibility:hidden}   /* 0.7.9.3: during a tab switch the new page is fully solid and sits above the old copy */
 /* 0.6.0 · ended exercise stays open, Add Exercise in the list, Discard under End */
 .exc.ended{opacity:1;border-style:solid}
 .exdone{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--line);font-size:13px;color:var(--ok)}
