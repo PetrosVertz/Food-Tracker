@@ -182,7 +182,7 @@ const Search = (() => {
     return out.slice(0, 30);
   }
 
-  return { words, local, matches, didYouMean, online, quality, usda, off, dist };
+  return { words, local, matches, didYouMean, online, quality, usda, off, dist, stem, wordScore };   // stem, wordScore, dist: also used by the exercise search (exsearch.js)
 })();
 
 // the names the rest of the app uses

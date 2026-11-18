@@ -129,7 +129,7 @@ try {
   // 4. other names (ALSO) and search
   const normSrc = (read('js/core.js').match(/function norm\(s\)\{[^\n]*\}/) || [])[0];
   vm.runInContext(normSrc + '\n;this.__N = norm;', gctx);
-  const norm = gctx.__N, { ALSO, exMatch } = gctx.__G2 = vm.runInContext('({ ALSO, exMatch })', gctx);
+  const norm = gctx.__N, { ALSO } = gctx.__G2 = vm.runInContext('({ ALSO })', gctx);
   const ids = new Set(LIB_RAW.map(r => r[0])), names = new Map(LIB_RAW.map(r => [norm(r[1]), r[0]]));
   for (const [id, al] of Object.entries(ALSO)) {
     if (!ids.has(id)) bad.push(`${id}: other names given for an exercise that doesn't exist`);
@@ -137,8 +137,9 @@ try {
   }
   const noAlso = LIB_RAW.filter(r => !(r[0] in ALSO) || !ALSO[r[0]].length).map(r => r[0]);
   if (noAlso.length) bad.push('no other names: ' + noAlso.join(', '));
-  const lib = LIB_RAW.map(r => ({ id: r[0], en: r[1], el: r[2], al: ALSO[r[0]] || [] }));
-  const find = q => lib.map((x, i) => ({ x, i, r: exMatch(x, norm(q), '') })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || a.i - b.i).map(o => o.x.id);
+  // the app's exercise search (js/exsearch.js), loaded by tools/exsearch-test.js the same way the app builds its list
+  const exs = require(path.join(root, 'tools/exsearch-test.js')).load();
+  const find = q => exs.ExSearch.query(q, { list: exs.LIST, lang: 'en', sessions: [] }).items.map(i => i.id);
   const tests = { 'low row': 'machine_row', 'rdl': 'rdl', 'pec deck': 'pec_deck', 'ohp': 'ohp', 'skull crusher': 'skullcrusher', 'bss': 'bulgarian', 'outer thigh': 'abductor', 'inner thigh': 'adductor', 'power squat': 'pendulum_squat',
     'reverse pec deck': 'reverse_pec', 'rear delt machine': 'reverse_pec', 'leg curl': 'lying_curl', 'quad extension': 'leg_ext', 'vertical chest press': 'machine_press', 'iso lateral pulldown': 'iso_pulldown', 'κωπηλατικη': 'machine_row', 'βυθισεις': 'dips', 'ροδακι': 'ab_wheel', 'tgu': 'kb_tgu', 'stairmaster': 'stairs' };
   for (const [q, want] of Object.entries(tests)) { const got = find(q)[0]; if (got !== want) bad.push(`search "${q}" finds ${got} first, expected ${want}`); }
@@ -147,6 +148,14 @@ try {
   LIB_RAW.forEach(r => { if (BRANDS.test(r[1]) || BRANDS.test(r[2])) bad.push(`${r[0]} shows a brand or machine name: "${r[1]}" / "${r[2]}"`); });
   if (bad.length) bad.forEach(b => fail('exercise ' + b)); else ok(`exercise library: ${LIB_RAW.length} exercises, all valid`);
 } catch (e) { fail('could not check exercise library: ' + e.message); }
+
+// 8b. Exercise search test list (tools/exsearch-test.js, Refinements change 16): every query finds the right exercise, and it stays fast
+try {
+  const r = require(path.join(root, 'tools/exsearch-test.js')).run();
+  r.bad.forEach(b => fail('exercise search ' + b));
+  if (r.perKey > 5) fail(`exercise search is slow: ${r.perKey.toFixed(2)} ms per keystroke (keep it under a few ms)`);
+  if (!r.bad.length) ok(`exercise search: ${r.tests} checks, average ${r.avg.toFixed(2)} ms per search, ${r.perKey.toFixed(2)} ms per keystroke`);
+} catch (e) { fail('could not run the exercise search test list: ' + e.message); }
 
 // 9. Shared workout QR codes (js/gym-share.js): a workout with supersets packs, unpacks and imports identically,
 //    a saved version-1 code still reads the same, and the QR maker accepts the code

@@ -793,25 +793,44 @@ const ALSO_RAW = {
 };
 const ALSO = Object.fromEntries(Object.entries(ALSO_RAW).map(([k, v]) => [k, v.split('|').map(s => s.trim()).filter(Boolean)]));
 
-// 0.7.5: how well one exercise matches a search. q = norm()'d text. Returns { s: score (0 = no match), via: matched other name, if any }.
-// 100 exact name · 95 exact other name · 80 name starts with · 75 other name starts with · 60 name contains · 55 other name contains
-// 40 every word starts a word of the names · 10 found only in muscle / equipment text (`extra`).
-function exMatch(x, q, extra){
-  const tk = q.split(' ').filter(Boolean); if(!tk.length) return { s: 0 };
-  const names = [norm(x.en), norm(x.el)], al = (x.al || []).map(a => [norm(a), a]);
-  if(names.includes(q)) return { s: 100 };
-  const aEq = al.find(a => a[0] === q); if(aEq) return { s: 95, via: aEq[1] };
-  if(names.some(n => n.startsWith(q))) return { s: 80 };
-  const aSt = al.find(a => a[0].startsWith(q)); if(aSt) return { s: 75, via: aSt[1] };
-  if(names.some(n => n.includes(q))) return { s: 60 };
-  const aIn = al.find(a => a[0].includes(q)); if(aIn) return { s: 55, via: aIn[1] };
-  const words = s => s.replace(/[()\/,\-’']/g, ' ').split(' ').filter(Boolean), hit = ws => tk.every(t => ws.some(w => w.startsWith(t)));
-  if(hit(names.flatMap(words))) return { s: 40 };
-  const aw = al.find(a => hit(words(a[0]))); if(aw) return { s: 38, via: aw[1] };
-  if(hit(names.concat(al.map(a => a[0])).flatMap(words))) return { s: 36, via: (al.find(a => tk.some(t => words(a[0]).some(w => w.startsWith(t)))) || [])[1] };
-  if(tk.every(t => norm(extra || '').includes(t))) return { s: 10 };
-  return { s: 0 };
-}
+// ---------- Refinements change 16: the exercise search (js/exsearch.js) reads these two tables ----------
+// ALSO above = names that mean the EXACT same exercise. EX_NEAR = CLOSE neighbours only: a different exercise people confuse with it or
+// swap for it. When a search finds the exercise on the left, the ones on the right come up right after the direct matches. Two-way, so each
+// pair is written once. Add a line to extend it: 'id': 'id id id'.
+const EX_NEAR_RAW = {
+  pullup: 'chinup neutral_pullup wide_pullup assisted_pullup lat_pulldown',
+  chinup: 'reverse_grip_pulldown neutral_pullup',
+  lat_pulldown: 'wide_pulldown close_pulldown neutral_pulldown iso_pulldown',
+  pec_deck: 'cable_fly db_fly cable_crossover pec_deck_single',
+  cable_fly: 'cable_crossover low_cable_fly high_cable_fly',
+  rdl: 'stiff_leg db_rdl smith_rdl good_morning single_leg_rdl',
+  deadlift: 'sumo_deadlift trap_bar_dl rdl',
+  skullcrusher: 'db_skullcrusher ez_overhead overhead_cable jm_press',
+  pushdown: 'rope_pushdown single_arm_pushdown',
+  bench: 'db_bench smith_bench machine_press close_bench',
+  incline_bench: 'incline_db smith_incline incline_machine',
+  ohp: 'db_shoulder machine_shoulder smith_ohp push_press',
+  squat: 'front_squat smith_squat hack_squat safety_bar_squat',
+  leg_press: 'hack_squat sled_leg_press_45 horizontal_leg_press',
+  bb_row: 'pendlay_row tbar_row db_row smith_row',
+  seated_row: 'machine_row single_arm_cable_row',
+  lateral_db: 'cable_lateral machine_lateral seated_lateral',
+  reverse_pec: 'reverse_fly cable_rear_fly face_pull',
+  hip_thrust: 'glute_bridge machine_thrust smith_hip_thrust',
+  lying_curl: 'seated_curl standing_curl',
+  bb_curl: 'ez_curl db_curl cable_curl',
+  hammer_curl: 'rope_hammer cross_body_hammer',
+  dips: 'dip_bar_triceps machine_dip bench_dips',
+  crunch: 'cable_crunch ab_machine',
+  leg_raise: 'hanging_knee_raise knee_raise toes_to_bar',
+  standing_calf: 'seated_calf leg_press_calf smith_calf',
+  bulgarian: 'smith_split_squat lunges reverse_lunge',
+};
+// short or other spellings of single words, read the same on both sides of a search (what you type and every name)
+const EX_WORDS = { db: 'dumbbell', dbs: 'dumbbell', dumbell: 'dumbbell', dumbel: 'dumbbell', bb: 'barbell', kb: 'kettlebell', ez: 'ez', ext: 'extension', exts: 'extension',
+  tri: 'tricep', tris: 'tricep', bi: 'bicep', bis: 'bicep', flye: 'fly', delt: 'deltoid', delts: 'deltoid', lat: 'lat', lats: 'lat', ham: 'hamstring', hammy: 'hamstring', quad: 'quad',
+  glute: 'glute', calve: 'calf', pec: 'pec', pecs: 'pec', chinup: 'chinup', situp: 'situp', ohp: 'ohp', rdl: 'rdl', sldl: 'stiff', bss: 'bss',
+  αλτηρεσ: 'αλτηρα', αλτηρασ: 'αλτηρα', αλτηρα: 'αλτηρα', μπαρα: 'μπαρα', καλωδιο: 'καλωδιο', καλωδια: 'καλωδιο', μηχανημα: 'μηχανημα', μηχανηματα: 'μηχανημα' };
 
 const GKEY = { custom: 'exCustom', tpl: 'tpls', plan: 'gymPlan', ses: 'sessions', act: 'active', cb: 'comeback' };   // short names → Store names
 
