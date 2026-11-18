@@ -612,6 +612,8 @@ const GYM_ICON = {
   card: '<path d="M7.5 2h7.2L18 5.3v15.2a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5v-17A1.5 1.5 0 0 1 7.5 2z"/><rect x="8.5" y="5" width="6" height="5.5" rx="1"/><path d="M11.5 13.2l1.6 1.8h-3.2z"/><path d="M8.8 18.3v1.7M11 18.3v1.7M13.2 18.3v1.7M15.4 18.3v1.7"/>',
   qr: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5M20.5 14v.01M14 20.5h.01M17.2 17.2v3.3h3.3v-3.3z"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  arrUp: '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>', arrDown: '<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',   // Refinements #7: trend arrows
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   work: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/><path d="M10.5 12.5v1.5h3v-1.5"/>' };
 const gymIco = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GYM_ICON[k]}</svg>`;
 

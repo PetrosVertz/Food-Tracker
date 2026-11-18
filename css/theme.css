@@ -74,10 +74,10 @@ small,.rmeta,.hint,.sub{font-size:var(--fs-label);font-weight:var(--w-reg)}
 label{font-size:var(--fs-label);font-weight:var(--w-med)}
 
 /* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.pgrow{
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.sbmrow{
   background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important}
 .card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard{border-radius:var(--r-card)!important}
-.exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
+.exrow,.foldh,.opt,.sbmrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
 .tile.big{background:var(--t-accent)!important;color:var(--t-on)}
 .card .name,.sitem .t b,.exrow .exn b{font-size:var(--fs-body);font-weight:var(--w-med)}
 .kcnum{font-size:var(--fs-hero)!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.5px}
@@ -1102,3 +1102,21 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pcrow>button small{font-size:10px;font-weight:var(--w-med);font-style:normal;letter-spacing:.2px;color:var(--t-muted);-webkit-text-stroke:0}
 .pcar.meas .pcrow>button{flex:0 0 auto;font-weight:var(--w-bold);font-style:italic}
 .pcar.meas .pcrow>button b{overflow:visible}
+/* Refinements #7: Strength by Muscle — a row per muscle: name, trend line, % with an arrow. Colour = the last two weeks */
+.sbmlist{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s3)}
+.sbmrow{display:grid;grid-template-columns:minmax(0,1fr) 96px 78px;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) var(--s4);color:var(--t-muted);font-family:inherit;text-align:left;cursor:pointer;transition:transform .15s}
+.sbmrow:active{transform:scale(.98)}
+.sbmrow .sbmn{color:var(--t-text);font-size:var(--fs-body);font-weight:var(--w-med);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbmspark{width:96px;height:30px;display:block}
+.sbmp{display:inline-flex;align-items:center;justify-content:flex-end;gap:2px;font-weight:var(--w-bold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sbmrow .sbmp{font-size:var(--fs-body)}
+.sbmrow.nodata{grid-template-columns:minmax(0,1fr) auto;cursor:default} .sbmrow.nodata:active{transform:none}
+.sbmnd{font-size:var(--fs-label);color:var(--t-muted);text-align:right}
+.sbmrow.up,.sbmbig.up{color:var(--t-done)} .sbmrow.down,.sbmbig.down{color:var(--t-sore)} .sbmrow.flat,.sbmbig.flat{color:var(--t-muted)}
+:root[data-theme="light"] .sbmrow.down,:root[data-theme="light"] .sbmbig.down{color:var(--t-fail)}   /* red text >= 4.5:1 in Light */
+.sbmbig .wtchart text{fill:var(--t-muted)}
+.sbmhead{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s3);margin-bottom:var(--s2)}
+.sbmhead b{color:var(--t-text);font-size:24px;font-weight:800} .sbmhead small{display:block;font-size:var(--fs-label);color:var(--t-muted)}
+.sbmhead .sbmp{color:inherit;font-size:var(--fs-title)}
+.sbmex{display:flex;flex-direction:column}
+.sbmexr{display:flex;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--t-line)} .sbmexr small{color:var(--t-muted)}
