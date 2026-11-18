@@ -172,7 +172,8 @@ const ExSearch = (() => {
     const items = rows.slice(0, max).map(r => {
       const x = r.e.x, shown = r.e.names.find(nm => nm.kind === lang) || mk(x[lang] || x.en || '', lang);
       const sm = match(Q, shown), it = { id: x.id, x, level: r.level, reason: r.reason, q: r.q, ranges: r.level <= 2 ? ranges(Q, shown, sm) : [], via: null, viaRanges: [] };
-      if(r.nm && r.nm !== shown && r.q > (sm.q || 0) * (r.nm.kind === 'al' ? .97 : 1) + 1e-6){ it.via = r.nm.text; it.viaRanges = ranges(Q, r.nm, r.m); }
+      // "Also Called …" only when the shown name itself did not really match (it did: its own letters are bold, that is enough)
+      if(r.nm && r.nm !== shown && !((sm.q || 0) >= .5 && (sm.q || 0) >= r.q - .15)){ it.via = r.nm.text; it.viaRanges = ranges(Q, r.nm, r.m); }
       return it; });
     return { items, dym };
   }

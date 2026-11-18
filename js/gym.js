@@ -701,12 +701,15 @@ function drawExPick(){
 // Each row is kept by exercise id, so while typing the same row glides to its new place (transform only), rows that go fade out and new ones
 // fade in. About 12 rows show; more come when you scroll down. The first row is lightly lit: Search / Return on the keyboard picks it.
 const EXS = { n: 12, step: 12, res: null, text: '', last: null };
-function exSearchRowHtml(r, have){
+// a row is drawn once; while typing only its name (bold letters), its "Also Called" line and its "in this workout" tick change
+function exSearchRow(el, r, inW){
   const x = r.x, cardio = isCardio(x.id);
-  return `<span class="mm">${cardio ? exIcon(x, 40) : miniMap(x)}</span><span class="exn"><b class="exhl">${ExSearch.mark(exTitle(x[lang === 'el' ? 'el' : 'en']), r.ranges)}</b>`
-    + (r.via ? `<small class="exalso">${t('exAlso', { n: ExSearch.mark(exTitle(r.via), r.viaRanges) })}</small>` : '')
-    + `<small>${eqIcon(x.e, 13)} ${EL(x.e)}${cardio ? '' : ` · ${t('muUse', { p: (x.mu || {})[x.h] || 0 })}`}</small></span>${have.has(x.id) ? PK_IN() : ''}`
-    + `<span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span>`;
+  if(!el.firstChild) el.innerHTML = `<span class="mm">${cardio ? exIcon(x, 40) : miniMap(x)}</span><span class="exn"><b class="exhl"></b><small class="exalso"></small>`
+    + `<small>${eqIcon(x.e, 13)} ${EL(x.e)}${cardio ? '' : ` · ${t('muUse', { p: (x.mu || {})[x.h] || 0 })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span>`;
+  const nm = ExSearch.mark(exTitle(x[lang === 'el' ? 'el' : 'en']), r.ranges), al = r.via ? t('exAlso', { n: ExSearch.mark(exTitle(r.via), r.viaRanges) }) : '';
+  if(el._n !== nm){ el.querySelector('.exhl').innerHTML = nm; el._n = nm; }
+  if(el._a !== al){ const s = el.querySelector('.exalso'); s.innerHTML = al; s.hidden = !al; el._a = al; }
+  if(el._in !== inW){ const k = el.querySelector('.exin'); if(inW && !k) el.querySelector('.iinfo').insertAdjacentHTML('beforebegin', PK_IN()); else if(!inW && k) k.remove(); el._in = inW; }
 }
 function exSearchDraw(have){
   const box = $('pkBody'), raw = $('exSearch').value.trim();
@@ -718,12 +721,12 @@ function exSearchDraw(have){
   box.querySelector('.exdym').classList.toggle('hide', !res.dym);
   const none = box.querySelector('.pknone'); none.classList.toggle('hide', !!items.length); if(!items.length) none.textContent = t('pkNone', { q: raw });
   const nb = box.querySelector('[data-new]'); nb.querySelector('b').textContent = t('createEx', { q: raw }); nb.querySelector('small').textContent = ML(PK.group || 'other');
-  const old = new Map([...wrap.children].filter(e => e.dataset.ex).map(e => [e.dataset.ex, e]));
-  const els = items.map((r, i) => { let el = old.get(r.id);
-    if(!el){ el = document.createElement('button'); el.type = 'button'; el.dataset.ex = r.id; el.style.setProperty('--eq', EQ_COL[r.x.e] || '#8b949c'); }
-    const h = exSearchRowHtml(r, have); if(el._h !== h){ el.innerHTML = h; el._h = h; }
-    el.className = 'exrow' + (have.has(r.id) ? ' in' : '') + (i === 0 ? ' exbest' : ''); return el; });
-  exFlip(wrap, els);
+  exFlip(wrap, () => {   // where every row is now is measured first, then the rows are updated
+    const old = new Map([...wrap.children].filter(e => e.dataset.ex && !e.classList.contains('exleave')).map(e => [e.dataset.ex, e]));
+    return items.map((r, i) => { let el = old.get(r.id);
+      if(!el){ el = document.createElement('button'); el.type = 'button'; el.dataset.ex = r.id; el.style.setProperty('--eq', EQ_COL[r.x.e] || '#8b949c'); }
+      exSearchRow(el, r, have.has(r.id));
+      el.className = 'exrow' + (have.has(r.id) ? ' in' : '') + (i === 0 ? ' exbest' : ''); return el; }); });
   if(top !== EXS.last){ const sh = $('ovExPick').querySelector('.sheet'); if(sh.scrollTop) sh.scrollTop = 0; if(box.scrollTop) box.scrollTop = 0; }   // a new best match is always in view
   EXS.last = top;
 }
@@ -734,10 +737,12 @@ function exSearchMore(){
   if(sc.scrollTop + sc.clientHeight > sc.scrollHeight - 160){ EXS.n += EXS.step; exSearchDraw(pkHave()); }
 }
 // rows glide from where they were to where they are now (FLIP: transform and opacity only); Reduce Motion: a quick fade, no sliding
-function exFlip(wrap, els){
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, keep = new Set(els);
+function exFlip(wrap, make){
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const kids = [...wrap.children].filter(e => !e.classList.contains('exleave')), wr = wrap.getBoundingClientRect(), before = new Map(kids.map(e => [e, e.getBoundingClientRect()]));
   wrap.querySelectorAll(':scope > .exleave').forEach(e => e.remove());
-  const kids = [...wrap.children], wr = wrap.getBoundingClientRect(), before = new Map(kids.map(e => [e, e.getBoundingClientRect()]));
+  const els = make(), keep = new Set(els);
+  if(els.length === kids.length && els.every((e, i) => e === kids[i])) return;   // the same rows in the same order: nothing moves
   const leaving = kids.filter(e => !keep.has(e));
   leaving.forEach(e => { const r = before.get(e); e.classList.add('exleave'); e.style.transition = 'none'; e.style.top = (r.top - wr.top) + 'px'; e.style.height = r.height + 'px'; });
   els.forEach((e, i) => { if(wrap.children[i] !== e) wrap.insertBefore(e, wrap.children[i] || null); e.style.transition = 'none'; e.style.transform = ''; e.style.opacity = ''; });

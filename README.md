@@ -20,6 +20,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/coach.js` | **Coach chat (0.7.4.3)**: the one chat window Food Coach and Gym Coach share (`Coach.setup` / `Coach.open`), its robot bubble, the coach pills beside the main button |
 | `js/food.js` | Food Track: food list, food form, barcode, cooking, meals |
 | `js/search.js` | **Search** (0.6.7): word order, plurals, typos, other names (`SYN_GROUPS`), ranking by your habits and time of day, Did you mean, online (USDA + Open Food Facts) with a quality check |
+| `js/exsearch.js` | **Exercise search** (Refinements): the one search every exercise box uses (`ExSearch.query`): typos, words together or apart, other names (`ALSO`) and close neighbours (`EX_NEAR`, data/gym.js), Greek, Greeklish, similar exercises, your habits; one ranked list. Test list: `tools/exsearch-test.js` (run by `tools/check.js`) |
 | `js/supplements.js` | Supplements (Take button with times) |
 | `js/today.js` | Today's food: log, targets + padlocks, Fill My Food, Add Takeaway, weigh-in |
 | `js/fridge.js` | Fridge + groceries |
