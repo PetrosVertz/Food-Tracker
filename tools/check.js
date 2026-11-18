@@ -449,6 +449,10 @@ try {
 } catch (e) { fail('could not check rank changes: ' + e.message); }
 
 // 7. Optional: open the app and catch start-up errors
+// Food Coach complex meals (Refinements #5): the meal test list, offline
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/meal-test.js')], { stdio: 'pipe' }).toString(); ok('meals: ' + (out.match(/^ok /gm) || []).length + ' Food Coach meal cases pass (tools/meal-test.js)'); }
+catch (e) { fail('meals: tools/meal-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
   const http = require('http');
