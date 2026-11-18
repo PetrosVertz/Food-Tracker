@@ -569,6 +569,25 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .sttag.lq.std{background:var(--t-sel);color:var(--t-muted);border:1px solid var(--t-line)}
 .sttag.lq.onl{background:color-mix(in srgb,var(--t-rest) 16%,transparent);color:var(--t-rest);border:1px solid color-mix(in srgb,var(--t-rest) 45%,transparent)}
 .sttag.est{background:none;color:var(--t-warm);border:1px dashed color-mix(in srgb,var(--t-warm) 70%,transparent)}
+/* Refinements #5 · a complex meal as ONE card (js/meal.js): title, total, two quiet lines, the one-tap portion choice; tap to see the parts */
+.mlcard{gap:6px;margin:0}
+.mlhead{display:flex;align-items:center;gap:var(--s3);width:100%;padding:0;border:0;background:none;color:var(--t-text);font-family:inherit;text-align:left;cursor:pointer}
+.mlhead:disabled{cursor:default}
+.mlt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px} .mlmac{font-size:var(--fs-label)} .mlname{font-size:var(--fs-body);font-weight:var(--w-bold);line-height:1.25}
+.mlk{display:flex;align-items:baseline;gap:3px;white-space:nowrap} .mlkn{font-size:var(--fs-title);font-weight:var(--w-bold);color:var(--t-text)} .mlk small{color:var(--t-muted);font-size:var(--fs-label)}
+.mlchev{display:flex;color:var(--t-muted);transition:transform .2s ease} .mlhead[aria-expanded="true"] .mlchev{transform:rotate(180deg)}
+.mlq{display:block;color:var(--t-muted);font-size:var(--fs-label);line-height:1.35}
+.mlsize{margin:6px 0 0}
+.mlparts{display:flex;flex-direction:column;margin-top:4px}
+.mlrow{display:flex;align-items:center;gap:6px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--t-line)} .mlrow:last-of-type{border-bottom:0}
+.mln{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--fs-body);overflow-wrap:anywhere}
+.mlg{flex:0 0 auto;display:flex;align-items:center;gap:4px;margin:0} .mlg .lan{flex:0 0 56px;width:56px;max-width:56px;min-width:0;height:36px;padding:0 8px;font-size:16px;text-align:right;background:var(--t-bg)} .mlgu{color:var(--t-muted);font-size:var(--fs-label);text-transform:none}
+.mlkc{min-width:52px;text-align:right;color:var(--t-muted);font-size:var(--fs-label);white-space:nowrap}
+.mltog{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--t-line);background:none;color:var(--t-muted);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer}
+.mltog.on{background:var(--t-sel);border-color:var(--t-accent);color:var(--t-accent-ink,var(--t-accent))}
+.mlrange{display:block;padding-top:6px;color:var(--t-muted);font-size:var(--fs-label)}
+.mlsaved{margin:0 0 var(--s3)} .mlsaved .mlrow{min-height:36px}
+@media (prefers-reduced-motion:reduce){.mlchev{transition:none}}
 
 /* 0.7.1 · Eaten swipe to delete: only the red glow while you drag; the bin fades in once you're past the delete point */
 /* 0.7.2 · tap the date on Today's Food → month calendar (glass sheet, round day pills, today in the accent) */
