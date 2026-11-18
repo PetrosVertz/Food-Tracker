@@ -1089,10 +1089,20 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pcrow{position:relative;z-index:1;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:var(--r-pill)}
 .pcrow::-webkit-scrollbar{display:none}
 .pcsp{flex:0 0 calc(50% - var(--pw) / 2 - 4px)}
-.pcrow>button{flex:0 0 var(--pw);min-width:0;min-height:44px;padding:4px 6px;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-  border:0;background:none;border-radius:var(--r-pill);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);line-height:1.15;letter-spacing:-.2px;color:var(--t-muted);cursor:pointer;
-  will-change:transform,opacity;transform-origin:50% 50%;transition:color .2s}
+.pcrow>button{flex:0 0 var(--pw);min-width:0;min-height:44px;padding:0;scroll-snap-align:center;display:flex;align-items:stretch;
+  border:0;background:none;border-radius:var(--r-pill);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);line-height:1.15;letter-spacing:-.2px;color:var(--t-muted);cursor:pointer;transition:color .2s}
+/* the face inside turns and fades (JS); the button itself never moves, so the strip's snap always reads straight, even boxes */
+.pcf{flex:1 1 auto;min-width:0;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;will-change:transform,opacity;transform-origin:50% 50%;backface-visibility:hidden}
 .pcrow>button:active{transform:none}
+/* .pcnat: the browser turns and fades each face from its place in the strip (in step with the scroll, off the main thread). Over 1.5 pills
+   either side of the middle: turned away CAR_TURN (38) degrees per pill, down to scale .9 and opacity .4 one pill out (the values in ui.js) */
+@keyframes pcturn{
+  0%{transform:perspective(360px) rotateY(57deg) scale(.9);opacity:.4} 16.667%{transform:perspective(360px) rotateY(38deg) scale(.9);opacity:.4}
+  50%{transform:perspective(360px) rotateY(0deg) scale(1);opacity:1}
+  83.333%{transform:perspective(360px) rotateY(-38deg) scale(.9);opacity:.4} 100%{transform:perspective(360px) rotateY(-57deg) scale(.9);opacity:.4}}
+@media (prefers-reduced-motion:no-preference){
+  .pcnat .pcf{animation:pcturn linear both;animation-timeline:view(inline);animation-range:cover calc(50% - var(--pr,186px)) cover calc(50% + var(--pr,186px))}
+  .pcnat .pcrow>button.soon{opacity:.5}}
 .pcrow>button b{display:block;max-width:100%;font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pcrow>button.on{color:var(--t-mp-text);font-weight:var(--w-bold);font-style:italic;-webkit-text-stroke:var(--t-mp-stroke);paint-order:stroke fill}
 .pcrow>button.soon{cursor:default}

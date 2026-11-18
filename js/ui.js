@@ -365,6 +365,7 @@ function carFade(els){   // the content under the carousel: a light cross fade, 
 function swipePages(page, car, stepTo, pills){
   const NO = 'input,textarea,select,button.stepper,.pcar,.swipebox [data-id],.swipebox .exc,.swipebox .tpcard,.mxr,[data-noswipe],svg.anat,.anatomy';
   let w = 0, vs = [];
+  page.area.style.touchAction = 'pan-y';   // sideways is ours: the phone never starts its own pan (which cancelled the swipe or made the page wobble); rows that scroll sideways inside still do
   const sideScroll = t => { for(let e = t; e && e !== page.area; e = e.parentElement){ if(e.scrollWidth > e.clientWidth + 2){ const ox = getComputedStyle(e).overflowX; if(ox === 'auto' || ox === 'scroll') return true; } } return false; };
   dragger(page.area, { axis: 'x', slop: 12,
     item: e => car.classList.contains('hide') || document.querySelector('.overlay.open') || e.target.closest(NO) || sideScroll(e.target) ? null : page.area,
@@ -376,7 +377,7 @@ function swipePages(page, car, stepTo, pills){
       const go = ok && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
       if(!go){ pills.back(); vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
       pills.lead(dir);
-      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w * .6 }, { x: s.vx }, { k: 420, damp: 1, fill: 'forwards', op: [op0, 0] }); });
+      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * Math.max(w * .6, Math.abs(dx) + 48) }, { x: s.vx }, { k: 420, damp: 1, fill: 'forwards', op: [op0, 0] }); });
       setTimeout(() => { const old = vs; if(!stepTo(dir)){ pills.back(); old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
         old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
         page.views().forEach(v => springTo(v, { x: dir * w * .45 }, { x: 0 }, { x: s.vx }, { k: 300, op: [0, 1] })); }, 130); } });
@@ -385,32 +386,56 @@ function pillCarousel(el, { items, onPick, page }){
   const n = items.length, R = 3;
   el.classList.add('pcar'); el.setAttribute('role', 'tablist');
   el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${Array.from({ length: n * R }, (_, i) => { const it = items[i % n], mid = i >= n && i < 2 * n;
-    return `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}${mid ? '' : ' tabindex="-1" aria-hidden="true"'}><b></b>${it.soon ? '<small></small>' : ''}</button>`; }).join('')}<i class="pcsp"></i></div>`;
-  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], itm = i => items[i % n];
+    return `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}${mid ? '' : ' tabindex="-1" aria-hidden="true"'}><span class="pcf"><b></b>${it.soon ? '<small></small>' : ''}</span></button>`; }).join('')}<i class="pcsp"></i></div>`;
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], faces = btns.map(b => b.firstChild), itm = i => items[i % n];   // faces: what turns and fades (the buttons stay square, so the snap reads true boxes)
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false, hold = false;   // hold: this pill's own tap / swipe is picking, so set() must not jump the strip (the glide does the moving)
   // Petros: while the page under the pills is swiped, the pills turn with it like a wheel (the chosen label slides out of the highlight while
-  // the next slides in). off = how far the strip is pushed past its scroll spot (transform only, never scrollLeft while the finger moves).
-  let off = 0, offRaf = 0;
-  function dragOff(f){ if(!step) return; cancelAnimationFrame(offRaf); offRaf = 0; off = Math.max(-step, Math.min(step, f * step)); frame(); }
-  function slideOff(to, ms, done){ cancelAnimationFrame(offRaf); const from = off, t0 = performance.now();
-    if(reduce() || !step){ off = to; frame(); offRaf = 0; if(done) done(); return; }
-    const tick = now => { const p = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - p, 3); off = from + (to - from) * e; frame();
-      if(p < 1) offRaf = requestAnimationFrame(tick); else { offRaf = 0; if(done) done(); } };
-    offRaf = requestAnimationFrame(tick); }
+  // the next slides in). off = how far the strip is pushed past its scroll spot sl. While pushed, the strip's scroll snap is off (with snap
+  // on, the browser re-snapped every frame and cancelled the push: the pills shook in place instead of following the finger).
+  // Where the browser can tie an animation to a scroll position (iOS 26+, Chrome; class .pcnat), the turn and fade of every pill are done
+  // by the browser itself, in step with the scroll at the screen's full frame rate: the push then really scrolls the strip, and a glide is
+  // the browser's own smooth scroll. Elsewhere frame() draws each pill (transform), and a glide is sampled keyframes; both run off the
+  // main thread, so drawing the new section never stalls them.
+  const NAT = !!(window.CSS && CSS.supports('animation-timeline', 'view(inline)') && CSS.supports('animation-range', 'cover 0% cover 100%'));
+  if(NAT) el.classList.add('pcnat');
+  const nat = () => NAT && !reduce();
+  let off = 0, pushed = false, sl = 0, sld = null;   // sld: the glide running now { from, to, t0, ms, done, tm }
+  function push(){ if(pushed) return; pushed = true; sl = row.scrollLeft; row.style.scrollSnapType = 'none'; }
+  function unpush(){ pushed = false; row.style.scrollSnapType = ''; }   // after the last frame(): the snap must see the strip at rest
+  const ease = p => 1 - Math.pow(1 - p, 3);
+  function stopSlide(){ if(!sld) return null; const s = sld; sld = null; clearTimeout(s.tm);   // freeze where it is now
+    if(nat()){ off = row.scrollLeft - sl; row.scrollLeft = sl + off; }   // writing the spot stops the smooth scroll
+    else { off = s.from + (s.to - s.from) * ease(Math.min(1, (performance.now() - s.t0) / s.ms)); frame(); faces.forEach(b => b.getAnimations().forEach(a => a.cancel())); }
+    return s; }
+  function endSlide(s){ if(sld !== s) return; sld = null; clearTimeout(s.tm); off = s.to;
+    if(nat()) row.scrollLeft = sl + off; else { frame(); faces.forEach(b => b.getAnimations().forEach(a => a.cancel())); } if(s.done) s.done(); }   // .pcnat: never cancel (that would stop the browser's own turn)
+  function dragOff(f){ if(!step) return; const s = stopSlide(); if(s && s.done) s.done();   // a new drag during a glide: finish that change first
+    push(); off = Math.max(-step, Math.min(step, f * step)); if(nat()) row.scrollLeft = sl + off; frame(); }
+  function slideOff(to, ms, done){ if(!step){ if(done) done(); return; } stopSlide(); push(); const from = off;
+    if(reduce() || Math.abs(to - from) < .5){ off = to; if(nat()) row.scrollLeft = sl + off; frame(); if(done) done(); return; }
+    const s = sld = { from, to, t0: performance.now(), ms, done };
+    if(nat()){ row.scrollTo({ left: sl + to, behavior: 'smooth' }); s.tm = setTimeout(() => endSlide(s), ms + 450); return; }   // ends on arrival (scroll handler); the timer is a safety net
+    const N = Math.max(4, Math.round(ms / 16)), keys = btns.map(() => []);
+    for(let k = 0; k <= N; k++){ const o = from + (to - from) * ease(k / N); btns.forEach((b, i) => { const [tf, op] = look(i, sl + o, o, false); keys[i].push({ transform: tf, opacity: op }); }); }
+    faces.forEach((b, i) => b.animate(keys[i], { duration: ms, easing: 'linear', fill: 'forwards' }));
+    s.tm = setTimeout(() => endSlide(s), ms); }
+  function sliding(to){ return sld && Math.abs(sld.to - to) < .5 ? sld : null; }
   function measure(){   // only when labels or the width changed (never during a scroll)
     const txt = items.map(it => it.label()).join('|'), rw = row.clientWidth; if(!rw) return false;
     if(txt === labels && rw === w) return true;
     labels = txt; w = rw;
     btns.forEach((b, i) => { b.querySelector('b').textContent = itm(i).label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
     el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.slice(n, 2 * n).map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
-    el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; return true;
+    el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; el.style.setProperty('--pr', (1.5 * step).toFixed(1) + 'px'); return true;
   }
+  function look(i, x, o, red){   // pill i's transform + opacity when the strip is at x, pushed by o
+    const d = Math.max(-1.5, Math.min(1.5, (i * step - x) / step)), a = Math.min(1, Math.abs(d)), tx = `translate3d(${(-o).toFixed(2)}px,0,0) `;
+    return [red ? tx : `${tx}perspective(${CAR_PERSP}px) rotateY(${(d * CAR_TURN).toFixed(2)}deg) scale(${(1 - CAR_SHRINK * a).toFixed(4)})`,
+      ((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)).toFixed(3)]; }
   function frame(){ raf = 0; if(!step) return;
-    const x = row.scrollLeft + off, red = reduce(), tx = off ? `translate3d(${(-off).toFixed(1)}px,0,0) ` : '';
-    btns.forEach((b, i) => { const d = Math.max(-1.5, Math.min(1.5, (i * step - x) / step)), a = Math.min(1, Math.abs(d));
-      b.style.transform = red ? tx : `${tx}perspective(${CAR_PERSP}px) rotateY(${(d * CAR_TURN).toFixed(1)}deg) scale(${(1 - CAR_SHRINK * a).toFixed(3)})`;
-      b.style.opacity = String((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)); });
+    const x = pushed ? sl + off : row.scrollLeft, red = reduce();   // pushed: no layout read while the finger moves
+    if(!nat()) faces.forEach((f, i) => { const [tf, op] = look(i, x, off, red); f.style.transform = tf; f.style.opacity = op; });
     const k = Math.max(0, Math.min(btns.length - 1, Math.round(x / step)));
     if(k !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = k; }   // a light tick each time a new pill reaches the middle
   }
@@ -422,12 +447,14 @@ function pillCarousel(el, { items, onPick, page }){
   const fade = () => { if(page) carFade(page.views()); };
   function pick(i){ if(i < 0 || itm(i).soon) { centre(cur, true); return; }
     if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } }
-  function settle(){ clearTimeout(settleT); jumping = gliding = false; row.style.scrollSnapType = ''; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding){ wrap(); trim(); } }
+  function settle(){ clearTimeout(settleT); if(pushed) return; jumping = gliding = false; row.style.scrollSnapType = ''; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding){ wrap(); trim(); } }
   function trim(){   // the browser's snap reads the tilted pill's box and can stop a few px short: nudge the resting strip onto the exact spot
-    if(cur < 0 || !step || off || offRaf) return; const e = cur * step - row.scrollLeft;
+    if(cur < 0 || !step || pushed || sld) return; const e = cur * step - row.scrollLeft;
     if(Math.abs(e) > .5 && Math.abs(e) < step / 2){ row.style.scrollSnapType = 'none'; row.scrollLeft = cur * step; frame(); requestAnimationFrame(() => { row.style.scrollSnapType = ''; }); } }
-  row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
-  row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
+  row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT);
+    if(pushed){ if(sld && nat() && Math.abs(row.scrollLeft - sl - sld.to) < 1) endSlide(sld); return; }   // pushed by the page swipe: it picks, not the strip
+    settleT = setTimeout(settle, 140); }, { passive: true });
+  row.addEventListener('scrollend', () => { if(pushed){ if(sld && nat()) endSlide(sld); return; } if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
   row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
     if(itm(i).soon){ Phone.haptic(); return; }
     if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } centre(i, true); });
@@ -435,11 +462,12 @@ function pillCarousel(el, { items, onPick, page }){
     if(cur < 0) return false; let i = cur;
     for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!itm(i).soon) break; }
     if(i % n === cur % n) return false;
-    const from = cur, pushed = off !== 0 || offRaf; mark(i); hold = true; try{ onPick(itm(i).key); } finally{ hold = false; }
-    if(!pushed){ centre(i, true); return true; }
-    slideOff((i - from) * step, 240, () => { off = 0; jumping = true; near = i; row.scrollLeft = i * step; frame(); setTimeout(() => { jumping = false; wrap(); }, 60); });
+    const from = cur, was = pushed; mark(i); hold = true; try{ onPick(itm(i).key); } finally{ hold = false; }
+    if(!was){ centre(i, true); return true; }
+    const land = () => { if(near !== i) Phone.haptic(); off = 0; jumping = true; near = i; row.scrollLeft = sl = i * step; frame(); unpush(); setTimeout(() => { jumping = false; wrap(); }, 60); };
+    const s = sliding((i - from) * step); if(s) s.done = land; else slideOff((i - from) * step, 240, land);   // the glide started on release carries on, one move
     return true; }
-  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260), lead: dir => slideOff(dir * step * .7, 130) });
+  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260, () => { off = 0; frame(); unpush(); }), lead: dir => slideOff(dir * step, 300) });
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
   return {
     set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
