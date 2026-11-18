@@ -33,9 +33,12 @@ const rankPicks = ranks => { const ids = Array.isArray(profile.rankPick) ? profi
 const rankMini = (r, size) => `<span class="pftier rk tr-${r.tier}">${rankIcon(r.tier, r.n, size)}</span>`;
 function openRankPick(){ $('rkSearch').value = ''; drawRankPick(); open('ovRank'); }
 function drawRankPick(){
-  const q = $('rkSearch').value.trim().toLowerCase(), ranks = rankList(), picked = Array.isArray(profile.rankPick) ? profile.rankPick : [];
-  $('rkCount').textContent = t('rkPicked', { n: picked.filter(id => ranks.some(r => r.exId === id)).length });
-  $('rkList').innerHTML = ranks.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => { const on = picked.includes(r.exId);
+  const q = $('rkSearch').value.trim(), all = rankList(), picked = Array.isArray(profile.rankPick) ? profile.rankPick : [];
+  // Refinements change 16: the same exercise search as the picker (typos, other names, Greek, Greeklish), best match first
+  const hits = q ? ExSearch.query(q, { list: EX(), lang, sessions, ids: new Set(all.map(r => r.exId)), near: false, similar: false }).items.filter(i => i.level <= 4) : null;
+  const ranks = hits ? hits.map(i => all.find(r => r.exId === i.id)).filter(Boolean) : all;
+  $('rkCount').textContent = t('rkPicked', { n: picked.filter(id => all.some(r => r.exId === id)).length });
+  $('rkList').innerHTML = ranks.map(r => { const on = picked.includes(r.exId);
     return `<button type="button" class="rkrow${on ? ' on' : ''}" data-rkpick="${esc(r.exId)}" aria-pressed="${on}">${rankMini(r, 30)}<span class="pfrn tr-${r.tier}"><b>${esc(r.name)}</b><small class="rkink">${esc(r.label)}</small></span>${on ? svgIcon('check', 20, 2.4) : ''}</button>`; }).join('')
     || `<p class="pfempty">${esc(t('rkNone'))}</p>`;
 }

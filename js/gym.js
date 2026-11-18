@@ -306,7 +306,7 @@ function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now
 
 // o (0.7.9, optional): { group } opens straight at that muscle group's list, { cardio: true } at Cardio (Gym Coach › Replace)
 function openExPick(cb, o){ o = o || {}; const g = o.group && GROUPS[o.group] ? o.group : null;
-  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); pkFit(); }
+  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; EXS.text = null; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); pkFit(); }
 // 0.7.9.6: the window always matches the visible screen, so the search strip at the bottom sits right above the keyboard while typing
 function pkFit(){ const ov = $('ovExPick'), vv = window.visualViewport; if(!vv || !ov.classList.contains('open')) return;
   ov.style.setProperty('--pkvh', vv.height + 'px'); ov.style.setProperty('--pkvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < innerHeight * .8); }
@@ -727,11 +727,9 @@ function drawExPick(){
   const mapv = !q && PK.region !== 'cardio' && !PK.group && PK.mode === 'map'; $('pkBody').classList.toggle('pkmapmode', mapv);
   $('pkModeRow').classList.toggle('hide', !!q || PK.region === 'cardio' || !!PK.group);
   let h = '';
-  if(q){
-    const vias = {};   // 0.7.5: best matches first; an "also: …" line shows when it matched another name
-    const list = EX().map((x, i) => ({ x, i, r: exMatch(x, q, `${ML(x.h)} ${ML(x.m)} ${EL(x.e)} ${(HEADS[x.h] || []).join(' ')}`) })).filter(o => o.r.s).sort((a, b) => b.r.s - a.r.s || exName(a.x).length - exName(b.x).length || a.i - b.i).slice(0, 80).map(o => { if(o.r.via) vias[o.x.id] = o.r.via; return o.x; });
-    h = (list.length ? exTiles(list, null, vias, have) : `<p class="pknone">${t('pkNone', { q: esc($('exSearch').value.trim()) })}</p>`) + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b>${t('createEx', { q: esc($('exSearch').value.trim()) })}</b><small>${ML(PK.group || 'other')}</small></span></button>`;
-  } else if(PK.region === 'cardio'){
+  if(q){ exSearchDraw(have); return; }   // Refinements change 16: one ranked list, kept row by row (below)
+  EXS.last = null;
+  if(PK.region === 'cardio'){
     h = exTiles(EX().filter(x => x.m === 'cardio').sort((a, b) => cardioRank(a.id) - cardioRank(b.id)), null, null, have);
   } else if(!PK.group){
     // 0.7.9.6: the body fills the space (theme: .pkmap sizes it by the room left, --ar = its width / height), the caption right under it
@@ -750,7 +748,68 @@ function drawExPick(){
   }
   $('pkBody').innerHTML = h;
   if(mapv && PK.lastH) document.querySelectorAll(`#pkBody path[data-hh="${PK.lastH}"]`).forEach(p => p.classList.add('pkhit'));   // the muscle you came back from stays lit
-  if(q){ const sh = $('ovExPick').querySelector('.sheet'); sh.scrollTop = 0; $('pkBody').scrollTop = 0; }   // 0.7.9: the best match stays in view on every keystroke
+}
+
+// ---------- Refinements change 16: the search results as ONE list, best first (ExSearch in js/exsearch.js) ----------
+// Each row is kept by exercise id, so while typing the same row glides to its new place (transform only), rows that go fade out and new ones
+// fade in. About 12 rows show; more come when you scroll down. The first row is lightly lit: Search / Return on the keyboard picks it.
+const EXS = { n: 12, step: 12, res: null, text: '', last: null };
+// a row is drawn once; while typing only its name (bold letters), its "Also Called" line and its "in this workout" tick change
+function exSearchRow(el, r, inW){
+  const x = r.x, cardio = isCardio(x.id);
+  if(!el.firstChild) el.innerHTML = `<span class="mm">${cardio ? exIcon(x, 40) : miniMap(x)}</span><span class="exn"><b class="exhl"></b><small class="exalso"></small>`
+    + `<small>${eqIcon(x.e, 13)} ${EL(x.e)}${cardio ? '' : ` · ${t('muUse', { p: (x.mu || {})[x.h] || 0 })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span>`;
+  const nm = ExSearch.mark(exTitle(x[lang === 'el' ? 'el' : 'en']), r.ranges), al = r.via ? t('exAlso', { n: ExSearch.mark(exTitle(r.via), r.viaRanges) }) : '';
+  if(el._n !== nm){ el.querySelector('.exhl').innerHTML = nm; el._n = nm; }
+  if(el._a !== al){ const s = el.querySelector('.exalso'); s.innerHTML = al; s.hidden = !al; el._a = al; }
+  if(el._in !== inW){ const k = el.querySelector('.exin'); if(inW && !k) el.querySelector('.iinfo').insertAdjacentHTML('beforebegin', PK_IN()); else if(!inW && k) k.remove(); el._in = inW; }
+}
+function exSearchDraw(have){
+  const box = $('pkBody'), raw = $('exSearch').value.trim();
+  let wrap = box.querySelector(':scope > .exsr');
+  if(!wrap){ box.innerHTML = `<p class="exdym hide">${esc(t('didYouMean'))}</p><div class="exrows exsr"></div><p class="pknone hide"></p>`
+    + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b></b><small></small></span></button>`; wrap = box.querySelector('.exsr'); EXS.last = null; }
+  if(raw !== EXS.text){ EXS.text = raw; EXS.n = EXS.step; EXS.res = ExSearch.query(raw, { list: EX(), lang, sessions }); }
+  const res = EXS.res, items = res.items.slice(0, EXS.n), top = items[0] && items[0].id;
+  box.querySelector('.exdym').classList.toggle('hide', !res.dym);
+  const none = box.querySelector('.pknone'); none.classList.toggle('hide', !!items.length); if(!items.length) none.textContent = t('pkNone', { q: raw });
+  const nb = box.querySelector('[data-new]'); nb.querySelector('b').textContent = t('createEx', { q: raw }); nb.querySelector('small').textContent = ML(PK.group || 'other');
+  exFlip(wrap, () => {   // where every row is now is measured first, then the rows are updated
+    const old = new Map([...wrap.children].filter(e => e.dataset.ex && !e.classList.contains('exleave')).map(e => [e.dataset.ex, e]));
+    return items.map((r, i) => { let el = old.get(r.id);
+      if(!el){ el = document.createElement('button'); el.type = 'button'; el.dataset.ex = r.id; el.style.setProperty('--eq', EQ_COL[r.x.e] || '#8b949c'); }
+      exSearchRow(el, r, have.has(r.id));
+      el.className = 'exrow' + (have.has(r.id) ? ' in' : '') + (i === 0 ? ' exbest' : ''); return el; }); });
+  if(top !== EXS.last){ const sh = $('ovExPick').querySelector('.sheet'); if(sh.scrollTop) sh.scrollTop = 0; if(box.scrollTop) box.scrollTop = 0; }   // a new best match is always in view
+  EXS.last = top;
+}
+// more rows when the list is scrolled near its end
+function exSearchMore(){
+  if(!EXS.res || EXS.n >= EXS.res.items.length || !$('exSearch').value.trim()) return;
+  const sc = [$('pkBody'), $('ovExPick').querySelector('.sheet')].find(e => e.scrollHeight > e.clientHeight + 1); if(!sc) return;
+  if(sc.scrollTop + sc.clientHeight > sc.scrollHeight - 160){ EXS.n += EXS.step; exSearchDraw(pkHave()); }
+}
+// rows glide from where they were to where they are now (FLIP: transform and opacity only); Reduce Motion: a quick fade, no sliding
+function exFlip(wrap, make){
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const kids = [...wrap.children].filter(e => !e.classList.contains('exleave')), wr = wrap.getBoundingClientRect(), before = new Map(kids.map(e => [e, e.getBoundingClientRect()]));
+  wrap.querySelectorAll(':scope > .exleave').forEach(e => e.remove());
+  const els = make(), keep = new Set(els);
+  if(els.length === kids.length && els.every((e, i) => e === kids[i])) return;   // the same rows in the same order: nothing moves
+  const leaving = kids.filter(e => !keep.has(e));
+  leaving.forEach(e => { const r = before.get(e); e.classList.add('exleave'); e.style.transition = 'none'; e.style.top = (r.top - wr.top) + 'px'; e.style.height = r.height + 'px'; });
+  els.forEach((e, i) => { if(wrap.children[i] !== e) wrap.insertBefore(e, wrap.children[i] || null); e.style.transition = 'none'; e.style.transform = ''; e.style.opacity = ''; });
+  leaving.forEach(e => wrap.appendChild(e));
+  const after = els.map(e => before.has(e) ? e.getBoundingClientRect() : null);
+  let moved = false;
+  els.forEach((e, i) => { const b = before.get(e);
+    if(!b){ e.style.opacity = '0'; if(!reduce) e.style.transform = 'translateY(8px)'; moved = true; return; }
+    const dy = b.top - after[i].top; if(!reduce && Math.abs(dy) > .5){ e.style.transform = `translateY(${dy}px)`; moved = true; } });
+  if(!moved && !leaving.length) return;
+  void wrap.offsetHeight;   // the start positions are in place; now let them go
+  const tr = reduce ? 'opacity .12s linear' : 'transform .26s cubic-bezier(.2,.8,.2,1), opacity .2s ease-out';
+  els.forEach(e => { if(e.style.transform || e.style.opacity){ e.style.transition = tr; e.style.transform = ''; e.style.opacity = ''; } });
+  leaving.forEach(e => { e.style.transition = 'opacity .14s ease-out'; e.style.opacity = '0'; setTimeout(() => e.isConnected && e.classList.contains('exleave') && e.remove(), 180); });
 }
 
 // gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); the pills sit on the right.

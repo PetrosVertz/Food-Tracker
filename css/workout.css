@@ -591,3 +591,12 @@ body.inses .coachbub{display:none!important}
 /* live workout: pulling the menu down from its top strip (or its list at the top) drops it; the browser keeps only the other directions as scrolls */
 #ovExPick.pklive .pktop{touch-action:pan-x}
 #ovExPick.pklive.pkattop #pkBody{touch-action:pan-x pan-down}
+
+/* Refinements change 16: exercise search results, one ranked list (js/exsearch.js, exSearchDraw in gym.js). Only the list; the picker menu is unchanged */
+#ovExPick .exsr{position:relative}
+#ovExPick .exsr>.exrow{will-change:transform}
+#ovExPick .exsr>.exleave{position:absolute;left:0;right:0;margin:0;pointer-events:none}
+#ovExPick .exsr .exrow .exn b.exhl{font-weight:var(--w-reg)}                 /* the name in regular weight … */
+#ovExPick .exsr .exrow .exn .exm{font-style:normal;font-weight:var(--w-bold)} /* … the letters that matched in bold */
+#ovExPick .exsr .exrow.exbest{background:color-mix(in srgb,var(--t-accent) 9%,var(--t-card));border-color:color-mix(in srgb,var(--t-accent) 38%,var(--t-edge))!important}
+#ovExPick .exdym{margin:0 0 var(--s2) 2px;font-size:var(--fs-label);color:var(--t-muted)}

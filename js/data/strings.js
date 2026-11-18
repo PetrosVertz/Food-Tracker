@@ -215,7 +215,7 @@ const S = {
 Object.assign(S, {
  tGym:['Gym','Γυμναστήριο'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
- exAlso:['Same Exercise · {n}','Ίδια Άσκηση · {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
+ exAlso:['Also Called {n}','Αλλιώς {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
  workoutType:['Type (sets up My Food Log)','Τύπος (ρυθμίζει το Ημερολόγιο Φαγητού)'], exercises:['Exercises','Ασκήσεις'],
  newWorkout:['New workout','Νέα προπόνηση'], editWorkout:['Edit workout','Επεξεργασία προπόνησης'], emptyWorkout:['Empty workout','Κενή προπόνηση'],

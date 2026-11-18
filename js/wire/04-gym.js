@@ -138,6 +138,9 @@ setInterval(() => { tickRest(); tickClock(); }, 500);
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
 $('exSearch').addEventListener('input', drawExPick);
+// Refinements change 16: Search / Return on the keyboard picks the first (lit) result; scrolling near the end shows more results
+$('exSearch').addEventListener('keydown', e => { if(e.key !== 'Enter' || e.isComposing) return; const f = $('pkBody').querySelector('.exsr > .exrow.exbest'); if(!f) return; e.preventDefault(); $('exSearch').blur(); f.click(); });
+$('ovExPick').addEventListener('scroll', exSearchMore, { capture: true, passive: true });
 // while searching, the pills step aside so the results get the room (0.7.9.6: the box stays at the bottom, above the keyboard)
 const gymPkSearching = () => $('ovExPick').querySelector('.sheet').classList.toggle('pksearching', document.activeElement === $('exSearch') || !!$('exSearch').value.trim());
 ['focus', 'input', 'blur'].forEach(k => $('exSearch').addEventListener(k, () => setTimeout(gymPkSearching, 0)));
