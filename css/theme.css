@@ -1107,7 +1107,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .sbmspark{width:96px;height:30px;display:block}
 .sbmp{display:inline-flex;align-items:center;justify-content:flex-end;gap:2px;font-weight:var(--w-bold);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sbmrow .sbmp{font-size:var(--fs-body)}
-.sbmrow.nodata{grid-template-columns:minmax(0,1fr) auto;cursor:default} .sbmrow.nodata:active{transform:none}
+.sbmrow.nodata{grid-template-columns:auto minmax(0,1fr);cursor:default} .sbmrow.nodata:active{transform:none}
 .sbmnd{font-size:var(--fs-label);color:var(--t-muted);text-align:right}
 .sbmrow.up,.sbmbig.up{color:var(--t-done)} .sbmrow.down,.sbmbig.down{color:var(--t-sore)} .sbmrow.flat,.sbmbig.flat{color:var(--t-muted)}
 :root[data-theme="light"] .sbmrow.down,:root[data-theme="light"] .sbmbig.down{color:var(--t-fail)}   /* red text >= 4.5:1 in Light */
