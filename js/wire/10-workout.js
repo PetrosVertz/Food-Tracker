@@ -32,6 +32,11 @@ $('blBody').addEventListener('click', e => {
   // only your own finger or wheel drives it (not the scroll the app does itself); where the page rested when you started is "0"
   const grab = () => { if(touching) return; touching = true; s0 = bd.scrollTop; armed = +(bd.dataset.cur || 0) === cards().length - 1 && !onAdd(); };
   ['touchstart', 'pointerdown', 'wheel'].forEach(k => bd.addEventListener(k, grab, { passive: true }));
+  // Petros: nothing settles while the finger is still on the glass (a pause mid-swipe used to spring the menu away under the finger); it waits for the lift
+  let down = false, waitUp = false;
+  bd.addEventListener('touchstart', () => { down = true; }, { passive: true });
+  ['touchend', 'touchcancel'].forEach(k => bd.addEventListener(k, e => { if(e.touches.length) return; down = false;
+    if(waitUp){ waitUp = false; clearTimeout(tm); tm = setTimeout(() => settle(), 120); } }, { passive: true }));   // a fling's scrolling resets this wait
   ['touchend', 'pointerup'].forEach(k => bd.addEventListener(k, () => setTimeout(() => { if(!bd.classList.contains('moving')) touching = false; }, 90), { passive: true }));   // a tap, no swipe
   const frame = () => { raf = 0; if(pk.classList.contains('open') && !drag) return; if(!touching || (!drag && Date.now() < cool)) return; const p = prog();
     if(!drag && p > .02){ drag = true; stopAnim(); pk.classList.remove('pkcancel'); pk.classList.add('pkdrag'); put(0); $('sesAddEx').click(); }
@@ -41,7 +46,7 @@ $('blBody').addEventListener('click', e => {
   $('sesAddEx').addEventListener('click', () => { if(drag) return; stopAnim(); pk.classList.remove('pkdrag', 'pkcancel'); sh.style.transform = ''; }, true);
   let settle = () => {};
   bd.addEventListener('scrollend', () => { if(bd.classList.contains('moving')){ clearTimeout(tm); settle(); } }, { passive: true });   // where the phone tells us the page has stopped: no extra wait
-  bd.addEventListener('scroll', () => { bd.classList.add('moving'); if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
+  bd.addEventListener('scroll', () => { bd.classList.add('moving'); if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { if(down){ waitUp = true; return; } const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
     const mine = touching, fromLast = armed; touching = false; if(drag){ settleDrag(); return; }
     if(pk.classList.contains('open')) return; const on = onAdd();
     if(on && mine && !fromLast){ showCard(lastCard()); return; }   // flung past the last exercise from an earlier one: back to the last exercise, no menu
