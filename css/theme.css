@@ -74,10 +74,10 @@ small,.rmeta,.hint,.sub{font-size:var(--fs-label);font-weight:var(--w-reg)}
 label{font-size:var(--fs-label);font-weight:var(--w-med)}
 
 /* ---------- cards: solid, hairline edge (strong outlines only where they mean something) ---------- */
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.pgrow{
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpex,.tpcard,.win,.remind,.wtcard,.foldh,.exrow,.opt,.sbmrow,.rectile,.recall{
   background:var(--t-card)!important;border:1px solid var(--t-edge)!important;box-shadow:var(--t-shadow)!important}
-.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard{border-radius:var(--r-card)!important}
-.exrow,.foldh,.opt,.pgrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
+.card,.tile,.macrocard,.daycard,.minirec,.prog,.exc,.tpcard,.win,.remind,.wtcard,.rectile,.recall{border-radius:var(--r-card)!important}
+.exrow,.foldh,.opt,.sbmrow,.sitem,.srow .sitem{border-radius:var(--r-row)!important}
 .tile.big{background:var(--t-accent)!important;color:var(--t-on)}
 .card .name,.sitem .t b,.exrow .exn b{font-size:var(--fs-body);font-weight:var(--w-med)}
 .kcnum{font-size:var(--fs-hero)!important;font-weight:var(--w-bold)!important;font-style:italic;letter-spacing:-.5px}
@@ -132,7 +132,7 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
 .seg>button.on{color:var(--t-sp-text)!important;font-weight:var(--w-bold)}
 /* selectors with many choices wrap onto rows of three; the knob still glides between them */
 .seg.wrapseg,#dWork,#fDisplay,#sLang{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:22px!important}
-.wtseg{margin:0;flex:0 0 auto;min-width:200px} .wtseg>button{min-height:36px;padding:var(--s2) 6px}
+.wthead .wtlvl{flex:0 0 auto;margin-top:6px;text-align:right}   /* Refinements #7: which level the weight chart shows */
 .wpseg{margin-top:var(--s2)}
 #pgFridge .fgseg{margin:var(--s2) 0 var(--s3)}
 
@@ -230,14 +230,12 @@ html.pwa .rail{bottom:auto;top:calc(var(--appH,100vh) - 64px - max(24px,calc(env
 
 /* ---------- Recovery (Phones.dc.html screen 3) ---------- */
 :root{--t-ready:var(--t-accent)}
-.reccard{background:var(--t-card);border-radius:var(--r-card);padding:var(--s4);display:flex;justify-content:center;margin-bottom:var(--s4)}
+.reccard{background:var(--t-card);border-radius:var(--r-card);padding:var(--s4);display:flex;flex-direction:column;align-items:center;margin-bottom:var(--s4)}
+#recFig{width:100%;display:flex;justify-content:center}
 .reccard svg{width:100%;max-width:340px;height:auto}   /* front + back side by side; fits 375 px */
 .legend2{display:flex;justify-content:center;gap:var(--s4);margin-bottom:var(--s4)}
 .legend2 span{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-label);color:var(--t-muted)}
 .legend2 i{width:12px;height:12px;border-radius:4px}
-.reclist{display:flex;flex-direction:column;gap:var(--s2)}
-.recrow{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);background:var(--t-card);border-radius:var(--r-row);padding:var(--s3) var(--s4);border:0;color:var(--t-text);font-family:inherit;text-align:left;width:100%;cursor:pointer}
-.recrow .rn{font-size:var(--fs-body);font-weight:var(--w-med)} .recrow .rs{font-size:var(--fs-label);font-weight:var(--w-med);text-align:right}
 
 /* ---------- Settings › Theme (ThemeMenu.dc.html) ---------- */
 .prow{display:flex;align-items:center;gap:var(--s2);width:100%;min-height:52px;margin:var(--s3) 0;padding:var(--s3) var(--s4);border:1px solid var(--t-edge);border-radius:var(--r-row);background:var(--t-card);color:var(--t-text);font-family:inherit;font-size:var(--fs-body);font-weight:var(--w-med);text-align:left;cursor:pointer}
@@ -351,6 +349,9 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 #dBlocks .gymdayic{flex:0 0 auto;display:inline-flex;color:var(--t-accent-ink,var(--t-accent))}
 #dBlocks .rmrec{position:relative;z-index:2}
 .remtime{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:1;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
+/* Refinements: Week Planner times are text; the phone's own time wheel (.remtime) lies invisible on top */
+.wptime{position:relative;align-self:stretch;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;margin:0;padding:0 var(--s2);text-transform:none;letter-spacing:0;font-weight:var(--w-reg);background:var(--t-card2);border:1px solid var(--t-line);border-radius:var(--r-input2);color:var(--t-text);font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer}
+.wptime .remtime,.wptime .remtime:disabled{opacity:0} .wptime.off{opacity:.4;cursor:default} .wptime:focus-within{outline:2px solid var(--accent);outline-offset:-1px}
 .fab .fabic{display:inline-flex;vertical-align:-3px;margin-right:6px}
 /* superset by holding one exercise over another (0.6.9) */
 .exc.ssarm,.tpcard.ssarm{box-shadow:0 0 0 2px var(--t-accent)!important;position:relative}
@@ -360,9 +361,6 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 /* Recovery is look-only (0.6.9) */
 .reccard svg,.reccard svg *{pointer-events:none;cursor:default!important}
 .reccard svg{transform-origin:50% 50%}
-.recrow{cursor:default}
-.recrow .rs.ok{color:var(--t-done)} .recrow .rs.mid{color:var(--t-mid)} .recrow .rs.low{color:var(--t-sore)}
-:root[data-theme="light"] .recrow .rs.low{color:var(--t-fail)}   /* red text ≥ 4.5:1 in Light */
 .pglock{margin-top:var(--s3);padding:var(--s4);border-radius:var(--r-row);background:var(--t-card);border:1px solid var(--t-edge);color:var(--t-muted);font-size:var(--fs-body);text-align:center}
 /* ---------- Settings (0.6.9): grouped rows; each opens its own full page with the back arrow ---------- */
 .pgroup{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s3) 0}
@@ -899,8 +897,10 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .rcptacts #rcptUse{grid-column:1/-1}
 
 /* 0.7.7 recovery gradient legend */
-.recgrad{max-width:240px;margin:0 auto var(--s4)} .recgrad i{display:block;height:10px;border-radius:var(--r-pill)}
+.recgrad{width:100%;margin:var(--s3) 0 0}   /* Refinements #7: the bar runs along the bottom of the body card */ .recgrad i{display:block;height:10px;border-radius:var(--r-pill)}
 .recgrad span{display:flex;justify-content:space-between;margin-top:var(--s1);font-size:var(--fs-label);color:var(--t-muted)}
+.recgrad small{font-weight:var(--w-med)} .recgrad small.ok{color:var(--t-done)} .recgrad small.low{color:var(--t-sore)}
+:root[data-theme="light"] .recgrad small.low{color:var(--t-fail)}   /* red text >= 4.5:1 in Light */
 
 /* ---------- 0.7.7 Profile tab (shell) ---------- */
 #pfBody{padding-bottom:var(--s6)}
@@ -1099,3 +1099,33 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pcrow>button small{font-size:10px;font-weight:var(--w-med);font-style:normal;letter-spacing:.2px;color:var(--t-muted);-webkit-text-stroke:0}
 .pcar.meas .pcrow>button{flex:0 0 auto;font-weight:var(--w-bold);font-style:italic}
 .pcar.meas .pcrow>button b{overflow:visible}
+/* Refinements #7: Strength by Muscle — a row per muscle: name, trend line, % with an arrow. Colour = the last two weeks */
+.sbmlist{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s3)}
+.sbmrow{display:grid;grid-template-columns:minmax(0,1fr) 96px 78px;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) var(--s4);color:var(--t-muted);font-family:inherit;text-align:left;cursor:pointer;transition:transform .15s}
+.sbmrow:active{transform:scale(.98)}
+.sbmrow .sbmn{color:var(--t-text);font-size:var(--fs-body);font-weight:var(--w-med);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbmspark{width:96px;height:30px;display:block}
+.sbmp{display:inline-flex;align-items:center;justify-content:flex-end;gap:2px;font-weight:var(--w-bold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sbmrow .sbmp{font-size:var(--fs-body)}
+.sbmrow.nodata{grid-template-columns:auto minmax(0,1fr);cursor:default} .sbmrow.nodata:active{transform:none}
+.sbmnd{font-size:var(--fs-label);color:var(--t-muted);text-align:right}
+.sbmrow.up,.sbmbig.up{color:var(--t-done)} .sbmrow.down,.sbmbig.down{color:var(--t-sore)} .sbmrow.flat,.sbmbig.flat{color:var(--t-muted)}
+:root[data-theme="light"] .sbmrow.down,:root[data-theme="light"] .sbmbig.down{color:var(--t-fail)}   /* red text >= 4.5:1 in Light */
+.sbmbig .wtchart text{fill:var(--t-muted)}
+.sbmhead{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s3);margin-bottom:var(--s2)}
+.sbmhead b{color:var(--t-text);font-size:24px;font-weight:800} .sbmhead small{display:block;font-size:var(--fs-label);color:var(--t-muted)}
+.sbmhead .sbmp{color:inherit;font-size:var(--fs-title)}
+.sbmex{display:flex;flex-direction:column}
+.sbmexr{display:flex;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--t-line)} .sbmexr small{color:var(--t-muted)}
+/* Refinements #7: Recovery tiles, two per row, only for muscles that are not ready (most hours left first) */
+.rectiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s4)}
+.rectile{display:flex;flex-direction:column;align-items:center;gap:var(--s2);min-width:0;padding:var(--s3);animation:recTileIn .32s ease-out both;transition:opacity .22s,transform .22s}
+.rectile:active{transform:scale(.98)} .rectile.out{opacity:0;transform:scale(.96)}
+.rectile .rtn{align-self:stretch;font-size:var(--fs-body);font-weight:var(--w-med);color:var(--t-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtpic{width:100%;height:96px;display:flex;justify-content:center} .rtpic svg{display:block;width:100%;height:100%;pointer-events:none}
+.rth{display:inline-flex;align-items:center;gap:var(--s1);font-variant-numeric:tabular-nums}
+.rth b{font-size:var(--fs-title);font-weight:var(--w-bold);color:var(--t-text)} .rth small{font-size:var(--fs-label);color:var(--t-muted)}
+.rectile.mid .rth svg{color:var(--t-mid)} .rectile.low .rth svg{color:var(--t-sore)}
+.recall{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;padding:var(--s5) var(--s4);margin-bottom:var(--s4);color:var(--t-text);animation:recTileIn .32s ease-out both}
+.recall svg{color:var(--t-done)} .recall b{font-size:var(--fs-body);font-weight:var(--w-bold)}
+@keyframes recTileIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}

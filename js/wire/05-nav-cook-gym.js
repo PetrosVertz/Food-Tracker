@@ -115,7 +115,10 @@ $('gPlanV').addEventListener('change', e => {
   const row = e.target.closest('[data-wd]'); if(!row || !(e.target.matches('[data-wfrom]') || e.target.matches('[data-wto]'))) return;
   const p = gymPlan[+row.dataset.wd]; if(!p || !p.work) return;
   if(e.target.matches('[data-wfrom]')) p.work.from = e.target.value; else p.work.to = e.target.value; saveG('plan'); renderToday();
+  renderGymPlan();   // Refinements: the row may have been redrawn before this saved, so draw it again with the new work time
 });
+// Refinements: the time text follows the wheel while it turns (saving still happens on change, as before)
+$('gPlanV').addEventListener('input', e => { const sp = e.target.matches('.wptime input') && e.target.closest('.wptime'); if(sp) sp.firstElementChild.textContent = wpTime(e.target.value); });
 
 $('dBlocks').addEventListener('change', e => { if(e.target.id === 'dRemTime' && e.target.value){ setDay({ type: 'gym', time: e.target.value }); renderAll(); } });
 

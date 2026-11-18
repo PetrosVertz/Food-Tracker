@@ -343,8 +343,8 @@ $('gProgV').addEventListener('click', e => { const c = e.target.closest('[data-s
 $('dRec').addEventListener('click', e => { if(e.target.closest('[data-gorec]')){ ui.gtab = 'rec'; saveUI(); go('gym'); } });
 
 // Progress: folds; weight chart Day / Week / Month
-$('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if(!b) return; PG.open[b.dataset.pg] = !PG.open[b.dataset.pg]; renderProgress(); });
-$('gWeigh').addEventListener('click', e => { const b = e.target.closest('[data-wt]'); if(!b) return; ui.wtMode = b.dataset.wt; saveUI(); drawWeigh(); });
+$('gProgV').addEventListener('click', e => { const b = e.target.closest('[data-sbm]'); if(b) openSbm(b.dataset.sbm); });   // Refinements #7: a muscle row opens its bigger chart
+if('wtMode' in ui){ delete ui.wtMode; saveUI(); }   // Refinements #7: the Day / Week / Month choice is gone, the chart picks its own level
 
 // long press to reorder exercises (workout editor + live workout)
 makeSortable($('tpList'), '.tpcard', (a, b, out) => { ssMove(TP.exercises, a, b, out); drawTpl(); },

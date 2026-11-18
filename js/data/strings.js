@@ -355,13 +355,10 @@ Object.assign(S, {
 // ---------- 0.6.0 ----------
 Object.assign(S, {
   exDone: ['Done', 'Τέλος'], reopenEx: ['Reopen', 'Ξανά άνοιγμα'],
-  wtTitle: ['Body weight', 'Σωματικό βάρος'], wtChart: ['Body weight chart', 'Γράφημα σωματικού βάρους'], wt_day: ['Day', 'Μέρα'], wt_week: ['Week', 'Εβδομάδα'], wt_month: ['Month', 'Μήνας'],
+  wtTitle: ['Body weight', 'Σωματικό βάρος'], wtChart: ['Body weight chart', 'Γράφημα σωματικού βάρους'],
   wtSince: ['since {d}', 'από {d}'], wtNeed: ['Weigh in twice and your chart starts here.', 'Ζυγίσου δύο φορές και το γράφημα ξεκινά εδώ.'],
-  pgStrength: ['Strength by muscle', 'Δύναμη ανά μυ'], pgUpper: ['Upper body', 'Πάνω σώμα'], pgLower: ['Lower body', 'Κάτω σώμα'],
-  pgSets: ['~{n} sets a week', '~{n} σετ την εβδομάδα'], pgOnce: ['1 workout', '1 προπόνηση'], pgNoMonth: ['Nothing for this in the past month.', 'Τίποτα τον τελευταίο μήνα.'],
+  pgStrength: ['Strength by muscle', 'Δύναμη ανά μυ'],
   pgNone: ['Nothing trained here yet.', 'Δεν έχεις γυμνάσει κάτι εδώ ακόμα.'],
-  tipPgVol: ['The % is how much total weight you move per working set (weight × reps, warm-ups left out), compared with your first workout. Doing more sets doesn\'t inflate it; more weight or more reps does. Each exercise is compared only with itself, then a muscle averages its exercises. The grey line is your average sets per week over the last 4 weeks (half a set when the muscle only helps).',
-    'Το % δείχνει πόσο συνολικό βάρος κινείς ανά σετ εργασίας (κιλά × επαναλήψεις, χωρίς τα σετ προθέρμανσης), σε σχέση με την πρώτη σου προπόνηση. Τα περισσότερα σετ δεν το φουσκώνουν· τα περισσότερα κιλά ή επαναλήψεις ναι. Κάθε άσκηση συγκρίνεται μόνο με τον εαυτό της και μετά ο μυς βγάζει μέσο όρο. Η γκρι γραμμή είναι τα σετ ανά εβδομάδα τις τελευταίες 4 εβδομάδες (μισό σετ όταν ο μυς απλώς βοηθάει).'],
 });
 
 // ---------- 0.6.1 ----------
@@ -610,7 +607,7 @@ function titleCase(str){
   'uncooked', 'upper', 'useRecipe', 'useUpT', 'usuals', 'wArms', 'wBack', 'wCardio', 'wChest', 'wCore', 'wFull', 'wGlutes', 'wLegs', 'wLower',
   'wPull', 'wPush', 'wShoulders', 'wUpper', 'weighOne', 'whereKept', 'whole', 'wiSave', 'wiT', 'winEvening', 'winMidday', 'winMorning', 'winPost',
   'winPre', 'winWorkout', 'workoutAt', 'workoutName', 'workoutType', 'planMyDay', 'logFab', 'fridgeFab', 'addFoodFab',
-  'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'wt_day', 'wt_week', 'wt_month', 'pgStrength', 'pgUpper', 'pgLower', 'endEx', 'newSet', 'addYesterday',
+  'shopFab', 'exDone', 'reopenEx', 'wtTitle', 'pgStrength', 'endEx', 'newSet', 'addYesterday',
   'createWorkout', 'mealName', 'sgIngT', 'sgTimeT', 'cqT', 'cqGo', 'aiThinking', 'startWk', 'suMale', 'suFemale', 'suHeight', 'bkYes', 'yourBody',
   'recalcYes', 'recalcNo', 'tabSupps', 'scanFoodFab', 'scanReceipt', 'allFoods'
 ].forEach(k => { if(S[k]) S[k][0] = titleCase(S[k][0]); });
@@ -852,4 +849,16 @@ Object.assign(S, {   // Refinements #5 · Food Coach complex meals: one card (js
   mealWhy_portion: ['portion size', 'μέγεθος μερίδας'], mealWhy_oil: ['oil', 'λάδι'], mealWhy_sauce: ['sauces', 'σάλτσες'],
   mealRange: ['{s}: about {k} kcal', '{s}: περίπου {k} kcal'], mealGramsL: ['Grams of {n}', 'Γραμμάρια για {n}'],
   mealLogged: ['Added {n} · {k} kcal', 'Προστέθηκε: {n} · {k} kcal'],
+});
+Object.assign(S, {   // Refinements #7: the body weight chart picks its own level (Progress)
+  wtLvl_day: ['Daily', 'Ημερήσια'], wtLvl_week: ['Weekly Average', 'Μέσος Όρος Εβδομάδας'], wtLvl_month: ['Monthly Average', 'Μέσος Όρος Μήνα'],
+});
+Object.assign(S, {   // Refinements #7: Strength by Muscle rows with a trend line (Progress)
+  sbmNoData: ['Not Enough Data Yet', 'Δεν Υπάρχουν Ακόμα Αρκετά Δεδομένα'], sbmEst: ['Estimated Strength', 'Εκτιμώμενη Δύναμη'],
+  sbmFeeds: ['Exercises In This Line', 'Ασκήσεις Σε Αυτή Τη Γραμμή'],
+  sbmHow: ['From your estimated one rep max on each exercise, weighted by how much it works this muscle. The % is the change since your first reading. Green or red is the last two weeks; gray means no change, or no workout for this muscle in two weeks.',
+    'Από την εκτιμώμενη μέγιστη επανάληψη σε κάθε άσκηση, ανάλογα με το πόσο δουλεύει αυτόν τον μυ. Το % είναι η αλλαγή από την πρώτη μέτρηση. Πράσινο ή κόκκινο δείχνει τις δύο τελευταίες εβδομάδες· γκρι σημαίνει καμία αλλαγή ή καμία προπόνηση για αυτόν τον μυ σε δύο εβδομάδες.'],
+});
+Object.assign(S, {   // Refinements #7: Recovery tiles
+  recAllReady: ['All Muscles Ready', 'Όλοι Οι Μύες Έτοιμοι'], recHrs: ['h', 'ώρ.'],
 });
