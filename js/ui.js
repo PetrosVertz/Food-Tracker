@@ -388,7 +388,7 @@ function pillCarousel(el, { items, onPick, page }){
     return `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}${mid ? '' : ' tabindex="-1" aria-hidden="true"'}><b></b>${it.soon ? '<small></small>' : ''}</button>`; }).join('')}<i class="pcsp"></i></div>`;
   const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], itm = i => items[i % n];
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false;
+  let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false, hold = false;   // hold: this pill's own tap / swipe is picking, so set() must not jump the strip (the glide does the moving)
   // Petros: while the page under the pills is swiped, the pills turn with it like a wheel (the chosen label slides out of the highlight while
   // the next slides in). off = how far the strip is pushed past its scroll spot (transform only, never scrollLeft while the finger moves).
   let off = 0, offRaf = 0;
@@ -415,24 +415,27 @@ function pillCarousel(el, { items, onPick, page }){
     if(k !== near){ if(near !== -1 && !jumping) Phone.haptic(); near = k; }   // a light tick each time a new pill reaches the middle
   }
   function mark(i){ cur = i; btns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', String(j === i)); }); }
-  function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
+  function centre(i, smooth){ if(!step) return; const sm = smooth && !reduce(); gliding = sm; row.style.scrollSnapType = sm ? 'none' : ''; row.scrollTo({ left: i * step, behavior: sm ? 'smooth' : 'auto' }); if(!sm) frame(); }
   function wrap(){   // back to the same pill in the middle copy, without any visible change
     if(cur < 0 || (cur >= n && cur < 2 * n) || !step) return; const j = n + cur % n;
     jumping = true; near = j; mark(j); row.scrollLeft = j * step; frame(); setTimeout(() => { jumping = false; }, 60); }
   const fade = () => { if(page) carFade(page.views()); };
   function pick(i){ if(i < 0 || itm(i).soon) { centre(cur, true); return; }
-    if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ onPick(itm(i).key); fade(); } }
-  function settle(){ clearTimeout(settleT); jumping = gliding = false; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding) wrap(); }
+    if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } }
+  function settle(){ clearTimeout(settleT); jumping = gliding = false; row.style.scrollSnapType = ''; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding){ wrap(); trim(); } }
+  function trim(){   // the browser's snap reads the tilted pill's box and can stop a few px short: nudge the resting strip onto the exact spot
+    if(cur < 0 || !step || off || offRaf) return; const e = cur * step - row.scrollLeft;
+    if(Math.abs(e) > .5 && Math.abs(e) < step / 2){ row.style.scrollSnapType = 'none'; row.scrollLeft = cur * step; frame(); requestAnimationFrame(() => { row.style.scrollSnapType = ''; }); } }
   row.addEventListener('scroll', () => { if(!raf) raf = requestAnimationFrame(frame); clearTimeout(settleT); settleT = setTimeout(settle, 140); }, { passive: true });
   row.addEventListener('scrollend', () => { if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
   row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
     if(itm(i).soon){ Phone.haptic(); return; }
-    if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ onPick(itm(i).key); fade(); } centre(i, true); });
+    if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } centre(i, true); });
   function stepTo(dir){   // the next (1) or previous (-1) pill that can be chosen, round the loop; false if there is none
     if(cur < 0) return false; let i = cur;
     for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!itm(i).soon) break; }
     if(i % n === cur % n) return false;
-    const from = cur, pushed = off !== 0 || offRaf; mark(i); onPick(itm(i).key);
+    const from = cur, pushed = off !== 0 || offRaf; mark(i); hold = true; try{ onPick(itm(i).key); } finally{ hold = false; }
     if(!pushed){ centre(i, true); return true; }
     slideOff((i - from) * step, 240, () => { off = 0; jumping = true; near = i; row.scrollLeft = i * step; frame(); setTimeout(() => { jumping = false; wrap(); }, 60); });
     return true; }
@@ -442,6 +445,7 @@ function pillCarousel(el, { items, onPick, page }){
     set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
       const i = cur >= 0 && cur % n === k ? cur : n + k;   // keep the copy it is on (a tap's glide may still be on its way there)
       if(!measure()) { mark(i); return; }
+      if(hold){ if(i !== cur) mark(i); return; }
       if(i === cur && gliding) return;
       if(i !== cur) mark(i);
       if(Math.abs(row.scrollLeft - i * step) > 1){ jumping = true; near = i; centre(i, false); setTimeout(() => { jumping = false; }, 60); } else frame(); }
