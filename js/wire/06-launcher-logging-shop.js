@@ -56,7 +56,7 @@ $('shopOpts').addEventListener('click', e => {
   const b = e.target.closest('[data-shop]'); if(!b) return; const k = b.dataset.shop;
   if(k === 'search'){ close('ovShop'); openFridgeChooser(); return; }
   if(k === 'scan'){ close('ovShop'); startScan('fridge'); return; }
-  if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
+  if(!AI.hasKey()){ toast(t('needKeyFirst')); return; }
   $('shopFile').value = ''; $('shopFile').click();
 });
 
@@ -65,8 +65,8 @@ $('shopFile').addEventListener('change', () => { const file = $('shopFile').file
 
 // table photo: after a receipt (when unsure), from the scan menu, or from the review list
 $('tableFile').addEventListener('change', () => { const file = $('tableFile').files[0]; if(!file) return; close('ovTable'); close('ovShop'); shopTable(file); });
-$('tableTake').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
-$('shopTableBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
+$('tableTake').addEventListener('click', () => { if(!AI.hasKey()){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
+$('shopTableBtn').addEventListener('click', () => { if(!AI.hasKey()){ toast(t('needKeyFirst')); return; } $('tableFile').value = ''; $('tableFile').click(); });
 
 // the review list: tick, change the food, pack size, the count wheel, Add all
 $('shopList').addEventListener('click', e => {

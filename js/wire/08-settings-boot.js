@@ -1,7 +1,29 @@
 // Wiring that runs at start-up, in order: state, event listeners, first render.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-$('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
+// Settings › AI › AI Provider: Gemini (default, the user's free key), Claude, OpenAI, OpenRouter (ai-provider.js adapters). Each keeps its own key and models:
+// Gemini in settings.geminiKey / model / modelAdvanced (unchanged, so an upgrade needs nothing), the others in settings.aiKeys[id] / aiModels[id].
+// Tapping a provider only shows its fields (typed values are kept per provider while the page is open); Save Settings stores them in that
+// provider's slot and makes it the one in use (settings.provider). Nothing ever switches by itself and no request goes to a provider that is not in use.
+const PROV_URL = { gemini: KEY_URL, anthropic: 'https://console.anthropic.com/settings/keys', openai: 'https://platform.openai.com/api-keys', openrouter: 'https://openrouter.ai/keys' };
+let SPROV = 'gemini', PDRAFT = {};
+const PROV_T = { gemini: 'provGemini', anthropic: 'provAnthropic', openai: 'provOpenai', openrouter: 'provOpenrouter' }, provName = id => t(PROV_T[id] || 'provGemini');
+const provSaved = id => id === 'gemini' ? { key: settings.geminiKey || '', model: settings.model || '', adv: settings.modelAdvanced || '' }
+  : { key: (settings.aiKeys || {})[id] || '', model: ((settings.aiModels || {})[id] || {}).default || '', adv: ((settings.aiModels || {})[id] || {}).advanced || '' };
+const provKeep = () => { PDRAFT[SPROV] = { key: $('sKey').value.trim(), model: $('sModel').value.trim(), adv: $('sModelAdv').value.trim() }; };
+// id: the provider to show (null = the one in use); fresh: forget typed drafts (the page was just opened)
+function drawAiProv(id, fresh){ if(fresh) PDRAFT = {}; const reg = AIProvider.registry, use = AIProvider.active();
+  SPROV = reg[id] ? id : use.id; const p = reg[SPROV], v = PDRAFT[SPROV] || provSaved(SPROV), nm = provName(SPROV);
+  setSeg('#sProv', SPROV); $('sProv').querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === SPROV)));
+  $('sKeyL').textContent = t('aiKeyFor', { p: nm }); $('sModelL').textContent = t('aiModelFor', { p: nm });
+  $('sKey').value = v.key; $('sModel').value = v.model; $('sModelAdv').value = v.adv;
+  $('sModel').placeholder = (p.models && p.models.default) || ''; $('sModelAdv').placeholder = (p.models && p.models.advanced) || t('aiModelAdvPh');
+  $('sGemOnly').classList.toggle('hide', SPROV !== 'gemini');
+  const unm = provName(use.id);
+  $('sProvNote').textContent = [SPROV === use.id ? t('aiProvInUse', { p: nm }) : t('aiProvSaveToUse', { p: nm, q: unm }), SPROV !== 'gemini' ? t('aiProvPaid', { p: nm }) : '', p.capabilities && !p.capabilities.search ? t('aiProvNoSearch') : ''].filter(Boolean).join(' ');
+  status($('keyStatus'), ''); $('keyStatus').style.color = ''; }
+$('sProv').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b || b.dataset.v === SPROV) return; Phone.haptic(); provKeep(); drawAiProv(b.dataset.v); });
+$('getKey').addEventListener('click', () => Phone.openUrl(PROV_URL[SPROV] || KEY_URL));
 
 $('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); if(typeof GymIntel !== 'undefined') GymIntel.forget(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
 // Athlete OS: what you told the coaches (AthleteMemory), each with when it ends and a delete button; Copy gives you all of it as text
@@ -19,7 +41,12 @@ function drawPersona(){ if(typeof Persona === 'undefined') return; const p = Per
 $('perCustom').addEventListener('change', e => { const v = e.target.value; if(Persona.set({ custom: v })) toast(t('perSaved')); e.target.value = Persona.prefs().custom; });
 $('aiMemCopy').addEventListener('click', async () => { Phone.haptic(); await Phone.copy(AthleteMemory.exportAll()); toast(t('memCopied')); });
 $('aiuReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiuAsk'), t('aiuYes')))) return; AIUsage.reset(); AIUsage.draw(); toast(t('aiuDone')); });   // Athlete OS step 1: Settings › AI › Usage
-$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });
+$('saveSettings').addEventListener('click', () => { const key = $('sKey').value.trim(), model = $('sModel').value.trim(), adv = $('sModelAdv').value.trim();
+  if(SPROV === 'gemini'){ if(key !== settings.geminiKey) Store.save('models', null); settings.geminiKey = key; settings.model = model || DEFAULT_MODEL; if(adv) settings.modelAdvanced = adv; else delete settings.modelAdvanced; }
+  else { settings.aiKeys = { ...(settings.aiKeys || {}), [SPROV]: key }; const m = { ...(model ? { default: model } : {}), ...(adv ? { advanced: adv } : {}) };
+    settings.aiModels = { ...(settings.aiModels || {}) }; if(Object.keys(m).length) settings.aiModels[SPROV] = m; else delete settings.aiModels[SPROV]; }
+  settings.provider = SPROV; delete PDRAFT[SPROV];
+  if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); drawAiProv(SPROV); });
 
 document.querySelectorAll('#sLang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.v)));
 

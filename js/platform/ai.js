@@ -213,14 +213,21 @@ const AI = (() => {
   // Food Coach 2.0: an AI failure in plain words for the chat (never the provider's own text, HTTP codes or model names)
   function friendly(err){
     const k = err && err.kind;
+    if(k === 'unsupported' && (err.nosearch || err.nophoto)) return err.message;   // already says what the picked provider can't do and where to change it
+    if(err && err.nokey) return t('aiErrNoKey');
+    if(err && err.nomodel) return t('aiErrModel');
     return t(err && err.nokey ? 'aiErrKey' : k === 'auth' ? 'aiErrKey' : k === 'rate' ? 'aiErrLimit' : k === 'network' ? 'aiErrOffline' : k === 'timeout' || k === 'overloaded' ? 'aiErrBusy' : 'aiErrOther');
   }
+  // can the picked provider do this kind of job? 'vision' (photos) · 'search' (web look-ups) · 'json'
+  const can = cap => { const p = AIProvider.active(); return !!(p.capabilities || {})[cap]; };
 
-  // Settings → Test key: how many Gemini models this key can use (saves the key if it works)
-  async function testKey(k){
-    const n = await AIProvider.active().testKey(k);
-    if(k !== settings.geminiKey){ settings.geminiKey = k; Store.save('settings', settings); Store.save('models', null); aiGate(); }
-    return n;
+  // Settings › AI › Test Key: tests the key of provider `id` (default: the one in use) and, when it works, keeps it in THAT provider's own slot
+  // (Gemini: settings.geminiKey, the others: settings.aiKeys[id]). It never changes which provider is in use.
+  async function testKey(k, id){
+    const p = AIProvider.registry[id] || AIProvider.active(), n = await p.testKey(k);
+    if(p.id === 'gemini'){ if(k !== settings.geminiKey){ settings.geminiKey = k; Store.save('settings', settings); Store.save('models', null); } }
+    else if(((settings.aiKeys || {})[p.id] || '') !== k){ settings.aiKeys = { ...(settings.aiKeys || {}), [p.id]: k }; Store.save('settings', settings); }
+    aiGate(); return n;
   }
 
   // 0.7.9.2 the one "thinking" sign for every AI wait: three dots, one hops up and lands, then the next, then the next, a short rest, repeat
@@ -233,7 +240,7 @@ const AI = (() => {
   return {
     dots, untail, wait,
     areaSync,
-    ask, dietRules, knows, friendly, voice, words, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
+    ask, dietRules, knows, friendly, voice, words, can, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

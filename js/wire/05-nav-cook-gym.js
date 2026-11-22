@@ -65,7 +65,7 @@ $('sgGo').addEventListener('click', async () => {
   if(sgCtl){ sgCtl.abort(); return; }
   const dish = $('sgIn').value.trim() || $('cName').value.trim();
   if(!SG.sel.size && !dish){ toast(t('sgPick')); return; }
-  if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
+  if(!AI.hasKey()){ toast(t('needKey')); openSettings(); return; }
   const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.innerHTML = AI.dots(t('thinking'));
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{

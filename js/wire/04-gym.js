@@ -271,7 +271,7 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 setInterval(checkAbandoned, 15000);
 
 
-$('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
+$('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(AI.hasKey() && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
 // Refinements: the Gym Buddy sections are a rotating pill carousel (pillCarousel in ui.js). (Partner, a Coming Soon pill with no screen, was removed.)
 const GYM_CAR = pillCarousel($('gTabs'), {

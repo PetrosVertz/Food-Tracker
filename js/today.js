@@ -430,7 +430,7 @@ async function saveQuick(){
     done({ id: uid(), time, kind: info.meal ? 'meal' : 'food', refId: info.meal ? info.meal.id : info.food.id, name: info.name, icon: info.icon, amt, unit: info.unit, ...m }, `${info.name} · ${fmtSize(amt, info.unit)}`);
     return;
   }
-  if(!settings.geminiKey){ $('qaOut').textContent = t('qaNoKey'); return; }
+  if(!AI.hasKey()){ $('qaOut').textContent = t('qaNoKey'); return; }
   const btn = $('qaSave'); QAbusy = new AbortController(); btn.textContent = t('qaThinking'); $('qaOut').textContent = '';
   try{
     const r = await gemini(`Estimate the nutrition of ONE ${size < 1 ? 'small' : size > 1 ? 'large' : 'normal, typical restaurant/home'} portion of this food or dish, as eaten in Greece: "${q}".
@@ -821,7 +821,7 @@ function logQStated(it){
 // a branded food the app could not find itself: one web lookup for the card, in the background; it replaces the estimate only if you haven't touched that row
 async function logQWeb(m, ch){
   const list = m.items.filter(it => it.brand && (it.src === 'est' || it.src === 'none') && !it.touched);
-  if(!list.length || !(await logQAIOk(2))) return;
+  if(!list.length || !AI.can('search') || !(await logQAIOk(2))) return;   // no web look-ups on this provider: the estimate stays (no request)
   list.forEach(it => { it.chk = true; }); logQRedraw(m);
   try{
     const r = await ch.ask(`Find these branded foods online and read their nutrition per 100 g (or 100 ml) as sold. Use THAT exact product (the brand's site, a supermarket listing or Open Food Facts); if you can't find that exact product, "found": false — never a similar product. Carbs as on EU labels (fibre not included).

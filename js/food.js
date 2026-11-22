@@ -449,7 +449,7 @@ function parseIngLine(line){
 async function foodsQuickRecipe(){
   const txt = $('foodsQrIn').value.trim(); if(!txt){ $('foodsQrIn').focus(); return; }
   let r = null;
-  if(settings.geminiKey){
+  if(AI.hasKey()){
     try{ const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
       r = await gemini(`Turn this home recipe into structured data. Write names in ${lang === 'el' ? 'Greek' : 'English'}. Text: """${txt}"""
 Return ONLY JSON: {"title":string,"servings":number,"ingredients":[{"name":string,"name_en":string,"grams":number}],"steps":[string]}
@@ -457,7 +457,7 @@ Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to g
 Foods the user already has (use these names when they fit): ${have || 'none listed'}`, null, null, null, { robot: 'chef' }); }
     catch(err){ if(err.cancelled) return; toast(t('cqFail')); r = null; }
   }
-  if(!r || !Array.isArray(r.ingredients) || !r.ingredients.length){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(settings.geminiKey ? 'cqFail' : 'cqNoKey')); return; } }
+  if(!r || !Array.isArray(r.ingredients) || !r.ingredients.length){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(AI.hasKey() ? 'cqFail' : 'cqNoKey')); return; } }
   if(!Array.isArray(r.steps)) r.steps = [];
   close('ovQRec'); openCook(null, 'new');
   if(r.title) $('cName').value = r.title;

@@ -670,7 +670,7 @@ function open(id){
 
 // ======================= settings + data =======================
 // 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
-function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
+function fillSettings(){ if(typeof drawAiProv === 'function') drawAiProv(null, true); setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); if(typeof drawAiMem === 'function') drawAiMem(); if(typeof drawPersona === 'function') drawPersona(); fillTargets(); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;

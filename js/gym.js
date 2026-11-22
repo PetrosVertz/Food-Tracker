@@ -371,7 +371,7 @@ function hitsFrom(list, includeUndone){
 function openNext(){
   const list = nextSuggestions();
   $('nxBody').innerHTML = (list.length ? list.map(x => `<div class="nxrow"><b>${esc(ML(x.h))}</b> <small class="rmeta">${t('nxWhy', { a: Math.round(x.s * 10) / 10, b: Math.round(x.w * 10) / 10 })}</small>${exTiles(x.ex, x.h)}</div>`).join('') : `<p class="hint">${t('nxNone')}</p>`) +
-    (settings.geminiKey ? `<div class="actions"><button class="btn" id="nxAI">${t('nxAI')} ${AI.badge()}</button></div><div id="nxAIOut"></div>` : `<p class="hint">${t('nxNoKey')}</p>`);
+    (AI.hasKey() ? `<div class="actions"><button class="btn" id="nxAI">${t('nxAI')} ${AI.badge()}</button></div><div id="nxAIOut"></div>` : `<p class="hint">${t('nxNoKey')}</p>`);
   open('ovNext');
 }
 
@@ -1137,7 +1137,7 @@ function renderGym(){
 // No sentence (no key, offline, slow, failed): no card at all, the summary looks complete without it.
 const REC_AI = {}, REC_SLOW = 25000;   // workout id → the call in flight; after REC_SLOW the card goes away (a late answer is still saved)
 function startRecLine(ses){
-  if(!settings.geminiKey || ses.recovTried || ses.recovAI || navigator.onLine === false || !Object.keys(ses.recovEst || {}).length) return;
+  if(!AI.hasKey() || ses.recovTried || ses.recovAI || navigator.onLine === false || !Object.keys(ses.recovEst || {}).length) return;
   ses.recovTried = 1; saveG('ses');
   const p = aiRecovery(ses).then(res => { if(!res) return null; const s = sessions.find(x => x.id === ses.id) || ses;
       if(res.note){ s.recovAI = true; s.recovNote = res.note; saveG('ses'); renderAll(); } return res.note || null; })   // RECOVERY+: the AI explains; its hours are never saved over the estimate

@@ -170,7 +170,7 @@ $('lookupBtn').addEventListener('click', async () => {
 $('manualCode').addEventListener('keydown', e => { if(e.key === 'Enter') $('lookupBtn').click(); });
 
 $('optPhoto').addEventListener('click', () => {
-  if(!settings.geminiKey){ status($('addStatus'), t('needKey'), true); return; }
+  if(!AI.hasKey()){ status($('addStatus'), t('needKey'), true); return; }
   $('photoInput').value = ''; $('photoInput').click();
 });
 
@@ -278,7 +278,7 @@ $('suggestBtn').addEventListener('click', async () => {
   if(recCtl){ recCtl.abort(); return; }   // second tap = cancel
   const name = $('cName').value.trim();
   if(!name){ toast(t('suggestNeedName')); $('cName').focus(); return; }
-  if(!settings.geminiKey){ $('suggestHint').textContent = t('needKey'); $('suggestHint').classList.add('warn'); return; }
+  if(!AI.hasKey()){ $('suggestHint').textContent = t('needKey'); $('suggestHint').classList.add('warn'); return; }
   $('suggestHint').classList.remove('warn'); $('suggestHint').textContent = t('suggestHint');
   const btn = $('suggestBtn'); btn.innerHTML = AI.dots(t('thinking')); recCtl = new AbortController(); const ctl = recCtl;
   const onTry = (i, n) => { if(recCtl === ctl) btn.textContent = t('cancelRec', { i, n }); };
@@ -400,7 +400,7 @@ $('cantScanBtn').addEventListener('click', () => { const c = $('cantScan'), op =
 $('fAdvSw').addEventListener('change', () => $('fAdv').classList.toggle('hide', !$('fAdvSw').checked));
 
 // scanner: a photo of the whole item (the AI recognises it and fills in typical values)
-$('scanItemBtn').addEventListener('click', () => { if(!settings.geminiKey){ toast(t('needKeyFirst')); return; } $('itemPhoto').value = ''; $('itemPhoto').click(); });
+$('scanItemBtn').addEventListener('click', () => { if(!AI.hasKey()){ toast(t('needKeyFirst')); return; } $('itemPhoto').value = ''; $('itemPhoto').click(); });
 $('itemPhoto').addEventListener('change', async () => {
   const file = $('itemPhoto').files[0]; if(!file) return; const ctx = scanCtx;
   try{

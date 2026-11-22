@@ -28,7 +28,7 @@ const S = {
  alreadyHave:['Already in your foods','Υπάρχει ήδη στα τρόφιμά σου'],
  notInOFF:['not in Open Food Facts','δεν υπάρχει στο Open Food Facts'], noMacros:['found, but with no macros','βρέθηκε, αλλά χωρίς μακροθρεπτικά'], lookupFail:['lookup failed (no internet?)','η αναζήτηση απέτυχε (χωρίς ίντερνετ;)'],
  notFoundMsg:['Barcode {c}: {why}. Snap the nutrition label or type it in, and the barcode will be saved with it.','Barcode {c}: {why}. Φωτογράφισε την ετικέτα ή πληκτρολόγησέ το, και το barcode θα αποθηκευτεί μαζί.'],
- needKey:['Add your free Gemini key in Settings first, or type the label in.','Βάλε πρώτα το δωρεάν κλειδί Gemini στις Ρυθμίσεις, ή πληκτρολόγησε την ετικέτα.'],
+ needKey:['Add an AI key in Settings › AI first, or type the label in.','Βάλε πρώτα ένα κλειδί AI στις Ρυθμίσεις › AI, ή πληκτρολόγησε την ετικέτα.'],
  readingLabel:['Reading the label…','Διαβάζω την ετικέτα…'], labelFail:['Couldn’t read it: {e}. Try a sharper, straight-on photo, or type it in.','Δεν διαβάστηκε: {e}. Δοκίμασε πιο καθαρή φωτογραφία ή πληκτρολόγησέ το.'],
  newFood:['New food','Νέο τρόφιμο'], editFood:['Edit food','Επεξεργασία τροφίμου'],
  checkLabel:['Check the numbers against the label, then save.','Έλεγξε τους αριθμούς με την ετικέτα και αποθήκευσε.'], changeAny:['Change anything, then save.','Άλλαξε ό,τι θέλεις και αποθήκευσε.'],
@@ -122,7 +122,7 @@ const S = {
  // v1.4
  cancelled:['Cancelled','Ακυρώθηκε'], timedOut:['took too long','άργησε πολύ'],
  allBusy:['Every Gemini model is busy or out of free uses right now ({e}). Try again later, or use “Add my own recipe”.','Όλα τα μοντέλα Gemini είναι απασχολημένα ή τελείωσαν οι δωρεάν χρήσεις ({e}). Δοκίμασε αργότερα ή χρησιμοποίησε «Δική μου συνταγή».'],
- keyBad:['Google rejected the key: {e}. Check it in settings.','Η Google απέρριψε το κλειδί: {e}. Έλεγξέ το στις ρυθμίσεις.'],
+ keyBad:['The AI key was not accepted ({e}). Check it in Settings › AI.','Το κλειδί AI δεν έγινε δεκτό ({e}). Έλεγξέ το στις Ρυθμίσεις › AI.'],
  ownRecipe:['Add My Own Recipe','Δική μου συνταγή'], ownRecipeT:['Add my own recipe','Δική μου συνταγή'],
  ownRecipeSub:['Type it or paste it from anywhere (Claude, ChatGPT, a website). Amounts like “500 g mince” or “2 tbsp olive oil” are read automatically, no AI needed.','Γράψε ή επικόλλησέ τη από οπουδήποτε (Claude, ChatGPT, κάποιο site). Ποσότητες όπως «500 γρ. κιμάς» ή «2 κ.σ. ελαιόλαδο» διαβάζονται αυτόματα, χωρίς AI.'],
  ownPh:['Chicken in the pan\n\nIngredients\n600 g chicken breast\n1 onion\n2 tbsp olive oil\n\nSteps\n1. Cut the chicken into strips…','Κοτόπουλο στο τηγάνι\n\nΥλικά\n600 γρ. κοτόπουλο στήθος\n1 κρεμμύδι\n2 κ.σ. ελαιόλαδο\n\nΕκτέλεση\n1. Κόψε το κοτόπουλο σε λωρίδες…'],
@@ -255,7 +255,7 @@ Object.assign(S, {
  howTo:['How to do it','Πώς γίνεται'], mistakesT:['Common mistakes','Συνηθισμένα λάθη'], bestW:['Heaviest','Πιο βαρύ'], bestV:['Best volume','Καλύτερος όγκος'], addThis:['Add exercise','Προσθήκη'],
  whatNext:['What Next?','Τι μετά;'], nxT:['What next?','Τι μετά;'], nxSub:['Muscles you haven’t hit yet, based on this session and your week.','Μύες που δεν έχεις δουλέψει ακόμα, με βάση αυτή την προπόνηση και την εβδομάδα.'],
  nxWhy:['{a} sets today · {b} this week','{a} σετ σήμερα · {b} αυτή την εβδομάδα'], nxNone:['You’ve covered everything for this workout. Nice.','Τα κάλυψες όλα για αυτή την προπόνηση. Ωραία.'],
- nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
+ nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add an AI key in Settings › AI for smarter AI picks.','Βάλε κλειδί AI στις Ρυθμίσεις › AI για πιο έξυπνες προτάσεις AI.'],
  recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'],
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
  recRestDay:['Rest day: {m} still recovering. Good call resting.','Μέρα ξεκούρασης: {m} ακόμα αναρρώνουν. Καλά κάνεις και ξεκουράζεσαι.'],
@@ -303,7 +303,7 @@ Object.assign(S, {
   shopT:['Add shopping','Πρόσθεσε ψώνια'], shopSub:['Everything goes into the fridge. Pick the quickest way.','Όλα μπαίνουν στο ψυγείο. Διάλεξε τον πιο γρήγορο τρόπο.'],
   shopScan:['Scan Barcodes','Σάρωση barcode'], shopScanSub:['One by one, exact products','Ένα ένα, ακριβή προϊόντα'], shopSearch:['Search and Add','Αναζήτηση και προσθήκη'], shopSearchSub:['Type a food','Γράψε ένα τρόφιμο'],
   shopAdded:['Added {n} items to the fridge','Μπήκαν {n} προϊόντα στο ψυγείο'], shopNone:['Couldn\'t find any food in the photo.','Δεν βρήκα φαγητά στη φωτογραφία.'], shopFail:['Couldn\'t read it: {e}','Δεν διαβάστηκε: {e}'], shopPick:['tap to pick a food','πάτα για να διαλέξεις'], shopNew:['new','νέο'],
-  scanNext:['Scan next','Επόμενο'], needKeyFirst:['This needs a free Gemini key (settings).','Χρειάζεται δωρεάν κλειδί Gemini (ρυθμίσεις).'],
+  scanNext:['Scan next','Επόμενο'], needKeyFirst:['This needs an AI key (Settings › AI).','Χρειάζεται κλειδί AI (Ρυθμίσεις › AI).'],
   formBtn:['Form','Τεχνική'], formT:['Correct Form','Σωστή τεχνική'], lwUsual:['Log usual amount','Καταγραφή της συνηθισμένης ποσότητας'], lwHour:['Usually at this time','Συνήθως αυτή την ώρα'], lwResults:['Results','Αποτελέσματα'], lwAmount:['Amount','Ποσότητα'], lwFill:['Fill My Macros','Γέμισε τα μακρο'], lwTitle:['Log Food','Καταγραφή'], themeT:['Theme','Θέμα'], thAppearance:['Appearance','Εμφάνιση'], thDark:['Dark','Σκούρο'], thLight:['Light','Ανοιχτό'], thAuto:['Automatic','Αυτόματο'], thColour:['Colour','Χρώμα'], thPreview:['Preview','Προεπισκόπηση'], thAutoNote:['Follows your iPhone','Ακολουθεί το iPhone σου'], thLightNote:['Light uses a soft grey, not pure white','Το ανοιχτό είναι απαλό γκρι, όχι κάτασπρο'], formPct:['Percentages','Ποσοστά'], formNext:['Not this one ›','Δεν είναι αυτό ›'], formLoading:['Loading the demo…','Φορτώνει η επίδειξη…'],
   formFail:['Couldn\'t load the demo (needs internet).','Δεν φόρτωσε η επίδειξη (θέλει ίντερνετ).'], formCredit:['Photos: free-exercise-db (public domain).','Φωτογραφίες: free-exercise-db (ελεύθερες).'], formNone:['No demo found for this one.','Δεν βρέθηκε επίδειξη γι\' αυτό.'],
   setsL:['Sets','Σετ'], restL:['Rest','Διάλειμμα'], typeChange:['Change','Αλλαγή'], otherWorkout:['Or Pick Another Workout','Ή διάλεξε άλλη προπόνηση'], tapNum:['Tap the set number for warm-up / drop / failure','Πάτα τον αριθμό του σετ για ζέσταμα / drop / αποτυχία'],
@@ -341,7 +341,7 @@ Object.assign(S, {
   qaPh: ['e.g. souvlaki pita, pasta bolognese', 'π.χ. πίτα σουβλάκι, μακαρονάδα με κιμά'],
   qaSmall: ['Small', 'Μικρή'], qaNormal: ['Normal', 'Κανονική'], qaBig: ['Big', 'Μεγάλη'], qaLog: ['Log it', 'Καταγραφή'],
   qaNeedTxt: ['Type what you ate', 'Γράψε τι έφαγες'], qaLogged: ['Logged {n} · {k} kcal', 'Καταγράφηκε {n} · {k} kcal'],
-  qaNoKey: ['Not in the built-in foods. Mixed dishes need the free Gemini key (settings), or search for it instead.', 'Δεν υπάρχει στα έτοιμα τρόφιμα. Τα σύνθετα φαγητά θέλουν το δωρεάν κλειδί Gemini (ρυθμίσεις), ή κάνε αναζήτηση.'],
+  qaNoKey: ['Not in the built-in foods. Mixed dishes need an AI key (Settings › AI), or search for it instead.', 'Δεν υπάρχει στα έτοιμα τρόφιμα. Τα σύνθετα φαγητά θέλουν κλειδί AI (Ρυθμίσεις › AI), ή κάνε αναζήτηση.'],
   qaThinking: ['Estimating…', 'Υπολογίζω…'], qaFail: ['Couldn\'t estimate it. Try other words, or search for it.', 'Δεν βγήκε εκτίμηση. Δοκίμασε άλλες λέξεις ή κάνε αναζήτηση.'],
   calcFrom: ['Calculate uses your latest weigh-in ({w} kg) and your goal.', 'Ο υπολογισμός χρησιμοποιεί το τελευταίο σου ζύγισμα ({w} kg) και τον στόχο σου.'],
   calcNeedW: ['Add your weight in Gym → Progress first.', 'Βάλε πρώτα το βάρος σου στο Γυμναστήριο → Πρόοδος.'],
@@ -374,7 +374,7 @@ Object.assign(S, {
   sgQuick: ['Quick ≤20 min', 'Γρήγορο ≤20′'], sgMid: ['20–60 min', '20–60′'], sgLong: ['60+ min', '60+′'], sgAdult: ['One normal adult portion per serving.', 'Μία κανονική μερίδα ενήλικα ανά μερίδα.'],
   cWeighLink: ['Weighed the Cooked Food? (Optional)', 'Ζύγισες το μαγειρεμένο φαγητό; (προαιρετικό)'],
   cqDone: ['Added {n} ingredients. Check the amounts.', 'Μπήκαν {n} υλικά. Έλεγξε τις ποσότητες.'],
-  cqFail: ["Couldn't read it. Try listing each ingredient with an amount.", 'Δεν διαβάστηκε. Γράψε κάθε υλικό με ποσότητα.'], cqNoKey: ['Write each ingredient with grams, or add a free Gemini key (settings) for the AI.', 'Γράψε κάθε υλικό με γραμμάρια, ή βάλε δωρεάν κλειδί Gemini (ρυθμίσεις) για το AI.'],
+  cqFail: ["Couldn't read it. Try listing each ingredient with an amount.", 'Δεν διαβάστηκε. Γράψε κάθε υλικό με ποσότητα.'], cqNoKey: ['Write each ingredient with grams, or add an AI key (Settings › AI) for the AI.', 'Γράψε κάθε υλικό με γραμμάρια, ή βάλε κλειδί AI (Ρυθμίσεις › AI) για το AI.'],
 });
 
 // ---------- 0.6.2 ----------
@@ -910,7 +910,7 @@ Object.assign(S, {   // ==== branch: gym — Gym Coach intelligence (js/gym-inte
 });
 Object.assign(S, {   // Food Coach 2.0: plain-words AI errors (every coach), offline answers, corrections and quick answers
   aiErrKey: ['The AI key isn’t working. Check it in Settings › AI.', 'Το κλειδί AI δεν λειτουργεί. Έλεγξέ το στις Ρυθμίσεις › AI.'],
-  aiErrLimit: ['The free AI limit is used up for now. Try again a little later.', 'Το δωρεάν όριο AI εξαντλήθηκε προς το παρόν. Δοκίμασε ξανά λίγο αργότερα.'],
+  aiErrLimit: ['The AI limit for this key is used up for now. Try again a little later.', 'Το όριο AI για αυτό το κλειδί εξαντλήθηκε προς το παρόν. Δοκίμασε ξανά λίγο αργότερα.'],
   aiErrOffline: ['No connection right now. Try again when you’re back online.', 'Δεν υπάρχει σύνδεση αυτή τη στιγμή. Δοκίμασε ξανά όταν συνδεθείς.'],
   aiErrBusy: ['The AI is busy right now. Try again in a moment.', 'Το AI είναι απασχολημένο τώρα. Δοκίμασε ξανά σε λίγο.'],
   aiErrOther: ['Something went wrong on the AI side. Try again in a moment.', 'Κάτι πήγε στραβά με το AI. Δοκίμασε ξανά σε λίγο.'],
@@ -1110,4 +1110,18 @@ Object.assign(S, {   // ==== Exercise Picker V27 (js/expick.js) + Create Custom 
   cxBadCode: ['This isn’t a valid exercise code.', 'Αυτός δεν είναι έγκυρος κωδικός άσκησης.'],
   cxImported: ['{n} imported', 'Εισήχθη: {n}'], cxHaveIt: ['You already have {n}', 'Έχεις ήδη: {n}'],
   wqTooBig: ['This workout is too big for one QR code. Remove a few exercises and try again.', 'Αυτή η προπόνηση είναι πολύ μεγάλη για ένα QR. Αφαίρεσε μερικές ασκήσεις και δοκίμασε ξανά.'],
+});
+
+Object.assign(S, {   // Settings › AI › AI Provider (wire/08 drawAiProv): each provider keeps its own key and models
+  aiProvT: ['AI Provider', 'Πάροχος AI'], provGemini: ['Gemini', 'Gemini'], provAnthropic: ['Claude', 'Claude'], provOpenai: ['OpenAI', 'OpenAI'], provOpenrouter: ['OpenRouter', 'OpenRouter'],
+  aiKeyFor: ['{p} API Key', 'Κλειδί API {p}'], aiModelFor: ['{p} Model', 'Μοντέλο {p}'],
+  aiModelAdv: ['Model for Hard Jobs (Optional)', 'Μοντέλο για Δύσκολες Δουλειές (Προαιρετικό)'], aiModelAdvPh: ['The strongest your key allows', 'Το πιο δυνατό που επιτρέπει το κλειδί σου'],
+  aiProvInUse: ['{p} is in use.', 'Σε χρήση: {p}.'], aiProvSaveToUse: ['Tap Save Settings to use {p}. Until then {q} stays in use.', 'Πάτησε Αποθήκευση ρυθμίσεων για να χρησιμοποιηθεί το {p}. Μέχρι τότε μένει σε χρήση το {q}.'],
+  aiProvPaid: ['{p} charges your own account for each request. The key stays on this phone and is never put in backups.', 'Το {p} χρεώνει τον δικό σου λογαριασμό για κάθε αίτημα. Το κλειδί μένει σε αυτό το τηλέφωνο και δεν μπαίνει ποτέ σε αντίγραφα ασφαλείας.'],
+  aiProvNoSearch: ['Web look-ups (Check My Foods, branded foods, unknown barcodes) need Gemini; everything else works.', 'Οι αναζητήσεις στο διαδίκτυο (Έλεγχος τροφίμων, επώνυμα τρόφιμα, άγνωστα barcode) θέλουν Gemini· όλα τα άλλα δουλεύουν.'],
+  aiErrNoSearch: ['{p} can’t look things up on the web here. Choose Gemini in Settings › AI for this.', 'Το {p} δεν μπορεί να ψάξει στο διαδίκτυο εδώ. Διάλεξε Gemini στις Ρυθμίσεις › AI για αυτό.'],
+  aiErrNoPhoto: ['{p} can’t read photos here. Choose another provider in Settings › AI for this.', 'Το {p} δεν μπορεί να διαβάσει φωτογραφίες εδώ. Διάλεξε άλλον πάροχο στις Ρυθμίσεις › AI για αυτό.'],
+  keyOk1: ['Key works.', 'Το κλειδί δουλεύει.'],
+  aiErrNoKey: ['This needs an AI key. Add one in Settings › AI.', 'Χρειάζεται κλειδί AI. Πρόσθεσέ το στις Ρυθμίσεις › AI.'],
+  aiErrModel: ['That AI model isn’t available for this key. Check the model name in Settings › AI, or leave it empty for the default.', 'Αυτό το μοντέλο AI δεν είναι διαθέσιμο για αυτό το κλειδί. Έλεγξε το όνομα στις Ρυθμίσεις › AI, ή άφησέ το κενό για το προεπιλεγμένο.'],
 });
