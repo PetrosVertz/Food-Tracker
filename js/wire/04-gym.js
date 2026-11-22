@@ -417,3 +417,9 @@ $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-r
 $('rkSearch').addEventListener('input', drawRankPick); $('rkReset').addEventListener('click', resetRankPick);
 $('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });
+
+// RECOVERY+ page: the Advanced switch (device setting ui.recAdv) and the food / sleep data switches (settings.recNoFood / recNoSleep: off = not read, not shared)
+$('gRecV').addEventListener('click', e => {
+  if(e.target.closest('#recAdvSw')){ ui.recAdv = !ui.recAdv; saveUI(); Phone.haptic(); renderRecovery(); return; }
+  const o = e.target.closest('[data-recopt]'); if(o){ settings[o.dataset.recopt] = !settings[o.dataset.recopt]; Store.save('settings', settings); RecoveryPlus.invalidate(); Phone.haptic(); renderRecovery(); }
+});

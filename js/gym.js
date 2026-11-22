@@ -374,43 +374,18 @@ function celebrate(){
   Phone.vibrate([40, 30, 60]);
 }
 
-// ---------- recovery model: hard sets per muscle × time since, with your soreness on top ----------
-// Each done set adds load to its muscles by the exercise's muscle %, weighted for effort:
-// failure ×1.35, drop set ×1.2, heavy (≤5 reps) ×1.1, very light (≥20 reps) ×0.85, lowering-heavy moves (hinge/squat/lunge) ×1.2.
-const ECC_PAT = /hinge|squat|lunge|rdl|split|nordic|bulgarian/i;
-function headLoads(ses){
-  const per = {};
-  (ses.exercises || []).forEach(x => { const ex = exById(x.exId); if(!ex || !ex.mu) return; const ecc = ECC_PAT.test((ex.p || '') + ' ' + ex.id) ? 1.2 : 1;
-    x.sets.filter(z => z.done && z.type !== 'W').forEach(z => { const reps = +z.r || 0, rf = reps >= 20 ? .85 : reps > 0 && reps <= 5 ? 1.1 : 1;
-      // 0.7.9.1: background extras make a set harder: reps in reserve 0, or negatives, ×1.1 (once, not stacked)
-      const hardX = z.rir === 0 || +z.ng > 0 ? 1.1 : 1;
-      const e = (z.type === 'F' ? 1.35 : z.type === 'D' ? 1.2 : 1) * ecc * rf * hardX;
-      Object.entries(ex.mu).forEach(([h, v]) => { if(HEADS[h] && h !== 'cardio') per[h] = (per[h] || 0) + v / 100 * e; }); }); });
-  return per;
-}
-// 0.7.8: sleep counts only when a smartwatch or band is connected. Hook for later (the Capacitor app via Apple Health): return the average hours slept
-// since endTs, or null when there's no watch data. Today it is always null, so sleep changes nothing and nothing about sleep is shown.
-const watchSleepHours = endTs => null;
-// Short sleep stretches the rest a muscle needs, long sleep trims it a little.
-const sleepFactor = endTs => { const h = watchSleepHours(endTs);
-  if(h == null || !(h > 0)) return 1; return h < 5 ? 1.3 : h < 6 ? 1.2 : h < 7 ? 1.1 : h <= 9 ? 1 : .95; };
-const headHours = (h, load) => Math.round(Math.min(96, (BIG_HEADS.has(h) ? 48 : 36) + 7 * Math.max(0, load - 3)));
-// hours until each trained muscle group is ready to train hard again (≥80 %, same rule as the recovery map)
-const readyHours = (h, l) => { const f = Math.min(1, l / 6); return f > .2 ? Math.round(headHours(h, l) * (1 - .2 / f)) : 0; };
+// ---------- recovery: RECOVERY+ (js/recovery-plus.js) owns the maths. These older names stay for their callers and read from it. ----------
+// The sleep multiplier (sleepFactor / watchSleepHours) is retired: sleep never changes muscle hours (RECOVERY+ › sleep context instead),
+// and the AI's hours (ses.recov) are kept only as old saved data: they no longer change any estimate.
+const exRec = id => { const x = exById(id); return x && x.m === 'other' && !(x.mu && Object.keys(x.mu).length) ? null : x; };
+function headLoads(ses){ const idx = RecoveryCore.indexHistory(sessions, exRec, loadOf), r = RecoveryCore.sessionHeadLoads(ses, idx, exRec, loadOf), out = {};
+  Object.entries(r.heads).forEach(([h, v]) => { out[h] = v.load; }); return out; }
+// hours until each trained group of ONE workout is ready again (saved with the workout as ses.recovEst; a record of that day, not a live clock)
 function estimateRecovery(ses){ const L = headLoads(ses), g = {};
-  Object.entries(L).forEach(([h, l]) => { if(l < .5) return; const gr = HEADS[h][2]; g[gr] = Math.max(g[gr] || 0, readyHours(h, l)); }); return g; }
-function headFatigue(atTs){
-  const out = {};
-  const list = sessions;   // Refinements: finished workouts only; a workout in progress changes recovery after it ends, not while you train
-  list.forEach(s => {
-    const end = new Date(s.end || s.start).getTime(), hrs = (atTs - end) / 3.6e6; if(hrs < 0 || hrs > 144) return;
-    Object.entries(headLoads(s)).forEach(([h, l]) => { const gr = HEADS[h][2], base = headHours(h, l);
-      const est = (s.recovEst || {})[gr], rh = s.recov && s.recov[gr] && est > 0 ? Math.max(base * .5, Math.min(144, base * s.recov[gr] / est)) : base;
-      const rhs = rh * sleepFactor(end);
-      out[h] = Math.min(1, (out[h] || 0) + Math.min(1, l / 6) * Math.max(0, 1 - hrs / rhs)); });
-  });
-  return out;
-}
+  Object.entries(L).forEach(([h, l]) => { if(l < .5) return; const A = Math.min(1, l / 6), T = RecoveryCore.headHours(h, l), gr = RecoveryCore.GROUP[h];
+    if(gr) g[gr] = Math.max(g[gr] || 0, A > .2 ? Math.round(T * (1 - .2 / A)) : 0); }); return g; }
+// residual fatigue per head (0–1) at a moment, from finished workouts only
+function headFatigue(atTs){ const r = RecoveryPlus.compute(); return Object.fromEntries(RecoveryCore.HEADS21.map(h => [h, r.tr.fatigueAt(h, atTs)])); }
 // what made this workout hard, from your own history (no maths of its own: volume, minutes and top weights as saved)
 function recFacts(ses){
   const prev = sessions.filter(s => s.id !== ses.id && String(s.start) < String(ses.start)).slice(-10), avg = k => prev.length ? prev.reduce((a, s) => a + (+s[k] || 0), 0) / prev.length : 0;
@@ -428,132 +403,163 @@ async function aiRecovery(ses){
   const est = ses.recovEst || estimateRecovery(ses), groups = Object.keys(est); if(!groups.length) return null;
   const lines = ses.exercises.map(x => { const ex = exById(x.exId); return `${ex.name || ex.id} [${Object.entries(ex.mu || {}).map(([h, v]) => `${h} ${v}%`).join(', ')}]: ` +
     x.sets.map(s => `${s.w || 0}kg×${s.r || 0}${s.type === 'F' ? ' (to failure)' : s.type === 'D' ? ' (drop set)' : s.type === 'W' ? ' (warm-up)' : ''}`).join(', '); }).join('\n');
-  const prompt = `You are an experienced strength coach. Estimate how many hours each muscle group needs after this workout until it can be trained hard again (about 80% recovered).
-Consider total volume per muscle, sets taken to failure, drop sets, heavy eccentric (lowering) work and rep ranges. Lifter: ${bodyW()} kg, goal: ${(targets && targets.goal) || 'bulk'}.
-Muscle groups to rate: ${groups.join(', ')}. A simple formula estimated: ${JSON.stringify(est)}.
+  // RECOVERY+: the hours below are the app's final estimate. The AI only explains them in one short line; it never sets hours.
+  const prompt = `You are an experienced strength coach talking to the lifter right after this workout.
+The app's recovery estimate (final, hours until each muscle group can be trained hard again): ${JSON.stringify(est)}. Do not change these numbers.
 Facts about this workout: ${recFacts(ses)}.
 Workout:
 ${lines}
-Return ONLY JSON: {"hours":{${groups.map(g => `"${g}":number`).join(',')}},"note":"..."}. Each value between 0 and 120.
-"note": you are the lifter's gym coach talking to them, in ${lang === 'el' ? 'Greek' : 'English'}. One or two very short sentences, at most 12 words, under 75 characters in total.
-Say how many hours the most worked muscles need (the hours in your JSON are final: use exactly them, in hours, never days) and why, from the facts (heavier than last time, a lot of volume, a long session, sets to failure). No emoji.`;
-  const d = await gemini(prompt, null, null, null, { quiet: true }); const hrs = d && d.hours; if(!hrs) return null;
-  const out = {}; groups.forEach(g => { const v = +hrs[g]; out[g] = v >= 0 && v <= 120 ? Math.round(v) : est[g]; });
-  return { hours: out, note: recNoteFit(d.note) };
+Return ONLY JSON: {"note":"..."}.
+"note": in ${lang === 'el' ? 'Greek' : 'English'}, one or two very short sentences, at most 12 words, under 75 characters in total.
+Say how many hours the most worked muscles need, using exactly the hours above (in hours, never days), and why, from the facts (heavier than last time, a lot of volume, a long session, sets to failure). No emoji. Never call it medical advice.`;
+  const d = await gemini(prompt, null, null, null, { quiet: true }); if(!d || !d.note) return null;
+  return { hours: est, note: recNoteFit(d.note) };
 }
 
 function groupReadiness(atTs){
-  const f = headFatigue(atTs);   // 0.6.9: from your workouts only (the "how sore are you" sheet is gone)
-  const out = {};
-  Object.entries(GROUPS).forEach(([g]) => { if(g === 'cardio' || g === 'other') return;
-    const hs = Object.keys(HEADS).filter(h => HEADS[h][2] === g); let r = Math.min(...hs.map(h => 1 - (f[h] || 0)));
-    out[g] = r; });
+  const f = headFatigue(atTs), out = {};
+  RecoveryCore.GROUPS10.forEach(g => { out[g] = Math.min(...RecoveryCore.HEADS21.filter(h => RecoveryCore.GROUP[h] === g).map(h => 1 - (f[h] || 0))); });
   return out;
 }
-
-// 0.7.4.2: ONE function decides the recovery state, from the hours left, so the colour and the hours text always agree:
-// more than 24 h left = low (red, Needs Rest) · 1-24 h = mid (yellow, Recovering) · recovered = ok (green, Ready)
+// ONE source for the state of every group: RECOVERY+. Same shape as before ({ h, st, col, p }) plus st 'unk' (no workout history: unknown, never "ready")
+// and heads (the heads that are not ready). > 24 h left = low (Needs Rest) · 1–24 h = mid (Recovering) · 0 = ok (Ready).
 let _recMapAt = 0, _recMapV = null;
 function recMapNow(){ if(!_recMapV || Date.now() - _recMapAt > 30000){ _recMapV = recMap(); _recMapAt = Date.now(); } return _recMapV; }
-// 0.7.9.5: the sore-muscle state of one exercise, from recMap() (the one source): { h, st } when Needs Rest or Recovering, else null
-function exSore(exId){ const ex = exById(exId), hd = HEADS[ex.h], v = hd && recMapNow()[hd[2]]; return v && v.st !== 'ok' ? v : null; }
+// RECOVERY+: the sore-muscle state of one exercise from ITS OWN significant heads (a biceps curl never makes a triceps pushdown look sore)
+function exSore(exId){ const mu = RecoveryCore.muOf(exById(exId)); if(!mu) return null; const r = RecoveryPlus.compute();
+  const hs = Object.entries(mu).filter(([, pc]) => pc >= RecoveryCore.CFG.significant).map(([h]) => h).filter(h => r.tr.heads[h].state === 'recovering' || r.tr.heads[h].state === 'needs_rest');
+  if(!hs.length) return null; hs.sort((a, b) => r.tr.heads[b].hours - r.tr.heads[a].hours); const v = r.tr.heads[hs[0]];
+  return { h: v.hours, st: RecoveryCore.legacySt(v.state), p: v.p, head: hs[0], heads: hs }; }
 const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
-function recMap(){
-  const now = groupReadiness(Date.now()), gs = Object.keys(now), hrs = {};
-  for(let h = 0; h <= 120 && Object.keys(hrs).length < gs.length; h += 2){ const rd = groupReadiness(Date.now() + h * 3.6e6); gs.forEach(g => { if(!(g in hrs) && rd[g] >= .8) hrs[g] = h; }); }
-  return Object.fromEntries(gs.map(g => { const h = g in hrs ? hrs[g] : 120; return [g, { h, st: recStateH(h), col: recColor(h), p: now[g] }]; })); }
+function recMap(){ return RecoveryPlus.legacyMap(); }
 // 0.7.7: a smooth gradient instead of stages: green (ready) → yellow (24 h left) → red (3 days or more left). The label still follows recStateH.
 const recMix = (a, b, p) => `color-mix(in srgb, ${b} ${Math.round(Math.max(0, Math.min(1, p)) * 100)}%, ${a})`;
 const recColor = h => h <= 0 ? REC_COL.ok : h <= 24 ? recMix(REC_COL.ok, REC_COL.mid, h / 24) : recMix(REC_COL.mid, REC_COL.low, (h - 24) / 48);
-const recFill = m => Object.fromEntries(Object.entries(m).map(([g, v]) => [g, v.col])), recLows = m => new Set(Object.entries(m).filter(([, v]) => v.st === 'low').map(([g]) => g));
+const recFill = m => Object.fromEntries(Object.entries(m).filter(([, v]) => v.col).map(([g, v]) => [g, v.col])), recLows = m => new Set(Object.entries(m).filter(([, v]) => v.st === 'low').map(([g]) => g));
+// head colours for the RECOVERY+ figure: each head by its own hours; unknown heads get none (neutral graphite)
+function recHeadColors(tr){ const out = {}; RecoveryCore.HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state !== 'unknown') out[h] = recColor(v.hours); }); return out; }
 
 function tplGroups(tp){ const s = new Set(); tp.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h] && HEADS[h][2] !== 'cardio') s.add(HEADS[h][2]); })); return [...s]; }
 
+// Today's gym card lines (RECOVERY+): tomorrow's planned workout judged by its own exercises' heads, and a rest-day note. Advice only.
 function recoveryWarnings(){
-  const out = [], tk = todayKey(), tm = addDays(tk, 1), wName = w => t({ legs: 'wLegs', upper: 'wUpper', full: 'wFull', cardio: 'wCardio' }[w] || 'wUpper');
-  const pt = planFor(tm), tp = pt && pt.tpl && tpls.find(x => x.id === pt.tpl);
-  if(tp && tp.type !== 'cardio'){ const at = new Date(`${tm}T${pt.time || '18:00'}:00`).getTime(), rd = groupReadiness(at);
-    const bad = tplGroups(tp).filter(g => rd[g] < .8); if(bad.length) out.push(t('recWarnTomorrow', { w: tp.name, t: fmtClock(pt.time || '18:00'), m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) })); }
+  const out = [], tk = todayKey(), tm = addDays(tk, 1), r = RecoveryPlus.compute();
+  if(r.next && r.next.date === tm && r.nextA && r.nextA.assessment === 'consider_adjustment' && r.next.name){
+    out.push(t('recWarnNext', { w: r.next.name, t: fmtClock(r.next.time), m: recHeadList(r.nextA.limiting.slice(0, 2)) })); }
   const di = dayInfo(tk);
-  if(di.type === 'rest'){ const rd = groupReadiness(Date.now()), bad = Object.keys(rd).filter(g => rd[g] < .8); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => ML(g)).join(', ') })); }
+  if(di.type === 'rest'){ const bad = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(r.tr.groups[g].state)); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => ML(g)).join(', ') })); }
   return out;
 }
+const recHeadList = hs => hs.map(h => ML(h)).join(', ');
 
-// Recovery (0.7.4.2): an information screen — front and back side by side, nothing on it reacts to taps.
-// Colours are always green / yellow / red, whatever the theme: Ready / Recovering / Needs Rest.
-function recFigure(){ const m = recMap();
-  return anatomySVG({ mode: 'rec', colors: recFill(m), lows: recLows(m), w: 200, h: 446, idp: 'rec', labels: false }); }   // Refinements #7: no Front / Back text under the feet
-// 0.7.9.1: does the food since the last workout support recovery? ALL the rules live in recFoodVerdict() so the AI coach brain
-// (docs/notes/ai-coach-brief.md) can replace them later with the researched rules. Reads the food log and targets, nothing new is stored.
-// Returns null (say nothing) or { v: 'ok' | 'bit' | 'low', tip, gap? }.
-function recFoodVerdict(){
-  const last = sessions.slice().sort((a, b) => (b.end || b.start).localeCompare(a.end || a.start))[0]; if(!last || !targets) return null;
-  const endTs = new Date(last.end || last.start).getTime(); if(Date.now() - endTs > 48 * 36e5) return null;   // the recovery window: up to ~48 h after the workout
-  const wDay = last.date, today = todayKey(), now = new Date(), nowH = now.getHours() + now.getMinutes() / 60, wH = new Date(endTs).getHours() + new Date(endTs).getMinutes() / 60;
-  const tg = targetFor(today); if(!tg || !tg.p || !tg.k) return null;
-  // RULE 1: nothing logged today is UNKNOWN, not zero. Then today is left out and the window ends with the last day that has food (yesterday).
-  const todayFood = (dayLog[today] || []).length > 0, endDay = todayFood ? today : addDays(today, -1);
-  if(endDay < wDay) return null;   // the workout was today and nothing is logged yet: nothing to judge
-  // RULE 2: how much of a normal day's eating is "due" by a given hour (not a flat share: breakfast is small, dinner is big)
-  const due = h => { const pts = [[6, 0], [9, .2], [13, .5], [19, .8], [22, 1]]; if(h <= pts[0][0]) return 0; for(let i = 1; i < pts.length; i++) if(h <= pts[i][0]) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (h - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); return 1; };
-  let exp = 0, p = 0, k = 0, n = 0;
-  for(let d = wDay; d <= endDay; d = addDays(d, 1)){
-    const from = d === wDay ? wH : 0, to = d === today ? nowH : 24, hm = d === wDay ? new Date(endTs).toTimeString().slice(0, 5) : '';
-    exp += Math.max(0, due(to) - due(from));
-    (dayLog[d] || []).filter(e => !hm || (e.time || '') >= hm).forEach(e => { n++; p += +e.p || 0; k += +e.kcal || 0; }); }
-  if(exp < .15) return null;   // too early in the window to say anything useful
-  if(!n) return null;   // no food logged in the window at all: unknown, not zero
-  // RULE 3: compare with the targets pro-rated by that share; the weaker of protein and calories decides
-  const r = Math.min(p / (tg.p * exp), k / (tg.k * exp)), v = r >= .85 ? 'ok' : r >= .6 ? 'bit' : 'low';
-  // RULE 4: one tip when low; exact grams only when the day is mostly over
-  const dayOver = todayFood && nowH >= 21;
-  return { v, tip: v === 'low' ? (!todayFood ? 'recTipToday' : nowH >= 20 ? 'recTipTomorrow' : 'recTipTonight') : '', gap: v !== 'ok' && dayOver ? Math.max(0, Math.round(tg.p * exp - p)) : 0 };
+// ---------- RECOVERY+ page (#gRecV, route gym-rec) ----------
+// Order: A next workout (one suggestion, never a change) · B the approved body (js/recovery-anatomy.js) · C tiles ONLY for muscles that are
+// Recovering / Need Rest (same tiles with Advanced on) · D at most one insight · E Advanced: why, load, effort, trend, confidence, sleep / food / goal context.
+// Nothing here writes workouts, plans, targets or logs. Ready muscles stay green on the body; unknown stays graphite, never green.
+const recSex = () => profile && profile.sex === 'f' ? 'f' : 'm';
+function recFigure(r){ r = r || RecoveryPlus.compute();
+  return recoveryAnatomySVG({ sex: recSex(), view: 'both', colorsByHead: recHeadColors(r.tr), idPrefix: 'rec', maxWidth: 360, label: recFigLabel(r) }); }
+function recFigLabel(r){ const not = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(r.tr.groups[g].state));
+  return t('recFigAria', { m: not.length ? not.map(g => ML(g)).join(', ') : t('recNoneShort') }); }
+// food context for older callers: the structured RECOVERY+ nutrition result (missing / partial logs = unknown, never "low")
+function recFoodVerdict(){ return RecoveryPlus.compute().nutr; }
+function recFoodLine(){ return ''; }   // replaced by the one RECOVERY+ insight (renderRecovery)
+const REC_CONF = c => t({ low: 'recCLow', moderate: 'recCMod', high: 'recCHigh' }[c] || 'recUnknown');
+const recName = (g, v) => { const all = RecoveryCore.HEADS21.filter(h => RecoveryCore.GROUP[h] === g); return v.heads.length && v.heads.length < all.length ? `${ML(g)} · ${v.heads.map(h => ML(h)).join(', ')}` : ML(g); };
+const recWhen = (d, tm) => { const n = daysUntil(d); return t('recNextWhen', { d: n === 0 ? t('recDayToday') : n === 1 ? t('recDayTomorrow') : t('wdFull').split(' ')[new Date(d + 'T12:00:00').getDay()], t: fmtClock(tm) }); };
+function recNextCard(r){
+  const tr = r.tr, nx = r.next, a = r.nextA, hist = tr.evidence.sessionsTotal;
+  const notGroups = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(tr.groups[g].state));
+  let title = t('recNextT'), sub = '', msg = '';
+  if(!hist) msg = t('recAsNoHistory');
+  if(nx){ sub = `${esc(nx.name || t('gymAny'))} · ${esc(recWhen(nx.date, nx.time))}`;
+    if(hist && a){ const lim = a.limiting.slice(0, 2).map(h => ML(h)).join(', '), code = a.suggestionCodes[0];
+      msg = { train_as_planned: t('recAsProceed'), monitor_performance: t('recAsMonitor', { m: lim }), reduce_volume_optional: t('recAsReduce', { m: lim }),
+        consider_alternative: t('recAsAlt', { m: lim }), extra_rest_optional: t('recAsRest', { m: lim }),
+        check_fatigued_muscles: t('recAsListFat', { m: a.limiting.slice(0, 3).map(h => ML(h)).join(', ') }), no_exercise_list: t('recAsListOk') }[code] || ''; } }
+  else if(hist){ title = t('recNoPlanT'); msg = notGroups.length ? t('recSumRec', { m: notGroups.map(g => ML(g)).join(', ') }) : tr.evidence.lastAt && Date.now() - tr.evidence.lastAt > 21 * 864e5 ? t('recStale') : t('recSumReady'); }
+  const lowHist = hist > 0 && (hist < 3 || tr.evidence.recent14 === 0) ? `<small class="recmeta">${t('recLimited')}</small>` : '';
+  const ico = !hist ? 'info' : a && a.assessment === 'consider_adjustment' ? 'warn' : 'check';
+  return `<div class="recnext card"><div class="rnh"><span class="rnic ${ico}">${svgIcon(ico === 'info' ? 'bolt' : ico, 18, 2.2)}</span><b>${title}</b></div>${sub ? `<div class="rnsub">${sub}</div>` : ''}
+    <p class="rnmsg">${esc(msg)}</p>${lowHist}${hist && (nx || notGroups.length) ? `<small class="recmeta">${t('recAdvice')}</small>` : ''}</div>`;
 }
-function recFoodLine(){ const r = recFoodVerdict(); if(!r) return '';
-  return `<div class="alert" style="cursor:default;margin-bottom:12px"><b>${t({ ok: 'recVOk', bit: 'recVBit', low: 'recVLow' }[r.v])}</b>${r.tip ? ' · ' + t(r.tip) : ''}${r.gap > 0 ? ' · ' + t('recGap', { g: r.gap }) : ''}</div>`; }
-// Refinements #7: under the body, a tile for each muscle that is NOT ready (most hours left first, then by name), two per row:
-// the name, that muscle cut from the same body drawing and lit in its state colour, and a clock with the hours left.
-// Every muscle ready: one full-width "All Muscles Ready" card. The Ready / Needs Rest bar sits inside the body card.
-// Hours come from recMap() (unchanged maths); once a minute recTick() updates the numbers and lets a ready muscle's tile fade out.
 let REC_T = 0;
 function renderRecovery(){
-  const m = recMap(), C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low };
-  const sore = Object.entries(m).filter(([, v]) => v.st !== 'ok').sort((a, b) => b[1].h - a[1].h || ML(a[0]).localeCompare(ML(b[0])));
-  $('gRecV').innerHTML = `<div class="reccard"><div id="recFig">${recFigure()}</div>
-      <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small class="ok">${t('recReady')}</small><small class="low">${t('recLow')}</small></span></div></div>
-    ${recFoodLine()}
-    ${sore.length ? `<div class="rectiles" id="recTiles">${sore.map(recTile).join('')}</div>` : `<div class="recall">${svgIcon('check', 22, 2.6)}<b>${t('recAllReady')}</b></div>`}
-    <p class="hint">${t('recHint')}</p>`;
+  const r = RecoveryPlus.compute(), tr = r.tr, C = { ok: REC_COL.ok, mid: REC_COL.mid, low: REC_COL.low }, adv = !!ui.recAdv, hist = tr.evidence.sessionsTotal;
+  const order = r.nextA ? new Set(r.nextA.limiting.map(h => RecoveryCore.GROUP[h])) : new Set();
+  const sore = RecoveryCore.GROUPS10.map(g => [g, tr.groups[g]]).filter(([, v]) => v.state === 'recovering' || v.state === 'needs_rest')
+    .sort((a, b) => order.has(b[0]) - order.has(a[0]) || b[1].hours - a[1].hours || ML(a[0]).localeCompare(ML(b[0])));
+  const unk = RecoveryCore.GROUPS10.some(g => tr.groups[g].state === 'unknown');
+  const ins = recInsight(r);
+  const stale = hist && (!tr.evidence.lastAt || Date.now() - tr.evidence.lastAt > 21 * 864e5);
+  const none = !hist ? `<div class="recall neutral">${svgIcon('bolt', 20, 2.2)}<b>${t('recAsNoHistory')}</b></div>`
+    : stale ? `<div class="recall neutral">${svgIcon('clock', 20, 2.2)}<b>${t('recStale')}</b></div>`
+    : `<div class="recall">${svgIcon('check', 22, 2.6)}<b>${t('recAllReady')}</b></div>`;
+  $('gRecV').innerHTML = recNextCard(r) + `<div class="reccard"><div id="recFig">${recFigure(r)}</div>
+      <div class="recgrad" aria-hidden="true"><i style="background:linear-gradient(90deg,${C.ok},${C.mid},${C.low})"></i><span><small class="ok">${t('recReady')}</small><small class="mid">${t('recMid')}</small><small class="low">${t('recLow')}</small></span></div>
+      ${unk ? `<small class="recunk"><i></i>${t('recUnknownKey')}</small>` : ''}</div>
+    ${sore.length ? `<h3 class="rech">${t('recWatchT')}</h3><div class="rectiles" id="recTiles">${sore.map(recTile).join('')}</div>` : none}
+    ${ins ? `<div class="recins"><span class="rnic">${svgIcon('bolt', 16, 2.2)}</span><div><b>${t('recInsightT')}</b><p>${esc(ins.text)}</p></div></div>` : ''}
+    <div class="wpadv recadv"><span>${t('advancedT')}</span><button class="switch ${adv ? 'on' : ''}" id="recAdvSw" type="button" role="switch" aria-checked="${adv}" aria-label="${t('advancedT')}"><i></i></button></div>
+    ${adv ? recAdvanced(r, sore) : ''}
+    <p class="hint">${t('recHint2')}</p>`;
   clearInterval(REC_T); REC_T = sore.length ? setInterval(recTick, 60000) : 0;
 }
-const recTile = ([g, v]) => `<div class="rectile ${v.st}" data-rg="${g}" data-h="${v.h}"><b class="rtn">${esc(ML(g))}</b><div class="rtpic">${recMuscleSVG(g, REC_COL[v.st])}</div>
-  <span class="rth">${gymIco('clock', 16, 2)}<b>${v.h}</b><small>${t('recHrs')}</small></span></div>`;
-// one muscle group, cut from the body the page draws (male: Body Muscles shapes; female: the older drawing), on the side
-// where it has more shapes; muscles on both arms or legs show one side only, so the crop is big enough to read
-function recMuscleSVG(g, col){
-  const fem = profile.sex === 'f', nums = d => d.match(/-?\d+(?:\.\d+)?/g).map(Number), pts = { f: [], b: [] }, cnt = { f: 0, b: 0 };
-  ['f', 'b'].forEach(sd => {
-    if(fem) ANAT[sd].forEach(([h, d]) => { if(ANAT_HEAD_GROUP[h] !== g) return; cnt[sd]++; const a = nums(d);
-      for(let i = 0; i + 1 < a.length; i += 2){ const x = femX(a[i], a[i + 1]); pts[sd].push([x, a[i + 1]], [200 - x, a[i + 1]]); } });
-    else GYM_BM[sd].mus.forEach(([k, d]) => { if(!GYM_BM_HEADS[k].some(h => ANAT_HEAD_GROUP[h] === g)) return; cnt[sd]++; const a = nums(d);
-      for(let i = 0; i + 1 < a.length; i += 2) pts[sd].push([a[i], a[i + 1]]); }); });
-  const side = cnt.b > cnt.f ? 'b' : 'f'; let p = pts[side]; if(!p.length) return '';
-  if(Math.max(...p.filter(q => q[0] < 100).map(q => q[0]), 0) < 92) p = p.filter(q => q[0] >= 100);   // two limbs apart: the right-hand one only
-  const xs = p.map(q => q[0]), ys = p.map(q => q[1]), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-  const A = 1.5;   // about the shape of the picture box in a tile, so the muscle sits in the middle
-  let w = Math.max(40, (Math.max(...xs) - Math.min(...xs)) * 1.18), h = Math.max(40, (Math.max(...ys) - Math.min(...ys)) * 1.18); w = Math.max(w, h * A); h = Math.max(h, w / A);
-  const vb = `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
-  return anatomySVG({ mode: 'rec', colors: { [g]: col }, side, vb, w: '100%', h: '100%', idp: 'rt' + g, labels: false });
+const recTile = ([g, v]) => `<div class="rectile ${RecoveryCore.legacySt(v.state)}" data-rg="${g}" data-h="${v.hours}"><b class="rtn">${esc(recName(g, v))}</b><div class="rtpic">${recMuscleSVG(g)}</div>
+  <span class="rth">${gymIco('clock', 16, 2)}<b>${v.hours}</b><small>${t('recHrs')}</small></span></div>`;
+// one insight at most; a tip shown on each of the last 3 days steps aside for a day (device memory, ui.recIns)
+function recInsight(r){
+  const mem = (ui.recIns && typeof ui.recIns === 'object') ? ui.recIns : {}, tk = todayKey();
+  const recent = Object.entries(mem).filter(([c, v]) => v && v.n >= 3 && v.last === addDays(tk, -1)).map(([c]) => c);
+  const pick = RecoveryCore.buildDecisionInsight({ sleep: r.sleep, nutr: r.nutr, next: r.nextA, recentCodes: recent }); if(!pick) return null;
+  const m = mem[pick.code] || { n: 0, last: '' }; if(m.last !== tk){ mem[pick.code] = { n: m.last === addDays(tk, -1) ? m.n + 1 : 1, last: tk }; ui.recIns = mem; saveUI(); }
+  return { code: pick.code, text: t('recI_' + pick.code.replace('insight_', '')) };
+}
+function recAdvanced(r, sore){
+  const tr = r.tr, rows = [];
+  sore.forEach(([g, v]) => { const hs = v.heads.length ? v.heads : v.all;
+    const items = hs.map(h => { const x = tr.heads[h], cs = x.contrib || [], sets = cs.reduce((a, c) => a + c.sets, 0), rir = cs.reduce((a, c) => a + c.rirSets, 0),
+        fail = cs.reduce((a, c) => a + c.failSets, 0), drop = cs.reduce((a, c) => a + c.dropSets, 0), exs = [...new Set(cs.flatMap(c => c.ex))];
+      const top = exs[0], sc = top ? strengthChange(top) : null;
+      const li = [t('recDSets', { n: sets, s: cs.length }), exs.length ? t('recDEx', { e: exs.slice(0, 3).map(id => exName(id)).join(', ') }) : '',
+        sets ? (rir ? t('recDRir', { a: rir, b: sets }) : t('recDRirNone')) : '', fail ? t('recDFail', { n: fail }) : '', drop ? t('recDDrop', { n: drop }) : '',
+        x.range && x.hours > 0 ? t('recDRange', { a: x.range[0], b: x.range[1] }) : '', t('recDConf', { c: REC_CONF(x.conf) }),
+        sc && sc.pct != null ? t('recDTrend', { e: exName(top), s: (sc.pct >= 0 ? '+' : '') + Math.round(sc.pct) + '%' }) : top ? t('recDTrendNone') : '',
+        x.reasons.includes('personal_faster') ? t('recPersFast') : x.reasons.includes('personal_slower') ? t('recPersSlow') : '',
+        x.reasons.includes('unmapped_exercise_in_session') ? t('recDUnmapped') : ''].filter(Boolean);
+      return `<div class="radh"><b>${esc(ML(h))}</b> <small>${t({ needs_rest: 'recLow', recovering: 'recMid', ready: 'recReady' }[x.state] || 'recUnknown')}${x.hours ? ` · ${x.hours} ${t('recHrs')}` : ''}</small><ul>${li.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`; }).join('');
+    rows.push(`<details class="radrow"><summary>${esc(recName(g, v))}<small>${v.hours} ${t('recHrs')}</small></summary>${items}</details>`); });
+  const a = r.nextA, why = a && a.limitingDetail && a.limitingDetail.length ? a.limitingDetail.slice(0, 4).map(l => t('recWhyRow', { m: ML(l.h), h: l.hours, n: l.primary || l.any })).join(' ') : a ? t('recWhyNone') : t('recWhyNoPlan');
+  const sl = r.sleep, sleepTx = settings.recNoSleep ? t('recOff') : sl.status === 'unknown' ? t('recSleepNone') : sl.reasonCodes.includes('repeated_short_sleep') ? t('recSleepShort', { h: sl.avg7 || '–' })
+    : sl.reasonCodes.includes('short_sleep_single') ? t('recSleepSingle', { h: sl.lastNightHours }) : t('recSleepOk', { h: sl.avg7 || sl.lastNightHours || '–' });
+  const n = r.nutr, foodTx = settings.recNoFood ? t('recOff') : [n.protein.status === 'adequate_observed' ? t('recFoodProteinOk') : n.protein.status === 'possible_gap' ? t('recFoodProteinGap') : t('recFoodUnknown'),
+    n.coverage.loggedDays ? t('recFoodCov', { a: n.coverage.loggedDays, b: n.coverage.eligibleDays, w: n.coverage.windowDays }) : ''].filter(Boolean).join(' ');
+  const ga = n.goalAssessment || {}, gl = { bulk: 'gBulk', recomp: 'gRecomp', cut: 'gCut' }[ga.selectedGoal];
+  const goalTx = settings.recNoFood ? t('recOff') : (gl ? t(gl) : t('recUnknown')) + (targets && targets.goalAt ? ` · ${t('recSince', { d: fmtDay(targets.goalAt) })}` : '') + '. ' +
+    t({ consistent_with_target: 'recEnergyOk', below_target: 'recEnergyLow', above_target: 'recEnergyHigh' }[ga.observedEnergyRelation] || 'recEnergyUnknown');
+  const ev = tr.evidence, dataTx = ev.sessionsTotal ? t('recDataN', { n: ev.sessionsTotal, d: ev.lastAt ? fmtDay(new Date(ev.lastAt).toISOString().slice(0, 10)) : '–' }) : t('recAsNoHistory');
+  const ctx = [[t('recCtxWhy'), why], [t('recCtxSleep'), sleepTx], [t('recCtxFood'), foodTx], [t('goal'), goalTx], [t('recCtxData'), dataTx + ' ' + t('recCtxRule')]];
+  return `${rows.length ? `<h3 class="rech">${t('recDetailsT')}</h3><div class="radlist">${rows.join('')}</div>` : ''}
+    <h3 class="rech">${t('recContextT')}</h3><div class="card radctx">${ctx.map(([k, v]) => `<div class="radc"><b>${esc(k)}</b><p>${esc(v)}</p></div>`).join('')}
+      <div class="radsw"><span>${t('recUseFood')}</span><button class="switch ${settings.recNoFood ? '' : 'on'}" type="button" role="switch" data-recopt="recNoFood" aria-checked="${!settings.recNoFood}" aria-label="${t('recUseFood')}"><i></i></button></div>
+      <div class="radsw"><span>${t('recUseSleep')}</span><button class="switch ${settings.recNoSleep ? '' : 'on'}" type="button" role="switch" data-recopt="recNoSleep" aria-checked="${!settings.recNoSleep}" aria-label="${t('recUseSleep')}"><i></i></button></div></div>`;
+}
+const fmtDay = d => { const x = new Date(d + 'T12:00:00'); return x.toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }); };
+// one muscle group cut from the RECOVERY+ body (same artwork), each not-ready head in its own state colour; crop from the drawn geometry
+function recMuscleSVG(g){
+  const r = RecoveryPlus.compute(), v = r.tr.groups[g], hs = v.heads.length ? v.heads : v.all, c = raCropFor(recSex(), hs); if(!c) return '';
+  const cols = {}; hs.forEach(h => { const x = r.tr.heads[h]; if(x.state !== 'unknown') cols[h] = recColor(x.hours); });
+  return recoveryAnatomySVG({ sex: recSex(), view: c.fig === 'f' ? 'front' : 'back', colorsByHead: cols, only: hs, crop: c.box, idPrefix: 'rt' + g });
 }
 function recTick(){
   const box = $('recTiles'); if(!box || !box.isConnected){ clearInterval(REC_T); return; }
   if(document.hidden || $('gRecV').classList.contains('hide')) return;
-  const m = recMap(), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if([...box.children].some(el => +el.dataset.h !== m[el.dataset.rg].h)){ const f = $('recFig'); if(f) f.innerHTML = recFigure(); }   // the body's colours move with the hours
+  const tr = RecoveryPlus.compute().tr, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if([...box.children].some(el => +el.dataset.h !== tr.groups[el.dataset.rg].hours)){ const f = $('recFig'); if(f) f.innerHTML = recFigure(); }   // the body's colours move with the hours
   const gone = [];
-  [...box.children].forEach(el => { const v = m[el.dataset.rg]; if(v.st === 'ok'){ gone.push(el); return; }
-    el.dataset.h = v.h; el.querySelector('.rth b').textContent = v.h;
-    if(!el.classList.contains(v.st)){ el.classList.remove('low', 'mid'); el.classList.add(v.st); el.querySelector('.rtpic').innerHTML = recMuscleSVG(el.dataset.rg, REC_COL[v.st]); } });
+  [...box.children].forEach(el => { const v = tr.groups[el.dataset.rg], st = RecoveryCore.legacySt(v.state); if(st === 'ok' || st === 'unk'){ gone.push(el); return; }
+    el.dataset.h = v.hours; el.querySelector('.rth b').textContent = v.hours;
+    if(!el.classList.contains(st)){ el.classList.remove('low', 'mid'); el.classList.add(st); el.querySelector('.rtpic').innerHTML = recMuscleSVG(el.dataset.rg); } });
   if(!gone.length) return;
   if(gone.length === box.children.length || still){ if(gone.length === box.children.length) renderRecovery(); else gone.forEach(el => el.remove()); return; }
   // the ready tile fades out, then the others glide into place (transform and opacity only)
@@ -955,7 +961,7 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' || !gOn('uniPill') ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore') ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
-  const rk = tf && tf.label && gOn('rank'), head = `<div class="extop${rk || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub', { m: ML(ex.h), p: Math.round(sore.p * 100) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
+  const rk = tf && tf.label && gOn('rank'), head = `<div class="extop${rk || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills${uniPill || gOn('formPill') || (!card && gOn('swapPill')) ? '' : ' hide'}">${uniPill}${gOn('formPill') ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill') ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
@@ -1170,8 +1176,9 @@ function renderGym(){
   $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
   if(!sec){
-    const rm = recMap(), colors = recFill(rm), lows = recLows(rm), low = Object.values(rm).filter(v => v.h > 0).length;
-    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + anatomySVG({ mode: 'rec', colors, lows, labels: false, max: 230, idp: 'mini' }) + `<small>${low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
+    const rr = RecoveryPlus.compute(), low = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(rr.tr.groups[g].state)).length;
+    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + recoveryAnatomySVG({ sex: recSex(), view: 'both', colorsByHead: recHeadColors(rr.tr), idPrefix: 'mini', maxWidth: 230 }) +
+      `<small>${!rr.tr.evidence.sessionsTotal ? t('recUnknown') : low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
     $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
   }
   renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
@@ -1189,7 +1196,7 @@ function startRecLine(ses){
   if(!settings.geminiKey || ses.recovTried || ses.recovAI || navigator.onLine === false || !Object.keys(ses.recovEst || {}).length) return;
   ses.recovTried = 1; saveG('ses');
   const p = aiRecovery(ses).then(res => { if(!res) return null; const s = sessions.find(x => x.id === ses.id) || ses;
-      s.recov = res.hours; if(res.note){ s.recovAI = true; s.recovNote = res.note; } saveG('ses'); renderAll(); return res.note || null; })
+      if(res.note){ s.recovAI = true; s.recovNote = res.note; saveG('ses'); renderAll(); } return res.note || null; })   // RECOVERY+: the AI explains; its hours are never saved over the estimate
     .catch(() => null).then(note => { delete REC_AI[ses.id]; recLanded(ses.id, note); return note; });
   REC_AI[ses.id] = p; setTimeout(() => { if(REC_AI[ses.id] === p) recLanded(ses.id, null); }, REC_SLOW);
 }

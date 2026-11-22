@@ -553,7 +553,7 @@ function calcTargets(bw, goal, sex, hcm){
 
 function finishSetup(){
   if(SUP.sex) profile.sex = SUP.sex; if(SUP.h > 120) profile.height = SUP.h; if(SUP.bw > 30 && !Object.keys(weights || {}).length){ weights[todayKey()] = SUP.bw; Store.save('weights', weights); }
-  const tg = calcTargets(SUP.bw, SUP.goal); targets = { ...(targets || {}), ...tg }; Store.save('targets', targets);
+  const tg = calcTargets(SUP.bw, SUP.goal), gAt = targets && targets.goal === tg.goal && targets.goalAt ? targets.goalAt : todayKey(); targets = { ...(targets || {}), ...tg, goalAt: gAt }; Store.save('targets', targets);   // goalAt: RECOVERY+ judges food only since the goal's last change
   if(SUP.fp) saveFoodPrefs(SUP.fp);
   profile.gymTime = SUP.time; WD1().forEach(d => { const p = { ...(gymPlan[d] || {}) };
     if(SUP.gym.has(d)){ if(!p.tpl || p.tpl === 'rest') p.tpl = 'gym'; p.time = p.time || SUP.time; } else if(p.tpl === 'gym') delete p.tpl;
