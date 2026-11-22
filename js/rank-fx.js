@@ -35,10 +35,12 @@ const RankFx = (() => {
     h += `<i class="rcedge" style="${box};transform:translateZ(${(-T / 2 - .15).toFixed(2)}px) rotateY(180deg);background:radial-gradient(circle,transparent 0 ${hole}px,${dark} ${hole}px,${main} 60%,${dark} 100%)"></i>`;
     return h + `<span class="rcface" style="transform:translateZ(${(T / 2 + .15).toFixed(2)}px)">${rankIcon(m, n, SIZE)}</span>`; }
 
-  function draw(c){ const box = $('rfxBody'), tf = tierFor(c.exId, undefined, true), name = exName(c.exId), up = c.kind !== 'down';
+  // full (Refinements #8): the Rank Up screen before Workout Done — the whole screen, the exercise name big, Next instead of Nice
+  function draw(c, full){ const box = $('rfxBody'), ov = $('ovRankFx'), tf = tierFor(c.exId, undefined, true), name = exName(c.exId), up = c.kind !== 'down';
     const to = c.to, tier = tierOfN(to), label = tierName(to), metal = c.from == null || tierOfN(c.from) !== tier;
     const tag = up ? t(metal ? 'rfxUp' : 'rfxStep') : t('rfxDown');
-    $('ovRankFx').className = `overlay center tr-${tier}`;
+    [...ov.classList].filter(k => /^(rc-|tr-)/.test(k) || k === 'rfxready').forEach(k => ov.classList.remove(k));
+    ov.classList.add('tr-' + tier); ov.classList.toggle('center', !full); ov.classList.toggle('rkup', !!full); box.classList.toggle('rkupsheet', !!full);
     box.innerHTML = `<p class="sub rfxex">${esc(name)}</p>
       <div class="rcstage" aria-hidden="true" style="color:${COL[tier][0]}"><i class="rcflash"></i>${up ? Array.from({ length: 12 }, (_, k) =>
         `<i class="rcpt" style="left:${18 + (k * 53) % 64}%;width:${4 + (k % 3) * 2}px;height:${4 + (k % 3) * 2}px;animation-delay:${(.9 + (k % 6) * .07).toFixed(2)}s"></i>`).join('') : ''}
@@ -46,15 +48,18 @@ const RankFx = (() => {
       <div class="rclbl"><h2 class="rctag ${up ? 'up' : 'down'}" id="rfxT">${esc(tag)}</h2><b class="rcname">${esc(label)}</b></div>
       ${up ? '' : `<p class="rfxmsg">${esc(t('rfxDownMsg', { ex: name, rank: label }))}</p>`}
       ${tf && tf.label ? `<div class="tiergap rfxbar">${tierBarHtml(tf)}</div>` : ''}
-      <div class="actions"><button class="btn primary" type="button" id="rfxOk">${esc(t(up ? 'rfxNice' : 'rfxGotIt'))}</button></div>`;
-    $('rfxOk').addEventListener('click', () => close('ovRankFx'));
+      <div class="actions"><button class="btn primary${full ? ' rfxnext' : ''}" type="button" id="rfxOk">${esc(t(full ? 'rfxNext' : up ? 'rfxNice' : 'rfxGotIt'))}</button></div>`;
+    if(!full) $('rfxOk').addEventListener('click', () => close('ovRankFx'));
     $('ovRankFx').setAttribute('aria-label', `${tag} · ${name} · ${label}`); }
 
   // the motion is all in workout.css (rc-up / rc-down / rc-first, ported from rank-change.css); one class starts it.
   // The old coin hides and the new one shows at 50 %, exactly when the coin is edge-on (1890° up, 990° down).
+  // DONE: when each motion has reached its end state (the label pop ends last); the Rank Up screen shows Next then
+  const DONE = { up: 1850, first: 1050, down: 1650, reduce: 450 };
   function animate(c){ const ov = $('ovRankFx'), kind = reduce() ? 'reduce' : c.kind === 'down' ? 'down' : c.from == null ? 'first' : 'up';
     timers.push(setTimeout(() => { ov.classList.add('rc-' + kind); }, W));
-    if(c.kind !== 'down') timers.push(setTimeout(() => Phone.haptic(), W + ({ up: 900, first: 450, reduce: 400 })[kind])); }
+    if(c.kind !== 'down') timers.push(setTimeout(() => Phone.haptic(), W + ({ up: 900, first: 450, reduce: 400 })[kind]));
+    timers.push(setTimeout(() => ov.classList.add('rfxready'), W + DONE[kind])); }
   function stop(){ timers.forEach(clearTimeout); timers = []; }
   // one window; resolves once it has closed (Nice / Got It, or a tap outside)
   function show(c){ return new Promise(res => { const ov = $('ovRankFx'); stop(); draw(c); open('ovRankFx'); animate(c);
@@ -63,6 +68,20 @@ const RankFx = (() => {
   // one after another, never overlapping
   function play(list){ (list || []).forEach(c => { busy = busy.then(() => show(c)); }); return busy; }
 
+  // Refinements #8 change 23: the Rank Up screens, one per exercise, shown right after a workout and before Workout Done.
+  // One window that stays open: Next draws the next rank in place (no flash of the page between them); the last Next closes it.
+  // Never blocks: anything that goes wrong (or the window closed any other way) ends the run and Workout Done follows. → a Promise.
+  function ups(list){ return new Promise(done => { const ov = $('ovRankFx'); let i = 0, fin = false, mo = null;
+    const end = () => { if(fin) return; fin = true; if(mo) mo.disconnect(); stop(); ov.classList.remove('rkup', 'rfxready'); $('rfxBody').classList.remove('rkupsheet'); if(ov.classList.contains('open')) close('ovRankFx'); done(); };
+    const step = () => { try{ stop(); draw(list[i], true); if(!ov.classList.contains('open')) open('ovRankFx'); animate(list[i]);
+        $('rfxOk').addEventListener('click', () => { if(!ov.classList.contains('rfxready')) return; Phone.haptic(); i++; if(i < list.length) step(); else end(); }); }
+      catch(e){ end(); } };
+    if(!list || !list.length || !tierBody()){ done(); return; }
+    step(); mo = new MutationObserver(() => { if(!ov.classList.contains('open')) end(); }); mo.observe(ov, { attributes: true, attributeFilter: ['class'] }); }); }
+  // the rank ups of a workout for those screens and for Workout Done: biggest step first, then the exercise whose last set was the most recent
+  function upList(ses, changes){ const last = id => { const x = ses.exercises.find(y => y.exId === id); return x ? Math.max(0, ...x.sets.map(st => +st.at || 0)) : 0; };
+    return (changes || []).filter(c => c.kind !== 'down').map(c => ({ exId: c.exId, from: c.from, to: c.to, kind: c.kind }))
+      .sort((a, b) => (b.to - (b.from == null ? -1 : b.from)) - (a.to - (a.from == null ? -1 : a.from)) || last(b.exId) - last(a.exId)); }
   // end of a workout (before = rankNow() taken just before it was saved): each exercise in it against its last seen rank
   // (or its rank before the workout if never seen); remember the new ones → the changes, best news first
   function afterWorkout(ses, before){ if(!tierBody() || !ses) return [];
@@ -80,5 +99,5 @@ const RankFx = (() => {
     if(free && down.length){ down.forEach(c => { seen[c.exId] = c.to; }); dirty = true; }
     if(dirty){ profile.rankSeen = seen; saveProfile(); }
     if(free && down.length) play(down.sort((a, b) => b.to - a.to).slice(0, 3)); }
-  return { play, afterWorkout, onOpen };
+  return { play, afterWorkout, onOpen, ups, upList };
 })();

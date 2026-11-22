@@ -496,8 +496,6 @@ body.inses .coachbub{display:none!important}
 #ovRankFx .rfxbar{width:auto;margin:var(--s3) 0 0;text-align:center}
 #ovRankFx .actions{margin-top:var(--s3)}
 #ovRankFx .actions .btn{flex:1}
-/* Workout Done: the rank changes beyond the first three */
-.rfxmore li{display:flex;align-items:center;gap:var(--s2)}
 
 /* ===== Refinements: live workout = one exercise per page + the bottom card ===== */
 #ovSession .sheet.session{overflow:hidden!important}
@@ -600,3 +598,40 @@ body.inses .coachbub{display:none!important}
 #ovExPick .exsr .exrow .exn .exm{font-style:normal;font-weight:var(--w-bold)} /* … the letters that matched in bold */
 #ovExPick .exsr .exrow.exbest{background:color-mix(in srgb,var(--t-accent) 9%,var(--t-card));border-color:color-mix(in srgb,var(--t-accent) 38%,var(--t-edge))!important}
 #ovExPick .exdym{margin:0 0 var(--s2) 2px;font-size:var(--fs-label);color:var(--t-muted)}
+
+/* ---------- Refinements #8 change 23: the Rank Up screen before Workout Done (the same window, full screen) ----------
+   Solid like Workout Done; the plate and its motion are the ones above; Next fades in once the plate has landed (.rfxready) */
+#ovRankFx.rkup{background:var(--t-bg)}
+#ovRankFx.rkup .sheet.rkfx.rkupsheet{width:100%!important;max-width:480px!important;height:100%!important;max-height:none!important;margin:0 auto!important;border-radius:0!important;border:0!important;
+  background:var(--t-bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:var(--topP,calc(env(safe-area-inset-top) + 16px)) 16px calc(16px + env(safe-area-inset-bottom))!important;overflow:hidden}
+#ovRankFx.rkup .rkupsheet>*{flex:0 0 auto}
+#ovRankFx.rkup .rfxex{order:3;margin:var(--s2) 0 0;font-size:22px;font-weight:var(--w-bold,700);color:var(--t-text);text-align:center}
+#ovRankFx.rkup .rcstage{order:1;margin-top:auto;transform:scale(1.25);margin-bottom:var(--s5,24px)}
+#ovRankFx.rkup .rclbl{order:2}
+#ovRankFx.rkup .rcname{font-size:40px}
+#ovRankFx.rkup .rfxbar{order:4;width:100%;max-width:340px}
+#ovRankFx.rkup .actions{order:5;margin-top:auto;width:100%;max-width:420px}
+#ovRankFx.rkup .rfxnext{opacity:0;pointer-events:none;transition:opacity .4s ease}
+#ovRankFx.rkup.rfxready .rfxnext{opacity:1;pointer-events:auto}
+@media (max-height:700px){#ovRankFx.rkup .rcstage{transform:none;margin-bottom:0}#ovRankFx.rkup .rcname{font-size:34px}}
+@media (prefers-reduced-motion: reduce){#ovRankFx.rkup .rfxnext{transition:opacity .15s linear}}
+
+/* ---------- Refinements #8 change 20A: the Gym Coach's recovery line on Workout Done (no AI badge) ----------
+   the robot on the left (thinking face while the AI works), one or two lines beside it; the line fades in when it lands */
+.smrec{display:flex;align-items:center;gap:var(--s2);margin:var(--s3) 0 0;padding:var(--s2) var(--s3) var(--s2) var(--s2);border-radius:18px;background:var(--t-card);border:1px solid var(--t-edge,var(--line));
+  transition:opacity .25s ease,transform .25s ease}
+.smrecbot{flex:0 0 auto;line-height:0}.smrecbot .robot{display:block}
+.smrectx{flex:1 1 auto;min-width:0;margin:0;font-size:14px;line-height:1.35;color:var(--t-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.smrec.wait .smrectx{min-height:1.35em}
+.smrec.in .smrectx{animation:smrecIn .45s ease both}
+@keyframes smrecIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.smrec.gone{opacity:0;transform:scale(.97)}
+@media (prefers-reduced-motion: reduce){.smrec.in .smrectx{animation:smrecFade .15s linear both}.smrec .robot .rtilt{animation:none}}
+@keyframes smrecFade{from{opacity:0}to{opacity:1}}
+/* the rank ups of the workout: exercise on the left, old plate → new plate and its name on the right */
+.smranks{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s2) 0 0}
+.smrank{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:16px;background:var(--t-card);border:1px solid var(--t-edge,var(--line))}
+.smrank>b{min-width:0;overflow-wrap:anywhere}
+.smrk{display:flex;align-items:center;gap:6px;flex:0 0 auto;color:var(--t-muted)}
+.smrk .smold{opacity:.55;line-height:0}.smrk small{font-weight:var(--w-bold,700);color:var(--trci,var(--t-text));font-style:italic}

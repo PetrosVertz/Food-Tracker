@@ -317,9 +317,6 @@ Object.assign(S, {
 Object.assign(S, {
   tabFridge: ['Kitchen', 'Κουζίνα'], 
   fibUse: ['Use it', 'Χρήση'],
-  recEstT: ['Recovery estimate', 'Εκτίμηση αποκατάστασης'], recAIwait: ['The AI is checking your sets…', 'Το AI ελέγχει τα σετ σου…'],
-  recOffline: ['From your sets, failure sets and heavy lowering moves. Add a Gemini key for an AI check.', 'Από τα σετ, τα σετ μέχρι αποτυχία και τις βαριές εκκεντρικές. Βάλε κλειδί Gemini για έλεγχο AI.'],
-  recAIFail: ['Couldn\'t reach the AI, so this is the built-in estimate.', 'Δεν απάντησε το AI, άρα αυτή είναι η ενσωματωμένη εκτίμηση.'], recAIdone: ['Checked by AI', 'Ελέγχθηκε από AI'], recReadyChip: ['ready','έτοιμο'], recEstSub: ['Hours until you can train it hard again', 'Ώρες μέχρι να το ξαναδουλέψεις δυνατά'],
 });
 
 Object.assign(S, {
@@ -598,7 +595,7 @@ function titleCase(str){
   'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
   'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
   'perPack', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
-  'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
+  'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
   'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
   'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',
   'shopReview', 'shopScan', 'shopSearch', 'shopT', 'showOnList', 'skip', 'slices', 'smPRs', 'smTitle', 'steps', 'suAbout', 'suAgain', 'suAi',
@@ -820,7 +817,6 @@ Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
   rfxUp: ['Rank Up', 'Άνοδος Κατάταξης'], rfxStep: ['Step Up', 'Ένα Σκαλί Πάνω'], rfxDown: ['Rank Changed', 'Η Κατάταξη Άλλαξε'],
   rfxDownMsg: ['Your {ex} rank is now {rank}. Train it to win it back.', 'Η κατάταξή σου στο {ex} είναι τώρα {rank}. Προπονήσου για να την ξανακερδίσεις.'],
   rfxNice: ['Nice', 'Τέλεια'], rfxGotIt: ['Got It', 'Εντάξει'],
-  rfxMore: ['And {n} More Rank Changes', 'Και {n} Ακόμα Αλλαγές Κατάταξης'], rfxMore1: ['And 1 More Rank Change', 'Και 1 Ακόμα Αλλαγή Κατάταξης'],
   sxClear: ['Clear', 'Καθαρισμός'],
 });
 Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
@@ -858,6 +854,9 @@ Object.assign(S, {   // Refinements #7: Strength by Muscle rows with a trend lin
   sbmFeeds: ['Exercises In This Line', 'Ασκήσεις Σε Αυτή Τη Γραμμή'],
   sbmHow: ['From your estimated one rep max on each exercise, weighted by how much it works this muscle. The % is the change since your first reading. Green or red is the last two weeks; gray means no change, or no workout for this muscle in two weeks.',
     'Από την εκτιμώμενη μέγιστη επανάληψη σε κάθε άσκηση, ανάλογα με το πόσο δουλεύει αυτόν τον μυ. Το % είναι η αλλαγή από την πρώτη μέτρηση. Πράσινο ή κόκκινο δείχνει τις δύο τελευταίες εβδομάδες· γκρι σημαίνει καμία αλλαγή ή καμία προπόνηση για αυτόν τον μυ σε δύο εβδομάδες.'],
+});
+Object.assign(S, {   // Refinements #8: Workout Done (rank ups, the Gym Coach's recovery line) and the Rank Up screens
+  rfxNext: ['Next', 'Επόμενο'], smRankUp1: ['Rank Up', 'Άνοδος Κατάταξης'], smRankUps: ['Rank Ups', 'Άνοδοι Κατάταξης'],
 });
 Object.assign(S, {   // Refinements #7: Recovery tiles
   recAllReady: ['All Muscles Ready', 'Όλοι Οι Μύες Έτοιμοι'], recHrs: ['h', 'ώρ.'],

@@ -231,14 +231,19 @@ async function finishWorkout(auto){
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   const rkBefore = rankNow(ses.exercises.map(x => x.exId));   // ranks before this workout (rank-fx.js)
   sessions.push(ses); saveG('ses');
-  const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed: up to 3 windows, the rest listed in Workout Done
+  const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed in this workout (rank-fx.js)
+  // Refinements #8: the rank ups are saved with the workout, so reopening it shows them in Workout Done without replaying the screens
+  const ups = RankFx.upList(ses, rk), downs = rk.filter(c => c.kind === 'down'); if(ups.length){ ses.rankUps = ups; saveG('ses'); }
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
-  showSummary(ses, rk.slice(3)); renderAll();
-  RankFx.play(rk.slice(0, 3));
+  startRecLine(ses);   // the Gym Coach's recovery line: asked now, while the Rank Up screens play (it never waits for them)
+  renderAll();
+  // Refinements #8 change 23: a Rank Up screen per exercise first (Next is the only way on), then Workout Done; no rank up = straight to Workout Done
+  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); };
+  if(ups.length) RankFx.ups(ups).then(done, done); else done();
   return true;
 }
 
