@@ -1042,14 +1042,14 @@ function logQPersist(msgs){
   const out = [];
   (msgs || []).forEach(x => { if(x.work) return;
     if(x.cards){ x.cards.forEach(c => { const f = Object.values(FC).find(z => z.card === c); if(f && !f.m.meal) out.push({ who: 'bot', fc: { mk: f.m.mk, at: f.m.at || todayKey(), state: f.m.state, items: logQSer(f.m), added: f.m.added || null }, done: c.done || '' }); }); return; }
-    if(x.text) out.push({ who: x.who, text: String(x.text).slice(0, 600), ...(x.first ? { first: true } : {}) }); });
+    if(x.text) out.push({ who: x.who, text: String(x.text).slice(0, 600), ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}) }); });   // by: a handed-over answer (Athlete OS)
   FoodCoach.chatSave(out);
 }
 function logQRestore(ch){
   const c = FoodCoach.chatLoad(); if(!c || !c.msgs.length) return null;
   const today = todayKey(), out = [], api = logQCh(ch);
   c.msgs.forEach(x => {
-    if(!x.fc){ if(x.text) out.push({ who: x.who === 'me' ? 'me' : 'bot', text: x.text, ...(x.first ? { first: true } : {}) }); return; }
+    if(!x.fc){ if(x.text) out.push({ who: x.who === 'me' ? 'me' : 'bot', text: x.text, ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}) }); return; }
     if(x.fc.at !== today) return;
     const m = { id: uid(), items: logQRebuild(x.fc.items), mk: x.fc.mk, state: x.fc.state === 'logged' ? 'logged' : 'ready', at: x.fc.at, fixOf: null, added: x.fc.added };
     const off = () => !logQCanAdd(m), card = { cid: uid(), body: '', actions: [{ label: t('add'), primary: true, off, run: () => logQLogAll(m) }, { label: t('logQAddSave'), off, run: () => logQNameAsk(m) }] };

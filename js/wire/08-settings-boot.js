@@ -27,12 +27,32 @@ $('getKey').addEventListener('click', () => Phone.openUrl(PROV_URL[SPROV] || KEY
 
 $('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); if(typeof GymIntel !== 'undefined') GymIntel.forget(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
 // Athlete OS: what you told the coaches (AthleteMemory), each with when it ends and a delete button; Copy gives you all of it as text
+// Each note can be edited in place (AthleteMemory.edit: the same checks as a note from the chat; its id, kind, topic and end date stay).
+let MEM_EDIT = null;   // the id of the note being edited (this page only)
 function drawAiMem(){ const el = $('aiMem'); if(!el || typeof AthleteMemory === 'undefined') return;
   const ns = AthleteMemory.list(), day = ms => new Date(ms).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' });
-  el.innerHTML = ns.length ? `<ul class="aimem">${ns.map(x => `<li><span>${esc(x.text)}<small>${esc(x.kind === 'context' ? t('memUntil', { d: day(x.until) }) : t('memKeep'))}</small></span>`
-    + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`; }
-$('aiMem').addEventListener('click', e => { const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
-  const gone = AthleteMemory.remove(b.dataset.memx); drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+  if(MEM_EDIT && !ns.some(x => x.id === MEM_EDIT)) MEM_EDIT = null;
+  el.innerHTML = ns.length ? `<ul class="aimem">${ns.map(x => x.id === MEM_EDIT
+    ? `<li class="editing"><div class="aimemed"><input type="text" data-memin="${esc(x.id)}" value="${esc(x.text)}" maxlength="160" aria-label="${esc(t('memEditL'))}" enterkeyhint="done" autocomplete="off">`
+      + `<div class="actions"><button type="button" class="btn small" data-memcancel>${esc(t('cancel'))}</button><button type="button" class="btn small primary" data-memsave="${esc(x.id)}">${esc(t('save'))}</button></div><div class="status" data-memst></div></div></li>`
+    : `<li><span>${esc(x.text)}<small>${esc(x.kind === 'context' ? t('memUntil', { d: day(x.until) }) : t('memKeep'))}</small></span>`
+    + `<button type="button" class="aimemx" data-memed="${esc(x.id)}" aria-label="${esc(t('memEditL'))}">${svgIcon('edit', 18, 2)}</button>`
+    + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`;
+  const inp = MEM_EDIT && el.querySelector('[data-memin]'); if(inp){ inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){} } }
+function memSave(id){ const inp = $('aiMem').querySelector('[data-memin]'), st = $('aiMem').querySelector('[data-memst]'); if(!inp) return;
+  const txt = inp.value.trim(), say = k => { if(st) status(st, t(k), true); };
+  if(!txt){ say('memEditEmpty'); return; }
+  if(!AthleteMemory.list().some(x => x.id === id)){ MEM_EDIT = null; drawAiMem(); toast(t('memEditGone')); return; }   // deleted (or ended) while it was being edited
+  if(!AthleteMemory.edit(id, txt)){ say('memEditBad'); return; }   // refused by the same rules as a note from the chat (instructions, links, too short)
+  MEM_EDIT = null; Phone.haptic(); drawAiMem(); toast(t('memEdited')); }
+$('aiMem').addEventListener('click', e => {
+  const ed = e.target.closest('[data-memed]'); if(ed){ Phone.haptic(); MEM_EDIT = ed.dataset.memed; drawAiMem(); return; }
+  if(e.target.closest('[data-memcancel]')){ MEM_EDIT = null; drawAiMem(); return; }
+  const sv = e.target.closest('[data-memsave]'); if(sv){ memSave(sv.dataset.memsave); return; }
+  const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
+  const gone = AthleteMemory.remove(b.dataset.memx); if(MEM_EDIT === b.dataset.memx) MEM_EDIT = null; drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+$('aiMem').addEventListener('keydown', e => { const i = e.target.closest('[data-memin]'); if(!i) return;
+  if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); memSave(i.dataset.memin); } else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); MEM_EDIT = null; drawAiMem(); } });
 // Athlete OS · persona: Settings › AI › Coach Personality (one setting for every coach; saved in settings.coach on this phone)
 function drawPersona(){ if(typeof Persona === 'undefined') return; const p = Persona.prefs();
   setSeg('#perBase', p.base); setSeg('#perHumor', p.humor); setSeg('#perLen', p.len); const c = $('perCustom'); if(c && document.activeElement !== c) c.value = p.custom; }

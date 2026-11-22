@@ -384,11 +384,11 @@ You advise; the athlete decides. Never say you changed, saved, added or applied 
   // chats: what the coach window shows, as plain text (cards keep only their title and line; no photos, no buttons)
   function chatSave(id, msgs, scope){ const m = load();
     if(!msgs){ delete m.chats[id]; save(); return; }
-    const list = msgs.filter(x => !x.work).slice(-KEEP).map(x => ({ who: x.who === 'me' ? 'me' : 'bot', ...(x.first ? { first: true } : {}), text: String(x.text || (x.img ? '[photo]' : '')).slice(0, CUT),
+    const list = msgs.filter(x => !x.work).slice(-KEEP).map(x => ({ who: x.who === 'me' ? 'me' : 'bot', ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}), text: String(x.text || (x.img ? '[photo]' : '')).slice(0, CUT),
       ...(x.cards ? { cards: x.cards.slice(0, 12).map(c => ({ title: String(c.title || '').slice(0, 80), sub: String(c.sub || '').slice(0, 120), ...(c.done ? { done: String(c.done).slice(0, 80) } : {}) })) } : {}) }));
     m.chats[id] = { at: Date.now(), scope: scope || null, msgs: list }; save(); }
   function chatLoad(id, scope){ const c = load().chats[id]; if(!c || !Array.isArray(c.msgs) || Date.now() - c.at > OLD || (c.scope || null) !== (scope || null)) return null;
-    return c.msgs.map(x => ({ who: x.who === 'me' ? 'me' : 'bot', text: String(x.text || ''), ...(x.first ? { first: true } : {}), ...(x.cards ? { cards: x.cards.map(cd => ({ title: cd.title, sub: cd.sub, done: cd.done || '', cls: 'old', actions: [], cid: Math.random().toString(36).slice(2) })) } : {}) })); }
+    return c.msgs.map(x => ({ who: x.who === 'me' ? 'me' : 'bot', text: String(x.text || ''), ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}), ...(x.cards ? { cards: x.cards.map(cd => ({ title: cd.title, sub: cd.sub, done: cd.done || '', cls: 'old', actions: [], cid: Math.random().toString(36).slice(2) })) } : {}) })); }
   // hints already shown (this workout only)
   function seen(wid){ const m = load(); return m.seen && m.seen.w === wid ? m.seen.keys.slice() : []; }
   function markSeen(wid, key){ const m = load(); if(!m.seen || m.seen.w !== wid) m.seen = { w: wid, keys: [] }; if(!m.seen.keys.includes(key)) m.seen.keys.push(key); save(); }

@@ -43,17 +43,19 @@ const Coach = (() => {
   const has = id => !!$('cb-' + id);
 
   // ---- the chat object handed to send() ----
-  function api(c){
-    const push = m => { c.msgs.push(m); draw(); return m; };
+  // by: the coach that answers when a question was handed over (Supervisor.handoff): its id for its own logic, prompt, context and answer
+  // check; the messages still go into this chat (c), marked with that coach
+  function api(c, by){
+    const push = m => { if(by) m.by = by; c.msgs.push(m); draw(); return m; }, sid = by || c.id;
     return {
-      id: c.id,
+      id: sid,
       say: text => { push({ who: 'bot', text: String(text || '') }); },
       cards: list => { const cs = (list || []).map(x => ({ ...x, cid: uid() })); push({ who: 'bot', cards: cs }); return cs; },
       status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = AI.untail(w.status); },
       update(card, patch){ Object.assign(card, patch || {}); draw(); keepMsgs(c.id); },
       // Athlete OS: through the Supervisor (this coach's context, answer check, per-coach numbers); still one gemini() request per message
       ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController();
-        return typeof Supervisor !== 'undefined' ? Supervisor.ask(c.id, prompt, img, { quiet: true, ...(o || {}), signal: c.ctl.signal }) : gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
+        return typeof Supervisor !== 'undefined' ? Supervisor.ask(sid, prompt, img, { quiet: true, ...(o || {}), signal: c.ctl.signal }) : gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
       history: () => hist(c),
       transcript: () => older(c) + hist(c).map(h => `${h.who === 'me' ? 'User' : 'Coach'}: ${h.text}`).join('\n'),
     };
@@ -89,12 +91,14 @@ Return ONLY JSON: {"reply": string}`, img);
       ${x.title || x.sub ? `<div class="cchead"><b>${esc(x.title || '')}${tag}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</div>` : ''}${x.body || ''}${acts}</div>`;
   }
   function msgHtml(m, prev, k){
+    const by = m.by && kindOf(m.by) !== k ? m.by : null; if(by){ k = kindOf(by); prev = prev && prev.by === m.by ? prev : null; }   // a handed-over answer: that coach's face and name
+    const from = by ? `<small class="cby">${esc(title(by))}</small>` : '';
     if(m.who === 'me') return `<div class="cmsg me"><div class="cme">${m.img ? `<img class="cimg" src="data:image/jpeg;base64,${m.img}" alt="">` : ''}${m.text ? `<span>${esc(m.text)}</span>` : ''}</div></div>`;
-    const lead = !prev || prev.who !== 'bot' ? face(k) : '<span class="cav"></span>';
+    const lead = !prev || prev.who !== 'bot' || (prev.by || null) !== (m.by || null) ? face(k) : '<span class="cav"></span>';
     if(m.work) return `<div class="cmsg bot"><span class="cav" aria-hidden="true">${AI.robot(k, 26, true)}</span><div class="ctext cwork" role="status"><span class="cst">${esc(AI.untail(m.status || t('aiThinking')))}</span>${AI.dots()}</div></div>`;
-    if(m.cards) return `<div class="cmsg bot">${lead}<div class="ccards">${m.cards.map(cardHtml).join('')}</div></div>`;
+    if(m.cards) return `<div class="cmsg bot${by ? ' byother' : ''}">${lead}<div class="ccards">${from}${m.cards.map(cardHtml).join('')}</div></div>`;
     const st = m.first ? starters(m) : '';
-    return `<div class="cmsg bot">${lead}<div class="ctext">${esc(m.text)}</div></div>${st}`;
+    return `<div class="cmsg bot${by ? ' byother' : ''}">${lead}<div class="ctext">${from}${esc(m.text)}</div></div>${st}`;
   }
   // 0.7.9.6: the opening message's suggestion chips (cfg.starters), only while nothing has been written yet
   function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs.length !== 1 || c.msgs[0] !== m) return '';
@@ -125,10 +129,13 @@ Return ONLY JSON: {"reply": string}`, img);
     if(c.busy){ toast(t('aiStill')); return; }
     ta.value = ''; c.draft = ''; c.img = null; preview();
     c.msgs.push({ who: 'me', text, img }); const w = { who: 'bot', work: true, status: t(img ? 'coachStPhoto' : 'aiThinking') }; c.work = w; c.msgs.push(w); c.busy = true; draw();
-    const ch = api(c), f = cfg(id);
     // Athlete OS: this coach is now answering this message (its context follows it); a fact the user stated about themselves is remembered (rules, no AI)
     const mem = text && typeof Supervisor !== 'undefined' ? Supervisor.begin(id, text) : null;
     if(mem && (mem.added.length || mem.dropped.length)) toast(t(mem.added.length ? 'memSaved' : 'memForgot'), t('undo'), () => { mem.added.forEach(x => AthleteMemory.remove(x.id)); AthleteMemory.restore(mem.dropped); });
+    // a clear question for the other coach (no photo: photos stay with the coach that reads them) is answered by that coach, here in this chat
+    const to = text && !img && typeof Supervisor !== 'undefined' && Supervisor.handoff ? Supervisor.handoff(text, id, k => !!(CFG[k] && CFG[k].send)) : null;
+    if(to){ w.status = t('coachHandoff', { n: title(to) }); draw(); }
+    const ch = api(c, to), f = cfg(to || id);
     try{ await (f.send || talk)(text, ch, img); }
     catch(err){ if(!(err && err.cancelled)) ch.say(AI.friendly(err)); }   // Food Coach 2.0: plain words, never the provider's error text
     finally{ if(typeof Supervisor !== 'undefined') Supervisor.end(); c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);

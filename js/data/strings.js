@@ -1130,3 +1130,14 @@ Object.assign(S, {   // Food Coach: one AI request per message (today.js logQAns
   logQSuggOff: ['Meal ideas need the AI, and it can’t be reached right now. Try again in a moment.', 'Οι ιδέες για γεύματα θέλουν το AI, που δεν είναι διαθέσιμο τώρα. Δοκίμασε ξανά σε λίγο.'],
   logQSuggSpent: ['Ask me “What should I eat?” and I’ll suggest meals that fit what’s left today.', 'Ρώτα με «Τι να φάω;» και θα σου προτείνω γεύματα που χωράνε σε ό,τι απομένει σήμερα.'],
 });
+
+Object.assign(S, {   // Athlete OS handoff (coach.js): a clear question for the other coach is answered by it in the same chat
+  coachHandoff: ['{n} is answering', 'Απαντά: {n}'],
+});
+
+Object.assign(S, {   // Settings › AI › What You Told the Coaches: edit a note (wire/08 drawAiMem / memSave)
+  memEditL: ['Edit Note', 'Επεξεργασία Σημείωσης'], memEdited: ['Note updated', 'Η σημείωση ενημερώθηκε'],
+  memEditEmpty: ['Write something, or delete the note instead.', 'Γράψε κάτι, ή διάγραψε τη σημείωση.'],
+  memEditBad: ['That can’t be kept as a note. Write a plain fact about you, like “My left knee hurts on squats”.', 'Αυτό δεν μπορεί να κρατηθεί ως σημείωση. Γράψε ένα απλό γεγονός για σένα, π.χ. «Με πονάει το αριστερό γόνατο στα squat».'],
+  memEditGone: ['That note was deleted meanwhile.', 'Η σημείωση διαγράφηκε στο μεταξύ.'],
+});

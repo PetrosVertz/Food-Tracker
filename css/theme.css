@@ -732,6 +732,8 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .cme{max-width:82%;display:flex;flex-direction:column;gap:var(--s2);padding:10px var(--s4);border-radius:22px;background:var(--t-sel);color:var(--t-text);font-size:var(--fs-body);line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .cimg{display:block;max-width:220px;max-height:220px;border-radius:14px;object-fit:cover}
 .cav{flex:0 0 28px;width:28px;display:flex;justify-content:center}
+.cby{display:block;margin:0 0 2px;font-size:var(--fs-label);font-weight:var(--w-bold);color:var(--t-muted);white-space:normal}   /* Athlete OS handoff: the coach that answered */
+.ccards>.cby{margin-bottom:var(--s1)}
 .ctext{flex:1;min-width:0;padding-top:var(--s1);font-size:var(--fs-body);line-height:1.55;color:var(--t-text);white-space:pre-wrap;overflow-wrap:anywhere}
 .cwork{display:flex;align-items:center;min-height:32px;padding-top:0;color:var(--t-muted);font-size:var(--fs-label)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -1217,6 +1219,10 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .aimem small{display:block;color:var(--t-muted);font-size:12px;margin-top:2px}
 .aimemx{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--t-muted);border-radius:10px;cursor:pointer}
 .aimemx:active{background:var(--t-sel)}
+.aimem li.editing{display:block}
+.aimemed input{width:100%;box-sizing:border-box}
+.aimemed .actions{margin-top:var(--s2);justify-content:flex-end}
+.aimemed .status:empty{display:none}
 
 
 /* ==== RECOVERY+ (gym-rec): next workout, approved body, tiles, insight, Advanced ==== */
