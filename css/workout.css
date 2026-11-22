@@ -373,7 +373,7 @@ body.inses .coachbub{display:none!important}
 /* Social Hub: a leaderboard row gets a stripe in its tier colour; the Highest Rank card a tier-coloured edge and the rank name in tier ink */
 .pfpr[class*="tr-"]{border-color:color-mix(in srgb,var(--trc) 55%,var(--t-edge))}
 :root:not([data-theme="light"]) .pfpr[class*="tr-"]{box-shadow:var(--t-shadow),0 0 18px -6px color-mix(in srgb,var(--trc) 55%,transparent)}
-.pfpr .pfrk1 .pfrn small,.rkrow .pfrn small.rkink{color:var(--trci);font-weight:var(--w-med)}
+.rkrow .pfrn small.rkink{color:var(--trci);font-weight:var(--w-med)}
 /* Profile › Leaderboards: the prompt when body weight or sex is missing */
 
 /* ---------- 0.7.7 gym-qr: Share a Workout QR, full screen on white (scanners need dark modules on a light page, in every theme) ---------- */
@@ -399,8 +399,7 @@ body.inses .coachbub{display:none!important}
 #ovWkScan #wsPhotoBtn{width:100%;margin-top:10px}
 
 /* 0.7.9 streak numbers: slanted athletic numerals (bold italic Inter, tight spacing) on the streak card and the pill */
-.pfstreak .pfnum,.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
-.pfstreak .pfnum{padding-right:3px}
+.gymstreak b{font-style:italic;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-synthesis:none}
 
 /* 0.7.9.1 Leaderboard Attempt: trophy button above the exercise name (top centre); gold name in attempt mode; set rows = weight + tick */
 .attbtn{width:44px;height:44px;margin:-6px 0 -8px;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--t-muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
