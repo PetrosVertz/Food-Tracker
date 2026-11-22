@@ -117,6 +117,15 @@ const J = JSON.stringify;
   check(s.foodFix && s.foodFix.eggs, 'backup: includes Food Coach corrections (foodFix)');
   check(!('settings' in s) && !J(s).includes('geminiKey'), 'backup: no device settings or API key');
 }
+// 4a. Gym Coach memory (chat history, shown hints, past proposals) stays on this phone: saved, never in a backup, never synced
+{
+  const { Store, ls } = boot({ 'ft.schema': '2' });
+  const ok = Store.save('gymCoach', { v: 1, chats: { gym: { at: 1, msgs: [{ who: 'me', text: 'bench?' }] } }, seen: null, said: [] });
+  check(ok && JSON.parse(ls.getItem('ft.gymcoach.v1')).chats.gym.msgs[0].text === 'bench?', 'gym coach memory: saved under ft.gymcoach.v1');
+  const s = Store.snapshot();
+  check(!J(s).includes('bench?') && !('gymCoach' in s), 'gym coach memory: never in a backup (device only)');
+  check(!J(JSON.parse(ls.getItem('ft.sync.v1') || '{}')).includes('gymcoach'), 'gym coach memory: not in the sync table');
+}
 // 4b. A backup from a newer app version is refused, not silently downgraded
 {
   const { Store } = boot({ 'ft.schema': '2' });
