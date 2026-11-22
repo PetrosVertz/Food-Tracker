@@ -151,6 +151,7 @@ const SHELL_SETS = [
   { k: 'geminiKey', g: 'stAI', kw: 'api key password κλειδί', go: ['[data-sp="ovSAI"]'], hl: '#sKey' },
   { k: 'geminiModel', g: 'stAI', kw: 'flash pro lite μοντέλο', go: ['[data-sp="ovSAI"]'], hl: '#sModel' },
   { k: 'aiKnowReset', g: 'stAI', kw: 'learn learned knows memory forget profile personal privacy μαθαίνει ξεχνά μνήμη προφίλ απόρρητο', go: ['[data-sp="ovSAI"]'], hl: '#aiKnowReset' },
+  { k: 'perT', g: 'stAI', kw: 'personality tone humor humour funny style length short detailed motivator analytical coach προσωπικότητα ύφος χιούμορ αστείο μήκος σύντομο αναλυτικό', go: ['[data-sp="ovSAI"]'], hl: '#perBase' },
   { k: 'aiuT', g: 'stAI', kw: 'usage tokens cost requests calls χρήση κόστος αιτήματα', go: ['[data-sp="ovSAI"]'], hl: '#aiUsage' },
   { k: 'keyGuideT', g: 'stAI', kw: 'free key how help οδηγίες δωρεάν', go: ['[data-sp="ovSAI"]'], hl: 'details.guide' },
   { k: 'stData', go: ['[data-sp="ovSData"]'] },

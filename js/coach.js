@@ -70,8 +70,8 @@ const Coach = (() => {
   // without a send() of its own: a short, friendly AI conversation in the coach's role
   async function talk(text, ch, img){
     const gym = kindOf(ch.id) === 'gym';
-    const role = gym ? 'You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app.' : 'You are Food Coach, a friendly, practical nutrition coach inside a food-tracking app for someone who lifts weights.';
-    const r = await ch.ask(`${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most 120 words), plain text with no markdown.${AI.dietRules()}${AI.knows(gym ? 'gym' : 'food', ch.id)}
+    const role = gym ? 'Here you are Gym Coach, in the workout tracker.' : 'Here you are Food Coach, in the food tracker, for someone who lifts weights.';
+    const r = await ch.ask(`${AI.voice(gym ? 'gym' : 'chef')}${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most ${AI.words(120)} words), plain text with no markdown.${AI.dietRules()}${AI.knows(gym ? 'gym' : 'food', ch.id)}
 Conversation so far:
 ${ch.transcript()}
 ${img ? 'The user also sent the attached photo.' : ''}

@@ -1366,7 +1366,8 @@ function femWarp(d){ return d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g,
 // ---------- 0.7.4.3 Gym Coach: the shared coach chat (coach.js) with the sweatband robot ----------
 // Every answer is one or two short friendly lines ("reply"), then the result as a card (a workout, a machine). No long chat.
 // Gym Coach intelligence: the voice and the depth rules live in GymIntel.voice(); this is only the answer's shape
-const GC_REPLY = 'Reply style: "reply" is plain text, no lists or markdown. Usually one to three short sentences (about 45 words at most); when the athlete asks why, disagrees or goes technical, up to about 120 words. A result (a workout, a machine, a change) never goes inside "reply": it goes in its own field and the app shows it as a card.';
+const GC_REPLY = 'Reply style: "reply" is plain text, no lists or markdown. Usually one to three short sentences (about {s} words at most); when the athlete asks why, disagrees or goes technical, up to about {l} words. A result (a workout, a machine, a change) never goes inside "reply": it goes in its own field and the app shows it as a card.';
+const gcReply = () => GC_REPLY.replace('{s}', AI.words(45)).replace('{l}', AI.words(120));   // Athlete OS persona: the user's Length setting
 const gcLang = () => lang === 'el' ? 'Greek' : 'English';
 // the AI names exercises in English; find ours (exact name first, then the longest name it contains or is part of)
 function exByName(n){
@@ -1384,7 +1385,7 @@ function gcPrompt(ch, img, text){
   const P = GymIntel.brief('plan', ch.id, text || (ch.history().filter(h => h.who === 'me').pop() || {}).text || ''), build = P.intent === 'workout';
   return `${GymIntel.voice()}
 Answer the athlete's last message in ${gcLang()}.
-${GC_REPLY}
+${gcReply()}
 ${GC_BUILD}
 ${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
 ${P.text}
@@ -1479,7 +1480,7 @@ function gcLivePrompt(ch, img, text){
   const P = img ? null : GymIntel.brief('live', ch.id, text || '');
   return `${GymIntel.voice()}
 The athlete is in the middle of a workout. Answer their last message in ${gcLang()}.
-${GC_REPLY}
+${gcReply()}
 ${img ? 'They sent a photo, most likely of a gym machine they are not sure about. Name it only from what you can see; if you are not sure which machine it is, say so plainly. Do not invent settings or details that are not visible, and do not judge technique from a still photo of equipment. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer about this workout: weights, sets, what to do next, technique, rest. Within-session fatigue is normal (a few reps fewer each set at the same weight); do not treat it as a recovery problem. Respect their planned order unless there is a good reason.'}
 ${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
 ${P ? P.text : gcActive()}

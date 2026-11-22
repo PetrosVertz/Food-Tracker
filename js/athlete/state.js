@@ -110,6 +110,25 @@ const AthleteState = (() => {
     kitchen: { deps: ['fridge'], fn(){ const on = g('kitchenOn') ? g('kitchenOn')() : true, items = on && g('liveItems') ? g('liveItems')() : [];
       return { on, items: items.length, kind: 'measured', src: 'fridge' }; } },
 
+    // how much the user actually keeps each record (persona V3 § feature usage): per source the days with records in the last 28,
+    // the last day, a level (frequent / occasional / rare / lapsed / never) and how far the records can be trusted:
+    // verified (kept often and recently) · partial (kept now and then) · stale (nothing recent) · unknown (never kept / list off).
+    // Says how complete the records are, never what the user did: a day without a log is unknown, not a day without food or training.
+    usage: { deps: ['dayLog', 'sessions', 'weights', 'fridge'], day: true, fn(){
+      const src = (dates, often, some, fresh) => { const ds = [...new Set(dates.filter(d => typeof d === 'string' && ago(d) >= 0))].sort();
+        if(!ds.length) return { level: 'never', n28: 0, last: null, age: null, rel: 'unknown', kind: 'calculated' };
+        const last = ds[ds.length - 1], age = ago(last), n28 = ds.filter(d => ago(d) <= 27).length;
+        const level = !n28 ? 'lapsed' : n28 >= often ? 'frequent' : n28 >= some ? 'occasional' : 'rare';
+        return { level, n28, last, age, rel: age > fresh ? 'stale' : level === 'frequent' ? 'verified' : 'partial', kind: 'calculated' }; };
+      const log = g('dayLog') || {}, w = g('weights') || {};
+      const out = { food: src(Object.keys(log).filter(d => (log[d] || []).length), 16, 6, 7),
+        training: src((g('sessions') || []).map(s => s && s.date), 8, 3, 21),
+        weight: src(Object.keys(w).filter(d => num(w[d]) > 30), 8, 2, 21) };
+      const on = g('kitchenOn') ? g('kitchenOn')() : true, items = on && g('liveItems') ? g('liveItems')().length : 0;
+      const m = Store.meta ? Store.meta() : null, at = m && m.upd && m.upd.fridge ? Math.max(0, ...Object.values(m.upd.fridge)) : 0, fa = at ? Math.floor((Date.now() - at) / DAY) : null;
+      out.kitchen = !on || !items ? { on, items, rel: 'unknown', kind: 'measured' } : { on, items, age: fa, rel: fa === null || fa > 30 ? 'stale' : fa <= 7 ? 'verified' : 'partial', kind: 'measured' };
+      return out; } },
+
     // the daily summary of habits (know.js); stale when it was built before the last few days
     patterns: { deps: ['aiKnow'], day: true, fn(){ const k = Store.load('aiKnow', null) || {};
       const age = k.day ? ago(k.day) : null;

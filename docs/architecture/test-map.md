@@ -20,7 +20,7 @@
 ## By change type
 - **Storage, backup, import, schema**: `tools/store-test.js` first; add a case that fails before your fix. Then `--boot --strict`. For a new migration: test old data, rerun (idempotent), failed write (schema must not advance).
 - **AI features**: AI provider checks (fake network + clock: no key needed). Never real sleeps in tests.
-- **Athlete OS / coach context**: `tools/athlete-test.js` first (fake AI counts calls). A new event type, slice, part or specialist gets a case there.
+- **Athlete OS / coach context**: `tools/athlete-test.js` first (fake AI counts calls). A new event type, slice, part or specialist gets a case there. Coach personality (`Persona`: settings, size, shared rules) and records-kept (`usage`) are groups 9–10.
 - **UI**: `--boot --strict`, plus screenshots at 390×844 in dark + light and EN + GR for the screens you touched; drags checked frame by frame (CLAUDE.md).
 - **Offline / sw.js**: `tools/sw-test.js`. The real update-while-working-out path needs https and a phone: **manual**.
 

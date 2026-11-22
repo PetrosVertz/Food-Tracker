@@ -22,10 +22,10 @@
 
 const Supervisor = (() => {
   const SP = {};
-  const BASE = ['now', 'notes', 'goals', 'body', 'changes', 'ledger', 'patterns'];
+  const BASE = ['now', 'usage', 'notes', 'goals', 'body', 'changes', 'ledger', 'patterns'];
   function register(id, spec){ SP[id] = Object.assign({ id, topic: 'food', scopes: BASE, skip: [], cross: [], budget: 1400, tier: 'default', task: id, schema: null, strict: false, escalate: false }, spec, { id }); return SP[id]; }
 
-  // ---- the specialists today (their prompts and personalities stay in their own files) ----
+  // ---- the specialists today (their task rules stay in their own files; the shared personality is js/athlete/persona.js via AI.voice) ----
   // Food Coach (today.js logQPrompt): its prompt already has today's totals → skip 'nutrition'; a training question adds training + recovery
   register('chef', { topic: 'food', scopes: [...BASE, 'nutrition'], skip: ['nutrition'], cross: ['training', 'recovery'], budget: 1500, task: 'coach-food',
     schema: { reply: 'string?', intent: 'string?', items: 'array?' }, escalate: false });
@@ -36,7 +36,7 @@ const Supervisor = (() => {
   register('gymlive', { ...GYM, task: 'coach-gym-live', schema: { reply: 'string', machine: 'object?', change: 'object?', style: 'string?' } });   // change: checked again by GymIntel.proposal before any card
   // Fridge AI = the Kitchen cook ideas and recipes (wire/05 sgGo, wire/02 suggestBtn): fridge items are in their prompts; it gets the goal,
   // the user's food notes and a one-line habit summary — not body weight, not training details (data minimisation)
-  register('fridge', { topic: 'food', scopes: ['now', 'notes', 'goals', 'patterns'], budget: 900, short: true, task: 'fridge', strict: true, escalate: true,
+  register('fridge', { topic: 'food', scopes: ['now', 'usage', 'notes', 'goals', 'patterns'], budget: 1000, short: true, task: 'fridge', strict: true, escalate: true,
     schema: { title: 'string', steps: { type: 'array', min: 1 }, ingredients: { type: 'array', min: 1, of: { grams: { type: 'number?', min: 0, max: 5000 } } },
       perServing: { type: 'object?', of: { kcal: { type: 'number?', min: 0, max: 5000 }, protein: { type: 'number?', min: 0, max: 400 } } } } });
   // the other AI helpers that ask for context by topic only (Fill My Macros, meal plans, Next Exercise)
