@@ -3,7 +3,10 @@
 // Today only Gemini works (the user's own key, straight from the phone). When the small server arrives in 0.8, a provider that talks to the
 // server replaces GeminiProvider here and nothing that asks the AI has to change.
 //
-// Normalized request   { prompt, images: [base64 jpeg], json: true, search: false, tier: 'default' | 'advanced', timeoutMs, retries, task }
+// Normalized request   { prompt, images: [base64 jpeg], json: true, search: false, tier: 'default' | 'advanced', timeoutMs, deadlineMs, retries, task }
+//   timeoutMs  one try on one model (default 30 s; 60 s for advanced / search)
+//   deadlineMs the WHOLE request: model list, every try, retry and pause together (default 60 s; 120 s for advanced / search). V3 hardening:
+//              before this, ten busy models could keep the bubble spinning for five minutes or more.
 //   json   the answer must be a JSON object (checked here; an unreadable answer counts as a failed try)
 //   search the provider may look things up on the web (Gemini cannot do this and JSON answer mode at once, so the JSON is cut out of the text)
 //   tier   'default' = the model chosen in Settings; 'advanced' = the strongest model the key allows (receipts)
@@ -105,7 +108,7 @@ const GeminiProvider = (() => {
     if(!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
-  return { ...info, chain, generate, testKey, listModels, bestModels };
+  return { ...info, chain, generate, testKey, listModels, bestModels, timeoutFor };
 })();
 
 // Anthropic (Claude): NOT IMPLEMENTED. This is only the shape a real one must fill in, so nothing pretends to work.
@@ -128,11 +131,14 @@ const AIProvider = (() => {
     const id = setTimeout(() => { if(outer) outer.removeEventListener('abort', onAbort); res(); }, ms), onAbort = () => { clearTimeout(id); rej(aiError('cancelled', t('cancelled'))); };
     if(outer) outer.addEventListener('abort', onAbort, { once: true }); });
   const backoff = n => Math.min(2000, 400 * 2 ** n);   // 0.4 s, 0.8 s, 1.6 s, then 2 s at most
+  const MIN_TRY = 3000;   // a try with less time left than this is not started: it would only time out
+  const deadlineFor = req => req.deadlineMs || (req.tier === 'advanced' || req.search ? 120000 : 60000);
 
   // Runs one normalized request: walks the model list (one try each, like before), retries are bounded, and every failure is normalized.
   // opts: { onTry(i, n, model), outer (AbortSignal) }.  Returns the normalized response; throws a normalized error (with the same user-facing texts as before).
   async function run(req, opts){
-    opts = opts || {}; const outer = opts.outer, p = active(), t0 = Date.now(), maxRetry = Math.min(2, Math.max(0, req.retries | 0));
+    opts = opts || {}; const outer = opts.outer, p = active(), t0 = Date.now(), maxRetry = Math.min(2, Math.max(0, req.retries | 0)), end = t0 + deadlineFor(req);
+    const left = () => end - Date.now(), perTry = p.timeoutFor ? p.timeoutFor(req) : 30000;
     const trace = { provider: p.id, tier: req.tier || 'default', search: !!req.search, photo: !!(req.images && [].concat(req.images).length), task: req.task || '', start: t0, tries: [], ok: false };
     const done = (res, err) => { trace.ms = Date.now() - t0; trace.ok = !err; trace.cancelled = !!(err && err.cancelled); trace.kind = err ? err.kind || 'other' : ''; try{ if(AIProvider.onDone) AIProvider.onDone(trace); }catch(e){} };
     try{
@@ -140,11 +146,13 @@ const AIProvider = (() => {
       const models = await p.chain(req); let last = null, waits = 0;
       for(let i = 0; i < models.length; i++){
         if(outer && outer.aborted) throw aiError('cancelled', t('cancelled'));
+        if(left() < MIN_TRY){ trace.deadline = true; break; }
         if(opts.onTry) opts.onTry(i + 1, models.length, models[i]);
         for(let again = 0; ; again++){
+          if(again && left() < MIN_TRY){ trace.deadline = true; break; }
           const a = { model: models[i], t0: Date.now() };
           try{
-            const g = await p.generate(req, models[i], outer); a.usage = g.usage || null;
+            const g = await p.generate({ ...req, timeoutMs: Math.max(1000, Math.min(perTry, left())) }, models[i], outer); a.usage = g.usage || null;
             let json = null;
             if(req.json !== false){ json = aiParseJSON(g.text); if(json == null){ a.valid = false; throw aiError('bad_output', 'unreadable answer'); } a.valid = true; }
             a.ms = Date.now() - a.t0; a.ok = true; trace.tries.push(a);
@@ -156,12 +164,13 @@ const AIProvider = (() => {
             if(outer && outer.aborted) throw aiError('cancelled', t('cancelled'));
             last = e;
             const k = AIKinds[a.kind] || {};
-            if(k.wait){ await sleep(backoff(waits++), outer); }   // busy or offline: a short pause helps whatever comes next
+            if(k.wait){ await sleep(Math.max(0, Math.min(backoff(waits++), left() - MIN_TRY)), outer); }   // busy or offline: a short pause helps whatever comes next
             if(k.retry && again < maxRetry) continue;             // opt-in same-model retry (default off)
             break;
           }
         }
       }
+      if(trace.deadline) throw aiError('timeout', t('allBusy', { e: last ? last.message : t('timedOut') }), { deadline: true });
       throw aiError(last ? last.kind : 'other', t('allBusy', { e: last ? last.message : '?' }));
     }catch(e){ if(!trace.ms) done(null, e); throw e; }
   }
