@@ -34,6 +34,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/shop.js',
   'js/receipt.js',
   'js/gym.js',
+  'js/gym-intel.js',
   'js/vendor/qrcode.js',
   'js/gym-share.js', 'js/progress.js', 'js/profile.js', 'js/rank-fx.js', 'js/rank-engine.js', 'js/rank-v2.js', 'js/know.js', 'js/athlete/events.js', 'js/athlete/memory.js', 'js/athlete/state.js', 'js/athlete/context.js', 'js/athlete/supervisor.js',
   'js/wire/01-core.js',
