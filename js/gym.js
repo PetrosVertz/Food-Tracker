@@ -42,15 +42,9 @@ function comebackFactor(){ if(!comeback) return 1; const k = sessions.filter(s =
 
 function cbBase(gap){ return gap >= 42 ? .7 : gap >= 21 ? .8 : .9; }
 
-function suggestFor(exId, reps){
-  const ex = exById(exId), [lo, hi] = repRange(reps), h = exHistory(exId, active && active.id);
-  if(isCardio(exId)) return null;
-  if(!h.length){ const ur = usualReps(exId) || hi, est = estimateNew(exId, ur); return est ? { first: true, est: true, w: est, r: ur, lo, hi } : { first: true, lo, hi }; }
-  const last = h[h.length - 1], f = comebackFactor();
-  if(f < 1){ const pre = comeback.ref && comeback.ref[exId] ? comeback.ref[exId] : +last.top.w; return { cb: true, p: Math.round(f * 100), w: r25(pre * f, ex.e), r: `${lo}-${hi}`, last }; }
-  const w = +last.top.w, r = +last.top.r;
-  return r >= hi ? { w: r25(w + (ex.e === 'dumbbell' ? 2 : 2.5), ex.e), r: `${lo}-${hi}`, last } : { w, r: Math.min(hi, r + 1), last };
-}
+// Gym Coach intelligence: the next-session weight comes from js/gym-intel.js (double progression over comparable sessions, one weak day is not a
+// trend, breaks measured against your own rhythm), so the live workout hints and the coach always agree. Same fields as before: { w, r, last, first, est, cb, p }.
+function suggestFor(exId, reps){ return GymIntel.progression(exId, reps); }
 
 // a brand-new exercise: estimate a safe start from your lifts on related exercises (same movement, same muscles), with equipment ratios.
 // Conservative on purpose (about 85% of the estimate); after the first session your real numbers take over.
@@ -245,7 +239,7 @@ function tickSet(x, s, row, xi, si){
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
     if(atOn(x)) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
     x.sets.push(...add); saveG('act'); }
-  renderSession(); tickRest();
+  renderSession(); tickRest(); gcNudgeCheck();   // Gym Coach intelligence: rarely, one quiet hint (a dot on the robot)
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
 }
 
@@ -1371,7 +1365,8 @@ function femWarp(d){ return d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g,
 
 // ---------- 0.7.4.3 Gym Coach: the shared coach chat (coach.js) with the sweatband robot ----------
 // Every answer is one or two short friendly lines ("reply"), then the result as a card (a workout, a machine). No long chat.
-const GC_REPLY = 'Reply style: straight to the point. "reply" is one or two short, friendly sentences (at most 35 words), plain text: no lists, no markdown, no greetings or sign-offs, no long explanations. A result (a workout, a machine) never goes inside "reply": it goes in its own field and the app shows it as a card.';
+// Gym Coach intelligence: the voice and the depth rules live in GymIntel.voice(); this is only the answer's shape
+const GC_REPLY = 'Reply style: "reply" is plain text, no lists or markdown. Usually one to three short sentences (about 45 words at most); when the athlete asks why, disagrees or goes technical, up to about 120 words. A result (a workout, a machine, a change) never goes inside "reply": it goes in its own field and the app shows it as a card.';
 const gcLang = () => lang === 'el' ? 'Greek' : 'English';
 // the AI names exercises in English; find ours (exact name first, then the longest name it contains or is part of)
 function exByName(n){
@@ -1380,37 +1375,23 @@ function exByName(n){
     || L.filter(x => { const e = norm(x.en); return e.length > 4 && (q.includes(e) || e.includes(q)); }).sort((a, b) => Math.abs(norm(a.en).length - q.length) - Math.abs(norm(b.en).length - q.length))[0] || null;
 }
 const gcEx = id => { const x = exById(id); return x.en || x.id; };
-// what the coach knows: your saved workouts, recent history, sets per muscle this week, recovery and the equipment you use
-function gcContext(){
-  const recent = sessions.slice().sort((a, b) => b.start.localeCompare(a.start)), eq = new Set();
-  [...tpls.flatMap(tp => tp.exercises), ...recent.slice(0, 20).flatMap(s => s.exercises)].forEach(x => { const e = exById(x.exId).e; if(e) eq.add(e); });
-  const saved = tpls.slice(0, 12).map(tp => `- "${tp.name}" (${tp.type}): ${tp.exercises.map(e => `${gcEx(e.exId)} ${e.sets}x${e.reps}${e.rest ? ` rest ${e.rest}s` : ''}`).join(', ')}`).join('\n');
-  const hist = recent.slice(0, 6).map(s => `- ${s.date} ${s.name || s.type || ''}: ${s.exercises.map(x => { const w = x.sets.filter(z => z.done && isMainSet(z));
-    const top = w.filter(z => z.w !== '' && z.r !== '').sort((a, b) => +b.w - +a.w || +b.r - +a.r)[0]; const xt = [top && +top.hr > 0 ? `${top.hr} half reps` : '', top && +top.ng > 0 ? `${top.ng} negatives` : '', top && top.rir != null ? `${top.rir} reps in reserve` : ''].filter(Boolean).join(', ');
-    return `${gcEx(x.exId)} ${w.length} sets${top ? ` top ${top.w}kg x ${top.r}${xt ? ` (${xt})` : ''}` : ''}`; }).join(', ')}`).join('\n');
-  const wk = hitsFrom(sessions.filter(s => -daysUntil(s.date) <= 6), false);
-  const rec = Object.entries(recMap()).map(([g, v]) => `${g} ${v.st === 'ok' ? 'ready' : `${v.h} h to recover`}`).join(', ');
-  return `Today: ${todayKey()}. Lifter: ${bodyW()} kg, goal ${(targets && targets.goal) || 'build muscle'}.
-Equipment they use: ${[...eq].join(', ') || 'unknown (assume a normal gym)'}.
-Saved workouts:
-${saved || '- none yet'}
-Recent workouts (newest first):
-${hist || '- none yet'}
-Hard sets per muscle in the last 7 days: ${Object.entries(wk).map(([h, v]) => `${HEADS[h][0]} ${Math.round(v)}`).join(', ') || 'none'}.
-Recovery now: ${rec}.`;
-}
 const gcNames = () => EX().filter(x => x.m !== 'cardio' && x.en).map(x => x.en).join('; ');
 const GC_WORKOUT = '"workout": null, or (only when you suggest a full workout or an improved version of one of theirs) {"name": string, "type": "push"|"pull"|"legs"|"upper"|"lower"|"full", "based_on": the exact name of their saved workout you improved, or null, "exercises": [{"name": exact English name from the exercise list, "sets": number, "reps": string like "8-12", "rest": seconds}]}';
-function gcPrompt(ch, img){
-  return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. Answer the user's last message in ${gcLang()}.
+// Gym Coach intelligence: a small, task-specific packet (GymIntel.brief) instead of everything every time. The exercise list goes in only
+// when the message asks for a workout, and then only the athlete's equipment; for other questions the app matches names itself (exByName).
+const GC_BUILD = 'Workouts: only when they ask for one (or for an improved one). Prefer adapting one of their saved workouts when it fits (set "based_on"); keep exercises that are progressing; no two exercises with the same movement for the same muscle unless asked; about 4 to 7 exercises for an hour (fewer if they want it shorter); fit the recovery notes (other muscles or lighter work for groups still recovering, unless they ask); use only equipment they use.';
+function gcPrompt(ch, img, text){
+  const P = GymIntel.brief('plan', ch.id, text || (ch.history().filter(h => h.who === 'me').pop() || {}).text || ''), build = P.intent === 'workout';
+  return `${GymIntel.voice()}
+Answer the athlete's last message in ${gcLang()}.
 ${GC_REPLY}
-You can suggest a full workout, or look at one of their saved workouts and improve it (better exercise choice and order, balance between muscles, sets, reps, rest). Respect recovery: avoid muscles that still need rest. Use only equipment they use.
-${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
-${gcContext()}
-Exercise list (use these exact English names): ${gcNames()}.
+${GC_BUILD}
+${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
+${P.text}
+${build ? `Exercise list (use these exact English names): ${GymIntel.names()}.` : 'Name exercises by their usual English names.'}
 Conversation so far (latest last):
 ${ch.transcript()}
-${img ? 'The user also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string, ${GC_WORKOUT}, "style": null | "low" | "mid" | "high"}`;
+${img ? 'The athlete also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string, ${GC_WORKOUT}, "style": null | "low" | "mid" | "high"}`;
 }
 // the AI's workout → a workout in the app's shape (exercises it named that we don't have are left out)
 function gcWorkout(w){
@@ -1419,7 +1400,10 @@ function gcWorkout(w){
     const sets = Math.max(1, Math.min(8, Math.round(+e.sets) || 3)), reps = /^\d+(\s*[-–]\s*\d+)?$/.test(String(e.reps || '').trim()) ? String(e.reps).trim().replace(/\s*[-–]\s*/, '-') : defReps(x.rest);
     const rr = gymReps(), r2 = rr && !isCardio(x.id) && x.m !== 'core' && x.e !== 'bodyweight' ? rr : reps;   // 0.7.9: the chosen Rep Range wins
     return { exId: x.id, sets, reps: r2, rest: rest30(+e.rest || x.rest), ...(isUni(x.id) ? { uni: true } : {}) }; }).filter(Boolean)
-    .filter((e, i, a) => a.findIndex(z => z.exId === e.exId) === i);
+    .filter((e, i, a) => a.findIndex(z => z.exId === e.exId) === i)
+    .filter((e, i, a) => { const x = exById(e.exId); return isCardio(e.exId) || a.findIndex(z => { const y = exById(z.exId); return y.p === x.p && y.h === x.h; }) === i; })   // Gym Coach intelligence: no redundant twins
+    .slice(0, 10);
+  let total = 0; list.forEach(e => { e.sets = Math.max(1, Math.min(e.sets, 30 - total - (list.length - list.indexOf(e) - 1))); total += e.sets; });
   if(!list.length) return null;
   const base = w.based_on ? tpls.find(tp => norm(tp.name) === norm(w.based_on)) : null;
   const type = inferType(list) === 'cardio' ? 'cardio' : inferDayType(list);   // push / pull / legs / upper / full, like the rest of Gym
@@ -1473,7 +1457,13 @@ function gcShow(r, ch){
 // the training style (Intensity) and Rep Range show with the chat's first answer; "style" in the answer = the user corrected it by text
 function gcStyleAfter(r, ch){ const k = r && r.style; if(['low', 'mid', 'high'].includes(k) && k !== gymStyle().k){ gymStyleSet(k, null, ch); return; }
   if(ch.history().filter(h => h.who === 'me').length === 1) ch.cards([gymStyleCard(), gymRepsCard()]); }
-async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await ch.ask(gcPrompt(ch, img), img), ch); }
+async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await gcAsk(ch, gcPrompt(ch, img, text), img, text, 'plan'), ch); }
+// Gym Coach intelligence: the one AI request for this message. If it fails (offline, no key, every model busy), a question the app can answer
+// from your own log (next weight, what's next) still gets a plain answer; otherwise the usual "couldn't answer" line.
+async function gcAsk(ch, prompt, img, text, mode){
+  try{ return await ch.ask(prompt, img); }
+  catch(e){ if(e && e.cancelled) throw e; const loc = !img && GymIntel.offline(text, mode, ch.id); if(!loc) throw e; return { reply: `${t('gciOffline')} ${loc}`, local: true }; }
+}
 
 // ---- live workout: the sweatband robot bubble ('gymlive'); a photo of a machine → what it is, how to use it, a first-time weight ----
 function gcActive(){
@@ -1482,17 +1472,35 @@ function gcActive(){
     const d = x.sets.filter(z => z.done && isMainSet(z)); return `${gcEx(x.exId)} (${d.length}/${x.sets.filter(isMainSet).length} sets done${d.length ? `, last ${d[d.length - 1].w}kg x ${d[d.length - 1].r}` : ''})`; }).join(', ') || 'none yet'}.`;
 }
 const GC_MACHINE = '"machine": null, or (only when the photo shows gym equipment) {"name": the machine\'s usual name, "exercise": the exact English name from the exercise list that this machine is used for (the main one), or null, "how": one or two sentences on how the machine works (what moves, what to adjust), "steps": 3 to 5 short steps to do the exercise, "mistakes": 2 to 4 short common mistakes}';
-function gcLivePrompt(ch, img){
-  return `You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app. The user is in the middle of a workout. Answer their last message in ${gcLang()}.
+// Gym Coach intelligence: a proposed change to the running workout is data, never an action. The app checks it (GymIntel.proposal: the exercise
+// must be in this workout, numbers in range, a swap must exist in the library) and shows it as a card; only Apply changes the workout (with Undo).
+const GC_CHANGE = '"change": null, or (only when you propose one concrete change to the running workout; if they agree to something you proposed earlier, propose it again here so they can apply it) {"type": "weight"|"reps"|"sets"|"swap"|"add", "exercise": the English name of an exercise in this workout (not for add), "w": kg for the sets still to do (weight), "r": reps for the sets still to do (reps), "n": total working sets (sets), "to": English name of the new exercise (swap, add), "why": a few words}';
+function gcLivePrompt(ch, img, text){
+  const P = img ? null : GymIntel.brief('live', ch.id, text || '');
+  return `${GymIntel.voice()}
+The athlete is in the middle of a workout. Answer their last message in ${gcLang()}.
 ${GC_REPLY}
-${img ? 'They sent a photo, most likely of a gym machine they are not sure about: name it and explain how to use it safely. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer questions about this workout: technique, what to do next, weights, rest.'}
-${gymStyleRule()} The user can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
-${gcActive()}
-${gcContext()}
-Exercise list (use these exact English names): ${gcNames()}.
+${img ? 'They sent a photo, most likely of a gym machine they are not sure about. Name it only from what you can see; if you are not sure which machine it is, say so plainly. Do not invent settings or details that are not visible, and do not judge technique from a still photo of equipment. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer about this workout: weights, sets, what to do next, technique, rest. Within-session fatigue is normal (a few reps fewer each set at the same weight); do not treat it as a recovery problem. Respect their planned order unless there is a good reason.'}
+${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
+${P ? P.text : gcActive()}
+${img ? `Exercise list (use these exact English names): ${gcNames()}.` : 'Name exercises by their usual English names.'}
 Conversation so far (latest last):
 ${ch.transcript()}
-Return ONLY JSON: {"reply": string, ${GC_MACHINE}, "style": null | "low" | "mid" | "high"}`;
+Return ONLY JSON: {"reply": string, ${img ? GC_MACHINE : GC_CHANGE}, "style": null | "low" | "mid" | "high"}`;
+}
+// the card for a checked change: what changes, why, Apply (with Undo) or Not Now. Both answers are remembered (GymIntel.said) so a declined idea is not pushed again.
+function gcChangeCard(op, why, key){
+  const rec = GymIntel.said(key || `${active ? active.id : ''}:${op.type}:${op.exId}`, `${op.type} ${gcEx(op.exId)}${op.w != null ? ' ' + op.w + ' kg' : op.r != null ? ' ' + op.r + ' reps' : op.n != null ? ' ' + op.n + ' sets' : op.to ? ' to ' + gcEx(op.to) : ''}`), wid = active && active.id;
+  const card = { title: exName(op.exId), sub: GymIntel.describe(op, active), tag: t('gciProposed'),
+    body: why ? `<p class="gchow">${esc(why)}</p>` : '',
+    actions: [
+      { label: t('gciApply'), primary: true, run(cd, ch){ if(cd.done) return;
+        if(!active || active.id !== wid || !GymIntel.stillFits(op, active)){ ch.update(cd, { done: t('gciStale') }); GymIntel.outcome(rec, null); return; }
+        const undo = GymIntel.applyOp(op, active); if(!undo){ ch.update(cd, { done: t('gciStale') }); return; }
+        saveG('act'); renderSession(); GymIntel.outcome(rec, 'yes');
+        ch.update(cd, { done: t('gciApplied'), undo(){ if(active && active.id === wid){ undo(); saveG('act'); renderSession(); } GymIntel.outcome(rec, 'undo'); } }); } },
+      { label: t('gciNotNow'), run(cd, ch){ if(cd.done) return; GymIntel.outcome(rec, 'no'); ch.update(cd, { done: t('gciKept') }); } } ] };
+  return card;
 }
 const gcList = (a, n) => (Array.isArray(a) ? a : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, n);
 // a first-time weight: your history on this exercise, else the app's estimate from your other lifts (estimateNew)
@@ -1519,10 +1527,25 @@ function gcMachineCard(m){
 }
 async function gymLiveSend(text, ch, img){
   ch.status(t(img ? 'coachStPhoto' : 'aiThinking'));
-  const r = await ch.ask(gcLivePrompt(ch, img), img), m = r && r.machine && (r.machine.name || r.machine.exercise) ? r.machine : null, reply = String((r && r.reply) || '').trim();
-  if(reply || !m) ch.say(reply || t('coachFail', { e: '?' }));
+  const r = await gcAsk(ch, gcLivePrompt(ch, img, text), img, text, 'live'), m = r && r.machine && (r.machine.name || r.machine.exercise) ? r.machine : null, reply = String((r && r.reply) || '').trim();
+  const op = !img && r && r.change ? GymIntel.proposal(r.change, active) : null;   // checked; an invalid or unknown one is simply not shown
+  if(reply || (!m && !op)) ch.say(reply || t('coachFail', { e: '?' }));
   if(m) ch.cards([gcMachineCard(m)]);
+  if(op) ch.cards([gcChangeCard(op, op.why)]);
   gcStyleAfter(r, ch);
+}
+// ---- quiet proactive coaching: after a set, plain rules (GymIntel.nudge, no AI) may find ONE useful thing. Then a small dot appears on the
+// header robot; nothing pops up. Opening the chat shows it, with a change card when there is something to apply. Each hint once per workout.
+let GC_NUDGE = null;
+function gcNudgeCheck(){
+  if(!active || typeof GymIntel === 'undefined') return; GC_NUDGE = null;
+  try{ const n = GymIntel.nudge(active, GymIntel.seen(active.id)); if(n){ GC_NUDGE = n; GymIntel.markSeen(active.id, n.key); } }catch(e){ console.warn('gym nudge', e); }
+  const b = $('sesCoach'); if(b) b.classList.toggle('nudge', !!GC_NUDGE);
+}
+function gcOpenLive(){
+  const n = GC_NUDGE; GC_NUDGE = null; const b = $('sesCoach'); if(b) b.classList.remove('nudge');
+  Coach.open('gymlive');
+  if(n && active) Coach.post('gymlive', t(n.text[0], n.text[1]), n.op && GymIntel.stillFits(n.op, active) ? [gcChangeCard(n.op, '', n.key)] : null);
 }
 
 // ---- training style: read from your logged workouts (sets per muscle a week, reps, sets to failure, rest); you can correct it in the chat ----

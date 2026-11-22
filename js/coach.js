@@ -12,11 +12,14 @@
 //     camera   true → a big camera button inside the chat box; the photo comes to send() as img (base64 JPEG)
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
 //     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
+//     persist    { load(id) → saved messages | null, save(id, messages | null) }: the chat survives a restart (the coach owns where it is kept;
+//                restored cards come back as plain text, without buttons). Without it the chat lives until the app closes, as before.
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
 //                             (a third argument, a rect, is where the bubble starts from: the pill's face; coach.js only)
 //   Coach.minimize(id)        puts that chat on screen as its robot bubble without opening it
 //   Coach.dismiss(id)         ends that chat and forgets it (its bubble goes, the coach pill comes back)
 //   Coach.has(id)             true while that chat's bubble is on screen
+//   Coach.post(id, text, cards)   the coach says something without an AI call (a local hint); shown when that chat is open, kept otherwise
 // The chat object given to send():
 //   chat.say(text)            the robot answers with plain text
 //   chat.cards(list)          the robot answers with result cards; returns the cards so you can change them later
@@ -46,7 +49,7 @@ const Coach = (() => {
       say: text => { push({ who: 'bot', text: String(text || '') }); },
       cards: list => { const cs = (list || []).map(x => ({ ...x, cid: uid() })); push({ who: 'bot', cards: cs }); return cs; },
       status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = AI.untail(w.status); },
-      update(card, patch){ Object.assign(card, patch || {}); draw(); },
+      update(card, patch){ Object.assign(card, patch || {}); draw(); keepMsgs(c.id); },
       // Athlete OS: through the Supervisor (this coach's context, answer check, per-coach numbers); still one gemini() request per message
       ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController();
         return typeof Supervisor !== 'undefined' ? Supervisor.ask(c.id, prompt, img, { quiet: true, ...(o || {}), signal: c.ctl.signal }) : gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
@@ -57,6 +60,8 @@ const Coach = (() => {
   // Athlete OS continuity: messages older than the last KEEP are not sent in full; the user's last few older ones go as one short line
   function older(c){ const ms = c.msgs.filter(m => !m.work), old = ms.slice(0, Math.max(0, ms.length - KEEP)).filter(m => m.who === 'me' && m.text).slice(-4);
     return old.length ? `(Earlier in this chat the user said: ${old.map(m => '"' + m.text.replace(/\s+/g, ' ').slice(0, 70) + '"').join('; ')})\n` : ''; }
+  // the coach's own persistence (cfg.persist), never for a chat that is still answering
+  function keepMsgs(id){ const p = cfg(id).persist, c = CH[id]; if(!p || !c) return; try{ p.save(id, c.msgs.filter(m => !m.work)); }catch(e){ console.warn('coach persist', e); } }
   function hist(c){
     return c.msgs.filter(m => !m.work).slice(-KEEP).map(m => ({ who: m.who, text: (m.text || (m.cards || []).map(x => [x.title, x.sub].filter(Boolean).join(' · ')).join('; ') || (m.img ? '[photo]' : '')).slice(0, CUT) }));
   }
@@ -126,7 +131,7 @@ Return ONLY JSON: {"reply": string}`, img);
     try{ await (f.send || talk)(text, ch, img); }
     catch(err){ if(!(err && err.cancelled)) ch.say(t('coachFail', { e: (err && err.message) || '?' })); }
     finally{ if(typeof Supervisor !== 'undefined') Supervisor.end(); c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
-      if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } }   // answered while shrunk: a dot on the bubble
+      if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } keepMsgs(id); }   // answered while shrunk: a dot on the bubble
   }
 
   // ---- open / shrink into the bubble (Refinements, change 13) ----
@@ -142,6 +147,7 @@ Return ONLY JSON: {"reply": string}`, img);
   let spot = null;   // the bubble's top-left at the top right corner while its chat is open (set by lay)
   function open_(id, first, from){
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
+    if(!c.msgs.length && cfg(id).persist){ try{ const m = cfg(id).persist.load(id); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){ console.warn('coach persist', e); } }   // back after a restart
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
     if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob){ ob._home = false; glide(ob, false); } }   // the other coach's bubble goes back to its spot
     const b = HEAD(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
@@ -210,6 +216,7 @@ Return ONLY JSON: {"reply": string}`, img);
   }
   function dismiss(id){
     const c = CH[id]; if(c && c.ctl) c.ctl.abort(); delete CH[id];
+    const p = cfg(id).persist; if(p) try{ p.save(id, null); }catch(e){}
     const b = $('cb-' + id); if(b) b.remove();
     if(cur === id){ cur = null; close('ovCoach'); }
     pillSync();
@@ -314,5 +321,11 @@ Return ONLY JSON: {"reply": string}`, img);
     }
   }
 
-  return { setup(id, o){ CFG[id] = { ...(CFG[id] || {}), ...(o || {}) }; }, open: open_, minimize, dismiss, has, closed, init, pillSync, isOpen: () => !!cur };
+  // a local message (no AI): text and/or cards from the coach, e.g. a quiet hint found by plain rules
+  function post(id, text, cards){ const c = chat(id);
+    if(!c.msgs.length){ const p = cfg(id).persist; try{ const m = p && p.load(id); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){} if(!c.msgs.length) c.msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; }
+    if(text) c.msgs.push({ who: 'bot', text: String(text) });
+    if(cards && cards.length) c.msgs.push({ who: 'bot', cards: cards.map(x => ({ ...x, cid: uid() })) });
+    if(cur === id) draw(); keepMsgs(id); }
+  return { setup(id, o){ CFG[id] = { ...(CFG[id] || {}), ...(o || {}) }; }, open: open_, minimize, dismiss, has, closed, init, pillSync, post, isOpen: () => !!cur };
 })();

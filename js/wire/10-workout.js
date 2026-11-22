@@ -114,7 +114,7 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 
 // 0.7.7: the Gym Coach robot lives in the live workout header (top right). Tap it → the chat. 0.7.8: closing the chat makes no floating bubble (coach.js HEAD).
 // When the workout ends its chat ends with it (the next workout starts a fresh chat).
-$('sesCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymlive'); });
+$('sesCoach').addEventListener('click', () => { Phone.haptic(); gcOpenLive(); });   // Gym Coach intelligence: shows a waiting hint, if any
 { let was = false; new MutationObserver(() => { const on = $('ovSession').classList.contains('open'); if(on === was) return; was = on;
     document.body.classList.toggle('inses', on);
     if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }

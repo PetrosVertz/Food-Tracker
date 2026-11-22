@@ -3,7 +3,7 @@
 
 $('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
 
-$('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
+$('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); if(typeof GymIntel !== 'undefined') GymIntel.forget(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
 // Athlete OS: what you told the coaches (AthleteMemory), each with when it ends and a delete button; Copy gives you all of it as text
 function drawAiMem(){ const el = $('aiMem'); if(!el || typeof AthleteMemory === 'undefined') return;
   const ns = AthleteMemory.list(), day = ms => new Date(ms).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' });
