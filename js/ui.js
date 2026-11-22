@@ -56,6 +56,13 @@ const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain
 // only what you see and type changes. (Lifting weights stay in kg for now.)
 const UN = () => ({ w: 'kg', h: 'cm', f: 'g', ...((typeof ui === 'object' && ui && ui.units) || {}) });
 const LB = 2.20462, OZ = 28.3495;
+// V3: ONE formatter for every time you read. Stored times stay "HH:MM" (nothing saved changes); only what is shown does.
+// ui.timeFmt (device setting, Settings › Customize › Time Format): 'system' (default: the phone's own 12 / 24 hour choice) | '12' | '24'.
+function clock24(){ const m = (typeof ui === 'object' && ui && ui.timeFmt); if(m === '24') return true; if(m === '12') return false;
+  let hc; try{ hc = new Intl.DateTimeFormat([], { hour: 'numeric' }).resolvedOptions().hourCycle; }catch(e){} return hc === 'h23' || hc === 'h24'; }
+function fmtClock(v){ const m = /^(\d{1,2}):(\d{2})/.exec(v || ''); if(!m) return ''; const h24 = clock24();
+  return new Date(2000, 0, 1, +m[1], +m[2]).toLocaleTimeString(lang === 'el' ? 'el-GR' : h24 ? 'en-GB' : 'en-US', { hour: h24 ? '2-digit' : 'numeric', minute: '2-digit', hourCycle: h24 ? 'h23' : 'h12' }); }
+function syncClocks(){ document.querySelectorAll('.wptime input').forEach(i => { const sp = i.closest('.wptime').firstElementChild; if(sp && sp !== i) sp.textContent = fmtClock(i.value) || '--:--'; }); }
 const bwU = () => UN().w === 'lb' ? 'lb' : 'kg';
 const bwOut = kg => kg == null || kg === '' ? '' : UN().w === 'lb' ? Math.round(+kg * LB * 10) / 10 : Math.round(+kg * 10) / 10;
 const bwIn = v => UN().w === 'lb' ? +v / LB : +v;
@@ -65,11 +72,11 @@ const hIn = v => { if(UN().h !== 'ft') return +v; const m = String(v).match(/(\d
 // ---------- Settings › Theme (canvas ThemeMenu.dc.html): Dark / Light / Automatic + nine accent presets on one neutral grey base ----------
 // [id, name, dark accent, dark text-on-accent, light accent, light text-on-accent, light accent-as-text (≥ 4.5:1 on the Light page)]. A device setting (ui.theme), not synced.
 const THEMES = [
-  ['lime', 'Lime', '#c6f432', '#0f1113', '#8fbb12', '#0f1113', '#4a6600'], ['ocean', 'Ocean', '#3fd5e0', '#061316', '#0f9aa6', '#ffffff', '#0a6670'],
-  ['sunset', 'Sunset', '#ff8c4a', '#1a0d06', '#e8692a', '#1a0d06', '#a8420f'], ['violet', 'Violet', '#b39bff', '#120d22', '#7457ea', '#ffffff', '#5a3fd0'],
-  ['mono', 'Mono', '#f1f3f5', '#0a0a0b', '#1d1f22', '#f4f4f5', '#1d1f22'], ['red', 'Racing Red', '#ff4d4d', '#1a0606', '#d42c2c', '#ffffff', '#b01f1f'],
-  ['gold', 'Gold', '#f2c14e', '#1a1306', '#c08c0c', '#1a1306', '#7f5a00'], ['mint', 'Mint', '#5fe3b0', '#04170f', '#16a673', '#04170f', '#0a6e4a'],
-  ['pink', 'Soft Pink', '#ff9ec7', '#2a0a18', '#db4f8c', '#ffffff', '#a8285f'] ];
+  ['lime', 'Lime', '#c8f53a', '#0f1113', '#8cbb0d', '#0f1113', '#476300'], ['ocean', 'Ocean', '#40d9e6', '#061316', '#087f8c', '#ffffff', '#095f69'],
+  ['sunset', 'Sunset', '#ff9150', '#1a0d06', '#ea6a2a', '#1a0d06', '#a3400d'], ['violet', 'Violet', '#b8a1ff', '#120d22', '#7355ea', '#ffffff', '#5a3fd0'],
+  ['mono', 'Mono', '#f1f3f5', '#0a0a0b', '#1d1f22', '#f4f4f5', '#1d1f22'], ['red', 'Racing Red', '#ff5454', '#1a0606', '#d42a2a', '#ffffff', '#ad1d1d'],
+  ['gold', 'Gold', '#f5c750', '#1a1306', '#c28d08', '#1a1306', '#7b5700'], ['mint', 'Mint', '#5ce8b4', '#04170f', '#14a572', '#04170f', '#096946'],
+  ['pink', 'Soft Pink', '#ff9fc8', '#2a0a18', '#cf3c7f', '#ffffff', '#a3255c'] ];
 const THEME_WARM = ['sunset', 'red', 'gold', 'pink'];   // "Ready" muscles use green in these so they don't look like "Sore"
 function themeNow(){ const th = (typeof ui === 'object' && ui && ui.theme) || {}, mode = ['dark', 'light', 'auto'].includes(th.mode) ? th.mode : 'auto', p = THEMES.find(x => x[0] === th.preset) || THEMES[0];
   return { mode, p, look: mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode }; }
@@ -590,11 +597,14 @@ function fixNum(inp){
 
 
 // ---------- animations: sheets slide in/out, new rows fade in, removed rows fade out ----------
-function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); if(was) Draft.closed(id); el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovExPick' && was && typeof gymEmptyBack === 'function') gymEmptyBack(); if(id === 'ovCoach' && was) Coach.closed();
+function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const was = el.classList.contains('open'); if(was) Draft.closed(id);
+  const pose = was && el._ra && !reducedMotion() ? sheetPose(el) : null; if(el._ra){ el._ra.stop(); el._ra = null; if(!pose) el.classList.remove('reopen'); }   // closed again while still gliding in: carry on from where it is
+  el.classList.remove('open'); if(id === 'ovScan'){ stopScan(); shopScanClosed(); } if(id === 'ovSession') keepAwake(false); if(id === 'ovExPick') $('pkBulb').classList.add('hide'); if(id === 'ovExPick' && was && typeof gymEmptyBack === 'function') gymEmptyBack(); if(id === 'ovCoach' && was) Coach.closed();
   // body.ovopen stays on until the 200 ms close animation ends, so a sliding-out sheet never passes under the title bar
   const sync = () => document.body.classList.toggle('ovopen', !!document.querySelector('.overlay.open,.overlay.closing'));
   stripSync();
-  if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); clearTimeout(el._ct); el._ct = setTimeout(() => { el.classList.remove('closing'); sync(); }, 200); }
+  if(was && !matchMedia('(prefers-reduced-motion: reduce)').matches){ el.classList.add('closing'); if(pose) glide(el, pose, { tf: 'translateY(60px)', op: '0', bo: '0' }, 200, 'ease-in'); clearTimeout(el._ct);
+    el._ct = setTimeout(() => { if(el._ra){ el._ra.stop(); el._ra = null; } el.classList.remove('closing', 'reopen'); sync(); }, 200); }
   sync(); }
 
 // 0.7.10.7: the solid strip under the clock (body::before, theme.css) matches what is under it: the page, the page dimmed behind a floating window, or a full-screen window
@@ -604,13 +614,39 @@ function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')
 
 // 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still
 // holds its last frame keeps the window on its own layer, and iPhone draws the text on such a layer softly (the chat window grew from scale .2 and stayed "scale 1")
+// V3: a window that is told to open while it is still sliding out glides back from where it is (transform + opacity only, no jump), and one that
+// is already open is left alone (restarting its slide made it flicker). Nothing here touches the window's contents, timers or scroll.
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function sheetPose(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) return null; const c = getComputedStyle(sh); return { sh, tf: c.transform, op: c.opacity, bo: getComputedStyle(el, '::before').opacity }; }
+function glide(el, p, to, ms, ease, done){
+  el.classList.add('reopen');   // motion.css: the CSS slide steps aside while this one runs
+  const a = p.sh.animate([{ transform: p.tf, opacity: p.op }, { transform: to.tf, opacity: to.op }], { duration: ms, easing: ease, fill: 'forwards' });
+  let b = null; try{ b = el.animate([{ opacity: p.bo }, { opacity: to.bo }], { duration: ms, easing: ease, fill: 'forwards', pseudoElement: '::before' }); }catch(e){}
+  const ra = el._ra = { a, stop(){ a.cancel(); if(b) b.cancel(); } };
+  if(done) a.onfinish = () => { if(el._ra === ra){ ra.stop(); el._ra = null; done(); } }; }
+// V3: shared sliding pill rows (.chips): the browser scrolls them natively (touch + trackpad). A mouse wheel turns the row sideways, and a mouse can drag it;
+// a drag never counts as a tap on a pill. Rows that do not overflow are left alone, so the page still scrolls normally over them.
+(function(){ let d = null;
+  addEventListener('wheel', e => { const r = e.target.closest && e.target.closest('.chips'); if(!r || e.ctrlKey || r.scrollWidth <= r.clientWidth + 1) return;
+    if(e.deltaX || !(e.deltaMode === 1 || (Math.abs(e.deltaY) >= 50 && Number.isInteger(e.deltaY)))) return;   // trackpads already send real sideways movement
+    const max = r.scrollWidth - r.clientWidth, to = r.scrollLeft + (e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY); if((to <= 0 && r.scrollLeft <= 0) || (to >= max && r.scrollLeft >= max)) return;   // at the end: let the page scroll
+    e.preventDefault(); r.scrollLeft = to; }, { passive: false });
+  addEventListener('pointerdown', e => { const r = e.pointerType === 'mouse' && e.button === 0 && e.target.closest && e.target.closest('.chips'); if(r && r.scrollWidth > r.clientWidth + 1) d = { r, x: e.clientX, l: r.scrollLeft, moved: false }; });
+  addEventListener('pointermove', e => { if(!d) return; const dx = e.clientX - d.x; if(!d.moved && Math.abs(dx) > 5) d.moved = true; if(d.moved) d.r.scrollLeft = d.l - dx; });
+  addEventListener('pointerup', () => { if(d && d.moved){ const r = d.r; r._noTap = true; setTimeout(() => { r._noTap = false; }, 0); } d = null; });
+  addEventListener('click', e => { const r = e.target.closest && e.target.closest('.chips'); if(r && r._noTap){ e.stopPropagation(); e.preventDefault(); } }, true);
+})();
 function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) return; sh.classList.remove('settled');
   const done = e => { if(e.target !== sh) return; sh.removeEventListener('animationend', done); if(el.classList.contains('open')) sh.classList.add('settled'); };
   sh.addEventListener('animationend', done); }
 
 function open(id){
   if(AI.holdOpen(id)) return;   // an AI answer is landing: the window waits behind the AI bubble
-  const el = $(id); el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; if(!el.classList.contains('open')) Draft.opened(id); el.classList.add('open'); document.body.classList.add('ovopen'); stripSync(); settle(el);
+  const el = $(id), live = el.classList.contains('open'), pose = !live && el.classList.contains('closing') && !reducedMotion() ? sheetPose(el) : null;
+  if(el._ra){ el._ra.stop(); el._ra = null; }
+  el.classList.remove('closing'); clearTimeout(el._ct); el.style.zIndex = ++zTop; if(!live) Draft.opened(id); el.classList.add('open'); document.body.classList.add('ovopen'); stripSync();
+  if(pose){ const sh = pose.sh; sh.classList.remove('settled'); glide(el, pose, { tf: 'none', op: '1', bo: '1' }, 220, 'cubic-bezier(.2,.9,.25,1)', () => { sh.classList.add('settled'); el.classList.remove('reopen'); }); }
+  else { el.classList.remove('reopen'); if(!live) settle(el); }
   // search windows sit in the top two thirds at a fixed size (the list drops down under the box); short ones float in the middle at a steady size
   const searchy = !!el.querySelector('input[type=search],input.search,#exSearch,#iSearch,#lSearch,#fSearch2'); el.classList.toggle('searchy', searchy);
   if(searchy){ el.classList.remove('center'); return; }

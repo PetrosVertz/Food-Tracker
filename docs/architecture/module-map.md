@@ -15,7 +15,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Food Coach (Quick Log chat) | log | `js/today.js` › `logQSend()`, `logQPrompt()`; meals in `js/meal.js` | dayLog (only after the user taps log; undo kept), logPhr, foodFix | — | `tools/meal-test.js` |
 | Supplements | log | `js/supplements.js` | supps, suppLog | Today | boot |
 | Fridge, groceries, shopping, receipts | shop | `js/fridge.js`, `js/shop.js`, `js/receipt.js` | fridge, groc | Today (stock), Food Coach | boot |
-| Workout plan, templates, schedule | gym | `js/gym.js` › `renderGymPlan()`, `renderTpls()`; Gym/Rest pill: `dayInfo()` in today.js | gymPlan, tpls, days | Today pill, Gym Coach | boot |
+| Workout plan, templates, schedule | gym | `js/gym.js` › `renderGymPlan()`, `renderTpls()`; Gym/Rest pill: `dayStatus()` + `dayPillHtml()` in today.js (read-only over `days`, `sessions`, `gymPlan`; `dayInfo()` still drives targets) | gymPlan, tpls, days | Today pill, Gym Coach | boot |
 | Live workout (sets, rest, finish) | gym | `js/gym.js` › `startSession()`, `tickSet()`, `renderSession()`; `js/wire/04-gym.js` › `checkAbandoned()`, `saveG()`; `js/wire/10-workout.js` | active, sessions, comeback | Progress, rank, recovery | boot |
 | Exercise picker + exercise search | gym | `js/gym.js` › `openExPick()`, `drawExPick()`, `exTiles()`; `js/exsearch.js`; library `js/data/gym.js` | exCustom | live workout, builder | `check.js` library + `tools/exsearch-test.js` |
 | Recovery (current, not RECOVERY+) | gym | `js/gym.js` › `headLoads()`, `estimateRecovery()`, `headFatigue()`, `renderRecovery()`; anatomy `js/data/gym-anatomy.js` | — (derived from sessions) | Today recovery card, Gym Coach | boot |
@@ -33,6 +33,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Phone features (camera, haptics, files) | shell | `js/platform/phone.js` › `Phone` | — | everything | boot |
 | Navigation, sheets, themes, icons, drag | shell | `js/ui.js` › `route()`, `open()`, `close()`, `svgIcon()`, `applyTheme()` | ui, settings (device only) | everything | boot, `tools/overlap.js` |
 | Offline cache / updates | shell | `sw.js` | — | — | `tools/sw-test.js` |
+| Time display (12 / 24 h) | shell | `js/ui.js` › `fmtClock()`, `clock24()`, `syncClocks()`; setting page in `js/wire/08-settings-boot.js` › `drawTimeFmt()` | ui.timeFmt (device only; stored times stay "HH:MM") | planner, Gym/Rest pill, carb windows, workout alerts | boot |
 | Texts (EN + GR) | each topic | `js/data/strings.js` (the last `Object.assign` that sets a key wins) | — | — | `check.js` strings |
 
 ## Planned owners (not built — do not create files for them until their prompt says so)

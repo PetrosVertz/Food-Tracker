@@ -139,6 +139,12 @@ document.getElementById('pgGroc').addEventListener('click', e => {
 
 // ---------- today's food ----------
 let curDay = todayKey();
+// V3: when the calendar day changes while the app is open (midnight, or waking from the background), Today moves on and the Gym Day / Rest Day pill is redrawn.
+// Looking at another day is left alone.
+let lastToday = curDay;
+function dayRolled(){ const n = todayKey(); if(n === lastToday) return; if(curDay === lastToday) curDay = n; lastToday = n; renderAll(); armMidnight(); }
+function armMidnight(){ clearTimeout(armMidnight.t); const n = new Date(); armMidnight.t = setTimeout(dayRolled, new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 1) - n); }
+document.addEventListener('visibilitychange', () => { if(!document.hidden) dayRolled(); }); addEventListener('focus', dayRolled); armMidnight();
 
 $('dPrev').addEventListener('click', () => { curDay = addDays(curDay, -1); renderToday(); });
 

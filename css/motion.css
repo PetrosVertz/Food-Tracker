@@ -7,6 +7,7 @@ section.page{overflow-x:clip}
 .overlay.open::before{animation:ovIn .22s ease-out} .overlay.open .sheet{animation:shUp .3s cubic-bezier(.2,.9,.25,1)}
 .overlay.closing{display:flex;pointer-events:none;}
 .overlay.closing::before{animation:ovOut .2s ease-in forwards} .overlay.closing .sheet{animation:shDown .2s ease-in forwards}
+.overlay.reopen>.sheet,.overlay.reopen::before{animation:none!important}   /* V3: ui.js glide() is moving it */
 @media(min-width:700px){@keyframes shUp{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}}
 /* 0.7.9.2: the page-open motion is now run from ui.js (route / switchTab) with the Web Animations API, so nothing stays on the page or header once it has finished */
 .enter{animation:rowIn .26s cubic-bezier(.2,.9,.25,1) both} .ghostout{animation:rowOut .24s ease-in forwards}

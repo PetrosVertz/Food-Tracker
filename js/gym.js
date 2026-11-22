@@ -463,7 +463,7 @@ function recoveryWarnings(){
   const out = [], tk = todayKey(), tm = addDays(tk, 1), wName = w => t({ legs: 'wLegs', upper: 'wUpper', full: 'wFull', cardio: 'wCardio' }[w] || 'wUpper');
   const pt = planFor(tm), tp = pt && pt.tpl && tpls.find(x => x.id === pt.tpl);
   if(tp && tp.type !== 'cardio'){ const at = new Date(`${tm}T${pt.time || '18:00'}:00`).getTime(), rd = groupReadiness(at);
-    const bad = tplGroups(tp).filter(g => rd[g] < .8); if(bad.length) out.push(t('recWarnTomorrow', { w: tp.name, t: pt.time || '18:00', m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) })); }
+    const bad = tplGroups(tp).filter(g => rd[g] < .8); if(bad.length) out.push(t('recWarnTomorrow', { w: tp.name, t: fmtClock(pt.time || '18:00'), m: bad.map(g => ML(g)).join(', '), p: Math.round(Math.min(...bad.map(g => rd[g])) * 100) })); }
   const di = dayInfo(tk);
   if(di.type === 'rest'){ const rd = groupReadiness(Date.now()), bad = Object.keys(rd).filter(g => rd[g] < .8); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => ML(g)).join(', ') })); }
   return out;
@@ -627,10 +627,7 @@ function applyRecipe(r, own){
 
 // Refinements: a planner time is plain text with the phone's own time wheel laid over it, invisible (like the gym card on Today's Food, .remtime).
 // Stored as "HH:MM", as before. Shown in the phone's 12 or 24 hour style, with the app language's words.
-function wpTime(v){ const m = /^(\d{1,2}):(\d{2})/.exec(v || ''); if(!m) return '--:--';
-  let hc; try { hc = new Intl.DateTimeFormat([], { hour: 'numeric' }).resolvedOptions().hourCycle; } catch(e){}
-  const h24 = hc === 'h23' || hc === 'h24', d = new Date(2000, 0, 1, +m[1], +m[2]);
-  return d.toLocaleTimeString(lang === 'el' ? 'el-GR' : 'en-GB', { hour: h24 ? '2-digit' : 'numeric', minute: '2-digit', hourCycle: h24 ? 'h23' : 'h12' }); }
+function wpTime(v){ return fmtClock(v) || '--:--'; }   // V3: the shared clock formatter (ui.js)
 const wpTimeBox = (attr, v, lbl, off) => `<label class="wptime ${off ? 'off' : ''}"><span>${esc(wpTime(v))}</span><input type="time" class="remtime" ${attr} value="${esc(v || '')}" aria-label="${esc(t(lbl))}" ${off ? 'disabled' : ''}></label>`;
 
 function renderGymPlan(){
@@ -1201,7 +1198,7 @@ function showSummary(ses, moreRanks){
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
       : p.kind === 't' || p.kind === 'd' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.kind === 't' ? 'prTLine' : 'prDLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.v)} ${p.kind === 't' ? 'min' : 'km'}</b></li>` : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
     ${moreRanks && moreRanks.length ? `<h3><span class="ric">${svgIcon('medal', 16, 2)}</span>${esc(moreRanks.length === 1 ? t('rfxMore1') : t('rfxMore', { n: moreRanks.length }))}</h3><ul class="feed rfxmore">${moreRanks.map(c => `<li>${rankIcon(TIERS[Math.floor(c.to / 3)], c.to, 24)}<span>${esc(exName(c.exId))}: <b>${esc(tierName(c.to))}</b></span></li>`).join('')}</ul>` : ''}
-    ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fromMin(post.b + 1), c: Math.round(post.c) })}</div>` : ''}
+    ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fmtClock(fromMin(post.b + 1)), c: Math.round(post.c) })}</div>` : ''}
     ${!ses.tplId && ses.exercises.some(x => !isCardio(x.exId)) ? `<button type="button" class="btn smtpl" data-smtpl>${svgIcon('plus', 16, 2.4)} ${t('smSaveTpl')}</button>` : ''}`;
   SM_SES = ses;
   if(ses.prs.length) celebrate();
