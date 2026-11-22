@@ -128,7 +128,7 @@ const FoodCoach = (() => {
     const s = N(txt).replace(/[.!]+$/, '').trim(); if(!s || s.length > 120 || /\?$/.test(s)) return null;
     let m = s.match(/^(?:please\s+)?(?:remove|delete|drop|take out|skip|scratch|βγαλε|σβησε|αφαιρεσε|χωρισ)\s+(?:the\s+|το\s+|τα\s+|την\s+|τη\s+)?(.+)$/);
     if(m){ const i = target(m[1], rows); return i >= 0 ? { type: 'remove', i } : null; }
-    m = s.match(/^(?:add\s+|and\s+|plus\s+|βαλε\s+|προσθεσε\s+)?(another|one more|an extra|(\d+|two|three) more|ακομα\s+(?:ενα|μια|ενασ|\d+)|αλλο ενα|αλλη μια|αλλον εναν)\s+(.+)$/);
+    m = s.match(/^(?:add\s+|and\s+|plus\s+|βαλε\s+|προσθεσε\s+)?(another|one more|an extra|(?:\d+|two|three) more|ακομα\s+(?:ενα|μια|ενασ|\d+)|αλλο ενα|αλλη μια|αλλον εναν)\s+(.+)$/);
     if(m){ const n = (m[1].match(/\d+/) || [])[0] ? +(m[1].match(/\d+/)[0]) : /two/.test(m[1]) ? 2 : /three/.test(m[1]) ? 3 : 1, i = target(m[2], rows);
       return i >= 0 ? { type: 'inc', i, n } : null; }
     const said = parse(txt)[0] || null, cook = /\b(cooked|boiled|grilled|μαγειρεμεν\w*|βραστ\w*|ψητ\w*)\b/.test(s) ? 'cooked' : /\b(raw|uncooked|dry|ωμ\w*)\b/.test(s) ? 'raw' : '';
@@ -197,7 +197,7 @@ const FoodCoach = (() => {
   }
 
   // ---- 6. chat memory on this phone ----
-  const CHAT_MS = 2 * 864e5, CHAT_MAX = 30;
+  const CHAT_MS = 2 * 864e5, CHAT_MAX = 80;
   function chatLoad(){ const c = Store.load('coachChat', null); if(!c || !Array.isArray(c.msgs) || Date.now() - (c.at || 0) > CHAT_MS) return null; return c; }
   function chatSave(msgs, extra){ const c = Store.load('coachChat', null) || {};
     return Store.save('coachChat', { ...c, ...(extra || {}), at: Date.now(), msgs: (msgs || []).slice(-CHAT_MAX) }); }

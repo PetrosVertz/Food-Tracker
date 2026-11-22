@@ -256,7 +256,7 @@ const AIProvider = (() => {
             last = e;
             if(a.kind === 'rate') cool[coolKey(p, models[i])] = Date.now() + Math.min(COOL_MAX, e.retryAfterMs || COOL_DEF);
             const k = AIKinds[a.kind] || {};
-            if(k.wait){ await sleep(Math.max(0, Math.min(backoff(waits++), left() - MIN_TRY)), outer); }   // busy or offline: a short pause helps whatever comes next
+            if(k.wait && !(e.retryAfterMs > 5000)){ await sleep(Math.max(0, Math.min(backoff(waits++), left() - MIN_TRY)), outer); }   // busy or offline: a short pause helps whatever comes next (not after "quota used up for N s": waiting can't help)
             if(k.retry && again < maxRetry && a.kind !== 'rate') continue;   // opt-in same-model retry (default off); never into a 429
             break;
           }

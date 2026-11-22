@@ -775,16 +775,31 @@ function logQMem(it){ const v = logPhr[logQMemKey(it)]; if(!v || !v.ref) return 
 const LOGQ_SAME = [[/^(boiled|steamed|βραστ\w*|μαγειρεμεν\w*)$/, 'cooked'], [/^(fresh|homemade|plain|organic|natural|σπιτικ\w*|φρεσκ\w*)$/, '']];
 function logQLocal(it){
   const tidy = s => norm(s || '').split(' ').map(w => { const r = LOGQ_SAME.find(([re]) => re.test(w)); return r ? r[1] : w; }).filter(Boolean).join(' ');
-  const qs = [[it.brand, it.text || it.name].filter(Boolean).join(' '), it.name_en, it.name]; qs.push(...qs.map(tidy));
+  const b = it.brand ? it.brand + ' ' : '', qs = [b + (it.name_en || ''), b + (it.name || ''), b + (it.text || '')].map(x => x.trim()); qs.push(...qs.map(tidy));
   for(const q of [...new Set(qs.filter(Boolean))]){
     if(!logQKey(q)) continue;
     const loc = qaLocal(q); if(!loc) continue;
     if(loc.kind === 'meal') return { info: logQMealInfo(loc.m), src: 'meal' };
-    if(loc.kind === 'gen') return { info: logQGenInfo(loc.g), src: 'std' };
+    if(loc.kind === 'gen'){   // the first built-in food that is really what you said (not just one that contains your words)
+      const g = logQTight(q, loc.g) ? loc.g : searchLocal(q, false, { log: true }).std.slice(0, 12).find(x => logQTight(q, x) && logQCovers(q, x));
+      if(g) return { info: logQGenInfo(g), src: 'std' }; continue; }
     if(loc.f.via !== 'coach' && loc.f.source !== 'estimate') return { info: fInfo_(loc.f), src: 'mine' };
   }
   return null;
 }
+// a built-in food only counts when its main name says no more than you did ("tomato sauce" is not "Beef in tomato sauce"; cooking words are fine)
+const LOGQ_DESCW = /^(cooked|raw|boiled|grilled|baked|fried|roasted|steamed|fresh|plain|white|whole|lean|skinless|boneless|homemade|ready|μαγειρεμεν\w*|ωμ\w*|βραστ\w*|ψητ\w*|τηγανητ\w*|φρεσκ\w*|σπιτικ\w*|λευκ\w*)$/;
+// the same word, allowing only plural / Greek endings ("egg" = "eggs", "αυγό" = "αυγά"; "bread" is not "breast")
+const LOGQ_END = /^(|s|es|ies|a|o|ος|οσ|ου|οι|α|ο|η|ι|ες|εσ|ια|ιο|ης|ησ|ων|ακι|ακια)$/;
+function logQSame(a, b){ if(a === b) return true; let i = 0; while(i < a.length && a[i] === b[i]) i++; return i >= 3 && LOGQ_END.test(a.slice(i)) && LOGQ_END.test(b.slice(i)); }
+const logQWords = s => norm(s).split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 3 && !/^\d/.test(w) && !(logQDrop.has(w) && w !== 'φετα'));   // φέτα is also feta
+function logQTight(q, g){
+  const qs = logQWords(q);
+  const fits = nm => logQWords(String(nm || '').split(/[,(]/)[0]).filter(w => !LOGQ_DESCW.test(w) && !qs.some(x => logQSame(x, w))).length === 0;
+  return fits(g.en) || fits(g.el);
+}
+// every word you said is in the food's names (same word rules)
+function logQCovers(q, g){ const hw = logQWords([g.en, g.el, g.hay || ''].join(' ')); return logQWords(q).filter(w => !LOGQ_DESCW.test(w)).every(w => hw.some(x => logQSame(w, x))); }
 const logQEstData = it => { const nm = String(it.name || it.text); return { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g',
   kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }; };
 function logQResolve(m){
@@ -905,7 +920,7 @@ function logQTrim(){
 
 // Food Coach 2.0: one answer = at most ONE AI call (plus, for branded foods only, one web lookup in the background), inside one time budget.
 // Everything that can be answered on the phone is: thanks, totals, small corrections, a message you added before, foods you have.
-const LOGQ_AI = { deadlineMs: 16000, timeoutMs: 10000, maxModels: 3 };   // after that: the offline answer, never minutes of dots
+const LOGQ_AI = { deadlineMs: 12000, timeoutMs: 9000, maxModels: 3 };   // after that: the offline answer, never minutes of dots
 let logQCalls = 0;
 const logQCh = ch => ({ ...ch, ask: (p, img, o) => { logQCalls++; return ch.ask(p, img, { ...LOGQ_AI, ...(o || {}) }); } });
 async function logQSend(txt, ch){
