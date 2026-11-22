@@ -51,7 +51,7 @@ function cxBody(){
 function cxChosenHtml(){
   if(!CX.mus.length) return `<span class="cxempty">${esc(t('cxNoMus'))}</span>`;
   return cxOrdered().map(m => { const pri = m === CX.pri, nm = pkName(m);
-    return `<div class="cxch${pri ? ' pri' : ''}" style="--pc:${exmCol(m)}" role="group" aria-label="${esc(nm)}${pri ? ', ' + esc(t('cxPrimary')) : ''}"><button type="button" class="cxchm" data-pri="${m}" aria-pressed="${pri}" aria-label="${esc(pri ? t('cxPrimary') : t('cxMakePri', { n: nm }))}"><span class="dot" aria-hidden="true"></span><span>${esc(nm)}</span>${pri ? `<span class="cxpt">${esc(t('cxPrimary'))}</span>` : `<span class="cxpt sec">${esc(t('cxSecondary'))}</span>`}</button><button type="button" class="cxrm" data-rm="${m}" aria-label="${esc(t('cxRemove', { n: nm }))}">${svgIcon('x', 12, 2.6)}</button></div>`; }).join('');
+    return `<div class="cxch${pri ? ' pri' : ''}" style="--pc:${exmCol(m)}" role="group" aria-label="${esc(nm)}, ${esc(t(pri ? 'cxPrimary' : 'cxSecondary'))}"><button type="button" class="cxchm" data-pri="${m}" aria-pressed="${pri}" aria-label="${esc(pri ? t('cxPrimary') : t('cxMakePri', { n: nm }))}"><span class="dot" aria-hidden="true"></span><span>${esc(nm)}</span>${pri ? `<span class="cxpt">${esc(t('cxPrimary'))}</span>` : ''}</button><button type="button" class="cxrm" data-rm="${m}" aria-label="${esc(t('cxRemove', { n: nm }))}">${svgIcon('x', 12, 2.6)}</button></div>`; }).join('');
 }
 function cxFlowHtml(){
   const st = CX.stage, multi = CX.mode === 'pill-multi', mapMulti = CX.mode === 'map-multi', hm = st === 'head' ? cxCurMus() : null, q = cxHeadMus(), curHeads = hm ? cxHeadsOf(hm) : [];

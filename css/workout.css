@@ -357,7 +357,7 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .cxzb{position:absolute;left:10px;top:10px;padding:5px 8px;border-radius:99px;background:color-mix(in srgb,var(--pk-paper) 91%,transparent);color:var(--pk-muted);font-size:10px;font-weight:900;pointer-events:none}
 .cxzc{position:absolute;z-index:2;right:8px;top:8px;display:flex;flex-direction:column;align-items:center;gap:5px}
 .cxzc button{display:grid;place-items:center;width:31px;height:31px;padding:0;border:1px solid var(--pk-line);border-radius:9px;background:color-mix(in srgb,var(--pk-paper) 92%,transparent);color:var(--pk-text);box-shadow:0 1px 3px #0001;cursor:pointer}
-.cxzc .cxzr{width:37px;font-size:10px;font-weight:900}
+.cxzc .cxzr{width:auto;min-width:37px;padding:0 5px;font-size:10px;font-weight:900}   /* grows for longer words (Greek) */
 .cxml{position:absolute;left:9px;right:9px;bottom:7px;display:flex;justify-content:space-around;color:var(--pk-muted);font-size:10px;font-weight:800;opacity:.8;pointer-events:none}
 .cxmh,.cxgh,.cxnote{overflow:hidden;transition:opacity .22s ease,max-height .26s cubic-bezier(.2,.85,.2,1),margin .24s ease,transform .24s ease}
 .cxmh{max-height:36px;margin:7px 2px 10px;font-size:12px;font-weight:600;line-height:18px;color:var(--pk-muted);opacity:1;transform:translateY(0)}
@@ -403,11 +403,11 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .cxpol{display:flex;align-items:flex-start;gap:10px;margin:7px 0;padding:10px 11px;border:1px solid var(--pk-line);border-radius:13px;background:var(--pk-paper)}
 .cxpi{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:9px;background:var(--pk-pill);color:var(--t-accent-ink,var(--t-accent))} .cxpi.no{color:var(--t-danger)}
 .cxpol b{display:block;font-size:11px;font-weight:850} .cxpol p{margin:4px 0 0;font-size:10px;line-height:1.38;color:var(--pk-muted)}
-.cxnote{max-height:0;margin:0;opacity:0;transform:translateY(-5px);font-size:10px;line-height:1.4;color:var(--pk-muted);pointer-events:none}
-.cxnote.on{max-height:36px;margin:12px 0 6px;opacity:1;transform:translateY(0);pointer-events:auto}
+.cxnote{max-height:0;margin:0;opacity:0;transform:translateY(-5px);font-size:12px;line-height:1.5;color:var(--pk-muted);pointer-events:none}
+.cxnote.on{max-height:40px;margin:12px 0 6px;opacity:1;transform:translateY(0);pointer-events:auto}
 .cxfoot{padding:11px calc(16px + var(--pkx)) max(14px,env(safe-area-inset-bottom));background:var(--pk-bg);border-top:1px solid var(--pk-line)}
 .cxsave{width:100%;padding:14px;border:0;border-radius:13px;background:var(--pk-active);color:var(--pk-ink);font-size:13px;font-weight:900;cursor:pointer}
-.cxval{min-height:13px;margin:5px 2px 0;font-size:10px;color:var(--t-danger)} .cxval:empty{min-height:0;margin:0}
+.cxval{min-height:13px;margin:5px 2px 0;font-size:10px;line-height:13px;color:var(--t-danger)}
 .cxfold{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:visible;contain:layout style}
 .cxflow.folding .cxrail{visibility:hidden} .cxflow.moving{pointer-events:none}
 .cxflow.in .cxfh{animation:cxHeadIn .2s cubic-bezier(.2,.8,.2,1) both}

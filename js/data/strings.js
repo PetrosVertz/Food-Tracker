@@ -215,7 +215,7 @@ const S = {
 Object.assign(S, {
  tGym:['Gym','Γυμναστήριο'],
  finish:['Finish','Τέλος'], addExercise:['Add exercise','Προσθήκη άσκησης'],
- exAlso:['Also Called {n}','Αλλιώς {n}'], exSearchPh:['Search exercises…','Αναζήτηση ασκήσεων…'], createEx:['Create “{q}”','Δημιουργία «{q}»'],
+ exAlso:['Also Called {n}','Αλλιώς {n}'],
  swapSub:['Same muscles, closest match first','Ίδιοι μύες, πιο κοντινό πρώτο'], swapT:['Swap {n}','Αλλαγή: {n}'], taken:['Taken','Πιασμένο'], swapped:['Swapped to {n}','Άλλαξε σε {n}'],
  workoutType:['Type (sets up My Food Log)','Τύπος (ρυθμίζει το Ημερολόγιο Φαγητού)'], exercises:['Exercises','Ασκήσεις'],
  newWorkout:['New workout','Νέα προπόνηση'], editWorkout:['Edit workout','Επεξεργασία προπόνησης'], emptyWorkout:['Empty workout','Κενή προπόνηση'],
@@ -249,7 +249,7 @@ Object.assign(S, {
  noExYet:['Tap Add Exercise to pick your first one.','Πάτα «Προσθήκη άσκησης» για να ξεκινήσεις.'],
  prW:['Weight record! {n} {w} kg × {r}','Ρεκόρ κιλών! {n} {w} kg × {r}'], prV:['Volume record! {n}: {v} kg moved','Ρεκόρ όγκου! {n}: {v} kg συνολικά'],
  prWLine:['Weight record','Ρεκόρ κιλών'], prVLine:['Volume record','Ρεκόρ όγκου'], prWas:['was {v}','ήταν {v}'],
- upper:['Upper','Πάνω σώμα'], lower:['Lower','Κάτω σώμα'], bodyMode:['Body','Σώμα'], listMode:['List','Λίστα'], tapMuscle:['Tap a muscle','Πάτα έναν μυ'],
+ upper:['Upper','Πάνω σώμα'], lower:['Lower','Κάτω σώμα'],
  allMuscles:['All Muscles','Όλοι οι Μύες'], front:['Front','Μπροστά'], backSide:['Back','Πίσω'],
  musclesWorked:['Muscles worked','Μύες που δουλεύουν'], pctNote:['Rough estimates of how much each muscle does the work, not lab measurements.','Χοντρικές εκτιμήσεις του πόσο δουλεύει κάθε μυς, όχι μετρήσεις εργαστηρίου.'],
  howTo:['How to do it','Πώς γίνεται'], mistakesT:['Common mistakes','Συνηθισμένα λάθη'], bestW:['Heaviest','Πιο βαρύ'], bestV:['Best volume','Καλύτερος όγκος'], addThis:['Add exercise','Προσθήκη'],
@@ -282,7 +282,7 @@ Object.assign(S, {
  work:['Work','Δουλειά'], gym:['Gym','Γυμναστήριο'], addWork:['Add Work','Προσθήκη δουλειάς'], trained:['trained','έγινε'],
  libEmpty:['<b>No workouts yet</b>Build templates for quick workout logging.','<b>Δεν υπάρχουν προπονήσεις</b>Φτιάξε πρότυπα για γρήγορη καταγραφή.'],
  wPush:['Push','Ώθηση'], wPull:['Pull','Έλξη'], wLower:['Lower','Κάτω σώμα'], wChest:['Chest','Στήθος'], wBack:['Back','Πλάτη'], wShoulders:['Shoulders','Ώμοι'], wArms:['Arms','Χέρια'], wCore:['Core','Κορμός'], wGlutes:['Glutes','Γλουτοί'],
- allEquip:['All','Όλα'],
+
 });
 
 // ======================= 0.5.4 =======================
@@ -442,7 +442,7 @@ Object.assign(S, {
   setDoneL: ['Set done', 'Σετ ολοκληρώθηκε'], markDoneL: ['Mark set done', 'Σημείωσε το σετ'], add15: ['Add 15 seconds', 'Πρόσθεσε 15 δευτερόλεπτα'], sub15: ['Subtract 15 seconds', 'Αφαίρεσε 15 δευτερόλεπτα'],
   discardBtn: ['Discard', 'Απόρριψη'], keepBtn: ['Keep', 'Κράτησέ τη'], endWorkoutPill: ['End Workout', 'Τέλος προπόνησης'], skipGym: ['Skip', 'Παράλειψη'], gymSkipped: ['Gym skipped today · rest-day calories', 'Χωρίς γυμναστήριο σήμερα · θερμίδες ημέρας ξεκούρασης'],
   gymSkippedT: ['Skipped: today uses your rest-day targets', 'Παράλειψη: σήμερα ισχύουν οι στόχοι ημέρας ξεκούρασης'],
-  gymL: ['Gym', 'Γυμναστήριο'], restDayS: ['Rest', 'Ξεκούραση'], muUse: ['Muscle Usage {p}%', 'Χρήση μυός {p}%'], sortByMu: ['Sort by muscle usage', 'Ταξινόμηση κατά χρήση μυός'], estNew: ['Based on your other exercises, try {w} kg for {r} reps', 'Με βάση τις άλλες σου ασκήσεις, δοκίμασε {w} kg για {r} επαναλήψεις'],
+  gymL: ['Gym', 'Γυμναστήριο'], restDayS: ['Rest', 'Ξεκούραση'], muUse: ['Muscle Usage {p}%', 'Χρήση μυός {p}%'], estNew: ['Based on your other exercises, try {w} kg for {r} reps', 'Με βάση τις άλλες σου ασκήσεις, δοκίμασε {w} kg για {r} επαναλήψεις'],
   autoEnded: ['Workout saved. It ended by itself at {t}, your last set.', 'Η προπόνηση αποθηκεύτηκε. Έληξε μόνη της στις {t}, στο τελευταίο σου σετ.'], aeQ: ['Finished Your Workout?', 'Τελείωσες την προπόνηση;'], aeFinish: ['Finish', 'Τέλος'], aeResume: ['Resume', 'Συνέχεια'],
   idleQ: ['Your workout has been open with no taps for {m} min. Go back to it?', 'Η προπόνηση είναι ανοιχτή χωρίς πάτημα εδώ και {m} λεπτά. Επιστροφή σε αυτή;'],
   idleBack: ['Back to Workout', 'Επιστροφή'], idleEnd: ['End It', 'Τέλος'], idleDiscarded: ['Workout discarded (nothing was ticked).', 'Η προπόνηση απορρίφθηκε (κανένα σετ).'], dropMore: ['Drop','Πτωτικό'], swapEx: ['Swap exercise', 'Αλλαγή άσκησης'],
@@ -753,7 +753,7 @@ Object.assign(S, {
   exsSwapPill: ['Swap Pill', 'Κουμπί Αλλαγής'], exsSwapPillS: ['Shows the Swap pill and the swap button on exercise cards.', 'Εμφανίζει το κουμπί Αλλαγής στις κάρτες ασκήσεων.'],
   gcAskW: ['Suggest a Workout', 'Πρότεινε μια Προπόνηση'], gcAskImp: ['Improve One of My Workouts', 'Βελτίωσε μια Προπόνησή μου'],
   gcAskSets: ['How Many Sets per Week?', 'Πόσα Σετ την Εβδομάδα;'],
-  pkNone: ['No exercise matches “{q}”.', 'Καμία άσκηση δεν ταιριάζει με «{q}».'],
+
   exsTips: ['Tips', 'Συμβουλές'], exsTipsS: ['Shows a suggestion like "Try 7 kg for 8 reps", based on your other exercises.', 'Εμφανίζει πρόταση όπως «Δοκίμασε 7 kg για 8 επαναλήψεις», με βάση τις άλλες ασκήσεις σου.'],
 });
 Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
