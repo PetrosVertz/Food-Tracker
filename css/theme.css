@@ -917,32 +917,20 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .pffr .pfav{width:60px;height:60px;color:var(--t-muted);border:1.5px dashed var(--t-line);background:none}
 .pfshare{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin:0 0 var(--s4)}
 .pfcard{background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);padding:var(--s4);box-shadow:var(--t-shadow)}
-.pfduo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:var(--s3)}
-.pfstreak{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-.pfstreak .pfic{color:var(--t-warm);line-height:0;margin-bottom:var(--s1)}
-.pfnum{font-size:var(--fs-hero);font-weight:var(--w-bold);line-height:1.1}
-.pfstreak small,.pflab,.pfsub,.pfline{font-size:var(--fs-label);color:var(--t-muted)}
+.pflab,.pfsub,.pfline{font-size:var(--fs-label);color:var(--t-muted)}
 .pfpr{display:flex;flex-direction:column;gap:var(--s1);min-width:0}
 .pflab{display:flex;align-items:center;gap:6px;font-weight:var(--w-med)}
 .pflab svg{color:var(--t-accent-ink,var(--t-accent))}
-.pfbig{font-size:var(--fs-body);font-weight:var(--w-bold);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .pfline{font-size:var(--fs-body);color:var(--t-text)}
 .pfpr .pfline:only-of-type{color:var(--t-muted);font-size:var(--fs-label)}
 .pfh{display:flex;align-items:center;gap:var(--s2);margin:var(--s6) 0 2px;font-size:var(--fs-title);font-weight:var(--w-bold)}
 .pfh svg{color:var(--t-accent-ink,var(--t-accent))}
 .pfsub{margin:0 0 var(--s3)}
 .pfboards{padding:4px var(--s4)}
-.pfrow{display:flex;align-items:center;gap:var(--s2);min-height:52px;border-bottom:1px solid var(--t-line)}
-.pfrow:last-child{border-bottom:0}
 .pfrn{flex:1;min-width:0;display:flex;flex-direction:column}
 .pfrn b{font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfrn small{font-size:var(--fs-label);color:var(--t-muted)}
-.pfrv{font-weight:var(--w-bold);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pftier{font-size:var(--fs-label);font-weight:var(--w-bold);padding:2px var(--s2);border-radius:var(--r-pill);border:1.5px solid var(--tc,var(--t-line));color:var(--t-text);white-space:nowrap}
-.pfwt{margin-top:var(--s3)}
-.pfhead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);margin-bottom:var(--s2);font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-med)}
-.pfhead b{font-size:var(--fs-title);color:var(--t-text)} .pfhead b small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-med)}
-.pfchart{display:block;width:100%;height:72px;color:var(--t-accent-ink,var(--t-accent))}
 .pfstats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s2);margin-top:var(--s3)}
 .pfstats>div{grid-column:span 2;background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-row);padding:var(--s3) var(--s2);text-align:center;box-shadow:var(--t-shadow)}
 .pfstats>div:nth-child(n+4){grid-column:span 3}
@@ -1016,19 +1004,13 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .aiu>span:nth-child(3n+2),.aiu>span:nth-child(3n){text-align:right;font-variant-numeric:tabular-nums}
 .aiu>span:nth-child(3n+1){color:var(--t-muted)}
 /* 0.7.10: Max PR | Strength switch above the leaderboard rows */
-.pfboardsw{margin:0 0 var(--s3)}
-.pfrv small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-med)}
 /* 0.7.10: Highest Rank card + its picker */
-.pfrk1{display:flex;align-items:center;gap:var(--s3);min-width:0}
-.pfrk3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2)}
-.pfrkc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
-.pfrkc small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t-muted);font-size:var(--fs-label)}
 .pfrkb{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s3);margin-top:var(--s1)}
 .pflink{border:0;background:none;padding:var(--s1) 0;min-height:32px;font:inherit;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-accent-ink,var(--t-accent))}
 .rkrow{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) var(--s1);border:0;border-bottom:1px solid var(--t-line);background:none;color:var(--t-text);font:inherit;text-align:left}
 .rkrow.on{color:var(--t-accent-ink,var(--t-accent))}
 .rkrow .pfrn small{color:var(--t-muted)}
-.pfrk1 .pftier.rk,.pfrkc .pftier.rk,.rkrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
+.pfrkslot .pftier.rk,.rkrow .pftier.rk{display:inline-flex;align-items:center;padding:0;border:0;background:none}
 /* 0.7.10: Stats cards (5 a day, pinnable) */
 .pfshuf{margin-left:auto;color:var(--t-muted)}
 .pfstatgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);margin-top:var(--s3)}
@@ -1140,7 +1122,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .recall svg{color:var(--t-done)} .recall b{font-size:var(--fs-body);font-weight:var(--w-bold)}
 @keyframes recTileIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* ======================= V3 · Scan Food pill (#fab2 only) =======================
+/* ======================= V3 · Scan Food pill (#fab2 only) ================
    Dark: a clean white pill with black text and black line icon (≈ 19:1). Light: the same white pill, edge a touch stronger so it
    stands off the pale page, text near-black. Pressed / disabled keep one look; nothing inherited from the theme can recolour the text. */
 #fab2,#fab2 .fabic,#fab2 svg{color:#0b0d0f!important}
@@ -1161,3 +1143,66 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
    Same size and border as before. The label is the main text colour; the separator and the time are the quieter muted colour (still ≥ 4.5:1 in Light). */
 .daypill{color:var(--t-text)}
 .daypill .dpsub{color:var(--t-muted);font-weight:var(--w-reg);font-variant-numeric:tabular-nums}
+=======
+/* ---------- Refinements #8 change 14: the Social Hub leaderboard (one rep max, friends) ----------
+   gold, silver and bronze for places 1-3: three named roles, not accents (the plates' own inks: readable on the card in Dark and in Light) */
+:root{--lb-gold:var(--tier-gold-ink,#f2c14e);--lb-silver:var(--tier-silver-ink,#c4ccd6);--lb-bronze:var(--tier-bronze-ink,#d9a070)}
+.lbpick{position:relative;display:inline-block;margin:0 0 var(--s3);z-index:3}
+.lbpill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 var(--s3) 0 var(--s4);border-radius:var(--r-pill);border:1px solid var(--t-edge);background:var(--t-card);color:var(--t-text);
+  font:inherit;font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer;box-shadow:var(--t-shadow);transition:transform .15s}
+.lbpill:active{transform:scale(.96)}
+.lbpill svg{color:var(--t-muted);transition:transform .26s cubic-bezier(.3,1.3,.6,1)}
+.lbpick.open .lbpill svg{transform:rotate(180deg)}
+.lbmenu{position:absolute;left:0;top:calc(100% + 6px);min-width:200px;padding:6px;border-radius:18px;background:var(--t-card);border:1px solid var(--t-edge);box-shadow:0 10px 30px rgba(0,0,0,.28);
+  opacity:0;transform:translateY(-6px) scale(.96);transform-origin:top left;pointer-events:none;transition:opacity .18s ease,transform .26s cubic-bezier(.3,1.3,.6,1)}
+.lbpick.open .lbmenu{opacity:1;transform:none;pointer-events:auto}
+.lbopt{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);width:100%;min-height:44px;padding:0 var(--s3);border:0;border-radius:12px;background:none;color:var(--t-text);font:inherit;font-size:var(--fs-body);text-align:left;cursor:pointer}
+.lbopt.on{font-weight:var(--w-bold)} .lbopt.on svg{color:var(--t-accent-ink,var(--t-accent))}
+.lbopt:active{background:var(--t-press)}
+.lblist{padding:4px var(--s3) var(--s3);transition:opacity .14s ease,transform .14s ease}
+.lblist.lbout{opacity:0;transform:translateY(4px)}
+.lblist.lbin{animation:lbIn .22s ease both}
+@keyframes lbIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.lbrow{display:grid;grid-template-columns:28px 36px minmax(0,1fr) auto;align-items:center;gap:var(--s2);width:100%;min-height:56px;padding:6px var(--s2);margin:0;border:0;border-bottom:1px solid var(--t-line);
+  border-radius:0;background:none;color:var(--t-text);font:inherit;text-align:left;cursor:pointer}
+.lbrow:last-of-type{border-bottom:0}
+.lbrow.me{background:color-mix(in srgb,var(--t-accent) 9%,transparent);border-radius:12px;border-bottom-color:transparent}
+.lbn{font-size:var(--fs-title);font-weight:800;font-style:italic;text-align:center;font-variant-numeric:tabular-nums}
+.lbav{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-weight:var(--w-bold)}
+.lbav .avimg{width:100%;height:100%;object-fit:cover}
+.lbname{min-width:0;display:flex;flex-direction:column}
+.lbname>span{font-weight:var(--w-bold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbdate{display:none;font-size:var(--fs-label);color:var(--t-muted)} .lbrow.showd .lbdate{display:block}
+.lbw{font-weight:var(--w-bold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lbrow.lb1 .lbn,.lbrow.lb1 .lbname>span{color:var(--lb-gold)}
+.lbrow.lb2 .lbn,.lbrow.lb2 .lbname>span{color:var(--lb-silver)}
+.lbrow.lb3 .lbn,.lbrow.lb3 .lbname>span{color:var(--lb-bronze)}
+.lbempty{display:flex;flex-direction:column;gap:2px;margin:var(--s2) 0}
+.lbempty b{color:var(--t-text)}
+.lbjoin{margin:var(--s2) 4px 0;color:var(--t-muted);font-size:var(--fs-label)}
+@media (prefers-reduced-motion: reduce){.lbmenu,.lbpill svg,.lblist{transition:opacity .12s linear!important}.lbmenu{transform:none!important}.lblist.lbin{animation:none}}
+
+/* ---------- Refinements #8 change 15: the Social Hub profile ---------- */
+/* the streak: a small frosted pill with a flame on the bottom right of your picture (uncoloured frosted button look, change 12) */
+.pfavw{position:relative;display:block}
+.pfstpill{position:absolute;right:-8px;bottom:-4px;display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 9px 0 7px;border-radius:999px;
+  background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--t-sel);box-shadow:var(--fb-n-edge),0 0 0 2px var(--t-bg);color:var(--t-text);pointer-events:none}
+:root[data-theme="light"] .pfstpill{background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),#ffffff}
+.pfstpill b{font-size:13px;font-weight:800;font-style:italic;font-variant-numeric:tabular-nums;line-height:1}
+/* Highest Ranked Exercises: the whole width, three big plates with the rank name under each; a tap shows the exercise in a bubble */
+.pfrkfull{margin:0;gap:var(--s2)}
+.pfrkrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);margin-top:var(--s2)}
+.pfrkslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:var(--s1) 0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;transition:transform .15s}
+.pfrkslot:active{transform:scale(.96)}
+.pfrkslot .rankic{width:76px;height:76px}
+.pfrkname{font-size:var(--fs-body);font-weight:800;font-style:italic;color:var(--trci,var(--t-text));max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pfrkslot.empty{cursor:default}
+.rkhole{display:block;width:76px;height:76px;border-radius:50%;border:1.5px dashed var(--t-line)}
+.pfrkhint{display:block;margin-top:var(--s1);font-size:var(--fs-label);color:var(--t-muted)}
+.rkbub{position:absolute;left:50%;bottom:calc(100% - 4px);z-index:4;max-width:160px;padding:6px 10px;border-radius:12px;background:var(--t-text);color:var(--t-bg);font-size:var(--fs-label);font-weight:var(--w-bold);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,6px) scale(.9);transform-origin:50% 100%;pointer-events:none;transition:opacity .18s ease,transform .26s cubic-bezier(.3,1.3,.6,1)}
+.pfrkslot.bub .rkbub{opacity:1;transform:translate(-50%,0) scale(1)}
+@media (prefers-reduced-motion: reduce){.rkbub{transition:opacity .12s linear;transform:translate(-50%,0)}.pfrkslot.bub .rkbub{transform:translate(-50%,0)}}
+/* stat cards: the title slanted (bold italic) and always ONE line of description that never wraps (the card never grows) */
+.pfstat small.pfstt{font-style:italic;font-weight:var(--w-bold);color:var(--t-text)}
+.pfstat>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

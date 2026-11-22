@@ -239,7 +239,7 @@ function tickSet(x, s, row, xi, si){
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
-  if(!card && s.type !== 'W' && +s.r === 1) boardCheer(x, s);   // 0.7.9: a ticked single on a board lift = a leaderboard 1RM
+  if(!card && s.type !== 'W' && +s.r === 1 && x.attempt) boardCheer(x, s);   // Refinements #8: only a single ticked with the trophy on is a leaderboard 1RM
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
   if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
@@ -417,6 +417,19 @@ function headFatigue(atTs){
   });
   return out;
 }
+// what made this workout hard, from your own history (no maths of its own: volume, minutes and top weights as saved)
+function recFacts(ses){
+  const prev = sessions.filter(s => s.id !== ses.id && String(s.start) < String(ses.start)).slice(-10), avg = k => prev.length ? prev.reduce((a, s) => a + (+s[k] || 0), 0) / prev.length : 0;
+  const top = x => Math.max(0, ...x.sets.filter(isMainSet).map(st => loadOf(x.exId, +st.w || 0)));
+  let up = 0; ses.exercises.forEach(x => { const last = [...prev].reverse().map(s => s.exercises.find(y => y.exId === x.exId)).find(Boolean); if(last && top(x) > top(last) * 1.04) up++; });
+  const fail = ses.exercises.reduce((a, x) => a + x.sets.filter(st => st.type === 'F' || st.type === 'D').length, 0), av = avg('vol'), am = avg('mins');
+  return [`duration ${ses.mins} min${am ? ` (your usual: ${Math.round(am)} min)` : ''}`, `total volume ${Math.round(ses.vol)} kg${av ? ` (your usual: ${Math.round(av)} kg)` : ''}`,
+    `exercises where the weight went up clearly since last time: ${up}`, `weight records: ${(ses.prs || []).filter(p => p.kind === 'w').length}`, `sets to failure or drop sets: ${fail}`].join('; ');
+}
+// Refinements #8: the coach's line is 1-2 short sentences; anything longer than two lines on a small iPhone is cut to its first sentence, or dropped
+function recNoteFit(s){ s = String(s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F]/gu, '').replace(/\s+/g, ' ').trim(); if(!s) return '';
+  if(s.length > 85){ const m = s.match(/^.*?[.!;](\s|$)/); s = m ? m[0].trim() : ''; }
+  return s.length > 85 ? '' : s; }
 async function aiRecovery(ses){
   const est = ses.recovEst || estimateRecovery(ses), groups = Object.keys(est); if(!groups.length) return null;
   const lines = ses.exercises.map(x => { const ex = exById(x.exId); return `${ex.name || ex.id} [${Object.entries(ex.mu || {}).map(([h, v]) => `${h} ${v}%`).join(', ')}]: ` +
@@ -424,12 +437,15 @@ async function aiRecovery(ses){
   const prompt = `You are an experienced strength coach. Estimate how many hours each muscle group needs after this workout until it can be trained hard again (about 80% recovered).
 Consider total volume per muscle, sets taken to failure, drop sets, heavy eccentric (lowering) work and rep ranges. Lifter: ${bodyW()} kg, goal: ${(targets && targets.goal) || 'bulk'}.
 Muscle groups to rate: ${groups.join(', ')}. A simple formula estimated: ${JSON.stringify(est)}.
+Facts about this workout: ${recFacts(ses)}.
 Workout:
 ${lines}
-Return ONLY JSON: {"hours":{${groups.map(g => `"${g}":number`).join(',')}},"note":"one short sentence for the lifter, in ${lang === 'el' ? 'Greek' : 'English'}"}. Each value between 0 and 120.`;
+Return ONLY JSON: {"hours":{${groups.map(g => `"${g}":number`).join(',')}},"note":"..."}. Each value between 0 and 120.
+"note": you are the lifter's gym coach talking to them, in ${lang === 'el' ? 'Greek' : 'English'}. One or two very short sentences, at most 12 words, under 75 characters in total.
+Say how many hours the most worked muscles need (the hours in your JSON are final: use exactly them, in hours, never days) and why, from the facts (heavier than last time, a lot of volume, a long session, sets to failure). No emoji.`;
   const d = await gemini(prompt, null, null, null, { quiet: true }); const hrs = d && d.hours; if(!hrs) return null;
   const out = {}; groups.forEach(g => { const v = +hrs[g]; out[g] = v >= 0 && v <= 120 ? Math.round(v) : est[g]; });
-  return { hours: out, note: String(d.note || '').slice(0, 220) };
+  return { hours: out, note: recNoteFit(d.note) };
 }
 
 function groupReadiness(atTs){
@@ -1183,37 +1199,46 @@ function renderGym(){
   $('gOther').classList.toggle('hide', !!active || !tp || $('gStart').classList.contains('hide'));
 }
 
-// summary + recovery estimate (offline at once, AI refines it when there's a key)
-function recBlock(ses, r, note){
-  return `<div id="smRec"><h3><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('recEstT')}</h3><p class="hint" style="margin:0">${t('recEstSub')}</p><div class="recest">${Object.entries(r).sort((a, b) => b[1] - a[1]).map(([g, hh]) => `<span class="rchip"><b>${esc(ML(g))}</b> ${hh > 0 ? `~${hh} h` : t('recReadyChip')}</span>`).join('')}</div>
-    <p class="hint">${note}</p></div>`;
+// ---------- Workout Done ----------
+// Refinements #8 change 20A: the Gym Coach's recovery line. ONE AI call per finished workout, started the moment the workout is saved
+// (finishWorkout), so it never waits for the Rank Up screens. The call is the same as before (aiRecovery: it also refines the hours, as it
+// always did); it now returns one short sentence written from those same final hours. The sentence is saved with the workout
+// (ses.recovNote + recovAI); ses.recovTried means it was asked once, so reopening the summary never asks again.
+// No sentence (no key, offline, slow, failed): no card at all, the summary looks complete without it.
+const REC_AI = {}, REC_SLOW = 25000;   // workout id → the call in flight; after REC_SLOW the card goes away (a late answer is still saved)
+function startRecLine(ses){
+  if(!settings.geminiKey || ses.recovTried || ses.recovAI || navigator.onLine === false || !Object.keys(ses.recovEst || {}).length) return;
+  ses.recovTried = 1; saveG('ses');
+  const p = aiRecovery(ses).then(res => { if(!res) return null; const s = sessions.find(x => x.id === ses.id) || ses;
+      s.recov = res.hours; if(res.note){ s.recovAI = true; s.recovNote = res.note; } saveG('ses'); renderAll(); return res.note || null; })
+    .catch(() => null).then(note => { delete REC_AI[ses.id]; recLanded(ses.id, note); return note; });
+  REC_AI[ses.id] = p; setTimeout(() => { if(REC_AI[ses.id] === p) recLanded(ses.id, null); }, REC_SLOW);
 }
-// moreRanks (0.7.10.2): rank changes beyond the 3 shown as Rank Up windows (rank-fx.js), listed here
+// the card: the sweatband robot on the left (thinking while the call runs), the line beside it
+function recCard(ses){ const wait = !ses.recovNote && !!REC_AI[ses.id]; if(!ses.recovNote && !wait) return '';
+  return `<div class="smrec${wait ? ' wait' : ''}" id="smRec" data-ses="${esc(ses.id)}"><span class="smrecbot">${AI.robot('gym', 40, wait)}</span><p class="smrectx">${ses.recovNote ? esc(ses.recovNote) : ''}</p></div>`; }
+function recLanded(id, note){ const el = $('smRec'); if(!el || el.dataset.ses !== id || !el.classList.contains('wait')) return;
+  if(!note){ el.classList.add('gone'); setTimeout(() => el.remove(), 260); return; }
+  el.querySelector('.smrecbot').innerHTML = AI.robot('gym', 40); el.querySelector('.smrectx').textContent = note; el.classList.remove('wait'); el.classList.add('in'); }
+// Refinements #8 change 23: the rank ups of this workout (saved with it as ses.rankUps), old plate → new plate, one row each
+function rankUpCard(ses){ const L = Array.isArray(ses.rankUps) ? ses.rankUps : []; if(!L.length) return '';
+  const plate = n => rankIcon(TIERS[Math.floor(n / 3)], n, 30);
+  return `<h3><span class="ric">${svgIcon('medal', 16, 2)}</span>${esc(t(L.length === 1 ? 'smRankUp1' : 'smRankUps'))}</h3><div class="smranks">${L.map(c =>
+    `<div class="smrank tr-${TIERS[Math.floor(c.to / 3)]}"><b>${esc(exName(c.exId))}</b><span class="smrk">${c.from == null ? '' : `<span class="smold">${plate(c.from)}</span>${svgIcon('chevR', 14, 2.4)}`}${plate(c.to)}<small>${esc(tierName(c.to))}</small></span></div>`).join('')}</div>`; }
 let SM_SES = null;
-function showSummary(ses, moreRanks){
+function showSummary(ses){
   const tg = targetFor(ses.date), wins = carbWindows(ses.date), post = wins.find(w => w.k === 'winPost');
   $('smBody').innerHTML = `<h2>${t('smTitle')}</h2><p class="sub">${esc(ses.name)} · ${fmtDate(ses.start)}</p>
     <div class="statgrid"><div><b>${ses.mins}</b><small>${t('smDur')}</small></div><div><b>${ses.vol.toLocaleString()}</b><small>${t('smVol')}</small></div>
       <div><b>${ses.exercises.reduce((a, x) => a + x.sets.filter(isMainSet).length, 0)}</b><small>${t('smSets')}</small></div><div><b>≈${ses.kcal}</b><small>${t('smKcal')}</small></div></div>
+    ${recCard(ses)}${rankUpCard(ses)}
     <h3><span class="ric">${svgIcon('podium', 16, 2)}</span>${t('smPRs')}</h3>${ses.prs.length ? `<ul class="feed">${ses.prs.slice().sort((a, b) => (b.kind === 'v') - (a.kind === 'v')).map(p => p.kind === 'v' ? `<li class="prv"><span class="ric">${svgIcon('trend', 16, 2.2)}</span>${t('prVLine')} · ${esc(exName(p.exId))}: <b>${p.vol.toLocaleString()} kg</b> <small class="rmeta">(${t('prWas', { v: p.prev.toLocaleString() })})</small></li>`
       : p.kind === 't' || p.kind === 'd' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t(p.kind === 't' ? 'prTLine' : 'prDLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.v)} ${p.kind === 't' ? 'min' : 'km'}</b></li>` : p.kind === 'w' ? `<li class="prw"><span class="ric">${svgIcon('medal', 16, 2)}</span>${t('prWLine')} · ${esc(exName(p.exId))}: <b>${fmt(p.w)} kg × ${p.r}</b></li>` : `<li>${esc(exName(p.exId))}: <b>${fmt(p.w)} × ${p.r}</b></li>`).join('')}</ul>` : `<p class="hint">${t('smNoPR')}</p>`}
-    ${moreRanks && moreRanks.length ? `<h3><span class="ric">${svgIcon('medal', 16, 2)}</span>${esc(moreRanks.length === 1 ? t('rfxMore1') : t('rfxMore', { n: moreRanks.length }))}</h3><ul class="feed rfxmore">${moreRanks.map(c => `<li>${rankIcon(TIERS[Math.floor(c.to / 3)], c.to, 24)}<span>${esc(exName(c.exId))}: <b>${esc(tierName(c.to))}</b></span></li>`).join('')}</ul>` : ''}
     ${tg && post ? `<div class="alert green" style="cursor:default">${t('smFood', { t: fmtClock(fromMin(post.b + 1)), c: Math.round(post.c) })}</div>` : ''}
     ${!ses.tplId && ses.exercises.some(x => !isCardio(x.exId)) ? `<button type="button" class="btn smtpl" data-smtpl>${svgIcon('plus', 16, 2.4)} ${t('smSaveTpl')}</button>` : ''}`;
   SM_SES = ses;
   if(ses.prs.length) celebrate();
   open('ovSummary');
-  const r = ses.recov || estimateRecovery(ses); if(!Object.keys(r).length) return;
-  const fresh = ses === sessions[sessions.length - 1] && !ses.recovAI && Date.now() - new Date(ses.end || 0) < 6e5 && settings.geminiKey;
-  const note = ses.recovAI ? esc(ses.recovNote || t('recAIdone')) + ' ' + AI.badge() : fresh ? t('recAIwait') + ' ' + AI.badge() : t('recOffline');   // the AI badge goes after the text
-  const box = document.createElement('div'); box.innerHTML = recBlock(ses, r, note);
-  const h3 = [...$('smBody').querySelectorAll('h3')][0]; if(h3) h3.before(box.firstElementChild); else $('smBody').appendChild(box.firstElementChild);
-  if(!fresh) return;
-  aiRecovery(ses).then(res => { const el = $('smRec');
-    if(!res){ if(el) el.outerHTML = recBlock(ses, r, t('recAIFail')); return; }
-    ses.recov = res.hours; ses.recovAI = true; ses.recovNote = res.note; saveG('ses'); renderAll();
-    if(el && document.contains(el)) el.outerHTML = recBlock(ses, res.hours, esc(res.note || t('recAIdone')) + ' ' + AI.badge());
-  }).catch(() => { const el = $('smRec'); if(el) el.outerHTML = recBlock(ses, r, t('recAIFail')); });
 }
 
 // ---------- "what next?" button in the exercise picker (0.7.3: the sweatband robot, was a 💡) ----------

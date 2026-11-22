@@ -317,9 +317,6 @@ Object.assign(S, {
 Object.assign(S, {
   tabFridge: ['Kitchen', 'Κουζίνα'], 
   fibUse: ['Use it', 'Χρήση'],
-  recEstT: ['Recovery estimate', 'Εκτίμηση αποκατάστασης'], recAIwait: ['The AI is checking your sets…', 'Το AI ελέγχει τα σετ σου…'],
-  recOffline: ['From your sets, failure sets and heavy lowering moves. Add a Gemini key for an AI check.', 'Από τα σετ, τα σετ μέχρι αποτυχία και τις βαριές εκκεντρικές. Βάλε κλειδί Gemini για έλεγχο AI.'],
-  recAIFail: ['Couldn\'t reach the AI, so this is the built-in estimate.', 'Δεν απάντησε το AI, άρα αυτή είναι η ενσωματωμένη εκτίμηση.'], recAIdone: ['Checked by AI', 'Ελέγχθηκε από AI'], recReadyChip: ['ready','έτοιμο'], recEstSub: ['Hours until you can train it hard again', 'Ώρες μέχρι να το ξαναδουλέψεις δυνατά'],
 });
 
 Object.assign(S, {
@@ -504,7 +501,6 @@ Object.assign(S, {
   gcLiveAlready: ['A workout is already running. Finish it first, or Save this one for later.', 'Τρέχει ήδη μια προπόνηση. Τελείωσέ την πρώτα ή αποθήκευσε αυτή για αργότερα.'],
   gcRepRange: ['Rep Range', 'Εύρος επαναλήψεων'], gcRepsAuto: ['Auto: follows Intensity', 'Αυτόματο: ακολουθεί την ένταση'], gcRepsN: ['{r} reps on working sets', '{r} επαναλήψεις στα κύρια σετ'],
   // 0.7.9 leaderboards: real 1RMs only
-  pfBoardsEmpty: ['No 1RM yet. Add one you\'ve lifted, or tick a single rep at a heavy weight in a workout, and it shows up here.', 'Δεν υπάρχει ακόμα 1RM. Πρόσθεσε ένα που έχεις σηκώσει ή τσέκαρε μία επανάληψη με βαρύ κιλό σε προπόνηση και θα εμφανιστεί εδώ.'],
   ormAdd: ['Add a 1RM', 'Προσθήκη 1RM'], ormSub: ['The most you lifted for one clean rep.', 'Το περισσότερο που σήκωσες για μία σωστή επανάληψη.'],
   ormLift: ['Lift', 'Άσκηση'], ormWeight: ['Weight (kg)', 'Βάρος (kg)'], ormDate: ['Date', 'Ημερομηνία'],
   ormBwHint: ['Pull-ups: enter only the weight you added. Your body weight ({bw} kg) is counted for you.', 'Έλξεις: γράψε μόνο το βάρος που πρόσθεσες. Το σωματικό σου βάρος ({bw} kg) μετράει αυτόματα.'],
@@ -598,7 +594,7 @@ function titleCase(str){
   'logFood', 'lookUp', 'lower', 'measuredIn', 'mistakesT', 'musclesWorked', 'noBarcodeLabel', 'noBrand', 'noExpiry', 'noThanks', 'notes',
   'oftenDaily', 'oftenNeeded', 'oftenTraining', 'onMyPlate', 'orFoodOnly', 'ownRecipe', 'ownRecipeT', 'packSizes', 'pastWorkouts', 'pasteRecipe',
   'perPack', 'pieces', 'postMeal', 'potEmpty', 'potFull', 'potMg', 'product', 'protein', 'qaBig', 'qaBtn', 'qaLog',
-  'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recEstT', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
+  'qaMore', 'qaNormal', 'qaSmall', 'qaT', 'readRecipe', 'ready', 'rebuyBelow', 'recMid', 'recipeIdea', 'recipeT', 'remove', 'restDay',
   'restDayTargets', 'restL', 'salt', 'satFat', 'save', 'saveMeal', 'saveSettings', 'saveTplNo', 'saveTplYes', 'savedTpls', 'savedWorkouts',
   'scTitle', 'scTry', 'scanPhoto', 'scanTitle', 'scanToLog', 'sendReminders', 'setsL', 'settings', 'sgGo', 'share', 'shopPhoto', 'shopReceipt',
   'shopReview', 'shopScan', 'shopSearch', 'shopT', 'showOnList', 'skip', 'slices', 'smPRs', 'smTitle', 'steps', 'suAbout', 'suAgain', 'suAi',
@@ -686,16 +682,13 @@ Object.assign(S, {
   pfYou: ['You', 'Εσύ'], pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
   frzUse: ['1 Streak Freeze Left This Week, Use It?', 'Απομένει 1 Πάγωμα Σερί Αυτή την Εβδομάδα. Να Χρησιμοποιηθεί;'], frzEnd: ['This Will End Your {n}-Day Streak', 'Αυτό Θα Τερματίσει το Σερί {n} Προπονήσεων'],
   frzUseBtn: ['Use Freeze', 'Χρήση Πάγωματος'], frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'], frzUsedT: ['Streak freeze used', 'Το πάγωμα σερί χρησιμοποιήθηκε'],
-  pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfHighRank: ['Highest Rank', 'Ψηλότερη Κατάταξη'], pfNoRank: ['Finish a workout to get your first rank.', 'Ολοκλήρωσε μια προπόνηση για την πρώτη σου κατάταξη.'],
+  pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfHighRank: ['Highest Ranked Exercises', 'Ασκήσεις Με Την Υψηλότερη Κατάταξη'], pfNoRank: ['Finish a workout to get your first rank.', 'Ολοκλήρωσε μια προπόνηση για την πρώτη σου κατάταξη.'],
   rkCustomize: ['Customize', 'Προσαρμογή'], rkReset: ['Reset to Automatic', 'Επαναφορά σε Αυτόματο'], rkTitle: ['Choose 3 Exercises', 'Διάλεξε 3 Ασκήσεις'],
   rkSub: ['Every exercise you have done, with the rank you hold in it.', 'Κάθε άσκηση που έχεις κάνει, με την κατάταξη που κατέχεις.'],
   rkPicked: ['{n} of 3 chosen', '{n} από 3 επιλεγμένες'], rkMax: ['Pick up to 3. Tap one to remove it first.', 'Έως 3. Πάτα μία για να την αφαιρέσεις πρώτα.'], rkNone: ['No exercises found.', 'Δεν βρέθηκαν ασκήσεις.'],
   rkSearch: ['Search Exercises', 'Αναζήτηση Ασκήσεων'],
-  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your heaviest single (one rep) per lift, entered by you or ticked in a workout. With friends soon.', 'Το βαρύτερο μονό σου (μία επανάληψη) ανά άσκηση, που το έγραψες εσύ ή το τσέκαρες σε προπόνηση. Με φίλους σύντομα.'],
-  pfMChest: ['Chest', 'Στήθος'], pfMQuads: ['Quads', 'Τετρακέφαλοι'], pfMBack: ['Back', 'Πλάτη'],
-  pfMaxPR: ['Max PR', 'Μέγιστο Ρεκόρ'], pfStrength: ['Strength', 'Δύναμη'], pfXBw: ['× body weight', '× βάρος σώματος'],
-  pfBoardsSubStr: ['Your heaviest single divided by your body weight, so a lighter lifter can top the board. With friends soon.', 'Το βαρύτερο μονό σου διαιρεμένο με το βάρος σώματός σου, ώστε και ένας ελαφρύτερος αθλητής να είναι πρώτος. Με φίλους σύντομα.'],
-  pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
+  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Friends ranked by their heaviest tested single. Only singles lifted with the trophy on, or added as a 1RM, count.', 'Οι φίλοι κατά το βαρύτερο δοκιμασμένο μονό τους. Μετράνε μόνο μονά με το τρόπαιο ανοιχτό ή όσα πρόσθεσες ως 1RM.'],
+  pfStats: ['Stats', 'Στατιστικά'],
 });
 
 // ---------- 0.7.7 gym-tiers: Bronze 3 … Diamond 1 per exercise ----------
@@ -786,41 +779,40 @@ Object.assign(S, {   // Athlete OS step 1: Settings › AI › Usage
 
 // ---------- 0.7.10 Social Hub: Stats (training facts; title stt_<id>, subtitle sts_<id>) ----------
 Object.assign(S, {
-  stt_workouts: ['Total Workouts', 'Σύνολο Προπονήσεων'], sts_workouts: ['Every workout you have finished.', 'Κάθε προπόνηση που ολοκλήρωσες.'],
-  stt_sets: ['Total Sets', 'Σύνολο Σετ'], sts_sets: ['Finished working sets, no warm-ups.', 'Ολοκληρωμένα σετ, χωρίς προθέρμανση.'],
-  stt_kg: ['Total Lifted', 'Συνολικά Κιλά'], sts_kg: ['Total kg you have moved.', 'Τα συνολικά κιλά που έχεις σηκώσει.'],
-  stt_streak: ['Longest Streak', 'Μεγαλύτερο Σερί'], sts_streak: ['Workouts in a row, with at most 2 days off.', 'Προπονήσεις στη σειρά, με το πολύ 2 μέρες ανάπαυση.'],
-  stt_bestWeek: ['Best Week', 'Καλύτερη Εβδομάδα'], sts_bestWeek: ['Most workouts in one week.', 'Οι περισσότερες προπονήσεις σε μία εβδομάδα.'],
+  stt_workouts: ['Total Workouts', 'Σύνολο Προπονήσεων'], sts_workouts: ['All finished workouts.', 'Όλες οι προπονήσεις.'],
+  stt_sets: ['Total Sets', 'Σύνολο Σετ'], sts_sets: ['Working sets only.', 'Μόνο σετ εργασίας.'],
+  stt_kg: ['Total Lifted', 'Συνολικά Κιλά'], sts_kg: ['Total kg moved.', 'Συνολικά κιλά.'],
+  stt_streak: ['Longest Streak', 'Μεγαλύτερο Σερί'], sts_streak: ['Workouts in a row.', 'Προπονήσεις στη σειρά.'],
+  stt_bestWeek: ['Best Week', 'Καλύτερη Εβδομάδα'], sts_bestWeek: ['Workouts in one week.', 'Σε μία εβδομάδα.'],
   stt_favEx: ['Favourite Exercise', 'Αγαπημένη Άσκηση'], sts_favEx: ['Done in {n} sets.', 'Σε {n} σετ.'],
-  stt_favMuscle: ['Favourite Muscle', 'Αγαπημένος Μυς'], sts_favMuscle: ['Trained in {n} sets.', 'Προπονήθηκε σε {n} σετ.'],
-  stt_heaviest: ['Heaviest Lift', 'Βαρύτερο Σήκωμα'], sts_heaviest: ['On {n}, up to 12 reps.', 'Στην άσκηση {n}, έως 12 επαναλήψεις.'],
-  stt_longest: ['Longest Workout', 'Μεγαλύτερη Προπόνηση σε Διάρκεια'], sts_longest: ['Your longest time in the gym.', 'Ο μεγαλύτερος χρόνος σου στο γυμναστήριο.'],
-  stt_earliest: ['Earliest Workout', 'Πιο Πρωινή Προπόνηση'], sts_earliest: ['The earliest you ever started.', 'Η πιο πρωινή ώρα έναρξης.'],
-  stt_latest: ['Latest Workout', 'Πιο Βραδινή Προπόνηση'], sts_latest: ['The latest you ever started.', 'Η πιο βραδινή ώρα έναρξης.'],
-  stt_weekday: ['Favourite Day', 'Αγαπημένη Μέρα'], sts_weekday: ['Your most-trained weekday, {n} workouts.', 'Η μέρα που προπονείσαι περισσότερο, {n} προπονήσεις.'],
-  stt_hours: ['Time Training', 'Χρόνος Προπόνησης'], sts_hours: ['Total time in the gym.', 'Συνολικός χρόνος στο γυμναστήριο.'],
-  stt_prs: ['Records Set', 'Ρεκόρ'], sts_prs: ['Personal records from your workouts.', 'Προσωπικά ρεκόρ από τις προπονήσεις σου.'],
-  stt_bestDay: ['Heaviest Day', 'Βαρύτερη Μέρα'], sts_bdBag: ['About {n} bags of cement (25 kg), on {d}.', 'Περίπου {n} σακιά τσιμέντο (25 kg), στις {d}.'], sts_bdCar: ['About {n} cars, on {d}.', 'Περίπου {n} αυτοκίνητα, στις {d}.'], sts_bdEl: ['About {n} elephants, on {d}.', 'Περίπου {n} ελέφαντες, στις {d}.'], sts_bdWhale: ['About {n} blue whales, on {d}.', 'Περίπου {n} γαλάζιες φάλαινες, στις {d}.'],
-  stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Climbs of Everest, carrying your own body weight.', 'Ανεβάσματα του Έβερεστ, κουβαλώντας το δικό σου βάρος.'],
-  stt_luckyDay: ['Lucky Weekday', 'Τυχερή Μέρα'], sts_luckyDay: ['{n} personal records set on this day.', '{n} προσωπικά ρεκόρ αυτή τη μέρα.'],
-  stt_night: ['Midnight Iron', 'Σίδερα τα Μεσάνυχτα'], sts_night: ['Workouts started after 9 pm.', 'Προπονήσεις που ξεκίνησαν μετά τις 9 μ.μ.'],
-  stt_dawn: ['Dawn Patrol', 'Πρωινή Περίπολος'], sts_dawn: ['Workouts started before 7 am.', 'Προπονήσεις που ξεκίνησαν πριν τις 7 π.μ.'],
-  stt_couch: ['Couch Potato', 'Καναπές'], sts_couch: ['Your longest break, {a} to {b}.', 'Η μεγαλύτερη διακοπή σου, {a} έως {b}.'], stUnitDay: ['day', 'μέρα'], stUnitDays: ['days', 'μέρες'], stUnitReps: ['reps', 'επαναλήψεις'],
-  stt_nextRank: ['Closest to Ranking Up', 'Κοντά σε Νέα Βαθμίδα'], sts_nextRank: ['{n}, to reach {r}.', '{n}, για να φτάσεις {r}.'],
+  stt_favMuscle: ['Favourite Muscle', 'Αγαπημένος Μυς'], sts_favMuscle: ['Trained in {n} sets.', 'Σε {n} σετ.'],
+  stt_heaviest: ['Heaviest Lift', 'Βαρύτερο Σήκωμα'], sts_heaviest: ['On {n}.', '{n}.'],
+  stt_longest: ['Longest Workout', 'Μεγαλύτερη Προπόνηση σε Διάρκεια'], sts_longest: ['Your longest workout.', 'Η πιο μεγάλη σου.'],
+  stt_earliest: ['Earliest Workout', 'Πιο Πρωινή Προπόνηση'], sts_earliest: ['Your earliest start.', 'Η πιο πρωινή έναρξη.'],
+  stt_latest: ['Latest Workout', 'Πιο Βραδινή Προπόνηση'], sts_latest: ['Your latest start.', 'Η πιο αργή έναρξη.'],
+  stt_weekday: ['Favourite Day', 'Αγαπημένη Μέρα'], sts_weekday: ['{n} workouts on it.', '{n} προπονήσεις.'],
+  stt_hours: ['Time Training', 'Χρόνος Προπόνησης'], sts_hours: ['All your time training.', 'Συνολικός χρόνος.'],
+  stt_prs: ['Records Set', 'Ρεκόρ'], sts_prs: ['From your workouts.', 'Από τις προπονήσεις.'],
+  stt_bestDay: ['Heaviest Day', 'Βαρύτερη Μέρα'], sts_bdBag: ['{n} cement bags, {d}.', '{n} σακιά, {d}.'], sts_bdCar: ['{n} cars, {d}.', '{n} αυτοκίνητα, {d}.'], sts_bdEl: ['{n} elephants, {d}.', '{n} ελέφαντες, {d}.'], sts_bdWhale: ['{n} blue whales, {d}.', '{n} φάλαινες, {d}.'],
+  stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Times up Everest.', 'Φορές το Έβερεστ.'],
+  stt_luckyDay: ['Lucky Weekday', 'Τυχερή Μέρα'], sts_luckyDay: ['{n} records that day.', '{n} ρεκόρ σε αυτήν.'],
+  stt_night: ['Midnight Iron', 'Σίδερα τα Μεσάνυχτα'], sts_night: ['Started after 9 pm.', 'Μετά τις 9 μ.μ.'],
+  stt_dawn: ['Dawn Patrol', 'Πρωινή Περίπολος'], sts_dawn: ['Started before 7 am.', 'Πριν τις 7 π.μ.'],
+  stt_couch: ['Couch Potato', 'Καναπές'], sts_couch: ['{a} to {b}.', '{a} έως {b}.'], stUnitDay: ['day', 'μέρα'], stUnitDays: ['days', 'μέρες'], stUnitReps: ['reps', 'επαν.'],
+  stt_nextRank: ['Closest to Ranking Up', 'Κοντά σε Νέα Βαθμίδα'], sts_nextRank: ['{n}', '{n}'],
   stt_ratio: ['Strongest for Your Weight', 'Δύναμη για το Βάρος σου'], sts_ratio: ['Times your body weight, on {n}.', 'Φορές το σωματικό σου βάρος, στην άσκηση {n}.'],
-  stt_repKing: ['Rep King', 'Βασιλιάς Επαναλήψεων'], sts_repKing: ['Most reps in one set, on {n}.', 'Οι περισσότερες επαναλήψεις σε ένα σετ, στην άσκηση {n}.'],
-  stt_big3: ['Big Three Total', 'Σύνολο Big Three'], sts_big3: ['Bench, squat and deadlift, best estimated 1RMs added.', 'Πάγκος, καθίσματα και άρσεις θανάτου, με τα καλύτερα εκτιμώμενα 1RM.'], sts_big3Bw: ['{n} times your body weight.', '{n} φορές το σωματικό σου βάρος.'],
-  stt_explorer: ['Exercise Explorer', 'Εξερευνητής Ασκήσεων'], sts_explorer: ['Different exercises. Newest: {n}.', 'Διαφορετικές ασκήσεις. Νεότερη: {n}.'],
+  stt_repKing: ['Rep King', 'Βασιλιάς Επαναλήψεων'], sts_repKing: ['On {n}.', '{n}.'],
+  stt_big3: ['Big Three Total', 'Σύνολο Big Three'], sts_big3: ['Best estimated 1RMs.', 'Εκτιμώμενα 1RM.'], sts_big3Bw: ['{n} times your body weight.', '{n} φορές το σωματικό σου βάρος.'],
+  stt_explorer: ['Exercise Explorer', 'Εξερευνητής Ασκήσεων'], sts_explorer: ['Newest: {n}.', 'Νέα: {n}.'],
   stt_loyal: ['Loyalty', 'Πίστη'], sts_loyal: ['{n} months in a row.', '{n} μήνες στη σειρά.'],
-  sts_kgEl: ['About {n} elephants.', 'Περίπου {n} ελέφαντες.'], sts_kgCar: ['About {n} cars.', 'Περίπου {n} αυτοκίνητα.'], sts_kgBag: ['About {n} bags of cement (25 kg).', 'Περίπου {n} σακιά τσιμέντο (25 kg).'],
-  stPin: ['Pin This Stat', 'Καρφίτσωμα Στατιστικού'], stUnpin: ['Unpin This Stat', 'Ξεκαρφίτσωμα Στατιστικού'], stPinMax: ['You can pin up to 5 stats.', 'Μπορείς να καρφιτσώσεις έως 5 στατιστικά.'],
+  sts_kgEl: ['About {n} elephants.', 'Περίπου {n} ελέφαντες.'], sts_kgCar: ['About {n} cars.', 'Περίπου {n} αυτοκίνητα.'], sts_kgBag: ['{n} bags of cement.', '{n} σακιά τσιμέντο.'],
+  stPin: ['Pin This Stat', 'Καρφίτσωμα Στατιστικού'], stUnpin: ['Unpin This Stat', 'Ξεκαρφίτσωμα Στατιστικού'], stPinMax: ['You can pin up to {n} stats.', 'Μπορείς να καρφιτσώσεις έως {n} στατιστικά.'],
   stShuffle: ['Shuffle Stats', 'Ανακάτεμα Στατιστικών'], stEmpty: ['Finish a workout to see your stats.', 'Ολοκλήρωσε μια προπόνηση για να δεις τα στατιστικά σου.'],
 });
 Object.assign(S, {   // 0.7.10.2 Rank Up / Rank Changed windows (js/rank-fx.js)
   rfxUp: ['Rank Up', 'Άνοδος Κατάταξης'], rfxStep: ['Step Up', 'Ένα Σκαλί Πάνω'], rfxDown: ['Rank Changed', 'Η Κατάταξη Άλλαξε'],
   rfxDownMsg: ['Your {ex} rank is now {rank}. Train it to win it back.', 'Η κατάταξή σου στο {ex} είναι τώρα {rank}. Προπονήσου για να την ξανακερδίσεις.'],
   rfxNice: ['Nice', 'Τέλεια'], rfxGotIt: ['Got It', 'Εντάξει'],
-  rfxMore: ['And {n} More Rank Changes', 'Και {n} Ακόμα Αλλαγές Κατάταξης'], rfxMore1: ['And 1 More Rank Change', 'Και 1 Ακόμα Αλλαγή Κατάταξης'],
   sxClear: ['Clear', 'Καθαρισμός'],
 });
 Object.assign(S, {   // 0.7.10.7 Settings › Theme › Status Bar
@@ -858,6 +850,18 @@ Object.assign(S, {   // Refinements #7: Strength by Muscle rows with a trend lin
   sbmFeeds: ['Exercises In This Line', 'Ασκήσεις Σε Αυτή Τη Γραμμή'],
   sbmHow: ['From your estimated one rep max on each exercise, weighted by how much it works this muscle. The % is the change since your first reading. Green or red is the last two weeks; gray means no change, or no workout for this muscle in two weeks.',
     'Από την εκτιμώμενη μέγιστη επανάληψη σε κάθε άσκηση, ανάλογα με το πόσο δουλεύει αυτόν τον μυ. Το % είναι η αλλαγή από την πρώτη μέτρηση. Πράσινο ή κόκκινο δείχνει τις δύο τελευταίες εβδομάδες· γκρι σημαίνει καμία αλλαγή ή καμία προπόνηση για αυτόν τον μυ σε δύο εβδομάδες.'],
+});
+Object.assign(S, {   // Refinements #8: the Social Hub leaderboard (one rep max only, friends)
+  lbNoneYet: ['No One Rep Maxes Yet', 'Δεν Υπάρχουν Ακόμα Μέγιστα'], lbNoneSub: ['Lift a single with the trophy on, or add a 1RM, and the board starts.', 'Σήκωσε ένα μονό με το τρόπαιο ανοιχτό ή πρόσθεσε ένα 1RM και ο πίνακας ξεκινά.'],
+  lbNoFriends: ['Friends join this board once accounts arrive. For now it shows you.', 'Οι φίλοι μπαίνουν εδώ μόλις έρθουν οι λογαριασμοί. Για τώρα δείχνει εσένα.'],
+  lbJoin: ['Tick One Rep Max On A Set To Join', 'Σημείωσε Μέγιστη Επανάληψη Σε Ένα Σετ Για Να Μπεις'],
+  lbJoinHow: ['Turn on Leaderboard Attempt in Exercise Settings, then tap the trophy on the lift.', 'Άνοιξε την Προσπάθεια Κατάταξης στις Ρυθμίσεις Ασκήσεων και πάτα το τρόπαιο στην άσκηση.'],
+});
+Object.assign(S, {   // Refinements #8: the Social Hub profile
+  pfRankMore: ['Train more lifts to fill the empty slots.', 'Κάνε περισσότερες ασκήσεις για να γεμίσουν τα κενά.'],
+});
+Object.assign(S, {   // Refinements #8: Workout Done (rank ups, the Gym Coach's recovery line) and the Rank Up screens
+  rfxNext: ['Next', 'Επόμενο'], smRankUp1: ['Rank Up', 'Άνοδος Κατάταξης'], smRankUps: ['Rank Ups', 'Άνοδοι Κατάταξης'],
 });
 Object.assign(S, {   // Refinements #7: Recovery tiles
   recAllReady: ['All Muscles Ready', 'Όλοι Οι Μύες Έτοιμοι'], recHrs: ['h', 'ώρ.'],

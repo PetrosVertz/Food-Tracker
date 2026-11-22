@@ -45,6 +45,8 @@ const ICON = {
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
   share: '<path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/>',
   flame: '<path d="M12 21.5c-4 0-7-2.8-7-6.6 0-3 1.8-5 3.3-6.6.4 1.6 1.2 2.7 2.4 3.3C10.4 8 11.6 4.8 14.2 2.5c.3 3 1.6 4.8 3 6.6 1.2 1.6 1.8 3.4 1.8 5.4 0 4-3 7-7 7z"/><path d="M12 21.5c-1.7 0-3-1.3-3-3 0-1.8 1.5-3 2.4-4.3.5 1.2 1.3 1.9 2.2 2.3.8.4 1.4 1.2 1.4 2.1 0 1.6-1.3 2.9-3 2.9z"/>',
+  // Refinements #8: small chevrons (Workout Done rank row, Social Hub lift menu)
+  chevR: '<path d="M9.5 5.5L16 12l-6.5 6.5"/>', chevD: '<path d="M5.5 9.5L12 16l6.5-6.5"/>',
 };
 const svgIcon = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const BACK_SVG = svgIcon('back', 28, 2.4);   // every back control is this plain arrow (no box)
@@ -609,7 +611,7 @@ function close(id){ AI.noteClose(id); const el = $(id); if(!el) return; const wa
 
 // 0.7.10.7: the solid strip under the clock (body::before, theme.css) matches what is under it: the page, the page dimmed behind a floating window, or a full-screen window
 function stripSync(){ const top = [...document.querySelectorAll('.overlay.open')].sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0)).pop();
-  const full = top && (top.matches('#ovSummary') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
+  const full = top && (top.matches('#ovSummary,#ovRankFx.rkup') || !!top.querySelector(':scope>.sheet:is(.setpage,.formpage,.themepage,.session,.pksheet,.wqsheet,.rcptsheet)'));
   document.body.dataset.strip = !top ? '' : !full ? 'dim' : top.id === 'ovWkQR' ? 'paper' : ''; }
 
 // 0.7.10.7: once a window has finished sliding / growing in, its animation is dropped (.settled, theme.css). An ended animation that still

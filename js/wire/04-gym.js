@@ -231,14 +231,19 @@ async function finishWorkout(auto){
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   const rkBefore = rankNow(ses.exercises.map(x => x.exId));   // ranks before this workout (rank-fx.js)
   sessions.push(ses); saveG('ses');
-  const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed: up to 3 windows, the rest listed in Workout Done
+  const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed in this workout (rank-fx.js)
+  // Refinements #8: the rank ups are saved with the workout, so reopening it shows them in Workout Done without replaying the screens
+  const ups = RankFx.upList(ses, rk), downs = rk.filter(c => c.kind === 'down'); if(ups.length){ ses.rankUps = ups; saveG('ses'); }
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
   if(auto === true){ renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
-  showSummary(ses, rk.slice(3)); renderAll();
-  RankFx.play(rk.slice(0, 3));
+  startRecLine(ses);   // the Gym Coach's recovery line: asked now, while the Rank Up screens play (it never waits for them)
+  renderAll();
+  // Refinements #8 change 23: a Rank Up screen per exercise first (Next is the only way on), then Workout Done; no rank up = straight to Workout Done
+  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); };
+  if(ups.length) RankFx.ups(ups).then(done, done); else done();
   return true;
 }
 
@@ -391,7 +396,16 @@ $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){
   const pn = e.target.closest('[data-statpin]'); if(pn){ togglePin(pn.dataset.statpin); return; }
   if(e.target.closest('[data-statshuf]')){ Phone.haptic(); ui.statShuf = { d: todayKey(), n: (ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0) + 1 }; saveUI(); renderProfile(); return; }
   if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
-  const sw = e.target.closest('[data-pfboard]'); if(sw){ Phone.haptic(); ui.pfBoard = sw.dataset.pfboard; saveUI(); renderProfile(); } });   // 0.7.10: Max PR | Strength, remembered
+  // Refinements #8: the leaderboard lift menu (Bench Press, Deadlift, Squat) and a row tap showing the date it was lifted
+  // Refinements #8: a tap on a Highest Ranked plate pops a small bubble with its exercise; it fades after 3 s or on a tap elsewhere
+  const rb = e.target.closest('[data-rkbub]'); if(rb){ const on = !rb.classList.contains('bub'); rkBubClose(); if(on){ rb.classList.add('bub'); Phone.haptic(); RKBUB_T = setTimeout(rkBubClose, 3000); } return; }
+  if(e.target.closest('[data-lbpill]')){ Phone.haptic(); const p = e.target.closest('.lbpick'); lbMenu(!p.classList.contains('open')); return; }
+  const lb = e.target.closest('[data-lblift]'); if(lb){ lbPick(lb.dataset.lblift); return; }
+  const lr = e.target.closest('[data-lbrow]'); if(lr){ lr.classList.toggle('showd'); return; } });
+document.addEventListener('pointerdown', e => { if(!e.target.closest('.lbpick')) lbMenu(false); if(!e.target.closest('[data-rkbub]')) rkBubClose(); }, true);
+let RKBUB_T = 0;
+function rkBubClose(){ clearTimeout(RKBUB_T); document.querySelectorAll('.pfrkslot.bub').forEach(b => b.classList.remove('bub')); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') lbMenu(false); });
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
 $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });

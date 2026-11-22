@@ -2,34 +2,32 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 // Everything here is this phone's own data. Friends, live status and friend boards need accounts (0.8+): only their spaces are drawn.
 
-// The board lifts: one leaderboard row each (lbl = string key of the muscle it stands for). Petros may still change this list.
-const BOARD_LIFTS = [{ id: 'bench', lbl: 'pfMChest' }, { id: 'squat', lbl: 'pfMQuads' }, { id: 'deadlift', lbl: 'pfMBack' }];   // 0.7.10: the three main lifts; other exercises keep their rank on their own
-// 0.7.10: Max PR = the heaviest real lift in kg; Strength = that lift per kg of body weight (the rank rating of the rank branch can replace it later, so a lighter lifter can top the board)
-const boardMode = () => ui.pfBoard === 'str' ? 'str' : 'max';
-const strengthOf = kg => { const bw = bodyW(); return bw > 0 && kg > 0 ? kg / bw : 0; };
+// The lifts that have a leaderboard (Add a 1RM offers these; the trophy button shows on them)
+const BOARD_LIFTS = [{ id: 'bench' }, { id: 'squat' }, { id: 'deadlift' }];   // 0.7.10: the three main lifts; other exercises keep their rank on their own
 
-// 0.7.9: a leaderboard entry is a REAL 1RM only: one you entered (profile.orm: { id, exId, w, date }) or a single rep at that weight,
-// ticked in a workout (normal set, no warm-up, not the right side of L/R). w = the weight you typed; the board shows the lifted load
-// (loadOf: pull-ups count body weight + added weight). → { kg, w, date, src: 'manual' | 'live' } or null.
+// Refinements #8 (Petros): a leaderboard entry is a REAL tested single only: one you entered under Add a 1RM (profile.orm: { id, exId, w, date })
+// or a single rep ticked while the trophy was on for that exercise (Leaderboard Attempt, x.attempt: normal set, no warm-up, not the right side of L/R).
+// A heavier single without the trophy does not count, and nothing is ever estimated (no e1rm). w = the weight you typed; the board shows the lifted
+// load (loadOf: pull-ups count body weight + added weight). → { kg, w, date, src: 'manual' | 'live' } or null. Ties: the one lifted first wins.
 const ormList = () => Array.isArray(profile.orm) ? profile.orm.filter(o => o && o.exId && +o.w >= 0 && o.date) : [];
 function boardBest(exId, skip){   // skip = one set to leave out (to compare a fresh single with the best before it)
-  let best = null; const take = (w, date, src) => { const kg = loadOf(exId, w); if(kg > 0 && (!best || kg > best.kg)) best = { kg, w: +w, date, src }; };
+  let best = null; const take = (w, date, src) => { const kg = loadOf(exId, w); if(kg > 0 && (!best || kg > best.kg || (kg === best.kg && date < best.date))) best = { kg, w: +w, date, src }; };
   ormList().forEach(o => { if(o.exId === exId) take(o.w, o.date, 'manual'); });
-  const scan = (x, date) => { if(x.exId !== exId) return; x.sets.forEach(st => { if(st !== skip && st.done && isMainSet(st) && st.w !== '' && +st.r === 1) take(+st.w, date, 'live'); }); };
+  const scan = (x, date) => { if(x.exId !== exId || !x.attempt) return; x.sets.forEach(st => { if(st !== skip && st.done && isMainSet(st) && st.w !== '' && +st.r === 1) take(+st.w, date, 'live'); }); };
   sessions.forEach(s => s.exercises.forEach(x => scan(x, s.date))); if(active) active.exercises.forEach(x => scan(x, active.date));
   return best;
 }
 const isBoardLift = exId => BOARD_LIFTS.some(b => b.id === exId);
 
 // ---------- 0.7.10 Highest Rank card: every exercise you have done, with the rank you hold in it (best first) ----------
-// profile.rankPick = up to 3 exercise ids you chose (Customize); none = the single highest rank (Automatic)
+// profile.rankPick = up to 3 exercise ids you chose (Customize); none = your three highest ranks (Automatic; Refinements #8, was the single highest)
 function rankList(){
   if(!tierBody()) return [];
-  const ids = new Set(); sessions.forEach(s => s.exercises.forEach(x => { if(x.sets.some(st => st.done)) ids.add(x.exId); }));
-  return [...ids].map(exId => { const tf = tierFor(exId); return tf && tf.label ? { exId, n: tf.n, tier: tf.tier, label: tf.label, name: exName(exId) } : null; }).filter(Boolean)
-    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  const last = new Map(); sessions.forEach(s => s.exercises.forEach(x => { if(x.sets.some(st => st.done) && String(s.start) > (last.get(x.exId) || '')) last.set(x.exId, String(s.start)); }));
+  return [...last.keys()].map(exId => { const tf = tierFor(exId); return tf && tf.label ? { exId, n: tf.n, tier: tf.tier, label: tf.label, name: exName(exId), at: last.get(exId) } : null; }).filter(Boolean)
+    .sort((a, b) => b.n - a.n || b.at.localeCompare(a.at) || a.name.localeCompare(b.name));   // Refinements #8: same rank = the most recent first
 }
-const rankPicks = ranks => { const ids = Array.isArray(profile.rankPick) ? profile.rankPick : [], got = ids.map(id => ranks.find(r => r.exId === id)).filter(Boolean).slice(0, 3); return got.length ? got : ranks.slice(0, 1); };
+const rankPicks = ranks => { const ids = Array.isArray(profile.rankPick) ? profile.rankPick : [], got = ids.map(id => ranks.find(r => r.exId === id)).filter(Boolean).slice(0, 3); return got.length ? got : ranks.slice(0, 3); };
 const rankMini = (r, size) => `<span class="pftier rk tr-${r.tier}">${rankIcon(r.tier, r.n, size)}</span>`;
 function openRankPick(){ $('rkSearch').value = ''; drawRankPick(); open('ovRank'); }
 function drawRankPick(){
@@ -52,23 +50,17 @@ function resetRankPick(){ delete profile.rankPick; saveProfile(); Phone.haptic()
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
 //   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
-//   tierOf : (exId, e1) => null | { label, tier, n }   (0.7.10.2: drawn as the rank plate, rankIcon in gym.js)   — the tier badge for a board row (gym-tiers); tierNeed: body weight or sex missing
+//   tierNeed: body weight or sex missing (no ranks yet)
 function profileData(){
   const me = Account.current(), today = todayKey();
   const streak = gymStreak();                              // gym-streak (gym.js)
-  // gym-tiers: Bronze 3 … Diamond 1 from tierFor() (gym.js); drawn as the tier's plate
-  const tierOf = (exId, e1) => { const tf = tierFor(exId, e1); return tf && tf.label ? { label: tf.label, tier: tf.tier, n: tf.n } : null; };
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
-  const wts = Object.entries(weights || {}).filter(([, w]) => +w > 0).sort((a, b) => a[0].localeCompare(b[0])).slice(-30).map(([d, w]) => ({ d, w: +w }));
   return {
     initial: pfInitial(), photo: pfPhoto(),   // 0.7.9: Settings › Photo and Name (ui.js)
     live: !!active, trainedToday: sessions.some(s => s.date === today),
     streak, ranks: rankList(),
     tierNeed: !tierBody(),                                // no body weight or sex yet: one line asking for them, no tiers
-    boards: BOARD_LIFTS.map(b => { const best = boardBest(b.id); return { ...b, best, e1: best ? best.kg : 0, str: best ? strengthOf(best.kg) : 0, tier: best ? tierOf(b.id, best.kg) : null }; }).filter(b => b.best)
-      .sort((x, y) => boardMode() === 'str' ? y.str - x.str : y.e1 - x.e1),   // 0.7.9: only lifts with a real 1RM
-    weights: wts,
   };
 }
 
@@ -154,25 +146,28 @@ function statsCtx(){
   c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
   return c;
 }
-// today's five: pinned first, then a shuffle seeded by the date (stable all day, new tomorrow); the shuffle button bumps ui.statShuf.n
+// today's six (Refinements #8: was five, so the grid is two even columns of three rows; STAT_N is the one number to change): pinned first, then a shuffle seeded by the date (stable all day, new tomorrow); the shuffle button bumps ui.statShuf.n
+const STAT_N = 6;
+// Refinements #8: no body weight in the Social Hub: the stat that divides by body weight is left out here, and Big Three shows its plain line
+const STAT_HUB_HIDE = new Set(['ratio']);
 function statsPick(all){
-  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).map(id => all.find(x => x.id === id)).filter(Boolean).slice(0, 5);
+  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).map(id => all.find(x => x.id === id)).filter(Boolean).slice(0, STAT_N);
   const sh = ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0; let h = 2166136261; for(const ch of todayKey() + ':' + sh) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   const rnd = () => { h = (h + 0x6D2B79F5) | 0; let x = Math.imul(h ^ (h >>> 15), 1 | h); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
   const rest = all.filter(x => !pins.includes(x)).sort((a, b) => a.id.localeCompare(b.id)); for(let i = rest.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
-  return pins.concat(rest).slice(0, Math.max(5, pins.length));
+  return pins.concat(rest).slice(0, Math.max(STAT_N, pins.length));
 }
 const ICO_PIN = '<path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/>', ICO_SHUF = '<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.4 0 2.4-1 3.3-2.3M13.2 9.3C14 8 15 7 16.5 7H20M17.5 4L20.5 7l-3 3M17.5 14l3 3-3 3"/>';
 const pfIcon = (d, size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 function statCards(){
-  const c = statsCtx(), all = STATS.map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = Array.isArray(profile.statPins) ? profile.statPins : [];
+  const c = statsCtx(), all = STATS.filter(x => !STAT_HUB_HIDE.has(x.id)).map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = Array.isArray(profile.statPins) ? profile.statPins : [];
   return all.length ? statsPick(all).map(x => { const on = pins.includes(x.id), r = x.r;
     return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}">${pfIcon(ICO_PIN, 16)}</button>
-      <small>${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
+      <small class="pfstt">${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k === 'big3Bw' ? 'big3' : r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
 }
 function togglePin(id){
   const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).slice();
-  if(pins.includes(id)) pins.splice(pins.indexOf(id), 1); else if(pins.length >= 5){ toast(t('stPinMax')); return; } else pins.push(id);
+  if(pins.includes(id)) pins.splice(pins.indexOf(id), 1); else if(pins.length >= STAT_N){ toast(t('stPinMax', { n: STAT_N })); return; } else pins.push(id);
   if(pins.length) profile.statPins = pins; else delete profile.statPins; saveProfile(); Phone.haptic(); renderProfile();
 }
 
@@ -196,41 +191,61 @@ function saveOrm(){
 }
 function delOrm(id){ profile.orm = ormList().filter(o => o.id !== id); if(!profile.orm.length) delete profile.orm; saveProfile(); drawOrmList(); renderProfile(); }
 
-// small line chart of the latest weigh-ins (theme colours, no labels inside)
-function pfWeightChart(pts){
-  if(pts.length < 2) return '';
-  const W = 300, H = 72, P = 6, ws = pts.map(p => p.w), lo = Math.min(...ws), hi = Math.max(...ws), span = hi - lo || 1;
-  const xy = pts.map((p, i) => [P + i * (W - 2 * P) / (pts.length - 1), H - P - (p.w - lo) / span * (H - 2 * P)]);
-  const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(''), [lx, ly] = xy[xy.length - 1];
-  return `<svg class="pfchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${line}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.5" fill="currentColor"/></svg>`;
+// ---------- Refinements #8 change 14: the friends leaderboard, one rep max only, one lift at a time ----------
+// The pill on top drops down Bench Press, Deadlift, Squat (ui.pfLift remembers the choice). Rows: place, picture, name, weight (your kg / lb setting;
+// stored in kg). Places 1-3 are gold, silver and bronze (--lb-gold/-silver/-bronze, theme.css); a shared weight shares the place, the first to lift it first.
+// Friends need accounts and sync, which do not exist yet (0.8+): LB_FRIENDS is where their rows plug in; today it is empty.
+const LB_LIFTS = ['bench', 'deadlift', 'squat'];
+const LB_SHOW_ME = true;   // Petros has not confirmed showing you in the list: false leaves your row out (the "join" line still shows when you have no single)
+const lbLift = () => LB_LIFTS.includes(ui.pfLift) ? ui.pfLift : LB_LIFTS[0];
+let LB_FRIENDS = [];   // friends' best singles, once accounts and sync exist: [{ name, photo, initial, kg, date }] (empty until then)
+const lbFriends = () => LB_FRIENDS;
+const lbW = kg => bwU() === 'lb' ? `${Math.round(kg * LB)} lb` : `${fmt(Math.round(kg * 2) / 2)} kg`;
+function lbRows(exId){
+  const mine = boardBest(exId), me = mine && LB_SHOW_ME ? [{ me: true, name: (profile.name || Account.current().name || t('pfYou')).trim(), photo: pfPhoto(), initial: pfInitial(), kg: mine.kg, date: mine.date, src: mine.src }] : [];
+  const L = lbFriends().filter(f => f && f.kg > 0).concat(me).sort((a, b) => b.kg - a.kg || String(a.date).localeCompare(String(b.date)));
+  L.forEach((r, i) => { r.place = i && L[i - 1].kg === r.kg ? L[i - 1].place : i + 1; }); return { rows: L, mine };
 }
+function lbHtml(){
+  const ex = lbLift(), { rows, mine } = lbRows(ex), friends = lbFriends().length;
+  const pill = `<div class="lbpick"><button type="button" class="lbpill" data-lbpill aria-haspopup="listbox" aria-expanded="false"><span>${esc(exName(ex))}</span>${svgIcon('chevD', 18, 2.4)}</button>
+      <div class="lbmenu" role="listbox" aria-label="${esc(t('pfBoards'))}">${LB_LIFTS.map(id => `<button type="button" role="option" class="lbopt${id === ex ? ' on' : ''}" data-lblift="${id}" aria-selected="${id === ex}"><span>${esc(exName(id))}</span>${id === ex ? svgIcon('check', 18, 2.4) : ''}</button>`).join('')}</div></div>`;
+  const av = r => `<span class="lbav">${r.photo ? `<img class="avimg" src="${r.photo}" alt="">` : r.initial ? esc(r.initial) : svgIcon('user', 18, 2)}</span>`;
+  const list = rows.map(r => `<button type="button" class="lbrow${r.me ? ' me' : ''}${r.place <= 3 ? ' lb' + r.place : ''}" data-lbrow>
+      <b class="lbn">${r.place}</b>${av(r)}<span class="lbname"><span>${esc(r.name)}</span><small class="lbdate">${esc(fmtDate(r.date + 'T12:00:00'))}${r.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span><b class="lbw">${lbW(r.kg)}</b></button>`).join('');
+  const empty = !rows.length ? `<p class="pfempty lbempty"><b>${esc(t('lbNoneYet'))}</b>${esc(t(friends ? 'lbNoneSub' : 'lbNoFriends'))}</p>` : '';
+  const join = !mine ? `<p class="pfline lbjoin">${esc(t('lbJoin'))}</p>${gOn('lbAtt') ? '' : `<p class="pfline lbjoin">${esc(t('lbJoinHow'))}</p>`}` : '';
+  return `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${pill}
+    <div class="pfcard pfboards lblist" id="lbList">${list}${empty}${join}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`;
+}
+// the lift menu: drops down under the pill (transform and opacity only), closes on a pick, a tap elsewhere or Escape; the list cross-fades to the new lift
+function lbMenu(show){ const p = document.querySelector('#pfBody .lbpick'); if(!p) return; p.classList.toggle('open', show); p.querySelector('[data-lbpill]').setAttribute('aria-expanded', String(show)); }
+function lbPick(id){ if(!LB_LIFTS.includes(id)) return; lbMenu(false); if(id === lbLift()) return; ui.pfLift = id; saveUI(); Phone.haptic();
+  const box = $('lbList'), go = () => { const y = $('pfBody').scrollTop; renderProfile(); $('pfBody').scrollTop = y; const nb = $('lbList'); if(nb){ nb.classList.add('lbin'); } };
+  if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return go();
+  box.classList.add('lbout'); setTimeout(go, 140); }
 
 function renderProfile(){
   const box = $('pfBody'); if(!box) return;
-  const d = profileData(), kg = v => `${fmt(Math.round(v * 2) / 2)} kg`, num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB');
+  const d = profileData();
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
+  // Refinements #8: the workout streak is a small frosted pill with a flame on the bottom right of your picture (its box is gone)
+  const streak = `<span class="pfstpill" aria-label="${esc(t('pfStreak'))}: ${d.streak.n}">${flameIcon(d.streak.n, 14)}<b>${d.streak.n}</b></span>`;
   const circles = `<div class="pfcircles" role="list">
-      <div class="pfme ${ring}" role="listitem"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button><small>${esc(t('pfYou'))}</small></div>
+      <div class="pfme ${ring}" role="listitem"><span class="pfavw"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button>${streak}</span><small>${esc(t('pfYou'))}</small></div>
       <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
     </div>`;
+  // Refinements #8 change 15: Highest Ranked Exercises, the whole width: your three best ranks, big plates with the rank name under each;
+  // a tap on a plate pops a small bubble with the exercise (wire/04: data-rkbub). Fewer than three: quiet empty slots and one line on how to earn one.
   const picks = rankPicks(d.ranks), custom = Array.isArray(profile.rankPick) && profile.rankPick.length > 0;
-  const rk = !picks.length ? `<span class="pfline">${esc(t(d.tierNeed ? 'tierNeedBody' : 'pfNoRank'))}</span>`
-    : picks.length === 1 ? `<div class="pfrk1">${rankMini(picks[0], 44)}<span class="pfrn"><b class="pfbig">${esc(picks[0].name)}</b><small>${esc(picks[0].label)}</small></span></div>`
-    : `<div class="pfrk3">${picks.map(r => `<span class="pfrkc">${rankMini(r, 34)}<small>${esc(r.name)}</small></span>`).join('')}</div>`;
+  const slots = picks.map(r => `<button type="button" class="pfrkslot tr-${r.tier}" data-rkbub aria-label="${esc(r.name)} · ${esc(r.label)}">${rankMini(r, 76)}<b class="pfrkname">${esc(r.label)}</b><span class="rkbub" role="tooltip">${esc(r.name)}</span></button>`)
+    .concat(Array.from({ length: Math.max(0, 3 - picks.length) }, () => `<span class="pfrkslot empty" aria-hidden="true"><i class="rkhole"></i></span>`)).join('');
+  const rk = `<div class="pfrkrow">${slots}</div>${picks.length < 3 ? `<span class="pfline pfrkhint">${esc(t(d.tierNeed ? 'tierNeedBody' : picks.length ? 'pfRankMore' : 'pfNoRank'))}</span>` : ''}`;
   const rkBtns = `<span class="pfrkb"><button class="pflink" type="button" data-rkcustom>${esc(t('rkCustomize'))}</button>${custom ? `<button class="pflink" type="button" data-rkreset>${esc(t('rkReset'))}</button>` : ''}</span>`;
-  const strMode = boardMode() === 'str';
-  const rows = d.boards.map(b => `<div class="pfrow${b.tier ? ' tr-' + b.tier.tier : ''}"><span class="pfrn"><b>${esc(exName(b.id))}</b><small>${esc(t(b.lbl))} · ${esc(fmtDate(b.best.date + 'T12:00:00'))}${b.best.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span>
-      ${b.tier ? `<span class="pftier rk tr-${b.tier.tier}" title="${esc(b.tier.label)}">${rankIcon(b.tier.tier, b.tier.n, 30)}</span>` : ''}<span class="pfrv">${strMode ? (b.str ? `${b.str.toFixed(2)} <small>${esc(t('pfXBw'))}</small>` : '–') : b.e1 ? kg(b.e1) : '–'}</span></div>`).join('');
-  const boardSw = `<div class="seg pfboardsw" id="pfBoardSw" role="group" aria-label="${esc(t('pfBoards'))}"><button type="button" data-pfboard="max" class="${strMode ? '' : 'on'}">${esc(t('pfMaxPR'))}</button><button type="button" data-pfboard="str" class="${strMode ? 'on' : ''}">${esc(t('pfStrength'))}</button></div>`;
-  const w = d.weights, wl = w.length ? w[w.length - 1].w : null, wd = w.length > 1 ? Math.round((wl - w[0].w) * 10) / 10 : null;
-  const wCard = `<div class="pfcard pfwt"><div class="pfhead"><span>${esc(t('pfWeight'))}</span>${wl ? `<b>${bwOut(wl)} ${bwU()}${wd ? ` <small>${wd > 0 ? '+' : '−'}${bwOut(Math.abs(wd))}</small>` : ''}</b>` : ''}</div>
-      ${w.length > 1 ? pfWeightChart(w) : `<span class="pfline">${esc(t('pfNoWeight'))}</span>`}</div>`;
   box.innerHTML = circles
     + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
-    + `<div class="pfduo"><div class="pfcard pfstreak"><span class="pfic">${flameIcon(d.streak.n, 26)}</span><b class="pfnum">${d.streak.n}</b><small>${esc(t('pfStreak'))}</small></div>
-        <div class="pfcard pfpr${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div></div>`
-    + `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t(strMode ? 'pfBoardsSubStr' : 'pfBoardsSub'))}</p>${boardSw}${d.tierNeed ? `<button class="tierneed pfneed" type="button" data-tierbody>${esc(t('tierNeedBody'))}</button>` : ''}<div class="pfcard pfboards">${rows || `<p class="pfempty">${esc(t('pfBoardsEmpty'))}</p>`}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`
-    + wCard
+    + `<div class="pfcard pfpr pfrkfull${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div>`
+    + lbHtml()
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`
     + `<div class="pfstatgrid">${statCards()}</div>`;
 }

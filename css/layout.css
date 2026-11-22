@@ -28,8 +28,6 @@ input.mxr::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px}
 .mxbar{display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:6px} .mxbar i{display:block;height:100%;transition:width .15s}
 .mxbar .mx-p{background:var(--p)} .mxbar .mx-c{background:var(--c)} .mxbar .mx-f{background:var(--f)}
 /* recovery estimate in the workout summary */
-.recest{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
-.rchip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:13px}
 
 /* ---------- 0.5.9 ---------- */
 /* floating button: centred without transform, so the press just shrinks it in place and springs back */
