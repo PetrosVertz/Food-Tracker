@@ -645,8 +645,9 @@ ${conv ? `Recent chat:\n${conv}\n` : ''}User: """${txt}"""
 intent: "log" = they say what they ate or drank (even if they also ask something), or correct the list; "suggest" = they ask what to eat to fit their targets; "answer" = a food or nutrition question; "chat" = anything else.
 reply: ${ln}, plain text, at most ${AI.words(60)} words, no markdown. For "log": a short natural acknowledgement, plus a real answer if they also asked something (e.g. whether it suits their training day, using the context). Don't repeat the card's numbers. Nothing is logged until they tap Add: never say you added, logged or saved anything.
 items (only for "log"; one per food; never merge or drop a food): text = their words for it without the amount; name = short food name in ${ln} (with how it was cooked if said), no brand; name_en = English name; brand = brand or restaurant, "" if none; qty + unit = the amount as written (unit g, ml, piece, slice, cup, tbsp, tsp or serving; null when not written); grams = the whole amount eaten (when not written, a real serving: restaurant and takeaway food is bigger and richer; count oil, sauce, cheese); ml = true for drinks; kcal, protein, carbs, fat = per 100 g (100 ml) as eaten; stated = nutrients the user stated for the whole item, e.g. "a bar with 20g protein" gives {"protein":20} (that is NOT its weight), else null.
-complex: true only when the whole message is ONE composed dish (a gyro pita, a burger menu, pasta with mince).${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}
-Return ONLY JSON: {"intent":"log"|"suggest"|"answer"|"chat","reply":string,"complex":boolean,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"stated":object|null}]}`;
+complex: true only when the whole message is ONE composed dish (a gyro pita, a burger menu, pasta with mince).
+meals (only for "suggest", else []): 1-3 simple meals or snacks that fit what is left of the day's targets in Context (never over it), from common foods or their saved foods; per meal: time "HH:MM", title, items [{name, name_en, grams}], kcal, protein, carbs, fat (for the whole meal), why (one short line).${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}
+Return ONLY JSON: {"intent":"log"|"suggest"|"answer"|"chat","reply":string,"complex":boolean,"meals":[{"time":string,"title":string,"items":[{"name":string,"name_en":string,"grams":number}],"kcal":number,"protein":number,"carbs":number,"fat":number,"why":string}],"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"stated":object|null}]}`;
 }
 // the recent chat for the prompt: 4 lines, short; the list on screen as one line (cards have no text of their own)
 function logQConv(ch){
@@ -943,13 +944,19 @@ async function logQAnswer(txt, ch, how){
   const mem = !fix && Array.isArray(logPhr[mk]) ? logPhr[mk] : null;
   if(mem && mem.length){ how.path = 'memory'; logQShow(txt, ch, mem.map(p => ({ ...p, src: p.ref ? 'mem' : p.src })), t('logQGot')); return; }
   let ai = await logQAIOk(), err = null, parts = null, reply = '';
-  // 5. a known dish: one AI call, one meal card (js/meal.js); a dish you added before needs none
-  if(!fix){ const det = mealDetect(txt); if(det.dish){ const r = await mealSend(txt, ch, det, ai); if(r === true) return; if(r && r.err){ err = r.err; ai = false; } } }
+  // 4b. a clear "what should I eat?": the suggestion request itself is the one request (no classification request before it)
+  if(!fix && FoodCoach.wantsIdeas(txt)){ how.path = 'suggest';
+    if(!ai){ ch.say(AI.hasKey() ? t('logQSuggOff') : t('aiErrNoKey')); return; }
+    try{ await logQSuggest(ch, ''); }catch(e){ if(e.cancelled) throw e; ch.say(AI.friendly(e)); }
+    return; }
+  // 5. a known dish: one AI call, one meal card (js/meal.js); a dish you added before needs none.
+  // The request budget is one per message: a dish answer that could not be used ({ spent }) or failed ({ err }) goes to the offline reading, never to a second request.
+  if(!fix){ const det = mealDetect(txt); if(det.dish){ const r = await mealSend(txt, ch, det, ai); if(r === true) return; if(r && (r.err || r.spent)){ if(r.err) err = r.err; ai = false; } } }
   // 6. the one AI call: what the message is, the reply, and the foods with an estimate each
   if(ai){
     try{ const r = await ch.ask(logQPrompt(txt, ch, fix), null, { task: fix ? 'food-coach-fix' : 'food-coach' }) || {}, intent = String(r.intent || 'log');
       reply = logQReply(r.reply);
-      if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
+      if(intent === 'suggest'){ await logQSuggest(ch, reply, Array.isArray(r.meals) && r.meals.length ? r.meals : null); return; }   // the ideas come in the same answer
       if(intent !== 'log'){ ch.say(reply || t('aiErrOther')); return; }
       parts = logQClean(r.items); if(!(parts && parts.length)) parts = null;
       if(parts && r.complex === true && !fix){ const mi = mealFromItems(parts, r); if(mi && mealShow(txt, ch, mealDetect(txt), mi)) return; }
@@ -1054,9 +1061,14 @@ function logQRestore(ch){
   return out.length ? out : null;
 }
 // "what should I eat?" in Food Coach: Fill My Macros, shown as the same greyed suggestion cards (and on Today)
-async function logQSuggest(ch, reply){
+// meals: ideas that came in the answer already (no request); null = this message's one request is spent and brought none (a short reply, no
+// second request); undefined = ask for them now (the one request of a clear "what should I eat?")
+async function logQSuggest(ch, reply, meals){
   if(!targetFor(curDay)){ ch.say(t('planNeedTargets')); return; }
-  const day = curDay, r = planKeep(await ch.ask(planPrompt(), null, { task: 'food-suggest', deadlineMs: 25000, timeoutMs: 15000 }));
+  if(meals === null){ ch.say(reply || t('logQSuggSpent')); return; }
+  let r; const day = curDay;
+  if(meals){ try{ r = planKeep({ meals: meals.map(m => ({ ...m, items: (m.items || []).map(it => ({ ...it, from: it.from || 'foods' })) })), tip: '' }); }catch(e){ ch.say(reply || t('logQSuggSpent')); return; } }
+  else r = planKeep(await ch.ask(planPrompt(), null, { task: 'food-suggest', deadlineMs: 25000, timeoutMs: 15000 }));
   ch.say(reply || t('logQSugg'));
   const cards = ch.cards(r.meals.map(m => ({ body: `<div class="eatrow sugg">${planRowHtml(m)}</div>`, dim: true,
     actions: [{ label: t('add'), primary: true, run: () => planAddMeal(day, m) }] })));

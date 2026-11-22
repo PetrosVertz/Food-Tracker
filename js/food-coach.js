@@ -7,6 +7,7 @@
 //   FoodCoach.correction(text, rows) → { type: 'set' | 'inc' | 'remove' | 'state', i, qty, unit, n, state } | null
 //                                       a small change to the list on screen ("make it 200g", "add another toast", "remove the bar")
 //   FoodCoach.quick(text)            → { kind: 'thanks' | 'hi' | 'last' | 'today', key } | null   answered without AI
+//   FoodCoach.wantsIdeas(text)       → true for a clear "what should I eat?" (EN / GR / Greeklish): one suggestion request, no classification first
 //   FoodCoach.check(item)            → { item, doubt }   one food's values made consistent (no second AI call); unknown stays null
 //   FoodCoach.context()              → one short text: what is logged (marked incomplete), targets, rules + the Athlete OS context (AI.knows)
 //   FoodCoach.chatLoad() / chatSave(list)   the Food Coach chat on this phone (Store 'coachChat', never synced, kept 2 days)
@@ -159,6 +160,14 @@ const FoodCoach = (() => {
     return null;
   }
 
+  // a clear request for meal ideas ("what should I eat for dinner?", «τι να φάω;», "ti na fao") with nothing eaten in it: the suggestion
+  // request is sent straight away (one request, no classification request before it). Anything less clear is left to the one AI request.
+  function wantsIdeas(txt){
+    const s = N(txt).replace(/[?!.\s]+$/, '').trim(); if(!s || s.split(' ').length > 14) return false;
+    if(/(?<![\p{L}\p{N}])(i ate|i had|i've had|i have had|just had|just ate|had a|ate a|εφαγα|ηπια|τσιμπησα|efaga|ipia)(?![\p{L}\p{N}])/u.test(s)) return false;
+    return /(?<![\p{L}\p{N}])(what (should|can|could|do) i (eat|have)|what to eat|anything (good )?to eat|(meal|snack|food|dinner|lunch|breakfast) ideas?|ideas? for (a |my )?(meal|snack|dinner|lunch|breakfast)|suggest (me )?(a |some )?(meal|snack|dinner|lunch|breakfast|something to eat)|τι (να|θα|μπορω να) φαω|τι να τσιμπησω|προτεινε (μου )?(ενα |κατι )?(γευμα|φαγητο|σνακ|βραδινο|μεσημεριανο|πρωινο|κατι να φαω)|ιδεες για (φαγητο|γευμα|σνακ|βραδινο|μεσημεριανο|πρωινο)|ti (na|tha|mporo na) (fao|faw|fa(w|o)) ?)(?![\p{L}\p{N}])/u.test(s);
+  }
+
   // ---- 4. one food's values made consistent, deterministically (replaces the old second "retry" AI call) ----
   // kcal per 100 g missing but protein / carbs / fat known → 4/4/9; absurd values → unknown; macros that do not add up, or a whole-portion total
   // that disagrees with per-100 g × grams → kept but marked doubt ("rough estimate, check"). Missing macros stay null (unknown), never 0.
@@ -216,5 +225,5 @@ const FoodCoach = (() => {
     const row = a => ({ n: a.ms.length, p50: pct(a.ms, 50), p95: pct(a.ms, 95), callsPerAnswer: a.ms.length ? Math.round(a.calls / a.ms.length * 100) / 100 : 0 });
     return { all: row({ ms: l.map(x => x[1]), calls: l.reduce((a, x) => a + x[2], 0) }), ...Object.fromEntries(Object.entries(by).map(([k, v]) => [k, row(v)])) }; }
 
-  return { parse, correction, quick, check, usable, context, chatLoad, chatSave, chatClear, track, stats, pct };
+  return { parse, correction, quick, wantsIdeas, check, usable, context, chatLoad, chatSave, chatClear, track, stats, pct };
 })();

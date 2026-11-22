@@ -1125,3 +1125,8 @@ Object.assign(S, {   // Settings › AI › AI Provider (wire/08 drawAiProv): ea
   aiErrNoKey: ['This needs an AI key. Add one in Settings › AI.', 'Χρειάζεται κλειδί AI. Πρόσθεσέ το στις Ρυθμίσεις › AI.'],
   aiErrModel: ['That AI model isn’t available for this key. Check the model name in Settings › AI, or leave it empty for the default.', 'Αυτό το μοντέλο AI δεν είναι διαθέσιμο για αυτό το κλειδί. Έλεγξε το όνομα στις Ρυθμίσεις › AI, ή άφησέ το κενό για το προεπιλεγμένο.'],
 });
+
+Object.assign(S, {   // Food Coach: one AI request per message (today.js logQAnswer / logQSuggest)
+  logQSuggOff: ['Meal ideas need the AI, and it can’t be reached right now. Try again in a moment.', 'Οι ιδέες για γεύματα θέλουν το AI, που δεν είναι διαθέσιμο τώρα. Δοκίμασε ξανά σε λίγο.'],
+  logQSuggSpent: ['Ask me “What should I eat?” and I’ll suggest meals that fit what’s left today.', 'Ρώτα με «Τι να φάω;» και θα σου προτείνω γεύματα που χωράνε σε ό,τι απομένει σήμερα.'],
+});
