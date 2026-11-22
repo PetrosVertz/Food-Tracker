@@ -13,7 +13,7 @@ const HEAVY = new Set(['bench','incline_bench','squat','front_squat','deadlift',
 const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), th = topHead(m_);
   return { id, en, el, al: ALSO[id] || [], e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
 
-let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null);
+let exCustom = cxRestore(Store.load('exCustom', [])), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null);
 
 const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: exCustom.length, l: LIB.concat(exCustom.map(normEx)) }).l;
 
@@ -146,34 +146,13 @@ setInterval(() => { tickRest(); tickClock(); }, 500);
 
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
-$('exSearch').addEventListener('input', drawExPick);
-// Refinements change 16: Search / Return on the keyboard picks the first (lit) result; scrolling near the end shows more results
-$('exSearch').addEventListener('keydown', e => { if(e.key !== 'Enter' || e.isComposing) return; const f = $('pkBody').querySelector('.exsr > .exrow.exbest'); if(!f) return; e.preventDefault(); $('exSearch').blur(); f.click(); });
-$('ovExPick').addEventListener('scroll', exSearchMore, { capture: true, passive: true });
-// while searching, the pills step aside so the results get the room (0.7.9.6: the box stays at the bottom, above the keyboard)
-const gymPkSearching = () => $('ovExPick').querySelector('.sheet').classList.toggle('pksearching', document.activeElement === $('exSearch') || !!$('exSearch').value.trim());
-['focus', 'input', 'blur'].forEach(k => $('exSearch').addEventListener(k, () => setTimeout(gymPkSearching, 0)));
-if(window.visualViewport){ visualViewport.addEventListener('resize', pkFit); visualViewport.addEventListener('scroll', pkFit); }   // 0.7.9.6: search strip above the keyboard
-$('pkBody').addEventListener('change', e => { if(e.target.id === 'pkSortMu'){ ui.pkSortMu = e.target.checked; saveUI(); drawExPick(); } });   // one list by muscle usage
+// Exercise Picker V27 (js/expick.js) and the custom exercise creator (js/excreate.js)
+pkSetup(); cxSetup();
 
-document.querySelectorAll('#pkRegion button').forEach(b => b.addEventListener('click', () => { PK.region = b.dataset.v; PK.group = null; PK.head = null; ui.pkRegion = PK.region; saveUI(); drawExPick(); }));
-
-document.querySelectorAll('#pkMode button').forEach(b => b.addEventListener('click', () => { PK.mode = b.dataset.v; ui.pkMode = PK.mode; saveUI(); drawExPick(); }));
-
-$('pkBody').addEventListener('click', e => {
-  const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); openExInfo(inf.dataset.exinfo, PK.cb); return; }
-  if(e.target.closest('[data-hh]:not([data-hh=""])')) return;   // a muscle on the body: wire/05 lights it up, then opens it
-  const g = e.target.closest('[data-g],[data-grp]'); if(g){ PK.group = g.dataset.g || g.dataset.grp; PK.head = null; drawExPick(); return; }
-  const hd = e.target.closest('[data-head]'); if(hd){ PK.head = hd.dataset.head || null; drawExPick(); return; }
-  if(e.target.closest('[data-pkback]')){ PK.group = null; PK.head = null; drawExPick(); return; }
-  const n = e.target.closest('[data-new]');
-  if(n){ const name = $('exSearch').value.trim(), hh = PK.head || (PK.group ? Object.keys(HEADS).find(k => HEADS[k][2] === PK.group) : 'chest_mid');
-    const x = { id: 'c_' + uid(), en: name, el: name, e: 'machine', p: 'press_h', mu: { [hh]: 100 }, h: hh, m: HEADS[hh][2], rest: 90, custom: true };
-    exCustom.push(x); saveG('custom'); close('ovExPick'); PK.cb && PK.cb(x.id); return; }
-  const b = e.target.closest('[data-ex]'); if(b){ close('ovExPick'); PK.cb && PK.cb(b.dataset.ex); }
-});
-
-$('sesAddEx').addEventListener('click', () => openExPick(addToSession));
+// V27: the picker stays open after an add (one tap each), with Undo; Undo only takes back an exercise that has no done set yet
+function sesUndoAdd(id){ if(!active) return; for(let i = active.exercises.length - 1; i >= 0; i--){ const x = active.exercises[i];
+  if(x.exId === id && !x.sets.some(z => z.done)){ active.exercises.splice(i, 1); active.cur = Math.max(0, Math.min(active.cur || 0, active.exercises.length - 1)); saveG('act'); renderSession(); return; } } }
+$('sesAddEx').addEventListener('click', () => openExPick(addToSession, { multi: true, undo: sesUndoAdd }));
 
 
 $('swList').addEventListener('click', e => {
@@ -342,7 +321,8 @@ $('tpList').addEventListener('click', e => {
 
 $('tpList').addEventListener('input', e => { if(e.target.matches('[data-reps]')) TP.exercises[+e.target.closest('[data-i]').dataset.i].reps = e.target.value; });
 
-$('tpAdd').addEventListener('click', () => openExPick(id => { TP.exercises.push({ exId: id, sets: isCardio(id) ? 1 : 3, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest }); drawTpl(); }));
+$('tpAdd').addEventListener('click', () => openExPick(id => { TP.exercises.push({ exId: id, sets: isCardio(id) ? 1 : 3, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest }); drawTpl(); },
+  { multi: true, undo: id => { const i = TP.exercises.map(e => e.exId).lastIndexOf(id); if(i > -1){ TP.exercises.splice(i, 1); drawTpl(); } } }));
 
 $('tpSave').addEventListener('click', () => {
   TP.type = inferType(TP.exercises); TP.name = $('tpName').value.trim() || typeLabel_(TP.type);

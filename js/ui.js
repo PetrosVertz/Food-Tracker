@@ -201,7 +201,8 @@ function goBack(){
   const opens = [...document.querySelectorAll('.overlay.open')].filter(o => o.id !== 'ovLang').sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0));
   if(opens.length){
     const top = opens[0].id;
-    if(top === 'ovExPick' && (PK.group || PK.eq)){ if(PK.eq) PK.eq = null; else { PK.group = null; PK.head = null; } drawExPick(); return; }
+    if(top === 'ovExPick' && pkBack()) return;   // V27: Back first clears a search, then closes (js/expick.js)
+    if(top === 'ovExCreate' && cxBack()) return;   // the creator: steps back out of a multi-select first (js/excreate.js)
     if(top === 'ovCoach'){ Coach.minimize(); return; }   // 0.7.4.3: Back shrinks the coach chat into its robot bubble
     if(top === 'ovSession'){ close('ovSession'); renderAll(); } else close(top); return;
   }

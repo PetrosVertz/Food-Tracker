@@ -298,16 +298,7 @@ function restAdjust(v){ if(!REST) return; if(v === 'skip'){ REST = null; autoEnd
 // was skipped (or the last set, with no rest); a new set, a rest change or Resume starts the wait again.
 function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now(), t || 0); delete active.askedAt; saveG('act'); }   // the bracket updates itself every frame
 
-// o (0.7.9, optional): { group } opens straight at that muscle group's list, { cardio: true } at Cardio (Gym Coach › Replace)
-function openExPick(cb, o){ o = o || {}; const g = o.group && GROUPS[o.group] ? o.group : null;
-  PK = { cb, region: o.cardio ? 'cardio' : g ? GROUPS[g][2] : ui.pkRegion || 'up', mode: ui.pkMode || 'map', group: g, head: null }; $('exSearch').value = ''; EXS.text = null; $('ovExPick').querySelector('.sheet').classList.remove('pksearching'); drawExPick(); open('ovExPick'); pkFit(); }
-// 0.7.9.6: the window always matches the visible screen, so the search strip at the bottom sits right above the keyboard while typing
-function pkFit(){ const ov = $('ovExPick'), vv = window.visualViewport; if(!vv || !ov.classList.contains('open')) return;
-  ov.style.setProperty('--pkvh', vv.height + 'px'); ov.style.setProperty('--pkvt', vv.offsetTop + 'px'); ov.classList.toggle('kb', vv.height < innerHeight * .8); }
-// exercises already in the workout this picker adds to: marked in the list
-function pkHave(){ const op = id => $(id).classList.contains('open');
-  const l = op('ovTpl') && TP ? TP.exercises : active && op('ovSession') ? active.exercises : [];
-  return new Set(l.map(e => e.exId)); }
+// The exercise picker (openExPick, pkFit, pkHave …) lives in js/expick.js (V27).
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
 function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
@@ -316,7 +307,7 @@ function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : def
 
 // unilateral exercises: L and R sets in pairs; rest starts after the R side
 const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|split squat|lunge|step[- ]?up|pistol|concentration|kickback|suitcase/i;
-const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && UNI_RE.test(ex.en || ''); };
+const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && (typeof ex.uni === 'boolean' && Array.isArray(ex.mus) ? ex.uni : UNI_RE.test(ex.en || '')); };
 const uniPair = s => [{ ...newSet(s && s.type), side: 'L' }, { ...newSet(s && s.type), side: 'R' }];
 function makeUni(x, on){ x.uni = on;
   if(on) x.sets = x.sets.flatMap(s => s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R' }]);
@@ -581,7 +572,8 @@ function gymBodySVG(o){
   const shape = ([k, d]) => { const hs = GYM_BM_HEADS[k], h = hs[0], g = ANAT_HEAD_GROUP[h], on = live(h), tap = mode === 'pick' && on;
     let fill = '', op = 1, cls = '';
     if(mode === 'rec'){ fill = gcol[g] || ''; if(!fill) cls = 'gbm-off'; else if(o.lows && o.lows.has(g)) cls = 'mlow'; }
-    else if(mode === 'mu'){ const v = gymBmVal(hs, mu); if(v > 0){ cls = 'gbm-on'; op = .35 + .65 * Math.min(1, v / max); } else cls = 'gbm-off'; }
+    else if(mode === 'mu'){ const v = gymBmVal(hs, mu); if(v > 0){ if(o.tint) fill = HEAD_COL[hs.find(z => (+mu[z] || 0) > 0) || h]; else cls = 'gbm-on'; op = .35 + .65 * Math.min(1, v / max); } else cls = 'gbm-off'; }
+    else if(mode === 'select'){ const m = o.muscleOf(h, hs); return m ? `<path d="${d}" class="cxm" data-cm="${m}" style="--cmc:${o.colorOf(m)}"/>` : `<path d="${d}" class="gbm-off" style="pointer-events:none"/>`; }
     else if(mode === 'pick'){ if(on) fill = HEAD_COL[h]; else cls = 'gbm-off'; }
     else fill = HEAD_COL[h];
     return `<path d="${d}"${cls ? ` class="${cls}"` : ''}${fill ? ` fill="${fill}"` : ''}${op < 1 ? ` fill-opacity="${op.toFixed(2)}"` : ''}${tap ? ` data-hh="${h}" data-g="${g}" style="cursor:pointer"` : ' style="pointer-events:none"'}/>`; };
@@ -601,12 +593,13 @@ function anatomySVG(o){
   const mode = o.mode || 'plain', region = o.region, gcol = o.colors || {}, idp = o.idp || 'an';
   const fill = h => { const g = ANAT_HEAD_GROUP[h];
     if(mode === 'rec') return gcol[g] || '#3a4048';
-    if(mode === 'mu') return (o.mu || {})[h] > 0 ? '#c6f432' : '#3a4048';   // how much each head works: lime, brighter = more
+    if(mode === 'mu') return (o.mu || {})[h] > 0 ? (o.tint ? HEAD_COL[h] : '#c6f432') : '#3a4048';   // how much each head works: lime (tint: the muscle's colour), brighter = more
     if(mode === 'pick'){ const reg = o.groupRegion ? o.groupRegion(g) : null; return !region || reg === region ? HEAD_COL[h] : '#3a4048'; }
     return HEAD_COL[h]; };
   const live = h => mode === 'rec' || mode === 'plain' || !region || (o.groupRegion && o.groupRegion(ANAT_HEAD_GROUP[h]) === region);
   const fem = o.fem !== undefined ? o.fem : profile.sex === 'f', W_ = d => fem ? femWarp(d) : d;
-  const half = side => ANAT[side].map(([h, d]) => `<path d="${W_(d)}" class="${mode === 'rec' && o.lows && o.lows.has(ANAT_HEAD_GROUP[h]) ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${mode === 'mu' && (o.mu || {})[h] > 0 ? 'fill:var(--t-accent);' : ''}${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
+  const sel = mode === 'select' ? h => o.muscleOf(h, [h]) : null;   // creator: the muscle each shape stands for; colours come from CSS
+  const half = side => ANAT[side].map(([h, d]) => sel ? (sel(h) ? `<path d="${W_(d)}" class="cxm" data-cm="${sel(h)}" style="--cmc:${o.colorOf(sel(h))}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round"/>` : '') : `<path d="${W_(d)}" class="${mode === 'rec' && o.lows && o.lows.has(ANAT_HEAD_GROUP[h]) ? 'mlow' : ''}" data-hh="${live(h) ? h : ''}" data-g="${live(h) ? ANAT_HEAD_GROUP[h] : ''}" fill="${fill(h)}" fill-opacity="${mode === 'mu' ? ((o.mu || {})[h] > 0 ? .3 + .7 * Math.min(1, o.mu[h] / (o.muMax || 60)) : .5) : live(h) ? .95 : .45}" stroke="#0d0f12" stroke-width="1.3" stroke-linejoin="round" style="${mode === 'mu' && !o.tint && (o.mu || {})[h] > 0 ? 'fill:var(--t-accent);' : ''}${live(h) ? 'cursor:pointer' : 'pointer-events:none'}"/>` +
       `<path d="${d}" fill="url(#${idp}shade)" style="pointer-events:none"/>`).join('') +
     `<path d="${W_(ANAT_FIBRES[side])}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width=".8" stroke-linecap="round" style="pointer-events:none"/>`;
   const skin = `<g fill="#2b3036" stroke="#1a1d21" stroke-width="1" style="pointer-events:none">${ANAT_SKIN.map(d => `<path d="${W_(d)}"/>`).join('')}${ANAT_SKIN_ELL.map(([cx, cy, rx, ry]) => `<ellipse cx="${fem ? femX(cx, cy) : cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('')}</g>`;
@@ -670,6 +663,10 @@ const GYM_ICON = {
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
   arrUp: '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>', arrDown: '<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',   // Refinements #7: trend arrows
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  // V27 picker: Reset Filters (one round arrow) and the mark of your own exercise (a puzzle piece)
+  reset: '<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.4h-4.4"/>',
+  minus: '<path d="M5 12h14"/>',
+  puzzle: '<path d="M9 3H5a2 2 0 0 0-2 2v4h2a2 2 0 0 1 0 4H3v6a2 2 0 0 0 2 2h5v-2a2 2 0 0 1 4 0v2h5a2 2 0 0 0 2-2v-5h-2a2 2 0 0 1 0-4h2V5a2 2 0 0 0-2-2h-5v2a2 2 0 0 1-4 0V3z"/>',
   work: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/><path d="M10.5 12.5v1.5h3v-1.5"/>' };
 const gymIco = (k, size, sw) => `<svg width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GYM_ICON[k]}</svg>`;
 
@@ -705,11 +702,11 @@ function nextSuggestions(){
 
 // exercise list = compact rows: mini muscle map (the heads it works, lit by %), name, Muscle Usage, ⓘ, coloured equipment edge
 const MINI = new Map();
-function miniMap(x){
-  const k = x.id + (profile.sex === 'f' ? 'f' : 'm'); if(MINI.has(k)) return MINI.get(k);
+function miniMap(x, tint){   // tint (V27 picker cards): the worked muscles in their own muscle colour instead of the accent
+  const k = x.id + (profile.sex === 'f' ? 'f' : 'm') + (tint ? 't' : ''); if(MINI.has(k)) return MINI.get(k);
   const mu = x.mu || {}, sideOf = h => (profile.sex === 'f' ? ANAT.f.some(([hh]) => hh === h) : gymBmSides.f.has(h)) ? 'f' : 'b';
   let fr = 0, bk = 0, up = 0, low = 0; Object.entries(mu).forEach(([h, v]) => { if(sideOf(h) === 'f') fr += v; else bk += v; const g = (HEADS[h] || [])[2], r = (GROUPS[g] || [])[2]; if(r === 'low') low += v; else up += v; });
-  const svg = anatomySVG({ mode: 'mu', mu, side: fr >= bk ? 'f' : 'b', half: low > up ? 'low' : 'up', muMax: Math.max(...Object.values(mu), 1), idp: 'mm' + x.id.replace(/\W/g, '') });
+  const svg = anatomySVG({ mode: 'mu', mu, side: fr >= bk ? 'f' : 'b', half: low > up ? 'low' : 'up', muMax: Math.max(...Object.values(mu), 1), idp: 'mm' + x.id.replace(/\W/g, ''), tint });
   MINI.set(k, svg); return svg;
 }
 const PK_IN = () => `<span class="exin" aria-hidden="true">${svgIcon('check', 18, 2.6)}</span>`;   // 0.7.9.6: already in this workout
@@ -719,112 +716,8 @@ function exTiles(list, key, vias, have){ have = have || new Set();
       <span class="exn"><b>${esc(exName(x))}</b>${vias && vias[x.id] ? `<small class="exalso">${t('exAlso', { n: esc(exTitle(vias[x.id])) })}</small>` : ''}<small>${eqIcon(x.e, 13)} ${EL(x.e)}${isCardio(x.id) ? '' : ` · ${t('muUse', { p: pct })}`}</small></span>${have.has(x.id) ? PK_IN() : ''}<span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`; }).join('')}</div>`;
 }
 
-function exTilesByEq(list, key, have){
-  return EQ_ORDER.filter(e => list.some(x => x.e === e)).map(e => `<div class="eqhead" style="color:${gymInk(EQ_COL[e])}">${eqIcon(e, 18)} ${EL(e)}</div>${exTiles(list.filter(x => x.e === e), key, null, have)}`).join('');
-}
-// 0.7.9.6 List view: every exercise of the region, grouped by muscle. Even rows: the equipment icon on the left, the name, then muscle · equipment
-// in grey. A muscle's heading opens that muscle (its parts and equipment filters), like tapping it on the body
-function exListByGroup(region, have){
-  return Object.keys(GROUPS).filter(k => GROUPS[k][2] === region).map(k => {
-    const l = EX().filter(x => x.m === k).sort((a, b) => exHistory(b.id).length - exHistory(a.id).length); if(!l.length) return '';
-    return `<button type="button" class="pkgh" data-grp="${k}"><b>${esc(ML(k))}</b><small>${t('nEx', { n: l.length })}</small><span class="pkchev" aria-hidden="true">${svgIcon('back', 16, 2.4)}</span></button>
-      <div class="exrows">${l.map(x => `<button class="exrow eqrow${have.has(x.id) ? ' in' : ''}" data-ex="${x.id}" style="--eq:${EQ_COL[x.e] || '#8b949c'}"><span class="mm">${eqIcon(x.e, 24)}</span>
-      <span class="exn"><b>${esc(exName(x))}</b><small>${esc(ML(x.h))} · ${EL(x.e)}</small></span>${have.has(x.id) ? PK_IN() : ''}<span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span></button>`).join('')}</div>`; }).join('');
-}
-
 // 0.7.9: cardio list starts with the machines people use most
 const CARDIO_FIRST = ['treadmill', 'bike', 'rower', 'elliptical', 'stairs', 'walking'], cardioRank = id => { const i = CARDIO_FIRST.indexOf(id); return i < 0 ? 99 : i; };
-function drawExPick(){
-  const q = norm($('exSearch').value), tokens = q.split(' ').filter(Boolean), have = pkHave();
-  setSeg('#pkRegion', PK.region); setSeg('#pkMode', PK.mode);
-  const mapv = !q && PK.region !== 'cardio' && !PK.group && PK.mode === 'map'; $('pkBody').classList.toggle('pkmapmode', mapv);
-  $('pkModeRow').classList.toggle('hide', !!q || PK.region === 'cardio' || !!PK.group);
-  let h = '';
-  if(q){ exSearchDraw(have); return; }   // Refinements change 16: one ranked list, kept row by row (below)
-  EXS.last = null;
-  if(PK.region === 'cardio'){
-    h = exTiles(EX().filter(x => x.m === 'cardio').sort((a, b) => cardioRank(a.id) - cardioRank(b.id)), null, null, have);
-  } else if(!PK.group){
-    // 0.7.9.6: the body fills the space (theme: .pkmap sizes it by the room left, --ar = its width / height), the caption right under it
-    if(PK.mode === 'map') h = `<div class="pkmap" style="--ar:${PK.region === 'low' ? 336 / 252 : 336 / 262}">${anatomySVG({ mode: 'pick', region: PK.region, groupRegion: g => (GROUPS[g] || [])[2], front: t('front'), back: t('backSide'), idp: 'pick', half: PK.region === 'up' || PK.region === 'low' ? PK.region : null, max: 900 })}<p class="pkcap">${t('tapMuscle')}</p></div>`;
-    else h = exListByGroup(PK.region, have);
-  } else {
-    const heads = Object.entries(HEADS).filter(([, v]) => v[2] === PK.group).map(([k]) => k), key = PK.head || PK.group;
-    let list = EX().filter(x => exScore(x, key) >= (PK.head ? 25 : 40) && x.m !== 'cardio').sort((a, b) => exScore(b, key) - exScore(a, key) || (exHistory(b.id).length - exHistory(a.id).length));
-    const eqs = EQ_ORDER.filter(e => list.some(x => x.e === e));
-    if(PK.eq) list = list.filter(x => x.e === PK.eq);
-    h = `<div class="pkhead"><button class="pback" data-pkback>${svgIcon('back', 20, 2.4)}${t('allMuscles')}</button><h3 style="margin:0 0 8px;color:${gymInk(HEAD_COL[PK.head] || HEAD_COL[heads[0]])}">${esc(ML(PK.head || PK.group))}</h3></div>` +
-      (heads.length > 1 ? `<div class="chips" style="margin-bottom:8px"><button class="fchip ${!PK.head ? 'on' : ''}" data-head="">${t('all')}</button>${heads.map(k => `<button class="fchip hchip ${PK.head === k ? 'on' : ''}" data-head="${k}" style="--hc:${HEAD_COL[k]}"><i></i>${esc(ML(k))}</button>`).join('')}</div>` : '') +
-      `<div class="chips eqchips" style="margin-bottom:10px"><button class="fchip ${!PK.eq ? 'on' : ''}" data-eq="">${t('allEquip')}</button>${eqs.map(e => `<button class="fchip eqchip ${PK.eq === e ? 'on' : ''}" data-eq="${e}" style="--ec:${EQ_COL[e]};--eci:${gymInk(EQ_COL[e])}">${eqIcon(e, 15)} ${EL(e)}</button>`).join('')}</div>` +
-      `<label class="advrow musort"><span>${t('sortByMu')}</span><input type="checkbox" id="pkSortMu" ${ui.pkSortMu ? 'checked' : ''}></label>` +
-      (PK.eq || ui.pkSortMu ? exTiles(list, key, null, have) : exTilesByEq(list, key, have));   // grouped by equipment, or one list by muscle usage
-  }
-  $('pkBody').innerHTML = h;
-  if(mapv && PK.lastH) document.querySelectorAll(`#pkBody path[data-hh="${PK.lastH}"]`).forEach(p => p.classList.add('pkhit'));   // the muscle you came back from stays lit
-}
-
-// ---------- Refinements change 16: the search results as ONE list, best first (ExSearch in js/exsearch.js) ----------
-// Each row is kept by exercise id, so while typing the same row glides to its new place (transform only), rows that go fade out and new ones
-// fade in. About 12 rows show; more come when you scroll down. The first row is lightly lit: Search / Return on the keyboard picks it.
-const EXS = { n: 12, step: 12, res: null, text: '', last: null };
-// a row is drawn once; while typing only its name (bold letters), its "Also Called" line and its "in this workout" tick change
-function exSearchRow(el, r, inW){
-  const x = r.x, cardio = isCardio(x.id);
-  if(!el.firstChild) el.innerHTML = `<span class="mm">${cardio ? exIcon(x, 40) : miniMap(x)}</span><span class="exn"><b class="exhl"></b><small class="exalso"></small>`
-    + `<small>${eqIcon(x.e, 13)} ${EL(x.e)}${cardio ? '' : ` · ${t('muUse', { p: (x.mu || {})[x.h] || 0 })}`}</small></span><span class="iinfo" data-exinfo="${x.id}" role="button" aria-label="${t('gInfoL')}">${svgIcon('info', 18, 2)}</span>`;
-  const nm = ExSearch.mark(exTitle(x[lang === 'el' ? 'el' : 'en']), r.ranges), al = r.via ? t('exAlso', { n: ExSearch.mark(exTitle(r.via), r.viaRanges) }) : '';
-  if(el._n !== nm){ el.querySelector('.exhl').innerHTML = nm; el._n = nm; }
-  if(el._a !== al){ const s = el.querySelector('.exalso'); s.innerHTML = al; s.hidden = !al; el._a = al; }
-  if(el._in !== inW){ const k = el.querySelector('.exin'); if(inW && !k) el.querySelector('.iinfo').insertAdjacentHTML('beforebegin', PK_IN()); else if(!inW && k) k.remove(); el._in = inW; }
-}
-function exSearchDraw(have){
-  const box = $('pkBody'), raw = $('exSearch').value.trim();
-  let wrap = box.querySelector(':scope > .exsr');
-  if(!wrap){ box.innerHTML = `<p class="exdym hide">${esc(t('didYouMean'))}</p><div class="exrows exsr"></div><p class="pknone hide"></p>`
-    + `<button class="sitem" data-new style="margin-top:10px"><span class="e">${svgIcon('plus', 20, 2)}</span><span class="t"><b></b><small></small></span></button>`; wrap = box.querySelector('.exsr'); EXS.last = null; }
-  if(raw !== EXS.text){ EXS.text = raw; EXS.n = EXS.step; EXS.res = ExSearch.query(raw, { list: EX(), lang, sessions }); }
-  const res = EXS.res, items = res.items.slice(0, EXS.n), top = items[0] && items[0].id;
-  box.querySelector('.exdym').classList.toggle('hide', !res.dym);
-  const none = box.querySelector('.pknone'); none.classList.toggle('hide', !!items.length); if(!items.length) none.textContent = t('pkNone', { q: raw });
-  const nb = box.querySelector('[data-new]'); nb.querySelector('b').textContent = t('createEx', { q: raw }); nb.querySelector('small').textContent = ML(PK.group || 'other');
-  exFlip(wrap, () => {   // where every row is now is measured first, then the rows are updated
-    const old = new Map([...wrap.children].filter(e => e.dataset.ex && !e.classList.contains('exleave')).map(e => [e.dataset.ex, e]));
-    return items.map((r, i) => { let el = old.get(r.id);
-      if(!el){ el = document.createElement('button'); el.type = 'button'; el.dataset.ex = r.id; el.style.setProperty('--eq', EQ_COL[r.x.e] || '#8b949c'); }
-      exSearchRow(el, r, have.has(r.id));
-      el.className = 'exrow' + (have.has(r.id) ? ' in' : '') + (i === 0 ? ' exbest' : ''); return el; }); });
-  if(top !== EXS.last){ const sh = $('ovExPick').querySelector('.sheet'); if(sh.scrollTop) sh.scrollTop = 0; if(box.scrollTop) box.scrollTop = 0; }   // a new best match is always in view
-  EXS.last = top;
-}
-// more rows when the list is scrolled near its end
-function exSearchMore(){
-  if(!EXS.res || EXS.n >= EXS.res.items.length || !$('exSearch').value.trim()) return;
-  const sc = [$('pkBody'), $('ovExPick').querySelector('.sheet')].find(e => e.scrollHeight > e.clientHeight + 1); if(!sc) return;
-  if(sc.scrollTop + sc.clientHeight > sc.scrollHeight - 160){ EXS.n += EXS.step; exSearchDraw(pkHave()); }
-}
-// rows glide from where they were to where they are now (FLIP: transform and opacity only); Reduce Motion: a quick fade, no sliding
-function exFlip(wrap, make){
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const kids = [...wrap.children].filter(e => !e.classList.contains('exleave')), wr = wrap.getBoundingClientRect(), before = new Map(kids.map(e => [e, e.getBoundingClientRect()]));
-  wrap.querySelectorAll(':scope > .exleave').forEach(e => e.remove());
-  const els = make(), keep = new Set(els);
-  if(els.length === kids.length && els.every((e, i) => e === kids[i])) return;   // the same rows in the same order: nothing moves
-  const leaving = kids.filter(e => !keep.has(e));
-  leaving.forEach(e => { const r = before.get(e); e.classList.add('exleave'); e.style.transition = 'none'; e.style.top = (r.top - wr.top) + 'px'; e.style.height = r.height + 'px'; });
-  els.forEach((e, i) => { if(wrap.children[i] !== e) wrap.insertBefore(e, wrap.children[i] || null); e.style.transition = 'none'; e.style.transform = ''; e.style.opacity = ''; });
-  leaving.forEach(e => wrap.appendChild(e));
-  const after = els.map(e => before.has(e) ? e.getBoundingClientRect() : null);
-  let moved = false;
-  els.forEach((e, i) => { const b = before.get(e);
-    if(!b){ e.style.opacity = '0'; if(!reduce) e.style.transform = 'translateY(8px)'; moved = true; return; }
-    const dy = b.top - after[i].top; if(!reduce && Math.abs(dy) > .5){ e.style.transform = `translateY(${dy}px)`; moved = true; } });
-  if(!moved && !leaving.length) return;
-  void wrap.offsetHeight;   // the start positions are in place; now let them go
-  const tr = reduce ? 'opacity .12s linear' : 'transform .26s cubic-bezier(.2,.8,.2,1), opacity .2s ease-out';
-  els.forEach(e => { if(e.style.transform || e.style.opacity){ e.style.transition = tr; e.style.transform = ''; e.style.opacity = ''; } });
-  leaving.forEach(e => { e.style.transition = 'opacity .14s ease-out'; e.style.opacity = '0'; setTimeout(() => e.isConnected && e.classList.contains('exleave') && e.remove(), 180); });
-}
-
 // gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); the pills sit on the right.
 // With no gym time set, tapping anywhere else on the card opens the time picker.
 // 0.7.2: the diagonal Workouts icon on the left; Start (today only) next to Skip opens today's planned workout in one tap; Resume while one is running.
@@ -1140,8 +1033,11 @@ function fmApply(){
     <text x="${lx}" y="${(ys[i] - 8).toFixed(1)}" font-size="12" fill="var(--t-muted)">${esc(ML(h.h))}</text><text x="${lx}" y="${(ys[i] + 9).toFixed(1)}" font-size="15" font-weight="700" font-style="italic" fill="${h.h === top ? 'var(--t-accent)' : 'var(--t-text)'}">${Math.round(h.v)}%</text>`).join('');
 }
 
-function openExInfo(id, addCb){
-  const x = exById(id), mus = Object.entries(x.mu).sort((a, b) => b[1] - a[1]), L_ = lang === 'el' ? 1 : 0;
+// keep (V27 picker): adding from here leaves the picker open (it shows the add itself, with Undo)
+function openExInfo(id, addCb, keep){
+  const x = exById(id);
+  if(x.custom){ exInfoCustom(x, addCb, keep); return; }
+  const mus = Object.entries(x.mu).sort((a, b) => b[1] - a[1]), L_ = lang === 'el' ? 1 : 0;
   const cues = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[id] ? [SPECIFIC[id][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
   const h = exHistory(id), bestW = h.length ? Math.max(...h.flatMap(s => s.sets.map(z => +z.w))) : null, bestV = h.length ? Math.max(...h.map(s => exVol(id, s.sets.map(z => ({ ...z, done: true }))))) : null;
   $('eiBody').innerHTML = `<div class="row" style="align-items:center;justify-content:flex-start;gap:12px"><div><h2 style="margin:0">${esc(exName(x))}</h2><small class="rmeta">${EL(x.e)} · ${ML(x.m)}</small></div><button type="button" class="pill2 formb eiform" id="eiForm" aria-label="${t('formT')}">${ICO_EYE}${t('formPill')}</button></div>
@@ -1154,8 +1050,22 @@ function openExInfo(id, addCb){
     ${errs.length ? `<h3 class="fph warn">${svgIcon('warn', 16, 2.2)}${t('mistakesT')}</h3><ul class="feed fpx">${errs.map(c => `<li><span class="xred">${svgIcon('x', 14, 2.6)}</span>${esc(c)}</li>`).join('')}</ul>` : ''}</div>`;
   const mb = $('eiMoreB'); if(mb) mb.onclick = () => { const o = $('eiMore').classList.toggle('hide'); mb.classList.toggle('open', !o); mb.setAttribute('aria-expanded', String(!o)); };
   $('eiAdd').classList.toggle('hide', !addCb);
-  $('eiAdd').onclick = () => { close('ovExInfo'); close('ovExPick'); addCb && addCb(id); };
+  $('eiAdd').onclick = () => { close('ovExInfo'); if(!keep) close('ovExPick'); addCb && addCb(id); };
   $('eiForm').onclick = () => openDemo(id);
+  open('ovExInfo');
+}
+// your own exercise: the muscles you chose (no percentages: there are none), its settings, no rank, and its QR code to share it
+function exInfoCustom(x, addCb, keep){
+  const s = cxSpec(x), lit = Object.fromEntries(Object.keys(x.mu || {}).map(h => [h, 100])), uni = isUni(x.id);
+  $('eiBody').innerHTML = `<div class="cxinfo"><h2 style="margin:0">${esc(exName(x))}</h2><small class="rmeta">${esc(exTitle(EL(x.e)))} · ${esc(t(uni ? 'cxEachSide' : 'cxBothSides'))}</small>
+    <div class="eimap">${anatomySVG({ mode: 'mu', mu: lit, muMax: 100, tint: true, front: t('front'), back: t('backSide'), idp: 'eic', max: 340 })}</div>
+    <div class="cxchips">${s.mus.map((m, i) => `<span class="cxchip" style="--pc:${exmCol(m)}"><i aria-hidden="true"></i>${esc(pkName(m))}${i ? '' : `<small>${esc(t('cxPrimary'))}</small>`}</span>`).join('')}${s.heads.map(h => `<span class="cxchip" style="--pc:${HEAD_COL[h]}"><i aria-hidden="true"></i>${esc(pkName(h))}</span>`).join('')}</div>
+    <div class="cxpol"><span class="cxpi no" aria-hidden="true">${svgIcon('x', 15, 2.6)}</span><div><b>${esc(t('cxNoRank'))}</b><p>${esc(t('cxNoRankSub'))}</p></div></div>
+    <div class="cxpol"><span class="cxpi" aria-hidden="true">${gymIco('clock', 16, 2.2)}</span><div><b>${esc(t('cxRecT'))}</b><p>${esc(t('cxRecSub'))}</p></div></div>
+    <button type="button" class="btn cxshare" id="eiShare">${gymIco('qr', 18, 2)}<span>${esc(t('cxShareQR'))}</span></button></div>`;
+  $('eiShare').onclick = () => openCxQR(x.id);
+  $('eiAdd').classList.toggle('hide', !addCb);
+  $('eiAdd').onclick = () => { close('ovExInfo'); if(!keep) close('ovExPick'); addCb && addCb(x.id); };
   open('ovExInfo');
 }
 
@@ -1423,7 +1333,7 @@ function gcExActs(W, c){
         const e = { ...old, exId: id, rest: rest30(old.rest || x.rest) }; if(isUni(id)) e.uni = true; else delete e.uni;
         if(isCardio(id)){ e.sets = 1; e.reps = '20'; }
         if(i > -1) W.list[i] = e; ch.update(card, { _e: e, title: exName(id), sub: gcExSub(e), body: gcSugg(id, e.reps) }); W.sync(ch); },
-        { group: g && !isCardio(card._e.exId) ? g[2] : null, cardio: isCardio(card._e.exId) }); } } ];
+        { muscle: g && !isCardio(card._e.exId) ? exmOf(exById(card._e.exId)) : null, cardio: isCardio(card._e.exId) }); } } ];
 }
 function gcWorkoutCards(tpl, base){
   const W = { list: tpl.exercises.slice(), all: [], tpl, done: false };

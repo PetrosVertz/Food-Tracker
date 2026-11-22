@@ -623,19 +623,28 @@
   </div>
 </div></div>
 
-<!-- ============ PICK EXERCISE ============ -->
-<!-- 0.7.9.6: solid top strip (back arrow, title, the gym robot when adding to a live workout; then the two pills), the content fills
-     the rest, the search strip sits at the bottom (wire/10 moves the back arrow into the title row) -->
+<!-- ============ PICK EXERCISE (V27, js/expick.js) ============ -->
+<!-- Title row (back arrow from wire/10, title, gym robot in a live workout, Reset Filters); Upper | All Muscles | Lower (stays while the
+     cards scroll); one progressive filter row + the chosen path; the cards; the search pill floating at the bottom over a soft fade. -->
 <div class="overlay" id="ovExPick"><div class="sheet tall pksheet">
   <div class="pktop">
-    <div class="pkbar" id="pkBar"><h2 data-t="addExercise"></h2><button class="pkbulb hide" type="button" id="pkBulb" aria-label="What next?" data-ta="nxT"></button></div>
-    <div class="pkpills">
-      <div class="mpill" id="pkRegion"><button data-v="up" data-t="upper"></button><button data-v="low" data-t="lower"></button><button data-v="cardio" data-t="wCardio"></button></div>
-      <div id="pkModeRow"><div class="seg" id="pkMode"><button data-v="map" data-t="bodyMode"></button><button data-v="list" data-t="listMode"></button></div></div>
-    </div>
+    <div class="pkbar" id="pkBar"><h2 data-t="pkTitle"></h2><div class="pkbarr"><button class="pkbulb hide" type="button" id="pkBulb" aria-label="What next?" data-ta="nxT"></button><button type="button" class="pkreset" id="pkReset" data-ta="pkReset"></button></div></div>
   </div>
-  <div id="pkBody"></div>
-  <div class="pksearch"><label class="pksbox"><span class="pksi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><input class="search" id="exSearch" type="search" data-tp="exSearchPh" autocomplete="off"></label></div>
+  <div class="pkreg"><div class="pkseg" id="pkRegion" role="group" data-ta="pkRegionL"><span class="pkind" id="pkInd" aria-hidden="true"></span><button type="button" data-r="up" data-t="pkUp"></button><button type="button" data-r="all" data-t="allMuscles"></button><button type="button" data-r="low" data-t="pkLow"></button></div></div>
+  <section class="pkfil" id="pkFil"><div class="pkstage" id="pkStage"><div class="pkstt" id="pkStt"></div><div id="pkOpts"></div><div class="pkskip" id="pkHint"></div></div>
+    <div class="pkfh"><span class="pkft" data-t="pkFilters"></span></div><div class="pkpath" id="pkPath"></div></section>
+  <div id="pkBody"><div class="pkrtop"><h2 id="pkRLabel"></h2><div class="pkmeta" id="pkMeta"></div></div><div id="pkGrid"></div>
+    <button type="button" class="pkmore hide" id="pkMore"></button>
+    <button type="button" class="pkcustom" id="pkCustom"><span class="pkplus" aria-hidden="true"></span><span class="pkcc"><strong data-t="pkCreate"></strong><small data-t="pkCreateSub"></small></span></button></div>
+  <div class="pksearch"><label class="pksbox"><span class="pksi" aria-hidden="true"></span><input id="exSearch" type="search" data-tp="pkSearchPh" data-ta="pkSearchPh" autocomplete="off" enterkeyhint="search"><button type="button" class="pkclr hide" id="pkClr" data-ta="pkClear"></button></label></div>
+  <div class="pktoast" id="pkToast" role="status" aria-live="polite"><span class="pktm"></span><button type="button" id="pkUndo" class="hide" data-t="undo"></button></div>
+</div></div>
+
+<!-- ============ CREATE CUSTOM EXERCISE (V27, js/excreate.js) ============ -->
+<div class="overlay" id="ovExCreate"><div class="sheet tall cxsheet" role="dialog" aria-modal="true" aria-labelledby="cxTitle">
+  <div class="cxtop"><button type="button" class="cxback" id="cxBack" data-ta="back"></button><div class="cxtt"><small data-t="cxLib"></small><h2 id="cxTitle" data-t="pkCreate"></h2></div><button type="button" class="cxqr" id="cxImport" data-ta="cxImportL"></button></div>
+  <div class="cxscroll" id="cxScroll"></div>
+  <div class="cxfoot"><button type="button" class="cxsave" id="cxSave" data-t="cxSave"></button><div class="cxval" id="cxVal" role="alert"></div></div>
 </div></div>
 
 <!-- ============ EXERCISE INFO ============ -->
@@ -903,6 +912,9 @@
 <script src="js/streak.js"></script>
 <script src="js/vendor/qrcode.js"></script>
 <script src="js/gym-share.js"></script>
+<script src="js/excustom.js"></script>
+<script src="js/expick.js"></script>
+<script src="js/excreate.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/rank-fx.js"></script>

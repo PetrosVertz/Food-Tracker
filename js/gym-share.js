@@ -8,7 +8,9 @@
 //   exercises      ;-separated, each  ref,sets,reps,rest,flags
 //                  ref   = built-in exercise id, or !k = the k-th own exercise listed at the end
 //                  flags = a capital letter for the superset group (A, B …) and/or u = one side at a time
-//   own exercises  ;-separated, each  name,muscle head,equipment,movement,rest
+//   own exercises  ;-separated, each  name,muscle head,equipment,movement,rest[,muscles,heads,u]
+//                  V27 adds three fields older apps simply ignore (they split on commas and read the first five):
+//                  muscles = the creator's muscles joined by . (primary first) · heads joined by . · u = log each side
 // The characters % ~ ; , inside names and reps are written as %25 %7E %3B %2C. Empty trailing fields are left out.
 const WK_V = 'GB1';
 const wkEsc = s => String(s ?? '').replace(/[%~;,]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'));
@@ -24,7 +26,8 @@ function wkPack(tpl, own){
     let fl = ''; if(e.ss){ if(!groups.includes(e.ss)) groups.push(e.ss); fl += String.fromCharCode(65 + groups.indexOf(e.ss) % 26); } if(e.uni) fl += 'u';
     return wkTrim([ref, e.sets || 3, wkEsc(e.reps), e.rest ?? '', fl]).join(',');
   });
-  const mine = ownList.map(c => wkTrim([wkEsc(c.en || c.el || ''), c.h || '', c.e || '', c.p || '', c.rest ?? '']).join(','));
+  const mine = ownList.map(c => { const v2 = Array.isArray(c.mus) && c.mus.length;
+    return wkTrim([wkEsc(c.en || c.el || ''), c.h || '', c.e || '', c.p || '', c.rest ?? '', v2 ? c.mus.join('.') : '', v2 ? (c.heads || []).join('.') : '', v2 && c.uni ? 'u' : '']).join(','); });
   return wkTrim([WK_V, wkEsc(tpl.type || ''), wkEsc(String(tpl.name || '').slice(0, 60)), ex.join(';'), mine.join(';')]).join('~');
 }
 
@@ -36,8 +39,10 @@ function wkUnpack(str){
   if(+v[1] > 1) return { newer: true };
   const [, type, name, exs = '', mine = ''] = s.split('~');
   const num = (x, lo, hi, d) => { const n = parseInt(x, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
-  const own = mine ? mine.split(';').slice(0, 40).map(o => { const [en, h, e, p, rest] = o.split(',');
-    return { en: wkUnesc(en).slice(0, 60), h: /^[a-z_]+$/.test(h || '') ? h : '', e: /^[a-z]+$/.test(e || '') ? e : '', p: /^[a-z_]+$/.test(p || '') ? p : '', rest: num(rest, 0, 600, 90) }; }) : [];
+  const own = mine ? mine.split(';').slice(0, 40).map(o => { const [en, h, e, p, rest, mus = '', heads = '', u = ''] = o.split(',');
+    const ok = z => /^[a-z_]{2,20}$/.test(z), ms = mus.split('.').filter(ok).slice(0, 14), hs = heads.split('.').filter(ok).slice(0, 20);   // names checked again on import (cxRecord)
+    return { en: wkUnesc(en).slice(0, 60), h: /^[a-z_]+$/.test(h || '') ? h : '', e: /^[a-z]+$/.test(e || '') ? e : '', p: /^[a-z_]+$/.test(p || '') ? p : '', rest: num(rest, 0, 600, 90),
+      ...(ms.length ? { mus: [...new Set(ms)], heads: [...new Set(hs)], uni: u === 'u' } : {}) }; }) : [];
   const exercises = exs ? exs.split(';').slice(0, 40).map(x => { const [ref, sets, reps, rest, fl = ''] = x.split(','), o = { sets: num(sets, 1, 10, 3), reps: wkUnesc(reps).slice(0, 12) };
     if(/^!\d+$/.test(ref || '')){ const k = +ref.slice(1); if(!own[k]) return null; o.own = k; }
     else if(/^[a-z0-9_]+$/.test(ref || '')) o.exId = ref; else return null;
@@ -64,14 +69,18 @@ const wkOwn = id => { const c = exCustom.find(x => x.id === id); return c ? norm
 function openWkQR(tp){
   if(!tp) return;
   $('wqName').textContent = tp.name; $('wqMeta').textContent = t('nEx', { n: tp.exercises.length });
-  $('wqSun').innerHTML = gymIco('sun', 18, 2); $('wqCode').innerHTML = wkQRSvg(wkPack(tp, wkOwn));
+  $('wqSun').innerHTML = gymIco('sun', 18, 2);
+  try{ $('wqCode').innerHTML = wkQRSvg(wkPack(tp, wkOwn)); }catch(e){ $('wqCode').innerHTML = `<p class="hint">${esc(t('wqTooBig'))}</p>`; }   // too much for one QR: say so, never crash
   open('ovWkQR'); Phone.keepScreenOn(true);
 }
 
 // ---------- Scan a Workout: camera (or a photo) → code → saved workout → Start / Not Now ----------
 let WKS = { on: false, loop: 0, stream: null, msg: '' };
-async function startWkScan(){
-  stopWkScan(); WKS.msg = null; open('ovWkScan'); wsStatus(t('startingCam'));
+// mode 'exercise' (the creator's QR button): the same scanner, titled for one exercise; it reads workout codes too
+async function startWkScan(mode){
+  stopWkScan(); WKS.msg = null; WKS.mode = mode === 'exercise' ? 'exercise' : 'workout';
+  const sh = $('ovWkScan').querySelector('.sheet'); sh.querySelector('h2').textContent = t(WKS.mode === 'exercise' ? 'cxScanT' : 'wsT'); sh.querySelector('.sub').textContent = t(WKS.mode === 'exercise' ? 'cxScanSub' : 'wsSub');
+  open('ovWkScan'); wsStatus(t('startingCam'));
   if(!Phone.hasCamera()) return wsStatus(t('wsCamFail'), true);
   try{
     const [det, s] = await Promise.all([Phone.qrReader().catch(e => { e.reader = true; throw e; }), Phone.camera()]);
@@ -103,6 +112,12 @@ async function wkScanPhoto(file){
 
 // true when this text was a workout (the scan stops); otherwise shows why and keeps looking
 function wkScanned(text){
+  if(/^GX\d+~/.test(String(text || '').trim())){   // V27: one custom exercise
+    const x = cxUnpack(text);
+    if(x.newer){ wsStatus(t('wsNewer'), true); return false; }
+    if(x.error){ wsStatus(t(x.error), true); return false; }
+    stopWkScan(); Phone.vibrate(60); close('ovWkScan'); setTimeout(() => cxScanned(x.spec), 250); return true;
+  }
   const d = wkUnpack(text);
   if(!d){ wsStatus(t('wsNotWk'), true); return false; }
   if(d.newer){ wsStatus(t('wsNewer'), true); return false; }
@@ -113,13 +128,18 @@ function wkScanned(text){
 
 // turn a scanned code into a saved workout (your own exercises are matched by name, or added), then offer to start it
 async function wkImport(d){
+  // V27: names in Title Case; an own exercise you already have (same name AND same muscles, equipment, sides) is reused, never doubled
+  let added = 0;
   const ownIds = d.own.map(o => {
-    const h = HEADS[o.h] ? o.h : 'chest_mid', same = exCustom.find(c => norm(c.en || '') === norm(o.en) && (c.h || '') === h);
+    const h = HEADS[o.h] ? o.h : 'chest_mid', en = cxClean(o.en) || t('wsOwnEx');
+    if(o.mus){ const r = cxAdopt(exCustom, { name: en, mus: o.mus, heads: o.heads, e: EQUIP[o.e] ? o.e : 'machine', uni: o.uni }, () => 'c_' + uid());
+      if(r){ if(r.added){ added++; const c = exCustom[exCustom.length - 1]; c.rest = o.rest; } return r.id; } }
+    const same = exCustom.find(c => !(Array.isArray(c.mus) && c.mus.length) && norm(c.en || '') === norm(en) && (c.h || '') === h);
     if(same) return same.id;
-    const x = { id: 'c_' + uid(), en: o.en || t('wsOwnEx'), el: o.en || t('wsOwnEx'), e: EQUIP[o.e] ? o.e : 'machine', p: o.p || 'press_h', mu: { [h]: 100 }, h, m: HEADS[h][2], rest: o.rest, custom: true };
-    exCustom.push(x); return x.id;
+    const x = { id: 'c_' + uid(), en, el: en, e: EQUIP[o.e] ? o.e : 'machine', p: o.p || 'press_h', mu: { [h]: 100 }, h, m: HEADS[h][2], rest: o.rest, custom: true };
+    exCustom.push(x); added++; return x.id;
   });
-  if(d.own.length) saveG('custom');
+  if(added) saveG('custom');
   const groups = {};
   const exercises = d.exercises.map(e => { const exId = e.own != null ? ownIds[e.own] : e.exId;
     return { exId, sets: e.sets, reps: e.reps, rest: e.rest ?? exById(exId).rest, ...(e.ss ? { ss: groups[e.ss] || (groups[e.ss] = uid()) } : {}), ...(e.uni ? { uni: true } : {}) }; });

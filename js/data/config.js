@@ -79,7 +79,7 @@ let _exc = null;
 // ---------- rest timer (under the set) with a boxing-bell sound ----------
 let REST = null;
 
-// ---------- exercise picker: Upper / Lower → body map or list → muscle head → big tiles ----------
+// ---------- exercise picker (V27, js/expick.js): its state; openExPick() fills it ----------
 let PK = { cb: null, region: 'up', mode: 'map', group: null, head: null };
 
 // ---------- 🚫 Taken → same muscle head, different equipment ----------
