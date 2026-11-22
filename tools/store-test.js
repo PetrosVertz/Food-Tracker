@@ -231,5 +231,31 @@ if (typeof boot({ 'ft.schema': '2' }).Store.saveMany === 'function') {
   check(back.ok && back.next.foods[0].id === 'a' && back.next.sessions[0].id === 's' && back.next.dayLog['2026-01-01'][0].id === 'e', 'backup round trip: foods, sessions and diary come back with the same ids');
 }
 
+// 8. Change #13 streak record (Store 'streak'): synced, in backups, import never duplicates or loses history
+{
+  const BSRC = fs.readFileSync(path.join(root, 'js/platform/backup.js'), 'utf8');
+  const rec = { v: 1, since: '2026-10-05', epoch: '2026-10-05', base: 4, best: 9, plan: [['', 3]], tg: { '2026-10-05': 3 } };
+  const { Store, c } = boot({ 'ft.schema': '2', 'ft.streak.v1': J(rec) });
+  check(Store.dataNames().includes('streak'), 'streak: the streak record is synced data (not device-only)');
+  const snap = Store.snapshot();
+  check(snap.streak && snap.streak.since === '2026-10-05' && snap.streak.best === 9, 'streak: the backup file carries the streak record');
+  c.normFood = f => f; vm.runInContext(BSRC + '\n;this.__B = Backup;', c); const B = c.__B;
+  const base = () => ({ foods: [], sessions: [], streak: null });
+  // a new phone (seeded today) + an older backup: the file's longer history wins, the higher best is kept
+  const fresh = { v: 1, since: '2026-11-22', epoch: '2026-11-16', base: 0, best: 0, plan: [['', 2]], tg: { '2026-11-16': 2 } };
+  const p1 = B.plan({ ...base(), streak: fresh }, JSON.parse(J(snap)));
+  check(p1.ok && p1.next.streak.since === '2026-10-05' && p1.next.streak.best === 9 && p1.changed.includes('streak'), 'streak import: the older history from the file replaces a just-seeded record');
+  // the same file again: nothing to write (no duplicate grants can come from an import)
+  const p2 = B.plan(p1.next, JSON.parse(J(snap)));
+  check(p2.ok && !p2.changed.includes('streak'), 'streak import twice: nothing changes');
+  // your own longer history is kept; only a higher personal best is taken from the file
+  const mine = { v: 1, since: '2026-01-05', epoch: '2026-01-05', base: 0, best: 5, plan: [['', 4]], tg: {} };
+  const p3 = B.plan({ ...base(), streak: mine }, JSON.parse(J(snap)));
+  check(p3.next.streak.since === '2026-01-05' && J(p3.next.streak.plan) === J(mine.plan) && p3.next.streak.best === 9, 'streak import: your older history stays, the best never goes down');
+  // a broken record in the file is ignored; an old backup without one changes nothing
+  check(!B.plan({ ...base(), streak: mine }, { foods: [], streak: { v: 1, since: 'x' } }).changed.includes('streak'), 'streak import: an invalid record in the file is skipped');
+  check(!B.plan({ ...base(), streak: mine }, { foods: [] }).changed.includes('streak'), 'streak import: an old backup without a streak record changes nothing');
+}
+
 console.log(fails ? `\n${fails} store problem(s), ${passes} ok.` : `\nAll ${passes} store checks passed.`);
 process.exit(fails ? 1 : 0);

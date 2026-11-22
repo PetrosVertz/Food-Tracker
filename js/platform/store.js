@@ -23,7 +23,8 @@ const Store = (() => {
     exCustom: ['ft.gym.custom', 'list', 1], tpls: ['ft.gym.tpl', 'list', 1], gymPlan: ['ft.gym.plan', 'map', 1], sessions: ['ft.gym.sessions', 'list', 1],
     active: ['ft.gym.active', 'one', 1], comeback: ['ft.gym.comeback', 'one', 1], combos: ['ft.combos.v1', 'list', 1],
     logPhr: ['ft.logphr.v1', 'map', 1],   // 0.7.1 Quick Log: typed phrase → food, so repeats need no AI matching
-    foodFix: ['ft.foodfix.v1', 'map', 1],   // Athlete OS step 3: Food Coach corrections you made (food words → your portion), so the AI learns your portions
+    foodFix: ['ft.foodfix.v1', 'map', 1],
+    streak: ['ft.streak.v1', 'one', 1],   // Change #13: the weekly streak's start, carried-over streak, planner-change log, locked week targets, personal best (js/streak.js)   // Athlete OS step 3: Food Coach corrections you made (food words → your portion), so the AI learns your portions
     aiKnow: ['ft.aiknow.v1', 'one', 0],   // 0.7.9 what the AI has learned from your logs (js/know.js); this device only, rebuilt daily
     drafts: ['ft.drafts.v1', 'one', 0],   // Refinements: what you typed in a window, kept 3 minutes after it closes (js/draft.js); this device only, never in backups
     athleteMem: ['ft.athletemem.v1', 'one', 0],   // Athlete OS: notes the user told a coach + the decision ledger (js/athlete/memory.js); this device only, never in backups
@@ -179,7 +180,7 @@ const Store = (() => {
   }
 
   // backup = all synced data (same flat layout as before 0.6.6, plus profile, schema and the sync table).
-  // Added (all optional, older versions ignore them): gym.active (the live workout), logPhr, foodFix, recovery (bytes of saved data that could not be read).
+  // Added (all optional, older versions ignore them): gym.active (the live workout), logPhr, foodFix, streak (Change #13), recovery (bytes of saved data that could not be read).
   function snapshot(){
     const g = n => load(n, C[n][1] === 'list' ? [] : C[n][1] === 'one' ? null : {});
     flushMeta();
@@ -190,7 +191,7 @@ const Store = (() => {
       foods: g('foods'), meals: g('meals'), supps: g('supps'), suppLog: g('suppLog'), fridge: g('fridge'), groc: g('groc'), dayLog: g('dayLog'), days: g('days'),
       targets: g('targets'), plans: g('plans'), weights: g('weights'), profile: g('profile') || {},
       gym: { custom: g('exCustom'), tpl: g('tpls') || [], plan: g('gymPlan'), sessions: g('sessions'), comeback: g('comeback'), active: g('active') },
-      combos: g('combos'), logPhr: g('logPhr'), foodFix: g('foodFix'), sync: M(), ...(Object.keys(rec).length ? { recovery: rec } : {}) };
+      combos: g('combos'), logPhr: g('logPhr'), foodFix: g('foodFix'), streak: g('streak'), sync: M(), ...(Object.keys(rec).length ? { recovery: rec } : {}) };
   }
 
   return { SCHEMA, load, save, saveMany, onChange, snapshot, upgradeBackup, backupTooNew, newId, meta: M, flush: flushMeta, problems: () => problems.slice(),

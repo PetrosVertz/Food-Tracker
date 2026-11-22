@@ -34,6 +34,7 @@ const AthleteState = (() => {
     logFix: () => typeof logFix !== 'undefined' ? logFix : undefined,
     kitchenOn: () => typeof kitchenOn !== 'undefined' ? kitchenOn : undefined,
     liveItems: () => typeof liveItems !== 'undefined' ? liveItems : undefined,
+    Streak: () => typeof Streak !== 'undefined' ? Streak : undefined,
   };
   const g = n => G[n] ? G[n]() : undefined;
   const num = v => v === '' || v === null || v === undefined || !isFinite(+v) ? null : +v;
@@ -86,7 +87,7 @@ const AthleteState = (() => {
         live: act && act.exercises ? { name: act.name || act.type || null, exercises: act.exercises.length, startedAt: act.start || null, kind: 'measured', src: 'active' } : null,
         tomorrow: tm ? { type: tm.type || 'rest', kind: tm.guessed ? 'inferred' : 'reported' } : null }; } },
 
-    training: { deps: ['sessions', 'active'], day: true, fn(){
+    training: { deps: ['sessions', 'active', 'gymPlan', 'streak'], day: true, fn(){
       const list = (g('sessions') || []).filter(s => s && s.date).slice().sort((a, b) => String(b.start || b.date).localeCompare(String(a.start || a.date)));
       const main = g('isMainSet') || (s => s.type !== 'W'), sets = s => (s.exercises || []).reduce((n, x) => n + (x.sets || []).filter(z => z.done && main(z)).length, 0);
       const last = list.slice(0, 3).map(s => ({ date: s.date, name: s.name || s.type || null, sets: sets(s), mins: num(s.mins) }));
@@ -95,6 +96,8 @@ const AthleteState = (() => {
       if(g('hitsFrom') && g('HEADS')){ const H = g('HEADS'), grp = {};
         Object.entries(g('hitsFrom')(list.filter(s => ago(s.date) <= 6), false)).forEach(([h, v]) => { const gr = H[h] && H[h][2]; if(gr && gr !== 'cardio' && gr !== 'other') grp[gr] = Math.max(grp[gr] || 0, Math.round(v)); });
         out.hardSets7 = { byGroup: grp, kind: 'calculated' }; }
+      // Change #13: the weekly streak summary from its one owner (js/streak.js): numbers only, never the history; null when unavailable
+      try{ out.streak = g('Streak') ? g('Streak').summary() : null; }catch(e){ out.streak = null; }
       return out; } },
 
     // recovery: the existing engine (gym.js recMap through its 30 s cache); hours change with time, so a short ttl

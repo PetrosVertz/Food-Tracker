@@ -269,6 +269,20 @@ const types = A => A.AthleteEvents.recent('', 500).map(e => e.type);
     c.sessions.push(session('w1', addDays(TODAY, -1))); Store.save('sessions', c.sessions);
     check(ST.get('usage').training.level === 'rare' && /workouts partial, 1 days of the last 28, last yesterday/.test(SV.context('gym', 'gym')), 'usage: a new workout updates the record at once (event-driven), rare = partial');
   }
+  // ---------------------------------------------------------------- 11. weekly streak (Change #13): a deterministic summary for the Gym Coach, no AI call, no history
+  {
+    const A = boot(), { c, Store, Supervisor: SV } = A;
+    c.tpls = []; c.ui = {}; c.planFor = () => null;
+    vm.runInContext(read('js/streak.js'), c);
+    c.gymPlan[1] = { tpl: 'gym' }; c.gymPlan[3] = { tpl: 'gym' }; c.gymPlan[5] = { tpl: 'gym' }; Store.save('gymPlan', c.gymPlan);
+    c.sessions.push(session('s1', TODAY)); Store.save('sessions', c.sessions);
+    const gym = SV.context('gym', 'gym');
+    check(/Weekly streak \(app rule:[^)]*\): 1\/\d+ this week/.test(gym) && /Never suggest training against recovery/.test(gym) && A.calls.length === 0, 'streak: the Gym Coach sees this week\'s progress and the recovery-first rule, with zero AI calls');
+    check(!/2026-\d\d-\d\d: (ok|fail|saved)/.test(gym) && gym.length < 4000, 'streak: only the summary goes to the coach, never the week-by-week history');
+    const st = A.AthleteState.get('training').streak;
+    check(st && st.kind === 'calculated' && typeof st.saversHeld === 'number', 'streak: the training slice carries the streak summary as a calculated fact');
+  }
+
   // ---------------------------------------------------------------- 8. provider: a specialist's model goes first, switching providers
   {
     const c = { console: { warn() {} }, settings: { model: 'gemini-default' }, DEFAULT_MODEL: 'gemini-x', t: k => k, Store: { load: () => null, save() {} }, fetchT: async () => { throw new Error('offline'); }, Date, Math, Promise, setTimeout, clearTimeout, JSON, Object, Array, Set, Error };

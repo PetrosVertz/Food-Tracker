@@ -1188,7 +1188,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* the streak: a small frosted pill with a flame on the bottom right of your picture (uncoloured frosted button look, change 12) */
 .pfavw{position:relative;display:block}
 .pfstpill{position:absolute;right:-8px;bottom:-4px;display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 9px 0 7px;border-radius:999px;
-  background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--t-sel);box-shadow:var(--fb-n-edge),0 0 0 2px var(--t-bg);color:var(--t-text);pointer-events:none}
+  background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),var(--t-sel);box-shadow:var(--fb-n-edge),0 0 0 2px var(--t-bg);color:var(--t-text);border:0;font:inherit;cursor:pointer}   /* Change #13: a button (opens the streak window) */
 :root[data-theme="light"] .pfstpill{background:linear-gradient(180deg,var(--fb-n-hi),transparent 55%),#ffffff}
 .pfstpill b{font-size:13px;font-weight:800;font-style:italic;font-variant-numeric:tabular-nums;line-height:1}
 /* Highest Ranked Exercises: the whole width, three big plates with the rank name under each; a tap shows the exercise in a bubble */

@@ -49,11 +49,11 @@ function resetRankPick(){ delete profile.rankPick; saveProfile(); Phone.haptic()
 
 // ---------- profileData(): everything the Profile page shows, in one place ----------
 // Gym branches fill in their slot here (streak from gym-streak, tier from gym-tiers); the page markup (renderProfile) stays as it is.
-//   streak : { n, color? }               — workouts in the current streak (0 until gym-streak)
+//   streak : Streak.view()               — the weekly workout streak (js/streak.js): total, this week, savers, challenge
 //   tierNeed: body weight or sex missing (no ranks yet)
 function profileData(){
   const me = Account.current(), today = todayKey();
-  const streak = gymStreak();                              // gym-streak (gym.js)
+  const streak = Streak.view();                            // Change #13 weekly streak (js/streak.js)
   // PRs saved with each finished workout (weight PRs carry weight × reps; volume PRs are counted too)
   const prs = sessions.flatMap(s => (s.prs || []).map(p => ({ ...p, date: s.date, start: s.start })));
   return {
@@ -127,9 +127,7 @@ function statsCtx(){
   const fe = top(ex), fm = top(mus), fw = Math.max(...wd);
   c.favEx = fe && { name: exName(fe.k), n: fe.n }; c.favMuscle = fm && GROUPS[fm.k] ? { name: GROUPS[fm.k][lang === 'el' ? 1 : 0], n: fm.n } : null;
   c.weekBest = Math.max(0, ...wk.values()); c.wdBest = fw > 0 ? wd.indexOf(fw) : null; c.wdN = fw;
-  // longest streak: workouts in a row with at most 2 days off between them
-  const ds = [...days].sort(); let run = 0, best = 0, prev = null;
-  ds.forEach(d => { const n = ses.filter(s => s.date === d).length; run = prev && (new Date(d) - new Date(prev)) / 864e5 <= 3 ? run + n : n; best = Math.max(best, run); prev = d; }); c.streakBest = best;
+  c.streakBest = typeof Streak !== 'undefined' ? Streak.view().best : 0;   // Change #13: the weekly streak's personal best (js/streak.js), not a second count
   c.climb = c.climb / (8849 * bodyW() * 9.81);   // Everest climbed carrying your own body weight (75 kg if unknown)
   const lw = Math.max(...wdPr); c.luckyN = lw; c.luckyWd = lw > 0 ? wdPr.indexOf(lw) : null;
   const ud = [...new Set(dates)].sort(); c.couch = null;
@@ -146,29 +144,61 @@ function statsCtx(){
   c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
   return c;
 }
-// today's six (Refinements #8: was five, so the grid is two even columns of three rows; STAT_N is the one number to change): pinned first, then a shuffle seeded by the date (stable all day, new tomorrow); the shuffle button bumps ui.statShuf.n
-const STAT_N = 6;
+// Change #12: six cards (two even columns of three rows; STAT_N is the one number to change): up to STAT_PIN_MAX pinned (yours, in your order, never rotated),
+// the other slots filled from a rotation that changes once every 24 hours. The rotation (ui.statRot, this phone only) is saved with its next change time,
+// so leaving the page, reloading or restarting never picks a new set early; the shuffle button is your own early pick (a new 24 hours start then).
+const STAT_N = 6, STAT_PIN_MAX = 2, STAT_ROT_MS = 864e5;
 // Refinements #8: no body weight in the Social Hub: the stat that divides by body weight is left out here, and Big Three shows its plain line
 const STAT_HUB_HIDE = new Set(['ratio']);
-function statsPick(all){
-  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).map(id => all.find(x => x.id === id)).filter(Boolean).slice(0, STAT_N);
-  const sh = ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0; let h = 2166136261; for(const ch of todayKey() + ':' + sh) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  const rnd = () => { h = (h + 0x6D2B79F5) | 0; let x = Math.imul(h ^ (h >>> 15), 1 | h); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
-  const rest = all.filter(x => !pins.includes(x)).sort((a, b) => a.id.localeCompare(b.id)); for(let i = rest.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
-  return pins.concat(rest).slice(0, Math.max(STAT_N, pins.length));
+// your pins as saved (profile.statPins, synced + in backups). Older versions allowed six: only the first two count, the saved list is not rewritten until you change it.
+const statPins = () => (Array.isArray(profile.statPins) ? profile.statPins : []).filter(id => typeof id === 'string').slice(0, STAT_PIN_MAX);
+// pure: pin / unpin one stat. → { pins, full } (full: two are pinned already; nothing changes until you choose one to replace)
+function pinToggle(pins, id, replace){
+  const p = pins.slice(0, STAT_PIN_MAX); if(p.includes(id)) return { pins: p.filter(x => x !== id), full: false };
+  if(p.length < STAT_PIN_MAX) return { pins: p.concat(id), full: false };
+  if(replace && p.includes(replace)) return { pins: p.filter(x => x !== replace).concat(id), full: false };
+  return { pins: p, full: true };
+}
+// pure: the rotation. R = saved { at, next, ids, prev } or null; pool = ids of stats with data that are not pinned; now = ms.
+// Keeps R until `next`; then picks STAT_N new ids (ones that were not in the last set first, so two days in a row never show the same set
+// when there are enough stats). A stat that loses its data, or gets pinned, is replaced from the pool without rerolling the others.
+function statRotate(R, pool, now){
+  const seeded = seed => { let h = 2166136261; for(const ch of String(seed)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+    return () => { h = (h + 0x6D2B79F5) | 0; let x = Math.imul(h ^ (h >>> 15), 1 | h); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; };
+  const mix = (list, rnd) => { const a = list.slice().sort(); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const ok = R && typeof R === 'object' && Array.isArray(R.ids) && isFinite(R.at) && isFinite(R.next);
+  // keep the current set until its time is up (a clock moved back by more than a day counts as up, so it cannot stick for weeks)
+  if(ok && now < R.next && now > R.at - STAT_ROT_MS){
+    const ids = R.ids.filter(id => pool.includes(id)); if(ids.length >= Math.min(STAT_N, pool.length)) return { R, changed: false };
+    const rnd = seeded(R.at + ':fill'), fresh = mix(pool.filter(id => !ids.includes(id)), rnd), notPrev = fresh.filter(id => !(R.prev || []).includes(id));
+    return { R: { ...R, ids: ids.concat(notPrev, fresh.filter(id => !notPrev.includes(id))).slice(0, STAT_N) }, changed: true };
+  }
+  const last = ok ? R.ids : [], rnd = seeded(now), fresh = mix(pool.filter(id => !last.includes(id)), rnd), again = mix(pool.filter(id => last.includes(id)), rnd);
+  return { R: { at: now, next: now + STAT_ROT_MS, ids: fresh.concat(again).slice(0, STAT_N), prev: last.slice(0, STAT_N) }, changed: true };
+}
+// what the grid shows: the pinned cards first, then the rotation for the free slots (never the same stat twice)
+function statsPick(all, now){
+  const pins = statPins().map(id => all.find(x => x.id === id)).filter(Boolean), pinIds = pins.map(x => x.id);
+  const r = statRotate(ui.statRot, all.filter(x => !pinIds.includes(x.id)).map(x => x.id), now == null ? Date.now() : now);
+  if(r.changed){ ui.statRot = r.R; saveUI(); }
+  return pins.concat(r.R.ids.map(id => all.find(x => x.id === id)).filter(Boolean)).slice(0, STAT_N);
 }
 const ICO_PIN = '<path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/>', ICO_SHUF = '<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.4 0 2.4-1 3.3-2.3M13.2 9.3C14 8 15 7 16.5 7H20M17.5 4L20.5 7l-3 3M17.5 14l3 3-3 3"/>';
 const pfIcon = (d, size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 function statCards(){
-  const c = statsCtx(), all = STATS.filter(x => !STAT_HUB_HIDE.has(x.id)).map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = Array.isArray(profile.statPins) ? profile.statPins : [];
+  const c = statsCtx(), all = STATS.filter(x => !STAT_HUB_HIDE.has(x.id)).map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r), pins = statPins();
   return all.length ? statsPick(all).map(x => { const on = pins.includes(x.id), r = x.r;
     return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}">${pfIcon(ICO_PIN, 16)}</button>
       <small class="pfstt">${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k === 'big3Bw' ? 'big3' : r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
 }
-function togglePin(id){
-  const pins = (Array.isArray(profile.statPins) ? profile.statPins : []).slice();
-  if(pins.includes(id)) pins.splice(pins.indexOf(id), 1); else if(pins.length >= STAT_N){ toast(t('stPinMax', { n: STAT_N })); return; } else pins.push(id);
-  if(pins.length) profile.statPins = pins; else delete profile.statPins; saveProfile(); Phone.haptic(); renderProfile();
+// a third pin: say the limit is reached and offer to replace the older pin (only on Replace; Cancel changes nothing)
+async function togglePin(id){
+  let r = pinToggle(statPins(), id);
+  if(r.full){ const old = r.pins[0]; Phone.haptic();
+    if(!(await ask(t('stPinFull', { n: STAT_PIN_MAX, a: t('stt_' + old), b: t('stt_' + id) }), t('stPinReplace')))) return;
+    r = pinToggle(statPins(), id, old); }
+  if(r.pins.length) profile.statPins = r.pins; else delete profile.statPins;
+  saveProfile(); Phone.haptic(); renderProfile();
 }
 
 // ---------- 0.7.9 Add a 1RM (Profile › Leaderboards): lift, weight, date; your entries below with Delete ----------
@@ -230,7 +260,8 @@ function renderProfile(){
   const d = profileData();
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
   // Refinements #8: the workout streak is a small frosted pill with a flame on the bottom right of your picture (its box is gone)
-  const streak = `<span class="pfstpill" aria-label="${esc(t('pfStreak'))}: ${d.streak.n}">${flameIcon(d.streak.n, 14)}<b>${d.streak.n}</b></span>`;
+  // Change #13: a tap opens the streak window; the shield(s) next to the number are the Streak Savers you hold
+  const streak = `<button type="button" class="pfstpill stk-${d.streak.state}" data-streak aria-label="${esc(streakLabel(d.streak))}">${flameIcon(d.streak.total, 14)}<b>${d.streak.total}</b>${saverMini(d.streak)}</button>`;
   const circles = `<div class="pfcircles" role="list">
       <div class="pfme ${ring}" role="listitem"><span class="pfavw"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button>${streak}</span><small>${esc(t('pfYou'))}</small></div>
       <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
@@ -247,5 +278,6 @@ function renderProfile(){
     + `<div class="pfcard pfpr pfrkfull${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div>`
     + lbHtml()
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`
+    + `<p class="pfsub">${esc(t(statPins().length >= STAT_PIN_MAX ? 'stPinsFull' : 'stPinsSub', { n: statPins().length, m: STAT_PIN_MAX }))}</p>`
     + `<div class="pfstatgrid">${statCards()}</div>`;
 }
