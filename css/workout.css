@@ -178,63 +178,258 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 /* no sideways drift and no zoom on the workout screens (every input 16px+) */
 #ovSession .sheet,#ovExPick .sheet,#ovTpl .sheet,#ovDemo .sheet,#ovSwap .sheet{overflow-x:hidden;overscroll-behavior-x:none}
 #sesBody,#pkBody,#tpList{max-width:100%;overflow-x:hidden;touch-action:pan-y}
-.tpcard input,#ovExPick input,#ovSwap input,#ovTpl input{font-size:16px!important}
+.tpcard input,#ovSwap input,#ovTpl input{font-size:16px!important}
 /* exercise search: while you search, the box moves to the top and stays there as the list scrolls */
 
 /* ======================= 0.7.4.0.5 (gym branch) ======================= */
-/* ---------- 0.7.9.6 Pick Exercise, redesigned ----------
-   One full-screen window in the window colour, three parts in a column:
-   1. a solid top strip: back arrow, title (and the gym robot when adding to a live workout) on one line, then Upper / Lower / Cardio
-      (main pill) and Body / List (secondary pill), evenly spaced;
-   2. the content, filling the rest: the body (sized to the room left, caption right under it), the list grouped by muscle, a muscle's
-      exercises, or search results;
-   3. a solid search strip pinned at the bottom, above the safe area (above the keyboard while typing: gym.js pkFit), nothing on top of it.
-   The content column is at most 640 px wide and centred on wide screens; the strips stay full width. No blur anywhere. */
-#ovExPick{--pkbg:var(--t-bg);--pkpad:max(var(--s4),calc((100% - 640px) / 2));align-items:stretch!important;top:var(--pkvt,0px)!important;bottom:auto!important;height:var(--pkvh,var(--appH,100vh))!important}
-#ovExPick.overlay>.sheet.pksheet{position:relative;display:flex;flex-direction:column;overflow:hidden;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;padding:0!important;
-  border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--pkbg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.pksheet>*{flex:0 0 auto}
-.pktop{display:flex;flex-direction:column;gap:var(--s3);padding:calc(env(safe-area-inset-top) + var(--topgap) + var(--s2)) var(--pkpad) var(--s3);background:var(--pkbg);border-bottom:1px solid var(--t-edge)}
-.pkbar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;min-height:44px;margin:0 -6px}
-.pkbar>.sback{grid-column:1;float:none;position:static;display:flex;margin:0}
-.pkbar h2{grid-column:2;margin:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pkbulb{grid-column:3;width:44px;height:44px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.pkbulb.hide{display:none} .pkbulb .robot{display:block}
-body.noai .pkbulb{opacity:.42;filter:grayscale(1)}
-.pkpills{display:flex;flex-direction:column;gap:var(--s2)} .pkpills .mpill,.pkpills .seg{margin:0} #pkModeRow.hide{display:none}
-.pksheet.pksearching .pkpills{display:none}   /* typing: the results get the room */
-#ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:var(--s3) var(--pkpad) var(--s4)}
-/* body view: the two figures as big as the room allows (width and height), centred, the caption right under them */
-#ovExPick #pkBody.pkmapmode{display:flex;flex-direction:column;overflow:hidden;padding-top:var(--s2);padding-bottom:var(--s2)}
-.pkmap{flex:1 1 auto;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2)}
-.pkmap svg{width:min(100cqw,calc((100cqh - 28px) * var(--ar)))!important;max-width:none!important;height:auto;margin:0!important;flex:0 0 auto}
-.pkmap .pkcap{margin:0;font-size:var(--fs-label);color:var(--t-muted);text-align:center}
-.pkmap path[data-g]{transition:filter .15s}
-.pkmap path.pkhit{stroke:var(--t-text);stroke-width:3;filter:brightness(1.35) saturate(1.2)}
-/* list view: muscle headings (tap = that muscle) with even rows under them */
-.pkgh{display:flex;align-items:center;gap:var(--s2);width:100%;min-height:44px;margin:var(--s3) 0 var(--s1);padding:0 2px;border:0;background:none;color:var(--t-text);font-family:inherit;text-align:left;cursor:pointer}
-.pkgh:first-child{margin-top:0}
-.pkgh b{font-size:var(--fs-title);font-weight:var(--w-bold)} .pkgh small{color:var(--t-muted);font-size:var(--fs-label)}
-.pkchev{margin-left:auto;color:var(--t-muted);display:flex;transform:scaleX(-1)}
-#ovExPick .exrows{gap:var(--s2)}
-#ovExPick .exrow{min-height:64px;padding:var(--s2) var(--s1) var(--s2) var(--s2);gap:var(--s3);border-left-width:1px!important;border-left-color:var(--t-edge)!important;background:var(--t-card)}
-#ovExPick .exrow .mm{flex:0 0 44px;width:44px;height:48px;border-radius:10px}
-#ovExPick .exrow.eqrow .mm{height:44px;background:color-mix(in srgb,var(--eq) 16%,transparent)}
-#ovExPick .exrow .exn b,#ovExPick .exrow .exn small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-#ovExPick .exrow .exn small{line-height:1.35}
-#ovExPick .exrow .exn small svg{vertical-align:-2px}
-/* already in this workout: accent edge, a light accent wash and a tick */
-#ovExPick .exrow.in{border-color:color-mix(in srgb,var(--t-accent) 60%,transparent)!important;background:color-mix(in srgb,var(--t-accent) 9%,var(--t-card))}
-.exin{flex:0 0 auto;display:flex;color:var(--t-accent-ink,var(--t-accent))}
-.pknone{margin:var(--s2) 2px var(--s1);color:var(--t-muted);font-size:var(--fs-body)}
-/* inside a muscle: its back row + name stick to the top of the list on the window colour */
-#ovExPick .pkhead{position:sticky;top:calc(-1 * var(--s3));z-index:3;margin:calc(-1 * var(--s3)) calc(-1 * var(--pkpad)) 0;padding:var(--s3) var(--pkpad) 2px;background:var(--pkbg)}
-/* the search strip */
-.pksearch{position:relative;z-index:3;padding:10px var(--pkpad) calc(10px + env(safe-area-inset-bottom));background:var(--pkbg);border-top:1px solid var(--t-edge)}
+/* ---------- Exercise Picker V27 (js/expick.js) + Create Custom Exercise (js/excreate.js) ----------
+   Geometry, type and motion follow the V27 reference (Exercise_Picker_V27 handoff). Colours: the app's theme tokens; V27's own greys where they
+   read at 4.5:1, the app's muted text tokens where V27's lighter grey would not (Light mode rule). Full screen, content centred past 640 px. */
+#ovExPick,#ovExCreate{--pk-bg:var(--t-bg);--pk-paper:var(--t-card);--pk-text:var(--t-text);--pk-muted:#aaafb4;--pk-faint:var(--t-muted);--pk-deco:#777e87;
+  --pk-line:rgba(255,255,255,.1);--pk-pill:#282b2e;--pk-sheet:#111315;--pk-active:var(--t-accent);--pk-ink:var(--t-on);--pkx:max(0px,calc((100% - 640px) / 2))}
+:root[data-theme="light"] :is(#ovExPick,#ovExCreate){--pk-muted:var(--t-muted);--pk-faint:#6b7178;--pk-deco:#93989f;--pk-line:rgba(50,55,60,.1);--pk-pill:#eceef0;--pk-sheet:#eef0f1;--pk-active:#191c20;--pk-ink:var(--t-mp-text)}
+#ovExPick{align-items:stretch!important;top:var(--pkvt,0px)!important;bottom:auto!important;height:var(--pkvh,var(--appH,100vh))!important}
+#ovExPick.overlay>.sheet.pksheet,#ovExCreate.overlay>.sheet.cxsheet{position:relative;display:flex;flex-direction:column;overflow:hidden;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--pk-bg)!important;color:var(--pk-text);-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+#ovExCreate{align-items:stretch!important}
+.pksheet>*,.cxsheet>*{flex:0 0 auto}
+#ovExPick button,#ovExCreate button{font-family:inherit}
+/* title row */
+.pktop{padding:env(safe-area-inset-top) calc(14px + var(--pkx)) 0;background:var(--pk-bg);border-bottom:1px solid var(--pk-line)}
+.pkbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:56px}
+.pkbar>.sback{grid-column:1;justify-self:start;float:none;position:static;display:flex;margin:0 0 0 -8px}
+.pkbar h2{grid-column:2;margin:0;font-size:17px!important;font-weight:800!important;letter-spacing:-.45px;line-height:20px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkbarr{grid-column:3;justify-self:end;display:flex;align-items:center;gap:2px}
+.pkbulb{width:44px;height:44px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pkbulb.hide{display:none} .pkbulb .robot{display:block} body.noai .pkbulb{opacity:.42;filter:grayscale(1)}
+.pkreset{display:grid;place-items:center;width:38px;height:42px;padding:0;border:0;border-radius:12px;background:transparent;color:var(--pk-text);cursor:pointer}
+.pkreset svg{display:block}
+/* Upper | All Muscles | Lower */
+.pkreg{position:relative;z-index:7;padding:11px calc(15px + var(--pkx)) 5px;background:var(--pk-bg)}
+.pkseg{position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:48px;padding:4px;background:var(--pk-pill);border:1px solid var(--pk-line);border-radius:999px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.pkind{position:absolute;left:4px;top:4px;bottom:4px;z-index:0;width:calc((100% - 8px) / 3);border-radius:999px;background:var(--pk-active);box-shadow:0 3px 10px #0002;transform:translateX(calc(var(--i,1) * 100%));transition:transform .3s cubic-bezier(.22,1,.36,1),background .2s;pointer-events:none;will-change:transform}
+.pkind.still{transition:background .2s}
+.pkseg>button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-width:0;padding:0 3px;border:0;border-radius:999px;background:none;color:var(--pk-muted);font-size:12px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .24s;cursor:pointer}
+.pkseg>button:active{transform:none;opacity:1}
+.pkseg>button.on{color:var(--pk-ink)}
+/* the progressive filter strip */
+.pkfil{position:relative;z-index:5;isolation:isolate;padding:6px calc(15px + var(--pkx)) 5px;background:var(--pk-bg);transition:padding .22s}
+.pkfil::after{content:"";position:absolute;z-index:2;left:0;right:0;bottom:-24px;height:27px;pointer-events:none;
+  background:linear-gradient(to bottom,var(--pk-bg) 0%,color-mix(in srgb,var(--pk-bg) 62%,transparent) 38%,color-mix(in srgb,var(--pk-bg) 22%,transparent) 75%,transparent 100%)}
+.pkstage{max-height:116px;opacity:1;transform:translateY(0);overflow:hidden;transition:max-height .24s ease,opacity .2s ease,transform .25s,margin .25s}
+.pkfil.compact .pkstage{max-height:0;opacity:0;transform:translateY(-8px);pointer-events:none;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 44%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 44%,transparent 100%)}
+.pkstt{display:flex;align-items:center;justify-content:space-between;gap:7px;min-height:22px;margin:3px 0 7px}
+.pkstt.hide{display:none}
+.pkstt strong{font-size:12px;font-weight:850;letter-spacing:-.1px;color:var(--pk-text)}
+.pkgo{display:inline-flex;align-items:center;gap:2px;padding:5px 2px;border:0;background:none;color:var(--pk-muted);font-size:10px;font-weight:800;cursor:pointer}
+.pkreopen{display:flex;align-items:center;justify-content:center;gap:11px;width:max-content;min-width:148px;margin:3px auto 5px;padding:11px 18px;border:0;border-radius:999px;background:var(--pk-pill);color:var(--pk-text);font-size:12px;font-weight:800;line-height:15px;cursor:pointer;transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.pkreopen svg{opacity:.65;flex:none}
+.pkrow{display:flex;align-items:center;gap:5px;min-width:0}
+.pkpback{flex:0 0 29px;display:grid;place-items:center;width:29px;height:36px;margin-bottom:6px;padding:0;border:0;border-radius:0;background:transparent;color:var(--pk-text);cursor:pointer}
+.pkpback svg{display:block}
+.pkrail{flex:1;display:flex;align-items:center;justify-content:flex-start;gap:7px;min-width:0;padding-bottom:6px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;
+  -webkit-mask-image:linear-gradient(to right,#000 97%,transparent);mask-image:linear-gradient(to right,#000 97%,transparent)}
+.pkrail::-webkit-scrollbar,.pkpath::-webkit-scrollbar,#pkBody::-webkit-scrollbar,.cxscroll::-webkit-scrollbar,.cxrail::-webkit-scrollbar{display:none}
+.pkrail>.pkpill:first-child,.cxrail>.cxpill:first-child{margin-inline-start:auto}
+.pkrail>.pkpill:last-child,.cxrail>.cxpill:last-child{margin-inline-end:auto}
+#ovExPick .pkpill{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;padding:11px 13px;border:1px solid transparent;border-radius:999px;background:var(--pk-pill);color:var(--pk-text);
+  font-size:12px;font-weight:790;line-height:1;white-space:nowrap;scroll-snap-align:start;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s,transform .2s}
+#ovExPick .pkpill:active{transform:scale(.96);opacity:1}
+#ovExPick .pkpill.all{background:color-mix(in srgb,var(--pk-text) 6%,var(--pk-pill));font-weight:820}
+#ovExPick .pkpill.sel{background:var(--pk-active);color:var(--pk-ink);box-shadow:0 2px 7px #0002}
+#ovExPick .pkpill.head:not(.sel){background:color-mix(in srgb,var(--dc) 11%,var(--pk-pill));border-color:color-mix(in srgb,var(--dc) 20%,transparent)}
+#ovExPick .pkpill.head.sel:not(.all),#ovExPick .pkpill.eq.sel:not(.all){background:var(--pc);color:var(--sink)}
+#ovExPick .pkpill.eq.sel svg{stroke:currentColor!important;color:currentColor!important}
+.pkpl{display:inline-block;line-height:1.05;white-space:nowrap}
+.pkdot{display:block;flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--dc);box-shadow:0 0 0 2px color-mix(in srgb,var(--dc) 17%,transparent);transition:box-shadow .18s,background .18s}
+#ovExPick .pkpill.mus.sel .pkdot,#ovExPick .pkpill.head.sel .pkdot{box-shadow:0 0 0 1.5px var(--sink),0 0 0 3px color-mix(in srgb,var(--sink) 24%,transparent)}
+.pkpi{display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:16px} .pkpi svg{display:block;width:16px;height:16px;overflow:visible}
+.pkskip{max-height:0;margin:0;padding:0;overflow:hidden;opacity:0;transform:translateY(-4px);font-size:10px;color:var(--pk-muted);transition:max-height .22s cubic-bezier(.2,.8,.2,1),opacity .16s,transform .2s,padding .2s}
+.pkskip.on{max-height:24px;opacity:1;padding:5px 0 0;transform:translateY(0)}
+.pkfh{display:flex;align-items:center;justify-content:center;padding:7px 0 0;text-align:center}
+.pkft{padding:1px 0;font-size:10px;line-height:12px;font-weight:850;letter-spacing:1.1px;color:var(--pk-muted)}
+.pkpath{display:flex;align-items:center;justify-content:flex-start;min-height:24px;padding:0 0 4px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-inline:contain}
+.pkpath>:first-child{margin-inline-start:auto} .pkpath>:last-child{margin-inline-end:auto}
+.pkcrumb{display:inline-block;flex:none;max-width:48%;padding:4px 2px 3px;border:0;border-radius:4px;background:none;font-size:12px;font-weight:850;letter-spacing:-.2px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.pkdotsep{flex:none;padding:0 5px;font-size:12px;color:var(--pk-deco)}
+.pkfold{position:absolute;inset:0;z-index:15;pointer-events:none;overflow:hidden}
+.pkrow.folding{visibility:hidden}
+.pkstage.entering .pkrow{animation:pkPillsIn .24s cubic-bezier(.2,.85,.2,1) both}
+.pkstage.entering .pkstt{animation:pkTitleIn .2s cubic-bezier(.2,.8,.2,1) both}
+.pkstage.entering .pkskip{animation:pkTitleIn .21s .02s ease-out both}
+.pkstage.revealing .pkrow{transform-origin:center center;animation:pkReveal .36s cubic-bezier(.2,.8,.2,1) both}
+.pkstage.revealing .pkstt{animation:pkTitleIn .27s .07s ease-out both}
+.pkfil.updated .pkpath{animation:pkPathIn .34s ease-out both}
+@keyframes pkPillsIn{0%{opacity:0;transform:translateY(-10px) scale(.92);clip-path:inset(0 48% 0 48% round 99px)}65%{opacity:1;transform:translateY(1px) scale(1.012);clip-path:inset(0 0 0 0 round 99px)}100%{opacity:1;transform:translateY(0) scale(1);clip-path:inset(0 0 0 0 round 0)}}
+@keyframes pkReveal{0%{clip-path:inset(0 45% 0 45% round 40px);transform:scaleX(.86);opacity:.35}70%{clip-path:inset(0 0 0 0 round 24px);transform:scaleX(1.012);opacity:1}100%{clip-path:inset(0 0 0 0 round 0);transform:scaleX(1);opacity:1}}
+@keyframes pkTitleIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pkPathIn{from{opacity:.25;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+/* the cards */
+#ovExPick #pkBody{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px calc(13px + var(--pkx)) 112px}
+.pkrtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,max-content);align-items:center;column-gap:8px;margin:0 2px 11px}
+#ovExPick .pkrtop h2{min-width:0;margin:0;font-size:17px!important;font-weight:850!important;letter-spacing:-.4px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkmeta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0;max-width:100%;font-size:10px;line-height:1.2;color:var(--pk-muted);text-align:right;white-space:nowrap}
+.pkmeta b{display:block;font-size:11px;font-weight:750;line-height:1.25;color:var(--pk-text)}
+.pkmeta span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr));gap:10px}
+#pkGrid.grouped{display:flex;flex-direction:column;gap:19px}
+.pksech{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 1px 9px}
+.pksech strong{font-size:13px;font-weight:850;letter-spacing:-.2px;color:var(--sc)} .pksech span{font-size:10px;color:var(--pk-muted)}
+.pkcard{position:relative;min-width:0;height:202px;display:flex;flex-direction:column;overflow:hidden;background:var(--pk-paper);border:1px solid var(--pk-line);border-radius:16px;color:var(--pk-text);text-align:left;cursor:pointer;
+  box-shadow:0 1px 2px #00000006;transition:transform .14s,box-shadow .18s,border-color .16s;animation:pkCardIn .24s backwards;animation-delay:calc(var(--i,0) * 18ms);-webkit-tap-highlight-color:transparent;outline:none}
+.pkcard:active{transform:scale(.972)}
+.pkcard:focus-visible{box-shadow:0 0 0 2px var(--t-accent)}
+.pkcard.added{border-color:var(--t-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--t-accent) 19%,transparent)}
+@keyframes pkCardIn{from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pkctop{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:5px;padding:9px 10px 0;flex:0 0 auto}
+.pkeq{display:flex;align-items:center;gap:4px;min-width:0;padding:4px 0;color:var(--pk-muted);font-size:10px;font-weight:800;line-height:1;white-space:nowrap}
+.pkeq span{overflow:hidden;text-overflow:ellipsis} .pkeq svg{flex:none;width:14px;height:14px}
+.pkinfo,.pkpuz{flex:0 0 28px;display:grid;place-items:center;width:28px;height:28px;margin:-3px -4px -3px 0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--pk-muted);z-index:2}
+.pkinfo{cursor:pointer} .pkpuz{cursor:default;user-select:none;-webkit-user-select:none}
+.pkinfo svg,.pkpuz svg{display:block;width:18px;height:18px}
+.pkart{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px 11px 0}
+.pkart svg{display:block;width:104px;height:116px;max-width:94%;opacity:.93;filter:drop-shadow(0 4px 5px #00000010)}
+.pkart svg.exicon{width:70px;height:70px}
+.pkcbot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:71px;padding:8px 9px 12px;text-align:center;background:linear-gradient(180deg,transparent 0,var(--pk-paper) 20%)}
+.pkname{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-align:center;font-size:14px;font-style:italic;font-weight:820;line-height:1.15;letter-spacing:-.25px;color:var(--pk-text)}
+.pkuse{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;line-height:1.2;color:var(--pk-faint)}
+.pkin{position:absolute;right:7px;bottom:7px;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--t-accent);color:var(--t-on);box-shadow:0 0 0 2px var(--pk-paper)}
+.pkin svg{display:block;width:12px;height:12px}
+.pkempty{padding:33px 10px;text-align:center;color:var(--pk-muted);font-size:13px} .pkempty b{display:block;margin-bottom:7px;color:var(--pk-text)}
+.pkmore{display:block;width:100%;margin:14px 0 4px;padding:12px;border:1px solid var(--pk-line);border-radius:12px;background:var(--pk-paper);color:var(--pk-text);font-size:11px;font-weight:800;cursor:pointer}
+.pkmore.hide{display:none}
+.pkcustom{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:14px 0 8px;padding:17px 12px;border:2px dotted var(--pk-deco);border-radius:15px;background:transparent;color:var(--pk-text);text-align:center;cursor:pointer;transition:border-color .18s,background .18s,transform .15s}
+.pkcustom:focus-visible{border-color:var(--t-accent);background:color-mix(in srgb,var(--t-accent) 5%,transparent);outline:none}
+.pkcustom:active{transform:scale(.987)}
+.pkplus{flex:none;display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:var(--pk-pill);color:var(--pk-text)}
+.pkcc{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.pkcc strong{font-size:12px;font-weight:850;line-height:15px} .pkcc small{font-size:10px;font-weight:600;line-height:12px;color:var(--pk-muted);text-align:left}
+/* the search pill floating over a soft fade */
+#ovExPick .pksearch{position:absolute;left:0;right:0;bottom:0;z-index:10;padding:29px calc(13px + var(--pkx)) calc(18px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--pk-bg) 40%,var(--pk-bg) 100%);pointer-events:none;border:0}
 #ovExPick.kb .pksearch{padding-bottom:10px}
-.pksbox{position:relative;display:block}
-.pksbox .pksi{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--t-muted);display:flex;pointer-events:none}
-.pksbox input{width:100%;height:44px;margin:0!important;padding-left:40px!important;border-radius:999px!important;background:var(--t-card)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.pksbox{pointer-events:auto;position:relative;display:flex;margin:0!important;align-items:center;gap:8px;height:48px;padding:0 14px;border:1px solid var(--pk-line);border-radius:999px;background:var(--pk-paper);box-shadow:0 3px 14px #0000000e;transition:border-color .2s,box-shadow .2s}
+.pksbox:focus-within{border-color:var(--t-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--t-accent) 70%,transparent),0 7px 20px #00000014}
+.pksi{display:flex;flex:none;color:var(--pk-text)} .pksi svg{display:block}
+/* the box reads at 13 px like V27 while the phone sees 16 px (no zoom on focus) */
+#ovExPick #exSearch{flex:1 1 0;min-width:0;width:auto;height:22px;margin:0!important;padding:0 2px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;outline:0;color:var(--pk-text);
+  font-size:16px!important;transform:scale(.8125);transform-origin:0 50%;margin-right:-23.1%!important;-webkit-appearance:none;appearance:none}
+#exSearch::placeholder{color:var(--pk-faint)} #exSearch::-webkit-search-cancel-button{display:none}
+.pkclr{flex:none;display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:var(--pk-pill);color:var(--pk-muted);cursor:pointer}
+.pkclr.hide{display:none}
+/* added · Undo */
+.pktoast{position:absolute;z-index:20;left:calc(14px + var(--pkx));right:calc(14px + var(--pkx));bottom:calc(78px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:13px;
+  background:#1c2021;color:#fff;font-size:12px;line-height:15px;box-shadow:0 7px 25px #0004;transform:translateY(18px);opacity:0;pointer-events:none;transition:transform .2s,opacity .2s}
+#ovExPick.kb .pktoast{bottom:70px}
+.pktoast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.pktm{display:flex;align-items:center;gap:6px;flex:1;min-width:0} .pktm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .pktm svg{flex:none}
+.pktoast button{flex:none;padding:1px 6px;border:0;background:none;color:var(--t-mp-text);font-size:12px;font-weight:850;cursor:pointer} .pktoast button.hide{display:none}
+@media (max-width:480px){.pkreg{padding:9px calc(14px + var(--pkx)) 4px}}
+@media (max-width:360px){#ovExPick .pkrtop h2{font-size:15px!important}.pkmeta{font-size:9px}.pkmeta b{font-size:10.5px}}
+@media (max-width:350px){.pkgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px}.pkcard{height:194px}.pkname{font-size:13.5px}.pkuse{font-size:10.5px}}
+
+/* ---------- Create Custom Exercise ---------- */
+.cxtop{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:calc(12px + env(safe-area-inset-top)) calc(15px + var(--pkx)) 12px;background:var(--pk-bg);border-bottom:1px solid var(--pk-line)}
+.cxback,.cxqr{display:grid;place-items:center;flex:0 0 37px;width:37px;height:38px;padding:0;border:0;border-radius:11px;background:transparent;color:var(--pk-text);cursor:pointer}
+.cxtop>.sback{position:static!important;float:none!important;margin:0!important;transform:none!important}
+.cxback svg{width:26px;height:26px} .cxqr svg{width:22px;height:22px}
+.cxtt{flex:1;min-width:0}
+.cxtt small{display:block;font-size:9px;font-weight:900;letter-spacing:1.15px;color:var(--pk-muted);text-transform:uppercase}
+#ovExCreate .cxtt h2{margin:2px 0 0;font-size:17px!important;font-weight:700!important;letter-spacing:-.6px;line-height:1.16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxscroll{flex:1 1 auto!important;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:0 calc(16px + var(--pkx)) 22px}
+.cxsec{padding:15px 0 4px;border-bottom:1px solid var(--pk-line)} .cxsec:last-of-type{border-bottom:0} .cxsec.cxmus{padding-top:13px}
+.cxsh{display:flex;align-items:baseline;justify-content:space-between;gap:9px;margin-bottom:7px}
+.cxsh strong{font-size:12px;font-weight:900;letter-spacing:-.15px} .cxsh span{font-size:10px;font-weight:550;color:var(--pk-muted);text-align:right}
+/* the name box: V27's 13 px look, 16 px for the phone (no zoom on focus) */
+.cxinw{display:block;margin:0!important;overflow:hidden;padding:12px;border:1px solid var(--pk-line);border-radius:10px;background:var(--pk-sheet);transition:border-color .2s,box-shadow .2s}
+.cxinw:focus-within{border-color:var(--t-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--t-accent) 15%,transparent)}
+#ovExCreate .cxin{display:block;width:123.08%;height:16px;margin:0;padding:0;border:0;border-radius:0;background:none;color:var(--pk-text);font-size:16px!important;line-height:16px;outline:none;box-shadow:none;transform:scale(.8125);transform-origin:0 50%}
+#ovExCreate .cxin::placeholder{color:var(--pk-faint)}
+.cxmap{position:relative;isolation:isolate;overflow:hidden;padding:0;background:var(--pk-paper);border:1px solid var(--pk-line);border-radius:15px}
+.cxvp{position:relative;height:302px;overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.cxvp.zoomed{touch-action:none} .cxvp.panning{cursor:grabbing}
+.cxzl{display:flex;align-items:center;justify-content:center;width:100%;height:100%;transform-origin:center center;will-change:transform}
+.cxzl svg{display:block;width:100%!important;max-width:290px!important;height:auto;max-height:295px;margin:0!important;transform:translateY(-9px);overflow:visible}
+.cxmap .gbm-base{fill:#3d454b;stroke:#3d454b} .cxmap .gbm-edge{stroke:#5b656c;stroke-width:1.8} .cxmap .gbm-off{fill:#9ca3a8}
+.cxmap .cxm{fill:#c2c8cd;stroke:#333a3e;stroke-width:.48;stroke-linejoin:round;cursor:pointer;transition:fill .16s ease,filter .16s ease}
+.cxmap .cxm:focus-visible{outline:none;stroke:#f3f7f9;stroke-width:1.1}
+.cxmap .cxm.sel{fill:var(--cmc);stroke:#e4e9eb;stroke-width:.68;filter:drop-shadow(0 0 2px var(--cmc))}
+.cxmap .cxm.pri{stroke:#fff;stroke-width:1.55}
+.cxzb{position:absolute;left:10px;top:10px;padding:5px 8px;border-radius:99px;background:color-mix(in srgb,var(--pk-paper) 91%,transparent);color:var(--pk-muted);font-size:10px;font-weight:900;pointer-events:none}
+.cxzc{position:absolute;z-index:2;right:8px;top:8px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.cxzc button{display:grid;place-items:center;width:31px;height:31px;padding:0;border:1px solid var(--pk-line);border-radius:9px;background:color-mix(in srgb,var(--pk-paper) 92%,transparent);color:var(--pk-text);box-shadow:0 1px 3px #0001;cursor:pointer}
+.cxzc .cxzr{width:auto;min-width:37px;padding:0 5px;font-size:10px;font-weight:900}   /* grows for longer words (Greek) */
+.cxml{position:absolute;left:9px;right:9px;bottom:7px;display:flex;justify-content:space-around;color:var(--pk-muted);font-size:10px;font-weight:800;opacity:.8;pointer-events:none}
+.cxmh,.cxgh,.cxnote{overflow:hidden;transition:opacity .22s ease,max-height .26s cubic-bezier(.2,.85,.2,1),margin .24s ease,transform .24s ease}
+.cxmh{max-height:36px;margin:7px 2px 10px;font-size:12px;font-weight:600;line-height:18px;color:var(--pk-muted);opacity:1;transform:translateY(0)}
+.cxmh.off{max-height:0;margin-top:0;margin-bottom:0;opacity:0;transform:translateY(-5px);pointer-events:none}
+.cxflow{position:relative;isolation:isolate;overflow:hidden;min-height:116px;margin:7px 0 11px;padding:11px 10px 9px;background:var(--pk-paper);border:1px solid var(--pk-line);border-radius:15px}
+.cxflow:has(.cxstat .cxdone){padding-bottom:8px}
+.cxfh{display:flex;align-items:center;justify-content:space-between;gap:9px;min-height:19px;margin-bottom:9px} .cxfh strong{font-size:11px;font-weight:900;letter-spacing:-.1px}
+.cxrow{display:flex;align-items:center;gap:5px;min-width:0}
+.cxfback{flex:0 0 29px;display:grid;place-items:center;width:29px;height:36px;padding:0;border:0;background:transparent;color:var(--pk-text);cursor:pointer} .cxfback svg{display:block;width:24px;height:24px}
+.cxrail{flex:1;display:flex;justify-content:flex-start;gap:6px;min-width:0;padding:3px 0 6px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-inline:contain}
+#ovExCreate .cxpill{flex:none;display:inline-flex;align-items:center;gap:6px;padding:11px 12px;border:1px solid var(--pk-line);border-radius:999px;background:var(--pk-pill);color:var(--pk-text);font-size:11px;font-weight:850;line-height:13px;white-space:nowrap;touch-action:pan-x;cursor:pointer;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:background-color .26s ease,border-color .26s ease,box-shadow .26s ease,transform .26s cubic-bezier(.2,.85,.22,1)}
+#ovExCreate .cxpill:active{transform:scale(.985);opacity:1}
+#ovExCreate .cxpill.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 18%,var(--pk-paper));box-shadow:inset 0 0 0 .5px var(--pc)}
+.cxpill .dot,.cxch .dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--pc)} .cxpill svg{flex:none;width:16px;height:16px}
+.cxgh{max-height:22px;margin:5px 3px 0;font-size:12px;font-weight:650;letter-spacing:.03px;line-height:18px;color:var(--pk-muted);opacity:1;animation:cxHelpIn .24s cubic-bezier(.2,.8,.2,1) both}
+.cxgh.off{max-height:0;margin-top:0;opacity:0;transform:translateY(-5px);animation:cxHelpOut .2s ease-out both;pointer-events:none}
+.cxpath{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 4px}
+.cxpath button{padding:3px 1px;border:0;background:none;font-size:10px;font-weight:800;cursor:pointer} .cxpd{padding:0 3px;font-size:10px;color:var(--pk-deco)}
+.cxstat{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 1px;padding:7px 1px 2px;border-top:1px solid var(--pk-line);color:var(--pk-muted);font-size:10px;animation:cxHelpIn .22s both}
+.cxstat span{flex:1 1 auto;min-width:0;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxstat button:not(.cxdone){flex:0 0 auto;padding:5px 2px;border:0;background:transparent;color:var(--pk-text);font-size:10px;font-weight:780;white-space:nowrap;text-decoration:underline;text-decoration-color:var(--pk-line);text-underline-offset:3px;cursor:pointer}
+.cxstat:has(.cxdone){justify-content:flex-end;flex-wrap:nowrap;gap:7px;min-height:33px;margin:5px 0 0;padding:3px 0 0;border:0}
+.cxdone{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:68px;height:33px;margin-left:3px;padding:0 13px;border:0;border-radius:999px;background:var(--pk-active);color:var(--pk-ink);font-size:11px;font-weight:900;line-height:1;box-shadow:0 2px 7px #00000018;cursor:pointer;animation:cxDoneIn .2s cubic-bezier(.2,.8,.2,1) both}
+.cxprog{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;flex:none;white-space:nowrap}
+.cxpc{font-size:10px;font-weight:800;color:var(--pk-muted)} .cxps{display:inline-flex;align-items:center;gap:4px}
+.cxps i{display:block;width:5px;height:5px;border-radius:99px;background:var(--pk-line)} .cxps i.done{background:color-mix(in srgb,var(--t-accent) 60%,var(--pk-deco))} .cxps i.cur{width:13px;background:var(--t-accent)}
+.cxedit{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;padding:3px 0 4px}
+.cxep{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:8px 7px;border:1px solid var(--pk-line);border-radius:999px;background:var(--pk-pill);color:var(--pk-text);font-size:9px;font-weight:850;white-space:nowrap;cursor:pointer;transition:border-color .2s,background .2s,transform .2s}
+.cxep .dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ec)} .cxep svg{flex:none;width:13px;height:13px} .cxep:disabled{opacity:.45;cursor:not-allowed}
+.cxchosen{display:flex;flex-wrap:wrap;gap:7px;min-height:18px;margin:10px 0 4px}
+.cxempty{padding:4px 0;font-size:10px;color:var(--pk-faint)}
+.cxch{display:inline-flex;align-items:center;min-height:37px;padding:3px 5px 3px 10px;border:1px solid var(--pc);border-radius:999px;background:color-mix(in srgb,var(--pc) 13%,var(--pk-paper))}
+.cxch.pri{box-shadow:inset 0 0 0 1px var(--pc)}
+.cxchm{display:inline-flex;align-items:center;gap:6px;min-height:29px;padding:0 5px 0 0;border:0;background:transparent;color:var(--pk-text);font-size:10px;font-weight:850;cursor:pointer}
+.cxpt{margin-left:1px;font-size:8px;font-weight:900;letter-spacing:.1px;color:color-mix(in srgb,var(--pc) 55%,var(--pk-text))} .cxpt.sec{color:var(--pk-faint);font-weight:750}
+.cxrm{display:grid;place-items:center;min-width:25px;height:25px;padding:0 4px;border:0;border-radius:50%;background:color-mix(in srgb,var(--pc) 13%,var(--pk-paper));color:var(--pk-muted);cursor:pointer}
+.cxtog{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 13px;border:1px solid var(--pk-line);border-radius:13px;background:var(--pk-paper);color:var(--pk-text);text-align:left;cursor:pointer}
+.cxtog strong{display:block;font-size:12px;font-weight:700} .cxtog small{display:block;margin-top:3px;font-size:10px;color:var(--pk-muted)}
+.cxsw{flex:0 0 41px;height:24px;padding:2px;border:1px solid var(--pk-line);border-radius:999px;background:var(--pk-pill);transition:background .2s}
+.cxsw::after{content:'';display:block;width:18px;height:18px;border-radius:50%;background:var(--pk-deco);transition:transform .2s,background .2s}
+.cxtog[aria-checked="true"] .cxsw{background:var(--t-accent)} .cxtog[aria-checked="true"] .cxsw::after{transform:translateX(17px);background:#151b0e}
+.cxpol{display:flex;align-items:flex-start;gap:10px;margin:7px 0;padding:10px 11px;border:1px solid var(--pk-line);border-radius:13px;background:var(--pk-paper)}
+.cxpi{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:9px;background:var(--pk-pill);color:var(--t-accent-ink,var(--t-accent))} .cxpi.no{color:var(--t-danger)}
+.cxpol b{display:block;font-size:11px;font-weight:850} .cxpol p{margin:4px 0 0;font-size:10px;line-height:1.38;color:var(--pk-muted)}
+.cxnote{max-height:0;margin:0;opacity:0;transform:translateY(-5px);font-size:12px;line-height:1.5;color:var(--pk-muted);pointer-events:none}
+.cxnote.on{max-height:40px;margin:12px 0 6px;opacity:1;transform:translateY(0);pointer-events:auto}
+.cxfoot{padding:11px calc(16px + var(--pkx)) max(14px,env(safe-area-inset-bottom));background:var(--pk-bg);border-top:1px solid var(--pk-line)}
+.cxsave{width:100%;padding:14px;border:0;border-radius:13px;background:var(--pk-active);color:var(--pk-ink);font-size:13px;font-weight:900;cursor:pointer}
+.cxval{min-height:13px;margin:5px 2px 0;font-size:10px;line-height:13px;color:var(--t-danger)}
+.cxfold{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:visible;contain:layout style}
+.cxflow.folding .cxrail{visibility:hidden} .cxflow.moving{pointer-events:none}
+.cxflow.in .cxfh{animation:cxHeadIn .2s cubic-bezier(.2,.8,.2,1) both}
+.cxflow.in .cxrail>.cxpill,.cxflow.in .cxedit>.cxep{animation:cxPillIn .25s cubic-bezier(.18,.9,.2,1) both;animation-delay:calc(var(--pi,0) * 14ms)}
+.cxflow.in .cxgh,.cxflow.in .cxpath{animation:cxHeadIn .24s .025s ease-out both}
+@keyframes cxHeadIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cxPillIn{0%{opacity:0;transform:translate3d(0,6px,0) scale(.965)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes cxHelpIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cxHelpOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-5px)}}
+@keyframes cxDoneIn{from{opacity:0;transform:translate3d(0,8px,0) scale(.94)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+/* your own exercise in Exercise Details */
+.cxinfo .eimap{margin:12px 0 4px}
+.cxchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.cxchip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:99px;border:1px solid var(--pc);background:color-mix(in srgb,var(--pc) 13%,var(--t-card));font-size:12px;font-weight:700}
+.cxchip i{width:8px;height:8px;border-radius:50%;background:var(--pc)} .cxchip small{font-size:10px;color:var(--t-muted);font-weight:800}
+.cxinfo .cxpol{background:var(--t-card);border-color:var(--t-line)} .cxinfo .cxpi{background:var(--t-card2)}
+.cxinfo .cxpol b{font-size:13px} .cxinfo .cxpol p{font-size:12px;color:var(--t-muted)}
+.cxshare{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px}
+@media (prefers-reduced-motion:reduce){
+  .pkind,.pkstage,.pkskip,.pkreopen,.pkpill,.pkcard,.pkdot,.pktoast,.cxmh,.cxgh,.cxnote,.cxpill,.cxep,.cxsw,.cxsw::after,.cxm{transition:none!important}
+  .pkcard,.pkstage .pkrow,.pkstage .pkstt,.pkstage .pkskip,.pkfil .pkpath,.cxflow *,.cxgh,.cxstat,.cxdone{animation:none!important}
+}
 /* confetti: plain dots, squares and bars in theme colours */
 .burst span.cf{width:9px;height:9px;border-radius:50%;font-size:0}
 .burst span.cf1{border-radius:2px;width:8px;height:8px}
@@ -587,14 +782,6 @@ body.inses .coachbub{display:none!important}
 #ovExPick.pklive .pktop{touch-action:pan-x}
 #ovExPick.pklive.pkattop #pkBody{touch-action:pan-x pan-down}
 
-/* Refinements change 16: exercise search results, one ranked list (js/exsearch.js, exSearchDraw in gym.js). Only the list; the picker menu is unchanged */
-#ovExPick .exsr{position:relative}
-#ovExPick .exsr>.exrow{will-change:transform}
-#ovExPick .exsr>.exleave{position:absolute;left:0;right:0;margin:0;pointer-events:none}
-#ovExPick .exsr .exrow .exn b.exhl{font-weight:var(--w-reg)}                 /* the name in regular weight … */
-#ovExPick .exsr .exrow .exn .exm{font-style:normal;font-weight:var(--w-bold)} /* … the letters that matched in bold */
-#ovExPick .exsr .exrow.exbest{background:color-mix(in srgb,var(--t-accent) 9%,var(--t-card));border-color:color-mix(in srgb,var(--t-accent) 38%,var(--t-edge))!important}
-#ovExPick .exdym{margin:0 0 var(--s2) 2px;font-size:var(--fs-label);color:var(--t-muted)}
 
 /* ---------- Refinements #8 change 23: the Rank Up screen before Workout Done (the same window, full screen) ----------
    Solid like Workout Done; the plate and its motion are the ones above; Next fades in once the plate has landed (.rfxready) */
