@@ -88,6 +88,21 @@ function seed(sex, withHistory){
   // 5. Gym hub mini map uses the new figure
   p = await open({ sex: 'f', hash: 'gym' }); const mini = await p.evaluate(() => !!document.querySelector('#gMiniRec svg.ra-svg'));
   ok(mini, 'Gym hub recovery mini map uses the RECOVERY+ figure'); await p.close();
+  // one snapshot for everyone: the Recovery page, Athlete OS and Gym Coach read the same RECOVERY+ version; a finished workout changes it for all three
+  { const q = await open({ sex: 'm' });
+    const look = () => q.evaluate(() => { const s = RecoveryPlus.snapshot(), st = AthleteState.get('recovery'), pk = GymIntel.brief('plan', 'gym', 'am I recovered enough to train chest?').text;
+      return { id: s.snapshotId, ver: s.version, until: s.validUntil, at: s.at, st: st.snapshotId, coach: (pk.match(/RECOVERY\+ (r1-[a-z0-9]+)/) || [])[1] || null, chest: s.groups.chest.state, tiles: [...document.querySelectorAll('#gRecV .rectile')].map(e => e.dataset.rg) }; });
+    const a = await look();
+    ok(a.ver === 'recovery.v1' && a.id && a.st === a.id && a.coach === a.id && a.until > a.at && a.until - a.at <= 10 * 6e4 + 1, `one snapshot (${a.id}): Recovery page, Athlete OS and the Gym Coach packet read the same version; valid for ${Math.round((a.until - a.at) / 6e4)} min`);
+    // a finished chest workout, saved the normal way
+    await q.evaluate(() => { const now = Date.now(); sessions.push({ id: 'sx', date: todayKey(), start: new Date(now - 50 * 6e4).toISOString(), end: new Date(now - 5 * 6e4).toISOString(), name: 'Chest', mins: 45, vol: 4000,
+      exercises: [{ exId: 'bench', sets: Array.from({ length: 6 }, () => ({ w: '80', r: '6', done: true, rir: 1 })) }, { exId: 'incline_db', sets: Array.from({ length: 4 }, () => ({ w: '30', r: '10', done: true })) }] }); saveG('ses'); renderRecovery(); });
+    await q.waitForTimeout(300); const b = await look();
+    ok(b.id !== a.id && b.st === b.id && b.coach === b.id && b.chest === 'recovering' && b.tiles.includes('chest'), `after a finished chest workout: new snapshot ${b.id}; the page shows a Chest tile, Athlete OS and Gym Coach have ${b.coach}`);
+    // time alone: Athlete OS keeps the slice only until validUntil
+    const exp = await q.evaluate(u => { AthleteState.get('recovery'); const s0 = AthleteState.stats().builds; AthleteState.get('recovery', u - 1000); const s1 = AthleteState.stats().builds; AthleteState.get('recovery', u + 1000); return [s1 - s0, AthleteState.stats().builds - s1]; }, b.until);
+    ok(exp[0] === 0 && exp[1] === 1, 'Athlete OS reuses the recovery slice until validUntil, then reads RECOVERY+ again (time alone can change a muscle state)');
+    await q.close(); }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + [...new Set(errs)].join(' | ') : ''));
   srv.close(); await browser.close(); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL crashed: ' + e.message); process.exit(1); });
