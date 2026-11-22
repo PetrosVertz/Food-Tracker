@@ -10,7 +10,7 @@ const AI = (() => {
   // opts.best → the 'advanced' tier (strongest model first); opts.search → web look-ups; opts.task → a short label for Settings › AI › Usage
   async function call(prompt, imageB64, onTry, outer, opts){
     opts = opts || {};
-    const res = await AIProvider.run({ prompt, images: [].concat(imageB64 || []), json: true, search: !!opts.search, tier: opts.best ? 'advanced' : 'default', task: opts.task, retries: opts.retries },
+    const res = await AIProvider.run({ prompt, images: [].concat(imageB64 || []), json: true, search: !!opts.search, tier: opts.best ? 'advanced' : 'default', task: opts.task, retries: opts.retries, model: opts.model, ctx: opts.ctx },
       { onTry, outer });
     return res.json;
   }
@@ -178,7 +178,11 @@ const AI = (() => {
 
   // 0.7.9 what the app has learned from the user's own logs (js/know.js, rebuilt once a day on the phone), for coach and suggestion prompts.
   // topic 'food' | 'gym': that part in full, the other in one line; '' when nothing is learned yet. Never shown on screen.
-  function knows(topic){
+  // Athlete OS: the block now comes from the context engine (js/athlete/context.js through Supervisor): today's state, the user's own
+  // notes, recent changes and the daily summary, filtered by what this specialist may see and cut to its budget. sp = specialist id
+  // (optional; the coach answering right now, else the topic's default). The old daily-summary block below stays as the fallback.
+  function knows(topic, sp){
+    if(typeof Supervisor !== 'undefined'){ try{ return Supervisor.context(topic, sp); }catch(e){ console.warn('athlete context', e); } }
     const k = Store.load('aiKnow', null); if(!k) return '';
     const parts = [k.body, topic === 'gym' ? k.gym : k.food, topic === 'gym' ? k.foodShort : k.gymShort].filter(Boolean);
     if(!parts.length) return '';

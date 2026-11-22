@@ -69,12 +69,12 @@ $('sgGo').addEventListener('click', async () => {
   const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.innerHTML = AI.dots(t('thinking'));
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{
-    const r = await gemini(`You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
+    const r = await Supervisor.ask('fridge', `You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
 ${dish ? `Dish name they gave: "${dish}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
 ${SG.time ? `Total cooking time: ${{ quick: '20 minutes or less', mid: '20 to 60 minutes', long: 'over 60 minutes is fine' }[SG.time]}.` : ''}
 ONE serving is a normal adult portion of a main meal (roughly 600–800 kcal, high protein), whatever they have eaten today.
 ${kitchenOn() ? `In their fridge (use these when they fit): ${fr || 'unknown'}.\n` : ''}Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"perServing":{"kcal":number,"protein":number,"carbs":number,"fat":number},"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
-Rules: ONE plate only — servings = 1, no leftovers, no batch cooking. Amounts in grams for that one plate, raw as they go in (dry pasta/rice, raw meat). Include cooking oil. No steps about weighing the cooked food. 3–10 ingredients, 4–10 short steps. name_en = plain generic English food name (e.g. "chicken breast", "olive oil").${AI.dietRules()}${AI.knows('food')}`, null, (i, n) => { if(sgCtl === ctl) btn.textContent = t('cancelRec', { i, n }); }, ctl.signal);
+Rules: ONE plate only — servings = 1, no leftovers, no batch cooking. Amounts in grams for that one plate, raw as they go in (dry pasta/rice, raw meat). Include cooking oil. No steps about weighing the cooked food. 3–10 ingredients, 4–10 short steps. name_en = plain generic English food name (e.g. "chicken breast", "olive oil").${AI.dietRules()}${AI.knows('food', 'fridge')}`, null, { onTry: (i, n) => { if(sgCtl === ctl) btn.textContent = t('cancelRec', { i, n }); }, signal: ctl.signal });   // Athlete OS: Fridge AI
     if(!r || !Array.isArray(r.steps) || !r.steps.length) throw new Error('empty recipe');
     pendingRecipe = r; close('ovSuggest');
     $('rBody').innerHTML = (r.perServing ? `<div class="macroline"><span class="m kc"><b>${Math.round(r.perServing.kcal)}</b> kcal</span><span class="m p">P <b>${fmt(r.perServing.protein)}</b></span><span class="m c">C <b>${fmt(r.perServing.carbs)}</b></span><span class="m f">F <b>${fmt(r.perServing.fat)}</b></span> <small class="rmeta">/ serving</small></div>` : '') + recipeHtml(r, false);

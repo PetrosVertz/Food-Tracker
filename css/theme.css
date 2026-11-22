@@ -1206,3 +1206,11 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* stat cards: the title slanted (bold italic) and always ONE line of description that never wraps (the card never grows) */
 .pfstat small.pfstt{font-style:italic;font-weight:var(--w-bold);color:var(--t-text)}
 .pfstat>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Athlete OS: Settings › AI › What You Told the Coaches */
+.aimem{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--s2)}
+.aimem li{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s3);border:1px solid var(--t-line);border-radius:12px;background:var(--t-card);color:var(--t-text);font-size:14px}
+.aimem li>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.aimem small{display:block;color:var(--t-muted);font-size:12px;margin-top:2px}
+.aimemx{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--t-muted);border-radius:10px;cursor:pointer}
+.aimemx:active{background:var(--t-sel)}
+
