@@ -21,33 +21,22 @@ $('exportJson').addEventListener('click', () => { Phone.download(backupBlob(), `
 
 $('importBtn').addEventListener('click', () => { $('importInput').value=''; $('importInput').click(); });
 
+// Import (V3 hardening): read → check → plan on copies (Backup.plan) → save every changed list at once (Store.saveMany: all or nothing)
+// → only then put the new values on screen. A failed save changes nothing, in storage or in memory, and shows no success.
 $('importInput').addEventListener('change', async e => {
   const file = e.target.files[0]; if(!file) return;
-  try{
-    const data = Store.upgradeBackup(JSON.parse(await file.text()));
-    const inFoods = Array.isArray(data) ? data : data.foods, inMeals = Array.isArray(data.meals) ? data.meals : [];
-    if(!Array.isArray(inFoods)) throw new Error();
-    let added = 0, updated = 0;
-    const merge = (arr, incoming, fix) => { for(const raw of incoming){ if(!raw || !raw.name) continue; const f = fix(raw);
-      const i = arr.findIndex(x => x.id === f.id);
-      if(i === -1){ arr.push({ ...f, id: f.id || uid() }); added++; } else if((f.updatedAt||'') > (arr[i].updatedAt||'')){ arr[i] = f; updated++; } } };
-    merge(foods, inFoods, normFood); merge(meals, inMeals, m => m); merge(supps, Array.isArray(data.supps) ? data.supps : [], s => s);
-    if(data.suppLog && typeof data.suppLog === 'object') for(const [d, v] of Object.entries(data.suppLog)) suppLog[d] = { ...(suppLog[d] || {}), ...v };
-    merge(fridge, Array.isArray(data.fridge) ? data.fridge.map(x => ({ ...x, name: x.name || 'item' })) : [], x => x);
-    merge(groc, Array.isArray(data.groc) ? data.groc : [], x => x);
-    if(data.dayLog && typeof data.dayLog === 'object') for(const [d, v] of Object.entries(data.dayLog)){ const have = new Set((dayLog[d] || []).map(e => e.id)); dayLog[d] = (dayLog[d] || []).concat((v || []).filter(e => !have.has(e.id))); }
-    if(data.days && typeof data.days === 'object') days = { ...data.days, ...days };
-    if(data.plans && typeof data.plans === 'object') plans = { ...data.plans, ...plans };
-    if(data.targets && !targets) targets = data.targets;
-    if(data.weights && typeof data.weights === 'object'){ weights = { ...data.weights, ...weights }; Store.save('weights', weights); }
-    if(Array.isArray(data.combos)){ const hc = new Set(combos.map(x => x.id)); combos = combos.concat(data.combos.filter(x => x && x.id && !hc.has(x.id))); saveCombos(); }
-    if(data.gym){ const g = data.gym; const have = new Set(sessions.map(x => x.id)); sessions = sessions.concat((g.sessions || []).filter(x => !have.has(x.id))).sort((a, b) => a.start.localeCompare(b.start));
-      const ht = new Set(tpls.map(x => x.id)); tpls = tpls.concat((g.tpl || []).filter(x => !ht.has(x.id))); const hc = new Set(exCustom.map(x => x.id)); exCustom = exCustom.concat((g.custom || []).filter(x => !hc.has(x.id)));
-      if(g.plan && !Object.keys(gymPlan).length) gymPlan = g.plan; ['ses', 'tpl', 'custom', 'plan'].forEach(saveG); }
-    if(data.profile && typeof data.profile === 'object'){ profile = { ...data.profile, ...profile }; saveProfile(); }
-    fridge.forEach(x => { if(x.name === 'item') delete x.name; });
-    saveFoods(); saveMeals(); saveSupps(); Store.save('suppLog', suppLog); saveFridge(); saveGroc(); saveLog(); saveDays(); Store.save('plans', plans); if(targets) Store.save('targets', targets); renderAll(); toast(t('imported', { a: added, u: updated }));
-  }catch(err){ toast(t('badBackup')); }
+  let data;
+  try{ if(file.size > 25e6) throw new Error('too big'); data = Store.upgradeBackup(JSON.parse(await file.text())); }catch(err){ toast(t('badBackup')); return; }
+  let p;
+  try{ p = Backup.plan({ foods, meals, supps, suppLog, fridge, groc, dayLog, days, plans, targets, weights, combos, logPhr, foodFix: logFix, profile,
+    sessions, tpls, exCustom, gymPlan, active }, data); }catch(err){ console.error('import', err); toast(t('badBackup')); return; }
+  if(!p.ok){ toast(t(p.reason === 'tooNew' ? 'backupTooNew' : 'badBackup')); return; }
+  if(p.changed.length && !Store.saveMany(Object.fromEntries(p.changed.map(k => [k, p.next[k]])))) return;   // saveMany already said it could not save
+  const n = p.next;
+  foods = n.foods; meals = n.meals; supps = n.supps; suppLog = n.suppLog; fridge = n.fridge; groc = n.groc; dayLog = n.dayLog; days = n.days; plans = n.plans; targets = n.targets;
+  weights = n.weights; combos = n.combos; logPhr = n.logPhr; logFix = n.foodFix; profile = n.profile; sessions = n.sessions; tpls = n.tpls; exCustom = n.exCustom; gymPlan = n.gymPlan; active = n.active;
+  renderAll(); toast(t('imported', { a: p.added, u: p.updated }));
+  if(p.activeRestored) setTimeout(checkAbandoned, 1200);   // a restored live workout follows the same "left open" rule as at start-up
 });
 
 // ======================= go =======================
@@ -55,6 +44,10 @@ applyLang();
 
 hubBoot();   // Refinements: back within 3 minutes of leaving a Gym Buddy section → that section
 route();
+
+{ const pr = Store.problems();   // V3 hardening: say once if start-up found an interrupted import or saved data it could not read
+  const msg = pr.some(p => p.kind === 'rolledBack') ? 'importUndone' : pr.some(p => /^(corrupt|migration|rollbackFailed)$/.test(p.kind) && !p.again) ? 'dataProblem' : null;
+  if(msg) setTimeout(() => toast(t(msg)), 900); }
 
 if(!ui.setupDone) openSetup();
 else setTimeout(checkAbandoned, 1200);   // a workout left open for 20+ min ends by itself (4+ exercises) or asks
