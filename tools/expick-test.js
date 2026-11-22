@@ -61,6 +61,15 @@ function run(){
   eq(own.slice(0, 5), ['Single-Arm Cable Press', 'chest_upper', 'cable', 'press_h', '90'], 'older apps read the same first five fields');
   const v1 = X.wkUnpack('GB1~legs~Leg Day~squat,5,5,180;!0,3,12,60~Sled%2C Push,quads,machine,press_h,120');
   eq([v1.own[0].en, v1.own[0].h, v1.own[0].mus], ['Sled, Push', 'quads', undefined], 'an old GB1 code reads as before');
+  // 7. RECOVERY+ (js/recovery-plus.js) reads a custom exercise's chosen muscles: its sets count there, nothing becomes "ready" by default
+  const rc = { console }; vm.createContext(rc); vm.runInContext(read('js/recovery-plus.js') + '\n;this.__R = RecoveryCore;', rc);
+  const R = rc.__R, now = Date.parse('2026-11-20T12:00:00Z');
+  const ses = { id: 's', start: '2026-11-20T10:00:00Z', end: '2026-11-20T11:00:00Z', date: '2026-11-20', exercises: [{ exId: 'c_1', sets: [{ done: true, w: 20, r: 10 }, { done: true, w: 20, r: 10 }] }, { exId: 'c_x', sets: [{ done: true, w: 10, r: 10 }] }] };
+  const lib = { c_1: r, c_x: { id: 'c_x', custom: true } }, idx = R.indexHistory([ses], id => lib[id], null);
+  const load = R.sessionHeadLoads(idx.list[0], idx, id => lib[id], null);
+  yes(load.heads.chest_upper && load.heads.chest_upper.sets === 2 && load.heads.triceps && load.heads.triceps.sets === 2, 'RECOVERY+ counts custom sets on the chosen muscles');
+  yes(!load.heads.lats && !load.heads.quads, 'RECOVERY+ does not load muscles that were not chosen');
+  yes(load.unknown.includes('c_x') && !load.unknown.includes('c_1'), 'a custom exercise without muscles stays unknown');
   return { tests: n, bad };
 }
 module.exports = { run };

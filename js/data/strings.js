@@ -1098,7 +1098,7 @@ Object.assign(S, {   // ==== Exercise Picker V27 (js/expick.js) + Create Custom 
   cxMoveT: ['Movement Options', 'Επιλογές Κίνησης'], cxUniT: ['Track Each Side', 'Κάθε Πλευρά Χωριστά'], cxUniSub: ['Log left and right separately', 'Καταγραφή αριστερά και δεξιά χωριστά'],
   cxIntelT: ['Exercise Intelligence', 'Έξυπνες Λειτουργίες'], cxAuto: ['Automatic', 'Αυτόματα'],
   cxNoRank: ['Ranking Unavailable', 'Χωρίς Κατάταξη'], cxNoRankSub: ['Custom exercises aren’t ranked.', 'Οι δικές σου ασκήσεις δεν κατατάσσονται.'],
-  cxRecT: ['Recovery · Provisional', 'Αποκατάσταση · Προσωρινή'], cxRecSub: ['Conservative estimates from selected muscles and logged sets. Unknown stays unknown.', 'Συντηρητική εκτίμηση από τους μυς που διάλεξες και τα σετ σου. Ό,τι δεν είναι γνωστό μένει άγνωστο.'],
+  cxRecT: ['RECOVERY+ · Provisional', 'RECOVERY+ · Προσωρινή'], cxRecSub: ['Conservative estimates from selected muscles and logged sets. Unknown stays unknown.', 'Συντηρητική εκτίμηση από τους μυς που διάλεξες και τα σετ σου. Ό,τι δεν είναι γνωστό μένει άγνωστο.'],
   cxShareHint: ['Share by QR · Custom exercises transfer with workout templates.', 'Κοινοποίηση με QR · Οι δικές σου ασκήσεις μεταφέρονται μαζί με τις προπονήσεις.'],
   cxSave: ['Create & Add Exercise', 'Δημιουργία & Προσθήκη'],
   cxNeedName: ['Enter an exercise name.', 'Γράψε όνομα άσκησης.'], cxNeedMus: ['Select at least one muscle on the map or from the pills.', 'Επίλεξε τουλάχιστον έναν μυ στον χάρτη ή από τις επιλογές.'],
