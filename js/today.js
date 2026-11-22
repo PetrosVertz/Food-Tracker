@@ -634,31 +634,26 @@ function logQKey(s){ return norm(s).replace(/(\d)([^\d\s.,])/gu, '$1 $2').split(
 const logQMealInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
 const logQGenInfo = g => ({ ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g });
 
-// the AI: split only (plus a fallback estimate per 100 g)
-// Food Coach's answer is structured: the app draws it (a short reply, then the foods as one list with one Add), never guesses from free text
-// Athlete OS step 3: calm, precise voice; the user's own matching saved foods as a hint; a whole-portion total per item (checked against
-// per 100 g × grams in logQOdd); a general note on real portions. No food-name lists and no fixed calorie numbers anywhere.
-function logQPrompt(txt, ch, extra, fix){
-  const tg = targetFor(curDay), tot = dayTotals(curDay), conv = ch ? ch.transcript() : '', ln = lang === 'el' ? 'Greek' : 'English';
-  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Calm and precise, straight to the point, no chatting; very occasionally a dry, understated line of humour, never at the user's expense.
-${conv ? `Conversation so far (last messages):\n${conv}\n` : ''}The user's new message: """${txt}"""
-${tg ? `Today so far: ${Math.round(tot.kcal)} of ${tg.k} kcal, P ${Math.round(tot.p)}/${tg.p} g, C ${Math.round(tot.c)}/${tg.c} g, F ${Math.round(tot.f)}/${tg.f} g.` : ''}
-First decide what the message is:
-- "log": it says what they ate or drank (even one food), or it corrects foods you listed before. Split it into items.
-- "suggest": it asks what to eat next, or how to hit / fill their macros. Leave items empty; the app shows suggestions.
-- "answer": anything else (a question about food or nutrition). Leave items empty.
-reply: one or two short lines in ${ln}, plain text, no markdown, no emoji, no numbers the app already shows. Nothing is logged until the user taps Add, so never say you added, logged or updated anything. For "log" just acknowledge it ("Got it, here's what I found."); for "answer" give the answer in at most 60 words.
-Rules for items (only for "log"):
-- One item per food. "granola and nuts 200ml milk" is two items (granola with nuts; milk). Keep every food; never merge or skip one.
-- text: the words for that item as written, without the amount.
-- qty + unit: the amount as written; unit is one of g, ml, kg, l, piece, slice, cup, tbsp, tsp, serving. Counted things ("4 eggs", "a banana") are piece. qty null when no amount is written.
-- name: short plain food name in ${ln}, with how it was cooked when that is said ("scrambled eggs"), without the brand. name_en: the same name in English. brand: the brand or restaurant, "" if none.
-- grams: your best guess of the whole amount eaten, in grams (ml for drinks). ml: true for drinks.
-- kcal, protein, carbs, fat: typical values PER 100 g (or 100 ml) of this food as eaten.
-- total_kcal: the calories of the WHOLE amount eaten. It must equal kcal × grams / 100; check it before answering.
-Real portions: estimate what a real person is actually served, not the smallest textbook portion. Restaurant, takeaway and street food are usually bigger and richer than home cooking; count the cooking oil, sauces, cheese and sides that come with a dish. When the amount is not written, use the typical real serving.${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}${extra || ''}${AI.dietRules()}${AI.knows('food')}
-complex: true only when the message is ONE composed dish or one meal of three or more foods eaten together (a gyro pita, a burger menu, pasta with mince); false for separate simple foods.
-Return ONLY JSON: {"intent":"log"|"suggest"|"answer","reply":string,"complex":boolean,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"total_kcal":number}]}`;
+// Food Coach 2.0: ONE AI call per message. It decides what the message is and, for food, splits it into items with a per-100 g estimate.
+// The app does the rest without AI: your remembered foods, My Foods, the built-in list, deterministic checks (FoodCoach.check), the maths.
+// The prompt is short on purpose: the context is one line (FoodCoach.context), the chat is the last 4 lines, the library only what shares a word.
+function logQPrompt(txt, ch, fix){
+  const ln = lang === 'el' ? 'Greek' : 'English', conv = logQConv(ch);
+  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights: a knowledgeable coach who feels like a friend. Warm and natural, confident when the evidence is clear, concise; now and then a light, dry joke (never at the user's expense). Never judgmental about food, no emoji, no lectures, no talk about how you calculate. If something is unknown, say so.
+Context: ${FoodCoach.context()}
+${conv ? `Recent chat:\n${conv}\n` : ''}User: """${txt}"""
+intent: "log" = they say what they ate or drank (even if they also ask something), or correct the list; "suggest" = they ask what to eat to fit their targets; "answer" = a food or nutrition question; "chat" = anything else.
+reply: ${ln}, plain text, at most 60 words, no markdown. For "log": a short natural acknowledgement, plus a real answer if they also asked something (e.g. whether it suits their training day, using the context). Don't repeat the card's numbers. Nothing is logged until they tap Add: never say you added, logged or saved anything.
+items (only for "log"; one per food; never merge or drop a food): text = their words for it without the amount; name = short food name in ${ln} (with how it was cooked if said), no brand; name_en = English name; brand = brand or restaurant, "" if none; qty + unit = the amount as written (unit g, ml, piece, slice, cup, tbsp, tsp or serving; null when not written); grams = the whole amount eaten (when not written, a real serving: restaurant and takeaway food is bigger and richer; count oil, sauce, cheese); ml = true for drinks; kcal, protein, carbs, fat = per 100 g (100 ml) as eaten; stated = nutrients the user stated for the whole item, e.g. "a bar with 20g protein" gives {"protein":20} (that is NOT its weight), else null.
+complex: true only when the whole message is ONE composed dish (a gyro pita, a burger menu, pasta with mince).${logQLib(txt)}${logQFixHint(txt + ' ' + (fix ? fix.items.map(it => it.text || it.name).join(' ') : ''))}${fix ? logQFixAsk(fix) : ''}
+Return ONLY JSON: {"intent":"log"|"suggest"|"answer"|"chat","reply":string,"complex":boolean,"items":[{"text":string,"name":string,"name_en":string,"brand":string,"qty":number|null,"unit":string|null,"grams":number,"ml":boolean,"kcal":number,"protein":number,"carbs":number,"fat":number,"stated":object|null}]}`;
+}
+// the recent chat for the prompt: 4 lines, short; the list on screen as one line (cards have no text of their own)
+function logQConv(ch){
+  const h = ch && ch.history ? ch.history().filter(x => x.text).slice(-4) : [], out = h.map(x => `${x.who === 'me' ? 'User' : 'Coach'}: ${String(x.text).slice(0, 160)}`);
+  const p = logQPrev && FC[logQPrev.id] ? logQPrev : null;
+  if(p && p.items.length) out.push(`List on screen (${p.state === 'logged' ? 'added' : 'not added yet'}): ` + p.items.map(it => { const r = it.st ? lwCalc(it.st) : null; return `${it.st ? it.st.info.name : it.name}${r ? ` ${Math.round(r.g)} g ${r.kcal} kcal` : ' (not found)'}`; }).join('; '));
+  return out.join('\n');
 }
 // the correction case: the list being corrected, so the AI changes only what the user corrected
 function logQFixAsk(prev){
@@ -693,13 +688,16 @@ function logQReply(s){
   const kept = (s.match(/[^.!?;]+[.!?;]*/g) || []).filter(x => !claim.test(x)).join(' ').replace(/\s+/g, ' ').trim();
   return kept.slice(0, 400);
 }
+// the AI's items, cleaned: numbers that are missing stay null (unknown), never 0; then each is made consistent (FoodCoach.check)
 function logQClean(a){
   if(!Array.isArray(a)) return null;
-  const n = v => (v === null || v === undefined || v === '' || isNaN(+v)) ? null : +v;
-  return a.filter(x => x && (x.name || x.text)).slice(0, 25).map(x => ({ text: String(x.text || x.name).slice(0, 80), name: String(x.name || x.text).slice(0, 60), name_en: String(x.name_en || x.name || '').slice(0, 60),
-    brand: String(x.brand || '').slice(0, 40), qty: n(x.qty) > 0 ? n(x.qty) : null, unit: x.unit ? String(x.unit) : null, grams: n(x.grams) > 0 ? n(x.grams) : null, ml: !!x.ml,
-    kcal: n(x.kcal) !== null && n(x.kcal) >= 0 ? n(x.kcal) : null, protein: Math.max(0, n(x.protein) || 0), carbs: Math.max(0, n(x.carbs) || 0), fat: Math.max(0, n(x.fat) || 0),
-    total: n(x.total_kcal) > 0 ? n(x.total_kcal) : null }));
+  const n = v => (v === null || v === undefined || v === '' || isNaN(+v)) ? null : +v, nn = v => n(v) !== null && n(v) >= 0 ? n(v) : null;
+  const st = s => { if(!s || typeof s !== 'object') return null; const o = {}; ['protein', 'kcal', 'carbs', 'fat'].forEach(k => { if(n(s[k]) > 0) o[k] = n(s[k]); }); return Object.keys(o).length ? o : null; };
+  return a.filter(x => x && (x.name || x.text)).slice(0, 25).map(x => {
+    const c = FoodCoach.check({ text: String(x.text || x.name).slice(0, 80), name: String(x.name || x.text).slice(0, 60), name_en: String(x.name_en || x.name || '').slice(0, 60),
+      brand: String(x.brand || '').slice(0, 40), qty: n(x.qty) > 0 ? n(x.qty) : null, unit: x.unit ? String(x.unit) : null, grams: n(x.grams) > 0 ? n(x.grams) : null, ml: !!x.ml,
+      kcal: nn(x.kcal), protein: nn(x.protein), carbs: nn(x.carbs), fat: nn(x.fat), total: n(x.total_kcal) > 0 ? n(x.total_kcal) : null, stated: st(x.stated) });
+    return c.doubt ? { ...c.item, doubt: true } : c.item; });
 }
 // ---- Athlete OS step 3: Food Coach remembers your corrections (on this phone, through Store; the Brain takes this over later) ----
 // Learned only from what you do: changing an amount the AI guessed, swapping a food, or correcting the list in the chat. Each food word
@@ -732,26 +730,6 @@ function logQIsFix(txt){
     || /(λαθοσ|λαθοσ|πολυ (λιγ|πολλ)|περισσοτερ|λιγοτερ|μεγαλυτερ|μικροτερ|στην πραγματικοτητα|διορθ|δεν ηταν|ηταν (πιο|γυρω|περιπου|πανω|κατω)|αλλαξε|κανε το)/.test(s);
 }
 let logQPrev = null;   // the last list Food Coach showed, so a correction can refer to it
-// Athlete OS step 3: is one food's estimate believable? General checks only (no food names, no fixed calorie numbers):
-// '' when fine, else a short reason for the one retry. Drinks skip the macro check (alcohol has calories outside protein / carbs / fat).
-function logQOdd(x){
-  if(x.kcal === null) return 'no kcal per 100 g';
-  if(x.kcal > 902) return 'kcal per 100 g above pure fat';
-  if(x.protein + x.carbs + x.fat > 101) return 'protein + carbs + fat above 100 g per 100 g';
-  const mk = x.protein * 4 + x.carbs * 4 + x.fat * 9;
-  if(!x.ml && Math.abs(mk - x.kcal) > Math.max(40, x.kcal * .3)) return `kcal per 100 g (${Math.round(x.kcal)}) do not match its protein, carbs and fat (${Math.round(mk)})`;
-  if(x.grams > 5000) return 'amount too large for one person';
-  if(x.total && x.grams){ const calc = x.kcal * x.grams / 100;
-    if(Math.abs(calc - x.total) > Math.max(60, Math.max(calc, x.total) * .25)) return `total_kcal ${Math.round(x.total)} but kcal × grams / 100 = ${Math.round(calc)}`; }
-  return '';
-}
-// without a key (or when the AI fails): split at commas, "and", "+", new lines; the recipe reader finds the amounts
-function logQSplit(txt){
-  return txt.split(/\s*(?:[,;\n+]|\band\b|\s(?:και|κ\.)\s)\s*/i).map(s => s.trim()).filter(s => s.length > 1).slice(0, 25).map(s => {
-    const p = parseIngLine(s) || {}, name = p.name || cleanName(s);
-    return { text: s, name, name_en: name, brand: '', qty: p.count || p.grams || null, unit: p.count ? 'piece' : p.grams ? 'g' : null, grams: p.grams || null, ml: false, kcal: null, protein: 0, carbs: 0, fat: 0, total: null }; });
-}
-
 // one item → a Log Food row state (amount + unit + cooking), from what was typed
 function logQState(info, it){
   const ref = lwRef(info), units = lwUnits(info), cook = LW_COOK.find(([re]) => re.test(norm(info.name || '')));
@@ -777,44 +755,29 @@ function logQState(info, it){
   return mk(gi, r1(g / units[gi].size));
 }
 
-// Food Coach (0.7.5): AI and web only. Every food goes to the AI with web search, which reads the real product's nutrition per 100 g
-// (tag FROM THE WEB) or, when it can't find it, gives an estimate (tag AI ESTIMATE). Your foods, the built-in list and Open Food
-// Facts are NOT used for matching here. Each food is saved to My Foods marked via:'coach' (never read back by Food Coach).
+// ---- Food Coach 2.0: where each food's values come from, best first, all on the phone (no AI call) ----
+// 1. what you added before for the same words (logPhr 'i:<words>' → that food; your last amount of it comes with it)
+// 2. your own saved meals and foods, then the built-in list (a branded food never takes a generic built-in value as if it were that product)
+// 3. the AI's estimate from the same answer (tag AI ESTIMATE). It is saved to My Foods only when you tap Add, never before.
+// 4. not found: tap the row to pick a food, or remove it. Add stays off until every row has a food and an amount.
+// Branded foods that ended up as an estimate are looked up on the web in the BACKGROUND (one call for the card); Add never waits for it.
 function logQSet(it, info, src){ it.src = src; it.st = logQState(info, it); if(it.g0 == null) it.g0 = lwCalc(it.st).g; }   // g0: the amount first offered, to notice your corrections
-// saved to My Foods, marked as from Food Coach; the same name + macros already saved by Food Coach isn't saved twice
-function logQSaveFound(it, d, src){
-  const key = x => [norm(x.name || ''), norm(x.brand || ''), Math.round(+x.kcal || 0), r1(+x.protein || 0), r1(+x.carbs || 0), r1(+x.fat || 0), x.unit === 'ml' ? 'ml' : 'g'].join('|');
-  let f = foods.find(x => x.via === 'coach' && key(x) === key(d));
-  if(!f){ f = saveOnlineFood(d); f.via = 'coach'; saveFoods(); }
-  logQSet(it, fInfo_(f), src); it.saved = true;
+const logQTmpInfo = d => ({ name: d.name, icon: '', unit: d.unit || 'g', per: d, food: null, tmp: d, piece: null });
+function logQInfoOf(ref){
+  if(!ref) return null; const k = ref.slice(0, 2), id = ref.slice(2);
+  if(k === 'f:'){ const f = foods.find(x => x.id === id); return f ? fInfo_(f) : null; }
+  if(k === 'm:'){ const m = meals.find(x => x.id === id); return m ? logQMealInfo(m) : null; }
+  if(k === 'g:'){ const g = GENBY[id]; return g ? logQGenInfo(g) : null; }
+  return null;
 }
-// one AI call with web search for the foods still waiting; a food it can't find stays for the estimate
-async function logQWeb(list, ch){
-  if(!list.length || !AI.hasKey()) return;
-  try{ const r = await ch.ask(`Find these foods online and read their nutrition per 100 g (or 100 ml) as eaten. For a branded product (a brand of bread, yogurt, bar, drink, a restaurant dish) use THAT exact product: the brand's own site, a supermarket listing or Open Food Facts; if you can't find that exact product, set "found": false — never use a similar product. For a plain food, use a reliable source (USDA, a national food table).
-Carbs as on EU labels (fibre not included). name: short name in ${lang === 'el' ? 'Greek' : 'English'}, without the brand.
-assumed: one short phrase in ${lang === 'el' ? 'Greek' : 'English'} saying what you assumed about the amount or the food, e.g. "1 slice ≈ 30 g"; "" if nothing was assumed.
-Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string|null,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml","assumed":string}]}
-Foods (with the amount the person said):
-${list.map((it, j) => `${j}) ${it.brand ? it.brand + ' ' : ''}${it.name_en || it.name} ("${it.text}"${it.qty ? `, amount: ${it.qty} ${it.unit || ''}`.trimEnd() : ''})`).join('\n')}${logQLib(list.map(it => `${it.text} ${it.name} ${it.name_en || ''} ${it.brand || ''}`).join(' '), 'web')}${AI.dietRules()}`, null, { search: true, task: 'food-web' });
-    (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i]; if(!it || it.st) return;
-      if(w.assumed) it.assumed = String(w.assumed).slice(0, 80);
-      if(!w.found) return;
-      const d = { name: w.name || it.name, brand: w.brand || it.brand || '', hint: it.name_en || '', kcal: +w.kcal || null, protein: +w.protein || 0, carbs: +w.carbs || 0, fat: +w.fat || 0, fiber: w.fiber != null ? +w.fiber : null, unit: w.unit === 'ml' ? 'ml' : 'g', state: 'ready', source: 'web' };
-      if(Search.quality(d) > 0) logQSaveFound(it, d, 'web'); });
-  }catch(e){ if(e.cancelled) throw e; }
-}
-// not found on the web: the AI's own estimate per 100 g from the first answer
-function logQLast(it){
-  if(it.kcal !== null && it.kcal !== undefined){ const nm = it.name || it.text;
-    logQSaveFound(it, { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g', kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }, 'est'); return; }
-  it.st = null; it.src = 'none';
-}
-// Refinements #5 (change 24 A, simple path): your own saved foods and meals, then the built-in list, before the web and the AI estimate.
-// Your own product always wins (Fage stays Fage). Foods Food Coach saved itself (via:'coach') and old AI estimates are not read back.
+const logQMemKey = it => { const k = logQKey([it.brand, it.text || it.name].filter(Boolean).join(' ')); return k ? 'i:' + k : ''; };
+function logQMem(it){ const v = logPhr[logQMemKey(it)]; if(!v || !v.ref) return null; const info = logQInfoOf(v.ref); return info ? { info, g: v.g } : null; }
+const LOGQ_SAME = [[/^(boiled|steamed|βραστ\w*|μαγειρεμεν\w*)$/, 'cooked'], [/^(fresh|homemade|plain|organic|natural|σπιτικ\w*|φρεσκ\w*)$/, '']];
 function logQLocal(it){
-  for(const q of [[it.brand, it.text || it.name].filter(Boolean).join(' '), it.name_en]){
-    if(!q || !logQKey(q)) continue;
+  const tidy = s => norm(s || '').split(' ').map(w => { const r = LOGQ_SAME.find(([re]) => re.test(w)); return r ? r[1] : w; }).filter(Boolean).join(' ');
+  const qs = [[it.brand, it.text || it.name].filter(Boolean).join(' '), it.name_en, it.name]; qs.push(...qs.map(tidy));
+  for(const q of [...new Set(qs.filter(Boolean))]){
+    if(!logQKey(q)) continue;
     const loc = qaLocal(q); if(!loc) continue;
     if(loc.kind === 'meal') return { info: logQMealInfo(loc.m), src: 'meal' };
     if(loc.kind === 'gen') return { info: logQGenInfo(loc.g), src: 'std' };
@@ -822,36 +785,76 @@ function logQLocal(it){
   }
   return null;
 }
-async function logQMatchAll(m, ch){
-  const done = it => { it.busy = false; logQRedraw(m); };
-  m.items.filter(it => it.busy).forEach(it => { const l = logQLocal(it); if(l){ logQSet(it, l.info, l.src); done(it); } });
-  if(!m.items.some(it => it.busy)) return;
-  if(ch.status) ch.status(t('coachStWeb'));
-  await logQWeb(m.items.filter(it => it.busy), ch);
-  m.items.filter(it => it.busy).forEach(it => { if(!it.st) logQLast(it); done(it); });
+const logQEstData = it => { const nm = String(it.name || it.text); return { name: nm.charAt(0).toUpperCase() + nm.slice(1), brand: (it.brand || '').trim(), hint: it.name_en || '', unit: it.ml ? 'ml' : 'g',
+  kcal: Math.round(it.kcal), protein: r1(it.protein), carbs: r1(it.carbs), fat: r1(it.fat), state: 'ready', source: 'estimate' }; };
+function logQResolve(m){
+  m.items.forEach(it => {
+    if(it.st || it.busy) return;
+    const mem = logQMem(it); if(mem){ logQSet(it, mem.info, 'mem'); return logQStated(it); }
+    const loc = logQLocal(it);
+    if(loc && !(it.brand && loc.src === 'std')){ logQSet(it, loc.info, loc.src); return logQStated(it); }
+    if(FoodCoach.usable(it)){ logQSet(it, logQTmpInfo(logQEstData(it)), 'est'); return logQStated(it); }
+    if(loc){ logQSet(it, loc.info, loc.src); it.assumed = t('logQClose'); return; }   // a brand with only a general match: shown, and said so
+    it.st = null; it.src = 'none';
+  });
+}
+// "with 20g protein": when the food found disagrees clearly with what you said, the row says so (you know your bar better than we do)
+function logQStated(it){
+  const s = it.stated && it.stated.protein; if(!(s > 0) || !it.st) return;
+  const p = lwCalc(it.st).p; if(Math.abs(p - s) > Math.max(3, s * .25)){ it.doubt = true; it.assumed = t('logQStatedOff', { v: fmt(s) }); }
+}
+// a branded food the app could not find itself: one web lookup for the card, in the background; it replaces the estimate only if you haven't touched that row
+async function logQWeb(m, ch){
+  const list = m.items.filter(it => it.brand && (it.src === 'est' || it.src === 'none') && !it.touched);
+  if(!list.length || !(await logQAIOk(2))) return;
+  list.forEach(it => { it.chk = true; }); logQRedraw(m);
+  try{
+    const r = await ch.ask(`Find these branded foods online and read their nutrition per 100 g (or 100 ml) as sold. Use THAT exact product (the brand's site, a supermarket listing or Open Food Facts); if you can't find that exact product, "found": false — never a similar product. Carbs as on EU labels (fibre not included).
+name: short name in ${lang === 'el' ? 'Greek' : 'English'}, without the brand. assumed: a short phrase on what you assumed ("1 bar = 60 g"), or "".
+Return ONLY JSON: {"items":[{"i":number,"found":boolean,"name":string,"brand":string,"kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"unit":"g"|"ml","assumed":string}]}
+Foods:
+${list.map((it, j) => `${j}) ${it.brand} ${it.name_en || it.name} ("${it.text}")`).join('\n')}`, null, { search: true, task: 'food-web', deadlineMs: 25000, timeoutMs: 20000, maxModels: 2 });
+    const n = v => v === null || v === undefined || v === '' || !isFinite(+v) || +v < 0 ? null : +v;
+    (r && Array.isArray(r.items) ? r.items : []).forEach(w => { const it = list[+w.i];
+      if(!it || !w.found || it.touched || m.state === 'logged' || !m.items.includes(it)) return;
+      const d = { name: w.name || it.name, brand: w.brand || it.brand || '', hint: it.name_en || '', kcal: n(w.kcal), protein: n(w.protein), carbs: n(w.carbs), fat: n(w.fat), fiber: n(w.fiber), unit: w.unit === 'ml' ? 'ml' : 'g', state: 'ready', source: 'web' };
+      if(!FoodCoach.usable(d) || FoodCoach.check(d).doubt || Search.quality(d) <= 0) return;
+      const g = it.st ? lwCalc(it.st).g : 0; it.src = 'web'; it.st = logQState(logQTmpInfo(d), it); it.doubt = false;
+      if(g > 0 && Math.abs(lwCalc(it.st).g - g) > 1){ const gi = it.st.units.length - 1; it.st.u = gi; it.st.n = r1(g / it.st.units[gi].size); }
+      if(w.assumed) it.assumed = String(w.assumed).slice(0, 80); logQStated(it); });
+  }catch(e){ /* the estimate stays; nothing else changes */ }
+  finally{ list.forEach(it => { it.chk = false; }); logQRedraw(m); }
+}
+// can an AI request go out now? (a key, online, and the provider not cooling down after "out of quota") — answered without a network call
+async function logQAIOk(maxModels){
+  if(!AI.hasKey() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return false;
+  try{ return (await AIProvider.status({ maxModels: maxModels || 3 })).ok; }catch(e){ return false; }
 }
 
 // ---- 0.7.4.3 Food Coach (was Quick Log): the shared coach chat (js/coach.js) with the chef robot ----
 // Each answer is one card: the foods it understood as a compact list (tap a row to change the amount, unit or food; X removes it)
-// with the total underneath, and ONE Add button that logs every food on the list.
+// with the total underneath, and ONE Add button that logs every food on the list. Food Coach 2.0: Add (and Add & Save) stay off until
+// every row has a food and an amount; a row marked Not Found is picked or removed first, so nothing is skipped without you knowing.
 const FC = {};   // answer id → { m, card, ch }
 const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${m.meal ? mealCardHtml(m) : logQCardHtml(m)}</div>`;   // m.meal: a complex meal (js/meal.js)
 function logQRedraw(m){ const x = FC[m.id]; if(x) x.ch.update(x.card, { body: fcHtml(m) }); }
 function logQKeep(m){ const x = FC[m.id]; if(x) x.card.body = fcHtml(m); }   // after an in-place change: the next redraw shows the same thing
 function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, it) => { const r = lwCalc(it.st); return { kcal: a.kcal + r.kcal, p: a.p + r.p, c: a.c + r.c, f: a.f + r.f }; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
+const logQCanAdd = m => !!m && (m.meal ? true : m.items.length > 0 && m.items.every(it => !it.busy && it.st && lwCalc(it.st).g > 0));
 function logQCardHtml(m){
   const tot = logQTot(m), done = m.state === 'logged';
   const foot = done ? '' : `<div class="lqfoot"><div class="lres"><span class="lk">${Math.round(tot.kcal)} kcal</span><span class="lm"><b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b></span></div></div>`;
+  const hint = done ? '' : `<small class="ls lqhint${logQCanAdd(m) || m.items.some(it => it.busy) ? ' hide' : ''}">${t('logQPickRows')}</small>`;
   const nm = m.naming && !done ? `<div class="lqname"><small class="ls">${esc(t('logQNameSub', { n: logQAutoName(m.items.filter(it => it.st).map(it => it.st.info)) }))}</small>
     <div class="lqnrow"><input class="lqsq" type="text" data-qname value="${esc(m.mname || '')}" placeholder="${t('logQNamePh')}" autocomplete="off" enterkeyhint="done" aria-label="${t('logQNamePh')}" maxlength="60">
     <button class="lqswapbtn" type="button" data-qnameok>${t('save')}</button></div></div>` : '';
-  return `<div class="lqcard ${done ? 'logged' : ''}">${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}${nm}</div>`;
+  return `<div class="lqcard ${done ? 'logged' : ''}">${m.items.map((it, i) => logQRowHtml(m, it, i)).join('')}${foot}${hint}${nm}</div>`;
 }
 function logQRowHtml(m, it, i){
   const done = m.state === 'logged', tag = it.src === 'std' ? `<span class="sttag lq std">${t('logQStd')}</span>` : it.src === 'web' ? `<span class="ctag web">${t('logQWebTag')}</span>` : it.src === 'est' ? `<span class="ctag est">${t('logQEstTag')}</span>` : '';
   const nm = it.st ? it.st.info.name : (it.name || it.text), sub = it.busy ? t('logQFind') : it.st ? lwSub(it.st) : t('logQNone');
   return `<div class="lqrow ${it.open && !done ? 'open' : ''} ${it.busy ? 'busy' : ''} ${!it.busy && !it.st ? 'miss' : ''}" data-qi="${i}">
-    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${it.busy ? AI.dots(sub) : esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}${it.doubt && it.st && !done ? `<small class="ls aiassume lqdoubt">${t('logQDoubt')}</small>` : ''}</button>
+    <div class="lrh"><button class="lrn" type="button" data-qopen ${done || it.busy ? 'disabled' : ''}><span class="nm">${esc(bareName(nm))}${tag ? ' ' + tag : ''}</span><small class="ls">${it.busy ? AI.dots(sub) : esc(sub)}</small>${it.assumed && it.st ? `<small class="ls aiassume">${esc(it.assumed)}</small>` : ''}${it.doubt && it.st && !done ? `<small class="ls aiassume lqdoubt">${t('logQDoubt')}</small>` : ''}${it.chk && !done ? `<small class="ls aiassume">${AI.dots(t('logQChecking'))}</small>` : ''}</button>
     ${done ? '' : `<button class="lqx" type="button" data-qrm aria-label="${t('logQRm')}">${svgIcon('x', 14, 2.6)}</button>`}</div>
     ${it.open && !done ? logQPanel(it) : ''}</div>`;
 }
@@ -872,14 +875,19 @@ function logQSwapRes(it){
   if(!it.sres.length) return `<div class="hint">${t('logQNoMatch', { q: esc(q) })}</div>`;
   return it.sres.map(([, inf], j) => `<button class="lqpick" type="button" data-qpick="${j}"><span>${esc(inf.name)}</span><small>${macrosFor(inf.per, 100).kcal} kcal / 100 ${inf.unit || 'g'}</small></button>`).join('');
 }
+// Add / Add & Save on or off, and the "pick or remove" line, without redrawing the card (typing keeps its focus)
+function logQSyncBtns(m){
+  const x = FC[m.id], el = x && document.querySelector(`#coachList [data-cid="${x.card.cid}"]`); if(!el) return; const ok = logQCanAdd(m);
+  el.querySelectorAll('[data-ca]').forEach(b => { b.disabled = !ok; }); const h = el.querySelector('.lqhint'); if(h) h.classList.toggle('hide', ok);
+}
 // typing an amount / changing the unit or cooking: only that row and the card's total change
 function logQUpd(m, row, it){
-  lwUpdate(row, it.st);
+  lwUpdate(row, it.st); it.touched = true;
   if(it.doubt){ it.doubt = false; const d = row.querySelector('.lqdoubt'); if(d) d.remove(); }   // checked by the user: the note goes
   const card = row.closest('.lqcard'), tot = logQTot(m), k = card && card.querySelector('.lqfoot .lk'), mm = card && card.querySelector('.lqfoot .lm');
   if(k) k.textContent = Math.round(tot.kcal) + ' kcal';
   if(mm) mm.innerHTML = `<b class="p">P ${fmt(tot.p)}</b> · <b class="c">C ${fmt(tot.c)}</b> · <b class="f">F ${fmt(tot.f)}</b>`;
-  logQKeep(m);
+  logQKeep(m); logQSyncBtns(m);
 }
 
 // ---- open, answer, add ----
@@ -888,55 +896,157 @@ function logQOpenSheet(q){
   Coach.open('chef');
   if(q){ const ta = $('coachIn'); ta.value = q; ta.dispatchEvent(new Event('input')); setTimeout(() => { try{ ta.focus(); }catch(e){} }, 120); }
 }
-function logQTrim(){ const ks = Object.keys(logPhr); if(ks.length <= 600) return; ks.filter(k => k.startsWith('m:')).slice(0, ks.length - 500).forEach(k => { delete logPhr[k]; }); }
+// logPhr holds 'm:<message>' (a whole message you added) and 'i:<food words>' (one food you added); the oldest go first past the limits
+function logQTrim(){
+  const cut = (pre, max) => { const ks = Object.keys(logPhr).filter(k => k.startsWith(pre)); if(ks.length <= max) return;
+    ks.sort((a, b) => ((logPhr[a] || {}).at || 0) - ((logPhr[b] || {}).at || 0)).slice(0, ks.length - max).forEach(k => { delete logPhr[k]; }); };
+  cut('m:', 500); cut('i:', 400);
+}
 
+// Food Coach 2.0: one answer = at most ONE AI call (plus, for branded foods only, one web lookup in the background), inside one time budget.
+// Everything that can be answered on the phone is: thanks, totals, small corrections, a message you added before, foods you have.
+const LOGQ_AI = { deadlineMs: 16000, timeoutMs: 10000, maxModels: 3 };   // after that: the offline answer, never minutes of dots
+let logQCalls = 0;
+const logQCh = ch => ({ ...ch, ask: (p, img, o) => { logQCalls++; return ch.ask(p, img, { ...LOGQ_AI, ...(o || {}) }); } });
 async function logQSend(txt, ch){
-  const prev = logQPrev && FC[logQPrev.id] && logQPrev.items.length ? logQPrev : null, fix = prev && AI.hasKey() && logQIsFix(txt) ? prev : null;
-  // Refinements #5: a complex meal (a known dish, or three or more foods) is one AI call and one card (js/meal.js)
-  if(!fix){ const det = mealDetect(txt); if(det.complex && await mealSend(txt, ch, det)) return; }
-  const m = { id: uid(), items: [], mk: 'm:' + norm(txt), state: 'ready', fixOf: fix };
-  let parts = !fix && Array.isArray(logPhr[m.mk]) ? logPhr[m.mk] : null, note = '', reply = '';   // the same message as before: no AI at all (a correction always asks)
-  if(!parts && AI.hasKey()){
-    try{ let r = await ch.ask(logQPrompt(txt, ch, '', fix), null, { task: fix ? 'food-coach-fix' : 'food-coach' }) || {}, intent = String(r.intent || 'log');
+  const t0 = Date.now(), n0 = logQCalls, how = { path: 'ai' };
+  try{ await logQAnswer(txt, logQCh(ch), how); }
+  finally{ FoodCoach.track(how.path, Date.now() - t0, logQCalls - n0); }
+}
+async function logQAnswer(txt, ch, how){
+  const prev = logQPrev && FC[logQPrev.id] && !logQPrev.meal ? logQPrev : null;
+  // 1. answered on the phone: thanks, hello, "how much protein was that?", "how much protein today?"
+  const q = FoodCoach.quick(txt);
+  if(q && (q.kind !== 'last' || (prev && prev.items.length))){ how.path = 'local'; ch.say(logQQuick(q, prev)); return; }
+  // 2. a small change to the list on screen: "make it 200g", "add another toast", "remove the bar", "I meant cooked"
+  if(prev && prev.items.length){ const cmd = FoodCoach.correction(txt, logQRows(prev)); if(cmd && logQApplyCmd(prev, cmd, ch)){ how.path = 'local'; return; } }
+  const mk = 'm:' + norm(txt);
+  // 3. the same message again while its list is still open: no second card
+  if(Object.values(FC).some(x => x.m.mk === mk && x.m.state !== 'logged' && !x.m.meal)){ how.path = 'local'; ch.say(t('logQSame')); return; }
+  const fix = prev && prev.items.length && logQIsFix(txt) ? prev : null;
+  // 4. a message you added before: the same foods and amounts, no AI
+  const mem = !fix && Array.isArray(logPhr[mk]) ? logPhr[mk] : null;
+  if(mem && mem.length){ how.path = 'memory'; logQShow(txt, ch, mem.map(p => ({ ...p, src: p.ref ? 'mem' : p.src })), t('logQGot')); return; }
+  let ai = await logQAIOk(), err = null, parts = null, reply = '';
+  // 5. a known dish: one AI call, one meal card (js/meal.js); a dish you added before needs none
+  if(!fix){ const det = mealDetect(txt); if(det.dish){ const r = await mealSend(txt, ch, det, ai); if(r === true) return; if(r && r.err){ err = r.err; ai = false; } } }
+  // 6. the one AI call: what the message is, the reply, and the foods with an estimate each
+  if(ai){
+    try{ const r = await ch.ask(logQPrompt(txt, ch, fix), null, { task: fix ? 'food-coach-fix' : 'food-coach' }) || {}, intent = String(r.intent || 'log');
       reply = logQReply(r.reply);
       if(intent === 'suggest'){ await logQSuggest(ch, reply); return; }
-      parts = logQClean(r.items);
-      // one retry, only when a "log" answer is empty or a food looks implausible; never more than one extra call
-      const odd = p => (p || []).map((x, i) => [i, x, logQOdd(x)]).filter(z => z[2]);
-      if(intent === 'log' && (!(parts && parts.length) || odd(parts).length)){
-        const why = parts && parts.length ? odd(parts).map(([i, x, w]) => `item ${i} "${x.name}": ${w}`).join('; ') : 'you said it is a log but returned no items';
-        try{ const r2 = await ch.ask(logQPrompt(txt, ch, `\nYour first answer had problems: ${why}. Give a realistic version: re-check each amount and the values per 100 g, and make total_kcal equal kcal × grams / 100. Return the full JSON again.`, fix), null, { task: 'food-coach-retry' }) || {};
-          const p2 = String(r2.intent || 'log') === 'log' ? logQClean(r2.items) : null;
-          if(p2 && p2.length && (!(parts && parts.length) || odd(p2).length <= odd(parts).length)){ parts = p2; reply = logQReply(r2.reply) || reply; } }
-        catch(e){ if(e.cancelled) throw e; }
-        odd(parts).forEach(([, x]) => { x.doubt = true; });   // still doubtful: shown as an estimate with "check the amount"
-      }
-      if(intent !== 'log' && !(parts && parts.length)){ ch.say(reply || t('coachFail', { e: '?' })); return; }
-      // the AI's second opinion: one composed meal after all → its foods become the parts of one meal card (no second call)
-      if(intent === 'log' && r.complex === true && !fix){ const mi = mealFromItems(parts, r); if(mi && mealShow(txt, ch, mealDetect(txt), mi)) return; }
-      if(parts && parts.length) m.parts = parts; else parts = null; }
-    catch(err){ if(err.cancelled) throw err; note = t('logQAIFail', { e: err.message }); }
+      if(intent !== 'log'){ ch.say(reply || t('aiErrOther')); return; }
+      parts = logQClean(r.items); if(!(parts && parts.length)) parts = null;
+      if(parts && r.complex === true && !fix){ const mi = mealFromItems(parts, r); if(mi && mealShow(txt, ch, mealDetect(txt), mi)) return; }
+    }catch(e){ if(e.cancelled) throw e; err = e; }
   }
-  if(!parts) parts = logQSplit(txt);
-  if(!parts.length){ ch.say(reply || t('logQFail')); return; }
-  if(m.fixOf && !m.parts) m.fixOf = null;   // the AI did not answer: this is a new list, not a correction
-  ch.say((note || reply || t('logQGot')) + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
-  m.items = parts.map(p => ({ ...p, busy: true })); logQPrev = m;
-  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, run: () => logQLogAll(m) }, { label: t('logQAddSave'), run: () => logQNameAsk(m) }] }]);
-  FC[m.id] = { m, card, ch }; logQRedraw(m);
-  try{ await logQMatchAll(m, ch); }
-  finally{ m.items.forEach(it => { if(it.busy){ it.busy = false; if(!it.st) it.src = 'none'; } }); logQRedraw(m); }
+  // 7. no AI (no key, offline, quota used up, or it failed): the app reads the message itself and matches what it can
+  let note = reply || t('logQGot');
+  if(!parts){
+    how.path = 'offline'; parts = FoodCoach.parse(txt);
+    if(!parts.length){ ch.say(err ? AI.friendly(err) : reply || t('logQFail')); return; }
+    note = err || !ai ? (AI.hasKey() ? t('logQOffline') : t('logQLocalOnly')) : reply || t('logQGot');
+  }
+  logQShow(txt, ch, parts, note, parts && !how.path.startsWith('off') ? fix : null);
+}
+// one list on screen: rows found on the phone at once, the background label check for branded estimates
+function logQShow(txt, ch, parts, note, fixOf){
+  const m = { id: uid(), items: logQRebuild(parts), mk: 'm:' + norm(txt), state: 'ready', fixOf: fixOf || null, at: todayKey() };
+  logQResolve(m);
+  ch.say(note + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
+  logQPrev = m; logQCard(m, ch);
+  logQWeb(m, ch).catch(() => {});
+}
+function logQCard(m, ch, extra){
+  const off = () => !logQCanAdd(m);
+  const [card] = ch.cards([{ body: '', actions: [{ label: t('add'), primary: true, off, run: () => logQLogAll(m) }, { label: t('logQAddSave'), off, run: () => logQNameAsk(m) }], ...(extra || {}) }]);
+  FC[m.id] = { m, card, ch }; logQRedraw(m); return card;
+}
+// rows as FoodCoach.correction() reads them
+const logQRows = m => m.items.map(it => ({ name: it.st ? it.st.info.name : it.name, text: it.text, counted: !!(it.st && it.st.units[it.st.u].k !== 'g') }));
+// a small correction, done on the phone. The list still open changes in place (no second card); a list already added gets a corrected copy
+// that replaces it when you tap Add (with undo), as before. false = not applied here (the AI decides).
+function logQApplyCmd(prev, cmd, ch){
+  const m = prev.state === 'logged' ? { ...prev, id: uid(), state: 'ready', undo: null, naming: false, fixOf: prev, items: prev.items.map(it => ({ ...it, st: it.st ? { ...it.st } : null, open: false, swap: false })) } : prev;
+  const it = m.items[cmd.i]; if(!it) return false;
+  if(cmd.type === 'remove') m.items.splice(cmd.i, 1);
+  else {
+    const st = it.st; if(!st) return false; const g = lwCalc(st).g;
+    if(cmd.type === 'inc'){
+      const u = st.units[st.u], cnt = /^(piece|slice|serving)$/.test(it.unit || '') && it.qty > 0 ? it.qty : 1;
+      if(u.k === 'g'){ st.n = r1(+st.n + g / cnt * cmd.n / u.size); } else st.n = +st.n + cmd.n;
+      if(cnt > 1 || /^(piece|slice|serving)$/.test(it.unit || '')) it.qty = cnt + cmd.n;
+    } else if(cmd.type === 'set'){
+      if(cmd.unit === 'g' || cmd.unit === 'ml'){ const gi = st.units.findIndex(x => x.k === 'g'); st.u = gi; st.n = r1(cmd.qty / st.units[gi].size); }
+      else { const ns = logQState(st.info, { qty: cmd.qty, unit: cmd.unit }); ns.ck = st.ck; it.st = ns; }
+    } else if(cmd.type === 'state'){
+      const w = cmd.state + ' ' + (it.name_en || it.name), loc = logQLocal({ text: w, name: cmd.state + ' ' + it.name, name_en: w, brand: '' });
+      if(!loc || lwRef(loc.info) === st.ref) return false;
+      it.st = logQState(loc.info, { qty: g, unit: 'g' }); it.src = loc.src; it.swapped = true;
+    }
+    it.touched = true; it.doubt = false;
+  }
+  if(m !== prev){ logQPrev = m; ch.say(t('logQFixedNew')); logQCard(m, ch); }
+  else { ch.say(t('logQFixed')); logQRedraw(m); }
+  return true;
+}
+// thanks / hello / totals, in plain words
+function logQQuick(q, prev){
+  if(q.kind === 'thanks') return t('logQThanks');
+  if(q.kind === 'hi') return t('logQHi');
+  const v = (o, k) => k === 'kcal' ? `${Math.round(o.kcal)} kcal` : `${fmt(Math.round(o[k]))} g ${t('logQN_' + k)}`;
+  if(q.kind === 'last') return t('logQAnsLast', { v: v(logQTot(prev), q.key) }) + (prev.items.some(it => !it.st) ? ' ' + t('logQAnsMiss') : '');
+  const tg = targetFor(curDay), tk = { kcal: 'k', p: 'p', c: 'c', f: 'f' }[q.key];
+  return t('logQAnsToday', { v: v(dayTotals(curDay), q.key), of: tg && tg[tk] ? t('logQOf', { t: q.key === 'kcal' ? tg.k + ' kcal' : tg[tk] + ' g' }) : '' });
+}
+// a list kept as plain data (chat memory, and a message you added): each row with its food id, amount and unit; an estimate keeps its values
+function logQSer(m){
+  return m.items.map(it => ({ text: it.text, name: it.name, name_en: it.name_en, brand: it.brand, qty: it.qty, unit: it.unit, grams: it.grams, ml: it.ml,
+    kcal: it.kcal, protein: it.protein, carbs: it.carbs, fat: it.fat, stated: it.stated || null, src: it.src, assumed: it.assumed || '', doubt: !!it.doubt, g0: it.g0, touched: !!it.touched,
+    ref: it.st && !it.st.info.tmp ? it.st.ref : null, tmp: it.st && it.st.info.tmp ? it.st.info.tmp : null, n: it.st ? +it.st.n : null, uk: it.st ? it.st.units[it.st.u].k : null, ck: it.st ? it.st.ck : null }));
+}
+function logQRebuild(list){
+  return (list || []).map(p => {
+    const it = { ...p, busy: false }; ['ref', 'tmp', 'n', 'uk', 'ck'].forEach(k => delete it[k]);
+    if(!p.ref && !p.tmp){ it.st = null; return it; }
+    const info = p.tmp ? logQTmpInfo(p.tmp) : logQInfoOf(p.ref);
+    if(!info){ it.st = null; it.src = 'none'; return it; }   // the food was deleted since: pick another
+    it.st = logQState(info, it); const j = p.uk ? it.st.units.findIndex(x => x.k === p.uk) : -1;
+    if(j > -1 && p.n > 0){ it.st.u = j; it.st.n = p.n; } if(p.ck != null && it.st.cook) it.st.ck = p.ck;
+    return it; });
+}
+// the chat on this phone (coach.js persist.load / persist.save): kept 2 days; lists from today come back as working cards, older ones are not offered again
+function logQPersist(msgs){
+  const out = [];
+  (msgs || []).forEach(x => { if(x.work) return;
+    if(x.cards){ x.cards.forEach(c => { const f = Object.values(FC).find(z => z.card === c); if(f && !f.m.meal) out.push({ who: 'bot', fc: { mk: f.m.mk, at: f.m.at || todayKey(), state: f.m.state, items: logQSer(f.m), added: f.m.added || null }, done: c.done || '' }); }); return; }
+    if(x.text) out.push({ who: x.who, text: String(x.text).slice(0, 600), ...(x.first ? { first: true } : {}) }); });
+  FoodCoach.chatSave(out);
+}
+function logQRestore(ch){
+  const c = FoodCoach.chatLoad(); if(!c || !c.msgs.length) return null;
+  const today = todayKey(), out = [], api = logQCh(ch);
+  c.msgs.forEach(x => {
+    if(!x.fc){ if(x.text) out.push({ who: x.who === 'me' ? 'me' : 'bot', text: x.text, ...(x.first ? { first: true } : {}) }); return; }
+    if(x.fc.at !== today) return;
+    const m = { id: uid(), items: logQRebuild(x.fc.items), mk: x.fc.mk, state: x.fc.state === 'logged' ? 'logged' : 'ready', at: x.fc.at, fixOf: null, added: x.fc.added };
+    const off = () => !logQCanAdd(m), card = { cid: uid(), body: '', actions: [{ label: t('add'), primary: true, off, run: () => logQLogAll(m) }, { label: t('logQAddSave'), off, run: () => logQNameAsk(m) }] };
+    FC[m.id] = { m, card, ch: api };
+    if(m.state === 'logged' && m.added){ const u = logQUndoOf(m, m.added); m.undo = u; card.done = x.done || ''; card.undo = u; }
+    else if(m.state === 'logged') card.done = x.done || '';
+    card.body = fcHtml(m); out.push({ who: 'bot', cards: [card] }); logQPrev = m;
+  });
+  return out.length ? out : null;
 }
 // "what should I eat?" in Food Coach: Fill My Macros, shown as the same greyed suggestion cards (and on Today)
 async function logQSuggest(ch, reply){
   if(!targetFor(curDay)){ ch.say(t('planNeedTargets')); return; }
-  const day = curDay, r = planKeep(await ch.ask(planPrompt(), null, { task: 'food-suggest' }));
+  const day = curDay, r = planKeep(await ch.ask(planPrompt(), null, { task: 'food-suggest', deadlineMs: 25000, timeoutMs: 15000 }));
   ch.say(reply || t('logQSugg'));
   const cards = ch.cards(r.meals.map(m => ({ body: `<div class="eatrow sugg">${planRowHtml(m)}</div>`, dim: true,
     actions: [{ label: t('add'), primary: true, run: () => planAddMeal(day, m) }] })));
   cards.forEach((card, i) => PLANCH.push({ m: r.meals[i], card, ch }));
 }
-
 // what Add teaches: an amount the AI guessed and you changed, a food you swapped, or a food you corrected in the chat
 function logQLearn(m, it, r){
   const guessed = it.qty == null && it.g0 > 0, moved = guessed && Math.abs(r.g - it.g0) > Math.max(10, it.g0 * .15);
@@ -947,7 +1057,7 @@ function logQLearn(m, it, r){
   logQFixNote(it, { g: r.g, kcal: r.kcal, aiG: chat ? pr.g : moved ? it.g0 : null, aiKcal: chat ? pr.kcal : moved && per ? it.g0 * per : null, to: it.swapped ? it.st.info.name : null });
 }
 // Add & Save: the foods on the card also become one meal in the library (AI estimates too), so the same plate is one tap next time.
-// Each food is already in My Foods (logQSaveFound); the meal keeps them together with these amounts. A meal on the card adds its own ingredients.
+// Each food is already in My Foods (saved on Add, logQSaveTmp); the meal keeps them together with these amounts. A meal on the card adds its own ingredients.
 const logQAutoName = infos => { const n = infos.map(i => bareName(i.name)); return (n.slice(0, 3).join(' + ') + (n.length > 3 ? ' +' + (n.length - 3) : '')).slice(0, 60); };
 // Add & Save: first the name YOU use for this plate (the card shows a name box); the meal keeps both names, so the AI learns that yours means this
 function logQNameAsk(m){
@@ -983,37 +1093,53 @@ function logQLogAll(m, keep){   // keep: the meal name for Add & Save
   if(m.meal) return mealLog(m, keep);   // a complex meal: one Eaten entry (js/meal.js)
   const x = FC[m.id]; if(!x || m.state === 'logged') return;
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
-  const ok = m.items.filter(it => it.st); if(!ok.length){ toast(t('logQNothing')); return; }
+  if(!logQCanAdd(m)){ toast(t(m.items.length ? 'logQPickRows' : 'logQNothing')); return; }   // never a silent skip
   const fx = m.fixOf; if(fx && fx.state === 'logged' && fx.undo) fx.undo();   // a correction replaces the list it corrects
   const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], rows = [];
-  ok.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
+  m.items.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
     let info = st.info;
     if(info.gen) info = fInfo_(saveGeneric(info.gen));
+    if(info.tmp) info = fInfo_(logQSaveTmp(info.tmp));   // an AI estimate / web value becomes a food in My Foods only now, when you add it
+    if(info !== st.info){ st.info = info; st.ref = lwRef(info); }
     info = { ...info, per: lwPer(st) };
     logEntry(day, info, r.g, tm); const l = dayLog[day]; added.push(l[l.length - 1]); rows.push({ info, g: r.g });
     logQLearn(m, it, r);
+    const mk = logQMemKey(it); if(mk) logPhr[mk] = { ref: st.ref, g: Math.round(r.g), at: Date.now() };   // confirmed: these words mean this food next time
     const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id };   // same as logging it in Log Food: it comes out of the fridge
     try{ if(key.foodId ? stockOf(key.foodId) > 0 : mealStock(key.mealId) > 0) takeFromFridge(key, r.g); }catch(e){}
   });
   if(!added.length){ toast(t('needAmount')); return; }
-  if(m.parts && !m.fixOf) logPhr[m.mk] = m.parts;
-  if(m.parts && fx && fx.mk) logPhr[fx.mk] = m.parts;   // the first message now gives the corrected list next time
+  const memo = logQSer(m).map(p => ({ ...p, tmp: null, assumed: '', doubt: false }));
+  if(!m.fixOf) logPhr[m.mk] = memo; else if(fx && fx.mk) logPhr[fx.mk] = memo;   // the first message now gives the corrected list next time
+  if(logPhr[m.mk]) logPhr[m.mk].at = Date.now();
   logQTrim(); logQSavePhr(); logQFixSave();
   const meal = keep ? logQSaveMeal(rows, keep) : null;
   const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k }) + (meal ? ' · ' + t('mealSaved', { n: meal.name }) : keep ? ' · ' + t('logQNoMeal') : '');
-  let undone = false;
-  const undo = () => { if(undone) return; undone = true;
-    const ids = new Set(added.map(e => e.id)); dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog();
-    if(meal){ const i = meals.findIndex(z => z.id === meal.id); if(i > -1){ meals.splice(i, 1); saveMeals(); } }
-    m.state = 'ready'; m.undo = null; x.card.done = ''; x.card.undo = null; renderAll(); logQRedraw(m); };
-  m.undo = undo;
-  m.state = 'logged'; x.card.body = fcHtml(m); x.ch.update(x.card, { done: msg, undo }); renderAll();
+  m.added = { day, ids: added.map(e => e.id), meal: meal ? meal.id : null };
+  const undo = logQUndoOf(m, m.added);
+  m.undo = undo; m.state = 'logged'; x.card.body = fcHtml(m); x.ch.update(x.card, { done: msg, undo }); renderAll();
   toast(msg, t('undo'), undo);
+}
+// a found food saved to My Foods (marked as from Food Coach); the same name + values already saved by Food Coach is not saved twice
+function logQSaveTmp(d){
+  const key = x => [norm(x.name || ''), norm(x.brand || ''), Math.round(+x.kcal || 0), r1(+x.protein || 0), r1(+x.carbs || 0), r1(+x.fat || 0), x.unit === 'ml' ? 'ml' : 'g'].join('|');
+  let f = foods.find(x => x.via === 'coach' && key(x) === key(d));
+  if(!f){ f = saveOnlineFood(d); f.via = 'coach'; saveFoods(); }
+  return f;
+}
+// undo for an added list: removes exactly the entries it added (also after an app restart: the ids are kept with the chat)
+function logQUndoOf(m, a){
+  let undone = false;
+  return () => { if(undone) return; undone = true; const x = FC[m.id];
+    const ids = new Set(a.ids || []); dayLog[a.day] = (dayLog[a.day] || []).filter(e => !ids.has(e.id)); saveLog();
+    if(a.meal){ const i = meals.findIndex(z => z.id === a.meal); if(i > -1){ meals.splice(i, 1); saveMeals(); } }
+    m.state = 'ready'; m.undo = null; m.added = null; if(x){ x.card.done = ''; x.card.undo = null; } renderAll(); logQRedraw(m); };
 }
 
 // wiring (called once from wire/03, where the Log Food sheet is wired): Food Coach answers with logQSend; the rows inside its cards
 function logQWire(){
-  Coach.setup('chef', { kind: 'chef', title: () => t('coachFood'), first: () => t('coachFoodHi'), send: logQSend });
+  Coach.setup('chef', { kind: 'chef', title: () => t('coachFood'), first: () => t('coachFoodHi'), send: logQSend,
+    persist: { load: (id, ch) => logQRestore(ch), save: (id, msgs) => msgs ? logQPersist(msgs) : FoodCoach.chatClear() } });   // Food Coach 2.0: the chat survives a restart (coach.js persist)
   const list = $('coachList');
   const msgOf = el => { const b = el.closest('[data-mid]'); const x = b && FC[b.dataset.mid]; return x ? x.m : null; };
   list.addEventListener('click', e => {
@@ -1027,7 +1153,7 @@ function logQWire(){
     if(e.target.closest('[data-qswap]')){ it.swap = true; logQRedraw(m); focusQ(); return; }
     const pk = e.target.closest('[data-qpick]'); if(pk){ const [src, info] = (it.sres || [])[+pk.dataset.qpick] || []; if(!info) return;
       const g = it.st ? lwCalc(it.st).g : +it.grams || 0;
-      it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; it.swapped = true; it.doubt = false; logQRedraw(m); return; }
+      it.st = logQState(info, g > 0 ? { qty: g, unit: 'g' } : {}); it.src = src; it.swap = false; it.sq = ''; it.swapped = true; it.doubt = false; it.touched = true; it.assumed = ''; logQRedraw(m); return; }
     const st = it.st; if(!st) return;
     const dd = e.target.closest('[data-ldd]'); if(dd){ lddToggle(row, dd); return; }
     const lu = e.target.closest('[data-lu]'); if(lu){ const j = +lu.dataset.lu, g = (+st.n || 0) * st.units[st.u].size, sz = st.units[j].size;

@@ -60,11 +60,11 @@ function mealGuide(det){
   return [...first, ...P.dishes.filter(d => !first.includes(d))].map(one).map(x => '- ' + x).join('\n');
 }
 function mealPrompt(txt, ch, det, extra){
-  const conv = ch && ch.transcript ? ch.transcript() : '', ln = typeof lang !== 'undefined' && lang === 'el' ? 'Greek' : 'English';
+  const conv = typeof logQConv === 'function' ? logQConv(ch) : ch && ch.transcript ? ch.transcript() : '', ln = typeof lang !== 'undefined' && lang === 'el' ? 'Greek' : 'English';
   const hint = typeof logQFixHint === 'function' ? logQFixHint(txt) : '';
   const extras = typeof AI !== 'undefined' ? AI.dietRules() + AI.knows('food') : '';
-  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Calm and precise, straight to the point, no chatting.
-${conv ? `Conversation so far (last messages):\n${conv}\n` : ''}The user's new message: """${txt}"""
+  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights: a knowledgeable coach who feels like a friend. Warm, concise, never judgmental about food, no lectures.
+${conv ? `Recent chat:\n${conv}\n` : ''}The user's new message: """${txt}"""
 The user may write in English, Greek, Greeklish (Greek in Latin letters: "xoirino" = pork, "kotopoulo" = chicken, "kima" = mince, "tost" = toastie, "gala" = milk, "patates" = fries) or a mix, with slang and half sentences.
 First decide what the message is: "log" (they ate or drank something), "suggest" (they ask what to eat next; leave parts empty) or "answer" (any other question; leave parts empty).
 reply: one short line in ${ln}, plain text, no markdown, no emoji, no numbers. Nothing is logged until the user taps Add, so never say you added or logged anything. For "answer" give the answer in at most 60 words.
@@ -174,17 +174,17 @@ function mealFromItems(items, r){
 
 // ---- 5. in the Food Coach chat ----
 // returns true when it handled the message; false = the old Food Coach path takes over (no key, or the answer stayed unreadable)
-async function mealSend(txt, ch, det){
+// Food Coach 2.0: ai = an AI request can go out now (logQAIOk). A dish you added before needs no AI; otherwise ONE call (the provider already moves to
+// the next model when an answer can't be read). A failed call returns { err } so Food Coach answers offline at once instead of asking again.
+async function mealSend(txt, ch, det, ai){
   const key = 'meal:' + norm(txt); let r = Array.isArray((logPhr[key] || {}).parts) ? logPhr[key] : null;   // the same message as before: no AI at all
-  if(!r){ if(!AI.hasKey()) return false;
-    for(let i = 0; i < 2 && !r; i++){
-      try{ const a = await ch.ask(mealPrompt(txt, ch, det, i ? '\nYour last answer could not be read. Return the JSON exactly in the shape shown.' : ''), null, { task: i ? 'food-meal-retry' : 'food-meal' }) || {};
-        const intent = String(a.intent || 'log');
-        if(intent === 'suggest'){ await logQSuggest(ch, logQReply(a.reply)); return true; }
-        if(intent === 'answer' && !mealParts(a.parts)){ ch.say(logQReply(a.reply) || t('coachFail', { e: '?' })); return true; }
-        if(mealParts(a.parts)) r = a; }
-      catch(e){ if(e.cancelled) throw e; if(e.fatal) return false; }
-    }
+  if(!r){ if(ai === false || !AI.hasKey()) return false;
+    try{ const a = await ch.ask(mealPrompt(txt, ch, det, ''), null, { task: 'food-meal' }) || {};
+      const intent = String(a.intent || 'log');
+      if(intent === 'suggest'){ await logQSuggest(ch, logQReply(a.reply)); return true; }
+      if(intent === 'answer' && !mealParts(a.parts)){ ch.say(logQReply(a.reply) || t('aiErrOther')); return true; }
+      if(mealParts(a.parts)) r = a; }
+    catch(e){ if(e.cancelled) throw e; return { err: e }; }
     if(!r) return false;
   }
   return mealShow(txt, ch, det, r);

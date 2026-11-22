@@ -40,6 +40,7 @@ Sync = included in backups and future sync. "Main writers" is a starting point, 
 | aiKnow, drafts, aiUsage, settings, ui, models, account | ft.aiknow.v1 … | one | no (device) | know.js, draft.js, ai-usage.js, ui | never (API key stays on the phone) | — |
 | athleteMem | ft.athletemem.v1 | one | no (device) | js/athlete/memory.js (`AthleteMemory`) | never (Copy as Text in Settings › AI instead) | — |
 | gymCoach | ft.gymcoach.v1 | one `{ v:1, chats, seen, said }` | no (device) | js/gym-intel.js (`GymIntel.chatSave`, `markSeen`, `said`) | never; cleared by Settings › AI › Reset | — |
+| coachChat | ft.coachchat.v1 | one | no (device) | food-coach.js (`chatSave`, `track`), today.js (`logQPersist`) | never | — |
 | (Store internal) | ft.schema, ft.sync.v1, ft.journal.v1, ft.corrupt.* | — | — | store.js | sync table yes; corrupt bytes as `recovery` | — |
 
 Re-importing the same file adds nothing (by id; records without an id are matched by content). Bad records are skipped, not fatal.

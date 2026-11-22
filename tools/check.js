@@ -221,7 +221,7 @@ async function aiTests() {
       return { ok: r.status >= 200 && r.status < 300, status: r.status, json: async () => r.body };
     };
     vm.createContext(c);
-    vm.runInContext(read('js/platform/ai-provider.js') + '\n;this.__P = { AIProvider, GeminiProvider, AnthropicProvider };', c);
+    vm.runInContext(read('js/platform/ai-provider.js') + '\n;this.__P = { AIProvider, GeminiProvider, AnthropicProvider };', c); c.settings.aiKeys = {};
     return { P: c.__P, calls, waits, c, clock: ft.clock };
   };
   const good = (text, usage) => ({ status: 200, body: { candidates: [{ content: { parts: [{ text }] } }], ...(usage ? { usageMetadata: usage } : {}) } });
@@ -286,9 +286,31 @@ async function aiTests() {
   r = mk([good('{"a":1}')]); r.c.settings.modelAdvanced = 'mx'; await r.P.AIProvider.run({ ...req, tier: 'advanced' });
   if (r.calls[0] !== 'mx:generateContent') bad.push('advanced tier ignores settings.modelAdvanced');
   r = mk([good('{"a":1}')]); await r.P.AIProvider.run(req); if (r.calls[0] !== 'm1:generateContent') bad.push('default tier must start with settings.model');
-  // an unimplemented provider says so
+  // a provider without a key refuses at once, without a network call (never a silent switch to another provider)
   r = mk([]); r.c.settings.provider = 'anthropic'; e = await fails(() => r.P.AIProvider.run(req));
-  if (!e || e.kind !== 'unsupported' || r.calls.length) bad.push('Anthropic stub must refuse, not pretend');
+  if (!e || e.kind !== 'auth' || r.calls.length) bad.push('a provider with no key must refuse without calling the network');
+  // Food Coach 2.0: OpenAI-compatible + Anthropic adapters give the same normalized answer, usage and errors
+  r = mk([{ status: 200, body: { choices: [{ message: { content: '{"a":9}' } }], usage: { prompt_tokens: 5, completion_tokens: 3, total_tokens: 8 } } }]);
+  r.c.settings.provider = 'openrouter'; r.c.settings.aiKeys = { openrouter: 'k' }; res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 9 || res.provider !== 'openrouter' || res.usage.total !== 8 || !/chat\/completions/.test(r.calls[0])) bad.push('OpenRouter adapter: answer/usage not normalized');
+  r = mk([{ status: 200, body: { content: [{ type: 'text', text: '{"a":10}' }], usage: { input_tokens: 7, output_tokens: 2 } } }]);
+  r.c.settings.provider = 'anthropic'; r.c.settings.aiKeys = { anthropic: 'k' }; res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 10 || res.usage.total !== 9 || res.usage.input !== 7) bad.push('Anthropic adapter: answer/usage not normalized');
+  r = mk([{ status: 529, body: { error: { type: 'overloaded_error' } } }, { status: 401, body: { error: { message: 'invalid x-api-key' } } }]);
+  r.c.settings.provider = 'anthropic'; r.c.settings.aiKeys = { anthropic: 'k' }; e = await fails(() => r.P.AIProvider.run({ ...req, tier: 'advanced' }));
+  if (!e || e.kind !== 'auth' || !e.fatal) bad.push('Anthropic adapter: 529 must move on, 401 must stop as auth');
+  r = mk([]); r.c.settings.provider = 'openai'; r.c.settings.aiKeys = { openai: 'k' }; e = await fails(() => r.P.AIProvider.run({ ...req, search: true }));
+  if (!e || e.kind !== 'unsupported') bad.push('OpenAI adapter must refuse web search instead of pretending');
+  // quota cooldown: a 429 cools that model; when all are cooling the next request fails at once (no network); the provider's retryDelay is used
+  r = mk([{ status: 429, body: { error: { message: 'quota', details: [{ retryDelay: '40s' }] } } }, { status: 429, body: { error: { message: 'quota' } } }]);
+  e = await fails(() => r.P.AIProvider.run({ ...req, maxModels: 2 }));
+  if (!e || e.kind !== 'rate' || r.calls.length !== 2) bad.push(`maxModels: 2 must stop after 2 tries (${r.calls.length})`);
+  { const n0 = r.calls.length; e = await fails(() => r.P.AIProvider.run({ ...req, maxModels: 2 })); const st = await r.P.AIProvider.status({ maxModels: 2 });
+    if (!e || !e.cooldown || r.calls.length !== n0 || st.ok || st.why !== 'cooling') bad.push('cooldown: a quota-exhausted chain must fail at once without a network call');
+    r.clock.now += 41000; const st2 = await r.P.AIProvider.status({ maxModels: 2 }); if (!st2.ok) bad.push('cooldown must end after the provider\'s retry delay'); }
+  // the same request in flight twice (dedupeKey) = one call
+  r = mk([good('{"a":11}')]); { const [x, y] = await Promise.all([r.P.AIProvider.run({ ...req, dedupeKey: 'q' }), r.P.AIProvider.run({ ...req, dedupeKey: 'q' })]);
+    if (x.json.a !== 11 || y !== x || r.calls.length !== 1) bad.push('dedupeKey: two identical requests in flight must share one call'); }
 
   // telemetry (js/platform/ai-usage.js): counts, tokens only when reported, no message text, 30 days kept
   {
