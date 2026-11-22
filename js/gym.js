@@ -239,7 +239,7 @@ function tickSet(x, s, row, xi, si){
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
-  if(!card && s.type !== 'W' && +s.r === 1) boardCheer(x, s);   // 0.7.9: a ticked single on a board lift = a leaderboard 1RM
+  if(!card && s.type !== 'W' && +s.r === 1 && x.attempt) boardCheer(x, s);   // Refinements #8: only a single ticked with the trophy on is a leaderboard 1RM
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
   if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);

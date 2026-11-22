@@ -396,7 +396,12 @@ $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){
   const pn = e.target.closest('[data-statpin]'); if(pn){ togglePin(pn.dataset.statpin); return; }
   if(e.target.closest('[data-statshuf]')){ Phone.haptic(); ui.statShuf = { d: todayKey(), n: (ui.statShuf && ui.statShuf.d === todayKey() ? ui.statShuf.n : 0) + 1 }; saveUI(); renderProfile(); return; }
   if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
-  const sw = e.target.closest('[data-pfboard]'); if(sw){ Phone.haptic(); ui.pfBoard = sw.dataset.pfboard; saveUI(); renderProfile(); } });   // 0.7.10: Max PR | Strength, remembered
+  // Refinements #8: the leaderboard lift menu (Bench Press, Deadlift, Squat) and a row tap showing the date it was lifted
+  if(e.target.closest('[data-lbpill]')){ Phone.haptic(); const p = e.target.closest('.lbpick'); lbMenu(!p.classList.contains('open')); return; }
+  const lb = e.target.closest('[data-lblift]'); if(lb){ lbPick(lb.dataset.lblift); return; }
+  const lr = e.target.closest('[data-lbrow]'); if(lr){ lr.classList.toggle('showd'); return; } });
+document.addEventListener('pointerdown', e => { if(!e.target.closest('.lbpick')) lbMenu(false); }, true);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') lbMenu(false); });
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
 $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });

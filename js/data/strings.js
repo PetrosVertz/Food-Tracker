@@ -501,7 +501,6 @@ Object.assign(S, {
   gcLiveAlready: ['A workout is already running. Finish it first, or Save this one for later.', 'Τρέχει ήδη μια προπόνηση. Τελείωσέ την πρώτα ή αποθήκευσε αυτή για αργότερα.'],
   gcRepRange: ['Rep Range', 'Εύρος επαναλήψεων'], gcRepsAuto: ['Auto: follows Intensity', 'Αυτόματο: ακολουθεί την ένταση'], gcRepsN: ['{r} reps on working sets', '{r} επαναλήψεις στα κύρια σετ'],
   // 0.7.9 leaderboards: real 1RMs only
-  pfBoardsEmpty: ['No 1RM yet. Add one you\'ve lifted, or tick a single rep at a heavy weight in a workout, and it shows up here.', 'Δεν υπάρχει ακόμα 1RM. Πρόσθεσε ένα που έχεις σηκώσει ή τσέκαρε μία επανάληψη με βαρύ κιλό σε προπόνηση και θα εμφανιστεί εδώ.'],
   ormAdd: ['Add a 1RM', 'Προσθήκη 1RM'], ormSub: ['The most you lifted for one clean rep.', 'Το περισσότερο που σήκωσες για μία σωστή επανάληψη.'],
   ormLift: ['Lift', 'Άσκηση'], ormWeight: ['Weight (kg)', 'Βάρος (kg)'], ormDate: ['Date', 'Ημερομηνία'],
   ormBwHint: ['Pull-ups: enter only the weight you added. Your body weight ({bw} kg) is counted for you.', 'Έλξεις: γράψε μόνο το βάρος που πρόσθεσες. Το σωματικό σου βάρος ({bw} kg) μετράει αυτόματα.'],
@@ -688,10 +687,7 @@ Object.assign(S, {
   rkSub: ['Every exercise you have done, with the rank you hold in it.', 'Κάθε άσκηση που έχεις κάνει, με την κατάταξη που κατέχεις.'],
   rkPicked: ['{n} of 3 chosen', '{n} από 3 επιλεγμένες'], rkMax: ['Pick up to 3. Tap one to remove it first.', 'Έως 3. Πάτα μία για να την αφαιρέσεις πρώτα.'], rkNone: ['No exercises found.', 'Δεν βρέθηκαν ασκήσεις.'],
   rkSearch: ['Search Exercises', 'Αναζήτηση Ασκήσεων'],
-  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Your heaviest single (one rep) per lift, entered by you or ticked in a workout. With friends soon.', 'Το βαρύτερο μονό σου (μία επανάληψη) ανά άσκηση, που το έγραψες εσύ ή το τσέκαρες σε προπόνηση. Με φίλους σύντομα.'],
-  pfMChest: ['Chest', 'Στήθος'], pfMQuads: ['Quads', 'Τετρακέφαλοι'], pfMBack: ['Back', 'Πλάτη'],
-  pfMaxPR: ['Max PR', 'Μέγιστο Ρεκόρ'], pfStrength: ['Strength', 'Δύναμη'], pfXBw: ['× body weight', '× βάρος σώματος'],
-  pfBoardsSubStr: ['Your heaviest single divided by your body weight, so a lighter lifter can top the board. With friends soon.', 'Το βαρύτερο μονό σου διαιρεμένο με το βάρος σώματός σου, ώστε και ένας ελαφρύτερος αθλητής να είναι πρώτος. Με φίλους σύντομα.'],
+  pfBoards: ['Leaderboards', 'Κατατάξεις'], pfBoardsSub: ['Friends ranked by their heaviest tested single. Only singles lifted with the trophy on, or added as a 1RM, count.', 'Οι φίλοι κατά το βαρύτερο δοκιμασμένο μονό τους. Μετράνε μόνο μονά με το τρόπαιο ανοιχτό ή όσα πρόσθεσες ως 1RM.'],
   pfStats: ['Stats', 'Στατιστικά'], pfWeight: ['Body Weight', 'Βάρος Σώματος'], pfNoWeight: ['Weigh in twice to see your trend.', 'Ζυγίσου δύο φορές για να δεις την πορεία σου.'],
 });
 
@@ -854,6 +850,12 @@ Object.assign(S, {   // Refinements #7: Strength by Muscle rows with a trend lin
   sbmFeeds: ['Exercises In This Line', 'Ασκήσεις Σε Αυτή Τη Γραμμή'],
   sbmHow: ['From your estimated one rep max on each exercise, weighted by how much it works this muscle. The % is the change since your first reading. Green or red is the last two weeks; gray means no change, or no workout for this muscle in two weeks.',
     'Από την εκτιμώμενη μέγιστη επανάληψη σε κάθε άσκηση, ανάλογα με το πόσο δουλεύει αυτόν τον μυ. Το % είναι η αλλαγή από την πρώτη μέτρηση. Πράσινο ή κόκκινο δείχνει τις δύο τελευταίες εβδομάδες· γκρι σημαίνει καμία αλλαγή ή καμία προπόνηση για αυτόν τον μυ σε δύο εβδομάδες.'],
+});
+Object.assign(S, {   // Refinements #8: the Social Hub leaderboard (one rep max only, friends)
+  lbNoneYet: ['No One Rep Maxes Yet', 'Δεν Υπάρχουν Ακόμα Μέγιστα'], lbNoneSub: ['Lift a single with the trophy on, or add a 1RM, and the board starts.', 'Σήκωσε ένα μονό με το τρόπαιο ανοιχτό ή πρόσθεσε ένα 1RM και ο πίνακας ξεκινά.'],
+  lbNoFriends: ['Friends join this board once accounts arrive. For now it shows you.', 'Οι φίλοι μπαίνουν εδώ μόλις έρθουν οι λογαριασμοί. Για τώρα δείχνει εσένα.'],
+  lbJoin: ['Tick One Rep Max On A Set To Join', 'Σημείωσε Μέγιστη Επανάληψη Σε Ένα Σετ Για Να Μπεις'],
+  lbJoinHow: ['Turn on Leaderboard Attempt in Exercise Settings, then tap the trophy on the lift.', 'Άνοιξε την Προσπάθεια Κατάταξης στις Ρυθμίσεις Ασκήσεων και πάτα το τρόπαιο στην άσκηση.'],
 });
 Object.assign(S, {   // Refinements #8: Workout Done (rank ups, the Gym Coach's recovery line) and the Rank Up screens
   rfxNext: ['Next', 'Επόμενο'], smRankUp1: ['Rank Up', 'Άνοδος Κατάταξης'], smRankUps: ['Rank Ups', 'Άνοδοι Κατάταξης'],
