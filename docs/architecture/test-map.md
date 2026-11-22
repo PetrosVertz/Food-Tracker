@@ -9,6 +9,7 @@
 | `node tools/sw-test.js` | <1 s | sw.js offline/update rules |
 | `node tools/exsearch-test.js` | <1 s | exercise search answers + speed |
 | `node tools/meal-test.js` | <1 s | Food Coach meal maths |
+| `node tools/athlete-test.js` | <1 s | Athlete OS: events from real saves, imports, state (missing stays missing, conflicts), context (cross-coach, budget, permissions, cache), memory rules EN + GR, injection, supervisor (one call, validation, escalation, failures), 2-year history |
 | `node tools/overlap.js`, `tools/topstrip.js`, `tools/form-review.js` | varies | layout / visual helpers (Playwright), run by hand for UI work |
 
 *measured in the cloud container, 2026-11-22. Before V3: `check.js` ~37 s (real AI back-off waits), `--boot` ~43 s with one date-dependent failure.
@@ -16,6 +17,7 @@
 ## By change type
 - **Storage, backup, import, schema**: `tools/store-test.js` first; add a case that fails before your fix. Then `--boot --strict`. For a new migration: test old data, rerun (idempotent), failed write (schema must not advance).
 - **AI features**: AI provider checks (fake network + clock: no key needed). Never real sleeps in tests.
+- **Athlete OS / coach context**: `tools/athlete-test.js` first (fake AI counts calls). A new event type, slice, part or specialist gets a case there.
 - **UI**: `--boot --strict`, plus screenshots at 390×844 in dark + light and EN + GR for the screens you touched; drags checked frame by frame (CLAUDE.md).
 - **Offline / sw.js**: `tools/sw-test.js`. The real update-while-working-out path needs https and a phone: **manual**.
 
