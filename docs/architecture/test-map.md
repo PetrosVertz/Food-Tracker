@@ -10,6 +10,7 @@
 | `node tools/exsearch-test.js` | <1 s | exercise search answers + speed |
 | `node tools/meal-test.js` | <1 s | Food Coach meal maths |
 | `node tools/athlete-test.js` | <1 s | Athlete OS: events from real saves, imports, state (missing stays missing, conflicts), context (cross-coach, budget, permissions, cache), memory rules EN + GR, injection, supervisor (one call, validation, escalation, failures), 2-year history |
+| `node tools/gym-coach-test.js` | <1 s | Gym Coach intelligence on the real gym.js / gym-intel.js code: progression (new, weights+reps only, weeks of logs, RIR, stopped RIR, one weak day, two, break), evidence, Recovery+ missing/stale/conflicting, live fatigue and order, hints (rare, once), proposals (invalid exercises, numbers, approval only on Apply, undo), follow-ups, chat memory across a restart, offline answers, Greek, prompt size |
 | `node tools/overlap.js`, `tools/topstrip.js`, `tools/form-review.js` | varies | layout / visual helpers (Playwright), run by hand for UI work |
 
 *measured in the cloud container, 2026-11-22. Before V3: `check.js` ~37 s (real AI back-off waits), `--boot` ~43 s with one date-dependent failure.
@@ -26,7 +27,7 @@
 - Service worker in a real browser (the app registers it only on https).
 - Two tabs open at once (no cross-tab protection exists yet; see decisions.md D5).
 - Set completion double-tap: a set is a toggle on one stored object, so it cannot be saved twice, but a fast double tap un-ticks it (no automated test).
-- Gym Coach / Food Coach answer quality (needs a real key).
+- Gym Coach / Food Coach answer quality with a real model (needs a real key); `tools/gym-coach-test.js` checks what goes into the prompt and what comes back out.
 
 ## Performance baseline (Chromium, 390×844, 9 runs, p50 / p95)
 | Data | Start-up before | Start-up after | Save diary | Save sessions |

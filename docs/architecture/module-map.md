@@ -3,7 +3,7 @@
 Source-verified 2026-11-22 (v0.7.10.7 + V3 hardening). **The code wins over this page**: if a path or symbol here is wrong, grep, fix the code task, then fix this row. `node tools/check.js` fails when a path or `name()` below stops existing.
 
 All scripts are classic browser scripts sharing one global scope, loaded in the order of `index.html`:
-config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
+config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features (`gym-intel` right after `gym`) → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
 
 ## Routing table
 
@@ -22,7 +22,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Rank (live) | gym | `js/gym.js` › `tierFor()`; `js/rank-fx.js` | — (derived) | Social Hub, live workout | `check.js` rank, rank plates |
 | Rank v2 (OFF, not live) | gym | `js/rank-engine.js`, `js/rank-v2.js`, `js/data/rank-bench.js` | — | nothing yet | `check.js` "rank v2 (not live)" |
 | Progress page | gym | `js/progress.js` › `renderProgress()`; `bodyW()`, `e1rm()` in wire/04 | — (derived) | — | boot |
-| Gym Coach | gym | `js/gym.js` › `gymCoachSend()`, `gymLiveSend()`, `gcContext()`, `gcPrompt()`; setup in wire/04 | — (suggestions applied only by the user) | — | — (manual) |
+| Gym Coach | gym | `js/gym.js` › `gymCoachSend()`, `gymLiveSend()`, `gcPrompt()`, `gcLivePrompt()`, `gcChangeCard()`, `gcNudgeCheck()`; intelligence `js/gym-intel.js` › `GymIntel` (progression, evidence, live, nudge, proposal, applyOp, recovery, brief); setup in wire/04 | gymCoach (device only); live changes only through the card's Apply (undo kept) | live workout hints (`suggestFor`) | `tools/gym-coach-test.js` |
 | Coach chat window (shared) | shell | `js/coach.js` › `Coach` | — | Food Coach, Gym Coach | boot |
 | What the AI knows | shell | `js/know.js` › `Know` | aiKnow (device only) | coach prompts via `AI.knows` | — |
 | Athlete OS (events, state, context, memory, supervisor) | shell | `js/athlete/events.js` › `AthleteEvents`; `js/athlete/state.js` › `AthleteState`; `js/athlete/context.js` › `AthleteContext`; `js/athlete/memory.js` › `AthleteMemory`; `js/athlete/supervisor.js` › `Supervisor`; hook `Store.onChange` | athleteMem (device only); reads everything else | every coach prompt via `AI.knows(topic, specialist)`, coach chat (`js/coach.js`), Fridge AI (`sgGo`, `suggestBtn`), Settings › AI › What You Told the Coaches (`drawAiMem()` in wire/08) | `tools/athlete-test.js` |
@@ -46,6 +46,6 @@ RECOVERY+, Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava 
 
 **2. Food Coach answer quality.** Open `js/today.js` › `logQPrompt()`, `logQSend()`, `logQReply()`; meals `js/meal.js`; facts via `AI.knows` (`js/know.js`); the request goes through `gemini()` (= `AI.ask`) → `AIProvider.run()` (deadline, retries, usage) — never `fetch` directly. Safety: the coach only proposes; diary writes happen in the card's log action with undo (`dayLog` + `saveLog()`), so a prompt/provider change cannot write food logs by itself. Gates: `tools/meal-test.js`, AI provider checks; manual: a few real chats.
 
-**3. RECOVERY+ consumer.** Training facts: `sessions` (completed sets only: `s.done`), `active`; current derived recovery: `js/gym.js` › `headLoads()`, `estimateRecovery()`, `headFatigue()`. RECOVERY+ will replace these as the ONE recovery owner (see contracts.md › Planned) and expose a versioned read-only snapshot; Gym Coach (`gcContext()`) and rank must read that snapshot, never re-compute, and "unknown" must stay unknown (never "ready"). Gates: new pure tests next to the engine (like `tools/store-test.js`), boot, manual anatomy check.
+**3. RECOVERY+ consumer.** Training facts: `sessions` (completed sets only: `s.done`), `active`; current derived recovery: `js/gym.js` › `headLoads()`, `estimateRecovery()`, `headFatigue()`. RECOVERY+ will replace these as the ONE recovery owner (see contracts.md › Planned) and expose a versioned read-only snapshot; Gym Coach (already through `GymIntel.recovery()`, js/gym-intel.js) and rank must read that snapshot, never re-compute, and "unknown" must stay unknown (never "ready"). Gates: new pure tests next to the engine (like `tools/store-test.js`), boot, manual anatomy check.
 
 Baseline before this map (measured in this session, 2026-11-22): finding the importer, Store callers and AI call path needed ~12 grep/read steps over 45 scripts; with this table each route above starts from 2–4 named files.

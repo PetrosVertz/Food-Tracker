@@ -381,13 +381,17 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 
 // ---------- 0.7.4.3 Gym Coach (the shared coach chat, sweatband robot) ----------
 // 0.7.9.6: suggestion chips under the opening message (Improve only once there is a saved workout)
-const gcStarters = () => [t('gcAskW'), ...(tpls.length ? [t('gcAskImp')] : []), t('gcAskSets')];
-Coach.setup('gym', { kind: 'gym', send: gymCoachSend, starters: gcStarters });
+// Gym Coach intelligence: a How Did It Go? chip for 3 days after a finished workout; the chats come back after a restart (GymIntel memory, this phone only;
+// the live workout's chat only while that same workout is running)
+const gcStarters = () => [t('gcAskW'), ...(tpls.length ? [t('gcAskImp')] : []), ...(sessions.some(s => s.date && -daysUntil(s.date) <= 3) ? [t('gcAskDeb')] : []), t('gcAskSets')];
+const gcScope = id => id === 'gymlive' ? (active && active.id) || 'none' : null;
+const gcPersist = { load: id => GymIntel.chatLoad(id, gcScope(id)), save: (id, msgs) => GymIntel.chatSave(id, msgs, gcScope(id)) };
+Coach.setup('gym', { kind: 'gym', send: gymCoachSend, starters: gcStarters, persist: gcPersist });
 // the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
 // 0.7.8: the Start Workout window's own chat: opened from the robot in its title bar, no floating bubble
-Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend, starters: gcStarters });
+Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend, starters: gcStarters, persist: gcPersist });
 $('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymstart'); });
-Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend });
+Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend, persist: gcPersist });
 
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
 // 0.7.9 leaderboards: Add a 1RM
