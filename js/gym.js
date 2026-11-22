@@ -119,7 +119,7 @@ let EMPTY_START = false;
 function gymEmptyBack(){ if(!EMPTY_START) return; EMPTY_START = false;
   setTimeout(() => { if(!active || active.exercises.length) return; gymDropEmpty(); close('ovSession'); renderAll(); }, 0); }
 
-function openSession(){ if(!active) return; renderSession(); open('ovSession'); fitPages(); keepAwake(true); }   // fitPages after open: the window only has a height once it is showing
+function openSession(){ if(!active) return; renderSession(); open('ovSession'); fitPages(); revealLists(); keepAwake(true); }   // fitPages after open: the window only has a height once it is showing
 
 // the sweatband robot in a title bar (live workout header, Start Workout window)
 function gymHeadRobot(id){ const cb = $(id); if(id === 'sesCoach' && cb.querySelector('svg.robot')) return; cb.innerHTML = AI.robot('gym', id === 'sesCoach' ? 54 : 30); cb.setAttribute('aria-label', t('coachBubA', { n: t('coachGym') })); }
@@ -136,23 +136,51 @@ function renderSession(){
   if(!active.clock0 && active.exercises.length){ active.clock0 = Date.now(); saveG('act'); }   // 0.6.0: the clock starts with the first exercise
   normalizeSS(active.exercises);
   const shown = active.exercises.map((x, i) => cardHtml(x, i)).join(''), body = $('sesBody'), st = body.scrollTop;
+  const lst = {}, cst = {}; body.querySelectorAll('.setlist').forEach(l => { lst[l.dataset.sl] = l.scrollTop; cst[l.dataset.sl] = l.parentElement.scrollTop; });   // each card's own set list (and a card scrolling inside itself) keeps where it was
   body.innerHTML = shown || `<div class="empty">${t('noExYet')}</div>`;
   SES_ADD = SES_ADD || $('sesAddEx'); body.appendChild(SES_ADD);   // Add Exercise is the last page, under the last exercise
-  body.scrollTop = st; fitUniTicks(); fitPages(); markPages();
+  body.scrollTop = st; fitUniTicks(); fitPages();
+  body.querySelectorAll('.setlist').forEach(l => { if(lst[l.dataset.sl] !== undefined){ l.scrollTop = lst[l.dataset.sl]; l.parentElement.scrollTop = cst[l.dataset.sl]; } });
+  revealLists(); markPages();
 }
+// a set was added, finished or removed (or the workout was just opened / resumed): bring the set you work on next into its list's view.
+// Never when only a value changed, so reading old sets is not interrupted. A list with no size yet (window still closed) does not count as seen.
+function revealLists(){ if(!active) return; $('sesBody').querySelectorAll('.setlist').forEach(l => { const x = active.exercises[+l.dataset.sl]; if(!x || !l.clientHeight) return;
+  const sig = x.sets.length + ':' + x.sets.filter(s => s.done).length; if(SET_SIG.get(x) !== sig){ SET_SIG.set(x, sig); listReveal(l); } }); }
 // the pages: room under the last card so the Add Exercise page can reach the top like every other page (the card sizes are natural; only the peek above is fixed)
-// Petros: the card you are on rests at the BOTTOM, DOCKGAP above the bottom card (room for the Swipe tip); the card above shows over it.
-// The first card gets room on top so it can rest there too; a card taller than the screen rests at the top instead (.tall).
-const PEEK = 64, DOCKGAP = 40;
+// Active Exercise card cap: a card rests centred between the top gap and DOCKGAP above the bottom card (room for the Swipe tip and the timer);
+// it grows both ways until it reaches either edge and then stops there (--cardmax). Past that, its set list scrolls inside the card and the older
+// finished sets are drawn compact (.capped), so the title, the set you are working on and New Set / End Exercise always stay on screen, apart from the timer.
+// A page too short for that (a phone on its side) scrolls the whole card inside itself with the buttons pinned (.short); only an absurdly short one (< 96 px) lets the card run past the screen (.tall).
+const PEEK = 64, DOCKGAP = 40, CARDTOP = 8, CARDMIN = 240, LISTMIN = 112;
+const SET_OPEN = new WeakSet(), SET_SIG = new WeakMap();   // screen state only: finished sets reopened from compact, last set count / done count per exercise
 function fitPages(){ const body = $('sesBody'), add = $('sesAddEx'); if(!body || !add.isConnected) return;
-  body.style.setProperty('--peek', PEEK + 'px'); body.style.setProperty('--dockgap', DOCKGAP + 'px');
-  const H = body.clientHeight, cards = body.querySelectorAll(':scope>.exc');
-  cards.forEach(c => c.classList.toggle('tall', c.offsetHeight > H - DOCKGAP - 8));
-  body.style.setProperty('--lead', (cards[0] && !cards[0].classList.contains('tall') ? Math.max(0, H - DOCKGAP - 8 - cards[0].offsetHeight) : 0) + 'px');   // room above the first card (a margin: padding would stretch the page)
+  body.style.setProperty('--peek', PEEK + 'px'); body.style.setProperty('--dockgap', DOCKGAP + 'px'); body.style.setProperty('--cardtop', CARDTOP + 'px');
+  const H = body.clientHeight, room = H - DOCKGAP - CARDTOP, cards = body.querySelectorAll(':scope>.exc'), capOk = room >= CARDMIN, tiny = room < 96;
+  body.style.setProperty('--cardmax', tiny ? 'none' : room + 'px');
+  // read the natural height with nothing compact (one read per card per fit, never per frame), then write the classes
+  cards.forEach(c => c.classList.remove('capped', 'short'));
+  const nat = [...cards].map(c => { const l = c.querySelector(':scope>.setlist'); return l ? c.offsetHeight - l.clientHeight + l.scrollHeight : c.offsetHeight; });
+  // too short even for the title + one set + the buttons (a phone on its side): the whole card scrolls inside itself, New Set / End Exercise stay pinned at its foot (.short)
+  cards.forEach((c, i) => { const over = nat[i] > room; c.classList.toggle('capped', !tiny && over); c.classList.toggle('short', !tiny && !capOk && over); c.classList.toggle('tall', tiny && over); c.classList.remove('tight'); });
+  // a short page: when the capped list cannot show one whole set, the card's header and footer pack tighter (.tight); one more read, then writes
+  const lists = [...cards].map(c => c.classList.contains('capped') ? c.querySelector(':scope>.setlist') : null), lh = lists.map(l => l ? l.clientHeight : 1e9);
+  cards.forEach((c, i) => { if(lh[i] < LISTMIN || c.classList.contains('short')) c.classList.add('tight'); });
+  const h0 = cards[0] ? cards[0].offsetHeight : 0;
+  body.style.setProperty('--lead', (cards[0] && !cards[0].classList.contains('tall') ? Math.max(0, (room - h0) / 2) : 0) + 'px');   // room above the first card so it can rest centred too (a margin: padding would stretch the page)
   body.style.paddingBottom = Math.max(0, H - add.offsetHeight - PEEK) + 'px'; }
+// scroll a card's own set list (never the page) so `row` (default: the first unfinished set, else the last) is fully in view
+// (on a phone on its side the whole card is the scroller and its pinned buttons cover the foot)
+function listReveal(list, row){ if(!list) return; const card = list.closest('.exc'), sc = card.classList.contains('short') ? card : list; if(sc.scrollHeight <= sc.clientHeight + 1) return;
+  row = row || list.querySelector('.setrow:not(.done)') || [...list.querySelectorAll('.setrow')].pop(); if(!row) return;
+  // layout offsets (the card is the rows' offsetParent), not screen boxes: the window's opening animation scales the sheet
+  const head = sc === list ? list.querySelector('.sethead') : null, foot = sc === card ? card.querySelector(':scope>.exfoot') : null, top0 = head ? head.offsetHeight : 0, bot0 = foot ? foot.offsetHeight : 0;
+  const base = sc === card ? 0 : list.offsetTop + list.clientTop, top = row.offsetTop - base;
+  let bot = top + row.offsetHeight, tgt = row.nextElementSibling; while(tgt && !tgt.matches('.setrow')){ bot = Math.max(bot, tgt.offsetTop - base + tgt.offsetHeight); tgt = tgt.nextElementSibling; }   // its half reps / rest timer underneath come along
+  const v0 = sc.scrollTop + top0, v1 = sc.scrollTop + sc.clientHeight - bot0;
+  if(top < v0) sc.scrollTop = top - top0; else if(bot > v1) sc.scrollTop += Math.min(bot - v1, top - v0); }
 // bring an exercise (or the Add page) to where it rests
-function showCard(el, smooth){ if(!el) return; el.scrollIntoView({ behavior: smooth === false ? 'auto' : 'smooth', block: el.matches('.exc:not(.tall)') ? 'end' : 'start' }); }
-addEventListener('resize', () => { if(active) fitPages(); });
+function showCard(el, smooth){ if(!el) return; el.scrollIntoView({ behavior: smooth === false ? 'auto' : 'smooth', block: el.matches('.exc:not(.tall)') ? 'center' : 'start' }); }
 // at rest only the card you are on (and the bottom of the one above) shows; the cards below fade in while you swipe (opacity only).
 // The tip above the bottom card says Swipe For Next when there is another exercise below, else Swipe To Add.
 function markPages(){ const body = $('sesBody'); if(!body) return; const r = body.getBoundingClientRect(), line = r.bottom - DOCKGAP - 24, cards = [...body.querySelectorAll(':scope>.exc')];
@@ -193,7 +221,8 @@ function tickClock(){ if(!active || !$('ovSession').classList.contains('open')) 
   $('sesClock').textContent = clk(sesMs());
   document.querySelectorAll('#sesBody [data-xt]').forEach(el => { const x = active.exercises[+el.dataset.xt]; if(x && x.t0) el.textContent = exTime(x); }); }
 
-function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(`.exc[data-x="${xi}"] .setrow[data-s="${si}"] [data-w]`); if(el){ el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 60); }
+function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(`.exc[data-x="${xi}"] .setrow[data-s="${si}"] [data-w]`); if(!el) return;
+  if(el.closest('.exc.capped')) listReveal(el.closest('.setlist'), el.closest('.setrow')); else el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); }   // a card at its height limit scrolls only its own set list
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
@@ -861,7 +890,9 @@ function cardHtml(x, i){
   let info = '';
   if(gOn('tips') && !x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
   const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !hideM('W') && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
-  let n = 0, prevVals = null;
+  let n = 0, prevVals = null, lastDone = -1; x.sets.forEach((s, j) => { if(s.done) lastDone = j; });
+  // an L/R pair stays together: the newest finished pair is never compacted
+  if(lastDone > 0 && x.sets[lastDone].side === 'R' && x.sets[lastDone - 1].side === 'L') lastDone--;
   const rows = x.sets.map((s, j) => {
     if(isMainSet(s)) n++;
     let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
@@ -874,7 +905,9 @@ function cardHtml(x, i){
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     const merge = gOn('uniBoth') && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = gOn('uniBoth') && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
     const xtra = extrasHtml(s, j);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
-    return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
+    // a finished set older than the newest finished one may be drawn compact when the card is at its height limit (.exc.capped); reopened rows stay full (SET_OPEN: screen state only, never saved)
+    const old = s.done && j < lastDone && !SET_OPEN.has(s) ? ' old' : '';
+    return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
@@ -882,10 +915,10 @@ function cardHtml(x, i){
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${x.uni && gOn('uniBoth') ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    ${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
-    ${rows}
+    <div class="setlist" data-sl="${i}">${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
+    ${rows}</div>
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
-      : `${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button>`}</div>`;
+      : `<div class="exfoot">${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button></div>`}</div>`;
 }
 
 // rest bracket: a thin blue box under the set just finished; the outline draws in, then burns from the left to meet on the right at 0:00

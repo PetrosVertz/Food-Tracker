@@ -700,6 +700,40 @@ body.inses .coachbub{display:none!important}
 /* Petros: the exercise you are on rests at the bottom, right above "Swipe For Next" (the card above shows over it); a card taller than the screen rests at the top */
 #ovSession #sesBody>.exc{scroll-snap-align:end;scroll-margin-bottom:var(--dockgap,40px)}
 #ovSession #sesBody>.exc.tall{scroll-snap-align:start}
+/* Active Exercise card cap: the card rests centred in the room between --cardtop and --dockgap (fitPages), grows both ways and stops at --cardmax;
+   past that only its set list scrolls, inside the card, so the title, the set you are on and New Set / End Exercise stay on screen apart from the timer */
+#ovSession #sesBody{scroll-padding:var(--cardtop,8px) 0 var(--dockgap,40px)}
+#ovSession #sesBody>.exc:not(.tall){scroll-snap-align:center;scroll-margin:0;max-height:var(--cardmax,none)}
+#ovSession #sesBody>.exc>*{flex:0 0 auto}
+#ovSession #sesBody>.exc>.setlist{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;gap:var(--s2);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;margin:0 calc(-1 * var(--s1));padding:0 var(--s1)}
+#ovSession #sesBody>.exc>.setlist>*{flex:0 0 auto}
+#ovSession #sesBody>.exc.capped>.setlist{flex:1 1 auto}
+#ovSession #sesBody>.exc.capped>.setlist>.sethead{position:sticky;top:0;z-index:2;background:var(--t-card);padding-bottom:2px}
+/* compact finished sets (older than the newest finished one): set number / type, kg, reps and the tick stay; −/+ hide until the row is reopened */
+.exc.capped .setrow.old .gymsbox{height:28px}
+#ovSession #sesBody>.exc.capped>.setlist>.setrow.old+.setrow.old{margin-top:-4px}
+.exc.capped .setrow.old .gymsbox button{visibility:hidden;flex-basis:12px}
+.exc.capped .setrow.old .gymsbox input{font-size:14px}
+.exc.capped .setrow.old .snum{width:26px;height:26px;font-size:13px}
+.exc.capped .setrow.old.pair .snum{width:38px}
+.exc.capped .setrow.old .sok{height:28px}
+.exc.capped .setrow.old .sok svg{width:15px;height:15px}
+.exc.capped .setrow.old.lmerge .sok{height:calc(28px*2 + var(--s2));margin-bottom:calc(-28px - var(--s2))}
+.exfoot{display:flex;flex-direction:column;gap:var(--s2)}
+/* a phone on its side: the whole card scrolls inside itself and New Set / End Exercise stay pinned at its foot */
+#ovSession #sesBody>.exc.short{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+#ovSession #sesBody>.exc.short>.setlist{flex:0 0 auto;overflow:visible}
+#ovSession #sesBody>.exc.short>.setlist>.sethead{position:static}
+#ovSession #sesBody>.exc.short>.exfoot{position:sticky;bottom:calc(-1 * var(--s3));z-index:3;margin:0 calc(-1 * var(--s4)) calc(-1 * var(--s3));padding:var(--s2) var(--s4) var(--s3);background:var(--t-card)}
+/* a short page (small phone, keyboard up): header and footer pack tighter so one whole set still shows; New Set and End Exercise share a line */
+#ovSession #sesBody>.exc.tight{gap:6px;padding-top:var(--s3);padding-bottom:var(--s3)}
+.exc.tight .exname{font-size:22px!important}
+.exc.tight .exhead{gap:2px;margin-bottom:0}
+.exc.tight .expills{margin-top:2px}
+.exc.tight .tierneed{display:none}
+.exc.tight .exfoot{flex-direction:row}
+.exc.tight .exfoot>button{flex:1 1 auto;min-width:0;margin-top:0;padding:0 var(--s3);white-space:nowrap;font-size:14px}
+.exc.tight .exfoot>.newset{flex:0 1 auto}
 #ovSession #sesBody>.exc:first-child{margin-top:var(--lead,0px)}
 #ovSession #sesBody>.addexbig{visibility:hidden;border:0;min-height:88px}   /* the last page is only the landing spot for the swipe; the tip above the bottom card is what you see */
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
