@@ -8,7 +8,7 @@
 //                                       a small change to the list on screen ("make it 200g", "add another toast", "remove the bar")
 //   FoodCoach.quick(text)            → { kind: 'thanks' | 'hi' | 'last' | 'today', key } | null   answered without AI
 //   FoodCoach.check(item)            → { item, doubt }   one food's values made consistent (no second AI call); unknown stays null
-//   FoodCoach.context()              → one short text: targets, what is logged (marked incomplete), gym / rest day, rules, what the app learned
+//   FoodCoach.context()              → one short text: what is logged (marked incomplete), targets, rules + the Athlete OS context (AI.knows)
 //   FoodCoach.chatLoad() / chatSave(list)   the Food Coach chat on this phone (Store 'coachChat', never synced, kept 2 days)
 //   FoodCoach.track(path, ms, calls) / stats()   end-to-end answer times by path ('local' | 'memory' | 'ai' | 'offline'), p50 / p95
 
@@ -183,13 +183,15 @@ const FoodCoach = (() => {
   const usable = x => x && x.kcal != null && ['protein', 'carbs', 'fat'].some(k => x[k] != null);
 
   // ---- 5. the short context the AI gets (read-only; the app's own numbers; nothing copied anywhere) ----
-  // Athlete OS is planned, not built: these are the existing owners (targets, the diary, the Gym / Rest Day label, Food Preferences, what the app learned).
+  // The day's logged totals are Food Coach's own part: Athlete OS skips 'nutrition' for this coach (supervisor.js) because this line has it.
   function context(){
     const out = [];
     try{
       const d = curDay, tg = targetFor(d), tot = dayTotals(d), st = dayStatus(d), today = d === todayKey(), n = (dayLog[d] || []).length;
       const trained = (typeof sessions !== 'undefined' ? sessions : []).some(s => s && s.date === d && s.end);
-      out.push(`${today ? 'Today' : 'Day ' + d}: ${st.type === 'gym' ? 'training day' + (trained ? ' (workout done)' : st.time ? ` (gym at ${st.time})` : '') : 'rest day'}.`);
+      // Athlete OS (js/athlete) owns today's schedule, workout and recovery and sends them in AI.knows('food'): not repeated here. Without it,
+      // or for another day you are logging, the plain Gym / Rest Day label is used.
+      if(!(today && typeof AthleteContext !== 'undefined')) out.push(`${today ? 'Today' : 'Day being logged ' + d}: ${st.type === 'gym' ? 'training day' + (trained ? ' (workout done)' : st.time ? ` (gym at ${st.time})` : '') : 'rest day'}.`);
       out.push(n ? `Logged so far (${n} entries; may be incomplete — unlogged food is unknown, never a deficit): ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)} g, C ${Math.round(tot.c)} g, F ${Math.round(tot.f)} g.` : 'Nothing logged yet for this day (unknown, not zero eaten).');
       if(tg) out.push(`Targets: ${tg.k} kcal, P ${tg.p} g, C ${tg.c} g, F ${tg.f} g.`);
     }catch(e){}

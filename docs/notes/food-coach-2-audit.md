@@ -37,7 +37,7 @@ Worst case with Gemini down: about 5 minutes of waiting, 5 calls, then "Not foun
 - `AIProvider` normalized request/response/errors, usage telemetry without message text, cancel by `AbortSignal`.
 - The card UI (rows, units, cooking slider, swap search, Add / Add & Save, undo) and the robots.
 - "Nothing is logged until Add" and undo; corrections memory (`foodFix`); built-in foods and portions; meal engine for known dishes.
-- Athlete OS is **not built** (contracts.md › Planned). The existing read-only sources are used: `targetFor`, `dayTotals`, `dayStatus`, `AI.knows('food')`, `AI.dietRules()`.
+- Athlete OS (merged into main while this branch was in progress, `js/athlete/*`) is used through its existing door: the coach window asks via `Supervisor.ask`, and `AI.knows('food')` brings its permission-filtered context (schedule, goals, notes, patterns; training/recovery only for a training question). Food Coach adds only what Athlete OS leaves to it: the day's logged totals, marked as possibly incomplete. Without Athlete OS (tests) it falls back to `targetFor`, `dayTotals`, `dayStatus`.
 
 ## Changes (this branch)
 See the pull request for the stage-by-stage list and measured results.

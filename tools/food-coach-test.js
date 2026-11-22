@@ -222,6 +222,7 @@ Object.assign(ctx, { curDay: '2026-11-22', todayKey: () => '2026-11-22', dayLog:
 { const c = F.context();
   [/training day \(workout done\)/, /may be incomplete/, /unknown, never a deficit/, /900 kcal, P 70 g/, /Targets: 2800 kcal, P 180 g/, /allergic to peanuts/].forEach(re => (re.test(c) ? ok() : fail(`context should say ${re}: ${c}`)));
   c.length < 500 ? ok() : fail(`context is ${c.length} characters (keep it short)`); }
+ctx.AthleteContext = {}; { const c = F.context(); (!/training day/.test(c) && /may be incomplete/.test(c)) ? ok() : fail('with Athlete OS the schedule comes from it, not repeated: ' + c); } delete ctx.AthleteContext;
 Object.assign(ctx, { dayLog: {}, targetFor: () => null, dayStatus: () => ({ type: 'rest', time: '' }) });
 { const c = F.context(); (/rest day/.test(c) && /Nothing logged yet .*unknown/.test(c) && !/Targets/.test(c)) ? ok() : fail('context without logs or targets: ' + c); }
 Object.assign(ctx, { dayStatus: () => { throw new Error('not ready'); }, AI: undefined });
