@@ -284,7 +284,7 @@ $('suggestBtn').addEventListener('click', async () => {
   const onTry = (i, n) => { if(recCtl === ctl) btn.textContent = t('cancelRec', { i, n }); };
   try{
     const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
-    const r = await Supervisor.ask('fridge', `You are a practical home-cooking assistant for someone who lifts weights and tracks macros.
+    const r = await Supervisor.ask('fridge', `${AI.voice('fridge')}Here you write a practical home-cooked recipe for someone who lifts weights and tracks macros.
 Dish: "${name}". Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
 Return ONLY JSON: {"title":string,"servings":number,"minutes":number,"ingredients":[{"name":string,"name_en":string,"grams":number,"note":string|null}],"steps":[string]}
 Rules: amounts in grams for the whole batch (liquids: 1 ml = 1 g), weighed raw as they go in (dry pasta and rice, raw meat). Include cooking oil explicitly. 3–10 ingredients, 4–10 short clear steps. name_en is a plain generic English food name (e.g. "chicken breast", "olive oil", "onion", "beef mince").

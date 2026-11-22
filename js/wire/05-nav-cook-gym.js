@@ -69,7 +69,7 @@ $('sgGo').addEventListener('click', async () => {
   const btn = $('sgGo'); sgCtl = new AbortController(); const ctl = sgCtl; btn.innerHTML = AI.dots(t('thinking'));
   const rm = remainingToday(), fr = liveItems().map(x => x.info.name).slice(0, 30).join(', ');
   try{
-    const r = await Supervisor.ask('fridge', `You are a practical home-cooking assistant for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
+    const r = await Supervisor.ask('fridge', `${AI.voice('fridge')}Here you suggest a practical home-cooked plate for someone who lifts weights and tracks macros. Write ALL text in ${lang === 'el' ? 'Greek' : 'English'}.
 ${dish ? `Dish name they gave: "${dish}".` : 'Pick a fitting dish.'} They want: ${[...SG.sel].join(', ') || 'anything good'}.
 ${SG.time ? `Total cooking time: ${{ quick: '20 minutes or less', mid: '20 to 60 minutes', long: 'over 60 minutes is fine' }[SG.time]}.` : ''}
 ONE serving is a normal adult portion of a main meal (roughly 600–800 kcal, high protein), whatever they have eaten today.

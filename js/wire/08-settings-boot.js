@@ -11,6 +11,12 @@ function drawAiMem(){ const el = $('aiMem'); if(!el || typeof AthleteMemory === 
     + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`; }
 $('aiMem').addEventListener('click', e => { const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
   const gone = AthleteMemory.remove(b.dataset.memx); drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+// Athlete OS · persona: Settings › AI › Coach Personality (one setting for every coach; saved in settings.coach on this phone)
+function drawPersona(){ if(typeof Persona === 'undefined') return; const p = Persona.prefs();
+  setSeg('#perBase', p.base); setSeg('#perHumor', p.humor); setSeg('#perLen', p.len); const c = $('perCustom'); if(c && document.activeElement !== c) c.value = p.custom; }
+[['perBase', 'base'], ['perHumor', 'humor'], ['perLen', 'len']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
+  Phone.haptic(); if(Persona.set({ [k]: b.dataset.v })) toast(t('perSaved')); drawPersona(); }));
+$('perCustom').addEventListener('change', e => { const v = e.target.value; if(Persona.set({ custom: v })) toast(t('perSaved')); e.target.value = Persona.prefs().custom; });
 $('aiMemCopy').addEventListener('click', async () => { Phone.haptic(); await Phone.copy(AthleteMemory.exportAll()); toast(t('memCopied')); });
 $('aiuReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiuAsk'), t('aiuYes')))) return; AIUsage.reset(); AIUsage.draw(); toast(t('aiuDone')); });   // Athlete OS step 1: Settings › AI › Usage
 $('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });

@@ -37,11 +37,12 @@ const SRC = [
   pick(W01, ['uid', 'esc', 'r1', 'fmt'], 'wire/01'),
   pick(W03, ['daysUntil'], 'wire/03'), 'var _exc = null;',
   pick(GYM, ['parseMu', 'topHead', 'normEx', 'exHistory', 'comebackFactor', 'cbBase', 'suggestFor', 'EQF', 'estimateNew', 'usualReps', 'newSet', 'hitsFrom',
-    'UNI_RE', 'isUni', 'uniPair', 'rest30', 'exByName', 'gcEx', 'gcLang', 'gcNames', 'GC_REPLY', 'GC_BUILD', 'GC_WORKOUT', 'GC_MACHINE', 'GC_CHANGE', 'gcPrompt', 'gcLivePrompt',
+    'UNI_RE', 'isUni', 'uniPair', 'rest30', 'exByName', 'gcEx', 'gcLang', 'gcNames', 'GC_REPLY', 'gcReply', 'GC_BUILD', 'GC_WORKOUT', 'GC_MACHINE', 'GC_CHANGE', 'gcPrompt', 'gcLivePrompt',
     'gcActive', 'gcWorkout', 'inferType', 'gcAsk', 'gcChangeCard', 'GS_RULE', 'GS_SETS', 'gymStyleRead', 'gymStyle', 'gymStyleRule', 'GC_REPS', 'gymReps'], 'gym.js'),
   pick(W04, ['BIG_HEADS', 'MUSCLES', 'ML', 'HEAVY', 'LIB', 'EX', '_exIdx', 'exById', 'exTitle', 'exName', 'isCardio', 'r25', 'repRange', 'defReps', 'gymIsAssist', 'e1rm', 'loadOf', 'isMainSet'], 'wire/04'),
   read('js/platform/store.js').replace(/^const /gm, 'var '),
   read('js/gym-intel.js').replace(/^const /gm, 'var '),
+  read('js/athlete/persona.js').replace(/^const /gm, 'var '),   // the shared coach personality (AI.voice)
 ].join('\n;\n');
 
 const DAY = 864e5, dk = d => d.toLocaleDateString('en-CA'), TODAY = dk(new Date());
@@ -58,7 +59,7 @@ function boot(o) {
     lang: o.lang || 'en', todayKey: () => TODAY, profile: {}, targets: { goal: 'bulk' }, settings: {}, weights: {}, exCustom: [], tpls: o.tpls || [], comeback: null,
     sessions: o.sessions || [], active: o.active || null, bodyW: () => 80,
     recMapNow: () => o.rec || {}, gymIsAssistX: null,
-    AI: { knows: () => '', dietRules: () => '' }, inferDayType: () => 'push', typeLabel_: k => k,
+    AI: { knows: () => '', dietRules: () => '', voice: id => c.Persona.voice(id) + '\n', words: n => c.Persona.words(n) }, inferDayType: () => 'push', typeLabel_: k => k,
     saveG() {}, renderSession() {}, $: () => null,
   };
   vm.createContext(c);

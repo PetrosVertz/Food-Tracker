@@ -937,3 +937,13 @@ Object.assign(S, {   // Food Coach 2.0: plain-words AI errors (every coach), off
   logQAnsToday: ['Logged so far today: {v}{of}. Only what you’ve logged counts here.', 'Καταγεγραμμένα σήμερα μέχρι τώρα: {v}{of}. Μετράει μόνο ό,τι έχεις καταγράψει.'],
   logQOf: [' of your {t} target', ' από τον στόχο των {t}'],
 });
+
+Object.assign(S, {   // ==== Athlete OS · persona: Settings › AI › Coach Personality (js/athlete/persona.js; one setting for Food Coach, Gym Coach and Fridge AI)
+  perT: ['Coach Personality', 'Προσωπικότητα Coach'],
+  perSub: ['One personality for Food Coach, Gym Coach and Fridge AI. It changes how they talk, never the facts or safety.', 'Μία προσωπικότητα για Food Coach, Gym Coach και Fridge AI. Αλλάζει το πώς μιλάνε, ποτέ τα στοιχεία ή την ασφάλεια.'],
+  perBase: ['Style', 'Ύφος'], perBal: ['Balanced', 'Ισορροπημένο'], perMot: ['Motivator', 'Ενθαρρυντικό'], perAna: ['Analytical', 'Αναλυτικό'],
+  perHumor: ['Humor', 'Χιούμορ'], perLow: ['Low', 'Λίγο'], perNat: ['Natural', 'Φυσικό'], perPlay: ['Playful', 'Παιχνιδιάρικο'],
+  perLen: ['Answer Length', 'Μήκος Απαντήσεων'], perCon: ['Concise', 'Σύντομες'], perAda: ['Adaptive', 'Ανάλογα'], perDet: ['Detailed', 'Αναλυτικές'],
+  perCustomT: ['Your Own Instructions', 'Δικές σου Οδηγίες'], perCustomPh: ['Optional, e.g. Skip the small talk, keep it British', 'Προαιρετικά, π.χ. Χωρίς πολλές κουβέντες, μίλα μου στον ενικό'],
+  perSaved: ['Coach personality saved', 'Η προσωπικότητα του coach αποθηκεύτηκε'],
+});

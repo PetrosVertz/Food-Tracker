@@ -190,6 +190,11 @@ const AI = (() => {
     return '\nWhat the app has learned about this user from their own logs (use it quietly so suggestions fit them; do not list it back or ask about what it already says; what they ask for now comes first): ' + parts.join(' ');
   }
 
+  // Athlete OS · persona (js/athlete/persona.js): the ONE personality the coaches share, for the coach id asking (chef, gym…, fridge).
+  // words(n): a reply word limit scaled by the user's Length setting. Without Persona: '' and n, so prompts still work.
+  const voice = sp => typeof Persona !== 'undefined' ? Persona.voice(sp) + '\n' : '';
+  const words = n => typeof Persona !== 'undefined' ? Persona.words(n) : n;
+
   async function ask(prompt, img, onTry, outer, opts){
     count();
     if(opts && opts.quiet) return call(prompt, img, onTry, outer, opts);   // background jobs (recovery check) stay invisible
@@ -228,7 +233,7 @@ const AI = (() => {
   return {
     dots, untail, wait,
     areaSync,
-    ask, dietRules, knows, friendly, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
+    ask, dietRules, knows, friendly, voice, words, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },
