@@ -129,12 +129,19 @@ $('thBar').addEventListener('click', e => { const b = e.target.closest('[data-v]
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
-document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
+document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSTime') drawTimeFmt(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
 function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
   document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
 [['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
   ui.units = { ...UN(), [k]: b.dataset.v }; saveUI(); drawUnits(); fillSettings(); renderAll(); }));
 drawUnits();
+// V3: Settings › Customize › Time Format. Saved in ui (device setting); only what is shown changes, never a stored time.
+['input', 'change'].forEach(ev => document.addEventListener(ev, e => { const i = e.target; if(i && i.matches && i.matches('.wptime input')){ const sp = i.closest('.wptime').firstElementChild; if(sp !== i) sp.textContent = fmtClock(i.value) || '--:--'; } }));
+function drawTimeFmt(){ const m = ui.timeFmt === '12' || ui.timeFmt === '24' ? ui.timeFmt : 'system'; setSeg('#tmF', m);
+  $('sTimeVal').textContent = t(m === '12' ? 'tm12' : m === '24' ? 'tm24' : 'tmSys'); }
+$('tmF').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return; if(b.dataset.v === 'system') delete ui.timeFmt; else ui.timeFmt = b.dataset.v;
+  saveUI(); drawTimeFmt(); syncClocks(); renderAll(); });
+drawTimeFmt();
 
 // 0.6.9.3: Customize › Use the app for (also asked at first launch)
 $('sUse').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return; ui.gymFirst = b.dataset.v === 'gym'; saveUI(); applyTabOrder(); toast(t(ui.gymFirst ? 'useGymOn' : 'useBothOn')); });

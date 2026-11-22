@@ -13,6 +13,19 @@ function dayInfo(d){
   return wk ? { type: wk.type, work: wk.work, time: wk.time, guessed: true } : { type: 'rest' };
 }
 
+// V3: the Gym Day / Rest Day label, one answer for every screen. Order: the day's stored status (a manual choice, or what a started workout set) →
+// a workout already done that day → the plan (or last week's guess) → Rest Day. It only READS days / sessions / gymPlan; nothing is written,
+// so a manual override never touches workout history, planner targets or the streak. The time is the real stored one: never made up.
+function dayStatus(d){
+  const o = days[d]; if(o && o.type) return { type: o.type === 'gym' ? 'gym' : 'rest', time: o.type === 'gym' ? o.time || '' : '' };
+  if((typeof sessions !== 'undefined' ? sessions : []).some(s => s && s.date === d)) return { type: 'gym', time: '' };
+  const di = dayInfo(d); if(di.type !== 'gym') return { type: 'rest', time: '' };
+  if(planFor(d)){ const rp = gymPlan[new Date(d + 'T12:00:00').getDay()]; return { type: 'gym', time: (rp && rp.time) || '' }; }   // planFor() fills a default time; show only one that was set
+  return { type: 'gym', time: di.time || '' };
+}
+function dayPillHtml(d){ const s = dayStatus(d), tm = s.type === 'gym' && toMin(s.time) !== null ? fmtClock(s.time) : '';
+  return `<span class="daypill">${t(s.type === 'gym' ? 'gymDay' : 'restDay')}${tm ? `<span class="dpsub"><span class="dpsep"> · </span>${esc(tm)}</span>` : ''}</span>`; }
+
 function targetFor(d){ if(!targets) return null; const di = dayInfo(d); return targets[di.type === 'gym' ? 'gym' : 'rest'] || null; }
 
 // carb windows around the workout (minutes since midnight)
@@ -319,7 +332,7 @@ function openAmt(o){
   if(o.mode === 'use') chips.push([o.item.qty, `${t('logAll')} · ${fmtSize(o.item.qty, info.unit)}`]);
   $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
   $('amAmt').value = o.mode === 'editlog' ? o.entry.amt : '';
-  $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM());
+  $('amTime').value = o.mode === 'editlog' ? o.entry.time : (o.time || nowHM()); syncClocks();
   $('amLogWrap').classList.toggle('hide', o.mode !== 'use'); $('amLog').checked = true;
   const key = info.meal ? { mealId: info.meal.id } : info.food ? { foodId: info.food.id } : null;
   const stock = key ? (key.foodId ? stockOf(key.foodId) : mealStock(key.mealId)) : 0;
@@ -440,12 +453,12 @@ function renderToday(){
   const diff = daysUntil(d);
   $('dLabel').textContent =   // 0.6.3: just the date
     new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || '';
+  setSeg('#dType', di.type); $('gymBox').classList.toggle('hide', di.type !== 'gym'); setSeg('#dWork', di.work || ''); $('dTime').value = di.time || ''; syncClocks();
   // hero bars (0.6.8.2): slim, fully round; "112 / 160 g" sits inside at the right end; where the fill reaches the letters they flip colour (two text layers, one clipped to the fill)
   const mrow = (cls, label, a, b, u, st) => { const w = b ? Math.min(100, a / b * 100) : 0, txt = `<b>${Math.round(a)}</b> / ${b ? Math.round(b) : '–'}${u.trim()}`;
     return `<div class="mrow hero ${cls} ${st || ''}"><small>${label}</small><span class="hbar"><i style="width:${w}%"></i><em>${txt}</em><em class="inv" style="clip-path:inset(0 ${100 - w}% 0 0)">${txt}</em></span></div>`; };
   const usedUp = !!tg && Math.round(tot.kcal) >= tg.k, ms = k => tg ? macroState(k, { p: tot.p, c: tot.c, f: tot.f }[k], tg[k], usedUp) : '';
-  const pill = `<span class="daypill">${t(di.type === 'gym' ? 'gymDay' : 'restDay')}</span>`;
+  const pill = dayPillHtml(d);
   $('dTotals').innerHTML = `<div class="kchead"><span class="kcnum" style="color:${kcalColor(tot.kcal, tg && tg.k)}">${Math.round(tot.kcal).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB')}<small>${tg ? '/ ' + tg.k.toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB') + ' kcal' : 'kcal'}</small></span>${pill}</div>` +
     mrow('p', t('protein'), tot.p, tg && tg.p, ' g', ms('p')) + mrow('c', t('carbs'), tot.c, tg && tg.c, ' g', ms('c')) + mrow('f', t('fat'), tot.f, tg && tg.f, ' g', ms('f'));
   const fT = fibTarget(tg);
@@ -458,7 +471,7 @@ function renderToday(){
   const water = w => w.k === 'winPre' ? rnd50(6 * bw) : w.k === 'winWorkout' ? rnd50(8 * bw * (w.b - w.a + 1) / 60) : w.k === 'winPost' ? rnd50(8 * bw) : 0;
   $('dTiming').innerHTML = !tg ? '' : wins.map(w => { const n = meals[w.k] || 0, ml = water(w);
     return `<div class="win ${w.gym ? 'gym' : ''} ${w.a !== null && nowM >= w.a && nowM <= w.b ? 'now' : ''}">
-      <div class="tm">${w.k === 'other' ? t('logRestDay') : t(w.k)}<small>${w.a !== null ? fromMin(w.a) + '–' + fromMin(w.b + 1) : ''}</small></div>
+      <div class="tm">${w.k === 'other' ? t('logRestDay') : t(w.k)}<small>${w.a !== null ? fmtClock(fromMin(w.a)) + '–' + fmtClock(fromMin(w.b + 1)) : ''}</small></div>
       <div class="bd">${w.gym ? t(di.work === 'legs' ? 'wLegs' : di.work === 'full' ? 'wFull' : di.work === 'cardio' ? 'wCardio' : 'wUpper') : `${t('winCarbs', { a: Math.round(eatenIn(w)), b: Math.round(w.c) })}${n ? ` · ${t(n === 1 ? 'logTMeal' : 'logTMeals', { n })}` : ''}`}${ml ? `<span class="na">${t('logTWater', { n: ml })}</span>` : ''}</div></div>`; }).join('');
   // log
   // Eaten rows (0.6.9): name + Cooked / Raw / Ready tag; under it P · C · F then the grams; calories bold italic on the right.

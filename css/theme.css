@@ -1139,3 +1139,25 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .recall{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;padding:var(--s5) var(--s4);margin-bottom:var(--s4);color:var(--t-text);animation:recTileIn .32s ease-out both}
 .recall svg{color:var(--t-done)} .recall b{font-size:var(--fs-body);font-weight:var(--w-bold)}
 @keyframes recTileIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ======================= V3 · Scan Food pill (#fab2 only) =======================
+   Dark: a clean white pill with black text and black line icon (≈ 19:1). Light: the same white pill, edge a touch stronger so it
+   stands off the pale page, text near-black. Pressed / disabled keep one look; nothing inherited from the theme can recolour the text. */
+#fab2,#fab2 .fabic,#fab2 svg{color:#0b0d0f!important}
+#fab2{--fb-own:#ffffff;--fb-n-hi:rgba(255,255,255,0);--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.10),0 1px 2px rgba(0,0,0,.25);background:#fff!important;font-weight:var(--w-bold)!important}
+:root[data-theme="light"] #fab2{--fb-n-edge:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 3px rgba(0,0,0,.14)}
+#fab2:active:not(:disabled){background:#e9ebee!important}
+#fab2:disabled{background:#fff!important;opacity:.55}
+
+/* ======================= V3 · shared sliding pill rows (.chips) =======================
+   Native scrolling only: pills keep their width, the row stops at its own ends (no page rubber-band sideways), the last pill is never cut by the screen
+   edge, and the chosen / unchosen change fades instead of jumping. Transform is untouched (the Exercise Picker positions its own rows). */
+.chips{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-padding-inline:var(--s4);cursor:grab}
+.chips>*{flex:0 0 auto}
+.chips button{transition:background-color .18s ease,color .18s ease,box-shadow .18s ease,opacity .12s}
+@media (prefers-reduced-motion: reduce){ .chips button{transition:none} }
+
+/* ======================= V3 · Gym Day / Rest Day pill =======================
+   Same size and border as before. The label is the main text colour; the separator and the time are the quieter muted colour (still ≥ 4.5:1 in Light). */
+.daypill{color:var(--t-text)}
+.daypill .dpsub{color:var(--t-muted);font-weight:var(--w-reg);font-variant-numeric:tabular-nums}

@@ -235,7 +235,7 @@ async function finishWorkout(auto){
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
-  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fromMin(end.getHours() * 60 + end.getMinutes()) })); RankFx.play(rk.slice(0, 3)); return true; }
+  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
   showSummary(ses, rk.slice(3)); renderAll();
   RankFx.play(rk.slice(0, 3));
