@@ -10,6 +10,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `css/*.css` | base, glass look, motion, page layout, workout mode (live workout screen = canvas design, end of workout.css) |
 | `js/data/config.js` | Version, defaults, small shared state |
 | `js/platform/store.js` | **Storage + data model.** The only code that touches localStorage. Device settings vs synced data, schema version + migrations, record ids, change times and tombstones for sync, backups, `Account` (who the user is) |
+| `js/platform/backup.js` | **Import planner**: `Backup.plan()` merges a backup file into copies of your data (pure, no saving); Settings › Import saves the result with `Store.saveMany()` all or nothing |
 | `js/platform/phone.js` | **Phone features**: haptics, vibration, camera, barcode reader, keep screen on, share/save files, clipboard |
 | `js/platform/ai.js` | **AI service**: models, the Gemini call (`best`: strongest model first; `search`: Google Search), daily counter, the ✨ bubble, Test key, photo shrinking |
 | `js/data/strings.js` | Every text in English + Greek |
@@ -40,6 +41,8 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 - The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads, and set the iPhone status bar style from the theme's Status Bar choice (`ui.theme.bar`, 0.7.10.7). Nothing else may.
 - Phone APIs only through `Phone.*`; AI only through `gemini()` / `AI.*`.
 - No wrappers: change the real function instead of re-assigning it later.
+
+Architecture map, contracts and test map: `docs/architecture/`. Health check: `node tools/check.js --boot --strict`.
 
 All scripts share one global scope and load in the order listed in `index.html`: config → platform → data → functions → wiring.
 Data lives only in the browser (localStorage); use Settings → backup to move it.

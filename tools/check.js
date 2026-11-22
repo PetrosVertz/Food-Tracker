@@ -496,6 +496,27 @@ catch (e) { fail('store: tools/store-test.js\n' + String(e.stdout || '').split('
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/sw-test.js')], { stdio: 'pipe' }).toString(); ok('service worker: ' + (out.match(/^ok /gm) || []).length + ' offline / update checks pass (tools/sw-test.js)'); }
 catch (e) { fail('service worker: tools/sw-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
+// Docs map stays true (V3 hardening): every file path and plain `name()` in the architecture docs / CLAUDE.md exists,
+// and every Store name has a row in the persistence inventory. A stale map is a warning to read the code, so it must not rot silently.
+try {
+  const docs = ['CLAUDE.md', ...fs.readdirSync(path.join(root, 'docs/architecture')).filter(f => f.endsWith('.md')).map(f => 'docs/architecture/' + f)];
+  const allJs = [...scripts, 'sw.js'].filter(f => fs.existsSync(path.join(root, f))).map(read).join('\n');
+  const bad = [];
+  let nPath = 0, nSym = 0;
+  for (const d of docs) for (const [, tok] of read(d).matchAll(/`([^`\n]+)`/g)) {
+    for (const part of tok.split(/\s*[›>]\s*|,\s*/)) {
+      const x = part.trim();
+      if (/^(js|css|tools|docs|img|\.github)\/[\w.\/-]+$|^(sw\.js|index\.html)$/.test(x)) { nPath++; if (!fs.existsSync(path.join(root, x))) bad.push(`${d}: ${x} does not exist`); }
+      const m = x.match(/^([A-Za-z_$][\w$]*)\(\)$/);
+      if (m && !['fetch'].includes(m[1])) { nSym++; if (!new RegExp(`(function\\s+${m[1]}\\s*\\(|(const|let|var)\\s+${m[1]}\\s*=|,\\s*${m[1]}\\s*=\\s*(async\\s*)?(\\(|function\\b|[\\w$]+\\s*=>))`).test(allJs)) bad.push(`${d}: ${m[1]}() is not defined in any loaded script`); }
+    }
+  }
+  const storeNames = [...read('js/platform/store.js').matchAll(/^\s+(?:[a-zA-Z]+: \[[^\]]+\],?\s*)+/gm)].join(' ').match(/\b([a-zA-Z]+): \['ft\./g).map(x => x.split(':')[0]);
+  const inv = read('docs/architecture/contracts.md');
+  storeNames.forEach(n => { if (!new RegExp(`\\b${n}\\b`).test(inv)) bad.push(`contracts.md: Store name "${n}" has no row in the persistence inventory`); });
+  if (bad.length) bad.forEach(b => fail('docs map: ' + b)); else ok(`docs map: ${nPath} paths and ${nSym} functions named in CLAUDE.md + docs/architecture exist; all ${storeNames.length} Store names inventoried`);
+} catch (e) { fail('docs map: could not check: ' + e.message); }
+
 const STRICT = process.argv.includes('--strict');
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { (STRICT ? fail : note)('--boot skipped: Playwright not installed' + (STRICT ? ' (--strict: a skipped browser check is a failure)' : '')); return; }
