@@ -13,6 +13,8 @@
 //   NEW gym.active (live workout)       restored ONLY when you have no live workout and it is not already a finished session.
 //                                       A live workout on this phone is never replaced.
 //   NEW records without an id (very old backups) are matched by their content, so importing the same file twice adds nothing twice.
+//   NEW streak (Change #13)            the record with the longer history (earlier `since`) wins; the higher personal best is kept.
+//                                       Savers and weekly results are worked out again from the workouts, so an import can never grant twice.
 //   NEW bad records are skipped, not fatal: non-objects, sessions without a start time, diary days that are not dates.
 
 const Backup = (() => {
@@ -84,6 +86,11 @@ const Backup = (() => {
     addMissing('combos', Array.isArray(data.combos) ? data.combos.filter(x => isObj(x) && goodId(x.id)) : [], () => true, bodyKey);
     fillMap('logPhr', data.logPhr, false);
     fillMap('foodFix', data.foodFix, false);
+    // the streak record: valid shape only; the longer history wins, best = the higher of both
+    const sr = data.streak, okRec = r => isObj(r) && r.v === 1 && DAY.test(r.since || '') && DAY.test(r.epoch || '') && Array.isArray(r.plan);
+    if(okRec(sr)){ const mine = okRec(next.streak) ? next.streak : null, best = Math.max(+sr.best || 0, mine ? +mine.best || 0 : 0);
+      if(!mine || sr.since < mine.since) next.streak = { ...clone(sr), best };
+      else if(best > (+mine.best || 0)) next.streak = { ...mine, best }; }
     if(isObj(data.profile)) next.profile = { ...clone(data.profile), ...(isObj(next.profile) ? next.profile : {}) };
 
     let activeRestored = false, activeSkipped = false;

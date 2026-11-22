@@ -30,7 +30,7 @@ const Supervisor = (() => {
   register('chef', { topic: 'food', scopes: [...BASE, 'nutrition'], skip: ['nutrition'], cross: ['training', 'recovery'], budget: 1500, task: 'coach-food',
     schema: { reply: 'string?', intent: 'string?', items: 'array?' }, escalate: false });
   // Gym Coach chat (gym.js gcPrompt / gcLivePrompt with GymIntel.brief): recovery and the relevant workouts are in its packet already → skip them; food today is new to it
-  const GYM = { topic: 'gym', scopes: [...BASE, 'nutrition', 'training', 'recovery'], skip: ['training', 'recovery'], cross: [], budget: 1500,
+  const GYM = { topic: 'gym', scopes: [...BASE, 'nutrition', 'training', 'recovery', 'streak'], skip: ['training', 'recovery'], cross: [], budget: 1500,
     schema: { reply: 'string', workout: 'object?', style: 'string?' }, escalate: true };
   register('gym', { ...GYM, task: 'coach-gym' }); register('gymstart', { ...GYM, task: 'coach-gym' });
   register('gymlive', { ...GYM, task: 'coach-gym-live', schema: { reply: 'string', machine: 'object?', change: 'object?', style: 'string?' } });   // change: checked again by GymIntel.proposal before any card
@@ -41,7 +41,7 @@ const Supervisor = (() => {
       perServing: { type: 'object?', of: { kcal: { type: 'number?', min: 0, max: 5000 }, protein: { type: 'number?', min: 0, max: 400 } } } } });
   // the other AI helpers that ask for context by topic only (Fill My Macros, meal plans, Next Exercise)
   register('food', { topic: 'food', scopes: [...BASE, 'nutrition'], budget: 1400 });
-  register('gymtool', { topic: 'gym', scopes: [...BASE, 'nutrition', 'recovery', 'training'], budget: 1400 });
+  register('gymtool', { topic: 'gym', scopes: [...BASE, 'nutrition', 'recovery', 'training', 'streak'], budget: 1400 });
 
   const spec = id => SP[id] || null;
   // which specialist fits a message best (plain word rules). Used for context (one coach, shared context), never for extra AI calls.

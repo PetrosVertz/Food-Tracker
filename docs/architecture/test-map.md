@@ -7,6 +7,7 @@
 | `node tools/check.js --boot --strict` | ~15 s | same, but a missing browser is a FAIL. **This is the release / CI gate** (`.github/workflows/check.yml`) |
 | `node tools/store-test.js` | <1 s | Store + Backup only (fast loop while working on storage) |
 | `node tools/sw-test.js` | <1 s | sw.js offline/update rules |
+| `node tools/streak-test.js` | <1 s | weekly streak (targets locked at Monday, all-rest weeks, one per day, extras, early reset, warnings), Streak Savers (monthly, bonus challenge, expiry, month and year boundaries, max 2, never twice), saved record (restart, restore, history edits, old streak carried over), Stats pins (max 2, replace) + 24 h rotation |
 | `node tools/exsearch-test.js` | <1 s | exercise search answers + speed |
 | `node tools/meal-test.js` | <1 s | Food Coach meal maths |
 | `node tools/athlete-test.js` | <1 s | Athlete OS: events from real saves, imports, state (missing stays missing, conflicts), context (cross-coach, budget, permissions, cache), memory rules EN + GR, injection, supervisor (one call, validation, escalation, failures), 2-year history |

@@ -43,7 +43,7 @@ $('importInput').addEventListener('change', async e => {
   try{ if(file.size > 25e6) throw new Error('too big'); data = Store.upgradeBackup(JSON.parse(await file.text())); }catch(err){ toast(t('badBackup')); return; }
   let p;
   try{ p = Backup.plan({ foods, meals, supps, suppLog, fridge, groc, dayLog, days, plans, targets, weights, combos, logPhr, foodFix: logFix, profile,
-    sessions, tpls, exCustom, gymPlan, active }, data); }catch(err){ console.error('import', err); toast(t('badBackup')); return; }
+    sessions, tpls, exCustom, gymPlan, active, streak: Store.load('streak', null) }, data); }catch(err){ console.error('import', err); toast(t('badBackup')); return; }
   if(!p.ok){ toast(t(p.reason === 'tooNew' ? 'backupTooNew' : 'badBackup')); return; }
   if(p.changed.length && !Store.saveMany(Object.fromEntries(p.changed.map(k => [k, p.next[k]])))) return;   // saveMany already said it could not save
   const n = p.next;

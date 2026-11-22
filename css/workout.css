@@ -632,3 +632,44 @@ body.inses .coachbub{display:none!important}
 .smrank>b{min-width:0;overflow-wrap:anywhere}
 .smrk{display:flex;align-items:center;gap:6px;flex:0 0 auto;color:var(--t-muted)}
 .smrk .smold{opacity:.55;line-height:0}.smrk small{font-weight:var(--w-bold,700);color:var(--trci,var(--t-text));font-style:italic}
+
+/* ---------- Change #13: weekly workout streak (js/streak.js). Colours from theme tokens; text ≥ 4.5:1 in Light too ---------- */
+.gymstreak{border:0;background:none;font:inherit;color:inherit;cursor:pointer}
+#dBlocks .gymstreak{background:transparent}
+.stksv{display:inline-flex;align-items:center;gap:1px;margin-left:2px;color:var(--t-accent-ink,var(--t-accent))}
+.stksv .stkshield:not(.on){color:var(--t-muted)}
+.stksv.stkused{animation:stkUsed 1.2s cubic-bezier(.2,.9,.25,1) 1}
+@keyframes stkUsed{0%{transform:scale(1)}25%{transform:scale(1.45)}55%{transform:scale(.92)}100%{transform:scale(1)}}
+.remind .stkwarn{display:block;font-size:13px;line-height:1.35;color:var(--t-text);font-weight:var(--w-med,500);margin-top:2px}
+#stkBody{display:flex;flex-direction:column;gap:var(--s3)}
+.stkhead{display:flex;align-items:center;gap:var(--s3)}
+.stkfl{display:grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--t-sel)}
+.stknum{display:flex;flex-direction:column;flex:1;min-width:0}
+.stknum b{font-size:var(--fs-h1,32px);font-weight:800;font-style:italic;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.03em}
+.stknum small{font-size:var(--fs-label);color:var(--t-muted)}
+.stkchip{flex:0 0 auto;font-size:12px;font-weight:var(--w-bold,700);padding:4px 10px;border-radius:999px;background:var(--t-sel);color:var(--t-text)}
+.stkchip.stk-on,.stkchip.stk-last,.stkchip.stk-met{background:var(--t-accent);color:var(--t-on)}
+.stkchip.stk-reset{background:var(--t-danger-soft);color:var(--t-text)}
+.stkline{margin:0;font-size:var(--fs-body,15px);line-height:1.4;color:var(--t-text)}
+.stkcard{display:flex;flex-direction:column;gap:6px;padding:var(--s3);border-radius:18px;background:var(--t-card);border:1px solid var(--t-edge)}
+.stkcard small{font-size:var(--fs-label);color:var(--t-muted);line-height:1.35}
+.stkrowt{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.stkrowt>span{font-size:var(--fs-label);color:var(--t-text);font-variant-numeric:tabular-nums}
+.stkcells{display:flex;gap:6px}
+.stkcells i{flex:1;height:10px;border-radius:999px;background:var(--t-track)}
+.stkcells i.on{background:var(--t-accent)}
+.stkcells i.extra{background:var(--t-accent);opacity:.6}
+.stksavers{flex-direction:row;align-items:center;gap:var(--s3)}
+.stksavers>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stkshields{display:flex;gap:4px;color:var(--t-accent-ink,var(--t-accent))}
+.stkshields .stkshield:not(.on){color:var(--t-muted)}
+.stkbest{flex-direction:row;align-items:center;justify-content:space-between}
+.stkbest>span{font-size:var(--fs-label);color:var(--t-muted)}
+.stkbest b{font-size:var(--fs-title,20px);font-variant-numeric:tabular-nums}
+.stkbar{height:10px;border-radius:999px;background:var(--t-track);overflow:hidden}
+.stkbar i{display:block;height:100%;background:var(--t-accent);transform-origin:left center;transition:transform .4s cubic-bezier(.2,.9,.25,1)}
+.stkchn{font-variant-numeric:tabular-nums}
+.stkhow summary{cursor:pointer;font-weight:var(--w-bold,700);padding:var(--s2) 0;list-style:none}
+.stkhow summary::-webkit-details-marker{display:none}
+.stkhow ul{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;font-size:var(--fs-label);line-height:1.4;color:var(--t-text)}
+@media (prefers-reduced-motion: reduce){ .stksv.stkused{animation:none} .stkbar i{transition:none} }
