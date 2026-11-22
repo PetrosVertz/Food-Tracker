@@ -239,7 +239,7 @@ const types = A => A.AthleteEvents.recent('', 500).map(e => e.type);
     const ch = await c.__P.GeminiProvider.chain({ model: 'gemini-special', tier: 'default' }), ch0 = await c.__P.GeminiProvider.chain({ tier: 'default' });
     check(ch[0] === 'gemini-special' && ch0[0] === 'gemini-default', 'provider: a specialist\'s own model is tried first; without one, Settings decides');
     c.settings.provider = 'anthropic'; let err = null; try { await c.__P.AIProvider.run({ prompt: 'x' }); } catch (e) { err = e; }
-    check(c.__P.AIProvider.active().id === 'anthropic' && err && err.kind === 'unsupported', 'provider switch is one setting; the unbuilt Anthropic adapter says so instead of pretending');
+    check(c.__P.AIProvider.active().id === 'anthropic' && err && err.kind === 'auth' && err.nokey, 'provider switch is one setting; the Anthropic adapter without a key refuses instead of pretending (Food Coach 2.0: adapter built)');
   }
 
   console.log(`\n${fails ? fails + ' FAILED, ' : 'All '}${passes} athlete checks ${fails ? 'passed' : 'passed.'}`);

@@ -12,7 +12,7 @@
 //     camera   true → a big camera button inside the chat box; the photo comes to send() as img (base64 JPEG)
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
 //     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
-//     persist    { load(id) → saved messages | null, save(id, messages | null) }: the chat survives a restart (the coach owns where it is kept;
+//     persist    { load(id, chat) → saved messages | null, save(id, messages | null) }: the chat survives a restart (the coach owns where it is kept;
 //                restored cards come back as plain text, without buttons). Without it the chat lives until the app closes, as before.
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
 //                             (a third argument, a rect, is where the bubble starts from: the pill's face; coach.js only)
@@ -28,7 +28,8 @@
 //   chat.ask(prompt, img, o)  the AI call for this chat (gemini, quiet: the chat shows its own thinking dots, AI.dots; Back cancels nothing)
 //   chat.transcript()         the last few messages as plain lines, to put in a prompt (kept short to save AI use)
 //   chat.history()            the same as a list: [{ who: 'me' | 'bot', text }]
-// A card: { title, sub, tag, tagKind, cls (extra class for its look), body (html), dim (greyed until added), actions: [{ label, primary, run(card, chat) }], done (text once handled), undo() }
+// A card: { title, sub, tag, tagKind, cls (extra class for its look), body (html), dim (greyed until added), actions: [{ label, primary, off(), run(card, chat) }], done (text once handled), undo() }
+//   off()  Food Coach 2.0: true → that button is shown disabled (e.g. Add while a row has no food)
 const Coach = (() => {
   const CH = {}, CFG = {}, KEEP = 8, CUT = 280;   // the AI only ever sees the last KEEP messages, each cut to CUT letters
   let cur = null, anc = null;   // anc: what the open window hangs from (its bubble, or the header robot that opened it)
@@ -83,7 +84,7 @@ Return ONLY JSON: {"reply": string}`, img);
   function cardHtml(x){
     const tag = x.tag ? ` <span class="ctag ${esc(x.tagKind || '')}">${esc(x.tag)}</span>` : '';
     const acts = x.done ? `<div class="ccdone">${svgIcon('check', 16, 2.6)}<span>${esc(x.done)}</span>${x.undo ? `<button type="button" class="ccundo" data-cundo>${t('undo')}</button>` : ''}</div>`
-      : (x.actions || []).length ? `<div class="ccacts">${x.actions.map((a, i) => `<button type="button" class="ccbtn${a.primary ? ' pri' : ''}" data-ca="${i}">${esc(a.label)}</button>`).join('')}</div>` : '';
+      : (x.actions || []).length ? `<div class="ccacts">${x.actions.map((a, i) => `<button type="button" class="ccbtn${a.primary ? ' pri' : ''}" data-ca="${i}"${a.off && a.off() ? ' disabled' : ''}>${esc(a.label)}</button>`).join('')}</div>` : '';
     return `<div class="ccard${x.cls ? ' ' + esc(x.cls) : ''}${x.dim && !x.done ? ' dim' : ''}${x.done ? ' done' : ''}" data-cid="${x.cid}">
       ${x.title || x.sub ? `<div class="cchead"><b>${esc(x.title || '')}${tag}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</div>` : ''}${x.body || ''}${acts}</div>`;
   }
@@ -129,7 +130,7 @@ Return ONLY JSON: {"reply": string}`, img);
     const mem = text && typeof Supervisor !== 'undefined' ? Supervisor.begin(id, text) : null;
     if(mem && (mem.added.length || mem.dropped.length)) toast(t(mem.added.length ? 'memSaved' : 'memForgot'), t('undo'), () => { mem.added.forEach(x => AthleteMemory.remove(x.id)); AthleteMemory.restore(mem.dropped); });
     try{ await (f.send || talk)(text, ch, img); }
-    catch(err){ if(!(err && err.cancelled)) ch.say(t('coachFail', { e: (err && err.message) || '?' })); }
+    catch(err){ if(!(err && err.cancelled)) ch.say(AI.friendly(err)); }   // Food Coach 2.0: plain words, never the provider's error text
     finally{ if(typeof Supervisor !== 'undefined') Supervisor.end(); c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
       if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } keepMsgs(id); }   // answered while shrunk: a dot on the bubble
   }
@@ -147,7 +148,7 @@ Return ONLY JSON: {"reply": string}`, img);
   let spot = null;   // the bubble's top-left at the top right corner while its chat is open (set by lay)
   function open_(id, first, from){
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
-    if(!c.msgs.length && cfg(id).persist){ try{ const m = cfg(id).persist.load(id); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){ console.warn('coach persist', e); } }   // back after a restart
+    if(!c.msgs.length && cfg(id).persist){ try{ const m = cfg(id).persist.load(id, api(c)); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){ console.warn('coach persist', e); } }   // back after a restart (Food Coach 2.0: load gets the chat, for its cards)
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
     if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob){ ob._home = false; glide(ob, false); } }   // the other coach's bubble goes back to its spot
     const b = HEAD(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
@@ -309,10 +310,11 @@ Return ONLY JSON: {"reply": string}`, img);
       const sc = e.target.closest('[data-cst]'); if(sc && cur){ Phone.haptic(); $('coachIn').value = sc.dataset.cst; send(); return; }
       const el = e.target.closest('[data-cid]'); if(!el || !cur) return; const c = CH[cur];
       const card = c.msgs.flatMap(m => m.cards || []).find(x => x.cid === el.dataset.cid); if(!card) return;
-      if(e.target.closest('[data-cundo]')){ const u = card.undo; card.done = ''; card.undo = null; draw(); if(u) u(); if(typeof Supervisor !== 'undefined') Supervisor.decide(cur, 'undo', 0); return; }
-      const a = e.target.closest('[data-ca]'); if(!a) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run) return;
+      const id = cur;
+      if(e.target.closest('[data-cundo]')){ const u = card.undo; card.done = ''; card.undo = null; draw(); if(u) u(); if(typeof Supervisor !== 'undefined') Supervisor.decide(cur, 'undo', 0); keepMsgs(id); return; }
+      const a = e.target.closest('[data-ca]'); if(!a || a.disabled) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run || (act.off && act.off())) return;   // Food Coach 2.0: an action that is off does nothing
       Phone.haptic(); if(typeof Supervisor !== 'undefined') Supervisor.decide(cur, act.primary ? 'apply' : 'other', +a.dataset.ca);   // decision ledger (no text)
-      Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
+      Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(AI.friendly(err))).finally(() => keepMsgs(id));
     });
     if(window.visualViewport){
       visualViewport.addEventListener('resize', () => { if(!$('ovCoach').classList.contains('open')) return; fit(); const l = $('coachList'); l.scrollTop = l.scrollHeight; });
@@ -323,7 +325,7 @@ Return ONLY JSON: {"reply": string}`, img);
 
   // a local message (no AI): text and/or cards from the coach, e.g. a quiet hint found by plain rules
   function post(id, text, cards){ const c = chat(id);
-    if(!c.msgs.length){ const p = cfg(id).persist; try{ const m = p && p.load(id); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){} if(!c.msgs.length) c.msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; }
+    if(!c.msgs.length){ const p = cfg(id).persist; try{ const m = p && p.load(id, api(c)); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){} if(!c.msgs.length) c.msgs = [{ who: 'bot', text: firstMsg(id), first: true }]; }
     if(text) c.msgs.push({ who: 'bot', text: String(text) });
     if(cards && cards.length) c.msgs.push({ who: 'bot', cards: cards.map(x => ({ ...x, cid: uid() })) });
     if(cur === id) draw(); keepMsgs(id); }

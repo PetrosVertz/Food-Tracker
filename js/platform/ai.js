@@ -10,7 +10,8 @@ const AI = (() => {
   // opts.best → the 'advanced' tier (strongest model first); opts.search → web look-ups; opts.task → a short label for Settings › AI › Usage
   async function call(prompt, imageB64, onTry, outer, opts){
     opts = opts || {};
-    const res = await AIProvider.run({ prompt, images: [].concat(imageB64 || []), json: true, search: !!opts.search, tier: opts.best ? 'advanced' : 'default', task: opts.task, retries: opts.retries, model: opts.model, ctx: opts.ctx },
+    const res = await AIProvider.run({ prompt, images: [].concat(imageB64 || []), json: true, search: !!opts.search, tier: opts.best ? 'advanced' : 'default', task: opts.task, retries: opts.retries, model: opts.model, ctx: opts.ctx,
+      deadlineMs: opts.deadlineMs, timeoutMs: opts.timeoutMs, maxModels: opts.maxModels, dedupeKey: opts.dedupeKey, maxTokens: opts.maxTokens },   // Food Coach 2.0: a chat sets its own time budget
       { onTry, outer });
     return res.json;
   }
@@ -204,6 +205,12 @@ const AI = (() => {
         if(!B.show.length){ bubble('hide'); return; } bubble('ready'); }, 0); } }
   }
 
+  // Food Coach 2.0: an AI failure in plain words for the chat (never the provider's own text, HTTP codes or model names)
+  function friendly(err){
+    const k = err && err.kind;
+    return t(err && err.nokey ? 'aiErrKey' : k === 'auth' ? 'aiErrKey' : k === 'rate' ? 'aiErrLimit' : k === 'network' ? 'aiErrOffline' : k === 'timeout' || k === 'overloaded' ? 'aiErrBusy' : 'aiErrOther');
+  }
+
   // Settings → Test key: how many Gemini models this key can use (saves the key if it works)
   async function testKey(k){
     const n = await AIProvider.active().testKey(k);
@@ -221,7 +228,7 @@ const AI = (() => {
   return {
     dots, untail, wait,
     areaSync,
-    ask, dietRules, knows, hasKey: () => !!key(), listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
+    ask, dietRules, knows, friendly, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },

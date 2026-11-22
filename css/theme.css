@@ -551,6 +551,8 @@ body.twofab .fab{padding:var(--s4) var(--s5)!important}
 .lqcard{display:flex;flex-direction:column;margin:-6px 0 0}
 .lqrow{display:flex;flex-direction:column;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--t-line)}
 .lqrow .lrn:disabled{cursor:default;opacity:1}
+/* Food Coach 2.0: Add / Add & Save off until every row has a food; the line under the total says why */
+.ccbtn:disabled{opacity:.45;cursor:default} .lqhint{display:block;margin:6px 2px 0}
 .lqrow .nm{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .lqrow.miss .ls{color:var(--t-danger)}
 .lqx{flex:0 0 36px;width:36px;height:36px;border:0;border-radius:10px;background:none;color:var(--t-muted);display:flex;align-items:center;justify-content:center;cursor:pointer}

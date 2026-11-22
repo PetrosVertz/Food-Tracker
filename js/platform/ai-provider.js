@@ -94,12 +94,19 @@ const GeminiProvider = (() => {
       // a bad key won't work on any model, so stop right away
       if(r.status === 401 || /api key not valid|api_key_invalid|denied access/i.test(msg)) throw aiError('auth', t('keyBad', { e: msg.replace(/\.\s*$/, '') }), { fatal: true, status: r.status });
       const short = msg.length > 90 ? msg.slice(0, 90) + '…' : msg;
-      throw aiError(r.status === 429 ? 'rate' : r.status >= 500 ? 'overloaded' : 'other', short, { status: r.status });
+      throw aiError(r.status === 429 ? 'rate' : r.status >= 500 ? 'overloaded' : 'other', short, { status: r.status, retryAfterMs: retryAfter(j, msg) });
     }
     const text = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
     const u = j && j.usageMetadata, usage = u && u.totalTokenCount != null
       ? { input: u.promptTokenCount ?? null, output: (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0), total: u.totalTokenCount } : null;
     return { text, usage };
+  }
+
+  // Food Coach 2.0: how long Gemini asks us to wait after a 429 (RetryInfo.retryDelay "37s"); a daily quota → 10 minutes; null = not said
+  function retryAfter(j, msg){
+    const d = ((j && j.error && j.error.details) || []).find(x => x && x.retryDelay), s = d && parseFloat(d.retryDelay);
+    if(s > 0) return Math.round(s * 1000);
+    return /per ?day|daily/i.test(msg || '') ? 600000 : null;
   }
 
   // Settings › Test key: how many Gemini models this key can use (the caller saves the key if it works)
@@ -109,22 +116,80 @@ const GeminiProvider = (() => {
     if(!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
-  return { ...info, chain, generate, testKey, listModels, bestModels, timeoutFor };
+  return { ...info, ready: () => !!key(), chain, generate, testKey, listModels, bestModels, timeoutFor };
 })();
 
-// Anthropic (Claude): NOT IMPLEMENTED. This is only the shape a real one must fill in, so nothing pretends to work.
-// To build it for 0.8 (through the server, which holds the key): POST /v1/messages with headers x-api-key and anthropic-version, body { model, max_tokens, messages },
-// read usage.input_tokens / usage.output_tokens, map 401 → 'auth', 429 → 'rate', 529 and 5xx → 'overloaded', and chain() returns the Haiku / stronger model by tier.
-const AnthropicProvider = {
-  id: 'anthropic', name: 'Anthropic Claude', implemented: false,
-  capabilities: { vision: false, search: false, json: false, searchWithJson: false, usage: false },
-  async chain(){ return []; },
-  async generate(){ throw aiError('unsupported', 'The Anthropic provider is not built yet.', { fatal: true }); },
-  async testKey(){ throw aiError('unsupported', 'The Anthropic provider is not built yet.', { fatal: true }); },
-};
+// Food Coach 2.0: the other providers. Same normalized request / response / errors as Gemini, so no feature changes when one is picked.
+// Picked by settings.provider ('gemini' default | 'openai' | 'openrouter' | 'anthropic'); key settings.aiKeys[id]; models settings.aiModels[id] =
+// { default, advanced }; settings.aiBase[id] = another address (the app's own server later: it holds the key, so a shipped app carries none and
+// the key can be left empty). No settings screen yet: Gemini (the user's own key) stays the only one offered in the app.
+// Never a silent switch to a paid provider: run() only uses the provider that is picked.
+const aiCfg = (id, k) => { const s = typeof settings !== 'undefined' ? settings : {}; return ((s[k] || {})[id]); };
+function aiHttpError(status, msg, extra){
+  const short = String(msg || `HTTP ${status}`).slice(0, 90);
+  if(status === 401 || status === 403) return aiError('auth', t('keyBad', { e: short }), { fatal: true, status });
+  return aiError(status === 429 ? 'rate' : status >= 500 || status === 529 ? 'overloaded' : 'other', short, { status, ...(extra || {}) });
+}
+async function aiPost(url, headers, body, ms, outer){
+  let r, j = null;
+  try{ r = await fetchT(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) }, ms, outer); try{ j = await r.json(); }catch(e){} }
+  catch(e){
+    if(outer && outer.aborted) throw aiError('cancelled', t('cancelled'));
+    if(e && e.name === 'AbortError') throw aiError('timeout', t('timedOut'));
+    throw aiError('network', (e && e.message) || 'network');
+  }
+  if(!r.ok){ const ra = r.headers && r.headers.get ? parseFloat(r.headers.get('retry-after')) : NaN;
+    throw aiHttpError(r.status, j && j.error && (j.error.message || j.error.type), { retryAfterMs: ra > 0 ? ra * 1000 : null }); }
+  return j || {};
+}
+// OpenAI chat completions, and every service that speaks the same language (OpenRouter, a self-hosted server)
+function openAICompat(id, name, base, models){
+  const key = () => aiCfg(id, 'aiKeys') || '', url = () => (aiCfg(id, 'aiBase') || base).replace(/\/$/, '');
+  const pick = tier => { const m = aiCfg(id, 'aiModels') || {}; return (tier === 'advanced' ? m.advanced || models.advanced : m.default || models.default); };
+  return {
+    id, name, implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false },
+    ready: () => !!key() || !!aiCfg(id, 'aiBase'),
+    async chain(req){ return [...new Set([pick(req.tier), pick('default')].filter(Boolean))]; },
+    timeoutFor: req => req.timeoutMs || (req.tier === 'advanced' ? 60000 : 30000),
+    async generate(req, model, outer){
+      if(req.search) throw aiError('unsupported', name + ': no web search', { fatal: true });
+      const content = [{ type: 'text', text: req.prompt }, ...[].concat(req.images || []).map(d => ({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + d } }))];
+      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? req.prompt : content }], temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6,
+        ...(req.json === false ? {} : { response_format: { type: 'json_object' } }), ...(req.maxTokens ? { max_tokens: req.maxTokens } : {}) };
+      const j = await aiPost(url() + '/chat/completions', key() ? { Authorization: 'Bearer ' + key() } : {}, body, req.timeoutMs, outer);
+      const text = String((((j.choices || [])[0] || {}).message || {}).content || ''), u = j.usage;
+      return { text, usage: u && u.total_tokens != null ? { input: u.prompt_tokens ?? null, output: u.completion_tokens ?? null, total: u.total_tokens } : null };
+    },
+    async testKey(k){ const j = await aiPost(url() + '/chat/completions', { Authorization: 'Bearer ' + k }, { model: pick('default'), messages: [{ role: 'user', content: 'ok' }], max_tokens: 1 }, 12000); return j ? 1 : 0; },
+  };
+}
+const OpenAIProvider = openAICompat('openai', 'OpenAI', 'https://api.openai.com/v1', { default: 'gpt-4o-mini', advanced: 'gpt-4o' });
+const OpenRouterProvider = openAICompat('openrouter', 'OpenRouter', 'https://openrouter.ai/api/v1', { default: 'openai/gpt-4o-mini', advanced: 'anthropic/claude-sonnet-5-5' });
+// Anthropic (Claude) Messages API. Straight from a browser it needs the "direct browser access" header; through the app's server (aiBase) it does not.
+const AnthropicProvider = (() => {
+  const id = 'anthropic', key = () => aiCfg(id, 'aiKeys') || '', base = () => (aiCfg(id, 'aiBase') || 'https://api.anthropic.com').replace(/\/$/, '');
+  const pick = tier => { const m = aiCfg(id, 'aiModels') || {}; return tier === 'advanced' ? m.advanced || 'claude-sonnet-5-5' : m.default || 'claude-haiku-5-5'; };
+  const head = k => ({ ...(k ? { 'x-api-key': k } : {}), 'anthropic-version': '2023-06-01', ...(aiCfg(id, 'aiBase') ? {} : { 'anthropic-dangerous-direct-browser-access': 'true' }) });
+  return {
+    id, name: 'Anthropic Claude', implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false },
+    ready: () => !!key() || !!aiCfg(id, 'aiBase'),
+    async chain(req){ return [...new Set([pick(req.tier), pick('default')])]; },
+    timeoutFor: req => req.timeoutMs || (req.tier === 'advanced' ? 60000 : 30000),
+    async generate(req, model, outer){
+      if(req.search) throw aiError('unsupported', 'Claude: no web search here', { fatal: true });
+      const content = [...[].concat(req.images || []).map(d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } })),
+        { type: 'text', text: req.prompt + (req.json === false ? '' : '\nAnswer with the JSON object only.') }];
+      const j = await aiPost(base() + '/v1/messages', head(key()), { model, max_tokens: req.maxTokens || 1500, temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6,
+        messages: [{ role: 'user', content }] }, req.timeoutMs, outer);
+      const text = (j.content || []).map(c => c.text || '').join(''), u = j.usage;
+      return { text, usage: u && u.input_tokens != null ? { input: u.input_tokens, output: u.output_tokens ?? null, total: u.input_tokens + (u.output_tokens || 0) } : null };
+    },
+    async testKey(k){ await aiPost(base() + '/v1/messages', head(k), { model: pick('default'), max_tokens: 1, messages: [{ role: 'user', content: 'ok' }] }, 12000); return 1; },
+  };
+})();
 
 const AIProvider = (() => {
-  const registry = { gemini: GeminiProvider, anthropic: AnthropicProvider };
+  const registry = { gemini: GeminiProvider, openai: OpenAIProvider, openrouter: OpenRouterProvider, anthropic: AnthropicProvider };
   // the provider in use: settings.provider, Gemini when nothing (or something unknown) is set
   const active = () => registry[(typeof settings !== 'undefined' && settings.provider) || 'gemini'] || GeminiProvider;
   const sleep = (ms, outer) => new Promise((res, rej) => {
@@ -135,16 +200,41 @@ const AIProvider = (() => {
   const MIN_TRY = 3000;   // a try with less time left than this is not started: it would only time out
   const deadlineFor = req => req.deadlineMs || (req.tier === 'advanced' || req.search ? 120000 : 60000);
 
+  // Food Coach 2.0 — quota cooldown: a model that answered 429 is skipped until the time the provider asked for (30 s when it did not say,
+  // at most 10 min). When every model in the chain is cooling down, run() fails at once with kind 'rate' and .cooldown, without a network call,
+  // so a message sent while the free quota is used up gets the offline answer in milliseconds instead of another minute of tries.
+  const cool = {}, COOL_DEF = 30000, COOL_MAX = 600000;
+  const coolKey = (p, m) => p.id + '|' + m;
+  const cooling = (p, m) => (cool[coolKey(p, m)] || 0) > Date.now();
+  function coolUntil(){ const n = Date.now(), v = Object.values(cool).filter(x => x > n); return v.length ? Math.min(...v) : 0; }
+  // can a request be sent right now? { ok, why: 'nokey' | 'cooling' | 'unsupported', until }
+  async function status(req){
+    const p = active(); if(!p.implemented) return { ok: false, why: 'unsupported' };
+    if(p.ready && !p.ready()) return { ok: false, why: 'nokey' };
+    const ms = (await p.chain(req || {})).slice(0, (req && req.maxModels) || 99);
+    return ms.length && ms.every(m => cooling(p, m)) ? { ok: false, why: 'cooling', until: coolUntil() } : { ok: true };
+  }
+  // the same request while it is still running (same dedupeKey) shares one answer instead of a second call
+  const inflight = new Map();
+  function run(req, opts){
+    const k = req && req.dedupeKey; if(!k) return run1(req, opts);
+    if(inflight.has(k)) return inflight.get(k);
+    const pr = run1(req, opts); inflight.set(k, pr);
+    const off = () => { if(inflight.get(k) === pr) inflight.delete(k); }; pr.then(off, off); return pr;
+  }
   // Runs one normalized request: walks the model list (one try each, like before), retries are bounded, and every failure is normalized.
   // opts: { onTry(i, n, model), outer (AbortSignal) }.  Returns the normalized response; throws a normalized error (with the same user-facing texts as before).
-  async function run(req, opts){
+  // req.maxModels (Food Coach 2.0): try at most this many models (a chat answer is not worth ten tries).
+  async function run1(req, opts){
     opts = opts || {}; const outer = opts.outer, p = active(), t0 = Date.now(), maxRetry = Math.min(2, Math.max(0, req.retries | 0)), end = t0 + deadlineFor(req);
     const left = () => end - Date.now(), perTry = p.timeoutFor ? p.timeoutFor(req) : 30000;
     const trace = { provider: p.id, tier: req.tier || 'default', search: !!req.search, photo: !!(req.images && [].concat(req.images).length), task: req.task || '', ctx: req.ctx | 0, start: t0, tries: [], ok: false };
     const done = (res, err) => { trace.ms = Date.now() - t0; trace.ok = !err; trace.cancelled = !!(err && err.cancelled); trace.kind = err ? err.kind || 'other' : ''; try{ if(AIProvider.onDone) AIProvider.onDone(trace); }catch(e){} };
     try{
       if(!p.implemented) throw aiError('unsupported', p.name + ' is not built yet.', { fatal: true });
-      const models = await p.chain(req); let last = null, waits = 0;
+      if(p.ready && !p.ready()) throw aiError('auth', t('keyBad', { e: p.name }), { fatal: true, nokey: true });
+      const all = (await p.chain(req)).slice(0, req.maxModels || 99), models = all.filter(m => !cooling(p, m)); let last = null, waits = 0;
+      if(all.length && !models.length){ trace.cooldown = true; throw aiError('rate', t('allBusy', { e: 'quota' }), { cooldown: true, until: coolUntil() }); }
       for(let i = 0; i < models.length; i++){
         if(outer && outer.aborted) throw aiError('cancelled', t('cancelled'));
         if(left() < MIN_TRY){ trace.deadline = true; break; }
@@ -164,9 +254,10 @@ const AIProvider = (() => {
             if(e.fatal || e.cancelled) throw e;
             if(outer && outer.aborted) throw aiError('cancelled', t('cancelled'));
             last = e;
+            if(a.kind === 'rate') cool[coolKey(p, models[i])] = Date.now() + Math.min(COOL_MAX, e.retryAfterMs || COOL_DEF);
             const k = AIKinds[a.kind] || {};
-            if(k.wait){ await sleep(Math.max(0, Math.min(backoff(waits++), left() - MIN_TRY)), outer); }   // busy or offline: a short pause helps whatever comes next
-            if(k.retry && again < maxRetry) continue;             // opt-in same-model retry (default off)
+            if(k.wait && !(e.retryAfterMs > 5000)){ await sleep(Math.max(0, Math.min(backoff(waits++), left() - MIN_TRY)), outer); }   // busy or offline: a short pause helps whatever comes next (not after "quota used up for N s": waiting can't help)
+            if(k.retry && again < maxRetry && a.kind !== 'rate') continue;   // opt-in same-model retry (default off); never into a 429
             break;
           }
         }
@@ -176,5 +267,5 @@ const AIProvider = (() => {
     }catch(e){ if(!trace.ms) done(null, e); throw e; }
   }
 
-  return { run, active, registry, onDone: null, aiParseJSON };
+  return { run, status, active, registry, onDone: null, aiParseJSON, coolReset: () => { Object.keys(cool).forEach(k => delete cool[k]); } };
 })();
