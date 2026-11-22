@@ -86,9 +86,18 @@ Network first. Only files listed in `SHELL` are cached, and only good (200) answ
 ## Phone (`js/platform/phone.js`)
 `Phone.*` (haptic, vibrate, camera, barcode, wake lock, share/download, clipboard). The native app swaps the inside; callers never test for native vs browser.
 
+## RECOVERY+ snapshot (`js/recovery-plus.js` › `RecoveryPlus.snapshot()`) — built
+The one recovery owner. Read-only, computed locally (no AI, no network), cached until a relevant Store save or 10 min.
+`{ v: 1, version: 'recovery.v1', at, generatedAt, engineVersion, dataFreshness: 'current' | 'stale' | 'unknown',`
+`groups: { <10 groups>: { state: 'recovering' | 'ready' | 'unknown', detail: 'needs_rest' | 'recovering' | 'ready' | 'unknown', hoursLeft, conf, heads: [not-ready head ids] } },`
+`muscleHeads: { <21 head ids>: { state: 'ready' | 'recovering' | 'needs_rest' | 'unknown', confidence, remainingHoursRange?, reasons: [codes], source } },`
+`readiness: { level: 'normal' | 'reduced' | 'unknown', conf, why }, overall: { assessment: 'ready' | 'caution' | 'unknown', confidence, reasons },`
+`nextWorkout?: { workoutId, scheduledAt, assessment: 'proceed' | 'consider_adjustment' | 'unknown', limitingMuscles, suggestionCodes },`
+`activeSession?: { acuteFatigueByHead }, provenance, support: { sleep?, nutrition?: { status, confidence, eligibleCompletedDays, reasons, goalContext, goalAssessment }, overallReadinessReasons, cautionScope } }`.
+Summaries and reason codes only (no meals, no sleep timeline). Food / sleep parts are left out when the user switched them off. Sleep, food and goal never change `groups` / `muscleHeads`. Older shape `{ v: 1, at, groups, readiness }` (Gym Coach) is a subset. Old callers of `recMap()` / `recMapNow()` get `{ group: { h, st: 'ok' | 'mid' | 'low' | 'unk', col, p, heads } }` from the same engine.
+
 ## Planned — compatibility only (DO NOT IMPLEMENT without their own prompt)
-- **RECOVERY+**: will be the only owner of muscle/head recovery and, separately, overall readiness; reads `sessions`/`active` (completed sets only) and optional sleep/nutrition; publishes a versioned read-only snapshot; unknown stays unknown. Gym Coach already reads it through `GymIntel.recovery()` when a global `RecoveryPlus.snapshot()` returns `{ v: 1, at, groups: { <group>: { state: 'recovering' | 'ready' | 'unknown', hoursLeft, conf } }, readiness: { level: 'normal' | 'reduced' | 'low' | 'unknown', conf, why } }`; older than 6 h = told to the AI as possibly out of date; any other shape = the current estimate is used. Keeps 10 display groups / 21 head ids (`js/data/gym-anatomy.js`). Replaces, not duplicates, the current `headLoads()`/`estimateRecovery()`.
-- **Athlete Rank v0.4**: `js/rank-v2.js` stays switched off until its task; reads factual sets and the RECOVERY+ snapshot, writes only its own rank evidence; no rank for machine/cable lifts.
+- **Athlete Rank v0.4**: `js/rank-v2.js` stays switched off until its task; reads factual sets and the RECOVERY+ snapshot (built), writes only its own rank evidence; no rank for machine/cable lifts.
 - **Athlete OS**: built (see above). Still planned on top of it: Experiments, a Not Now button on coach cards, mixed-intent hand-off between coach windows, cloud sync of memory (it is device-only today).
 - **Coaches / Fridge AI**: propose, never write without the user's Apply; no emojis; go through `AIProvider`.
 - **Integrations (Health, watches, Strava, cloud)**: adapter → permission → validation → normalized facts → the owning domain's save. No direct writes to other keys. Sync can use `ft.sync.v1` (`upd`/`tomb` per record id).

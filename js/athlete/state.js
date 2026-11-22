@@ -29,6 +29,7 @@ const AthleteState = (() => {
     isMainSet: () => typeof isMainSet !== 'undefined' ? isMainSet : undefined,
     hitsFrom: () => typeof hitsFrom !== 'undefined' ? hitsFrom : undefined,
     HEADS: () => typeof HEADS !== 'undefined' ? HEADS : undefined,
+    RecoveryPlus: () => typeof RecoveryPlus !== 'undefined' ? RecoveryPlus : undefined,
     recMapNow: () => typeof recMapNow !== 'undefined' ? recMapNow : undefined,
     recMap: () => typeof recMap !== 'undefined' ? recMap : undefined,
     logFix: () => typeof logFix !== 'undefined' ? logFix : undefined,
@@ -101,9 +102,17 @@ const AthleteState = (() => {
       return out; } },
 
     // recovery: the existing engine (gym.js recMap through its 30 s cache); hours change with time, so a short ttl
-    recovery: { deps: ['sessions'], ttl: 10 * 60e3, fn(){
+    // RECOVERY+ is the one source (its snapshot: summaries and reason codes only, no food diary); the old map is only a fallback
+    recovery: { deps: ['sessions', 'gymPlan', 'tpls', 'dayLog', 'targets'], ttl: 10 * 60e3, fn(){
+      const R = g('RecoveryPlus');
+      if(R && R.snapshot){ try{ const s = R.snapshot();
+        if(s && s.v === 1 && s.groups){ const known = Object.values(s.groups).some(v => v.state !== 'unknown');
+          const groups = Object.entries(s.groups).filter(([, v]) => v.state === 'recovering').map(([gr, v]) => ({ group: gr, hoursLeft: v.hoursLeft, heads: v.heads || [], conf: v.conf })).sort((a, b) => b.hoursLeft - a.hoursLeft);
+          const sp = s.support || {};
+          return { known, recovering: groups, kind: 'calculated', src: 'recovery+', readiness: s.overall, next: s.nextWorkout || null,
+            sleep: sp.sleep ? { status: sp.sleep.status, conf: sp.sleep.confidence } : null, food: sp.nutrition ? { status: sp.nutrition.status, reasons: sp.nutrition.reasons, goal: sp.nutrition.goalContext } : null }; } }catch(e){} }
       const f = g('recMapNow') || g('recMap'); if(!f) return { known: false };
-      const m = f(), groups = Object.entries(m || {}).filter(([, v]) => v && v.st !== 'ok').map(([gr, v]) => ({ group: gr, hoursLeft: v.h })).sort((a, b) => b.hoursLeft - a.hoursLeft);
+      const m = f(), groups = Object.entries(m || {}).filter(([, v]) => v && (v.st === 'mid' || v.st === 'low')).map(([gr, v]) => ({ group: gr, hoursLeft: v.h })).sort((a, b) => b.hoursLeft - a.hoursLeft);
       return { known: true, recovering: groups, kind: 'calculated', src: 'sessions' }; } },
 
     // the user's portion corrections (owned by today.js as 'foodFix'): learned memory, read here, never copied

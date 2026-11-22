@@ -219,7 +219,9 @@ $('tgCalc').addEventListener('click', () => {
 
 $('tgSave').addEventListener('click', () => {
   const rd = p => { const o = {}; ['k', 'p', 'c', 'f'].forEach(x => o[x] = num('tg' + p + x)); if(!o.k && o.p !== null && o.c !== null && o.f !== null) o.k = Math.round(o.p * 4 + o.c * 4 + o.f * 9); return o; };
-  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null, lock: { G: MXL.G, R: MXL.R } };
+  // RECOVERY+: goalAt = the day the goal last changed, so food days before a switch are never judged against the new goal
+  const goalAt = targets && targets.goal === TG.goal ? targets.goalAt : todayKey();
+  targets = { goal: TG.goal, bw: num('tgBw'), gym: rd('G'), rest: rd('R'), fib: num('tgFib') || null, lock: { G: MXL.G, R: MXL.R }, ...(goalAt ? { goalAt } : {}) };
   if(!targets.rest.k) targets.rest = { ...targets.gym };
   Store.save('targets', targets); renderAll(); toast(t('targetsSaved'));   // 20B: the targets sit on Body and Goals: Save keeps you there, like the body Save
 });

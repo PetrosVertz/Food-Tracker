@@ -523,6 +523,9 @@ catch (e) { fail('gym coach: tools/gym-coach-test.js\n' + String(e.stdout || '')
 // Changes #12 / #13: weekly streak, Streak Savers, Consistency Challenge, Stats pins + 24 h rotation (tools/streak-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/streak-test.js')], { stdio: 'pipe' }).toString(); ok('streak + stats: ' + (out.match(/^ok /gm) || []).length + ' weekly streak / saver / challenge / pin / rotation checks pass (tools/streak-test.js)'); }
 catch (e) { fail('streak + stats: tools/streak-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+// RECOVERY+ (js/recovery-plus.js + js/recovery-anatomy.js): engine cases, sleep / food / goal context, snapshot contract, anatomy coverage (tools/recovery-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/recovery-test.js')], { stdio: 'pipe' }).toString(); ok('recovery+: ' + (out.match(/^ok /gm) || []).length + ' engine / context / contract / anatomy checks pass (tools/recovery-test.js)'); }
+catch (e) { fail('recovery+: tools/recovery-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 // Athlete OS (js/athlete/*): events from saves, state, context budget + permissions, memory rules, supervisor (tools/athlete-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/athlete-test.js')], { stdio: 'pipe' }).toString(); ok('athlete os: ' + (out.match(/^ok /gm) || []).length + ' event / state / context / memory / supervisor checks pass (tools/athlete-test.js)'); }
 catch (e) { fail('athlete os: tools/athlete-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }

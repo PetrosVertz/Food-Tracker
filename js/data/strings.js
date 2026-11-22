@@ -258,8 +258,6 @@ Object.assign(S, {
  nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
  recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'],
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
- recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
- recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
  recRestDay:['Rest day: {m} still recovering. Good call resting.','Μέρα ξεκούρασης: {m} ακόμα αναρρώνουν. Καλά κάνεις και ξεκουράζεσαι.'],
  notInFridge:['Not in fridge','Όχι στο ψυγείο'],
 });
@@ -666,8 +664,6 @@ Object.assign(S, {
 
 // ---------- 0.7.7: recovery ----------
 Object.assign(S, {
-  recVOk: ['On Track', 'Σε καλό δρόμο'], recVBit: ['A Bit Low', 'Λίγο Χαμηλά'], recVLow: ['Low', 'Χαμηλά'], recGap: ['about {g} g protein short', 'λείπουν περίπου {g} g πρωτεΐνη'],
-  recTipTonight: ['Add a protein-rich meal tonight', 'Πρόσθεσε ένα γεύμα πλούσιο σε πρωτεΐνη απόψε'], recTipTomorrow: ['Start tomorrow with a protein-rich meal', 'Ξεκίνα αύριο με γεύμα πλούσιο σε πρωτεΐνη'], recTipToday: ['Start today with a protein-rich meal', 'Ξεκίνα σήμερα με γεύμα πλούσιο σε πρωτεΐνη'],
 });
 
 // ---------- 0.7.7: sounds ----------
@@ -749,7 +745,6 @@ Object.assign(S, {
 Object.assign(S, {
   exsRank: ['Rank Badge', 'Σήμα Κατάταξης'], exsRankS: ['Your rank for this lift on the card. Tap it to see how far the next rank is.', 'Η κατάταξή σου στην άσκηση, πάνω στην κάρτα. Πάτα το για να δεις πόσο απέχει η επόμενη.'],
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
-  soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
   soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
 });
 Object.assign(S, {
@@ -1000,4 +995,72 @@ Object.assign(S, {   // ==== branch: gym — Changes #12 / #13: Stats pins + dai
   stkCOne: ['1 more workout keeps your streak.', '1 ακόμα προπόνηση κρατάει το σερί.'], stkCLast: ['Last chance today for your streak.', 'Σήμερα η τελευταία ευκαιρία για το σερί.'],
   stkCSaver: ['A Streak Saver can cover this week.', 'Ένα Σωσίβιο Σερί καλύπτει αυτή την εβδομάδα.'], stkCLost: ['Streak reset. A new one starts next week.', 'Το σερί μηδενίστηκε. Νέο ξεκινά την άλλη εβδομάδα.'],
   stkSkipLast: ["Today is your last chance to reach this week's goal. Skip anyway?", 'Σήμερα είναι η τελευταία ευκαιρία για τον στόχο της εβδομάδας. Παράλειψη ούτως ή άλλως;'],
+});
+
+// RECOVERY+ (the Recovery page, its tiles, insight and Advanced details; Today's line; the live workout's sore-muscle bubble)
+Object.assign(S, {
+  hubRec: ['RECOVERY+', 'RECOVERY+'],
+  recFigAria: ['Recovery body map. Muscles still recovering: {m}.', 'Χάρτης αποκατάστασης. Μύες που ακόμα αναρρώνουν: {m}.'],
+  recNoneShort: ['none', 'κανένας'],
+  recNextT: ['Next Workout', 'Επόμενη Προπόνηση'], recNoPlanT: ['No Workout Planned', 'Καμία Προγραμματισμένη Προπόνηση'],
+  recNextWhen: ['{d} at {t}', '{d} στις {t}'], recDayToday: ['Today', 'Σήμερα'], recDayTomorrow: ['Tomorrow', 'Αύριο'],
+  recAsProceed: ['The muscles this workout uses look ready. Train as planned.', 'Οι μύες που δουλεύει αυτή η προπόνηση φαίνονται έτοιμοι. Προπονήσου όπως το σχεδίασες.'],
+  recAsMonitor: ['{m} may still be a little tired. Train as planned and see how those sets feel.', '{m}: ίσως ακόμα λίγο κουρασμένοι. Προπονήσου κανονικά και δες πώς νιώθεις σε αυτά τα σετ.'],
+  recAsReduce: ['{m} may still be recovering. You can train as planned, or do fewer hard sets for them if they feel unusually heavy.', '{m}: ίσως ακόμα αναρρώνουν. Μπορείς να προπονηθείς κανονικά ή να κάνεις λιγότερα δύσκολα σετ γι’ αυτούς αν νιώθεις ασυνήθιστα βαριά.'],
+  recAsAlt: ['{m} likely need more rest. Consider a different exercise or lighter sets for them today. Your call.', '{m}: μάλλον θέλουν κι άλλη ξεκούραση. Σκέψου άλλη άσκηση ή πιο ελαφριά σετ γι’ αυτούς σήμερα. Εσύ αποφασίζεις.'],
+  recAsRest: ['Most of this workout uses muscles that likely need more rest ({m}). An extra rest day or a lighter session are options. Your call.', 'Το μεγαλύτερο μέρος αυτής της προπόνησης δουλεύει μύες που μάλλον θέλουν ξεκούραση ({m}). Μια μέρα ξεκούρασης ακόμα ή πιο ελαφριά προπόνηση είναι επιλογές. Εσύ αποφασίζεις.'],
+  recAsListFat: ['This workout has no exercise list. Still recovering: {m}.', 'Αυτή η προπόνηση δεν έχει λίστα ασκήσεων. Ακόμα αναρρώνουν: {m}.'],
+  recAsListOk: ['This workout has no exercise list. Your logged muscles look ready.', 'Αυτή η προπόνηση δεν έχει λίστα ασκήσεων. Οι μύες από τις προπονήσεις σου φαίνονται έτοιμοι.'],
+  recAsNoHistory: ['Recovery estimates will appear as you log workouts.', 'Οι εκτιμήσεις αποκατάστασης θα εμφανιστούν όσο καταγράφεις προπονήσεις.'],
+  recLimited: ['Based on limited workout history.', 'Με βάση λίγες καταγεγραμμένες προπονήσεις.'],
+  recSumRec: ['Still recovering: {m}.', 'Ακόμα αναρρώνουν: {m}.'], recSumReady: ['Every muscle from your logged workouts looks ready.', 'Όλοι οι μύες από τις προπονήσεις σου φαίνονται έτοιμοι.'],
+  recStale: ['No workouts logged in the last 3 weeks, so RECOVERY+ can’t be sure.', 'Καμία προπόνηση τις τελευταίες 3 εβδομάδες, οπότε το RECOVERY+ δεν μπορεί να είναι σίγουρο.'],
+  recAdvice: ['Suggestions only. Nothing in your plan changes.', 'Μόνο προτάσεις. Τίποτα στο πρόγραμμά σου δεν αλλάζει.'],
+  recUnknown: ['Unknown', 'Άγνωστο'], recUnknownKey: ['Grey = no workout data yet', 'Γκρι = δεν υπάρχουν ακόμα δεδομένα'],
+  recWatchT: ['Muscles To Watch', 'Μύες Που Θέλουν Προσοχή'], recInsightT: ['RECOVERY+ Insight', 'Συμβουλή RECOVERY+'],
+  recDetailsT: ['Details', 'Λεπτομέρειες'], recContextT: ['How RECOVERY+ Decided', 'Πώς Αποφάσισε Το RECOVERY+'],
+  recHint2: ['Colours and hours come from your logged sets and how long ago you did them. Estimates, not medical advice.', 'Τα χρώματα και οι ώρες βγαίνουν από τα σετ που κατέγραψες και πόσο παλιά τα έκανες. Εκτιμήσεις, όχι ιατρική συμβουλή.'],
+  recCLow: ['Low', 'Χαμηλή'], recCMod: ['Moderate', 'Μέτρια'], recCHigh: ['High', 'Υψηλή'],
+  recDSets: ['{n} hard sets this week', '{n} δύσκολα σετ αυτή την εβδομάδα'],
+  recDEx: ['From: {e}', 'Από: {e}'],
+  recDRir: ['Reps in reserve logged on {a} of {b} sets', 'Επαναλήψεις σε απόθεμα σε {a} από {b} σετ'],
+  recDRirNone: ['No reps in reserve logged, so normal effort is assumed', 'Δεν καταγράφηκαν επαναλήψεις σε απόθεμα, οπότε θεωρείται κανονική προσπάθεια'],
+  recDFail: ['{n} sets to failure', '{n} σετ μέχρι αποτυχία'], recDDrop: ['{n} drop sets', '{n} drop sets'],
+  recDRange: ['Ready in about {a} to {b} h', 'Έτοιμοι σε περίπου {a} έως {b} ώρες'], recDConf: ['Confidence: {c}', 'Βεβαιότητα: {c}'],
+  recDTrend: ['{e}: strength {s} over the last 4 weeks', '{e}: δύναμη {s} τις τελευταίες 4 εβδομάδες'],
+  recDTrendNone: ['Not enough repeat workouts for a strength trend yet', 'Δεν υπάρχουν ακόμα αρκετές επαναλήψεις για τάση δύναμης'],
+  recDUnmapped: ['A custom exercise without muscles was left out', 'Μια δική σου άσκηση χωρίς μύες δεν μετρήθηκε'],
+  recPersFast: ['Adjusted to your history: you tend to recover a bit faster', 'Προσαρμοσμένο στο ιστορικό σου: συνήθως αναρρώνεις λίγο πιο γρήγορα'],
+  recPersSlow: ['Adjusted to your history: you tend to need a bit longer', 'Προσαρμοσμένο στο ιστορικό σου: συνήθως χρειάζεσαι λίγο περισσότερο'],
+  recWhyRow: ['{m}: about {h} h to ready, main mover in {n} planned exercises.', '{m}: περίπου {h} ώρες ως έτοιμοι, κύριος μυς σε {n} προγραμματισμένες ασκήσεις.'],
+  recWhyNone: ['The planned exercises’ muscles look ready.', 'Οι μύες των προγραμματισμένων ασκήσεων φαίνονται έτοιμοι.'],
+  recWhyNoPlan: ['No planned workout to compare with.', 'Δεν υπάρχει προγραμματισμένη προπόνηση για σύγκριση.'],
+  recCtxWhy: ['Why This Suggestion', 'Γιατί Αυτή Η Πρόταση'], recCtxSleep: ['Sleep', 'Ύπνος'], recCtxFood: ['Food', 'Φαγητό'], recCtxData: ['Data', 'Δεδομένα'],
+  recCtxRule: ['Sleep, food and your goal never change muscle colours or hours.', 'Ο ύπνος, το φαγητό και ο στόχος σου δεν αλλάζουν ποτέ τα χρώματα ή τις ώρες των μυών.'],
+  recDataN: ['{n} workouts logged, last on {d}.', '{n} καταγεγραμμένες προπονήσεις, η τελευταία στις {d}.'],
+  recOff: ['Not used (switched off below).', 'Δεν χρησιμοποιείται (κλειστό παρακάτω).'],
+  recSleepNone: ['No sleep data is connected, so nothing is assumed.', 'Δεν υπάρχουν συνδεδεμένα δεδομένα ύπνου, οπότε δεν υποθέτουμε τίποτα.'],
+  recSleepOk: ['Recent sleep looks usual ({h} h on average).', 'Ο πρόσφατος ύπνος φαίνεται συνηθισμένος ({h} ώρες κατά μέσο όρο).'],
+  recSleepShort: ['Recent nights were shorter than usual ({h} h on average).', 'Οι τελευταίες νύχτες ήταν πιο σύντομες από ό,τι συνήθως ({h} ώρες κατά μέσο όρο).'],
+  recSleepSingle: ['Last night was short ({h} h). One night is only a small signal.', 'Χθες κοιμήθηκες λίγο ({h} ώρες). Μία νύχτα είναι μόνο μικρή ένδειξη.'],
+  recFoodUnknown: ['Not enough finished food days to judge. Missing logs never count as not eating.', 'Δεν υπάρχουν αρκετές ολοκληρωμένες μέρες φαγητού για κρίση. Ό,τι λείπει δεν μετράει ποτέ ως νηστεία.'],
+  recFoodProteinOk: ['Logged protein reached your target on most logged days.', 'Η καταγεγραμμένη πρωτεΐνη έφτασε τον στόχο σου τις περισσότερες μέρες.'],
+  recFoodProteinGap: ['Logged protein was below your target on most finished days.', 'Η καταγεγραμμένη πρωτεΐνη ήταν κάτω από τον στόχο σου τις περισσότερες ολοκληρωμένες μέρες.'],
+  recFoodCov: ['Food logged on {a} of the last {w} days; {b} marked as finished.', 'Φαγητό καταγράφηκε {a} από τις τελευταίες {w} μέρες· {b} σημειώθηκαν ολοκληρωμένες.'],
+  recSince: ['since {d}', 'από {d}'],
+  recEnergyOk: ['Calories on finished days match your target.', 'Οι θερμίδες στις ολοκληρωμένες μέρες ταιριάζουν με τον στόχο σου.'],
+  recEnergyLow: ['Calories on finished days were below your target.', 'Οι θερμίδες στις ολοκληρωμένες μέρες ήταν κάτω από τον στόχο σου.'],
+  recEnergyHigh: ['Calories on finished days were above your target.', 'Οι θερμίδες στις ολοκληρωμένες μέρες ήταν πάνω από τον στόχο σου.'],
+  recEnergyUnknown: ['Calories vs target: unknown, as no day is marked finished.', 'Θερμίδες σε σχέση με τον στόχο: άγνωστο, καμία μέρα δεν είναι σημειωμένη ολοκληρωμένη.'],
+  recUseFood: ['Use Food Data', 'Χρήση Δεδομένων Φαγητού'], recUseSleep: ['Use Sleep Data', 'Χρήση Δεδομένων Ύπνου'],
+  recI_sleep_short: ['Your recent sleep has been shorter than usual. Hard sets may feel tougher today; adjust effort if needed.', 'Τελευταία κοιμάσαι λιγότερο από ό,τι συνήθως. Τα δύσκολα σετ ίσως φανούν πιο βαριά σήμερα· προσάρμοσε την προσπάθεια αν χρειαστεί.'],
+  recI_cut_energy_low: ['You’re cutting, and on your finished food days you ate well below even your cut target. If training feels flat, the Food Coach can help.', 'Κάνεις γράμμωση και στις ολοκληρωμένες μέρες έφαγες αρκετά κάτω ακόμα και από τον στόχο σου. Αν η προπόνηση δεν πάει καλά, ο Food Coach μπορεί να βοηθήσει.'],
+  recI_energy_low: ['On your finished food days, calories were well below your target. If training feels flat, the Food Coach can help.', 'Στις ολοκληρωμένες μέρες οι θερμίδες ήταν αρκετά κάτω από τον στόχο σου. Αν η προπόνηση δεν πάει καλά, ο Food Coach μπορεί να βοηθήσει.'],
+  recI_protein_gap: ['Your recorded protein has been below your target on several finished days. Consistency may help your training.', 'Η καταγεγραμμένη πρωτεΐνη ήταν κάτω από τον στόχο σου σε αρκετές ολοκληρωμένες μέρες. Η σταθερότητα βοηθά την προπόνηση.'],
+  recI_bulk_low: ['Your finished food days are below your gaining target. That could make muscle growth harder over time.', 'Οι ολοκληρωμένες μέρες σου είναι κάτω από τον στόχο όγκου. Αυτό μπορεί να δυσκολέψει την αύξηση μυών με τον καιρό.'],
+  recI_carbs_turnaround: ['Big session recently and another one soon: some extra carbs before then may help you train well. Optional.', 'Μεγάλη προπόνηση πρόσφατα και άλλη σύντομα: λίγοι παραπάνω υδατάνθρακες ως τότε ίσως βοηθήσουν. Προαιρετικό.'],
+  recI_cut_ok: ['You’re cutting, so eating below maintenance is expected. Your protein looks on track; no recovery change is needed based on food alone.', 'Κάνεις γράμμωση, οπότε τρως λιγότερο από τη συντήρηση. Η πρωτεΐνη σου είναι εντάξει· δεν χρειάζεται αλλαγή μόνο λόγω φαγητού.'],
+  recI_recomp_ok: ['Your logged protein has been consistent. Nothing in your food suggests changing today’s workout.', 'Η καταγεγραμμένη πρωτεΐνη σου είναι σταθερή. Τίποτα στο φαγητό σου δεν δείχνει αλλαγή στη σημερινή προπόνηση.'],
+  recWarnNext: ['Tomorrow: {w} at {t}. {m} may still be recovering. Train as planned, or go lighter on those sets.', 'Αύριο: {w} στις {t}. {m}: ίσως ακόμα αναρρώνουν. Προπονήσου κανονικά ή πιο ελαφριά σε αυτά τα σετ.'],
+  soreBub2: ['{m} may still be recovering', '{m}: ίσως ακόμα αναρρώνουν'],
 });

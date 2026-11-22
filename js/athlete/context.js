@@ -57,7 +57,11 @@ const AthleteContext = (() => {
     // Change #13: its own part, so the Gym Coach (whose packet replaces 'training') still gets it
     streak(){ const t = S('training'); return streakLine(t && t.streak).trim(); },
     recovery(){ const r = S('recovery'); if(!r.known) return '';
-      return r.recovering.length ? `Recovery (app estimate): still recovering ${r.recovering.slice(0, 6).map(x => `${x.group} ~${x.hoursLeft} h`).join(', ')}; the rest ready.` : 'Recovery (app estimate): every muscle group ready.'; },
+      const src = r.src === 'recovery+' ? 'RECOVERY+ (authoritative; explain it, never recompute or change it)' : 'app estimate';
+      const rec = r.recovering.length ? `still recovering ${r.recovering.slice(0, 6).map(x => `${x.group}${x.heads && x.heads.length ? ` (${x.heads.join(', ')})` : ''} ~${x.hoursLeft} h`).join(', ')}; the rest ready.` : 'every muscle group ready.';
+      const nx = r.next ? ` Next planned workout: ${r.next.assessment}${r.next.limitingMuscles && r.next.limitingMuscles.length ? ` (limiting: ${r.next.limitingMuscles.join(', ')})` : ''}; advice only, the user decides.` : '';
+      const ctx = [r.sleep && r.sleep.status !== 'unknown' ? `sleep ${r.sleep.status}` : '', r.food && r.food.status !== 'unknown' ? `food ${r.food.status}${r.food.reasons && r.food.reasons.length ? ` (${r.food.reasons.slice(0, 3).join(', ')})` : ''}` : ''].filter(Boolean).join('; ');
+      return `Recovery (${src}): ${rec}${nx}${ctx ? ` Context: ${ctx}.` : ''} Missing food or sleep logs mean unknown, not bad.`; },
     // how complete each record is (Athlete OS usage slice), so the coach knows which data can carry a claim. Fridge AI: food + fridge only.
     usage(spec){ const u = S('usage'); if(!u || u.error) return '';
       const when = a => a === 0 ? 'today' : a === 1 ? 'yesterday' : `${a} days ago`;
