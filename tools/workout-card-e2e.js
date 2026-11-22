@@ -105,6 +105,31 @@ const workout = (n, o) => ({ id: 'a1', date: new Date().toISOString().slice(0, 1
     ok(sc.short && sc.vis, 'on its side: the set being worked on is scrolled into view above the pinned buttons');
     await shot(p, 'card_landscape'); await p.close(); }
 
+  // 6. half reps / negatives (Exercise Settings on): compact brackets right under their kg / reps box, wheel on tap, Arrow keys, same saved fields
+  for(const [w, h, lang, theme] of [[390, 844, 'en', 'dark'], [320, 568, 'el', 'light']]){
+    const act = workout(3); act.exercises[0].sets[2].hr = 2;
+    const p = await open({ w, h, act, lang, theme }); await p.evaluate(() => { setGx('half', true); setGx('neg', true); renderSession(); }); await p.waitForTimeout(300);
+    const m = await p.evaluate(() => { const row = document.querySelector('#sesBody>.exc .setrow[data-s="2"]'), x = row.nextElementSibling, bs = [...x.querySelectorAll('.sxb')], R = e => e.getBoundingClientRect();
+      const wb = R(row.querySelector('.gymsbox')), rb = R(row.querySelectorAll('.gymsbox')[1]), hb = R(bs[0]), nb = R(bs[1]);
+      return { n: bs.length, setx: x.classList.contains('setx'), gap: Math.round(hb.top - wb.bottom), hUnder: Math.abs((hb.left + hb.right) / 2 - (wb.left + wb.right) / 2) < 2 && hb.left >= wb.left - 5 && hb.right <= wb.right + 5, nUnder: Math.abs((nb.left + nb.right) / 2 - (rb.left + rb.right) / 2) < 2 && nb.left >= rb.left - 5 && nb.right <= rb.right + 5, apart: hb.right < nb.left,
+        h: Math.round(hb.height), fit: bs.every(b => [...b.querySelectorAll('span')].every(sp => sp.scrollWidth <= sp.clientWidth + 1) && R(b).right <= R(b.closest('.setx')).right + 1), round: getComputedStyle(bs[0]).borderRadius !== '50%',
+        val: bs[0].querySelector('b').textContent, doneShown: document.querySelectorAll('#sesBody>.exc:first-child .setrow.done + .setx').length }; });
+    const vis = await p.evaluate(() => { const x = document.querySelector('#sesBody>.exc:first-child .setrow[data-s="2"] + .setx'), l = x.closest('.setlist'), a = x.getBoundingClientRect(), b = l.getBoundingClientRect(); return a.bottom <= b.bottom + 1 && a.top >= b.top - 1; });
+    ok(vis, `${lang} ${w}×${h}: after switching them on, the working set's brackets are in the list's view`);
+    ok(m.n === 2 && m.setx && m.apart && m.hUnder && m.nUnder && m.gap <= 6 && m.h <= 30 && m.round && m.fit && m.val === '2', `${lang} ${theme} ${w}×${h}: Half Reps / Negatives are compact brackets (${m.h} px) right under kg / reps (gap ${m.gap} px), titles fit, value 2 kept`);
+    ok(m.doneShown === 0, `${lang}: finished sets show no half reps / negatives brackets (unchanged)`);
+    await shot(p, `sx_${lang}_${theme}_${w}`);
+    // tap → the wheel; keyboard ↑ / ↓ steps; 0 removes the field
+    await p.click('#sesBody>.exc .setrow[data-s="2"] + .setx [data-sxpick="ng"]'); await p.waitForTimeout(350);
+    const wheel = await p.evaluate(() => document.getElementById('ovSx').classList.contains('open')); await p.evaluate(() => { close('ovSx'); sxSave(); }); await p.waitForTimeout(200);
+    await p.focus('#sesBody>.exc .setrow[data-s="2"] + .setx [data-sxpick="ng"]'); await p.keyboard.press('ArrowUp'); await p.keyboard.press('ArrowUp'); await p.keyboard.press('ArrowDown');
+    await p.focus('#sesBody>.exc .setrow[data-s="2"] + .setx [data-sxpick="hr"]'); await p.keyboard.press('ArrowDown'); await p.keyboard.press('ArrowDown'); await p.keyboard.press('ArrowDown');
+    const kv = await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('ft.gym.active')).exercises[0].sets[2]; return { ng: s.ng, hasHr: 'hr' in s, r: s.r, focus: document.activeElement && document.activeElement.dataset.sxpick }; });
+    ok(wheel && kv.ng === 1 && !kv.hasHr && kv.r === '10' && kv.focus === 'hr', `${lang}: tap opens the wheel; keys step negatives to 1 and half reps down to none (field removed); reps untouched; focus stays`);
+    await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(400); await p.evaluate(() => { if(!document.getElementById('ovSession').classList.contains('open')) openSession(); }); await p.waitForTimeout(500);
+    const after = await p.evaluate(() => document.querySelector('#sesBody>.exc .setrow[data-s="2"] + .setx [data-sxpick="ng"] b').textContent);
+    ok(after === '1', `${lang}: after reopening the app the Negatives bracket shows 1`); await p.close(); }
+
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); srv.close();
   console.log(fails ? `\n${fails} check(s) failed` : '\nAll workout card checks passed.'); process.exit(fails ? 1 : 0);

@@ -146,7 +146,7 @@ function renderSession(){
 // a set was added, finished or removed (or the workout was just opened / resumed): bring the set you work on next into its list's view.
 // Never when only a value changed, so reading old sets is not interrupted. A list with no size yet (window still closed) does not count as seen.
 function revealLists(){ if(!active) return; $('sesBody').querySelectorAll('.setlist').forEach(l => { const x = active.exercises[+l.dataset.sl]; if(!x || !l.clientHeight) return;
-  const sig = x.sets.length + ':' + x.sets.filter(s => s.done).length; if(SET_SIG.get(x) !== sig){ SET_SIG.set(x, sig); listReveal(l); } }); }
+  const sig = x.sets.length + ':' + x.sets.filter(s => s.done).length + ':' + ['half', 'neg', 'rir'].map(k => +gOn(k)).join('');   /* switching set extras on also re-shows the working set */ if(SET_SIG.get(x) !== sig){ SET_SIG.set(x, sig); listReveal(l); } }); }
 // the pages: room under the last card so the Add Exercise page can reach the top like every other page (the card sizes are natural; only the peek above is fixed)
 // Active Exercise card cap: a card rests centred between the top gap and DOCKGAP above the bottom card (room for the Swipe tip and the timer);
 // it grows both ways until it reaches either edge and then stops there (--cardmax). Past that, its set list scrolls inside the card and the older
@@ -847,7 +847,8 @@ const hourglass = (cls, size, delay) => `<svg class="${cls}" width="${size}" hei
 // 0.7.9.1: a ticked set shows only the finished row; the values stay saved on the set (recovery, Gym Coach and AI.knows read them). Reopen the set to edit them.
 function extrasHtml(s, j){ const G = gx(); if(!(gOn('half') || gOn('neg') || gOn('rir')) || s.type === 'W' || s.done) return '';
   // 0.7.10.4: half reps / negatives are buttons under the kg and reps columns; tapping one opens the scroll wheel (openSx). Same fields as before: s.hr, s.ng
-  const num = (k, lbl, v, col) => `<div class="sxn" style="grid-column:${col}"><span>${lbl}</span><button type="button" class="sxb${v > 0 ? '' : ' zero'}" data-sxpick="${k}" aria-label="${lbl}">${v > 0 ? v : 0}</button></div>`;
+  // compact brackets in the kg / reps style, right under their own box: [title value]; tap = the 0–30 wheel, Arrow Up / Down = ±1 (wire/04)
+  const num = (k, lbl, v, col) => `<div class="sxn" style="grid-column:${col}"><button type="button" class="sxb${v > 0 ? '' : ' zero'}" data-sxpick="${k}" aria-label="${esc(lbl)}: ${v > 0 ? v : 0}"><span>${lbl}</span><b>${v > 0 ? v : 0}</b></button></div>`;
   return `<div class="setx${s.drop ? " drop" : ""}" data-sxrow="${j}">${gOn('half') ? num('hr', t('sxHalf'), s.hr, 2) : ''}${gOn('neg') ? num('ng', t('sxNeg'), s.ng, 3) : ''}${gOn('rir') ? `<div class="sxr" role="group" aria-label="${t('rirL')}"><span>${t('rirL')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button data-rir="${k}" class="${s.rir === k ? 'on' : ''}" aria-pressed="${s.rir === k}">${k}</button>`).join('')}</div>` : ''}</div>`; }
 
 // the 0–30 scroll wheel for half reps / negatives (the same .wheel as the shopping count wheel; its rows are 30 px)

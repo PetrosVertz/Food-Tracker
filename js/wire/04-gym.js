@@ -92,6 +92,11 @@ $('sesBody').addEventListener('input', e => {
 });
 // 0.7.10.4: half reps / negatives are picked on the scroll wheel (openSx in gym.js), not typed
 $('sesBody').addEventListener('click', e => { const b = e.target.closest('[data-sxpick]'); if(!b) return; const x = exAt(b), row = b.closest('[data-sxrow]'); if(!x || !row) return; Phone.haptic(); openSx(x, +row.dataset.sxrow, b.dataset.sxpick); });
+// keyboard: Arrow Up / Down step half reps / negatives by one (0–30, 0 = none, same fields as the wheel), focus stays on the bracket
+$('sesBody').addEventListener('keydown', e => { if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; const b = e.target.closest('[data-sxpick]'); if(!b) return;
+  const x = exAt(b), row = b.closest('[data-sxrow]'), j = row ? +row.dataset.sxrow : -1, s = x && x.sets[j], k = b.dataset.sxpick; if(!s) return; e.preventDefault();
+  const v = Math.max(0, Math.min(30, (+s[k] || 0) + (e.key === 'ArrowUp' ? 1 : -1))); if(v === (+s[k] || 0)) return; if(v > 0) s[k] = v; else delete s[k]; saveG('act'); renderSession();
+  const xi = active.exercises.indexOf(x), nb = document.querySelector(`#sesBody .exc[data-x="${xi}"] [data-sxrow="${j}"] [data-sxpick="${k}"]`); if(nb) nb.focus(); });
 $('sxWheel').addEventListener('scroll', e => { const w = e.target; if(!SX || !w._set) return; const n = Math.max(0, Math.min(30, Math.round(w.scrollTop / 30)));
   if(n !== (SX.v || 0)){ SX.v = n; Phone.vibrate(5); w.querySelectorAll('[data-wn]').forEach(d => d.classList.toggle('on', +d.dataset.wn === n)); } });
 $('sxWheel').addEventListener('click', e => { const d = e.target.closest('[data-wn]'); if(d) $('sxWheel').scrollTo({ top: +d.dataset.wn * 30, behavior: 'smooth' }); });
