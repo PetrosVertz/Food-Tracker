@@ -772,7 +772,7 @@ function logQInfoOf(ref){
 }
 const logQMemKey = it => { const k = logQKey([it.brand, it.text || it.name].filter(Boolean).join(' ')); return k ? 'i:' + k : ''; };
 function logQMem(it){ const v = logPhr[logQMemKey(it)]; if(!v || !v.ref) return null; const info = logQInfoOf(v.ref); return info ? { info, g: v.g } : null; }
-const LOGQ_SAME = [[/^(boiled|steamed|βραστ\w*|μαγειρεμεν\w*)$/, 'cooked'], [/^(fresh|homemade|plain|organic|natural|σπιτικ\w*|φρεσκ\w*)$/, '']];
+const LOGQ_SAME = [[/^(boiled|steamed|βραστ\p{L}*|μαγειρεμεν\p{L}*)$/u, 'cooked'], [/^(fresh|homemade|plain|organic|natural|σπιτικ\p{L}*|φρεσκ\p{L}*)$/u, '']];
 function logQLocal(it){
   const tidy = s => norm(s || '').split(' ').map(w => { const r = LOGQ_SAME.find(([re]) => re.test(w)); return r ? r[1] : w; }).filter(Boolean).join(' ');
   const b = it.brand ? it.brand + ' ' : '', qs = [b + (it.name_en || ''), b + (it.name || ''), b + (it.text || '')].map(x => x.trim()); qs.push(...qs.map(tidy));
@@ -788,14 +788,14 @@ function logQLocal(it){
   return null;
 }
 // a built-in food only counts when its main name says no more than you did ("tomato sauce" is not "Beef in tomato sauce"; cooking words are fine)
-const LOGQ_DESCW = /^(cooked|raw|boiled|grilled|baked|fried|roasted|steamed|fresh|plain|white|whole|lean|skinless|boneless|homemade|ready|μαγειρεμεν\w*|ωμ\w*|βραστ\w*|ψητ\w*|τηγανητ\w*|φρεσκ\w*|σπιτικ\w*|λευκ\w*)$/;
+const LOGQ_DESCW = /^(cooked|raw|boiled|grilled|baked|fried|roasted|steamed|fresh|plain|white|whole|lean|skinless|boneless|homemade|ready|μαγειρεμεν\p{L}*|ωμ\p{L}*|βραστ\p{L}*|ψητ\p{L}*|τηγανητ\p{L}*|φρεσκ\p{L}*|σπιτικ\p{L}*|λευκ\p{L}*)$/u;
 // the same word, allowing only plural / Greek endings ("egg" = "eggs", "αυγό" = "αυγά"; "bread" is not "breast")
 const LOGQ_END = /^(|s|es|ies|a|o|ος|οσ|ου|οι|α|ο|η|ι|ες|εσ|ια|ιο|ης|ησ|ων|ακι|ακια)$/;
 function logQSame(a, b){ if(a === b) return true; let i = 0; while(i < a.length && a[i] === b[i]) i++; return i >= 3 && LOGQ_END.test(a.slice(i)) && LOGQ_END.test(b.slice(i)); }
 const logQWords = s => norm(s).split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 3 && !/^\d/.test(w) && !(logQDrop.has(w) && w !== 'φετα'));   // φέτα is also feta
 function logQTight(q, g){
   const qs = logQWords(q);
-  const fits = nm => logQWords(String(nm || '').split(/[,(]/)[0]).filter(w => !LOGQ_DESCW.test(w) && !qs.some(x => logQSame(x, w))).length === 0;
+  const fits = nm => { const ws = logQWords(String(nm || '').split(/[,(]/)[0]); return ws.length > 0 && ws.filter(w => !LOGQ_DESCW.test(w) && !qs.some(x => logQSame(x, w))).length === 0; };
   return fits(g.en) || fits(g.el);
 }
 // every word you said is in the food's names (same word rules)
@@ -914,7 +914,7 @@ function logQOpenSheet(q){
 // logPhr holds 'm:<message>' (a whole message you added) and 'i:<food words>' (one food you added); the oldest go first past the limits
 function logQTrim(){
   const cut = (pre, max) => { const ks = Object.keys(logPhr).filter(k => k.startsWith(pre)); if(ks.length <= max) return;
-    ks.sort((a, b) => ((logPhr[a] || {}).at || 0) - ((logPhr[b] || {}).at || 0)).slice(0, ks.length - max).forEach(k => { delete logPhr[k]; }); };
+    ks.sort((a, b) => ((logPhr[a] || {}).at || 0) - ((logPhr[b] || {}).at || 0)).slice(0, ks.length - max).forEach(k => { delete logPhr[k]; }); };   // 'm:' lists have no .at: stable sort keeps insertion order
   cut('m:', 500); cut('i:', 400);
 }
 
@@ -1125,8 +1125,8 @@ function logQLogAll(m, keep){   // keep: the meal name for Add & Save
   });
   if(!added.length){ toast(t('needAmount')); return; }
   const memo = logQSer(m).map(p => ({ ...p, tmp: null, assumed: '', doubt: false }));
-  if(!m.fixOf) logPhr[m.mk] = memo; else if(fx && fx.mk) logPhr[fx.mk] = memo;   // the first message now gives the corrected list next time
-  if(logPhr[m.mk]) logPhr[m.mk].at = Date.now();
+  const mkey = !m.fixOf ? m.mk : fx && fx.mk;   // a correction: the first message now gives the corrected list next time
+  if(mkey){ delete logPhr[mkey]; logPhr[mkey] = memo; }   // re-inserted, so the newest are last (logQTrim drops the oldest)
   logQTrim(); logQSavePhr(); logQFixSave();
   const meal = keep ? logQSaveMeal(rows, keep) : null;
   const k = Math.round(added.reduce((a, e) => a + e.kcal, 0)), msg = t('logQLogged', { n: added.length, k }) + (meal ? ' · ' + t('mealSaved', { n: meal.name }) : keep ? ' · ' + t('logQNoMeal') : '');

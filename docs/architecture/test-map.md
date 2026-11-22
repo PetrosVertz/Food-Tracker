@@ -11,6 +11,8 @@
 | `node tools/meal-test.js` | <1 s | Food Coach meal maths |
 | `node tools/athlete-test.js` | <1 s | Athlete OS: events from real saves, imports, state (missing stays missing, conflicts), context (cross-coach, budget, permissions, cache), memory rules EN + GR, injection, supervisor (one call, validation, escalation, failures), 2-year history |
 | `node tools/gym-coach-test.js` | <1 s | Gym Coach intelligence on the real gym.js / gym-intel.js code: progression (new, weights+reps only, weeks of logs, RIR, stopped RIR, one weak day, two, break), evidence, Recovery+ missing/stale/conflicting, live fatigue and order, hints (rare, once), proposals (invalid exercises, numbers, approval only on Apply, undo), follow-ups, chat memory across a restart, offline answers, Greek, prompt size |
+| `node tools/food-coach-test.js` | <1 s | Food Coach benchmark: ~200 cases (meal reading EN/GR/Greeklish, corrections, quick answers, value checks, context, memory, matching, built-in values vs USDA); prints extraction accuracy |
+| `node tools/food-coach-e2e.js` | ~40 s | Food Coach in the browser with a fake Gemini: example meal, corrections, duplicates, Add once, memory, quota/cooldown, bad JSON, offline, slow provider, restart; prints p50/p95 per path (run by `--boot`) |
 | `node tools/overlap.js`, `tools/topstrip.js`, `tools/form-review.js` | varies | layout / visual helpers (Playwright), run by hand for UI work |
 
 *measured in the cloud container, 2026-11-22. Before V3: `check.js` ~37 s (real AI back-off waits), `--boot` ~43 s with one date-dependent failure.
@@ -27,7 +29,7 @@
 - Service worker in a real browser (the app registers it only on https).
 - Two tabs open at once (no cross-tab protection exists yet; see decisions.md D5).
 - Set completion double-tap: a set is a toggle on one stored object, so it cannot be saved twice, but a fast double tap un-ticks it (no automated test).
-- Gym Coach / Food Coach answer quality with a real model (needs a real key); `tools/gym-coach-test.js` checks what goes into the prompt and what comes back out.
+- Gym Coach / Food Coach answer quality with a real model (needs a real key); `tools/gym-coach-test.js` checks what goes into the prompt and what comes back out; `tools/food-coach-e2e.js` runs Food Coach against a fake Gemini. For a live check: open Food Coach with a key and use the brief's example messages; `FoodCoach.stats()` in the console shows answer times.
 
 ## Performance baseline (Chromium, 390×844, 9 runs, p50 / p95)
 | Data | Start-up before | Start-up after | Save diary | Save sessions |

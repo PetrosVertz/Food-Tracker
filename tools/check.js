@@ -509,6 +509,9 @@ try {
 // Food Coach complex meals (Refinements #5): the meal test list, offline
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/meal-test.js')], { stdio: 'pipe' }).toString(); ok('meals: ' + (out.match(/^ok /gm) || []).length + ' Food Coach meal cases pass (tools/meal-test.js)'); }
 catch (e) { fail('meals: tools/meal-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+// Food Coach 2.0 benchmark (offline): meal reading, corrections, quick answers, value checks, context, memory, matching, reference values
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/food-coach-test.js')], { stdio: 'pipe' }).toString(); ok(out.trim().split('\n').pop() + ' (tools/food-coach-test.js)'); }
+catch (e) { fail('food coach: tools/food-coach-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
 // Storage safety (V3 hardening): failed writes, migrations, corrupt data, backups, all-or-nothing import (tools/store-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/store-test.js')], { stdio: 'pipe' }).toString(); ok('store: ' + (out.match(/^ok /gm) || []).length + ' storage / backup / import safety checks pass (tools/store-test.js)'); }
@@ -601,7 +604,13 @@ async function boot() {
   if (errs.length) [...new Set(errs)].forEach(e => fail('start-up: ' + e)); else ok('boot: app starts with no errors (dark + light)');
 }
 
-aiTests().then(() => process.argv.includes('--boot') ? boot() : null).then(() => {
+// Food Coach 2.0 end to end in the browser with a fake Gemini (--boot only: it needs Playwright)
+function coachE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/food-coach-e2e.js'), ...(STRICT ? ['--strict'] : [])], { stdio: 'pipe', timeout: 240000 }).toString();
+    ok('food coach e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/food-coach-e2e.js); ' + ((out.match(/^speed[^\n]*/m) || [''])[0])); }
+  catch (e) { fail('food coach e2e: tools/food-coach-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+}
+aiTests().then(() => process.argv.includes('--boot') ? boot().then(coachE2E) : null).then(() => {
   const partial = !process.argv.includes('--boot') ? ' (browser checks not run: add --boot)' : '';
   console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.' + partial);
   process.exit(fails ? 1 : 0);

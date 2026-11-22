@@ -23,6 +23,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/search.js` | **Search** (0.6.7): word order, plurals, typos, other names (`SYN_GROUPS`), ranking by your habits and time of day, Did you mean, online (USDA + Open Food Facts) with a quality check |
 | `js/exsearch.js` | **Exercise search** (Refinements): the one search every exercise box uses (`ExSearch.query`): typos, words together or apart, other names (`ALSO`) and close neighbours (`EX_NEAR`, data/gym.js), Greek, Greeklish, similar exercises, your habits; one ranked list. Test list: `tools/exsearch-test.js` (run by `tools/check.js`) |
 | `js/supplements.js` | Supplements (Take button with times) |
+| `js/food-coach.js` | **Food Coach 2.0, the no-AI parts** (`FoodCoach`): reads a meal message, small corrections, quick answers, value checks, the short context the AI gets, the chat kept on this phone, answer times. Tests: `tools/food-coach-test.js`, `tools/food-coach-e2e.js` |
 | `js/today.js` | Today's food: log, targets + padlocks, Fill My Food, Add Takeaway, weigh-in |
 | `js/fridge.js` | Fridge + groceries |
 | `js/shop.js` | **Shopping in (0.7)**: Groceries tick → fridge, remembered packs (`usualPack` / `usualCount`), continuous barcode scanning + the review list with the count wheel, receipts (best model reads the lines; matched against your foods → built-in → Open Food Facts → one web lookup), ✨ Check My Foods |
@@ -36,7 +37,7 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `sw.js` | Offline cache (bump `CACHE` and list new files when adding any) |
 
 ## Rules
-- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow, aiUsage, drafts (this device only).
+- Save and load only through `Store.load(name)` / `Store.save(name, value)`. Names: foods, meals, supps, suppLog, fridge, groc, dayLog, days, targets, plans, weights, profile, exCustom, tpls, gymPlan, sessions, active, comeback (synced) · settings, ui, models, account, aiKnow, aiUsage, drafts, coachChat (this device only).
 - Changing the shape of saved data: raise `SCHEMA` in store.js and add a migration (it also upgrades old backups in `upgradeBackup`).
 - The one exception to "Store only": the first lines of `index.html` read the saved theme straight from localStorage (`ft.ui.v1`) so the page is the right colour before anything loads, and set the iPhone status bar style from the theme's Status Bar choice (`ui.theme.bar`, 0.7.10.7). Nothing else may.
 - Phone APIs only through `Phone.*`; AI only through `gemini()` / `AI.*`.
