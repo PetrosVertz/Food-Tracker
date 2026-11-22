@@ -3,7 +3,15 @@
 
 $('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
 
-$('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
+$('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
+// Athlete OS: what you told the coaches (AthleteMemory), each with when it ends and a delete button; Copy gives you all of it as text
+function drawAiMem(){ const el = $('aiMem'); if(!el || typeof AthleteMemory === 'undefined') return;
+  const ns = AthleteMemory.list(), day = ms => new Date(ms).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' });
+  el.innerHTML = ns.length ? `<ul class="aimem">${ns.map(x => `<li><span>${esc(x.text)}<small>${esc(x.kind === 'context' ? t('memUntil', { d: day(x.until) }) : t('memKeep'))}</small></span>`
+    + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`; }
+$('aiMem').addEventListener('click', e => { const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
+  const gone = AthleteMemory.remove(b.dataset.memx); drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+$('aiMemCopy').addEventListener('click', async () => { Phone.haptic(); await Phone.copy(AthleteMemory.exportAll()); toast(t('memCopied')); });
 $('aiuReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiuAsk'), t('aiuYes')))) return; AIUsage.reset(); AIUsage.draw(); toast(t('aiuDone')); });   // Athlete OS step 1: Settings › AI › Usage
 $('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });
 

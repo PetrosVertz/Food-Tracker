@@ -3,7 +3,7 @@
 Source-verified 2026-11-22 (v0.7.10.7 + V3 hardening). **The code wins over this page**: if a path or symbol here is wrong, grep, fix the code task, then fix this row. `node tools/check.js` fails when a path or `name()` below stops existing.
 
 All scripts are classic browser scripts sharing one global scope, loaded in the order of `index.html`:
-config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
+config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
 
 ## Routing table
 
@@ -25,6 +25,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Gym Coach | gym | `js/gym.js` › `gymCoachSend()`, `gymLiveSend()`, `gcContext()`, `gcPrompt()`; setup in wire/04 | — (suggestions applied only by the user) | — | — (manual) |
 | Coach chat window (shared) | shell | `js/coach.js` › `Coach` | — | Food Coach, Gym Coach | boot |
 | What the AI knows | shell | `js/know.js` › `Know` | aiKnow (device only) | coach prompts via `AI.knows` | — |
+| Athlete OS (events, state, context, memory, supervisor) | shell | `js/athlete/events.js` › `AthleteEvents`; `js/athlete/state.js` › `AthleteState`; `js/athlete/context.js` › `AthleteContext`; `js/athlete/memory.js` › `AthleteMemory`; `js/athlete/supervisor.js` › `Supervisor`; hook `Store.onChange` | athleteMem (device only); reads everything else | every coach prompt via `AI.knows(topic, specialist)`, coach chat (`js/coach.js`), Fridge AI (`sgGo`, `suggestBtn`), Settings › AI › What You Told the Coaches (`drawAiMem()` in wire/08) | `tools/athlete-test.js` |
 | Social Hub / profile / stats | gym | `js/profile.js` › `renderProfile()`, `profileData()` | profile | — | `check.js` stats |
 | Share a workout (QR) | gym | `js/gym-share.js` | tpls | — | `check.js` workout QR |
 | Storage, migrations, backup file | shell | `js/platform/store.js` › `Store` | all (see contracts.md) | everything | `tools/store-test.js` |
@@ -37,7 +38,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Texts (EN + GR) | each topic | `js/data/strings.js` (the last `Object.assign` that sets a key wins) | — | — | `check.js` strings |
 
 ## Planned owners (not built — do not create files for them until their prompt says so)
-RECOVERY+, Athlete OS, Gym/Food Coach v2, Fridge AI, Athlete Rank v0.4 activation, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
+RECOVERY+, Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
 
 ## Worked routes (dry runs, V3 §4F) — what to open for three typical future tasks
 

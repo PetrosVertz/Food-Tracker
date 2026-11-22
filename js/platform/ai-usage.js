@@ -7,6 +7,7 @@
 //   tokIn, tokOut, tokTries           tokens, summed only over tries where the provider REPORTED them; tokTries says how many that was
 //   bad                               tries whose answer could not be read (answer validation failed)
 //   mode / model / kind / task        how many requests per kind of job, model, failure kind, and the optional task label
+//   byTask                            per task label: { n, fail, ms, tokIn, tokOut, tokN, ctx } (Athlete OS: cost and speed per coach)
 
 const AIUsage = (() => {
   const KEEP = 30, MAX_KEYS = 24;   // days kept; most distinct model / task names kept per day
@@ -20,6 +21,11 @@ const AIUsage = (() => {
       const u = load(), d = u.days[todayKey()] || (u.days[todayKey()] = { calls: 0, ok: 0, failed: 0, cancelled: 0, tries: 0, ms: 0, msMax: 0, tokIn: 0, tokOut: 0, tokTries: 0, bad: 0, mode: {}, model: {}, kind: {}, task: {} });
       d.calls++; if(tr.cancelled) d.cancelled++; else if(tr.ok) d.ok++; else { d.failed++; inc(d.kind, tr.kind); }
       d.ms += tr.ms || 0; d.msMax = Math.max(d.msMax, tr.ms || 0); inc(d.mode, modeOf(tr)); inc(d.task, String(tr.task || '').slice(0, 24));
+      // Athlete OS: per job (task label = which coach / helper): requests, failures, time, tokens, athlete-context letters, so each specialist can be measured
+      const bt = d.byTask || (d.byTask = {}); let tk = String(tr.task || 'other').slice(0, 24); if(!(tk in bt) && Object.keys(bt).length >= MAX_KEYS) tk = 'other';
+      const b = bt[tk] || (bt[tk] = { n: 0, fail: 0, ms: 0, tokIn: 0, tokOut: 0, tokN: 0, ctx: 0 });
+      b.n++; if(!tr.ok && !tr.cancelled) b.fail++; b.ms += tr.ms || 0; b.ctx += tr.ctx || 0;
+      (tr.tries || []).forEach(a => { if(a.usage){ b.tokN++; b.tokIn += a.usage.input || 0; b.tokOut += a.usage.output || 0; } });
       (tr.tries || []).forEach(a => {
         d.tries++; inc(d.model, a.model);
         if(a.usage){ d.tokTries++; d.tokIn += a.usage.input || 0; d.tokOut += a.usage.output || 0; }
@@ -42,6 +48,11 @@ const AIUsage = (() => {
   function dayKey(back){ const d = new Date(); d.setDate(d.getDate() - back); return todayKeyOf(d); }
   const todayKeyOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const reset = () => Store.save('aiUsage', { since: todayKey(), days: {} });
+  // per task over the last n days: { task: { n, fail, ms, tokIn, tokOut, tokN, ctx } }
+  function byTask(n){ const u = load(), out = {};
+    for(let i = 0; i < n; i++){ const d = u.days[dayKey(i)]; if(!d || !d.byTask) continue;
+      Object.entries(d.byTask).forEach(([k, v]) => { const o = out[k] || (out[k] = { n: 0, fail: 0, ms: 0, tokIn: 0, tokOut: 0, tokN: 0, ctx: 0 }); Object.keys(o).forEach(f => { o[f] += v[f] || 0; }); }); }
+    return out; }
 
   // ---- Settings › AI › Usage ----
   const nf = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-GB');
@@ -61,7 +72,7 @@ const AIUsage = (() => {
       + rows.map((r, i) => `<span>${esc(r)}</span><span>${esc(ca[i])}</span><span>${esc(cb[i])}</span>`).join('') + '</div>'
       + (kinds ? `<p class="hint">${esc(t('aiuFailBy'))}: ${kinds}</p>` : '') + partial;
   }
-  return { record, sum, draw, reset };
+  return { record, sum, byTask, draw, reset };
 })();
 
 AIProvider.onDone = AIUsage.record;

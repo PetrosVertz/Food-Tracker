@@ -873,3 +873,18 @@ Object.assign(S, {   // V3 hardening: backups and saved data that could not be r
   tmNote: ['System Default follows your phone. Saved times never change, only how they are shown.', 'Η προεπιλογή ακολουθεί το κινητό σου. Οι αποθηκευμένες ώρες δεν αλλάζουν, μόνο ο τρόπος εμφάνισης.'],
   importUndone: ['The last import was interrupted, so it was undone. Your data is as it was before.', 'Η τελευταία εισαγωγή διακόπηκε και αναιρέθηκε. Τα δεδομένα σου είναι όπως πριν.'],
 });
+
+Object.assign(S, {   // Athlete OS: what the coaches remember (Settings › AI › What AI Knows) and the coach chat toasts
+  memT: ['What You Told the Coaches', 'Όσα Είπες στους Coach'],
+  memSub: ['When you tell a coach something about yourself (a food you avoid, a sore shoulder, when you train), it is kept here so every coach knows. Short-term notes end by themselves. Only you can see them; delete any one.', 'Όταν λες σε έναν coach κάτι για σένα (ένα φαγητό που αποφεύγεις, έναν πονεμένο ώμο, πότε γυμνάζεσαι), κρατιέται εδώ ώστε να το ξέρουν όλοι οι coach. Οι προσωρινές σημειώσεις λήγουν μόνες τους. Τις βλέπεις μόνο εσύ· σβήσε όποια θέλεις.'],
+  memNone: ['Nothing yet. Tell a coach something like "I don\'t eat mushrooms" or "my shoulder hurts".', 'Τίποτα ακόμη. Πες σε έναν coach κάτι όπως «δεν τρώω μανιτάρια» ή «με πονάει ο ώμος».'],
+  memKeep: ['Kept until you delete it', 'Μένει μέχρι να το σβήσεις'],
+  memUntil: ['Until {d}', 'Μέχρι {d}'],
+  memDel: ['Delete', 'Διαγραφή'],
+  memDeleted: ['Deleted', 'Διαγράφηκε'],
+  memCopy: ['Copy as Text', 'Αντιγραφή ως Κείμενο'],
+  memCopied: ['Copied', 'Αντιγράφηκε'],
+  memSaved: ['Remembered for all coaches', 'Το θυμούνται πλέον όλοι οι coach'],
+  memForgot: ['Updated what the coaches remember', 'Ενημερώθηκε τι θυμούνται οι coach'],
+  aiBadAnswer: ['The AI answer could not be used. Try again.', 'Η απάντηση του AI δεν ήταν χρήσιμη. Δοκίμασε ξανά.'],
+});

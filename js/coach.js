@@ -47,11 +47,16 @@ const Coach = (() => {
       cards: list => { const cs = (list || []).map(x => ({ ...x, cid: uid() })); push({ who: 'bot', cards: cs }); return cs; },
       status: text => { const w = c.work; if(!w) return; w.status = String(text || ''); const el = cur === c.id && document.querySelector('#coachList .cwork .cst'); if(el) el.textContent = AI.untail(w.status); },
       update(card, patch){ Object.assign(card, patch || {}); draw(); },
-      ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController(); return gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
+      // Athlete OS: through the Supervisor (this coach's context, answer check, per-coach numbers); still one gemini() request per message
+      ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController();
+        return typeof Supervisor !== 'undefined' ? Supervisor.ask(c.id, prompt, img, { quiet: true, ...(o || {}), signal: c.ctl.signal }) : gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
       history: () => hist(c),
-      transcript: () => hist(c).map(h => `${h.who === 'me' ? 'User' : 'Coach'}: ${h.text}`).join('\n'),
+      transcript: () => older(c) + hist(c).map(h => `${h.who === 'me' ? 'User' : 'Coach'}: ${h.text}`).join('\n'),
     };
   }
+  // Athlete OS continuity: messages older than the last KEEP are not sent in full; the user's last few older ones go as one short line
+  function older(c){ const ms = c.msgs.filter(m => !m.work), old = ms.slice(0, Math.max(0, ms.length - KEEP)).filter(m => m.who === 'me' && m.text).slice(-4);
+    return old.length ? `(Earlier in this chat the user said: ${old.map(m => '"' + m.text.replace(/\s+/g, ' ').slice(0, 70) + '"').join('; ')})\n` : ''; }
   function hist(c){
     return c.msgs.filter(m => !m.work).slice(-KEEP).map(m => ({ who: m.who, text: (m.text || (m.cards || []).map(x => [x.title, x.sub].filter(Boolean).join(' · ')).join('; ') || (m.img ? '[photo]' : '')).slice(0, CUT) }));
   }
@@ -60,7 +65,7 @@ const Coach = (() => {
   async function talk(text, ch, img){
     const gym = kindOf(ch.id) === 'gym';
     const role = gym ? 'You are Gym Coach, a friendly, practical strength coach inside a workout-tracking app.' : 'You are Food Coach, a friendly, practical nutrition coach inside a food-tracking app for someone who lifts weights.';
-    const r = await ch.ask(`${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most 120 words), plain text with no markdown.${AI.dietRules()}${AI.knows(gym ? 'gym' : 'food')}
+    const r = await ch.ask(`${role} Answer the user's last message in ${lang === 'el' ? 'Greek' : 'English'}, briefly (at most 120 words), plain text with no markdown.${AI.dietRules()}${AI.knows(gym ? 'gym' : 'food', ch.id)}
 Conversation so far:
 ${ch.transcript()}
 ${img ? 'The user also sent the attached photo.' : ''}
@@ -115,9 +120,12 @@ Return ONLY JSON: {"reply": string}`, img);
     ta.value = ''; c.draft = ''; c.img = null; preview();
     c.msgs.push({ who: 'me', text, img }); const w = { who: 'bot', work: true, status: t(img ? 'coachStPhoto' : 'aiThinking') }; c.work = w; c.msgs.push(w); c.busy = true; draw();
     const ch = api(c), f = cfg(id);
+    // Athlete OS: this coach is now answering this message (its context follows it); a fact the user stated about themselves is remembered (rules, no AI)
+    const mem = text && typeof Supervisor !== 'undefined' ? Supervisor.begin(id, text) : null;
+    if(mem && (mem.added.length || mem.dropped.length)) toast(t(mem.added.length ? 'memSaved' : 'memForgot'), t('undo'), () => { mem.added.forEach(x => AthleteMemory.remove(x.id)); AthleteMemory.restore(mem.dropped); });
     try{ await (f.send || talk)(text, ch, img); }
     catch(err){ if(!(err && err.cancelled)) ch.say(t('coachFail', { e: (err && err.message) || '?' })); }
-    finally{ c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
+    finally{ if(typeof Supervisor !== 'undefined') Supervisor.end(); c.busy = false; c.ctl = null; c.work = null; const i = c.msgs.indexOf(w); if(i > -1) c.msgs.splice(i, 1);
       if(cur === id) draw(); else { const b = $('cb-' + id); if(b) b.classList.add('new'); } }   // answered while shrunk: a dot on the bubble
   }
 
@@ -294,9 +302,10 @@ Return ONLY JSON: {"reply": string}`, img);
       const sc = e.target.closest('[data-cst]'); if(sc && cur){ Phone.haptic(); $('coachIn').value = sc.dataset.cst; send(); return; }
       const el = e.target.closest('[data-cid]'); if(!el || !cur) return; const c = CH[cur];
       const card = c.msgs.flatMap(m => m.cards || []).find(x => x.cid === el.dataset.cid); if(!card) return;
-      if(e.target.closest('[data-cundo]')){ const u = card.undo; card.done = ''; card.undo = null; draw(); if(u) u(); return; }
+      if(e.target.closest('[data-cundo]')){ const u = card.undo; card.done = ''; card.undo = null; draw(); if(u) u(); if(typeof Supervisor !== 'undefined') Supervisor.decide(cur, 'undo', 0); return; }
       const a = e.target.closest('[data-ca]'); if(!a) return; const act = (card.actions || [])[+a.dataset.ca]; if(!act || !act.run) return;
-      Phone.haptic(); Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
+      Phone.haptic(); if(typeof Supervisor !== 'undefined') Supervisor.decide(cur, act.primary ? 'apply' : 'other', +a.dataset.ca);   // decision ledger (no text)
+      Promise.resolve(act.run(card, api(c))).catch(err => api(c).say(t('coachFail', { e: err.message })));
     });
     if(window.visualViewport){
       visualViewport.addEventListener('resize', () => { if(!$('ovCoach').classList.contains('open')) return; fit(); const l = $('coachList'); l.scrollTop = l.scrollHeight; });

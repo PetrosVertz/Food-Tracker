@@ -129,7 +129,8 @@ const Know = (() => {
   }
   // Settings › AI › Reset What AI Knows: forget everything; learning starts again from tomorrow's look-back (only logs after today)
   function reset(){ Store.save('aiKnow', { day: todayKey(), since: todayKey(), body: '', food: '', foodShort: '', gym: '', gymShort: '' });
-    if(typeof logFix !== 'undefined'){ logFix = {}; Store.save('foodFix', {}); } }   // Athlete OS step 3: Food Coach's remembered corrections too
+    if(typeof logFix !== 'undefined'){ logFix = {}; Store.save('foodFix', {}); }   // Athlete OS step 3: Food Coach's remembered corrections too
+    if(typeof AthleteMemory !== 'undefined') AthleteMemory.clear(); }   // Athlete OS: the notes you told the coaches, and the decision ledger
 
   setTimeout(() => daily(), 1500);   // after start-up has drawn the app
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') setTimeout(() => daily(), 1500); });   // opened again on a new day

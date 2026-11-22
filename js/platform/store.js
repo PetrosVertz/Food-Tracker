@@ -26,6 +26,7 @@ const Store = (() => {
     foodFix: ['ft.foodfix.v1', 'map', 1],   // Athlete OS step 3: Food Coach corrections you made (food words → your portion), so the AI learns your portions
     aiKnow: ['ft.aiknow.v1', 'one', 0],   // 0.7.9 what the AI has learned from your logs (js/know.js); this device only, rebuilt daily
     drafts: ['ft.drafts.v1', 'one', 0],   // Refinements: what you typed in a window, kept 3 minutes after it closes (js/draft.js); this device only, never in backups
+    athleteMem: ['ft.athletemem.v1', 'one', 0],   // Athlete OS: notes the user told a coach + the decision ledger (js/athlete/memory.js); this device only, never in backups
     aiUsage: ['ft.aiusage.v1', 'one', 0],   // Athlete OS step 1: AI request counts, tokens and timings (js/platform/ai-usage.js); this device only, no message text
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],
   };
@@ -77,14 +78,23 @@ const Store = (() => {
   const hashes = (shape, v) => new Map(records(shape, v).map(([k, x]) => [k, JSON.stringify(x)]));
   // diff BEFORE writing (the old value is still on disk), commit AFTER the write succeeded: a failed write never touches the sync table
   function diff(name, v){ const shape = C[name][1]; return { cur: hashes(shape, v), prev: seen[name] || hashes(shape, read(C[name][0])) }; }
+  // returns what changed, record by record: { added, changed, removed } as [record key, fingerprint] pairs (Athlete OS events read this)
   function commit(name, d){
     const now = Date.now(), m = M(), upd = m.upd[name] = m.upd[name] || {}, tomb = m.tomb[name] = m.tomb[name] || {};
-    let changed = false;
-    d.cur.forEach((h, k) => { if(d.prev.get(k) !== h){ upd[k] = now; changed = true; } if(tomb[k]){ delete tomb[k]; changed = true; } });
-    d.prev.forEach((_, k) => { if(!d.cur.has(k)){ tomb[k] = now; delete upd[k]; changed = true; } });
+    let changed = false; const ch = { added: [], changed: [], removed: [] }, want = subs.length > 0;
+    d.cur.forEach((h, k) => { const p = d.prev.get(k); if(p !== h){ upd[k] = now; changed = true; if(want) (p === undefined ? ch.added : ch.changed).push([k, fp(h)]); } if(tomb[k]){ delete tomb[k]; changed = true; } });
+    d.prev.forEach((h, k) => { if(!d.cur.has(k)){ tomb[k] = now; delete upd[k]; changed = true; if(want) ch.removed.push([k, fp(h)]); } });
     seen[name] = d.cur;
     if(changed && !metaTimer) metaTimer = setTimeout(flushMeta, 400);
+    return ch;
   }
+  // ---------- change listeners (Athlete OS step 2) ----------
+  // onChange(fn): fn(name, changes | null, how) after every SUCCESSFUL save. how = 'save' | 'import' (saveMany). changes is null for
+  // device-only names (no record diff is kept for them). A listener can never break or slow a save: errors are caught, nothing is awaited.
+  const subs = [];
+  const fp = h => { let x = 2166136261; for(let i = 0; i < h.length; i++){ x ^= h.charCodeAt(i); x = Math.imul(x, 16777619); } return (x >>> 0).toString(36); };   // FNV-1a: a short fingerprint of a record
+  function notify(name, ch, how){ for(const f of subs){ try{ f(name, ch, how); }catch(e){ try{ console.warn('Store listener', e); }catch(_){} } } }
+  function onChange(fn){ subs.push(fn); return () => { const i = subs.indexOf(fn); if(i > -1) subs.splice(i, 1); }; }
   addEventListener('pagehide', flushMeta); addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushMeta(); });
 
   // ---------- public ----------
@@ -94,7 +104,7 @@ const Store = (() => {
     if(sync) ensureIds(C[n][1], v);
     const d = sync ? diff(n, v) : null;
     const ok = write(keyOf(k), v ?? undefined);
-    if(ok && d) commit(n, d);
+    if(ok){ const ch = d ? commit(n, d) : null; if(n && subs.length) notify(n, ch, 'save'); }
     return ok;
   }
   // several names at once, all or nothing (imports). { name: value, ... } → true when every key is stored; false = nothing changed.
@@ -114,8 +124,9 @@ const Store = (() => {
       try{ toast(t('saveFail')); }catch(_){}
       return false;
     }
-    items.forEach(it => { if(it.d) commit(it.n, it.d); });
+    const chs = items.map(it => it.d ? commit(it.n, it.d) : null);
     if(journaled) write(JOURNAL_KEY, undefined, true);
+    if(subs.length) items.forEach((it, i) => notify(it.n, chs[i], 'import'));
     return true;
   }
   // an import (saveMany) that the app was closed in the middle of: put every key back the way it was before it started
@@ -180,6 +191,6 @@ const Store = (() => {
       combos: g('combos'), logPhr: g('logPhr'), foodFix: g('foodFix'), sync: M(), ...(Object.keys(rec).length ? { recovery: rec } : {}) };
   }
 
-  return { SCHEMA, load, save, saveMany, snapshot, upgradeBackup, backupTooNew, newId, meta: M, flush: flushMeta, problems: () => problems.slice(),
+  return { SCHEMA, load, save, saveMany, onChange, snapshot, upgradeBackup, backupTooNew, newId, meta: M, flush: flushMeta, problems: () => problems.slice(),
     dataNames: () => Object.keys(C).filter(n => C[n][2]), deviceNames: () => Object.keys(C).filter(n => !C[n][2]) };
 })();

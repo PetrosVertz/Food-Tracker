@@ -12,6 +12,7 @@
 //   tier   'default' = the model chosen in Settings; 'advanced' = the strongest model the key allows (receipts)
 //   retries  extra tries on the SAME model after a busy / rate-limit / network error (default 0: the next model is tried instead)
 //   task   optional short label for the usage page ('receipt'), never the user's text
+//   model  optional: try this model first (a specialist's own choice); ctx: letters of athlete context in the prompt (usage numbers only)
 // Normalized response  { text, json, usage: { input, output, total } | null, model, provider, ms, tries }
 //   usage is null when the provider did not report tokens: it is never made up and never 0.
 // Normalized error     Error with .kind: 'auth' | 'rate' | 'overloaded' | 'timeout' | 'network' | 'bad_output' | 'cancelled' | 'unsupported' | 'other'
@@ -67,7 +68,7 @@ const GeminiProvider = (() => {
   }
   // the models to try, in order: the tiers from Settings (settings.model = default; settings.modelAdvanced = optional, else the strongest the key allows)
   async function chain(req){
-    const all = await listModels(), dflt = settings.model || DEFAULT_MODEL;
+    const all = await listModels(), dflt = req.model || settings.model || DEFAULT_MODEL;   // req.model: a specialist's own model (Athlete OS registry), else Settings
     if(req.tier === 'advanced') return [...new Set([settings.modelAdvanced, ...bestModels(all).slice(0, 4), dflt, 'gemini-flash-latest', 'gemini-flash-lite-latest'].filter(Boolean))].slice(0, 7);
     return [...new Set([dflt, 'gemini-flash-latest', 'gemini-flash-lite-latest', ...all])].slice(0, 10);
   }
@@ -139,7 +140,7 @@ const AIProvider = (() => {
   async function run(req, opts){
     opts = opts || {}; const outer = opts.outer, p = active(), t0 = Date.now(), maxRetry = Math.min(2, Math.max(0, req.retries | 0)), end = t0 + deadlineFor(req);
     const left = () => end - Date.now(), perTry = p.timeoutFor ? p.timeoutFor(req) : 30000;
-    const trace = { provider: p.id, tier: req.tier || 'default', search: !!req.search, photo: !!(req.images && [].concat(req.images).length), task: req.task || '', start: t0, tries: [], ok: false };
+    const trace = { provider: p.id, tier: req.tier || 'default', search: !!req.search, photo: !!(req.images && [].concat(req.images).length), task: req.task || '', ctx: req.ctx | 0, start: t0, tries: [], ok: false };
     const done = (res, err) => { trace.ms = Date.now() - t0; trace.ok = !err; trace.cancelled = !!(err && err.cancelled); trace.kind = err ? err.kind || 'other' : ''; try{ if(AIProvider.onDone) AIProvider.onDone(trace); }catch(e){} };
     try{
       if(!p.implemented) throw aiError('unsupported', p.name + ' is not built yet.', { fatal: true });
