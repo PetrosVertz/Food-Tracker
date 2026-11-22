@@ -25,7 +25,7 @@ function seed(sex, withHistory){
   ] : [];
   const tpls = [{ id: 'tpush', name: 'Push Day', type: 'push', exercises: [{ exId: 'bench', sets: 4, reps: '6-8', rest: 150 }, { exId: 'ohp', sets: 3, reps: '8-10', rest: 120 }, { exId: 'rope_pushdown', sets: 3, reps: '12', rest: 60 }] }];
   const wd = new Date(day(1) + 'T12:00:00').getDay(), plan = { [wd]: { tpl: 'tpush', time: '18:00' } };
-  return { 'ft.ui.v1': { setupDone: true, lang: 'en', theme: { mode: 'dark', preset: 'lime' } }, 'ft.profile.v1': { sex, name: 'Test' }, 'ft.gym.sessions': sessions, 'ft.gym.tpl': tpls, 'ft.gym.plan': plan,
+  return { 'ft.ui.v1': { setupDone: true, lang: 'en', lastBackup: new Date().toISOString(), theme: { mode: 'dark', preset: 'lime' } }, 'ft.profile.v1': { sex, name: 'Test' }, 'ft.gym.sessions': sessions, 'ft.gym.tpl': tpls, 'ft.gym.plan': plan,
     'ft.targets.v1': { goal: 'cut', bw: 80, gym: { k: 2300, p: 160, c: 230, f: 70 }, rest: { k: 2100, p: 160, c: 190, f: 70 } } };
 }
 (async () => {
@@ -57,11 +57,12 @@ function seed(sex, withHistory){
   ok(/Push Day/.test(s.next) && /Tomorrow/.test(s.next), 'next workout card names the planned workout and day: ' + s.next.replace(/\s+/g, ' ').slice(0, 140));
   ok(s.tiles.includes('arms') && !(await p.locator('.rectile[data-rg="arms"] .rtn').innerText()).includes('Triceps'), 'curls this morning: Arms tile names Biceps, not Triceps');
   const before = { ses: s.ses, plan: s.plan };
-  if(shots){ await p.screenshot({ path: path.join(shots, 'rec_m_dark_390.png'), fullPage: true }); }
+  if(shots){ await p.screenshot({ path: path.join(shots, 'rec_m_dark_390.png'), fullPage: true });
+    await p.evaluate(() => document.querySelector('#gRecV .rech').scrollIntoView({ block: 'start' })); await p.waitForTimeout(300); await p.screenshot({ path: path.join(shots, 'rec_m_dark_390_tiles.png') }); }
   await p.click('#recAdvSw'); await p.waitForTimeout(300); const s2 = await state(p);
   ok(JSON.stringify(s2.tiles) === JSON.stringify(s.tiles), 'Advanced on: exactly the same tiles (no ready cards added)');
   ok(await p.locator('.radctx').count() === 1, 'Advanced shows the reasoning / context card');
-  if(shots){ await p.locator('details.radrow').first().evaluate(d => { d.open = true; }); await p.screenshot({ path: path.join(shots, 'rec_m_dark_390_advanced.png'), fullPage: true }); }
+  if(shots){ await p.locator('details.radrow').first().evaluate(d => { d.open = true; d.scrollIntoView({ block: 'start' }); }); await p.waitForTimeout(300); await p.screenshot({ path: path.join(shots, 'rec_m_dark_390_advanced.png') }); }
   ok(s2.ses === before.ses && s2.plan === before.plan, 'opening RECOVERY+ and Advanced changed no workouts or plans');
   await p.close();
   // 2. female, light, 3 widths; Greek once

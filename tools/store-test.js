@@ -117,6 +117,15 @@ const J = JSON.stringify;
   check(s.foodFix && s.foodFix.eggs, 'backup: includes Food Coach corrections (foodFix)');
   check(!('settings' in s) && !J(s).includes('geminiKey'), 'backup: no device settings or API key');
 }
+// 4c. RECOVERY+: targets.goalAt (the day the goal last changed) is kept in backups, and an older file without it still upgrades unchanged
+{
+  const tg = { goal: 'cut', goalAt: '2026-11-20', bw: 80, gym: { k: 2300, p: 160 }, rest: { k: 2100, p: 160 } };
+  const { Store } = boot({ 'ft.schema': '2', 'ft.targets.v1': J(tg) });
+  const s = Store.snapshot();
+  check(s.targets && s.targets.goalAt === '2026-11-20' && s.targets.goal === 'cut', 'backup: targets keep goalAt (RECOVERY+ goal date)');
+  const old = Store.upgradeBackup({ app: 'tracker', schema: 2, targets: { goal: 'bulk', bw: 75, gym: { k: 2800 }, rest: { k: 2500 } } });
+  check(old && old.targets && old.targets.goal === 'bulk' && !('goalAt' in old.targets), 'old backup without goalAt imports unchanged (no invented date)');
+}
 // 4a. Gym Coach memory (chat history, shown hints, past proposals) stays on this phone: saved, never in a backup, never synced
 {
   const { Store, ls } = boot({ 'ft.schema': '2' });

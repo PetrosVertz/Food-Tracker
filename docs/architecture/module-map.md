@@ -18,7 +18,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Workout plan, templates, schedule | gym | `js/gym.js` › `renderGymPlan()`, `renderTpls()`; Gym/Rest pill: `dayStatus()` + `dayPillHtml()` in today.js (read-only over `days`, `sessions`, `gymPlan`; `dayInfo()` still drives targets) | gymPlan, tpls, days | Today pill, Gym Coach | boot |
 | Live workout (sets, rest, finish) | gym | `js/gym.js` › `startSession()`, `tickSet()`, `renderSession()`; `js/wire/04-gym.js` › `checkAbandoned()`, `saveG()`; `js/wire/10-workout.js` | active, sessions, comeback | Progress, rank, recovery | boot |
 | Exercise picker + exercise search | gym | `js/gym.js` › `openExPick()`, `drawExPick()`, `exTiles()`; `js/exsearch.js`; library `js/data/gym.js` | exCustom | live workout, builder | `check.js` library + `tools/exsearch-test.js` |
-| Recovery (current, not RECOVERY+) | gym | `js/gym.js` › `headLoads()`, `estimateRecovery()`, `headFatigue()`, `renderRecovery()`; anatomy `js/data/gym-anatomy.js` | — (derived from sessions) | Today recovery card, Gym Coach | boot |
+| RECOVERY+ (recovery page, muscle recovery, readiness) | gym | engine `js/recovery-plus.js` › `RecoveryCore` (pure), `RecoveryPlus.compute()`, `RecoveryPlus.snapshot()`; figure `js/recovery-anatomy.js` › `recoveryAnatomySVG()`, data `js/data/recovery-anatomy.js`; page `js/gym.js` › `renderRecovery()`, `recMuscleSVG()`, `recoveryWarnings()`, `exSore()`; old names `headLoads()`, `estimateRecovery()`, `headFatigue()`, `recMapNow()` read from it; switches in `js/wire/04-gym.js` | — (derived from sessions); targets.goalAt; ui.recAdv, ui.recIns, settings.recNoFood / recNoSleep (device) | Today gym card, Gym hub mini map, live sore warning, Gym Coach (`GymIntel.recovery()`), Athlete OS (`AthleteState` recovery) | `tools/recovery-test.js`, `tools/recovery-e2e.js` (browser) |
 | Rank (live) | gym | `js/gym.js` › `tierFor()`; `js/rank-fx.js` | — (derived) | Social Hub, live workout | `check.js` rank, rank plates |
 | Rank v2 (OFF, not live) | gym | `js/rank-engine.js`, `js/rank-v2.js`, `js/data/rank-bench.js` | — | nothing yet | `check.js` "rank v2 (not live)" |
 | Progress page | gym | `js/progress.js` › `renderProgress()`; `bodyW()`, `e1rm()` in wire/04 | — (derived) | — | boot |
@@ -39,7 +39,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Texts (EN + GR) | each topic | `js/data/strings.js` (the last `Object.assign` that sets a key wins) | — | — | `check.js` strings |
 
 ## Planned owners (not built — do not create files for them until their prompt says so)
-RECOVERY+, Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
+Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
 
 ## Worked routes (dry runs, V3 §4F) — what to open for three typical future tasks
 
@@ -47,6 +47,6 @@ RECOVERY+, Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava 
 
 **2. Food Coach answer quality.** Open `js/today.js` › `logQPrompt()`, `logQSend()`, `logQReply()`; meals `js/meal.js`; facts via `AI.knows` (`js/know.js`); the request goes through `gemini()` (= `AI.ask`) → `AIProvider.run()` (deadline, retries, usage) — never `fetch` directly. Safety: the coach only proposes; diary writes happen in the card's log action with undo (`dayLog` + `saveLog()`), so a prompt/provider change cannot write food logs by itself. Gates: `tools/meal-test.js`, AI provider checks; manual: a few real chats.
 
-**3. RECOVERY+ consumer.** Training facts: `sessions` (completed sets only: `s.done`), `active`; current derived recovery: `js/gym.js` › `headLoads()`, `estimateRecovery()`, `headFatigue()`. RECOVERY+ will replace these as the ONE recovery owner (see contracts.md › Planned) and expose a versioned read-only snapshot; Gym Coach (already through `GymIntel.recovery()`, js/gym-intel.js) and rank must read that snapshot, never re-compute, and "unknown" must stay unknown (never "ready"). Gates: new pure tests next to the engine (like `tools/store-test.js`), boot, manual anatomy check.
+**3. RECOVERY+ consumer.** Read `RecoveryPlus.snapshot()` (js/recovery-plus.js; contracts.md › RECOVERY+), never re-compute; Gym Coach does through `GymIntel.recovery()`, Athlete OS through `AthleteState` recovery. "unknown" stays unknown (never "ready"). How it works: docs/architecture/recovery-plus.md. Gates: new pure tests next to the engine (like `tools/store-test.js`), boot, manual anatomy check.
 
 Baseline before this map (measured in this session, 2026-11-22): finding the importer, Store callers and AI call path needed ~12 grep/read steps over 45 scripts; with this table each route above starts from 2–4 named files.

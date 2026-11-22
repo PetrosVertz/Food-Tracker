@@ -258,8 +258,6 @@ Object.assign(S, {
  nxAI:['Ask for a smarter pick','Ζήτα καλύτερη επιλογή'], nxNoKey:['Add a Gemini key in settings for smarter AI picks.','Βάλε κλειδί Gemini στις ρυθμίσεις για πιο έξυπνες προτάσεις AI.'],
  recReady:['Ready','Έτοιμο'], recMid:['Recovering','Αναρρώνει'], recLow:['Needs Rest','Θέλει ξεκούραση'],
  recIn:['ready in ~{h} h','έτοιμο σε ~{h} ώρες'],
- recHint:['Based on how many hard sets each muscle got and how long ago.','Με βάση πόσα δύσκολα σετ πήρε κάθε μυς και πόσο παλιά.'],
- recWarnTomorrow:['Tomorrow is {w} at {t}, but {m} won’t be fully recovered (~{p}%). Consider swapping days or going lighter.','Αύριο έχει {w} στις {t}, αλλά {m} δεν θα έχουν αναρρώσει πλήρως (~{p}%). Σκέψου να αλλάξεις μέρα ή να πας πιο ελαφριά.'],
  recRestDay:['Rest day: {m} still recovering. Good call resting.','Μέρα ξεκούρασης: {m} ακόμα αναρρώνουν. Καλά κάνεις και ξεκουράζεσαι.'],
  notInFridge:['Not in fridge','Όχι στο ψυγείο'],
 });
@@ -666,8 +664,6 @@ Object.assign(S, {
 
 // ---------- 0.7.7: recovery ----------
 Object.assign(S, {
-  recVOk: ['On Track', 'Σε καλό δρόμο'], recVBit: ['A Bit Low', 'Λίγο Χαμηλά'], recVLow: ['Low', 'Χαμηλά'], recGap: ['about {g} g protein short', 'λείπουν περίπου {g} g πρωτεΐνη'],
-  recTipTonight: ['Add a protein-rich meal tonight', 'Πρόσθεσε ένα γεύμα πλούσιο σε πρωτεΐνη απόψε'], recTipTomorrow: ['Start tomorrow with a protein-rich meal', 'Ξεκίνα αύριο με γεύμα πλούσιο σε πρωτεΐνη'], recTipToday: ['Start today with a protein-rich meal', 'Ξεκίνα σήμερα με γεύμα πλούσιο σε πρωτεΐνη'],
 });
 
 // ---------- 0.7.7: sounds ----------
@@ -749,7 +745,6 @@ Object.assign(S, {
 Object.assign(S, {
   exsRank: ['Rank Badge', 'Σήμα Κατάταξης'], exsRankS: ['Your rank for this lift on the card. Tap it to see how far the next rank is.', 'Η κατάταξή σου στην άσκηση, πάνω στην κάρτα. Πάτα το για να δεις πόσο απέχει η επόμενη.'],
   exsWarn: ['Warning on Sore Muscles', 'Προειδοποίηση για Πονεμένους Μυς'], exsWarnS: ['A red warning on the exercise card while its muscle is still recovering.', 'Κόκκινη προειδοποίηση στην κάρτα όσο ο μυς αναρρώνει ακόμα.'],
-  soreBub: ['{m}: {p}% recovered', '{m}: αναρρώθηκε κατά {p}%'],
   soreBubH: ['about {h} h left', 'περίπου {h} ώρες ακόμα'],
 });
 Object.assign(S, {
@@ -1026,7 +1021,7 @@ Object.assign(S, {
   recDetailsT: ['Details', 'Λεπτομέρειες'], recContextT: ['How RECOVERY+ Decided', 'Πώς Αποφάσισε Το RECOVERY+'],
   recHint2: ['Colours and hours come from your logged sets and how long ago you did them. Estimates, not medical advice.', 'Τα χρώματα και οι ώρες βγαίνουν από τα σετ που κατέγραψες και πόσο παλιά τα έκανες. Εκτιμήσεις, όχι ιατρική συμβουλή.'],
   recCLow: ['Low', 'Χαμηλή'], recCMod: ['Moderate', 'Μέτρια'], recCHigh: ['High', 'Υψηλή'],
-  recDSets: ['{n} hard sets in {s} workouts this week', '{n} δύσκολα σετ σε {s} προπονήσεις αυτή την εβδομάδα'],
+  recDSets: ['{n} hard sets this week', '{n} δύσκολα σετ αυτή την εβδομάδα'],
   recDEx: ['From: {e}', 'Από: {e}'],
   recDRir: ['Reps in reserve logged on {a} of {b} sets', 'Επαναλήψεις σε απόθεμα σε {a} από {b} σετ'],
   recDRirNone: ['No reps in reserve logged, so normal effort is assumed', 'Δεν καταγράφηκαν επαναλήψεις σε απόθεμα, οπότε θεωρείται κανονική προσπάθεια'],

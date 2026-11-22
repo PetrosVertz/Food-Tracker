@@ -27,7 +27,9 @@ Personal food + gym web app (PWA). Plain HTML/CSS/JS, no build step — GitHub P
 | `js/today.js` | Today's food: log, targets + padlocks, Fill My Food, Add Takeaway, weigh-in |
 | `js/fridge.js` | Fridge + groceries |
 | `js/shop.js` | **Shopping in (0.7)**: Groceries tick → fridge, remembered packs (`usualPack` / `usualCount`), continuous barcode scanning + the review list with the count wheel, receipts (best model reads the lines; matched against your foods → built-in → Open Food Facts → one web lookup), ✨ Check My Foods |
-| `js/gym.js` | Gym Buddy: workouts, sessions, L/R sets, picker, recovery, form demos |
+| `js/recovery-plus.js` | **RECOVERY+ engine**: muscle recovery per head (21 heads, 10 groups) from finished workouts, live-workout fatigue kept apart, sleep / food / goal context that never changes muscle hours, next-workout advice (never edits anything), the `RecoveryPlus.snapshot()` other features read. How it works: `docs/architecture/recovery-plus.md`. Tests: `tools/recovery-test.js`, `tools/recovery-e2e.js` |
+| `js/recovery-anatomy.js`, `js/data/recovery-anatomy.js` | **RECOVERY+ body**: the approved male / female front + back figures as live SVG regions (each muscle colourable by its id); made by `tools/recovery-anatomy/`. Only RECOVERY+ uses it; the exercise picker keeps `js/data/gym-anatomy.js` |
+| `js/gym.js` | Gym Buddy: workouts, sessions, L/R sets, picker, RECOVERY+ page, form demos |
 | `js/gym-share.js` | **Share a Workout by QR (0.7.7)**: packs a saved workout into a short versioned code (`wkPack` / `wkUnpack`, layout `GB1~…`; old codes keep importing), draws its QR, scans one with the camera and saves it |
 | `js/vendor/qrcode.js` | QR picture maker (qrcode-generator, MIT, unmodified; licence in `licenses/qrcode-generator`) |
 | `js/progress.js` | Gym → Progress |
