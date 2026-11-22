@@ -492,6 +492,10 @@ catch (e) { fail('meals: tools/meal-test.js\n' + String(e.stdout || '').split('\
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/store-test.js')], { stdio: 'pipe' }).toString(); ok('store: ' + (out.match(/^ok /gm) || []).length + ' storage / backup / import safety checks pass (tools/store-test.js)'); }
 catch (e) { fail('store: tools/store-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
+// Offline + update rules of sw.js (V3 hardening): errors never replace the offline copy, only app files cached, other sites untouched (tools/sw-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/sw-test.js')], { stdio: 'pipe' }).toString(); ok('service worker: ' + (out.match(/^ok /gm) || []).length + ' offline / update checks pass (tools/sw-test.js)'); }
+catch (e) { fail('service worker: tools/sw-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+
 const STRICT = process.argv.includes('--strict');
 async function boot() {
   let pw; try { pw = require('playwright'); } catch { (STRICT ? fail : note)('--boot skipped: Playwright not installed' + (STRICT ? ' (--strict: a skipped browser check is a failure)' : '')); return; }

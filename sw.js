@@ -58,23 +58,28 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'img/rank/small/platinum-III.svg', 'img/rank/small/platinum-II.svg', 'img/rank/small/platinum-I.svg',
   'img/rank/small/diamond-III.svg', 'img/rank/small/diamond-II.svg', 'img/rank/small/diamond-I.svg'];
 
+// Update policy (V3 hardening, deliberate): a new version installs and takes over at once (skipWaiting + clients.claim). An open page is
+// NOT reloaded: it keeps the code it already loaded, so a live workout carries on; the new version is used at the next start.
+// Saved data lives in localStorage, never in this cache, so updates cannot touch it.
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
+// Only the app's own files in SHELL are cached, and only good answers (200): an error page or a 404 can never replace a working offline copy.
+const BASE = new URL('./', self.location).href, SHELL_URLS = new Set(SHELL.map(p => new URL(p, BASE).href));
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
-  // the Inter font: cached the first time, so it works offline
-  if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) { e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; }))); return; }
+  // the Inter font: cached the first time, so it works offline (the stylesheet answer is opaque, so it cannot be checked; errors are not kept)
+  if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) { e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => { if (r.ok || r.type === 'opaque') { const copy = r.clone(); e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, copy))); } return r; }))); return; }
   if (url.origin !== location.origin) return; // never touch API calls
+  const key = url.origin + url.pathname, shell = SHELL_URLS.has(key);
   e.respondWith(
     fetch(e.request).then(r => {
-      const copy = r.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy));
+      if (shell && r.ok && r.type === 'basic') { const copy = r.clone(); e.waitUntil(caches.open(CACHE).then(c => c.put(key, copy))); }
       return r;
-    }).catch(() => caches.match(e.request))
+    }).catch(() => caches.match(shell ? key : e.request, { ignoreSearch: true }).then(hit => hit || (e.request.mode === 'navigate' ? caches.match(BASE) : hit)))
   );
 });
