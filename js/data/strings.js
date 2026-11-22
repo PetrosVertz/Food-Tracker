@@ -819,8 +819,8 @@ Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings
   swipeAdd: ['Swipe To Add Exercise', 'Σύρε Για Νέα Άσκηση'], swipeNext: ['Swipe For Next Exercise', 'Σύρε Για Επόμενη Άσκηση'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
   exsTabSocial: ['Social', 'Κοινωνικά'], exsTabButtons: ['Buttons', 'Κουμπιά'], exsTabSets: ['Sets', 'Σετ'], exsTabAlerts: ['Alerts', 'Ειδοποιήσεις'],
 });
-Object.assign(S, {   // Refinements #2: the Gym Buddy carousel (Partner has no screen yet)
-  hubPartner: ['Partner', 'Συνεργάτης'], carSoon: ['Coming Soon', 'Σύντομα'],
+Object.assign(S, {   // Refinements #2: the Gym Buddy carousel; carSoon = a Coming Soon pill or tile
+  carSoon: ['Coming Soon', 'Σύντομα'],
 });
 Object.assign(S, {   // Refinements #4: the Food Library hub
   tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'], fhFoods: ['Foods', 'Τρόφιμα'],

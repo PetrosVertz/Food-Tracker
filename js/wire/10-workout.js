@@ -46,7 +46,7 @@ $('blBody').addEventListener('click', e => {
   $('sesAddEx').addEventListener('click', () => { if(drag) return; stopAnim(); pk.classList.remove('pkdrag', 'pkcancel'); sh.style.transform = ''; }, true);
   let settle = () => {};
   bd.addEventListener('scrollend', () => { if(bd.classList.contains('moving')){ clearTimeout(tm); settle(); } }, { passive: true });   // where the phone tells us the page has stopped: no extra wait
-  bd.addEventListener('scroll', () => { bd.classList.add('moving'); if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { if(down){ waitUp = true; return; } const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
+  bd.addEventListener('scroll', () => { if(!bd.classList.contains('moving')) bd.classList.add('moving');   /* only a real change: the same class written again on every scroll event woke every class watcher */ if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { if(down){ waitUp = true; return; } const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
     const mine = touching, fromLast = armed; touching = false; if(drag){ settleDrag(); return; }
     if(pk.classList.contains('open')) return; const on = onAdd();
     if(on && mine && !fromLast){ showCard(lastCard()); return; }   // flung past the last exercise from an earlier one: back to the last exercise, no menu

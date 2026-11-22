@@ -122,12 +122,19 @@ function claudeText(){
       i.classList.add('tkalt'); i.style.setProperty('--tkd', -(w - k.clientWidth + 6) + 'px'); i.style.setProperty('--tkt', Math.max(2, (w - k.clientWidth) / SPEED * 1.6).toFixed(2) + 's'); return; }
     i.dataset.tk = i.textContent.replace(/\s+/g, ' ').trim();
     i.style.setProperty('--tkd', -(w + GAP) + 'px'); i.style.setProperty('--tkt', ((w + GAP) / SPEED).toFixed(2) + 's'); }
-  const todo = new Set(); let raf = 0;
-  const queue = root => { if(!root || root.nodeType !== 1) return; if(root.matches(SEL)) todo.add(root); root.querySelectorAll(SEL).forEach(e => todo.add(e));
-    const up = root.closest(SEL); if(up) todo.add(up);
-    if(!raf) raf = requestAnimationFrame(() => { raf = 0; const all = [...todo]; todo.clear(); all.forEach(tick); }); };
-  const mo = new MutationObserver(ms => ms.forEach(m => queue(m.target.nodeType === 1 ? m.target : m.target.parentElement)));
-  const start = () => { mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] }); queue(document.body);
+  // Changed elements are only collected here (a page change toggles classes on many big sections at once); once per frame each subtree is
+  // scanned once (a root inside another collected root is skipped) and hidden subtrees are skipped (tick() is a no-op at 0 width; showing
+  // them again is itself a class change, so they are scanned then). Measured: the old scan inside the observer was ~30 % of a Gym section change.
+  const roots = new Set(); let raf = 0;
+  const run = () => { raf = 0; const rs = [...roots].filter(r => r.isConnected); roots.clear(); const todo = new Set();
+    rs.forEach(r => { for(let p = r.parentElement; p; p = p.parentElement) if(roots.has(p) || rs.includes(p)) return;
+      const up = r.closest(SEL); if(up) todo.add(up); if(!r.getClientRects().length) return;
+      if(r.matches(SEL)) todo.add(r); r.querySelectorAll(SEL).forEach(e => todo.add(e)); });
+    todo.forEach(tick); };
+  const queue = root => { if(!root || root.nodeType !== 1) return; roots.add(root); if(!raf) raf = requestAnimationFrame(run); };
+  // a class / hidden write that changed nothing (classList.add of a class already there, on every scroll event) is not a change
+  const mo = new MutationObserver(ms => ms.forEach(m => { if(m.type === 'attributes' && m.oldValue === m.target.getAttribute(m.attributeName)) return; queue(m.target.nodeType === 1 ? m.target : m.target.parentElement); }));
+  const start = () => { mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeOldValue: true, attributeFilter: ['class', 'hidden'] }); queue(document.body);
     addEventListener('resize', () => queue(document.body)); if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => queue(document.body));
     try{ rm.addEventListener('change', () => queue(document.body)); }catch(e){} };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start, 0);
