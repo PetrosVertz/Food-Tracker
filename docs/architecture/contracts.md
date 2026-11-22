@@ -1,0 +1,62 @@
+# Contracts — the stable seams, and what is only planned
+
+Implemented contracts first; the **Planned** section is compatibility notes only, not permission to build. One source per contract: if you change a seam, change its paragraph here in the same branch.
+
+## Store (`js/platform/store.js`) — the only code that touches localStorage
+- `Store.load(name, fallback)` → saved value, or `fallback` when absent **or unreadable**. Unreadable (corrupt JSON) is not treated as empty on disk: the bytes are copied to `ft.corrupt.<key>` first (if that copy fails, the key is locked against overwriting for this session) and reported by `Store.problems()`.
+- `Store.save(name, value)` → `true` only when the browser stored it. `null`/`undefined` removes the key; `[]`/`{}` are stored as they are. Missing ids on synced `list`/`days` records are given here (the one place), on the caller's objects, so memory and disk agree. The sync table (`ft.sync.v1`: `upd`/`tomb`) changes **only after** a successful write.
+- `Store.saveMany({ name: value, … })` → all or nothing. Writes a journal (`ft.journal.v1`) with the old bytes first; on a failed write the group is rolled back; if the app closes half way, the next start rolls back and reports `rolledBack`. If the journal itself does not fit, roll-back works from memory (only a crash during those milliseconds is then unguarded).
+- `Store.problems()` → `[{ kind: 'corrupt' | 'migration' | 'rolledBack' | 'rollbackFailed' | 'tooNew', … }]`. Start-up shows one toast for new problems (`wire/08`).
+- Migrations: `SCHEMA` + `MIGRATIONS[n]`. A migration must throw on any failed write (`mustWrite`), be safe to rerun, and copy before deleting. The schema number advances only after success. Data with a schema **above** ours is never migrated down.
+- Backups: `Store.snapshot()` (export), `Store.upgradeBackup(d)` (older → current; newer left alone), `Store.backupTooNew(d)`.
+- Exception (documented): `index.html` reads `ft.ui.v1` directly for the theme before scripts load.
+
+### Persistence inventory
+Sync = included in backups and future sync. "Main writers" is a starting point, not a full list: find every writer with `rg "Store.save\('<name>'|save<Name>\(\)|saveG\(" js`.
+
+| Name | Key | Shape | Sync | Main writers | In backup | Import rule |
+|---|---|---|---|---|---|---|
+| foods | ft.foods.v1 | list | yes | food.js, shop.js, today.js (`saveFoods`) | foods | add; newer `updatedAt` replaces |
+| meals | ft.meals.v1 | list | yes | food.js, meal.js | meals | same as foods |
+| supps | ft.supps.v1 | list | yes | supplements.js | supps | same as foods |
+| suppLog | ft.supplog.v1 | map day→{} | yes | supplements.js | suppLog | file's ticks added per day |
+| fridge | ft.fridge.v1 | list | yes | fridge.js, shop.js | fridge | same as foods (name optional) |
+| groc | ft.groc.v1 | list | yes | fridge.js, shop.js | groc | same as foods |
+| dayLog | ft.log.v1 | days | yes | today.js, meal.js, wire/06 (`saveLog`) | dayLog | add missing entries |
+| days | ft.days.v1 | map | yes | today.js | days | yours win |
+| targets | ft.targets.v1 | one | yes | today.js, wire/08 | targets | only if you have none |
+| plans | ft.plans.v1 | map | yes | today.js | plans | yours win |
+| weights | ft.weights.v1 | map day→kg | yes | wire/06, wire/08 | weights | yours win |
+| profile | ft.profile.v1 | one | yes | ui.js, profile.js | profile | yours win |
+| exCustom | ft.gym.custom | list | yes | gym.js `saveG('custom')` | gym.custom | add missing |
+| tpls | ft.gym.tpl | list | yes | gym.js `saveG('tpl')` | gym.tpl | add missing |
+| gymPlan | ft.gym.plan | map | yes | gym.js `saveG('plan')` | gym.plan | only if yours is empty |
+| sessions | ft.gym.sessions | list | yes | gym.js `saveG('ses')` | gym.sessions | add missing; no start time = skipped |
+| active | ft.gym.active | one | yes | gym.js `saveG('act')` | gym.active (new) | only when no live workout here and not already finished; then the "left open" rule runs |
+| comeback | ft.gym.comeback | one | yes | gym.js | gym.comeback | not imported (unchanged) |
+| combos | ft.combos.v1 | list | yes | today.js | combos | add missing |
+| logPhr | ft.logphr.v1 | map | yes | today.js | logPhr (new) | yours win |
+| foodFix | ft.foodfix.v1 | map | yes | today.js | foodFix (new) | yours win |
+| aiKnow, drafts, aiUsage, settings, ui, models, account | ft.aiknow.v1 … | one | no (device) | know.js, draft.js, ai-usage.js, ui | never (API key stays on the phone) | — |
+| (Store internal) | ft.schema, ft.sync.v1, ft.journal.v1, ft.corrupt.* | — | — | store.js | sync table yes; corrupt bytes as `recovery` | — |
+
+Re-importing the same file adds nothing (by id; records without an id are matched by content). Bad records are skipped, not fatal.
+
+## Import (`js/platform/backup.js`)
+`Backup.plan(current, data)` is pure: copies in, `{ ok, reason, next, changed, added, updated, activeRestored, activeSkipped }` out. `wire/08` saves `changed` names with `Store.saveMany`, and only then assigns the live lists, redraws and shows "Imported". File limit 25 MB.
+
+## AI (`js/platform/ai-provider.js`)
+Request `{ prompt, images, json, search, tier, timeoutMs, deadlineMs, retries, task }` → `{ text, json, usage | null, model, provider, ms, tries }` or an Error with `.kind` (auth, rate, overloaded, timeout, network, bad_output, cancelled, unsupported, other). **One deadline per request** covers model listing, tries, retries and pauses: 60 s (default) / 120 s (advanced or search); each try gets at most the time left. Cancel (`outer` AbortSignal) stops the chain and records one usage entry. Usage (`AIProvider.onDone` → `AIUsage.record`) stores counts and tokens only, never text. AI answers never change saved data by themselves: features show a card and the user applies (with undo). Callers use `gemini()` / `AI.*`, never `fetch`.
+
+## Offline cache (`sw.js`)
+Network first. Only files listed in `SHELL` are cached, and only good (200) answers, so an error page never replaces a working copy; other sites (AI, food databases) are never touched. Update policy: a new version takes over at once (`skipWaiting` + `clients.claim`) but an open page is never reloaded, so a live workout keeps running on the code it loaded. Saved data is in localStorage, not in the cache.
+
+## Phone (`js/platform/phone.js`)
+`Phone.*` (haptic, vibrate, camera, barcode, wake lock, share/download, clipboard). The native app swaps the inside; callers never test for native vs browser.
+
+## Planned — compatibility only (DO NOT IMPLEMENT without their own prompt)
+- **RECOVERY+**: will be the only owner of muscle/head recovery and, separately, overall readiness; reads `sessions`/`active` (completed sets only) and optional sleep/nutrition; publishes a versioned read-only snapshot; unknown stays unknown. Keeps 10 display groups / 21 head ids (`js/data/gym-anatomy.js`). Replaces, not duplicates, the current `headLoads()`/`estimateRecovery()`.
+- **Athlete Rank v0.4**: `js/rank-v2.js` stays switched off until its task; reads factual sets and the RECOVERY+ snapshot, writes only its own rank evidence; no rank for machine/cable lifts.
+- **Athlete OS**: shared context distributor (read models + preferences/corrections), not a coach and not a second copy of logs.
+- **Coaches / Fridge AI**: propose, never write without the user's Apply; no emojis; go through `AIProvider`.
+- **Integrations (Health, watches, Strava, cloud)**: adapter → permission → validation → normalized facts → the owning domain's save. No direct writes to other keys. Sync can use `ft.sync.v1` (`upd`/`tomb` per record id).

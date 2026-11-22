@@ -862,3 +862,8 @@ Object.assign(S, {   // Refinements #7: Strength by Muscle rows with a trend lin
 Object.assign(S, {   // Refinements #7: Recovery tiles
   recAllReady: ['All Muscles Ready', 'Όλοι Οι Μύες Έτοιμοι'], recHrs: ['h', 'ώρ.'],
 });
+Object.assign(S, {   // V3 hardening: backups and saved data that could not be read
+  backupTooNew: ['This backup is from a newer app version. Update the app first, then import it.', 'Αυτό το αντίγραφο είναι από νεότερη έκδοση της εφαρμογής. Ενημέρωσέ την πρώτα και μετά κάνε εισαγωγή.'],
+  dataProblem: ['Some saved data could not be read. It is kept safe and included in your next backup.', 'Κάποια αποθηκευμένα δεδομένα δεν διαβάστηκαν. Φυλάσσονται και μπαίνουν στο επόμενο αντίγραφο ασφαλείας.'],
+  importUndone: ['The last import was interrupted, so it was undone. Your data is as it was before.', 'Η τελευταία εισαγωγή διακόπηκε και αναιρέθηκε. Τα δεδομένα σου είναι όπως πριν.'],
+});

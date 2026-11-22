@@ -33,50 +33,112 @@ const Store = (() => {
   const nameOf = k => C[k] ? k : BY_KEY[k] || null, keyOf = k => C[k] ? C[k][0] : k;
   const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  const read = k => { try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : undefined; }catch(e){ return undefined; } };
-  const write = (k, v) => { try{ if(v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); return true; }
-    catch(e){ try{ toast(t('saveFail')); }catch(_){} return false; } };
+  // ---------- raw storage ----------
+  // read(): undefined = absent. Text that is not valid JSON is CORRUPT, not absent: its bytes are copied to 'ft.corrupt.<key>' first
+  // (or, if even that copy fails, the key is locked against overwriting for this session), so a later save can never destroy the only copy.
+  const JOURNAL_KEY = 'ft.journal.v1', CORRUPT = 'ft.corrupt.';
+  const problems = [], locked = new Set(), rescued = {};
+  const raw = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+  function quarantine(k, txt){
+    if(k in rescued) return; rescued[k] = txt;
+    const q = raw(CORRUPT + k);   // again: the same bytes were already put aside at an earlier start (no new notice needed)
+    problems.push({ kind: 'corrupt', key: k, name: nameOf(k), at: Date.now(), again: q === txt });
+    try{ if(q !== txt) localStorage.setItem(q == null ? CORRUPT + k : CORRUPT + k + '.' + Date.now(), txt); }
+    catch(e){ locked.add(k); }
+  }
+  const read = k => { const v = raw(k); if(!v) return undefined; try{ return JSON.parse(v); }catch(e){ quarantine(k, v); return undefined; } };
+  // write(): true only when the browser really stored it. undefined (and null through save) removes the key; [] and {} are stored as they are.
+  const write = (k, v, quiet) => {
+    if(locked.has(k)){ if(!quiet) try{ toast(t('saveFail')); }catch(_){} return false; }
+    try{ if(v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch(e){ if(!quiet) try{ toast(t('saveFail')); }catch(_){} return false; } };
+  const mustWrite = (k, v) => { if(!write(k, v, true)) throw new Error('could not write ' + k); };
+  const putRaw = (k, txt) => { try{ localStorage.removeItem(k); if(txt != null) localStorage.setItem(k, txt); return true; }catch(e){ return false; } };
 
   // ---------- sync bookkeeping ----------
   let meta = null, metaTimer = null; const seen = {};
   const M = () => meta || (meta = Object.assign({ upd: {}, tomb: {} }, read(META_KEY) || {}));
   const flushMeta = () => { clearTimeout(metaTimer); metaTimer = null; if(meta) write(META_KEY, meta); };
+  // ids: the ONE place missing record ids are given is just before a synced list / day list is saved (save, saveMany, migration 2).
+  // The ids are put on the caller's objects on purpose, so what is in memory and what is on disk carry the same id.
+  const ensureIds = (shape, v) => {
+    if(v == null) return;
+    if(shape === 'list' && Array.isArray(v)) v.forEach(x => { if(x && typeof x === 'object' && !x.id) x.id = newId(); });
+    if(shape === 'days' && typeof v === 'object') Object.values(v).forEach(l => (Array.isArray(l) ? l : []).forEach(e => { if(e && typeof e === 'object' && !e.id) e.id = newId(); }));
+  };
+  // records(): read only. A record without an id (old data before migration 2) is keyed by its place instead of being given one here.
   const records = (shape, v) => {
     if(v == null) return [];
-    if(shape === 'list') return Array.isArray(v) ? v.filter(x => x && typeof x === 'object').map(x => { if(!x.id) x.id = newId(); return [x.id, x]; }) : [];
-    if(shape === 'days') return Object.entries(v).flatMap(([d, l]) => (l || []).map(e => { if(!e.id) e.id = newId(); return [d + '/' + e.id, e]; }));
+    if(shape === 'list') return Array.isArray(v) ? v.filter(x => x && typeof x === 'object').map((x, i) => [x.id || '#' + i, x]) : [];
+    if(shape === 'days') return Object.entries(v).flatMap(([d, l]) => (Array.isArray(l) ? l : []).map((e, i) => [d + '/' + ((e && e.id) || '#' + i), e]));
     if(shape === 'map') return Object.entries(v);
     return [['_', v]];
   };
   const hashes = (shape, v) => new Map(records(shape, v).map(([k, x]) => [k, JSON.stringify(x)]));
-  function track(name, v){
-    const shape = C[name][1], now = Date.now(), cur = hashes(shape, v), m = M();
-    const prev = seen[name] || hashes(shape, read(C[name][0]));
-    const upd = m.upd[name] = m.upd[name] || {}, tomb = m.tomb[name] = m.tomb[name] || {};
+  // diff BEFORE writing (the old value is still on disk), commit AFTER the write succeeded: a failed write never touches the sync table
+  function diff(name, v){ const shape = C[name][1]; return { cur: hashes(shape, v), prev: seen[name] || hashes(shape, read(C[name][0])) }; }
+  function commit(name, d){
+    const now = Date.now(), m = M(), upd = m.upd[name] = m.upd[name] || {}, tomb = m.tomb[name] = m.tomb[name] || {};
     let changed = false;
-    cur.forEach((h, k) => { if(prev.get(k) !== h){ upd[k] = now; changed = true; } if(tomb[k]){ delete tomb[k]; changed = true; } });
-    prev.forEach((_, k) => { if(!cur.has(k)){ tomb[k] = now; delete upd[k]; changed = true; } });
-    seen[name] = cur;
+    d.cur.forEach((h, k) => { if(d.prev.get(k) !== h){ upd[k] = now; changed = true; } if(tomb[k]){ delete tomb[k]; changed = true; } });
+    d.prev.forEach((_, k) => { if(!d.cur.has(k)){ tomb[k] = now; delete upd[k]; changed = true; } });
+    seen[name] = d.cur;
     if(changed && !metaTimer) metaTimer = setTimeout(flushMeta, 400);
   }
   addEventListener('pagehide', flushMeta); addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushMeta(); });
 
   // ---------- public ----------
   function load(k, fb){ const v = read(keyOf(k)); return v === undefined || v === null ? fb : v; }
-  function save(k, v){ const n = nameOf(k); if(n && C[n][2]) track(n, v); return write(keyOf(k), v ?? undefined); }
+  function save(k, v){
+    const n = nameOf(k), sync = n && C[n][2];
+    if(sync) ensureIds(C[n][1], v);
+    const d = sync ? diff(n, v) : null;
+    const ok = write(keyOf(k), v ?? undefined);
+    if(ok && d) commit(n, d);
+    return ok;
+  }
+  // several names at once, all or nothing (imports). { name: value, ... } → true when every key is stored; false = nothing changed.
+  // The old values go to a journal key first, so if the app is closed half way the next start puts them back. If the journal itself
+  // does not fit (storage nearly full) the group still rolls back from memory on a failed write; only a crash in those few ms is then unguarded.
+  function saveMany(obj){
+    const items = Object.entries(obj).map(([k, v]) => { const n = nameOf(k); if(!n) throw new Error('unknown store name ' + k); return { n, key: C[n][0], v, sync: C[n][2] }; });
+    if(items.some(it => locked.has(it.key))){ try{ toast(t('saveFail')); }catch(_){} return false; }
+    items.forEach(it => { if(it.sync){ ensureIds(C[it.n][1], it.v); it.d = diff(it.n, it.v); } it.old = raw(it.key); });
+    const journaled = write(JOURNAL_KEY, { at: Date.now(), old: Object.fromEntries(items.map(it => [it.key, it.old])) }, true);
+    let failed = false;
+    for(const it of items){ if(!write(it.key, it.v ?? undefined, true)){ failed = true; break; } it.done = true; }
+    if(failed){
+      const back = items.filter(it => it.done).every(it => putRaw(it.key, it.old));
+      if(back && journaled) write(JOURNAL_KEY, undefined, true);
+      if(!back) problems.push({ kind: 'rollbackFailed', at: Date.now() });
+      try{ toast(t('saveFail')); }catch(_){}
+      return false;
+    }
+    items.forEach(it => { if(it.d) commit(it.n, it.d); });
+    if(journaled) write(JOURNAL_KEY, undefined, true);
+    return true;
+  }
+  // an import (saveMany) that the app was closed in the middle of: put every key back the way it was before it started
+  (function recover(){
+    const j = read(JOURNAL_KEY); if(!j || !j.old || typeof j.old !== 'object') return;
+    const back = Object.entries(j.old).every(([k, txt]) => putRaw(k, txt));
+    if(back) write(JOURNAL_KEY, undefined, true);
+    problems.push({ kind: back ? 'rolledBack' : 'rollbackFailed', at: Date.now(), keys: Object.keys(j.old) });
+  })();
 
   // ---------- migrations (old data and old backups) ----------
+  // Rules: a migration must throw if any write fails (mustWrite), must be safe to run again, and copies before it deletes.
+  // The schema number moves on only after its migration finished; a failed one runs again at the next start.
   const setIds = ses => (ses || []).forEach(s => (s.exercises || []).forEach(x => (x.sets || []).forEach(st => { if(!st.id) st.id = newId(); })));
   const MIGRATIONS = {
     // 0.6.6: profile (body + gym habits) moves out of the UI settings into synced data; every record and set gets an id
     2(){
-      const ui = read(C.ui[0]) || {}, pf = Object.assign({}, read(C.profile[0]) || {});
-      ['sex', 'height', 'gymTime', 'gymLast', 'sore'].forEach(k => { if(ui[k] !== undefined){ if(pf[k] === undefined) pf[k] = ui[k]; delete ui[k]; } });
-      write(C.ui[0], ui); write(C.profile[0], pf);
-      Object.entries(C).forEach(([n, [key, shape, sync]]) => { if(!sync || shape !== 'list' && shape !== 'days') return; const v = read(key); if(v == null) return; records(shape, v); write(key, v); });
-      const ses = read(C.sessions[0]); if(ses){ setIds(ses); write(C.sessions[0], ses); }
-      const act = read(C.active[0]); if(act){ setIds([act]); write(C.active[0], act); }
-      const tp = read(C.tpls[0]); if(tp){ tp.forEach(x => (x.exercises || []).forEach(e => { if(!e.id) e.id = newId(); })); write(C.tpls[0], tp); }
+      const ui = read(C.ui[0]) || {}, pf = Object.assign({}, read(C.profile[0]) || {}), moved = ['sex', 'height', 'gymTime', 'gymLast', 'sore'].filter(k => ui[k] !== undefined);
+      if(moved.length){ moved.forEach(k => { if(pf[k] === undefined) pf[k] = ui[k]; }); mustWrite(C.profile[0], pf); moved.forEach(k => delete ui[k]); mustWrite(C.ui[0], ui); }
+      Object.entries(C).forEach(([n, [key, shape, sync]]) => { if(!sync || shape !== 'list' && shape !== 'days') return; const v = read(key); if(v == null) return; ensureIds(shape, v); mustWrite(key, v); });
+      const ses = read(C.sessions[0]); if(ses){ setIds(ses); mustWrite(C.sessions[0], ses); }
+      const act = read(C.active[0]); if(act){ setIds([act]); mustWrite(C.active[0], act); }
+      const tp = read(C.tpls[0]); if(tp){ tp.forEach(x => (x.exercises || []).forEach(e => { if(!e.id) e.id = newId(); })); mustWrite(C.tpls[0], tp); }
       const now = Date.now(), m = M();   // everything that exists now counts as changed now
       Object.entries(C).forEach(([n, [key, shape, sync]]) => { if(!sync) return; const u = m.upd[n] = m.upd[n] || {}; records(shape, read(key)).forEach(([k]) => { if(!u[k]) u[k] = now; }); });
       flushMeta();
@@ -85,26 +147,39 @@ const Store = (() => {
   try{ localStorage.removeItem('ft.pet.v1'); }catch(e){}   // 0.7.9: the pet system is gone; old pet data is deleted
   (function migrate(){
     let v = +read(SCHEMA_KEY) || 1;
-    while(v < SCHEMA){ v++; try{ MIGRATIONS[v] && MIGRATIONS[v](); }catch(e){ console.error('migration ' + v, e); } write(SCHEMA_KEY, v); }
+    if(v > SCHEMA){ problems.push({ kind: 'tooNew', schema: v, at: Date.now() }); return; }   // data from a newer app version: never "upgraded" down
+    while(v < SCHEMA){
+      const next = v + 1;
+      try{ if(MIGRATIONS[next]) MIGRATIONS[next](); }
+      catch(e){ console.error('migration ' + next, e); problems.push({ kind: 'migration', step: next, at: Date.now() }); return; }
+      if(!write(SCHEMA_KEY, next, true)){ problems.push({ kind: 'migration', step: next, at: Date.now() }); return; }
+      v = next;
+    }
   })();
 
-  // a backup from an older version: bring it to the current shape before merging
+  // a backup from an older version: bring it to the current shape before merging. A backup from a NEWER version is left as it is (backupTooNew).
+  const backupTooNew = d => !!d && typeof d === 'object' && (+d.schema || 1) > SCHEMA;
   function upgradeBackup(d){
-    if(!d || typeof d !== 'object' || Array.isArray(d)) return d;
+    if(!d || typeof d !== 'object' || Array.isArray(d) || backupTooNew(d)) return d;
     if((+d.schema || 1) < 2){ const g = d.gym || {}; setIds(g.sessions); (g.tpl || []).forEach(x => (x.exercises || []).forEach(e => { if(!e.id) e.id = newId(); })); }
     d.schema = SCHEMA; return d;
   }
 
-  // backup = all synced data (same flat layout as before 0.6.6, plus profile, schema and the sync table)
+  // backup = all synced data (same flat layout as before 0.6.6, plus profile, schema and the sync table).
+  // Added (all optional, older versions ignore them): gym.active (the live workout), logPhr, foodFix, recovery (bytes of saved data that could not be read).
   function snapshot(){
     const g = n => load(n, C[n][1] === 'list' ? [] : C[n][1] === 'one' ? null : {});
     flushMeta();
+    const rec = {};
+    try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && k.startsWith(CORRUPT)) rec[k.slice(CORRUPT.length)] = raw(k); } }catch(e){}
+    Object.entries(rescued).forEach(([k, txt]) => { if(!Object.values(rec).includes(txt)) rec[k] = txt; });
     return { app: 'tracker', version: VERSION, schema: SCHEMA, exportedAt: new Date().toISOString(), account: Account.current().id,
       foods: g('foods'), meals: g('meals'), supps: g('supps'), suppLog: g('suppLog'), fridge: g('fridge'), groc: g('groc'), dayLog: g('dayLog'), days: g('days'),
       targets: g('targets'), plans: g('plans'), weights: g('weights'), profile: g('profile') || {},
-      gym: { custom: g('exCustom'), tpl: g('tpls') || [], plan: g('gymPlan'), sessions: g('sessions'), comeback: g('comeback') }, combos: g('combos'), sync: M() };
+      gym: { custom: g('exCustom'), tpl: g('tpls') || [], plan: g('gymPlan'), sessions: g('sessions'), comeback: g('comeback'), active: g('active') },
+      combos: g('combos'), logPhr: g('logPhr'), foodFix: g('foodFix'), sync: M(), ...(Object.keys(rec).length ? { recovery: rec } : {}) };
   }
 
-  return { SCHEMA, load, save, snapshot, upgradeBackup, newId, meta: M, flush: flushMeta,
+  return { SCHEMA, load, save, saveMany, snapshot, upgradeBackup, backupTooNew, newId, meta: M, flush: flushMeta, problems: () => problems.slice(),
     dataNames: () => Object.keys(C).filter(n => C[n][2]), deviceNames: () => Object.keys(C).filter(n => !C[n][2]) };
 })();

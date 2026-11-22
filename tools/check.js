@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Quick health check for the app. Run from the repo root:  node tools/check.js
 // Add --boot to also open the app in a headless browser and report start-up errors
-// (needs Playwright; skipped if it isn't installed).
+// (needs Playwright; skipped with a note if it isn't installed).
+// Add --strict (CI) to make a missing browser a FAIL instead of a note: a skipped check is never a pass.
 // Exit code 1 = something must be fixed. "note" lines are information only.
 
 const fs = require('fs');
@@ -200,20 +201,28 @@ try {
 // 10. AI provider layer (js/platform/ai-provider.js): fake network, no key needed. Tries, errors, retries, usage, cancel.
 async function aiTests() {
   const bad = [];
-  const mk = script => {   // script: list of replies in order; a reply is { status, body } or { throw: 'AbortError' | 'net' }
-    const calls = [];
-    const c = { console: { log() {}, warn() {} }, setTimeout, clearTimeout, Promise, JSON, Date, Math, Object, Error, Array, Set, String, Number, AbortController,
+  // fake clock (V3 hardening): pauses and timeouts move a pretend clock instead of really waiting, so these tests take milliseconds, not ~30 s
+  const fakeTime = () => {
+    const clock = { now: Date.UTC(2026, 10, 16, 12) }; const live = new Map(); let n = 0;
+    class FDate extends Date { constructor(...a) { super(...(a.length ? a : [clock.now])); } static now() { return clock.now; } }
+    const st = (f, ms) => { const id = ++n; live.set(id, 1); setImmediate(() => { if (!live.delete(id)) return; clock.now += Math.max(0, ms || 0); f(); }); return id; };
+    return { clock, Date: FDate, setTimeout: st, clearTimeout: id => { live.delete(id); } };
+  };
+  const mk = script => {   // script: list of replies in order; a reply is { status, body } or { throw: 'AbortError' | 'net', cost: ms the try takes }
+    const calls = [], waits = [], ft = fakeTime();
+    const c = { console: { log() {}, warn() {} }, setTimeout: ft.setTimeout, clearTimeout: ft.clearTimeout, Promise, JSON, Date: ft.Date, Math, Object, Error, Array, Set, String, Number, AbortController,
       settings: { geminiKey: 'k', model: 'm1' }, DEFAULT_MODEL: 'm1', Store: { load: () => ({ at: Date.now(), tag: 'k', list: ['m1', 'm2', 'm3'] }), save() {} },
       t: (k, v) => k + (v && v.e ? ':' + v.e : '') };
-    c.fetchT = async (url) => {
-      calls.push(decodeURIComponent(url.split('/models/')[1] || url));
+    c.fetchT = async (url, opts, ms) => {
+      calls.push(decodeURIComponent(url.split('/models/')[1] || url)); waits.push(ms);
       const r = script.shift() || { status: 200, body: { candidates: [{ content: { parts: [{ text: '{"ok":1}' }] } }] } };
+      if (r.cost) ft.clock.now += Math.min(r.cost, ms);   // a slow try uses up its time, at most its own time limit
       if (r.throw) { const e = new Error(r.throw); e.name = r.throw === 'AbortError' ? 'AbortError' : 'TypeError'; throw e; }
       return { ok: r.status >= 200 && r.status < 300, status: r.status, json: async () => r.body };
     };
     vm.createContext(c);
     vm.runInContext(read('js/platform/ai-provider.js') + '\n;this.__P = { AIProvider, GeminiProvider, AnthropicProvider };', c);
-    return { P: c.__P, calls, c };
+    return { P: c.__P, calls, waits, c, clock: ft.clock };
   };
   const good = (text, usage) => ({ status: 200, body: { candidates: [{ content: { parts: [{ text }] } }], ...(usage ? { usageMetadata: usage } : {}) } });
   const fails = async (f) => { try { await f(); return null; } catch (e) { return e; } };
@@ -236,8 +245,8 @@ async function aiTests() {
   if (!e || e.kind !== 'auth' || !e.fatal || r.calls.length !== 1 || !/^keyBad/.test(e.message)) bad.push('bad key must stop at once as kind auth');
   // busy (503) and rate limit (429): next model, with a pause, kinds normalised
   r = mk([{ status: 429, body: { error: { message: 'quota' } } }, { status: 503, body: { error: { message: 'overloaded' } } }, good('{"a":4}')]);
-  const t0 = Date.now(); res = await r.P.AIProvider.run(req);
-  if (res.json.a !== 4 || r.calls.join() !== 'm1:generateContent,gemini-flash-latest:generateContent,gemini-flash-lite-latest:generateContent' || Date.now() - t0 < 600) bad.push('429/503 must try the next model after a short pause');
+  const t0 = r.clock.now; res = await r.P.AIProvider.run(req);
+  if (res.json.a !== 4 || r.calls.join() !== 'm1:generateContent,gemini-flash-latest:generateContent,gemini-flash-lite-latest:generateContent' || r.clock.now - t0 < 600) bad.push('429/503 must try the next model after a short pause');
   // every model fails: one error with the old text, kind of the last failure
   r = mk(Array(10).fill({ status: 503, body: { error: { message: 'busy' } } }));
   r.P.AIProvider.onDone = tr => { r.trace = tr; };
@@ -256,6 +265,23 @@ async function aiTests() {
   // cancel
   const ctl = new r.c.AbortController(); ctl.abort(); r = mk([]); e = await fails(() => r.P.AIProvider.run(req, { outer: ctl.signal }));
   if (!e || !e.cancelled || e.kind !== 'cancelled') bad.push('cancel must give a cancelled error');
+  // V3 hardening: ONE deadline for the whole request (model list, tries, retries, pauses). Default 60 s, advanced / search 120 s.
+  r = mk(Array(10).fill({ throw: 'AbortError', cost: 30000 })); { const t1 = r.clock.now; let tr = null; r.P.AIProvider.onDone = x => { tr = x; };
+    e = await fails(() => r.P.AIProvider.run(req)); const el = r.clock.now - t1;
+    if (!e || e.kind !== 'timeout' || !e.deadline || el > 60000 || r.calls.length > 2) bad.push(`deadline: 10 slow models must stop within 60 s (took ${el} ms, ${r.calls.length} tries)`);
+    if (!tr || !tr.deadline || tr.ok) bad.push('deadline: the usage trace must say the deadline ended it'); }
+  r = mk(Array(10).fill({ status: 503, body: { error: { message: 'busy' } }, cost: 25000 })); { const t1 = r.clock.now; e = await fails(() => r.P.AIProvider.run(req));
+    if (r.clock.now - t1 > 60000 || !e || e.message !== 'allBusy:busy') bad.push(`deadline: busy models + pauses must stay within 60 s (took ${r.clock.now - t1} ms) and keep the old text`); }
+  r = mk([{ throw: 'AbortError', cost: 30000 }, good('{"a":7}')]); res = await r.P.AIProvider.run({ ...req, deadlineMs: 50000 });
+  if (res.json.a !== 7 || r.waits[1] !== 20000) bad.push(`deadline: the next try gets only the time left (got ${r.waits[1]} ms, want 20000)`);
+  r = mk(Array(10).fill({ throw: 'AbortError', cost: 60000 })); { const t1 = r.clock.now; await fails(() => r.P.AIProvider.run({ ...req, tier: 'advanced' }));
+    if (r.clock.now - t1 > 120000 || r.calls.length !== 2) bad.push(`deadline: advanced must stop within 120 s (took ${r.clock.now - t1} ms, ${r.calls.length} tries)`); }
+  r = mk([good('{"a":8}')]); res = await r.P.AIProvider.run({ ...req, deadlineMs: 5000 });
+  if (res.json.a !== 8 || r.waits[0] !== 5000) bad.push('deadline: deadlineMs caps the first try too');
+  // cancel during a pause: stops at once, one usage record
+  { r = mk(Array(10).fill({ status: 503, body: {} })); const ctl2 = new r.c.AbortController(); let n = 0; r.P.AIProvider.onDone = () => { n++; };
+    const pr = fails(() => r.P.AIProvider.run(req, { outer: ctl2.signal, onTry: i => { if (i === 2) ctl2.abort(); } })); e = await pr;
+    if (!e || !e.cancelled || r.calls.length > 2 || n !== 1) bad.push(`cancel mid-request: must stop with one usage record (tries ${r.calls.length}, records ${n})`); }
   // tiers: advanced puts the strongest first; default starts with Settings model
   r = mk([good('{"a":1}')]); r.c.settings.modelAdvanced = 'mx'; await r.P.AIProvider.run({ ...req, tier: 'advanced' });
   if (r.calls[0] !== 'mx:generateContent') bad.push('advanced tier ignores settings.modelAdvanced');
@@ -268,7 +294,7 @@ async function aiTests() {
   {
     const mem = {}; const c = { ...mk([]).c }; for (const k of ['AIProvider','GeminiProvider','AnthropicProvider']) delete c[k]; const c0 = c; const fresh = {}; for (const k of Object.keys(c0)) if (!/^(AI|Gemini|Anthropic|__)/.test(k)) fresh[k] = c0[k]; vm.createContext(fresh);
     const c1 = fresh; c1.Store = { load: (k, d) => k === 'models' ? { at: Date.now(), tag: 'k', list: ['m1', 'm2'] } : (k in mem ? JSON.parse(JSON.stringify(mem[k])) : d), save: (k, v) => { mem[k] = JSON.parse(JSON.stringify(v)); return true; } };
-    c1.todayKey = () => '2026-11-16'; c1.lang = 'en';
+    c1.todayKey = () => new c1.Date().toLocaleDateString('en-CA'); c1.lang = 'en';   // the fake clock's day, like the app's todayKey (was fixed to one date: failed every other day)
     const q = [good('{"a":1}', { promptTokenCount: 7, candidatesTokenCount: 3, totalTokenCount: 10 }), good('nope'), good('{"a":2}'), { status: 503, body: { error: { message: 'busy' } } }];
     let n = 0; c1.fetchT = async () => { const r = q[n++] || { status: 500, body: { error: { message: 'x' } } }; return { ok: r.status < 300, status: r.status, json: async () => r.body }; };
     vm.runInContext(read('js/platform/ai-provider.js') + '\n' + read('js/platform/ai-usage.js') + '\n;this.__U = { AIProvider, AIUsage };', c1);
@@ -276,7 +302,7 @@ async function aiTests() {
     await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, task: 'chat' });                   // 1 try, with tokens
     await AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, tier: 'advanced' });              // unreadable, then ok: 2 tries, no tokens
     await fails(() => AIProvider.run({ prompt: 'SECRET MESSAGE', json: true, search: true }));     // every model busy: failed
-    const d = JSON.parse(JSON.stringify(mem.aiUsage)).days['2026-11-16'], s1 = AIUsage.sum(1);
+    const d = JSON.parse(JSON.stringify(mem.aiUsage)).days[c1.todayKey()], s1 = AIUsage.sum(1);
     if (!d || d.calls !== 3 || d.ok !== 2 || d.failed !== 1) bad.push('usage: request counts wrong ' + JSON.stringify(d && [d.calls, d.ok, d.failed]));
     if (d.tokIn !== 7 || d.tokOut !== 3 || d.tokTries !== 1) bad.push('usage: tokens must be summed only where reported');
     if (d.bad !== 1) bad.push('usage: unreadable answer not counted');
@@ -462,8 +488,38 @@ try {
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/meal-test.js')], { stdio: 'pipe' }).toString(); ok('meals: ' + (out.match(/^ok /gm) || []).length + ' Food Coach meal cases pass (tools/meal-test.js)'); }
 catch (e) { fail('meals: tools/meal-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
+// Storage safety (V3 hardening): failed writes, migrations, corrupt data, backups, all-or-nothing import (tools/store-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/store-test.js')], { stdio: 'pipe' }).toString(); ok('store: ' + (out.match(/^ok /gm) || []).length + ' storage / backup / import safety checks pass (tools/store-test.js)'); }
+catch (e) { fail('store: tools/store-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+
+// Offline + update rules of sw.js (V3 hardening): errors never replace the offline copy, only app files cached, other sites untouched (tools/sw-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/sw-test.js')], { stdio: 'pipe' }).toString(); ok('service worker: ' + (out.match(/^ok /gm) || []).length + ' offline / update checks pass (tools/sw-test.js)'); }
+catch (e) { fail('service worker: tools/sw-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+
+// Docs map stays true (V3 hardening): every file path and plain `name()` in the architecture docs / CLAUDE.md exists,
+// and every Store name has a row in the persistence inventory. A stale map is a warning to read the code, so it must not rot silently.
+try {
+  const docs = ['CLAUDE.md', ...fs.readdirSync(path.join(root, 'docs/architecture')).filter(f => f.endsWith('.md')).map(f => 'docs/architecture/' + f)];
+  const allJs = [...scripts, 'sw.js'].filter(f => fs.existsSync(path.join(root, f))).map(read).join('\n');
+  const bad = [];
+  let nPath = 0, nSym = 0;
+  for (const d of docs) for (const [, tok] of read(d).matchAll(/`([^`\n]+)`/g)) {
+    for (const part of tok.split(/\s*[›>]\s*|,\s*/)) {
+      const x = part.trim();
+      if (/^(js|css|tools|docs|img|\.github)\/[\w.\/-]+$|^(sw\.js|index\.html)$/.test(x)) { nPath++; if (!fs.existsSync(path.join(root, x))) bad.push(`${d}: ${x} does not exist`); }
+      const m = x.match(/^([A-Za-z_$][\w$]*)\(\)$/);
+      if (m && !['fetch'].includes(m[1])) { nSym++; if (!new RegExp(`(function\\s+${m[1]}\\s*\\(|(const|let|var)\\s+${m[1]}\\s*=|,\\s*${m[1]}\\s*=\\s*(async\\s*)?(\\(|function\\b|[\\w$]+\\s*=>))`).test(allJs)) bad.push(`${d}: ${m[1]}() is not defined in any loaded script`); }
+    }
+  }
+  const storeNames = [...read('js/platform/store.js').matchAll(/^\s+(?:[a-zA-Z]+: \[[^\]]+\],?\s*)+/gm)].join(' ').match(/\b([a-zA-Z]+): \['ft\./g).map(x => x.split(':')[0]);
+  const inv = read('docs/architecture/contracts.md');
+  storeNames.forEach(n => { if (!new RegExp(`\\b${n}\\b`).test(inv)) bad.push(`contracts.md: Store name "${n}" has no row in the persistence inventory`); });
+  if (bad.length) bad.forEach(b => fail('docs map: ' + b)); else ok(`docs map: ${nPath} paths and ${nSym} functions named in CLAUDE.md + docs/architecture exist; all ${storeNames.length} Store names inventoried`);
+} catch (e) { fail('docs map: could not check: ' + e.message); }
+
+const STRICT = process.argv.includes('--strict');
 async function boot() {
-  let pw; try { pw = require('playwright'); } catch { note('--boot skipped: Playwright not installed'); return; }
+  let pw; try { pw = require('playwright'); } catch { (STRICT ? fail : note)('--boot skipped: Playwright not installed' + (STRICT ? ' (--strict: a skipped browser check is a failure)' : '')); return; }
   const http = require('http');
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
   const srv = http.createServer((q, r) => {
@@ -483,11 +539,41 @@ async function boot() {
     for (const h of ['#foods', '#meals', '#supps', '#today', '#gym', '#fridge', '#profile', '#settings']) { await page.evaluate(x => { location.hash = x; }, h); await page.waitForTimeout(250); }
     await page.close();
   }
+  // V3 hardening: Settings › Import in the real app. Same file twice adds nothing; a write that fails half way changes nothing and shows no success.
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } }); const dialogs = [];
+    page.on('dialog', d => { dialogs.push(d.message()); d.dismiss(); }); page.on('pageerror', e => errs.push('[import] ' + e.message));
+    await page.goto(`http://localhost:${port}/`, { waitUntil: 'load' });
+    await page.evaluate(() => { localStorage.clear(); localStorage.setItem('ft.ui.v1', JSON.stringify({ setupDone: true, lang: 'en', theme: { mode: 'dark', preset: 'lime' } }));
+      localStorage.setItem('ft.foods.v1', JSON.stringify([{ id: 'keep', name: 'Keep Me' }])); });
+    await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(300);
+    const file = (o, n) => ({ name: n || 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(o)) });
+    const bk = { app: 'tracker', schema: 2, foods: [{ id: 'f1', name: 'Rice' }, { name: '<img src=x onerror=alert(1)>' }],
+      dayLog: { '2026-11-01': [{ id: 'e1', kind: 'food', refId: 'f1', name: 'Rice', amt: 100, unit: 'g', kcal: 130 }] },
+      gym: { sessions: [{ id: 's1', start: '2026-11-01T10:00:00Z', exercises: [] }, { exercises: [] }] } };
+    const disk = () => page.evaluate(() => ({ foods: JSON.parse(localStorage.getItem('ft.foods.v1') || '[]').length, log: (JSON.parse(localStorage.getItem('ft.log.v1') || '{}')['2026-11-01'] || []).length,
+      ses: JSON.parse(localStorage.getItem('ft.gym.sessions') || '[]').length, mem: foods.length, toast: document.getElementById('toastMsg').textContent, journal: localStorage.getItem('ft.journal.v1') }));
+    const imp = async f => { await page.setInputFiles('#importInput', f); await page.waitForTimeout(400); return disk(); };
+    const a = await imp(file(bk));
+    const b = await imp(file(bk, 'again.json'));
+    await page.evaluate(() => { location.hash = '#foods'; }); await page.waitForTimeout(300);
+    const injected = await page.evaluate(() => !!document.querySelector('img[src="x"]'));
+    await page.evaluate(() => { const o = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k === 'ft.log.v1') { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; } return o.call(this, k, v); }; });
+    const c = await imp(file({ ...bk, foods: [{ id: 'f2', name: 'Oats' }], dayLog: { '2026-11-02': [{ id: 'e2', kind: 'food', name: 'Oats', amt: 50 }] } }, 'late-fail.json'));
+    await page.close();
+    const bad = [];
+    if (a.foods !== 3 || a.log !== 1 || a.ses !== 1 || a.mem !== 3 || !/Imported/.test(a.toast)) bad.push('first import ' + JSON.stringify(a));
+    if (b.foods !== 3 || b.log !== 1 || b.ses !== 1 || b.mem !== 3) bad.push('second import of the same file added things ' + JSON.stringify(b));
+    if (injected || dialogs.length) bad.push('a food name from a backup became HTML');
+    if (c.foods !== 3 || c.mem !== 3 || /Imported/.test(c.toast) || c.journal) bad.push('failed import was partly applied or said it worked ' + JSON.stringify(c));
+    if (bad.length) bad.forEach(x => fail('import (browser): ' + x)); else ok('import (browser): adds once, same file twice adds nothing, odd text stays text, a write that fails half way changes nothing and shows no success');
+  } catch (e) { fail('import (browser): could not run: ' + e.message); }
   await browser.close(); srv.close();
   if (errs.length) [...new Set(errs)].forEach(e => fail('start-up: ' + e)); else ok('boot: app starts with no errors (dark + light)');
 }
 
 aiTests().then(() => process.argv.includes('--boot') ? boot() : null).then(() => {
-  console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.');
+  const partial = !process.argv.includes('--boot') ? ' (browser checks not run: add --boot)' : '';
+  console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.' + partial);
   process.exit(fails ? 1 : 0);
 });

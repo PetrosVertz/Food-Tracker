@@ -1,0 +1,20 @@
+# Runs the app's health check on every pull request and push to main.
+# --strict: if the browser cannot start, that is a failure, never a silent skip.
+name: check
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the test browser (not part of the app)
+        run: npm install --no-save --no-package-lock playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Health check
+        run: node tools/check.js --boot --strict
