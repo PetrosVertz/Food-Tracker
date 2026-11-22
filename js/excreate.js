@@ -235,7 +235,7 @@ function cxSave(){
   const r = cxAdopt(exCustom, { name, mus: cxOrdered(), heads: [...CX.heads], e: CX.e, uni: CX.uni }, () => 'c_' + uid());
   if(!r){ bad('cxNeedMus', $('cxFlow')); return; }
   if(r.added) saveG('custom');
-  cxClose(); pkDrawResults();
+  Draft.commit('ovExCreate'); cxClose(); pkDrawResults();   // saved: the typed name is not offered again
   pkPick(r.id);
   if(!r.added) setTimeout(() => pkToast(t('cxReused')), PK.multi ? 900 : 0);
 }

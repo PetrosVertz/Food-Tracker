@@ -24,7 +24,7 @@ const exmUse = (x, k) => x.custom ? null : HEADS[k] && !EXM[k] ? +(x.mu[k] || 0)
 // (apostrophes stay inside the word: Farmer's). Greek and other scripts too.
 const CX_WORD = /(^|[^\p{L}\p{M}\p{N}'’])(\p{L})/gu;
 function cxTitle(s){ return String(s ?? '').toLocaleLowerCase().replace(CX_WORD, (m, a, b) => a + b.toLocaleUpperCase()); }
-const cxClean = s => cxTitle(String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()).slice(0, 60);
+const cxClean = s => cxTitle(String(s ?? '').replace(/\s+/g, ' ').replace(/[\u0000-\u001f\u007f]/g, '').trim()).slice(0, 60);
 // the name box while typing: same rule, the caret stays where it was (not while an input method is still composing a character)
 function cxTitleField(el){
   if(!el) return ''; const v = el.value, a = el.selectionStart ?? v.length, b = el.selectionEnd ?? a, out = cxTitle(v);
@@ -57,9 +57,10 @@ function cxRecord(o, id){
 }
 // an older own exercise (one head, no muscles list): what it means in the new terms
 function cxSpec(c){
-  if(Array.isArray(c.mus) && c.mus.length) return { name: c.en || c.el || '', mus: c.mus, heads: c.heads || [], e: c.e, uni: !!c.uni };
+  const name = c.name ?? c.en ?? c.el ?? '';
+  if(Array.isArray(c.mus) && c.mus.length) return { name, mus: c.mus, heads: c.heads || [], e: c.e, uni: !!c.uni };
   const m = exmOfHead(c.h) || 'chest';
-  return { name: c.en || c.el || '', mus: [m], heads: exmHeads(m).length > 1 && c.h ? [c.h] : [], e: c.e, uni: !!c.uni };
+  return { name, mus: [m], heads: exmHeads(m).length > 1 && c.h ? [c.h] : [], e: c.e, uni: !!c.uni };
 }
 // the same exercise = same name (any case, extra spaces) + same equipment, muscles, heads and side setting. Different details stay apart.
 function cxSig(c){ const s = cxSpec(c); return [cxClean(s.name).toLocaleLowerCase(), s.e || '', s.uni ? 1 : 0, [...s.mus].sort().join('.'), [...s.heads].sort().join('.')].join('|'); }

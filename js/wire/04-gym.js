@@ -15,7 +15,8 @@ const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), t
 
 let exCustom = cxRestore(Store.load('exCustom', [])), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null);
 
-const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: exCustom.length, l: LIB.concat(exCustom.map(normEx)) }).l;
+// V27: keyed on the list, its length AND its last id (removing one and importing another keeps the length the same)
+const EX = () => { const k = exCustom.length + '|' + ((exCustom[exCustom.length - 1] || {}).id || ''); return (_exc && _exc.a === exCustom && _exc.n === k) ? _exc.l : (_exc = { a: exCustom, n: k, l: LIB.concat(exCustom.map(normEx)) }).l; };
 
 // V3 performance: a direct id → exercise lookup, rebuilt whenever EX() hands out a new list (same answers as EX().find, first match wins)
 let _exIdx = null;

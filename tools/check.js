@@ -158,6 +158,13 @@ try {
   if (!r.bad.length) ok(`exercise search: ${r.tests} checks, average ${r.avg.toFixed(2)} ms per search, ${r.perKey.toFixed(2)} ms per keystroke`);
 } catch (e) { fail('could not run the exercise search test list: ' + e.message); }
 
+// 8c. Exercise Picker V27: your own exercises (Title Case, records, duplicates) and their QR codes (tools/expick-test.js)
+try {
+  const r = require(path.join(root, 'tools/expick-test.js')).run();
+  r.bad.forEach(b => fail('custom exercises: ' + b));
+  if (!r.bad.length) ok(`custom exercises: ${r.tests} Title Case / record / duplicate / QR checks pass (tools/expick-test.js)`);
+} catch (e) { fail('could not run tools/expick-test.js: ' + e.message); }
+
 // 9. Shared workout QR codes (js/gym-share.js): a workout with supersets packs, unpacks and imports identically,
 //    a saved version-1 code still reads the same, and the QR maker accepts the code
 try {
@@ -616,7 +623,13 @@ function coachE2E() {
     ok('food coach e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/food-coach-e2e.js); ' + ((out.match(/^speed[^\n]*/m) || [''])[0])); }
   catch (e) { fail('food coach e2e: tools/food-coach-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 }
-aiTests().then(() => process.argv.includes('--boot') ? boot().then(coachE2E) : null).then(() => {
+// Exercise Picker V27 + Create Custom Exercise end to end in the browser (--boot only)
+function pickerE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/expick-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
+    ok('exercise picker e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/expick-e2e.js)'); }
+  catch (e) { fail('exercise picker e2e: tools/expick-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
+}
+aiTests().then(() => process.argv.includes('--boot') ? boot().then(coachE2E).then(pickerE2E) : null).then(() => {
   const partial = !process.argv.includes('--boot') ? ' (browser checks not run: add --boot)' : '';
   console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.' + partial);
   process.exit(fails ? 1 : 0);
