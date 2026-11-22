@@ -17,7 +17,10 @@ let exCustom = Store.load('exCustom', []), tpls = Store.load('tpls', null), gymP
 
 const EX = () => (_exc && _exc.n === exCustom.length) ? _exc.l : (_exc = { n: exCustom.length, l: LIB.concat(exCustom.map(normEx)) }).l;
 
-const exById = id => EX().find(x => x.id === id) || normEx({ id, en: id, el: id, m: 'other', e: 'machine', rest: 90 });
+// V3 performance: a direct id → exercise lookup, rebuilt whenever EX() hands out a new list (same answers as EX().find, first match wins)
+let _exIdx = null;
+const exById = id => { const l = EX(); if(!_exIdx || _exIdx.l !== l){ const m = new Map(); l.forEach(x => { if(!m.has(x.id)) m.set(x.id, x); }); _exIdx = { l, m }; }
+  return _exIdx.m.get(id) || normEx({ id, en: id, el: id, m: 'other', e: 'machine', rest: 90 }); };
 
 // 0.6.9: exercise names are titles — a capital on every word ("Lateral Raise")
 const exTitle = s => String(s || '').replace(/(^|[\s(\-/])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
@@ -32,7 +35,13 @@ const repRange = s => { const m = String(s || '').match(/(\d+)\s*[-–]\s*(\d+)/
 const defReps = rest => rest >= 180 ? '5-8' : rest >= 120 ? '8-12' : rest >= 90 ? '10-15' : '12-20';
 
 // 0.7.1: your latest weigh-in, then the target body weight, then 75
-const bodyW = () => { const w = typeof weights === 'object' && weights ? weights : {}, k = Object.keys(w).filter(d => +w[d] > 30).sort().pop(); return (k && +w[k]) || (targets && targets.bw) || 75; };
+// V3 performance: Progress asks this for every set in the history; the answer is kept only until the current task ends (queueMicrotask),
+// and only while the weigh-ins look the same, so a new weigh-in is always seen. Before: one sort of every weigh-in date per set.
+let _bw = null;
+const bodyW = () => { const w = typeof weights === 'object' && weights ? weights : {}, tb = targets && targets.bw;
+  if(_bw && _bw.w === w && _bw.tb === tb && (!_bw.k || w[_bw.k] === _bw.v)) return _bw.out;
+  const k = Object.keys(w).filter(d => +w[d] > 30).sort().pop(), out = (k && +w[k]) || tb || 75;
+  if(!_bw) queueMicrotask(() => { _bw = null; }); _bw = { w, tb, k, v: k && w[k], out }; return out; };
 const gymIsAssist = exId => { const ex = exById(exId); return !!ex && /assist/i.test(`${ex.id} ${ex.en || ''}`); };
 const gymBwDash = exId => { const ex = exById(exId); return !!ex && (ex.e === 'bodyweight' || gymIsAssist(exId)); };   // kg box starts with a dash
 
