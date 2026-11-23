@@ -20,8 +20,9 @@ function seed(sex, withHistory){
   const sessions = withHistory ? [
     { id: 's1', date: day(-9), start: at(-9, 18), end: at(-9, 19), name: 'Pull', mins: 60, vol: 5000, exercises: [{ exId: 'bb_row', sets: S(4, 70, 8) }, { exId: 'lat_pulldown', sets: S(3, 60, 10) }] },
     { id: 's2', date: day(-2), start: at(-2, 17), end: at(-2, 18), name: 'Legs', mins: 70, vol: 9000, exercises: [{ exId: 'squat', sets: S(5, 100, 5, { type: 'F' }) }, { exId: 'rdl', sets: S(3, 90, 8) }, { exId: 'leg_ext', sets: S(3, 50, 12) }] },
-    { id: 's3', date: day(-1), start: at(-1, 18), end: at(-1, 19), name: 'Push', mins: 65, vol: 7000, exercises: [{ exId: 'bench', sets: S(5, 80, 6, { rir: 1 }) }, { exId: 'ohp', sets: S(4, 45, 8) }, { exId: 'lateral_db', sets: S(4, 10, 15) }] },
-    { id: 's4', date: day(0), start: new Date(Date.now() - 3 * 36e5).toISOString(), end: new Date(Date.now() - 2 * 36e5).toISOString(), name: 'Arms', mins: 40, vol: 2000, exercises: [{ exId: 'bb_curl', sets: S(5, 30, 10, { type: 'F' }) }] },
+    { id: 's3', date: new Date(Date.now() - 31 * 36e5).toISOString().slice(0, 10), start: new Date(Date.now() - 31 * 36e5).toISOString(), end: new Date(Date.now() - 30 * 36e5).toISOString(), name: 'Push', mins: 65, vol: 7000, exercises: [{ exId: 'bench', sets: S(5, 80, 6, { rir: 1 }) }, { exId: 'ohp', sets: S(4, 45, 8) }, { exId: 'lateral_db', sets: S(4, 10, 15) }] },
+    // hours ago, not clock times: the result must not depend on when the test runs (yesterday 18:00 was only ~10 h before a 04:00 run)
+    { id: 's4', date: new Date(Date.now() - 3 * 36e5).toISOString().slice(0, 10), start: new Date(Date.now() - 3 * 36e5).toISOString(), end: new Date(Date.now() - 2 * 36e5).toISOString(), name: 'Arms', mins: 40, vol: 2000, exercises: [{ exId: 'bb_curl', sets: S(5, 30, 10, { type: 'F' }) }] },
   ] : [];
   const tpls = [{ id: 'tpush', name: 'Push Day', type: 'push', exercises: [{ exId: 'bench', sets: 4, reps: '6-8', rest: 150 }, { exId: 'ohp', sets: 3, reps: '8-10', rest: 120 }, { exId: 'rope_pushdown', sets: 3, reps: '12', rest: 60 }] }];
   const wd = new Date(day(1) + 'T12:00:00').getDay(), plan = { [wd]: { tpl: 'tpush', time: '18:00' } };
