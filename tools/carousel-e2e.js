@@ -27,14 +27,17 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   p = await open('en', { lastIn_gym: 'gym-partner' }); await p.evaluate(() => { history.replaceState(null, '', '#gym-partner'); route(); }); await sleep(400);
   ok(await p.evaluate(() => location.hash === '#gym' && ui.lastIn_gym === 'gym'), 'a saved last page "gym-partner" is replaced by the Gym hub'); await p.close();
   // 2. the chosen title is not cut (EN, GR, larger text)
-  for(const [lang, hash, z] of [['en', 'gym-prog', 1], ['el', 'gym-week', 1], ['el', 'gym-rec', 1.3], ['el', 'meals', 1.3]]){
+  for(const [lang, hash, z] of [['en', 'gym-prog', 1], ['en', 'meals', 1], ['en', 'supps', 1], ['en', 'foods', 1], ['el', 'gym-week', 1], ['el', 'gym-rec', 1.3], ['el', 'meals', 1.3]]){
     p = await open(lang); await go(p, hash);
     if(z !== 1){ await p.evaluate(z => { document.querySelectorAll('.pcar').forEach(c => { c.style.fontSize = z + 'em'; }); dispatchEvent(new Event('resize')); }, z); await sleep(400); }
     const sel = hash.startsWith('gym') ? '#gTabs' : '#fTabs';
     const m = await p.evaluate(sel => { const b = document.querySelector(sel + ' .pcrow>button.on b'), r = document.createRange(); r.selectNodeContents(b);
       const ink = r.getBoundingClientRect(), cs = getComputedStyle(b), pad = parseFloat(cs.paddingLeft), box = b.getBoundingClientRect();
-      return { txt: b.textContent, room: +(pad).toFixed(1), inside: ink.left >= box.left + pad - .5 && ink.right <= box.right - pad + .5, ell: b.scrollWidth > b.clientWidth + 1 }; }, sel);
+      const btn = b.closest('button').getBoundingClientRect();
+      return { txt: b.textContent, room: +(pad).toFixed(1), inside: ink.left >= box.left + pad - .5 && ink.right <= box.right - pad + .5, ell: b.scrollWidth > b.clientWidth + 1,
+        low: +(box.bottom - ink.bottom).toFixed(1), high: +(ink.top - box.top).toFixed(1), h: Math.round(btn.height) }; }, sel);
     ok(m.room >= 2.5 && m.inside && !m.ell, `${lang} ${hash}${z !== 1 ? ' at ' + z + '× text' : ''}: chosen "${m.txt}" has ${m.room} px room each side for the slant and outline, not cut`);
+    ok(m.low >= 2 && m.high >= 0 && m.h <= 46, `${lang} ${hash}${z !== 1 ? ' at ' + z + '× text' : ''}: tails of g / p / y fit (${m.low} px below the line), pill stays ${m.h} px tall`);
     await p.close(); }
   // 3. keyboard + Food routes
   p = await open('en'); await go(p, 'gym-prog');
