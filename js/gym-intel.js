@@ -239,17 +239,19 @@ const GymIntel = (() => {
     try{
       if(typeof RecoveryPlus !== 'undefined' && RecoveryPlus && typeof RecoveryPlus.snapshot === 'function'){
         const s = RecoveryPlus.snapshot();
-        if(s && s.v === 1 && s.groups && typeof s.groups === 'object'){
+        // the shared contract: recovery.v1 (or the older { v: 1, groups } subset); snapshotId says which version this coach answer was built on
+        if(s && (s.version === 'recovery.v1' || s.v === 1) && s.groups && typeof s.groups === 'object'){
           const stale = !(s.at > 0) || Date.now() - s.at > 6 * 36e5;
           const gl = Object.entries(s.groups).map(([group, v]) => ({ group, state: v && ['recovering', 'ready'].includes(v.state) ? v.state : 'unknown', hoursLeft: v && isFinite(v.hoursLeft) ? Math.round(v.hoursLeft) : null, low: v && v.conf === 'low' }));
           const rd = s.readiness && ['normal', 'reduced', 'low'].includes(s.readiness.level) ? { level: s.readiness.level, note: String(s.readiness.why || '').slice(0, 120) } : { level: 'unknown' };
-          return { src: 'recovery+', stale, groups: gl, readiness: rd };
+          return { src: 'recovery+', stale, groups: gl, readiness: rd, id: s.snapshotId || null, next: s.nextWorkout || null };
         }
       }
     }catch(e){ console.warn('recovery+', e); }
     const f = typeof recMapNow === 'function' ? recMapNow : null; if(!f) return { src: 'none', stale: false, groups: [], readiness: { level: 'unknown' } };
     const m = f() || {};
-    return { src: 'estimate', stale: false, groups: Object.entries(m).map(([group, v]) => ({ group, state: v && v.st !== 'ok' ? 'recovering' : 'ready', hoursLeft: v && v.h > 0 ? Math.round(v.h) : 0 })),
+    // legacy fallback (only when RECOVERY+ is not loaded): the old map; 'unk' stays unknown
+    return { src: 'estimate', stale: false, groups: Object.entries(m).map(([group, v]) => ({ group, state: !v || v.st === 'unk' ? 'unknown' : v.st !== 'ok' ? 'recovering' : 'ready', hoursLeft: v && v.h > 0 ? Math.round(v.h) : 0 })),
       readiness: { level: 'unknown' } };
   }
 
@@ -305,7 +307,9 @@ const GymIntel = (() => {
   function recoveryPack(){ const r = recovery(); if(r.src === 'none') return 'Recovery: unknown.';
     const rec = r.groups.filter(g => g.state === 'recovering').sort((a, b) => (b.hoursLeft || 0) - (a.hoursLeft || 0)).map(g => `${g.group}${g.hoursLeft ? ` ~${g.hoursLeft} h` : ''}`);
     const unk = r.groups.filter(g => g.state === 'unknown').map(g => g.group);
-    return `Recovery (${r.src === 'recovery+' ? 'RECOVERY+' : 'app estimate from logged sets only'}${r.stale ? ', may be out of date' : ''}): ${rec.length ? 'still recovering: ' + rec.join(', ') : 'all groups look recovered'}${unk.length ? `; unknown: ${unk.join(', ')}` : ''}. Overall readiness: ${r.readiness.level === 'unknown' ? 'not measured (no sleep or readiness data; do not assume it is low)' : r.readiness.level + (r.readiness.note ? ` (${r.readiness.note})` : '')}.`; }
+    // unknown stays unknown: "recovered" is said only of groups RECOVERY+ actually knows
+    const rdy = r.groups.filter(g => g.state === 'ready').map(g => g.group), sum = rec.length ? 'still recovering: ' + rec.join(', ') : rdy.length ? (unk.length ? 'recovered: ' + rdy.join(', ') : 'all groups look recovered') : 'no finished workouts to judge from';
+    return `Recovery (${r.src === 'recovery+' ? `RECOVERY+${r.id ? ' ' + r.id : ''}` : 'app estimate from logged sets only'}${r.stale ? ', may be out of date' : ''}): ${sum}${unk.length ? `; unknown: ${unk.join(', ')}` : ''}. Overall readiness: ${r.readiness.level === 'unknown' ? 'not measured (no sleep or readiness data; do not assume it is low)' : r.readiness.level + (r.readiness.note ? ` (${r.readiness.note})` : '')}.`; }
   function weekPack(){ const g = groups((typeof sessions !== 'undefined' ? sessions : []).filter(s => s.date && -daysUntil(s.date) <= 6)); const e = Object.entries(g).filter(([, v]) => v >= 1);
     return `Hard sets per muscle group, last 7 days: ${e.map(([k, v]) => `${k} ${Math.round(v)}`).join(', ') || 'none'}.`; }
   function historyPack(n){ return (typeof sessions !== 'undefined' ? sessions : []).slice().sort((a, b) => String(b.start).localeCompare(String(a.start))).slice(0, n).map(s =>
@@ -384,11 +388,11 @@ You advise; the athlete decides. Never say you changed, saved, added or applied 
   // chats: what the coach window shows, as plain text (cards keep only their title and line; no photos, no buttons)
   function chatSave(id, msgs, scope){ const m = load();
     if(!msgs){ delete m.chats[id]; save(); return; }
-    const list = msgs.filter(x => !x.work).slice(-KEEP).map(x => ({ who: x.who === 'me' ? 'me' : 'bot', ...(x.first ? { first: true } : {}), text: String(x.text || (x.img ? '[photo]' : '')).slice(0, CUT),
+    const list = msgs.filter(x => !x.work).slice(-KEEP).map(x => ({ who: x.who === 'me' ? 'me' : 'bot', ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}), text: String(x.text || (x.img ? '[photo]' : '')).slice(0, CUT),
       ...(x.cards ? { cards: x.cards.slice(0, 12).map(c => ({ title: String(c.title || '').slice(0, 80), sub: String(c.sub || '').slice(0, 120), ...(c.done ? { done: String(c.done).slice(0, 80) } : {}) })) } : {}) }));
     m.chats[id] = { at: Date.now(), scope: scope || null, msgs: list }; save(); }
   function chatLoad(id, scope){ const c = load().chats[id]; if(!c || !Array.isArray(c.msgs) || Date.now() - c.at > OLD || (c.scope || null) !== (scope || null)) return null;
-    return c.msgs.map(x => ({ who: x.who === 'me' ? 'me' : 'bot', text: String(x.text || ''), ...(x.first ? { first: true } : {}), ...(x.cards ? { cards: x.cards.map(cd => ({ title: cd.title, sub: cd.sub, done: cd.done || '', cls: 'old', actions: [], cid: Math.random().toString(36).slice(2) })) } : {}) })); }
+    return c.msgs.map(x => ({ who: x.who === 'me' ? 'me' : 'bot', text: String(x.text || ''), ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}), ...(x.cards ? { cards: x.cards.map(cd => ({ title: cd.title, sub: cd.sub, done: cd.done || '', cls: 'old', actions: [], cid: Math.random().toString(36).slice(2) })) } : {}) })); }
   // hints already shown (this workout only)
   function seen(wid){ const m = load(); return m.seen && m.seen.w === wid ? m.seen.keys.slice() : []; }
   function markSeen(wid, key){ const m = load(); if(!m.seen || m.seen.w !== wid) m.seen = { w: wid, keys: [] }; if(!m.seen.keys.includes(key)) m.seen.keys.push(key); save(); }

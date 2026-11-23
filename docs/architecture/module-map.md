@@ -3,7 +3,7 @@
 Source-verified 2026-11-22 (v0.7.10.7 + V3 hardening). **The code wins over this page**: if a path or symbol here is wrong, grep, fix the code task, then fix this row. `node tools/check.js` fails when a path or `name()` below stops existing.
 
 All scripts are classic browser scripts sharing one global scope, loaded in the order of `index.html`:
-config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features (`gym-intel` right after `gym`) → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
+config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features (`gym-intel` right after `gym`) → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. (The unloaded `wire/11-v059.js` was deleted in the activation round.)
 
 ## Routing table
 
@@ -20,7 +20,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Exercise picker (V27) + exercise search + custom exercise creator | gym | `js/expick.js` › `openExPick()`, `pkDraw()` (alias `drawExPick()`), `pkList()`, `pkPick()`; creator `js/excreate.js` › `openExCreate()`, `cxSave()`; shared muscle list + custom records + GX1 code `js/excustom.js` › `cxRecord()`, `cxAdopt()`, `cxPack()`, `cxUnpack()`; cards still reuse `miniMap()` / `exTiles()` in js/gym.js; `js/exsearch.js`; library `js/data/gym.js` | exCustom (additive V27 fields: mus, heads, uni, est) | live workout, builder, Gym Coach › Replace | `check.js` library + `tools/exsearch-test.js` + `tools/expick-test.js` |
 | RECOVERY+ (recovery page, muscle recovery, readiness) | gym | engine `js/recovery-plus.js` › `RecoveryCore` (pure), `RecoveryPlus.compute()`, `RecoveryPlus.snapshot()`; figure `js/recovery-anatomy.js` › `recoveryAnatomySVG()`, data `js/data/recovery-anatomy.js`; page `js/gym.js` › `renderRecovery()`, `recMuscleSVG()`, `recoveryWarnings()`, `exSore()`; old names `headLoads()`, `estimateRecovery()`, `headFatigue()`, `recMapNow()` read from it; switches in `js/wire/04-gym.js` | — (derived from sessions); targets.goalAt; ui.recAdv, ui.recIns, settings.recNoFood / recNoSleep (device) | Today gym card, Gym hub mini map, live sore warning, Gym Coach (`GymIntel.recovery()`), Athlete OS (`AthleteState` recovery) | `tools/recovery-test.js`, `tools/recovery-e2e.js` (browser) |
 | Rank (live) | gym | `js/gym.js` › `tierFor()`; `js/rank-fx.js` | — (derived) | Social Hub, live workout | `check.js` rank, rank plates |
-| Rank v2 (OFF, not live) | gym | `js/rank-engine.js`, `js/rank-v2.js`, `js/data/rank-bench.js` | — | nothing yet | `check.js` "rank v2 (not live)" |
+| Athlete Rank v0.4 (LIVE) | gym | `js/rank-v04.js` › `RankV4Core` (pure: `classify`, `evaluate`, `seasonStep`), `rank4For()` (what `tierFor()` returns); data `js/data/rank-v04.js` (`RANK04`) + anchor curves `js/rank-engine.js`, `js/data/rank-bench.js`; not-ranked slot `rankNaBadge()` / `showRankNa()` in gym.js | profile.rankSeason (season record, synced with profile), profile.rankSeen / rankSeenV | tierFor() callers: exercise card, rank bubble, Profile, Rank Up (rank-fx.js), Know | `check.js` "rank v2 (not live)" |
 | Progress page | gym | `js/progress.js` › `renderProgress()`; `bodyW()`, `e1rm()` in wire/04 | — (derived) | — | boot |
 | Gym Coach | gym | `js/gym.js` › `gymCoachSend()`, `gymLiveSend()`, `gcPrompt()`, `gcLivePrompt()`, `gcChangeCard()`, `gcNudgeCheck()`; intelligence `js/gym-intel.js` › `GymIntel` (progression, evidence, live, nudge, proposal, applyOp, recovery, brief); setup in wire/04 | gymCoach (device only); live changes only through the card's Apply (undo kept) | live workout hints (`suggestFor`) | `tools/gym-coach-test.js` |
 | Coach chat window (shared) | shell | `js/coach.js` › `Coach` | — | Food Coach, Gym Coach | boot |
@@ -39,7 +39,7 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Texts (EN + GR) | each topic | `js/data/strings.js` (the last `Object.assign` that sets a key wins) | — | — | `check.js` strings |
 
 ## Planned owners (not built — do not create files for them until their prompt says so)
-Gym/Food Coach v2, Athlete Rank v0.4 activation, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
+Gym/Food Coach v2, health/watch/Strava adapters, cloud sync: see `docs/architecture/contracts.md` › Planned.
 
 ## Worked routes (dry runs, V3 §4F) — what to open for three typical future tasks
 

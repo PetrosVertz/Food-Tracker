@@ -13,10 +13,21 @@ const ok = m => console.log('ok    ' + m);
 const fail = m => { fails++; console.log('FAIL  ' + m); };
 
 // ---- the fake AI: decides from the prompt; mode switches failures on ----
-const AI = { mode: 'ok', calls: 0, web: 0, last: '' };
+const AI = { mode: 'ok', calls: 0, web: 0, last: '', mealPrompts: [] };
 const gem = (obj, usage) => ({ status: 200, body: JSON.stringify({ candidates: [{ content: { parts: [{ text: typeof obj === 'string' ? obj : JSON.stringify(obj) }] } }], usageMetadata: usage || { promptTokenCount: 900, candidatesTokenCount: 200, totalTokenCount: 1100 } }) });
 const item = (text, name, grams, kcal, protein, carbs, fat, extra) => ({ text, name, name_en: name, brand: '', qty: null, unit: null, grams, ml: false, kcal, protein, carbs, fat, stated: null, ...(extra || {}) });
+const plan = (n) => ({ meals: Array.from({ length: n || 2 }, (_, i) => ({ time: ['19:30', '21:30'][i] || '20:00', title: ['Chicken and rice', 'Greek yoghurt with honey'][i] || 'Eggs on toast',
+  items: [{ name: ['chicken breast', 'greek yoghurt'][i] || 'eggs', name_en: ['chicken breast', 'greek yoghurt'][i] || 'eggs', grams: 150, from: 'foods' }], kcal: 300, protein: 30, carbs: 25, fat: 8, why: 'fits what is left' })), tip: '' });
 function answer(prompt){
+  // the recognised-dish prompt (js/meal.js): recorded so the personality check can read what was really sent
+  const dish = (prompt.match(/The user's new message: """([\s\S]*?)"""/) || [])[1];
+  if(dish !== undefined){ AI.mealPrompts.push(prompt);
+    if(/broken/i.test(dish)) return gem({ intent: 'log', reply: 'Got it.', complex: true, title: 'Gyro', parts: [] });   // unusable: no parts
+    if(/ok before|is a gyro|είναι καλό/i.test(dish)) return gem({ intent: 'answer', reply: 'It works if it is a few hours before; keep the fries small.', parts: [] });
+    return gem({ intent: 'log', reply: 'Classic. Here is the pita split up.', complex: true, title: 'Pork Gyro Pita', assumed: 'medium pita, no tzatziki', range: true,
+      parts: [{ name: 'pita bread', role: 'bread', grams: 75, cook: 'grilled', optional: false, kcal: 218, protein: 6, carbs: 37.5, fat: 4.5 }, { name: 'pork gyro', role: 'meat', grams: 90, cook: 'grilled', optional: false, kcal: 230, protein: 18, carbs: 2, fat: 17 },
+        { name: 'fries', role: 'fries', grams: 40, cook: 'fried', optional: false, kcal: 125, protein: 1.5, carbs: 16, fat: 6 }] }); }
+  if(/You plan a day of eating/.test(prompt)) return gem(plan(2));
   if(/Find these branded foods/.test(prompt)){ AI.web++; return gem({ items: [{ i: 0, found: true, name: 'White Chocolate Protein Bar', brand: 'Snickers', kcal: 368, protein: 35, carbs: 33, fat: 14, fiber: 2, unit: 'g', assumed: '1 bar = 57 g' }] }); }
   const msg = (prompt.match(/User: """([\s\S]*?)"""/) || [])[1] || '';
   AI.last = msg;
@@ -27,6 +38,8 @@ function answer(prompt){
     item('one protein toast', 'protein toast', 60, 250, 20, 25, 6, { qty: 1, unit: 'piece' }) ] });
   if(/chicken and rice/i.test(msg)) return gem({ intent: 'log', reply: 'Solid post-workout plate: protein plus carbs to refill. A bit of veg next time and it is textbook.', complex: false, items: [
     item('chicken', 'chicken breast', 200, 165, 31, 0, 3.6), item('rice', 'cooked white rice', 250, 130, 2.7, 28, 0.3) ] });
+  if(/ok before/i.test(msg)) return gem({ intent: 'answer', reply: 'It works if it is a few hours before; keep the fries small.', complex: false, items: [] });
+  if(/any thoughts/i.test(msg)) return gem({ intent: 'suggest', reply: 'Something with protein and a few carbs would fit nicely.', complex: false, items: [], meals: plan(1).meals });
   if(/is fruit sugar bad/i.test(msg)) return gem({ intent: 'answer', reply: 'Not for most people: whole fruit comes with fibre and water, so it is fine.', complex: false, items: [] });
   if(/broken json/i.test(msg)) return gem('this is not json');
   return gem({ intent: 'log', reply: 'Got it.', complex: false, items: [item(msg, msg.slice(0, 30), 100, 200, 10, 20, 8)] });
@@ -157,6 +170,38 @@ function answer(prompt){
   const back = await page.evaluate(() => ({ msgs: document.querySelectorAll('#coachList .cmsg').length, cards: document.querySelectorAll('#coachList .lqcard').length, undo: document.querySelectorAll('#coachList [data-cundo]').length }));
   if (back.msgs < beforeReload - 2 || !back.cards) fail(`restart: chat not restored (${back.msgs}/${beforeReload} messages, ${back.cards} cards)`); else ok(`restart: ${back.msgs} messages and ${back.cards} cards back (${back.undo} with Undo)`);
   r = await send('how much protein today?'); if (r.calls || !/170 g/.test(r.text)) fail(`"how much protein today?" → "${r.text}"`); else ok(`after restart: "${r.text}"`);
+
+  // 8. one AI request per message (brief: Food Coach request budget) and the shared personality in the recognised-dish prompt
+  const sugg = () => page.evaluate(() => document.querySelectorAll('#coachList .eatrow.sugg').length);
+  for(const q of ['What should I eat for dinner?', 'Τι να φάω για βραδινό;', 'ti na fao twra']){
+    const s0 = await sugg(); r = await send(q); const s1 = await sugg();
+    if(r.calls !== 1 || s1 - s0 < 1) fail(`"${q}": ${r.calls} request(s), ${s1 - s0} suggestion card(s); want 1 request and cards`); else ok(`"${q}": suggestion cards from 1 request (${r.ms} ms)`); }
+  { const s0 = await sugg(); r = await send("I'm starving, any thoughts?"); const s1 = await sugg();
+    if(r.calls !== 1 || s1 - s0 < 1) fail(`AI-classified suggestion: ${r.calls} request(s), ${s1 - s0} card(s); want ideas in the same answer`); else ok('a suggestion the AI recognises: ideas come in the same answer (1 request)'); }
+  { const n0 = await page.evaluate(() => (dayLog[curDay] || []).length); AI.mealPrompts = [];
+    r = await send('had a pork gyro pita'); const mm = await page.evaluate(() => logQPrev === null || !FC ? null : Object.values(FC).map(x => x.m).filter(m => m.meal).pop());
+    const n1 = await page.evaluate(() => (dayLog[curDay] || []).length);
+    if(r.calls !== 1 || !mm || n1 !== n0) fail(`recognised gyro: ${r.calls} request(s), meal card ${!!mm}, saved ${n1 - n0} (nothing may be saved before Add)`); else ok(`recognised gyro: one meal card from 1 request, nothing logged until Add`);
+    await page.evaluate(() => { const m = Object.values(FC).map(x => x.m).filter(m => m.meal).pop(); mealLog(m); });
+    const n2 = await page.evaluate(() => (dayLog[curDay] || []).length); if(n2 - n1 !== 1) fail(`gyro Add: ${n2 - n1} entries`); else ok('gyro: Add logs one entry'); }
+  r = await send('had a gyro pita broken'); if(r.calls !== 1 || !(await last()) ) fail(`unusable dish answer: ${r.calls} request(s) (want 1, then the offline reading)`); else ok(`unusable dish answer: no second request, offline reading instead ("${r.text.slice(0, 60)}")`);
+  r = await send('is a gyro ok before the gym?'); if(r.calls !== 1 || !/fries/.test(r.text)) fail(`question about a dish: ${r.calls} request(s), "${r.text}"`); else ok('a question that names a dish ("is a gyro ok before the gym?"): answered from 1 request');
+  r = await send('efaga ena gyro pita'); if(r.calls !== 1) fail(`Greeklish dish: ${r.calls} request(s)`); else ok('Greeklish "efaga ena gyro pita": 1 request');
+  { AI.mealPrompts = []; const outs = [];
+    for(const pref of [{ base: 'balanced', humor: 'low', len: 'concise' }, { base: 'motivator', humor: 'playful', len: 'detailed' }]){
+      await page.evaluate(p => { Persona.set(p); Object.keys(FC).forEach(k => delete FC[k]); logQPrev = null; Object.keys(logPhr).filter(k => k.startsWith('meal:')).forEach(k => delete logPhr[k]); }, pref);
+      await send('had a chicken gyro pita'); outs.push(AI.mealPrompts.pop() || ''); }
+    const words = s => (s.match(/for "answer" at most (\d+) words/) || [])[1];
+    if(!outs[0] || !outs[1] || outs[0] === outs[1] || words(outs[0]) === words(outs[1]) || !/no emoji/i.test(outs[1])) fail(`personality: the recognised-dish prompt must change with style / humour / length (answer words ${words(outs[0])} → ${words(outs[1])})`);
+    else ok(`personality reaches the recognised-dish prompt: style, humour and length change it (answer limit ${words(outs[0])} → ${words(outs[1])} words); no-emoji rule kept`);
+    await page.evaluate(() => Persona.set({ base: 'balanced', humor: 'natural', len: 'adaptive' })); }
+  { const c0 = AI.calls; await page.evaluate(() => { const ta = $('coachIn'); ta.value = 'two bananas and milk'; ta.dispatchEvent(new Event('input')); $('coachForm').requestSubmit(); ta.value = 'two bananas and milk'; ta.dispatchEvent(new Event('input')); $('coachForm').requestSubmit(); });
+    await page.waitForFunction(() => !document.querySelector('#coachList .cwork'), null, { timeout: 30000 });
+    if(AI.calls - c0 !== 1) fail(`rapid double send: ${AI.calls - c0} requests`); else ok('rapid double send: the second tap waits ("still working"), 1 request'); }
+  { AI.mode = 'slow'; const c0 = AI.calls; await page.evaluate(() => { const ta = $('coachIn'); ta.value = 'cancel me pasta'; ta.dispatchEvent(new Event('input')); $('coachForm').requestSubmit(); });
+    await page.waitForTimeout(400); await page.evaluate(() => Coach.dismiss('chef')); await page.waitForTimeout(300);
+    const err = errs.length; AI.mode = 'ok'; await page.evaluate(() => Coach.open('chef')); await page.waitForTimeout(300);
+    if(AI.calls - c0 > 1 || errs.length !== err) fail(`cancel: ${AI.calls - c0} request(s)`); else ok('closing the chat mid-answer cancels the request (no retry, no error)'); }
 
   // speeds
   const P = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.ceil(p / 100 * s.length) - 1)]; };

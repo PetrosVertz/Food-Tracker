@@ -50,7 +50,6 @@
   <div id="fHub" class="hide">
     <div class="tiles fhub">
       <button class="tile fhmain" data-fsec="foods"><span class="e hubic" data-fic="bag"></span><span><b data-t="tabStore"></b><em data-t="fhFoods"></em><small id="fhStoreN"></small></span></button>
-      <button class="tile soon fhsoon" type="button" aria-disabled="true" tabindex="-1"><span class="e hubic" data-fic="bowl"></span><span><b data-t="tabMyMeals"></b><small data-t="carSoon"></small></span></button>
       <button class="tile wide" data-fsec="meals"><span class="e hubic" data-fic="pot"></span><span><b data-t="tabMeals"></b><small id="fhRecN"></small></span></button>
       <button class="tile wide" data-fsec="supps"><span class="e hubic" data-fic="capsule"></span><span><b data-t="tabSupps"></b><small id="fhSuppN"></small></span></button>
     </div>
@@ -292,7 +291,7 @@
 </div></div></div>
 <div class="overlay" id="ovSProfile"><div class="sheet tall setpage"><h2 data-t="stProfile"></h2><div class="phwrap"><div class="phcirc" id="phCirc"></div><p class="hint hide" id="phHint" data-t="phDrag"></p></div><div class="actions" id="phBtns"><button class="btn" id="phCam" type="button"></button><button class="btn" id="phLib" type="button"></button></div><div class="actions hide" id="phCropBtns"><button class="btn" id="phCancel" type="button" data-t="cancel"></button><button class="btn primary" id="phUse" type="button" data-t="phUse"></button></div><button class="linkbtn hide" id="phDel" type="button" data-t="phRemove"></button><label for="phName" data-t="phName"></label><input id="phName" autocomplete="off" maxlength="40" data-tp="phNamePh"><p class="hint" data-t="phNameSub"></p></div></div>
 <div class="overlay" id="ovSFood"><div class="sheet tall setpage"><h2 data-t="stFoodPrefs"></h2><div id="sFoodBody"></div><div class="actions"><button class="btn primary" id="sFoodSave" data-t="save"></button></div></div></div>
-<div class="overlay" id="ovSAI"><div class="sheet tall setpage"><h2 data-t="stAI"></h2><label for="sKey" data-t="geminiKey"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div><label for="sModel" data-t="geminiModel"></label><input id="sModel" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><label data-t="perT"></label><p class="hint" data-t="perSub"></p><div class="hint" data-t="perBase"></div><div class="seg" id="perBase"><button data-v="balanced" data-t="perBal"></button><button data-v="motivator" data-t="perMot"></button><button data-v="analytical" data-t="perAna"></button></div><div class="hint" data-t="perHumor"></div><div class="seg" id="perHumor"><button data-v="low" data-t="perLow"></button><button data-v="natural" data-t="perNat"></button><button data-v="playful" data-t="perPlay"></button></div><div class="hint" data-t="perLen"></div><div class="seg" id="perLen"><button data-v="concise" data-t="perCon"></button><button data-v="adaptive" data-t="perAda"></button><button data-v="detailed" data-t="perDet"></button></div><label for="perCustom" data-t="perCustomT"></label><textarea id="perCustom" rows="2" maxlength="300" data-tp="perCustomPh"></textarea><label data-t="aiKnowT"></label><p class="hint" data-t="aiKnowSub"></p><label data-t="memT"></label><p class="hint" data-t="memSub"></p><div id="aiMem"></div><div class="actions"><button class="btn small" id="aiMemCopy" data-t="memCopy"></button><button class="btn danger" id="aiKnowReset" data-t="aiKnowReset"></button></div><label data-t="aiuT"></label><p class="hint" data-t="aiuSub"></p><div id="aiUsage"></div><div class="actions"><button class="btn danger" id="aiuReset" data-t="aiuReset"></button></div></div></div>
+<div class="overlay" id="ovSAI"><div class="sheet tall setpage"><h2 data-t="stAI"></h2><label id="sProvL" data-t="aiProvT"></label><div class="seg" id="sProv" role="radiogroup" aria-labelledby="sProvL"><button data-v="gemini" data-t="provGemini"></button><button data-v="anthropic" data-t="provAnthropic"></button><button data-v="openai" data-t="provOpenai"></button><button data-v="openrouter" data-t="provOpenrouter"></button></div><p class="hint" id="sProvNote"></p><label for="sKey" id="sKeyL"></label><input id="sKey" type="password" data-tp="geminiKeyPh" autocomplete="off"><div class="actions" style="margin-top:10px"><button class="btn" id="getKey" data-t="getKey"></button><button class="btn" id="testKey" data-t="testKey"></button></div><div class="status" id="keyStatus"></div><div id="sGemOnly"><details class="guide"><summary data-t="keyGuideT"></summary><ol class="steps" id="keySteps"></ol><p class="hint" data-t="keyNoNeed"></p></details><div class="hint" data-t="getKeyHint"></div></div><label for="sModel" id="sModelL"></label><input id="sModel" autocomplete="off"><label for="sModelAdv" data-t="aiModelAdv"></label><input id="sModelAdv" autocomplete="off"><div class="actions"><button class="btn primary" id="saveSettings" data-t="saveSettings"></button></div><label data-t="perT"></label><p class="hint" data-t="perSub"></p><div class="hint" data-t="perBase"></div><div class="seg" id="perBase"><button data-v="balanced" data-t="perBal"></button><button data-v="motivator" data-t="perMot"></button><button data-v="analytical" data-t="perAna"></button></div><div class="hint" data-t="perHumor"></div><div class="seg" id="perHumor"><button data-v="low" data-t="perLow"></button><button data-v="natural" data-t="perNat"></button><button data-v="playful" data-t="perPlay"></button></div><div class="hint" data-t="perLen"></div><div class="seg" id="perLen"><button data-v="concise" data-t="perCon"></button><button data-v="adaptive" data-t="perAda"></button><button data-v="detailed" data-t="perDet"></button></div><label for="perCustom" data-t="perCustomT"></label><textarea id="perCustom" rows="2" maxlength="300" data-tp="perCustomPh"></textarea><label data-t="aiKnowT"></label><p class="hint" data-t="aiKnowSub"></p><label data-t="memT"></label><p class="hint" data-t="memSub"></p><div id="aiMem"></div><div class="actions"><button class="btn small" id="aiMemCopy" data-t="memCopy"></button><button class="btn danger" id="aiKnowReset" data-t="aiKnowReset"></button></div><label data-t="aiuT"></label><p class="hint" data-t="aiuSub"></p><div id="aiUsage"></div><div class="actions"><button class="btn danger" id="aiuReset" data-t="aiuReset"></button></div></div></div>
 <div class="overlay" id="ovSData"><div class="sheet tall setpage"><h2 data-t="stData"></h2><p class="sub" data-t="yourDataSub"></p><div class="actions" style="margin-top:0"><button class="btn primary" id="copyClaude" data-t="copyClaude"></button></div><div class="actions" style="margin-top:10px">
     <button class="btn" id="exportJson" data-t="download"></button>
     <button class="btn" id="importBtn" data-t="import"></button>
@@ -436,45 +435,6 @@
   <p class="sub" data-t="pickTypeSub"></p>
   <div id="typePicker"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
-</div></div>
-
-<!-- ============ MISSING BRAND / TYPE ============ -->
-<div class="overlay" id="ovMissing"><div class="sheet">
-  <h2 data-t="almost"></h2>
-  <p class="sub" data-t="almostSub"></p>
-  <div id="mBrandSec">
-    <h3 data-t="brand"></h3>
-    <div class="seg" id="mBrandSeg"><button data-v="add" data-t="addBrand"></button><button data-v="none" data-t="noBrand"></button></div>
-    <input id="mBrand" class="hide" style="margin-top:10px" data-tp="brandName" autocomplete="off" list="brandList">
-  </div>
-  <div id="mTypeSec">
-    <h3 data-t="foodType"></h3>
-    <div id="mTypePicker"></div>
-  </div>
-  <div class="actions">
-    <button class="btn" data-close data-t="back"></button>
-    <button class="btn primary" id="mSave" disabled data-t="save"></button>
-  </div>
-</div></div>
-
-<!-- ============ PIECE WEIGHT ============ -->
-<div class="overlay" id="ovPiece"><div class="sheet">
-  <h2 id="pcTitle"></h2>
-  <p class="sub" id="pcSub"></p>
-  <div class="seg" id="pcSeg"><button data-v="weigh" data-t="weighOne"></button><button data-v="count" data-t="countThem"></button></div>
-  <div id="pcWeigh"><label for="pcG" id="pcGl"></label><input id="pcG" type="number" inputmode="decimal" step="any" min="0" placeholder="20"></div>
-  <div id="pcCount" class="hide">
-    <div class="grid">
-      <div><label for="pcN" id="pcNl"></label><input id="pcN" type="number" inputmode="numeric" step="1" min="1" placeholder="10"></div>
-      <div><label for="pcPack" id="pcPackl"></label><input id="pcPack" type="number" inputmode="decimal" step="any" min="0" placeholder="200"></div>
-    </div>
-  </div>
-  <div class="preview" id="pcRes"></div>
-  <button class="linkbtn" id="pcNone" style="margin-top:10px"></button>
-  <div class="actions">
-    <button class="btn" id="pcSkip" data-t="skip"></button>
-    <button class="btn primary" id="pcSave" disabled data-t="save"></button>
-  </div>
 </div></div>
 
 <!-- ============ COOK A MEAL ============ -->
@@ -891,6 +851,7 @@
 <script src="js/data/gym-anatomy.js"></script>
 <script src="js/data/recovery-anatomy.js"></script>
 <script src="js/data/rank-bench.js"></script>
+<script src="js/data/rank-v04.js"></script>
 <script src="js/core.js"></script>
 <script src="js/draft.js"></script>
 <script src="js/ui.js"></script>
@@ -919,7 +880,7 @@
 <script src="js/profile.js"></script>
 <script src="js/rank-fx.js"></script>
 <script src="js/rank-engine.js"></script>
-<script src="js/rank-v2.js"></script>
+<script src="js/rank-v04.js"></script>
 <script src="js/know.js"></script>
 <script src="js/athlete/events.js"></script>
 <script src="js/athlete/memory.js"></script>

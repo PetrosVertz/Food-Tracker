@@ -215,6 +215,14 @@ const types = A => A.AthleteEvents.recent('', 500).map(e => e.type);
       check(A.calls[0].o.model === 'some-model' && A.calls[0].o.task === 'coach-sleep' && !/Training:|Body:/.test(A.Supervisor.context('gym', 'sleep')), 'a new specialist plugs in with one register() call: its own model, label and permissions'); }
     { const R = A.Supervisor.route;
       check(R('bench press tips', 'chef').to === 'gym' && R('what should I eat for dinner', 'gym').to === 'chef' && R('what should I eat after training', 'chef').mixed === true && R('hi', 'gymlive').to === 'gymlive', 'routing: plain word rules pick the coach; mixed questions stay with one coach'); }
+    { const S = A.Supervisor, H = (txt, from, inst) => { S.begin(from, txt); const to = S.handoff(txt, from, inst); const cur = S.current(); S.end(); return { to, id: cur && cur.id }; };
+      const a1 = H('How many sets should I do for chest?', 'chef'), a2 = H('How much protein should I eat?', 'gym'), a3 = H('How much protein should I eat today?', 'gymlive');
+      check(a1.to === 'gym' && a1.id === 'gym' && a2.to === 'chef' && a2.id === 'chef' && a3.to === 'chef', 'handoff: a clear question for the other coach is answered by it (the message in progress takes its id)');
+      check(H('had chicken after push day', 'chef').to === null && H('I ate rice, should I train legs today?', 'chef').to === null && H('bench press 80kg 5 reps', 'chef').to === null && H('what about deadlifts?', 'gym').to === null,
+        'handoff: a food log, a mixed question, a statement and a same-domain question stay where they are');
+      check(H('How many sets for chest?', 'chef', () => false).to === null, 'handoff: never to a coach that is not set up in the app');
+      S.begin('chef', 'How many sets for chest?'); const h1 = S.handoff('How many sets for chest?', 'chef'), h2 = S.handoff('How much protein should I eat?', 'gym'); S.end();
+      check(h1 === 'gym' && h2 === null, 'handoff: never chains (an answer that was handed over is not handed on again)'); }
     { const V = A.Supervisor.validate;
       check(!V({ a: 'number' }, { a: 'x' }).ok && V({ a: { type: 'number', min: 0, max: 10 } }, { a: '5' }).ok && !V({ a: { type: 'number', min: 0, max: 10 } }, { a: 11 }).ok && !V({ a: 'string' }, null).ok, 'validation: types, numbers given as text, ranges and non-objects'); }
   }

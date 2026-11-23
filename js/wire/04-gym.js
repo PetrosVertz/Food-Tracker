@@ -92,6 +92,11 @@ $('sesBody').addEventListener('input', e => {
 });
 // 0.7.10.4: half reps / negatives are picked on the scroll wheel (openSx in gym.js), not typed
 $('sesBody').addEventListener('click', e => { const b = e.target.closest('[data-sxpick]'); if(!b) return; const x = exAt(b), row = b.closest('[data-sxrow]'); if(!x || !row) return; Phone.haptic(); openSx(x, +row.dataset.sxrow, b.dataset.sxpick); });
+// keyboard: Arrow Up / Down step half reps / negatives by one (0–30, 0 = none, same fields as the wheel), focus stays on the bracket
+$('sesBody').addEventListener('keydown', e => { if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; const b = e.target.closest('[data-sxpick]'); if(!b) return;
+  const x = exAt(b), row = b.closest('[data-sxrow]'), j = row ? +row.dataset.sxrow : -1, s = x && x.sets[j], k = b.dataset.sxpick; if(!s) return; e.preventDefault();
+  const v = Math.max(0, Math.min(30, (+s[k] || 0) + (e.key === 'ArrowUp' ? 1 : -1))); if(v === (+s[k] || 0)) return; if(v > 0) s[k] = v; else delete s[k]; saveG('act'); renderSession();
+  const xi = active.exercises.indexOf(x), nb = document.querySelector(`#sesBody .exc[data-x="${xi}"] [data-sxrow="${j}"] [data-sxpick="${k}"]`); if(nb) nb.focus(); });
 $('sxWheel').addEventListener('scroll', e => { const w = e.target; if(!SX || !w._set) return; const n = Math.max(0, Math.min(30, Math.round(w.scrollTop / 30)));
   if(n !== (SX.v || 0)){ SX.v = n; Phone.vibrate(5); w.querySelectorAll('[data-wn]').forEach(d => d.classList.toggle('on', +d.dataset.wn === n)); } });
 $('sxWheel').addEventListener('click', e => { const d = e.target.closest('[data-wn]'); if(d) $('sxWheel').scrollTo({ top: +d.dataset.wn * 30, behavior: 'smooth' }); });
@@ -106,6 +111,7 @@ $('sesBody').addEventListener('click', e => {
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
   const tb = e.target.closest('[data-tierinfo]'); if(tb){ Phone.haptic(); return showTierGap(tb); }
+  const nab = e.target.closest('[data-rankna]'); if(nab){ Phone.haptic(); return showRankNa(nab); }
   // tiers need body weight + sex: open Settings › Body on top of the workout; after Save the cards redraw with their tier
   if(e.target.closest('[data-tierbody]')){ Phone.haptic(); fillSettings(); open('ovSBody'); $('sBodySave').addEventListener('click', () => { if(active) renderSession(); }, { once: true }); return; }
   const rr = e.target.closest('[data-rir]'); if(rr){ const rx = exAt(rr), rw = rr.closest('[data-sxrow]'), rs2 = rx && rw && rx.sets[+rw.dataset.sxrow]; if(rs2){ const k = +rr.dataset.rir; if(rs2.rir === k) delete rs2.rir; else rs2.rir = k; saveG('act'); renderSession(); } return; }
@@ -266,12 +272,12 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 setInterval(checkAbandoned, 15000);
 
 
-$('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(settings.geminiKey && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
+$('smMeal').addEventListener('click', () => { close('ovSummary'); curDay = todayKey(); go('today'); setTimeout(() => { if(AI.hasKey() && targets) $('planBtn').click(); else openLogSearch(); }, 120); });
 
-// Refinements: the Gym Buddy sections are a rotating pill carousel (pillCarousel in ui.js). Partner has no screen yet: a Coming Soon pill.
+// Refinements: the Gym Buddy sections are a rotating pill carousel (pillCarousel in ui.js). (Partner, a Coming Soon pill with no screen, was removed.)
 const GYM_CAR = pillCarousel($('gTabs'), {
   items: [{ key: 'gym-lib', label: () => t('hubLib') }, { key: 'gym-prog', label: () => t('hubProg') }, { key: 'gym-week', label: () => t('hubWeek') },
-    { key: 'gym-partner', label: () => t('hubPartner'), soon: true }, { key: 'gym-rec', label: () => t('hubRec') }],
+    { key: 'gym-rec', label: () => t('hubRec') }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
   page: { area: $('pgGym'), views: () => ['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide')) }
 });

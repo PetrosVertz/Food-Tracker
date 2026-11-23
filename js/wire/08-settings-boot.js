@@ -1,16 +1,58 @@
 // Wiring that runs at start-up, in order: state, event listeners, first render.
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
-$('getKey').addEventListener('click', () => Phone.openUrl(KEY_URL));
+// Settings › AI › AI Provider: Gemini (default, the user's free key), Claude, OpenAI, OpenRouter (ai-provider.js adapters). Each keeps its own key and models:
+// Gemini in settings.geminiKey / model / modelAdvanced (unchanged, so an upgrade needs nothing), the others in settings.aiKeys[id] / aiModels[id].
+// Tapping a provider only shows its fields (typed values are kept per provider while the page is open); Save Settings stores them in that
+// provider's slot and makes it the one in use (settings.provider). Nothing ever switches by itself and no request goes to a provider that is not in use.
+const PROV_URL = { gemini: KEY_URL, anthropic: 'https://console.anthropic.com/settings/keys', openai: 'https://platform.openai.com/api-keys', openrouter: 'https://openrouter.ai/keys' };
+let SPROV = 'gemini', PDRAFT = {};
+const PROV_T = { gemini: 'provGemini', anthropic: 'provAnthropic', openai: 'provOpenai', openrouter: 'provOpenrouter' }, provName = id => t(PROV_T[id] || 'provGemini');
+const provSaved = id => id === 'gemini' ? { key: settings.geminiKey || '', model: settings.model || '', adv: settings.modelAdvanced || '' }
+  : { key: (settings.aiKeys || {})[id] || '', model: ((settings.aiModels || {})[id] || {}).default || '', adv: ((settings.aiModels || {})[id] || {}).advanced || '' };
+const provKeep = () => { PDRAFT[SPROV] = { key: $('sKey').value.trim(), model: $('sModel').value.trim(), adv: $('sModelAdv').value.trim() }; };
+// id: the provider to show (null = the one in use); fresh: forget typed drafts (the page was just opened)
+function drawAiProv(id, fresh){ if(fresh) PDRAFT = {}; const reg = AIProvider.registry, use = AIProvider.active();
+  SPROV = reg[id] ? id : use.id; const p = reg[SPROV], v = PDRAFT[SPROV] || provSaved(SPROV), nm = provName(SPROV);
+  setSeg('#sProv', SPROV); $('sProv').querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === SPROV)));
+  $('sKeyL').textContent = t('aiKeyFor', { p: nm }); $('sModelL').textContent = t('aiModelFor', { p: nm });
+  $('sKey').value = v.key; $('sModel').value = v.model; $('sModelAdv').value = v.adv;
+  $('sModel').placeholder = (p.models && p.models.default) || ''; $('sModelAdv').placeholder = (p.models && p.models.advanced) || t('aiModelAdvPh');
+  $('sGemOnly').classList.toggle('hide', SPROV !== 'gemini');
+  const unm = provName(use.id);
+  $('sProvNote').textContent = [SPROV === use.id ? t('aiProvInUse', { p: nm }) : t('aiProvSaveToUse', { p: nm, q: unm }), SPROV !== 'gemini' ? t('aiProvPaid', { p: nm }) : '', p.capabilities && !p.capabilities.search ? t('aiProvNoSearch') : ''].filter(Boolean).join(' ');
+  status($('keyStatus'), ''); $('keyStatus').style.color = ''; }
+$('sProv').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b || b.dataset.v === SPROV) return; Phone.haptic(); provKeep(); drawAiProv(b.dataset.v); });
+$('getKey').addEventListener('click', () => Phone.openUrl(PROV_URL[SPROV] || KEY_URL));
 
 $('aiKnowReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiKnowAsk'), t('aiKnowYes')))) return; Know.reset(); if(typeof GymIntel !== 'undefined') GymIntel.forget(); drawAiMem(); toast(t('aiKnowDone')); });   // 0.7.9 ai: Settings › AI
 // Athlete OS: what you told the coaches (AthleteMemory), each with when it ends and a delete button; Copy gives you all of it as text
+// Each note can be edited in place (AthleteMemory.edit: the same checks as a note from the chat; its id, kind, topic and end date stay).
+let MEM_EDIT = null;   // the id of the note being edited (this page only)
 function drawAiMem(){ const el = $('aiMem'); if(!el || typeof AthleteMemory === 'undefined') return;
   const ns = AthleteMemory.list(), day = ms => new Date(ms).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' });
-  el.innerHTML = ns.length ? `<ul class="aimem">${ns.map(x => `<li><span>${esc(x.text)}<small>${esc(x.kind === 'context' ? t('memUntil', { d: day(x.until) }) : t('memKeep'))}</small></span>`
-    + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`; }
-$('aiMem').addEventListener('click', e => { const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
-  const gone = AthleteMemory.remove(b.dataset.memx); drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+  if(MEM_EDIT && !ns.some(x => x.id === MEM_EDIT)) MEM_EDIT = null;
+  el.innerHTML = ns.length ? `<ul class="aimem">${ns.map(x => x.id === MEM_EDIT
+    ? `<li class="editing"><div class="aimemed"><input type="text" data-memin="${esc(x.id)}" value="${esc(x.text)}" maxlength="160" aria-label="${esc(t('memEditL'))}" enterkeyhint="done" autocomplete="off">`
+      + `<div class="actions"><button type="button" class="btn small" data-memcancel>${esc(t('cancel'))}</button><button type="button" class="btn small primary" data-memsave="${esc(x.id)}">${esc(t('save'))}</button></div><div class="status" data-memst></div></div></li>`
+    : `<li><span>${esc(x.text)}<small>${esc(x.kind === 'context' ? t('memUntil', { d: day(x.until) }) : t('memKeep'))}</small></span>`
+    + `<button type="button" class="aimemx" data-memed="${esc(x.id)}" aria-label="${esc(t('memEditL'))}">${svgIcon('edit', 18, 2)}</button>`
+    + `<button type="button" class="aimemx" data-memx="${esc(x.id)}" aria-label="${esc(t('memDel'))}">${svgIcon('trash', 18, 2)}</button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('memNone'))}</p>`;
+  const inp = MEM_EDIT && el.querySelector('[data-memin]'); if(inp){ inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){} } }
+function memSave(id){ const inp = $('aiMem').querySelector('[data-memin]'), st = $('aiMem').querySelector('[data-memst]'); if(!inp) return;
+  const txt = inp.value.trim(), say = k => { if(st) status(st, t(k), true); };
+  if(!txt){ say('memEditEmpty'); return; }
+  if(!AthleteMemory.list().some(x => x.id === id)){ MEM_EDIT = null; drawAiMem(); toast(t('memEditGone')); return; }   // deleted (or ended) while it was being edited
+  if(!AthleteMemory.edit(id, txt)){ say('memEditBad'); return; }   // refused by the same rules as a note from the chat (instructions, links, too short)
+  MEM_EDIT = null; Phone.haptic(); drawAiMem(); toast(t('memEdited')); }
+$('aiMem').addEventListener('click', e => {
+  const ed = e.target.closest('[data-memed]'); if(ed){ Phone.haptic(); MEM_EDIT = ed.dataset.memed; drawAiMem(); return; }
+  if(e.target.closest('[data-memcancel]')){ MEM_EDIT = null; drawAiMem(); return; }
+  const sv = e.target.closest('[data-memsave]'); if(sv){ memSave(sv.dataset.memsave); return; }
+  const b = e.target.closest('[data-memx]'); if(!b) return; Phone.haptic();
+  const gone = AthleteMemory.remove(b.dataset.memx); if(MEM_EDIT === b.dataset.memx) MEM_EDIT = null; drawAiMem(); if(gone) toast(t('memDeleted'), t('undo'), () => { AthleteMemory.restore([gone]); drawAiMem(); }); });
+$('aiMem').addEventListener('keydown', e => { const i = e.target.closest('[data-memin]'); if(!i) return;
+  if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); memSave(i.dataset.memin); } else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); MEM_EDIT = null; drawAiMem(); } });
 // Athlete OS · persona: Settings › AI › Coach Personality (one setting for every coach; saved in settings.coach on this phone)
 function drawPersona(){ if(typeof Persona === 'undefined') return; const p = Persona.prefs();
   setSeg('#perBase', p.base); setSeg('#perHumor', p.humor); setSeg('#perLen', p.len); const c = $('perCustom'); if(c && document.activeElement !== c) c.value = p.custom; }
@@ -19,7 +61,12 @@ function drawPersona(){ if(typeof Persona === 'undefined') return; const p = Per
 $('perCustom').addEventListener('change', e => { const v = e.target.value; if(Persona.set({ custom: v })) toast(t('perSaved')); e.target.value = Persona.prefs().custom; });
 $('aiMemCopy').addEventListener('click', async () => { Phone.haptic(); await Phone.copy(AthleteMemory.exportAll()); toast(t('memCopied')); });
 $('aiuReset').addEventListener('click', async () => { Phone.haptic(); if(!(await ask(t('aiuAsk'), t('aiuYes')))) return; AIUsage.reset(); AIUsage.draw(); toast(t('aiuDone')); });   // Athlete OS step 1: Settings › AI › Usage
-$('saveSettings').addEventListener('click', () => { settings.geminiKey = $('sKey').value.trim(); settings.model = $('sModel').value.trim() || DEFAULT_MODEL; if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); });
+$('saveSettings').addEventListener('click', () => { const key = $('sKey').value.trim(), model = $('sModel').value.trim(), adv = $('sModelAdv').value.trim();
+  if(SPROV === 'gemini'){ if(key !== settings.geminiKey) Store.save('models', null); settings.geminiKey = key; settings.model = model || DEFAULT_MODEL; if(adv) settings.modelAdvanced = adv; else delete settings.modelAdvanced; }
+  else { settings.aiKeys = { ...(settings.aiKeys || {}), [SPROV]: key }; const m = { ...(model ? { default: model } : {}), ...(adv ? { advanced: adv } : {}) };
+    settings.aiModels = { ...(settings.aiModels || {}) }; if(Object.keys(m).length) settings.aiModels[SPROV] = m; else delete settings.aiModels[SPROV]; }
+  settings.provider = SPROV; delete PDRAFT[SPROV];
+  if(Store.save('settings', settings)) toast(t('settingsSaved')); aiGate(); drawAiProv(SPROV); });
 
 document.querySelectorAll('#sLang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.v)));
 

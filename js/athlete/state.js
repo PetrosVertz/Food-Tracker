@@ -103,17 +103,20 @@ const AthleteState = (() => {
 
     // recovery: the existing engine (gym.js recMap through its 30 s cache); hours change with time, so a short ttl
     // RECOVERY+ is the one source (its snapshot: summaries and reason codes only, no food diary); the old map is only a fallback
-    recovery: { deps: ['sessions', 'gymPlan', 'tpls', 'dayLog', 'targets'], ttl: 10 * 60e3, fn(){
+    // deps = the engine's own inputs (custom exercise mappings, food / sleep switches, finished-day marks, weights, profile too); the slice is kept
+    // only until the snapshot's validUntil (the next time a muscle changes state with time alone, at most 10 min)
+    recovery: { deps: ['sessions', 'exCustom', 'gymPlan', 'tpls', 'days', 'dayLog', 'targets', 'weights', 'profile', 'settings'], day: true, fn(){
       const R = g('RecoveryPlus');
       if(R && R.snapshot){ try{ const s = R.snapshot();
         if(s && s.v === 1 && s.groups){ const known = Object.values(s.groups).some(v => v.state !== 'unknown');
           const groups = Object.entries(s.groups).filter(([, v]) => v.state === 'recovering').map(([gr, v]) => ({ group: gr, hoursLeft: v.hoursLeft, heads: v.heads || [], conf: v.conf })).sort((a, b) => b.hoursLeft - a.hoursLeft);
           const sp = s.support || {};
-          return { known, recovering: groups, kind: 'calculated', src: 'recovery+', readiness: s.overall, next: s.nextWorkout || null,
-            sleep: sp.sleep ? { status: sp.sleep.status, conf: sp.sleep.confidence } : null, food: sp.nutrition ? { status: sp.nutrition.status, reasons: sp.nutrition.reasons, goal: sp.nutrition.goalContext } : null }; } }catch(e){} }
-      const f = g('recMapNow') || g('recMap'); if(!f) return { known: false };
+          return { known, recovering: groups, kind: 'calculated', src: 'recovery+', snapshotId: s.snapshotId || null, version: s.version || null, at: s.at, _exp: s.validUntil || Date.now() + 10 * 60e3, readiness: s.overall, next: s.nextWorkout || null,
+            sleep: sp.sleep ? { status: sp.sleep.status, conf: sp.sleep.confidence } : null, food: sp.nutrition ? { status: sp.nutrition.status, reasons: sp.nutrition.reasons, goal: sp.nutrition.goalContext } : null }; } }catch(e){ console.warn('recovery+ snapshot', e); } }   // never silent: a broken snapshot once hid behind this fallback
+      // legacy fallback (RECOVERY+ not loaded): the old map, re-read every 10 min
+      const f = g('recMapNow') || g('recMap'); if(!f) return { known: false, _exp: Date.now() + 10 * 60e3 };
       const m = f(), groups = Object.entries(m || {}).filter(([, v]) => v && (v.st === 'mid' || v.st === 'low')).map(([gr, v]) => ({ group: gr, hoursLeft: v.h })).sort((a, b) => b.hoursLeft - a.hoursLeft);
-      return { known: true, recovering: groups, kind: 'calculated', src: 'sessions' }; } },
+      return { known: Object.values(m || {}).some(v => v && v.st !== 'unk'), recovering: groups, kind: 'calculated', src: 'sessions', _exp: Date.now() + 10 * 60e3 }; } },
 
     // the user's portion corrections (owned by today.js as 'foodFix'): learned memory, read here, never copied
     corrections: { deps: ['foodFix'], fn(){ const f = g('logFix') || {}, all = Object.values(f).filter(x => x && x.g > 0).sort((a, b) => (b.at || 0) - (a.at || 0));
@@ -152,9 +155,10 @@ const AthleteState = (() => {
   function get(name, now){
     const s = SLICES[name]; if(!s) return null; now = now || Date.now();
     const k = keyFor(name, s, now), c = cache[name];
-    if(c && c.k === k){ stats.hits++; return c.v; }
+    if(c && c.k === k && !(c.exp && now >= c.exp)){ stats.hits++; return c.v; }
     let v; try{ v = s.fn(); }catch(e){ console.warn('athlete state', name, e); v = { error: true }; }
-    stats.builds++; cache[name] = { k, v }; return v;
+    const exp = v && v._exp > 0 ? v._exp : 0; if(v && '_exp' in v) delete v._exp;   // a slice may say when it goes out of date (recovery: validUntil)
+    stats.builds++; cache[name] = { k, v, exp }; return v;
   }
   // a permission-filtered copy: only the slices a specialist may read (Supervisor passes its scopes)
   function snapshot(scopes){ const out = {}; (scopes || Object.keys(SLICES)).forEach(n => { if(SLICES[n]) out[n] = get(n); }); return out; }

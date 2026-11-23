@@ -34,6 +34,7 @@ const ICON = {
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   unlock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/>',
+  edit: '<path d="M4 20h4L19.2 8.8a2.1 2.1 0 0 0-3-3L5 17v3zM14.5 7.5l3 3"/>',
   trash: '<path d="M4 7h16M9 7V4.5h6V7M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M10 11v6M14 11v6"/>',
   star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
   starOn: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor"/>',
@@ -322,6 +323,7 @@ function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
   h = location.hash.replace('#','');   // re-read: an old start / home link was just switched
+  if(h.startsWith('gym-') && !GSEC[h]){ h = 'gym'; history.replaceState(null, '', '#gym'); }   // a Gym section that no longer exists (an old #gym-partner link, a saved last page): the Gym hub
   { const prev = route.last; route.last = h; if(prev && prev !== h && !SWITCHING && tabOf(prev) === tabOf(h)) pillSwap(true); }   // 0.7.9: pills changing inside a tab glide too
   const kit = kitchenOn();
   if(!kit && (h === 'fridge' || h === 'groc')){ h = homeHash().slice(1); history.replaceState(null, '', '#' + h); }   // Kitchen is off: nothing opens it
@@ -351,7 +353,13 @@ function route(){
   fab.dataset.action = tab === 'meals' ? 'meals' : ['today','fridge','gym'].includes(page) ? page : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
-  renderAll(); if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
+  // a section change inside the same page (a pill or a page swipe: Gym sections, Food Library sections) redraws only that page; any other move redraws
+  // everything as before. Measured: renderAll() was ~19 ms of a ~25 ms section change at 4× CPU slowdown, the frame the swipe lands on.
+  const same = route.page === page && !!route.page; route.page = page;
+  if(same && page === 'gym'){ renderGym(); renderTodayRec(); syncFab2(); }
+  else if(same && page === 'foods'){ render(); renderMeals(); renderSupps(); syncFab2(); }
+  else renderAll();
+  if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
 }
 
@@ -635,8 +643,11 @@ function glide(el, p, to, ms, ease, done){
     const max = r.scrollWidth - r.clientWidth, to = r.scrollLeft + (e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY); if((to <= 0 && r.scrollLeft <= 0) || (to >= max && r.scrollLeft >= max)) return;   // at the end: let the page scroll
     e.preventDefault(); r.scrollLeft = to; }, { passive: false });
   addEventListener('pointerdown', e => { const r = e.pointerType === 'mouse' && e.button === 0 && e.target.closest && e.target.closest('.chips'); if(r && r.scrollWidth > r.clientWidth + 1) d = { r, x: e.clientX, l: r.scrollLeft, moved: false }; });
-  addEventListener('pointermove', e => { if(!d) return; const dx = e.clientX - d.x; if(!d.moved && Math.abs(dx) > 5) d.moved = true; if(d.moved) d.r.scrollLeft = d.l - dx; });
-  addEventListener('pointerup', () => { if(d && d.moved){ const r = d.r; r._noTap = true; setTimeout(() => { r._noTap = false; }, 0); } d = null; });
+  // the finger's place is only stored on each move and written once per frame; a cancelled pointer (window lost, alert) ends the drag
+  let raf = 0; const draw = () => { raf = 0; if(d && d.moved) d.r.scrollLeft = d.l - d.dx; };
+  addEventListener('pointermove', e => { if(!d) return; d.dx = e.clientX - d.x; if(!d.moved && Math.abs(d.dx) > 5) d.moved = true; if(d.moved && !raf) raf = requestAnimationFrame(draw); });
+  addEventListener('pointerup', () => { if(d && d.moved){ draw(); const r = d.r; r._noTap = true; setTimeout(() => { r._noTap = false; }, 0); } d = null; });
+  addEventListener('pointercancel', () => { cancelAnimationFrame(raf); raf = 0; d = null; });
   addEventListener('click', e => { const r = e.target.closest && e.target.closest('.chips'); if(r && r._noTap){ e.stopPropagation(); e.preventDefault(); } }, true);
 })();
 function settle(el){ const sh = el.querySelector(':scope>.sheet'); if(!sh) return; sh.classList.remove('settled');
@@ -660,7 +671,7 @@ function open(id){
 
 // ======================= settings + data =======================
 // 0.7.7: Settings is a page inside the Profile tab (the gear at the top right of Profile); Back returns to Profile
-function fillSettings(){ $('sKey').value = settings.geminiKey || ''; $('sModel').value = settings.model || ''; setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
+function fillSettings(){ if(typeof drawAiProv === 'function') drawAiProv(null, true); setSeg('#sLang', lang); status($('keyStatus'), ''); $('keyStatus').style.color = '';
   $('keySteps').innerHTML = KEY_STEPS[lang === 'el' ? 'el' : 'en'].map(x => `<li>${x}</li>`).join('');
   setSeg('#sSex', profile.sex || ''); $('sH').type = UN().h === 'ft' ? 'text' : 'number'; $('sH').placeholder = UN().h === 'ft' ? `5'10` : 'cm'; $('sH').value = hOut(profile.height); $('sW').placeholder = bwU(); $('sW').value = bwOut(latestWeight() || (targets && targets.bw) || ''); AIUsage.draw(); if(typeof drawAiMem === 'function') drawAiMem(); if(typeof drawPersona === 'function') drawPersona(); fillTargets(); }
 function openSettings(){ document.querySelectorAll('.overlay.open').forEach(o => close(o.id)); fillSettings(); const h = location.hash.slice(1); if(h === 'settings') return;

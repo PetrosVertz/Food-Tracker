@@ -332,6 +332,7 @@ const RecoveryCore = (() => {
   }
 
   // ---------------------------------------------------------------- the published snapshot (recovery.v1; also the v:1 shape Gym Coach reads)
+  const fingerprint = s => { let h = 2166136261; for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };   // FNV-1a, no crypto needed
   function snapshot(o){
     const { tr, sleep, nutr, next, plan, readiness, acute, now, shareSleep, shareFood } = o;
     const head = {}; HEADS21.forEach(h => { const v = tr.heads[h];
@@ -351,6 +352,12 @@ const RecoveryCore = (() => {
       sourceKind: sleep.sourceQuality === 'none' ? 'none' : sleep.sourceQuality, freshness: sleep.observedNights ? 'current' : 'unknown' };
     if(nutr && shareFood !== false) s.support.nutrition = { status: nutr.status, confidence: nutr.confidence, eligibleCompletedDays: nutr.coverage.eligibleDays, reasons: nutr.reasonCodes.slice(),
       goalContext: nutr.energy.goal, goalAssessment: nutr.goalAssessment, freshness: nutr.coverage.loggedDays ? 'current' : 'unknown' };
+    // validUntil: when a muscle state next changes with time alone (a head reaches ready, or Needs Rest turns Recovering at 24 h left), at most 10 min ahead,
+    // so a consumer that caches the snapshot refreshes in time. snapshotId: a short fingerprint of what it says (not the time), so a consumer can show
+    // which version it received and tell a real change from a re-read.
+    const edges = []; HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state === 'unknown' || !(v.hours > 0)) return; edges.push(v.hours); if(v.hours > 24) edges.push(v.hours - 24); });
+    s.validUntil = now + Math.min(10 * 6e4, ...edges.filter(x => x > 0).map(x => x * 36e5 + 1000));
+    s.snapshotId = 'r1-' + fingerprint(JSON.stringify([groups, Object.entries(head).map(([h, v]) => h + v.state), s.readiness.level, s.nextWorkout || null, s.support.nutrition ? s.support.nutrition.status : '', s.support.sleep ? s.support.sleep.status : '']));
     return s;
   }
   return { ENGINE, CFG, HEADS21, GROUP, GROUPS10, muOf, setEffort, indexHistory, sessionHeadLoads, calibrate, trainingRecovery, stateAt, acuteFatigue,
@@ -417,7 +424,9 @@ const RecoveryPlus = (() => {
   // sleep: no sleep source exists in the app today (no watch / Health link; watchSleepHours() was always null). Athlete OS or a future
   // Health adapter may hand records here; nothing is invented.
   function sleepRecords(){ const f = g('athleteSleepRecords'); try{ return typeof f === 'function' ? (f() || []) : []; }catch(e){ return []; } }
-  function snapshot(){ const r = compute(); return C.snapshot({ ...r, plan: r.next, shareSleep: useSleep(), shareFood: useFood() }); }
+  // next = the planned workout's assessment, plan = the planned workout (before: the plan was passed as `next`, so with any planned workout the
+  // snapshot threw and Gym Coach / Athlete OS silently fell back to the old estimate)
+  function snapshot(){ const r = compute(); return C.snapshot({ ...r, next: r.nextA, plan: r.next, shareSleep: useSleep(), shareFood: useFood() }); }
   // the legacy map shape every older caller understands: { group: { h, st: 'ok' | 'mid' | 'low' | 'unk', col, p, heads } }
   function legacyMap(){ const r = compute(), out = {};
     C.GROUPS10.forEach(gr => { const v = r.tr.groups[gr]; const st = C.legacySt(v.state), h = v.hours || 0;

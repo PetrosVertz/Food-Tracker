@@ -235,7 +235,7 @@ $('planShow').addEventListener('click', e => {
 $('planBtn').addEventListener('click', async () => {
   if(planCtl){ planCtl.abort(); return; }
   const tg = targetFor(curDay); if(!tg){ toast(t('planNeedTargets')); openTargets(); return; }
-  if(!settings.geminiKey){ toast(t('needKey')); openSettings(); return; }
+  if(!AI.hasKey()){ toast(t('needKey')); openSettings(); return; }
   const btn = $('planBtn');
   planCtl = new AbortController(); const ctl = planCtl; btn.innerHTML = AI.dots(t('planning')); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
   try{
@@ -255,8 +255,8 @@ $('testKey').addEventListener('click', async () => {
   if(!key){ status(el, t('keyEmpty'), true); return; }
   status(el, t('keyTesting'));
   try{
-    const n = await AI.testKey(key);
-    status(el, t('keyOk', { n })); el.style.color = 'var(--ok)';
+    const id = typeof SPROV === 'string' ? SPROV : 'gemini', n = await AI.testKey(key, id);   // the provider shown in Settings › AI, saved in its own slot
+    status(el, id === 'gemini' ? t('keyOk', { n }) : t('keyOk1')); el.style.color = 'var(--ok)';
   }catch(e){ el.style.color = ''; status(el, t('keyFail', { e: e.name === 'AbortError' ? t('timedOut') : e.message }), true); }
 });
 

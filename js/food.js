@@ -222,26 +222,6 @@ function readForm(){
   return { name: $('fName').value.trim(), brand: F.noBrand ? '' : $('fBrand').value.trim(), vals };
 }
 
-function checkMissing(){
-  const brandOk = !M.needBrand || M.brandMode === 'none' || (M.brandMode === 'add' && $('mBrand').value.trim());
-  $('mSave').disabled = !(brandOk && (!M.needType || !!M.cat));
-}
-
-function setPcMode(m){ PC.mode = m; setSeg('#pcSeg', m); $('pcWeigh').classList.toggle('hide', m !== 'weigh'); $('pcCount').classList.toggle('hide', m !== 'count'); pcCheck(); }
-
-function pcValue(){ if(PC.mode === 'weigh') return num('pcG') > 0 ? num('pcG') : null; const n = num('pcN'), p = num('pcPack'); return n > 0 && p > 0 ? r1(p / n) : null; }
-
-function pcCheck(){
-  const v = pcValue(), el = $('pcRes');
-  $('pcSave').disabled = !v;
-  if(v){
-    const k = num('fKcal') ?? (num('fP')*4 + num('fC')*4 + num('fF')*9), m = v/100;
-    el.innerHTML = (PC.mode === 'count' ? t('eachIs', { a: fmtSize(num('pcPack'), F.unit), n: num('pcN'), s: fmtSize(v, F.unit) }) + '<br>' : '') +
-      `${t('onePiece', { w: W(F.pieces) })}: <b>${Math.round(k*m)} kcal</b> · P ${r1(num('fP')*m)} · C ${r1(num('fC')*m)} · F ${r1(num('fF')*m)}`;
-    el.classList.add('show');
-  } else el.classList.remove('show');
-}
-
 async function commit(){
   const { name, brand, vals } = readForm();
   if(vals.kcal === null) vals.kcal = Math.round(vals.protein*4 + vals.carbs*4 + vals.fat*9);
@@ -449,7 +429,7 @@ function parseIngLine(line){
 async function foodsQuickRecipe(){
   const txt = $('foodsQrIn').value.trim(); if(!txt){ $('foodsQrIn').focus(); return; }
   let r = null;
-  if(settings.geminiKey){
+  if(AI.hasKey()){
     try{ const have = foods.slice(0, 80).map(f => foodName(f)).join('; ');
       r = await gemini(`Turn this home recipe into structured data. Write names in ${lang === 'el' ? 'Greek' : 'English'}. Text: """${txt}"""
 Return ONLY JSON: {"title":string,"servings":number,"ingredients":[{"name":string,"name_en":string,"grams":number}],"steps":[string]}
@@ -457,7 +437,7 @@ Rules: grams for the whole batch as weighed raw; convert spoons/cups/pieces to g
 Foods the user already has (use these names when they fit): ${have || 'none listed'}`, null, null, null, { robot: 'chef' }); }
     catch(err){ if(err.cancelled) return; toast(t('cqFail')); r = null; }
   }
-  if(!r || !Array.isArray(r.ingredients) || !r.ingredients.length){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(settings.geminiKey ? 'cqFail' : 'cqNoKey')); return; } }
+  if(!r || !Array.isArray(r.ingredients) || !r.ingredients.length){ r = parseRecipe(txt); if(!r.ingredients.length){ toast(t(AI.hasKey() ? 'cqFail' : 'cqNoKey')); return; } }
   if(!Array.isArray(r.steps)) r.steps = [];
   close('ovQRec'); openCook(null, 'new');
   if(r.title) $('cName').value = r.title;

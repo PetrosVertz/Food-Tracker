@@ -148,7 +148,7 @@ async function shopLookup(x, noCheck){
     const d = j && j.status === 1 && j.product ? offToFood(j.product, x.code) : null;
     if(d && d.name && (d.protein !== null || d.carbs !== null || d.fat !== null)){ x.data = { ...d, protein: d.protein ?? 0, carbs: d.carbs ?? 0, fat: d.fat ?? 0 }; x.name = d.name; x.brand = d.brand || ''; x.unit = d.unit || 'g'; x.size = x.size || d.usualPack || null; }
   }catch(e){}
-  if(!x.data && !noCheck && settings.geminiKey) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
+  if(!x.data && !noCheck && AI.hasKey() && AI.can('search')) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
   x.look = ''; scanUI(); shopRedrawRow(x);
 }
 // a barcode with no food data: the AI says if it is food or something else; "not food" goes to the Not food, skipped list
@@ -328,7 +328,8 @@ let CHK = null;
 function checkTodo(){ return foods.filter(f => !f.checked && !f.gid && f.protein != null); }   // built-in foods come from the curated list already
 async function checkFoods(){
   if(CHK && CHK.running){ open('ovCheck'); return; }
-  if(!settings.geminiKey){ toast(t('needKeyFirst')); return; }
+  if(!AI.hasKey()){ toast(t('needKeyFirst')); return; }
+  if(!AI.can('search')){ toast(t('aiErrNoSearch', { p: AIProvider.active().name })); return; }   // Check My Foods looks every food up on the web
   const todo = checkTodo(); if(!todo.length){ toast(t('chkAllDone')); return; }
   const nb = Math.ceil(todo.length / 20);
   if(!(await ask(t(nb === 1 ? 'chkAsk1' : 'chkAsk', { n: todo.length, b: nb }), t('chkGo')))) return;

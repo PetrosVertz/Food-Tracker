@@ -84,14 +84,19 @@ const RankFx = (() => {
       .sort((a, b) => (b.to - (b.from == null ? -1 : b.from)) - (a.to - (a.from == null ? -1 : a.from)) || last(b.exId) - last(a.exId)); }
   // end of a workout (before = rankNow() taken just before it was saved): each exercise in it against its last seen rank
   // (or its rank before the workout if never seen); remember the new ones → the changes, best news first
-  function afterWorkout(ses, before){ if(!tierBody() || !ses) return [];
+  function afterWorkout(ses, before){ if(!tierBody() || !ses) return []; rebase(before);
     const ids = [...new Set(ses.exercises.map(x => x.exId))], now = rankNow(ids), seen = { ...(profile.rankSeen || {}) };
     const ch = rankChanges({ ...(before || {}), ...seen }, now, ids); if(!ch.length) return [];
     ch.forEach(c => { seen[c.exId] = c.to; }); profile.rankSeen = seen; saveProfile();
     const order = { tierup: 0, up: 1, first: 2, down: 3 }; return ch.sort((a, b) => order[a.kind] - order[b.kind] || b.to - a.to); }
+  // Athlete Rank v0.4: a new engine or benchmark version re-scores every exercise at once. That is not news: the seen ranks are set to the new
+  // ones quietly (no Rank Up / Rank Changed windows), once per version. base: the ranks to start from (a workout just being saved: as before it).
+  const SEEN_V = () => typeof RANK04 !== 'undefined' && RANK4.on ? 'v04:' + RANK04.version : 'legacy';
+  function rebase(base){ if(profile.rankSeenV === SEEN_V()) return false;
+    profile.rankSeen = { ...rankNow(rankIds()), ...(base || {}) }; profile.rankSeenV = SEEN_V(); saveProfile(); return true; }
   // the app opens: ranks never seen are noted quietly; a rank higher than last seen too (it was shown when it happened);
   // a lower one is shown once (at most 3; the rest are noted quietly)
-  function onOpen(){ if(!tierBody()) return;
+  function onOpen(){ if(!tierBody()) return; if(rebase()) return;
     const ids = rankIds(), now = rankNow(ids), had = profile.rankSeen, seen = { ...(had || {}) };
     let dirty = !had; const down = had ? rankChanges(seen, now, ids).filter(c => c.kind === 'down') : [];
     ids.forEach(id => { if(now[id] != null && (seen[id] == null || now[id] > seen[id])){ seen[id] = now[id]; dirty = true; } });

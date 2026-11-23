@@ -212,4 +212,4 @@ function shopFChange(e){
 }
 
 // Fridge: the Scan Receipt button opens the receipt camera (receipt.js)
-function shopCamera(){ if(!settings.geminiKey){ open('ovShop'); toast(t('needKeyFirst')); return; } Rcpt.begin(); }
+function shopCamera(){ if(!AI.hasKey()){ open('ovShop'); toast(t('needKeyFirst')); return; } Rcpt.begin(); }

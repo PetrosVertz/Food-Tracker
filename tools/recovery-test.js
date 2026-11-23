@@ -156,7 +156,14 @@ const freeze = o => { if(o && typeof o === 'object'){ Object.freeze(o); Object.v
   ok(Object.keys(s.muscleHeads).length === 21, '21 muscle heads published');
   ok(s.nextWorkout && s.nextWorkout.assessment === 'consider_adjustment' && s.nextWorkout.limitingMuscles[0] === 'biceps', 'next workout: advisory codes only');
   ok(['normal', 'reduced', 'unknown'].includes(s.readiness.level), 'readiness level in the contract values');
-  ok(!JSON.stringify(s).includes('kcal'), 'no raw food diary in the snapshot'); }
+  ok(!JSON.stringify(s).includes('kcal'), 'no raw food diary in the snapshot');
+  // which version and for how long: snapshotId (what it says, not when) and validUntil (next change by time alone, at most 10 min)
+  const s2 = C.snapshot({ tr: t, sleep: null, nutr: null, next: nx, plan: { id: 'tp1', at: NOW + 3 * H }, readiness: C.buildOverallReadiness(t, null, null, nx), now: NOW + 1000 });
+  const t3 = TR([ses('a', 6, [['curl', sets(5)]]), ses('b', 2, [['bench', sets(5)]])]), s3 = C.snapshot({ tr: t3, sleep: null, nutr: null, readiness: C.buildOverallReadiness(t3, null, null, null), now: NOW });
+  ok(/^r1-[a-z0-9]+$/.test(s.snapshotId) && s2.snapshotId === s.snapshotId && s3.snapshotId !== s.snapshotId, 'snapshotId: the same facts a second later keep the id; a new workout changes it');
+  ok(s.validUntil > NOW && s.validUntil <= NOW + 10 * 6e4 + 1000, 'validUntil: within 10 min (a consumer re-reads before a muscle can change state)');
+  const t4 = TR([ses('a', 47.99, [['curl', sets(1)]])]), s4 = C.snapshot({ tr: t4, sleep: null, nutr: null, readiness: C.buildOverallReadiness(t4, null, null, null), now: NOW }), hb = t4.heads.biceps.hours;
+  ok(!(hb > 0) || s4.validUntil <= NOW + Math.min(10 * 6e4, hb * 36e5 + 1000) + 1, `validUntil: earlier when a head is about to be ready (${hb ? hb.toFixed(3) + ' h left' : 'already ready'})`); }
 
 // 14. Personal calibration: slow, bounded, needs repeated evidence
 { const mk = (k, gapH, best) => Array.from({ length: k }, (_, i) => ses('c' + i, (k - i) * gapH, [['bench', [set({ w: best, r: 5 })]]]));

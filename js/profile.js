@@ -133,7 +133,7 @@ function statsCtx(){
   const ud = [...new Set(dates)].sort(); c.couch = null;
   if(ses.length >= 2) for(let i = 1; i < ud.length; i++){ const n = Math.round((new Date(ud[i] + 'T12:00:00') - new Date(ud[i - 1] + 'T12:00:00')) / 864e5); if(n >= 1 && (!c.couch || n > c.couch.n)) c.couch = { n, a: ud[i - 1], b: ud[i] }; }
   c.nextRank = null; c.ratio = null;
-  e1s.forEach((e, id) => { const tf = tierFor(id); if(tf && tf.next && (!c.nextRank || tf.next.kg < c.nextRank.kg)) c.nextRank = { kg: tf.next.kg, name: exName(id), tier: tf.next.tier, n: tf.next.n, label: tf.next.label };
+  e1s.forEach((e, id) => { const tf = tierFor(id); if(tf && tf.next && tf.next.kg != null && (!c.nextRank || tf.next.kg < c.nextRank.kg)) c.nextRank = { kg: tf.next.kg, name: exName(id), tier: tf.next.tier, n: tf.next.n, label: tf.next.label };
     if(c.bw && tierStd(id) && (!c.ratio || e / c.bw > c.ratio.x)) c.ratio = { x: e / c.bw, name: exName(id) }; });
   c.big3 = ['bench', 'squat', 'deadlift'].every(id => e1s.get(id) > 0) ? ['bench', 'squat', 'deadlift'].reduce((a, id) => a + e1s.get(id), 0) : 0;
   let nw = null; firstSeen.forEach((st, id) => { if(!nw || st >= nw.st) nw = { st, id }; }); c.explorer = nw && { n: firstSeen.size, name: exName(nw.id) };
@@ -264,7 +264,6 @@ function renderProfile(){
   const streak = `<button type="button" class="pfstpill stk-${d.streak.state}" data-streak aria-label="${esc(streakLabel(d.streak))}">${flameIcon(d.streak.total, 14)}<b>${d.streak.total}</b>${saverMini(d.streak)}</button>`;
   const circles = `<div class="pfcircles" role="list">
       <div class="pfme ${ring}" role="listitem"><span class="pfavw"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button>${streak}</span><small>${esc(t('pfYou'))}</small></div>
-      <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
     </div>`;
   // Refinements #8 change 15: Highest Ranked Exercises, the whole width: your three best ranks, big plates with the rank name under each;
   // a tap on a plate pops a small bubble with the exercise (wire/04: data-rkbub). Fewer than three: quiet empty slots and one line on how to earn one.

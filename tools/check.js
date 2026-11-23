@@ -373,7 +373,7 @@ try {
   if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank: ' + b)); else ok(`rank: ${Object.keys(TIER_STD).length} lifts fair (monotonic, body weight, steady, Diamond reachable)`);
 } catch (e) { fail('could not check the rank rating: ' + e.message); }
 
-// 11b. New rank engine (ranking-1; js/rank-engine.js + js/data/rank-bench.js). Not live: these checks keep it honest until the switch.
+// 11b. Athlete Rank v0.4 (live): the anchor curves (js/rank-engine.js + js/data/rank-bench.js) and the production path (js/rank-v04.js).
 try {
   const bad = [], RankEngine = require(path.join(root, 'js/rank-engine.js')), BENCH = require(path.join(root, 'js/data/rank-bench.js'));
   try { execFileSync(process.execPath, [path.join(root, 'tools/rank/build-bench.js'), '--check'], { stdio: 'pipe' }); }
@@ -416,14 +416,17 @@ try {
   }
   if (one('pullup', 'm', 70, [{ w: 0, reps: 9 }]).ranked) bad.push('pull-ups have a rank without open benchmark data');
   if (one('bench', 'm', 80, []).none !== true) bad.push('no sets must give "none"');
-  // the live ranking stays untouched and the new one stays off
-  const v2 = read('js/rank-v2.js'), gymJs = read('js/gym.js');
-  if (!/const RANK2 = \{ on: false \}/.test(v2)) bad.push('RANK2.on must stay false until the switch is approved');
-  if (/RANK2|rank2For|RankEngine/.test(gymJs + read('js/data/gym.js') + read('js/profile.js') + read('js/rank-fx.js'))) bad.push('the live rank code refers to the new engine');
+  // Athlete Rank v0.4 is the production path: the switch is on, tierFor() answers from it, nothing calls the old adapter
+  const v4 = read('js/rank-v04.js'), gymJs = read('js/gym.js');
+  if (!/const RANK4 = \{ on: true \}/.test(v4)) bad.push('RANK4.on must be true (v0.4 is live)');
+  if (!/function tierFor\([^)]*\)\{ if\(typeof RANK4 !== 'undefined' && RANK4\.on\) return rank4For\(/.test(gymJs)) bad.push('tierFor() must answer from rank4For() first');
+  if (/RANK2|rank2For|rank-v2\.js/.test(gymJs + read('js/profile.js') + read('js/rank-fx.js') + read('index.html') + read('sw.js'))) bad.push('something still refers to the retired rank-v2 adapter');
   const libIds = new Set([...read('js/data/gym.js').matchAll(/^ \['([a-z0-9_]+)',/gm)].map(m => m[1]));
   [...Object.keys(BENCH.exercises), ...Object.keys(BENCH.variants)].forEach(id => { if (!libIds.has(id)) bad.push(`benchmark exercise ${id} is not in the exercise library`); });
-  if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank v2: ' + b));
-  else ok(`rank v2 (not live): ${Object.keys(BENCH.exercises).length} lifts + ${Object.keys(BENCH.variants).length} variation from open data; single set, low-rep and high-rep styles, body weight, age, confirm, typo and step rules hold; switch is off`);
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/rank-v04-test.js')], { stdio: 'pipe' }).toString(); if (!/All \d+ rank v0\.4 checks pass/.test(out)) bad.push('tools/rank-v04-test.js did not pass'); }
+  catch (e) { bad.push('tools/rank-v04-test.js: ' + String(e.stdout || e.message).split('\n').filter(l => /^FAIL/.test(l)).join(' | ')); }
+  if (bad.length) [...new Set(bad)].slice(0, 20).forEach(b => fail('rank v0.4: ' + b));
+  else ok(`rank v0.4 (live): anchor curves from open data (${Object.keys(BENCH.exercises).length} lifts) hold; switch on, tierFor() uses it; brief scenarios pass (tools/rank-v04-test.js)`);
 } catch (e) { fail('could not check the new rank engine: ' + e.message); }
 
 // 12. Social Hub stats (STATS in js/profile.js): each new stat gives the expected value on a small fake history, hides without data, and nothing throws on an empty history

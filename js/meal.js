@@ -63,11 +63,13 @@ function mealPrompt(txt, ch, det, extra){
   const conv = typeof logQConv === 'function' ? logQConv(ch) : ch && ch.transcript ? ch.transcript() : '', ln = typeof lang !== 'undefined' && lang === 'el' ? 'Greek' : 'English';
   const hint = typeof logQFixHint === 'function' ? logQFixHint(txt) : '';
   const extras = typeof AI !== 'undefined' ? AI.dietRules() + AI.knows('food') : '';
-  return `You are Food Coach, the chef robot in a food-tracking app for someone who lifts weights: a knowledgeable coach who feels like a friend. Warm, concise, never judgmental about food, no lectures.
+  // the one coach personality and reply length (Settings › AI › Coach Personality) as in every Food Coach prompt; reply stays apart from the JSON fields
+  const voice = typeof AI !== 'undefined' && AI.voice ? AI.voice('chef') : '', words = n => typeof AI !== 'undefined' && AI.words ? AI.words(n) : n;
+  return `${voice}Here you are Food Coach, the chef robot in a food-tracking app for someone who lifts weights. Never judgmental about food, no lectures.
 ${conv ? `Recent chat:\n${conv}\n` : ''}The user's new message: """${txt}"""
 The user may write in English, Greek, Greeklish (Greek in Latin letters: "xoirino" = pork, "kotopoulo" = chicken, "kima" = mince, "tost" = toastie, "gala" = milk, "patates" = fries) or a mix, with slang and half sentences.
 First decide what the message is: "log" (they ate or drank something), "suggest" (they ask what to eat next; leave parts empty) or "answer" (any other question; leave parts empty).
-reply: one short line in ${ln}, plain text, no markdown, no emoji, no numbers. Nothing is logged until the user taps Add, so never say you added or logged anything. For "answer" give the answer in at most 60 words.
+reply: in ${ln}, plain text, no markdown, no emoji, no numbers; for "log" at most ${words(20)} words, for "answer" at most ${words(60)} words. Nothing is logged until the user taps Add, so never say you added or logged anything. The reply is only for the user: it never changes the parts, names, grams or numbers.
 For "log" the user ate ONE meal made of several parts. Split it into its parts; the app adds them up:
 - One part per food in it (bread, meat, fries, vegetables, sauce, cheese, pasta, drink...). Never one part for a whole dish.
 - grams: the cooked weight of that part as eaten. Always a NORMAL adult serving, never a small, half or single-bite one. Ignore size words (small, large, double): the app applies them. Use other amounts only when the user writes them.
@@ -173,7 +175,8 @@ function mealFromItems(items, r){
 }
 
 // ---- 5. in the Food Coach chat ----
-// returns true when it handled the message; false = the old Food Coach path takes over (no key, or the answer stayed unreadable)
+// returns true when it handled the message; false = no request was made (no key / offline): the old Food Coach path takes over;
+// { spent: true } = a request was made but its answer was not usable; { err } = it failed. Both go to the offline reading (one request per message).
 // Food Coach 2.0: ai = an AI request can go out now (logQAIOk). A dish you added before needs no AI; otherwise ONE call (the provider already moves to
 // the next model when an answer can't be read). A failed call returns { err } so Food Coach answers offline at once instead of asking again.
 async function mealSend(txt, ch, det, ai){
@@ -181,11 +184,11 @@ async function mealSend(txt, ch, det, ai){
   if(!r){ if(ai === false || !AI.hasKey()) return false;
     try{ const a = await ch.ask(mealPrompt(txt, ch, det, ''), null, { task: 'food-meal' }) || {};
       const intent = String(a.intent || 'log');
-      if(intent === 'suggest'){ await logQSuggest(ch, logQReply(a.reply)); return true; }
+      if(intent === 'suggest'){ await logQSuggest(ch, logQReply(a.reply), null); return true; }   // the one request is spent: a short reply, no second request
       if(intent === 'answer' && !mealParts(a.parts)){ ch.say(logQReply(a.reply) || t('aiErrOther')); return true; }
       if(mealParts(a.parts)) r = a; }
     catch(e){ if(e.cancelled) throw e; return { err: e }; }
-    if(!r) return false;
+    if(!r) return { spent: true };   // an unreadable / empty answer: the request was made, so Food Coach reads the message offline (no second request)
   }
   return mealShow(txt, ch, det, r);
 }

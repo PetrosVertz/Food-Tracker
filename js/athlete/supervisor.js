@@ -8,6 +8,7 @@
 //   4. checks the answer against the specialist's schema (types, required fields, number ranges)
 //   5. on an unusable answer: ONE retry on the stronger tier, only for specialists marked escalate (a fixed rule, no self-review loop)
 //   6. records how it went (time, context size, valid or not) per specialist — numbers only, no text
+// Routing (handoff): a clear question for the other coach is answered by that coach, in the same chat, with its own context and answer check.
 // It also reads the user's own chat message for things to remember (AthleteMemory.observe: fixed rules, no AI) and records which
 // coach card actions were applied or undone (the decision ledger). Specialists only PROPOSE: cards with Apply / Undo stay in the
 // feature code, so no AI answer can change saved data by itself.
@@ -49,6 +50,21 @@ const Supervisor = (() => {
     const it = AthleteContext.intentOf(text), f = spec(from);
     const to = it.gym && !it.food ? (f && f.topic === 'gym' ? from : 'gym') : it.food && !it.gym ? (f && f.topic === 'food' ? from : 'chef') : (from || 'chef');
     return { to, food: it.food, gym: it.gym, mixed: it.food && it.gym };
+  }
+
+  // handoff(text, from, installed): a clear question for the OTHER coach (only food words, or only gym words, and phrased as a question; a
+  // food log or a mixed / unclear message never moves) → that coach's id, and the message in progress is answered by it: its prompt, its
+  // context scopes, its answer check (ask() uses the answering id). The answer stays in the chat it was asked in (coach.js marks it with
+  // the answering coach). installed(id): that coach exists in the app. Returns null to keep the message where it is. Never chains.
+  const QUESTION = /\?\s*$|^(how|what|which|when|why|should|can|could|is|are|do|does|will|would|πως|τι|ποσ|ποια|ποιο|ποτε|γιατι|πρεπει|μπορω|ειναι|θα)(?![\p{L}\p{N}])/u;
+  function handoff(text, from, installed){
+    const f = spec(from); if(!f || !cur || cur.from) return null;
+    const s = String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    if(!QUESTION.test(s)) return null;
+    const r = route(text, from); if(r.mixed || r.to === from) return null;
+    const to = r.to === 'gym' || r.to === 'chef' ? r.to : null, tt = spec(to); if(!tt || tt.topic === f.topic) return null;
+    if(installed && !installed(to)) return null;
+    cur.from = from; cur.id = to; return to;   // the user's words were already read for memory by begin(): not read again
   }
 
   // ---- the request in progress (set by the coach window while it builds its prompt) ----
@@ -106,5 +122,5 @@ const Supervisor = (() => {
   }
   // decision ledger: a card action was used ('apply'), undone ('undo') or a card dismissed
   function decide(id, act, i){ try{ AthleteMemory.decide(id, act, i); }catch(e){} }
-  return { register, spec, route, begin, end, context, validate, ask, decide, stats: () => JSON.parse(JSON.stringify(ST)), list: () => Object.keys(SP), current: () => cur };
+  return { register, spec, route, handoff, begin, end, context, validate, ask, decide, stats: () => JSON.parse(JSON.stringify(ST)), list: () => Object.keys(SP), current: () => cur };
 })();

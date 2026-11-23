@@ -172,6 +172,11 @@ const Q = [
   ['hi, I had pasta', null], ['what should I eat?', null],
 ];
 Q.forEach(([msg, want]) => { const got = F.quick(msg); eq(got, want) ? ok() : fail(`quick "${msg}": ${JSON.stringify(got)}, want ${JSON.stringify(want)}`); });
+// a clear "what should I eat?" goes straight to the one suggestion request; anything that says what was eaten never does
+[['What should I eat for dinner?', true], ['what can i have for a snack', true], ['any meal ideas?', true], ['suggest a dinner', true], ['Τι να φάω για βραδινό;', true], ['τι μπορώ να φάω τώρα', true],
+ ['πρότεινέ μου κάτι να φάω', true], ['ti na fao', true], ['ti na faw gia mesimeri', true],
+ ['I had chicken, what should I eat next?', false], ['έφαγα ένα σουβλάκι, τι να φάω μετά;', false], ['efaga souvlaki ti na fao', false], ['chicken and rice', false], ['is a gyro ok before the gym?', false], ['how much protein today?', false]]
+  .forEach(([msg, want]) => { F.wantsIdeas(msg) === want ? ok() : fail(`wantsIdeas "${msg}": ${!want}, want ${want}`); });
 
 // ---- 4. one food's values made consistent (replaces a second AI call); unknown stays unknown ----
 const K = [

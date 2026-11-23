@@ -46,7 +46,7 @@ $('blBody').addEventListener('click', e => {
   $('sesAddEx').addEventListener('click', () => { if(drag) return; stopAnim(); pk.classList.remove('pkdrag', 'pkcancel'); sh.style.transform = ''; }, true);
   let settle = () => {};
   bd.addEventListener('scrollend', () => { if(bd.classList.contains('moving')){ clearTimeout(tm); settle(); } }, { passive: true });   // where the phone tells us the page has stopped: no extra wait
-  bd.addEventListener('scroll', () => { bd.classList.add('moving'); if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { if(down){ waitUp = true; return; } const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
+  bd.addEventListener('scroll', () => { if(!bd.classList.contains('moving')) bd.classList.add('moving');   /* only a real change: the same class written again on every scroll event woke every class watcher */ if(!raf) raf = requestAnimationFrame(frame); clearTimeout(tm); tm = setTimeout(settle = () => { if(down){ waitUp = true; return; } const was = bd.dataset.cur; if(was !== undefined && markPages() !== +was) Phone.haptic(); else markPages(); bd.classList.remove('moving');   // a tiny buzz when a new exercise snaps in
     const mine = touching, fromLast = armed; touching = false; if(drag){ settleDrag(); return; }
     if(pk.classList.contains('open')) return; const on = onAdd();
     if(on && mine && !fromLast){ showCard(lastCard()); return; }   // flung past the last exercise from an earlier one: back to the last exercise, no menu
@@ -96,7 +96,19 @@ $('sesBody').addEventListener('click', e => { const ok = e.target.closest('[data
   setTimeout(() => { if(SSNEXT) return; const rows = [...document.querySelectorAll('#sesBody .exc:not(.ended) .setrow')], cur = document.querySelector(`#sesBody [data-x="${xi}"] [data-s="${si}"]`);
     if(!cur || !cur.classList.contains('done')) return; const i = rows.indexOf(cur), next = rows.slice(i + 1).find(el => !el.classList.contains('done'));
     const bd = $('sesBody'), card = next && next.closest('.exc');   // the page already shows the whole card: nothing to scroll
+    if(next && card === cur.closest('.exc') && card.classList.contains('capped')){ listReveal(next.closest('.setlist'), next); return; }   // a card at its height limit scrolls its own set list, never the page
     if(next && !(card === cur.closest('.exc') && card.offsetHeight <= bd.clientHeight)) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120); });
+// Active Exercise card cap: window resize and the on-screen keyboard (visualViewport) re-measure once per frame; the field being typed in stays in its list's view
+{ let fr = 0; const refit = () => { if(fr || !active) return; fr = requestAnimationFrame(() => { fr = 0; if(!active || !$('ovSession').classList.contains('open')) return; fitPages();
+    const f = document.activeElement, l = f && f.closest && f.closest('#sesBody .setlist'); if(l) listReveal(l, f.closest('.setrow')); }); };
+  addEventListener('resize', refit); if(window.visualViewport) visualViewport.addEventListener('resize', refit);
+  // the page's own size settles after the window's resize event (sheet layout): watch it directly. Its size never depends on the cards, so no loop
+  if(window.ResizeObserver){ let h0 = 0; new ResizeObserver(es => { const h = es[0].contentRect.height; if(Math.abs(h - h0) < 1) return; h0 = h; refit(); }).observe($('sesBody')); } }
+// a compact (older, finished) set opens again when you tap or focus it; it stays open for this screen only (nothing saved) and is kept in view
+{ const reopen = e => { const r = e.target.closest('.exc.capped .setrow.old'); if(!r || !active || e.target.closest('[data-ok]')) return;   // the tick keeps working as a tick
+    const x = active.exercises[+r.closest('[data-x]').dataset.x], s = x && x.sets[+r.dataset.s]; if(!s) return;
+    SET_OPEN.add(s); r.classList.remove('old'); listReveal(r.closest('.setlist'), r); };
+  $('sesBody').addEventListener('focusin', reopen); $('sesBody').addEventListener('pointerdown', reopen, true); }
 
 // keep the screen on (it's released automatically when you switch apps)
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('ovSession').classList.contains('open')) keepAwake(true); });

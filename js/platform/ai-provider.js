@@ -94,7 +94,7 @@ const GeminiProvider = (() => {
       // a bad key won't work on any model, so stop right away
       if(r.status === 401 || /api key not valid|api_key_invalid|denied access/i.test(msg)) throw aiError('auth', t('keyBad', { e: msg.replace(/\.\s*$/, '') }), { fatal: true, status: r.status });
       const short = msg.length > 90 ? msg.slice(0, 90) + '…' : msg;
-      throw aiError(r.status === 429 ? 'rate' : r.status >= 500 ? 'overloaded' : 'other', short, { status: r.status, retryAfterMs: retryAfter(j, msg) });
+      throw aiError(r.status === 429 ? 'rate' : r.status >= 500 ? 'overloaded' : 'other', short, { status: r.status, retryAfterMs: retryAfter(j, msg), ...(r.status === 404 ? { nomodel: true } : {}) });
     }
     const text = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
     const u = j && j.usageMetadata, usage = u && u.totalTokenCount != null
@@ -116,19 +116,19 @@ const GeminiProvider = (() => {
     if(!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
     return (j.models || []).filter(m => /^models\/gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')).length;
   }
-  return { ...info, ready: () => !!key(), chain, generate, testKey, listModels, bestModels, timeoutFor };
+  return { ...info, models: { default: DEFAULT_MODEL, advanced: '' }, ready: () => !!key(), chain, generate, testKey, listModels, bestModels, timeoutFor };
 })();
 
 // Food Coach 2.0: the other providers. Same normalized request / response / errors as Gemini, so no feature changes when one is picked.
 // Picked by settings.provider ('gemini' default | 'openai' | 'openrouter' | 'anthropic'); key settings.aiKeys[id]; models settings.aiModels[id] =
 // { default, advanced }; settings.aiBase[id] = another address (the app's own server later: it holds the key, so a shipped app carries none and
-// the key can be left empty). No settings screen yet: Gemini (the user's own key) stays the only one offered in the app.
+// the key can be left empty). Settings › AI picks the provider and keeps each one's key and models apart (wire/08 drawAiProv).
 // Never a silent switch to a paid provider: run() only uses the provider that is picked.
 const aiCfg = (id, k) => { const s = typeof settings !== 'undefined' ? settings : {}; return ((s[k] || {})[id]); };
 function aiHttpError(status, msg, extra){
   const short = String(msg || `HTTP ${status}`).slice(0, 90);
   if(status === 401 || status === 403) return aiError('auth', t('keyBad', { e: short }), { fatal: true, status });
-  return aiError(status === 429 ? 'rate' : status >= 500 || status === 529 ? 'overloaded' : 'other', short, { status, ...(extra || {}) });
+  return aiError(status === 429 ? 'rate' : status >= 500 || status === 529 ? 'overloaded' : 'other', short, { status, ...(status === 404 ? { nomodel: true } : {}), ...(extra || {}) });
 }
 async function aiPost(url, headers, body, ms, outer){
   let r, j = null;
@@ -147,7 +147,7 @@ function openAICompat(id, name, base, models){
   const key = () => aiCfg(id, 'aiKeys') || '', url = () => (aiCfg(id, 'aiBase') || base).replace(/\/$/, '');
   const pick = tier => { const m = aiCfg(id, 'aiModels') || {}; return (tier === 'advanced' ? m.advanced || models.advanced : m.default || models.default); };
   return {
-    id, name, implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false },
+    id, name, implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false }, models,
     ready: () => !!key() || !!aiCfg(id, 'aiBase'),
     async chain(req){ return [...new Set([pick(req.tier), pick('default')].filter(Boolean))]; },
     timeoutFor: req => req.timeoutMs || (req.tier === 'advanced' ? 60000 : 30000),
@@ -171,7 +171,7 @@ const AnthropicProvider = (() => {
   const pick = tier => { const m = aiCfg(id, 'aiModels') || {}; return tier === 'advanced' ? m.advanced || 'claude-sonnet-5-5' : m.default || 'claude-haiku-5-5'; };
   const head = k => ({ ...(k ? { 'x-api-key': k } : {}), 'anthropic-version': '2023-06-01', ...(aiCfg(id, 'aiBase') ? {} : { 'anthropic-dangerous-direct-browser-access': 'true' }) });
   return {
-    id, name: 'Anthropic Claude', implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false },
+    id, name: 'Anthropic Claude', implemented: true, capabilities: { vision: true, search: false, json: true, searchWithJson: false, usage: true, streaming: false }, models: { default: 'claude-haiku-5-5', advanced: 'claude-sonnet-5-5' },
     ready: () => !!key() || !!aiCfg(id, 'aiBase'),
     async chain(req){ return [...new Set([pick(req.tier), pick('default')])]; },
     timeoutFor: req => req.timeoutMs || (req.tier === 'advanced' ? 60000 : 30000),
@@ -233,6 +233,11 @@ const AIProvider = (() => {
     try{
       if(!p.implemented) throw aiError('unsupported', p.name + ' is not built yet.', { fatal: true });
       if(p.ready && !p.ready()) throw aiError('auth', t('keyBad', { e: p.name }), { fatal: true, nokey: true });
+      // a job the picked provider cannot do (web look-ups on OpenAI / OpenRouter / Claude here) stops before any network call, with its reason;
+      // never handed to another provider
+      const cap = p.capabilities || {};
+      if(req.search && !cap.search) throw aiError('unsupported', t('aiErrNoSearch', { p: p.name }), { fatal: true, nosearch: true });
+      if(req.images && [].concat(req.images).length && !cap.vision) throw aiError('unsupported', t('aiErrNoPhoto', { p: p.name }), { fatal: true, nophoto: true });
       const all = (await p.chain(req)).slice(0, req.maxModels || 99), models = all.filter(m => !cooling(p, m)); let last = null, waits = 0;
       if(all.length && !models.length){ trace.cooldown = true; throw aiError('rate', t('allBusy', { e: 'quota' }), { cooldown: true, until: coolUntil() }); }
       for(let i = 0; i < models.length; i++){
@@ -263,7 +268,7 @@ const AIProvider = (() => {
         }
       }
       if(trace.deadline) throw aiError('timeout', t('allBusy', { e: last ? last.message : t('timedOut') }), { deadline: true });
-      throw aiError(last ? last.kind : 'other', t('allBusy', { e: last ? last.message : '?' }));
+      throw aiError(last ? last.kind : 'other', t('allBusy', { e: last ? last.message : '?' }), last && last.nomodel ? { nomodel: true, status: last.status } : null);   // keep why (a model that does not exist) for the plain message
     }catch(e){ if(!trace.ms) done(null, e); throw e; }
   }
 
