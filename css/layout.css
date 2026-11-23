@@ -356,3 +356,6 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .fhub .fhsoon{flex-direction:column;align-items:flex-start;gap:6px;cursor:default;pointer-events:auto}
 .fhub .fhsoon:active{transform:none}
 .fhub .fhsoon small{font-size:12px}
+
+/* beta profiler (Settings › User Profile (Beta)) */
+.betatxt{white-space:pre-wrap;word-break:break-word;font:13px/1.45 var(--font);color:var(--t-text);background:var(--t-card,rgba(127,127,127,.12));border-radius:14px;padding:12px;margin:8px 0 12px;max-height:46vh;overflow:auto}

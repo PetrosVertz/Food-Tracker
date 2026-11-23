@@ -1177,3 +1177,10 @@ Object.assign(S, {   // Social Hub: the Friends spot next to your picture (frien
 Object.assign(S, {   // Food Library: the My Meals Coming Soon tile and pill (not built yet)
   tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'],
 });
+
+Object.assign(S, {   // Beta profiler (js/profiler.js)
+  stBeta: ['User Profile (Beta)', 'Προφίλ Χρήστη (Beta)'],
+  betaSub: ['This pre-release build quietly keeps a profile of how you use the app and how your training goes. Nothing is sent anywhere. Tap Export and send the file to the developer.', 'Αυτή η δοκιμαστική έκδοση κρατά διακριτικά ένα προφίλ για το πώς χρησιμοποιείς την εφαρμογή και πώς πάει η προπόνησή σου. Τίποτα δεν στέλνεται πουθενά. Πάτα Εξαγωγή και στείλε το αρχείο στον δημιουργό.'],
+  betaExport: ['Export Profile', 'Εξαγωγή Προφίλ'],
+  betaDone: ['Profile file ready.', 'Το αρχείο προφίλ είναι έτοιμο.'],
+});

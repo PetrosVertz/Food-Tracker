@@ -190,7 +190,7 @@ $('thBar').addEventListener('click', e => { const b = e.target.closest('[data-v]
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
-document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSTime') drawTimeFmt(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
+document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSTime') drawTimeFmt(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSBeta'){ $('betaTxt').textContent = Profiler.text(); $('betaMsg').textContent = ''; } if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
 function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
   document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
 [['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
@@ -215,3 +215,7 @@ $('sFoodSave').addEventListener('click', () => { saveFoodPrefs(readFoodPrefs($('
 
 // 0.7.4.3: the shared coach chat (js/coach.js)
 Coach.init(); aiGate(); pillsBoot();   // and greys out the AI controls when there is no key
+
+// beta profiler: Settings › User Profile (Beta) › Export (js/profiler.js); it records on its own, the person only exports
+$('betaExport').addEventListener('click', async () => { const r = await Profiler.exportFile(); if(r !== 'cancelled') $('betaMsg').textContent = t('betaDone'); });
+if(typeof Profiler !== 'undefined') setTimeout(() => Profiler.tick('open'), 3000);

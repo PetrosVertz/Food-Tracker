@@ -215,6 +215,7 @@ async function finishWorkout(auto){
   ses.recovEst = estimateRecovery(ses); ses.recov = { ...ses.recovEst };
   const rkBefore = rankNow(ses.exercises.map(x => x.exId));   // ranks before this workout (rank-fx.js)
   sessions.push(ses); saveG('ses');
+  if(typeof Profiler !== 'undefined') Profiler.afterWorkout(ses);   // beta profiler: RECOVERY+ as issued right after this workout
   const rk = RankFx.afterWorkout(ses, rkBefore);   // ranks that changed in this workout (rank-fx.js)
   // Refinements #8: the rank ups are saved with the workout, so reopening it shows them in Workout Done without replaying the screens
   const ups = RankFx.upList(ses, rk), downs = rk.filter(c => c.kind === 'down'); if(ups.length){ ses.rankUps = ups; saveG('ses'); }
