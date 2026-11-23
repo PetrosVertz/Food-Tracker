@@ -1161,3 +1161,7 @@ Object.assign(S, {   // Athlete Rank v0.4 (gym.js rankNaBadge / showRankNa / ran
 Object.assign(S, {   // Social Hub: the Friends spot next to your picture (friends need accounts, 0.8+)
   pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'],
 });
+
+Object.assign(S, {   // Food Library: the My Meals Coming Soon tile and pill (not built yet)
+  tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'],
+});

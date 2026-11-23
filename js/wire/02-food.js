@@ -9,11 +9,12 @@ $('backBtn2').addEventListener('click', () => goBack());
 
 
 // Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
-// (My Meals, a Coming Soon tile and pill with no screen, was removed: saved meals are under Recipes.)
+// My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
 document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
-$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); });
+$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); else if(e.target.closest('.fhsoon')) Phone.haptic(); });
 const FOOD_CAR = pillCarousel($('fTabs'), {
-  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') }],
+  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
+    { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
   page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide')) }
 });
