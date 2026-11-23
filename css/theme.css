@@ -1253,3 +1253,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .radsw{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);font-size:var(--fs-body);color:var(--t-text)}
 .rectile .rtpic svg{overflow:hidden}
 @media (prefers-reduced-motion: reduce){.rectile,.recall{animation:none}}
+
+/* Social Hub: the Friends spot (dashed, coming with accounts) */
+.pffr{padding-top:var(--s3)}
+.pffr .pfav{width:60px;height:60px;color:var(--t-muted);border:1.5px dashed var(--t-line);background:none}

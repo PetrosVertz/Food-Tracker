@@ -348,3 +348,8 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .frow .m.p,.frow .m.p b{color:var(--p)} .frow .m.c,.frow .m.c b{color:var(--c)} .frow .m.f,.frow .m.f b{color:var(--f)}
 .frow .fbasis{font-size:12px;color:var(--t-muted);white-space:nowrap;margin-left:auto}
 .frow .stock,.frow .stock.warn{background:none!important;border:0!important;padding:0!important;font-weight:400!important;font-size:12px!important;color:var(--t-muted)!important}
+
+/* Food Library: My Meals, a Coming Soon tile (not built yet) */
+.fhub .fhsoon{flex-direction:column;align-items:flex-start;gap:6px;cursor:default;pointer-events:auto}
+.fhub .fhsoon:active{transform:none}
+.fhub .fhsoon small{font-size:12px}
