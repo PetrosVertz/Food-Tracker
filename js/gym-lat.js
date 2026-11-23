@@ -39,6 +39,10 @@ const Lat = (() => {
   // the like-for-like volume that records are compared on (per-implement weight × reps × sides), so a new two-bell set never fakes a record against old history
   const basis = (x, s, loadOf) => (loadOf ? loadOf(x.exId, unitW(x, s)) : unitW(x, s)) * num(s.r) * sides(x, s);
 
+  // an exercise's sets with the typed weight read PER IMPLEMENT (only a typed total needs converting); a copy, the saved sets are never touched.
+  // History readers (progression, records, ranks, coach) use this so 40 kg total and 20 kg per hand are the same lift.
+  const sets = x => { const S = (x && x.sets) || []; return x && x.cv && x.cv.l === 'total' ? S.map(z => z.side ? z : { ...z, w: String(unitW(x, z)) }) : S; };
+
   // ---- pairs
   const newPr = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   // legacy rows (an L directly followed by an R, no `pr`) get a pair id; idempotent, never changes a value
@@ -89,5 +93,5 @@ const Lat = (() => {
   // text key for a convention (strings.js cv_*) and whether reps per side must be said
   const labelKey = (cv, rows) => !cv ? '' : cv.l === 'total' ? 'cvTotal' : cv.l === 'bar' ? 'cvBar' : cv.l === 'stack' ? (rows ? 'cvStackSide' : 'cvStack') : cv.l === 'hand' ? ((rows ? rowN(cv) : cv.n) >= 2 ? 'cvHand2' : (rows || cv.rp === 'side' ? 'cvHand' : 'cvOne')) : '';
 
-  return { info, defaultPaired, canPair, defaultCv, rowN, ext, sides, unitW, volume, basis, ensurePairs, mate, pairIdx, open, matched, makeUni, newPair, freshSet, options, labelKey, newPr };
+  return { sets, info, defaultPaired, canPair, defaultCv, rowN, ext, sides, unitW, volume, basis, ensurePairs, mate, pairIdx, open, matched, makeUni, newPair, freshSet, options, labelKey, newPr };
 })();

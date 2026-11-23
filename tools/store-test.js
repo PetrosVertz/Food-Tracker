@@ -266,5 +266,24 @@ if (typeof boot({ 'ft.schema': '2' }).Store.saveMany === 'function') {
   check(!B.plan({ ...base(), streak: mine }, { foods: [] }).changed.includes('streak'), 'streak import: an old backup without a streak record changes nothing');
 }
 
+// 8. Left / Right + load convention fields survive a backup (new exercise fields x.uni / x.jt / x.cv and set fields side / pr / skip are plain data)
+{
+  const BSRC = fs.readFileSync(path.join(root, 'js/platform/backup.js'), 'utf8');
+  const { c } = boot({ 'ft.schema': '2' }); c.normFood = f => Object.assign({ unit: 'g' }, f);
+  vm.runInContext(BSRC + '\n;this.__B = Backup;', c); const B = c.__B;
+  const empty = () => ({ foods: [], meals: [], supps: [], suppLog: {}, fridge: [], groc: [], dayLog: {}, days: {}, plans: {}, targets: null, weights: {}, combos: [], logPhr: {}, foodFix: {}, profile: {}, sessions: [], tpls: [], exCustom: [], gymPlan: {}, active: null });
+  const ses = { id: 'lr1', date: '2026-11-20', start: '2026-11-20T10:00:00Z', mins: 50, vol: 960, exercises: [
+    { exId: 'db_curl', uni: true, jt: true, cv: { l: 'hand', n: 2, rp: 'both', ask: 1 }, sets: [{ id: 'a', type: 'N', w: '14', r: '10', done: true, side: 'L', pr: 'p1' }, { id: 'b', type: 'N', w: '12', r: '10', done: true, side: 'R', pr: 'p1' }, { id: 'c', type: 'D', drop: true, w: '9', r: '8', done: true, side: 'L', pr: 'p2' }, { id: 'd', type: 'D', drop: true, w: '', r: '', done: false, skip: true, side: 'R', pr: 'p2' }] },
+    { exId: 'lateral_db', cv: { l: 'total', n: 2, rp: 'both' }, sets: [{ id: 'e', type: 'N', w: '40', r: '12', done: true }] },
+    { exId: 'bench', sets: [{ id: 'f', type: 'N', w: '80', r: '5', done: true }] }] };
+  const file = { app: 'tracker', schema: 2, foods: [], gym: { sessions: [JSON.parse(J(ses))] } };
+  const p = B.plan(empty(), JSON.parse(J(file)));
+  const got = p.next.sessions.find(x => x.id === 'lr1');
+  check(p.ok && got && J(got.exercises) === J(ses.exercises), 'import: Left / Right rows, pair ids, skipped side, drop pair, load convention and a typed total come back exactly as saved');
+  check(got && got.exercises[2].cv === undefined && got.exercises[2].sets[0].w === '80', 'import: an old exercise with no convention stays without one (never given a guessed meaning)');
+  const again = B.plan({ ...empty(), sessions: p.next.sessions }, JSON.parse(J(file)));
+  check(again.ok && again.next.sessions.filter(x => x.id === 'lr1').length === 1, 'import: the same file twice adds nothing');
+}
+
 console.log(fails ? `\n${fails} store problem(s), ${passes} ok.` : `\nAll ${passes} store checks passed.`);
 process.exit(fails ? 1 : 0);

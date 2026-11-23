@@ -298,7 +298,7 @@ const atOn = x => atAvail(x) && !!x.attempt;
 function atToggle(xi){ const x = active && active.exercises[xi]; if(!x || !atAvail(x)) return;
   if(x.attempt) delete x.attempt; else x.attempt = true; saveG('act'); Phone.haptic(); renderSession(); }
 function boardCheer(x, s){
-  if(!isBoardLift(x.exId)) return; const kg = loadOf(x.exId, s.w); if(!(kg > 0)) return;
+  if(!isBoardLift(x.exId)) return; const kg = loadOf(x.exId, Lat.unitW(x, s)); if(!(kg > 0)) return;
   const prev = boardBest(x.exId, s); if(prev && kg <= prev.kg) return;
   celebrate(); setTimeout(celebrate, 300); setTimeout(celebrate, 650); Phone.vibrate([60, 40, 60, 40, 120]);
   toast(t('atNew', { n: exName(x.exId), kg: fmt(kg) }));
@@ -820,7 +820,7 @@ function tierStd(exId){ const v = TIER_VARIANT[exId], base = v ? v[0] : exId, s 
 // estimated 1RMs from sets of 1–12 reps, volume from every such set; saved workouts + the live one (noLive: saved workouts only)
 function tierList(exId, noLive){ const out = [];
   const add = s => { let e1s = [], vol = 0;
-    s.exercises.forEach(x => { if(x.exId !== exId) return; x.sets.forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1) return;
+    s.exercises.forEach(x => { if(x.exId !== exId) return; Lat.sets(x).forEach(st => { if(!st.done || !isMainSet(st) || st.w === '' || st.r === '' || +st.r < 1) return;
       vol += loadOf(exId, st.w) * (+st.r); if(+st.r <= 12) e1s.push(e1rm(+st.w, +st.r, exId)); }); });
     if(e1s.length || vol > 0) out.push({ ago: Math.max(0, -daysUntil(s.date)), e1s, vol }); };
   sessions.forEach(add); if(active && !noLive) add(active); return out; }

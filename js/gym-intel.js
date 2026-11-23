@@ -41,7 +41,7 @@ const GymIntel = (() => {
     const out = [];
     (typeof sessions !== 'undefined' ? sessions : []).forEach(s => { if(!s || !s.start || s.id === skipId || !Array.isArray(s.exercises)) return;
       const pos = s.exercises.findIndex(x => x && x.exId === exId); if(pos < 0) return;
-      const sets = s.exercises.filter(x => x && x.exId === exId).flatMap(x => x.sets || [])
+      const sets = s.exercises.filter(x => x && x.exId === exId).flatMap(x => Lat.sets(x))
         .filter(z => z && z.done && isMainSet(z) && z.w !== '' && z.w != null && +z.r > 0 && isFinite(+z.w))
         .map(z => ({ w: +z.w, r: +z.r, rir: z.rir != null && z.rir !== '' && isFinite(+z.rir) ? +z.rir : null, f: z.type === 'F' }));
       if(!sets.length) return;

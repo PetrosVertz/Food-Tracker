@@ -86,7 +86,7 @@ const Know = (() => {
     // strength: the most-done lifts, best estimated 1RM in the last 4 weeks vs the 4 weeks before, plus the rank (tier)
     const cnt = {}; lift.forEach(s => s.exercises.forEach(x => { if(!isCardio(x.exId) && x.sets.some(z => z.done && isMainSet(z))) cnt[x.exId] = (cnt[x.exId] || 0) + 1; }));
     const best = (exId, from, to) => { let b = 0; list.forEach(s => { const ago = -daysUntil(s.date); if(ago < from || ago > to) return;
-      s.exercises.forEach(x => { if(x.exId !== exId) return; x.sets.forEach(z => { if(!z.done || !isMainSet(z) || z.w === '' || z.r === '' || +z.r > 12) return; b = Math.max(b, e1rm(+z.w, +z.r, exId)); }); }); }); return b; };
+      s.exercises.forEach(x => { if(x.exId !== exId) return; Lat.sets(x).forEach(z => { if(!z.done || !isMainSet(z) || z.w === '' || z.r === '' || +z.r > 12) return; b = Math.max(b, e1rm(+z.w, +z.r, exId)); }); }); }); return b; };
     const lifts = top(cnt, 6, 2).map(([id]) => { const now = best(id, 1, 28), was = best(id, 29, GYM_DAYS), e = now || was; if(!e) return null;
       const tf = typeof tierFor === 'function' ? tierFor(id, e) : null, ch = now && was ? Math.round((now - was) / was * 100) : null;
       return `${gcEx(id)} ~${Math.round(e)} kg${ch !== null ? ` (${ch > 0 ? '+' : ''}${ch}% vs the 4 weeks before)` : ''}${tf && tf.label ? `, rank ${tf.label}` : ''}`; }).filter(Boolean);

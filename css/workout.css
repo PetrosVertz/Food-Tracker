@@ -962,3 +962,4 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .onesd button{background:none;border:0;padding:4px 8px;font:inherit;font-size:var(--fs-label);color:var(--t-accent-ink,var(--t-accent));text-decoration:underline;cursor:pointer}
 .setrow.skipped{opacity:.5}
 .setrow.skipped input{pointer-events:none}
+.dscv{display:block;color:var(--t-muted);font-size:var(--fs-label);margin:1px 0 3px}

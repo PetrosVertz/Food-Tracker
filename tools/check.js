@@ -634,6 +634,9 @@ function coachE2E() {
 }
 // Exercise Picker V27 + Create Custom Exercise end to end in the browser (--boot only)
 function pickerE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/lateral-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
+    ok('left / right e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/lateral-e2e.js)'); }
+  catch (e) { fail('left / right e2e: tools/lateral-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
   try { const out = execFileSync(process.execPath, [path.join(root, 'tools/expick-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
     ok('exercise picker e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/expick-e2e.js)'); }
   catch (e) { fail('exercise picker e2e: tools/expick-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
