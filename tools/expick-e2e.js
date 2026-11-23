@@ -51,7 +51,7 @@ async function run(browser, port){
     const eqs = await p.evaluate(ids => [...new Set(ids.map(id => exById(id).e))], t.cards);
     must(t.eq === 'cable' && t.step === 'done' && t.compact && eqs.join() === 'cable', 'equipment chosen: cable only, filter row folded');
     must((await p.$eval('#pkPath', e => e.innerText.replace(/\s+/g, ' '))) === 'All · Chest · Upper Chest · Cable', 'path shows All · Chest · Upper Chest · Cable');
-    await p.click('[data-pkback]').catch(() => {}); await p.click('.pkcrumb[data-jump="equipment"]'); await wait(p); await p.click('[data-pkback]'); await wait(p); t = await S(p);
+    await p.click('[data-pkback]', { timeout: 1500 }).catch(() => {}); await p.click('.pkcrumb[data-jump="equipment"]'); await wait(p); await p.click('[data-pkback]'); await wait(p); t = await S(p);
     must(t.eq === null && t.head === null && t.step === 'head' && t.muscle === 'chest', 'back from equipment clears equipment and head');
     await p.click('#pkReset'); await wait(p); t = await S(p);
     must(!t.muscle && !t.eq && t.region === 'all' && t.step === 'region', 'reset clears everything');
@@ -96,7 +96,7 @@ async function run(browser, port){
     must(t.n === 1 && await p.evaluate(() => !$('ovExPick').classList.contains('open')), 'one tap: added and the picker closes');
     const reopen = async () => { await wait(p, 700); await p.evaluate(() => openExPick(addToSession, { multi: true })); await wait(p, 450); };   // after the workout has shown the new card
     await reopen(); must(!(await p.evaluate(() => $('ovExPick').classList.contains('pksearching'))), 'reopened: search bar back at the bottom, filters shown');
-    await p.click('#pkGrid .pkcard[data-ex="bench"]').catch(async () => { await p.fill('#exSearch', 'bench press'); await wait(p, 150); await p.click('#pkGrid .pkcard[data-ex="bench"]'); }); await wait(p, 150); t = await S(p);
+    await p.fill('#exSearch', 'bench press'); await wait(p, 150); await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 150); t = await S(p);
     must(t.n === 1 && /Already/.test(t.toast) && await p.evaluate(() => $('ovExPick').classList.contains('open')), 'tapping an exercise already in the workout adds nothing, picker stays');
     await p.fill('#exSearch', ''); await wait(p, 150);
     // a long press starts Select mode; taps select and unselect; Add (N) adds them in order and closes
@@ -115,12 +115,12 @@ async function run(browser, port){
     await reopen(); await press(ids[1], 650); await p.click('#pkSelX'); await wait(p, 150);
     must(await p.evaluate(() => !PK.selOn && !document.querySelector('#pkGrid .pkcard.sel') && $('ovExPick').classList.contains('open') && active.exercises.length === 4), 'Cancel leaves Select mode, adds nothing');
     t = await S(p);
-    const n0 = t.n; await p.click('#pkGrid .pkcard[data-ex="cable_crossover"] .pkinfo').catch(async () => p.click('#pkGrid .pkinfo')); await wait(p, 300);
+    const n0 = t.n; await p.click('#pkGrid .pkcard[data-ex="cable_crossover"] .pkinfo', { timeout: 1500 }).catch(async () => p.click('#pkGrid .pkinfo')); await wait(p, 300);
     must(await p.evaluate(() => $('ovExInfo').classList.contains('open') && $('ovExPick').classList.contains('open')) && (await S(p)).n === n0, 'info opens details, adds nothing, picker stays');
     await p.evaluate(() => close('ovExInfo')); await wait(p, 300);
     // 8. five quick taps on pills, then a consistent state and no errors
     await p.click('#pkReset'); await p.click('.pkreopen'); await wait(p, 120);
-    for(const v of ['back', 'all', 'quads', 'all', 'calves']){ await p.click(`#pkRail [data-c="muscle"][data-v="${v}"]`).catch(() => {}); await p.waitForTimeout(60); }
+    for(const v of ['back', 'all', 'quads', 'all', 'calves']){ await p.click(`#pkRail [data-c="muscle"][data-v="${v}"]`, { timeout: 600 }).catch(() => {}); await p.waitForTimeout(60); }
     await wait(p, 500); t = await S(p);
     must(!p.errs.length && !(await p.$('.pkfold')) && t.step && (t.muscle === null || EXMOK(t.muscle)), 'rapid taps: no errors, no stuck animation (' + JSON.stringify([t.muscle, t.step]) + ')');
     must(!p.errs.length, 'no page errors in the picker run ' + p.errs.join(' | '));
