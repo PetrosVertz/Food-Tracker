@@ -106,6 +106,7 @@ The one recovery owner. Read-only, computed locally (no AI, no network), cached 
 
 ## Planned — compatibility only (DO NOT IMPLEMENT without their own prompt)
 - **Athlete Rank v0.4**: BUILT and live (see the section below); still planned: community recalibration from an opt-in dataset, a screen to import a reviewed benchmark version (the season mechanism already accepts one at the next boundary).
+- **Cardio tab + Strava**: planned. Until then cardio exercises (22 definitions, `m: 'cardio'`) are NOT offered in the exercise picker, search or Gym Coach; the definitions stay in `js/data/gym.js` so cardio already logged in history, templates and backups still shows. Do not delete them.
 - **Athlete OS**: built (see above). Still planned on top of it: Experiments, a Not Now button on coach cards, cloud sync of memory (it is device-only today). (Hand-off of clear other-domain questions is built: Routing above.)
 - **Coaches / Fridge AI**: propose, never write without the user's Apply; no emojis; go through `AIProvider`.
 - **Integrations (Health, watches, Strava, cloud)**: adapter → permission → validation → normalized facts → the owning domain's save. No direct writes to other keys. Sync can use `ft.sync.v1` (`upd`/`tomb` per record id).

@@ -1381,7 +1381,7 @@ const gcReply = () => GC_REPLY.replace('{s}', AI.words(45)).replace('{l}', AI.wo
 const gcLang = () => lang === 'el' ? 'Greek' : 'English';
 // the AI names exercises in English; find ours (exact name first, then the longest name it contains or is part of)
 function exByName(n){
-  const q = norm(n); if(!q) return null; const L = EX().filter(x => x.en);
+  const q = norm(n); if(!q) return null; const L = EX().filter(x => x.en && x.m !== 'cardio');
   return L.find(x => norm(x.en) === q) || L.find(x => norm(x.el || '') === q)
     || L.filter(x => { const e = norm(x.en); return e.length > 4 && (q.includes(e) || e.includes(q)); }).sort((a, b) => Math.abs(norm(a.en).length - q.length) - Math.abs(norm(b.en).length - q.length))[0] || null;
 }

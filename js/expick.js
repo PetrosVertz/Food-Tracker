@@ -52,6 +52,8 @@ function pkHave(){ const op = id => $(id).classList.contains('open');
 function pkBack(){ if($('exSearch').value){ $('exSearch').value = ''; pkSearch(); return true; } if(PK.selOn){ pkSelEnd(); return true; } return false; }
 
 // ---------- which exercises, in which order ----------
+// cardio is not offered for picking any more (a dedicated cardio tab + Strava come later); the definitions stay so logged cardio in history, templates and backups still shows
+const pkEx = () => EX().filter(x => x.m !== 'cardio');
 function pkHits(x, m, head){
   if(x.custom){ const s = cxSpec(x); if(!s.mus.includes(m)) return false; if(!head) return true; const mine = s.heads.filter(h => exmHeads(m).includes(h)); return !mine.length || mine.includes(head); }
   if(m === 'cardio') return x.m === 'cardio';
@@ -63,16 +65,16 @@ function pkList(){
   const use = (x, k) => { const v = x.custom ? null : PK.head && k === PK.muscle ? +(x.mu || {})[PK.head] || 0 : k === 'cardio' ? (x.m === 'cardio' ? 100 - cardioRank(x.id) : 0) : exmUse(x, k); return v == null ? -1 : v; };
   const byName = (a, b) => exName(a).localeCompare(exName(b));
   if(PK.q){
-    const r = ExSearch.query(PK.q, { list: EX(), lang, sessions });
+    const r = ExSearch.query(PK.q, { list: pkEx(), lang, sessions });
     return { mode: 'search', items: r.items.map(i => i.x).filter(Boolean) };
   }
-  let l = EX();
+  let l = pkEx();
   if(PK.region !== 'all') l = l.filter(x => exmRegion(exmOf(x)) === PK.region);
   if(PK.muscle) l = l.filter(x => pkHits(x, PK.muscle, PK.head));
   if(PK.eq) l = l.filter(x => x.e === PK.eq);
   if(pkGrouped()){
     const bins = new Map(); l.forEach(x => { const k = exmOf(x); if(!bins.has(k)) bins.set(k, []); bins.get(k).push(x); });
-    const order = [...EXM_UP, ...EXM_LOW, 'cardio'], rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
+    const order = [...EXM_UP, ...EXM_LOW], rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
     const groups = [...bins.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
       .map(k => ({ k, items: bins.get(k).sort((a, b) => use(b, k) - use(a, k) || hist(a, b) || byName(a, b)) }));
     return { mode: 'grouped', groups, n: l.length };
@@ -94,7 +96,7 @@ function pkCrumbs(){
 function pkPills(){
   const st = PK.step, all = [['all', t('all')]];
   let opts = [], sel = 'all';
-  if(st === 'muscle'){ opts = all.concat((PK.region === 'all' ? [...EXM_UP, ...EXM_LOW, 'cardio'] : PK.region === 'up' ? EXM_UP : EXM_LOW).map(k => [k, pkName(k)])); sel = PK.muscle || 'all'; }
+  if(st === 'muscle'){ opts = all.concat((PK.region === 'all' ? [...EXM_UP, ...EXM_LOW] : PK.region === 'up' ? EXM_UP : EXM_LOW).map(k => [k, pkName(k)])); sel = PK.muscle || 'all'; }
   else if(st === 'head'){ opts = all.concat(pkHeadsOf(PK.muscle).map(k => [k, pkName(k)])); sel = PK.head || 'all'; }
   else if(st === 'equipment'){ opts = all.concat(EQ_ORDER.map(e => [e, exTitle(EL(e))])); sel = PK.eq || 'all'; }
   return opts.map(([v, l]) => {

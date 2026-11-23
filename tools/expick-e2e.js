@@ -29,7 +29,7 @@ async function run(browser, port){
   // 1. first look: All Muscles, the centred Choose Muscle pill, every exercise, two readable columns at 390
   { const p = await page(browser, port); const s = await S(p);
     const g = await p.evaluate(() => { const c = [...document.querySelectorAll('#pkGrid .pkcard')].slice(0, 2).map(e => e.getBoundingClientRect()); const b = document.querySelector('.pkreopen').getBoundingClientRect();
-      return { cols: c[0].top === c[1].top, w: Math.round(c[0].width), mid: Math.round(b.left + b.width / 2), seg: document.querySelector('#pkRegion .on').dataset.r, n: EX().length }; });
+      return { cols: c[0].top === c[1].top, w: Math.round(c[0].width), mid: Math.round(b.left + b.width / 2), seg: document.querySelector('#pkRegion .on').dataset.r, n: EX().filter(x => x.m !== 'cardio').length }; });
     must(s.region === 'all' && g.seg === 'all' && s.step === 'region', 'opens on All Muscles with the Choose Muscle pill');
     must(Math.abs(g.mid - 195) <= 1, 'Choose Muscle is centred');
     must(g.cols && g.w >= 170, 'two columns of ~177 px cards at 390 px');
@@ -38,7 +38,7 @@ async function run(browser, port){
     const o1 = s.cards.slice(0, 12).join(); await p.evaluate(() => { pkDraw(); }); must((await S(p)).cards.slice(0, 12).join() === o1, 'newcomer discovery order is stable');
     // 2. muscle → head → equipment, real usage order, back clears the step, reset clears all
     await p.click('.pkreopen'); await wait(p);
-    must(await p.$$eval('#pkRail [data-c="muscle"]', l => l.length) === 14, 'muscle row: All + 12 muscles + cardio');
+    must(await p.$$eval('#pkRail [data-c="muscle"]', l => l.length) === 13, 'muscle row: All + 12 muscles (cardio is not offered)');
     await p.click('[data-c="muscle"][data-v="chest"]'); await wait(p);
     let t = await S(p); const use = await p.evaluate(ids => ids.map(id => exmUse(exById(id), 'chest')), t.cards);
     must(t.muscle === 'chest' && t.step === 'head', 'chest → head row');
