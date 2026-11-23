@@ -60,6 +60,15 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   await go(p, 'supps'); await p.evaluate(() => document.querySelector('#fTabs .pcrow>button[data-car="groc"]:not([aria-hidden])').click()); await sleep(600);   // aria-disabled: a plain tap
   ok(await p.evaluate(() => location.hash === '#supps'), 'a greyed-out pill cannot be chosen');
   await p.close();
+  // 5. Petros: Social Hub leaderboards pick the lift with the same pill carousel; the choice is remembered
+  p = await open('en', { lastBackup: new Date().toISOString() }); await go(p, 'profile');
+  let lb = await p.evaluate(() => ({ keys: [...document.querySelectorAll('#lbCar .pcrow>button:not([aria-hidden])')].map(b => b.dataset.car).join(), on: document.querySelector('#lbCar .pcrow>button.on').dataset.car }));
+  ok(lb.keys === 'bench,squat,deadlift' && lb.on === 'bench', `Leaderboards: pills ${lb.keys}, Bench Press first`);
+  await p.evaluate(() => $('lbCar').scrollIntoView({ block: 'center' })); await sleep(300);
+  await p.click('#lbCar .pcrow>button[data-car="deadlift"]:not([aria-hidden])'); await sleep(800);
+  await go(p, 'today'); await go(p, 'profile');
+  ok(await p.evaluate(() => ui.pfLift === 'deadlift' && document.querySelector('#lbCar .pcrow>button.on').dataset.car === 'deadlift'), 'Leaderboards: Deadlift chosen and still chosen after leaving and coming back');
+  await p.close();
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); srv.close(); console.log(fails ? `\n${fails} check(s) failed` : '\nAll carousel checks passed.'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); srv.close(); process.exit(1); });
