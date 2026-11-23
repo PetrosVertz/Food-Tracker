@@ -277,7 +277,10 @@ const GYM_CAR = pillCarousel($('gTabs'), {
   items: [{ key: 'gym-lib', label: () => t('hubLib') }, { key: 'gym-prog', label: () => t('hubProg') }, { key: 'gym-week', label: () => t('hubWeek') },
     { key: 'gym-rec', label: () => t('hubRec') }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
-  page: { area: $('pgGym'), views: () => ['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide')) }
+  page: { area: $('pgGym'), views: () => ['gPlanV', 'gTplV', 'gWeigh', 'gProgV', 'gRecV'].map($).filter(el => !el.classList.contains('hide')),
+    // Petros: the section a swipe brings in is shown while the finger moves (ui.js swipePages); RECOVERY+ is drawn only when needed
+    viewsFor: key => ({ 'gym-lib': ['gTplV'], 'gym-prog': ['gWeigh', 'gProgV'], 'gym-week': ['gPlanV'], 'gym-rec': ['gRecV'] }[key] || []).map($),
+    prep: key => { if(key === 'gym-rec') renderRecovery(); else if(key === 'gym-prog' && typeof drawWeigh === 'function') drawWeigh(); } }
 });
 
 $('gStart').addEventListener('click', () => {

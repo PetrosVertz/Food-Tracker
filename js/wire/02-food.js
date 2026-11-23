@@ -19,7 +19,10 @@ const FOOD_CAR = pillCarousel($('fTabs'), {
     { key: 'fridge', label: () => t('tFridge'), off: () => !kitchenOn() }, { key: 'groc', label: () => t('tGroc'), off: () => !kitchenOn() },   // Petros: Inventory + Groceries
     { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
-  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps', 'fridgeView', 'pgGroc'].map($).filter(el => !el.classList.contains('hide')) }
+  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps', 'fridgeView', 'pgGroc'].map($).filter(el => !el.classList.contains('hide')),
+    // Petros: the section a swipe brings in is shown while the finger moves (ui.js swipePages)
+    viewsFor: key => ({ foods: ['storeView'], meals: ['mealsView'], supps: ['foodSupps'], fridge: ['fridgeView'], groc: ['pgGroc'] }[key] || []).map($),
+    prep: key => { if(key === 'fridge') renderFridge(); else if(key === 'groc') renderGroc(); } }
 });
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it
