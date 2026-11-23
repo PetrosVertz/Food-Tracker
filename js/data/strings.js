@@ -1157,3 +1157,7 @@ Object.assign(S, {   // Athlete Rank v0.4 (gym.js rankNaBadge / showRankNa / ran
   tierNextBeat: ['Beat your best set to move up', 'Ξεπέρασε το καλύτερο σετ σου για να ανέβεις'], tierGap2: ['{what} for {tier}', '{what} για {tier}'],
   rankProt: ['Protected this season: new benchmarks lowered this rank by at most two levels.', 'Προστατεύεται αυτή τη σεζόν: τα νέα δεδομένα αναφοράς χαμήλωσαν αυτή την κατάταξη το πολύ κατά δύο επίπεδα.'],
 });
+
+Object.assign(S, {   // Social Hub: the Friends spot next to your picture (friends need accounts, 0.8+)
+  pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'],
+});

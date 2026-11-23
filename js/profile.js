@@ -264,6 +264,7 @@ function renderProfile(){
   const streak = `<button type="button" class="pfstpill stk-${d.streak.state}" data-streak aria-label="${esc(streakLabel(d.streak))}">${flameIcon(d.streak.total, 14)}<b>${d.streak.total}</b>${saverMini(d.streak)}</button>`;
   const circles = `<div class="pfcircles" role="list">
       <div class="pfme ${ring}" role="listitem"><span class="pfavw"><button class="pfav" type="button" data-pfphoto aria-label="${esc(t('stProfile'))}">${d.photo ? `<img class="avimg" src="${d.photo}" alt="">` : d.initial ? esc(d.initial) : svgIcon('user', 34, 1.8)}</button>${streak}</span><small>${esc(t('pfYou'))}</small></div>
+      <div class="pffr" role="listitem"><span class="pfav">${svgIcon('users', 22, 1.8)}</span><small>${esc(t('pfFriendsSoon'))}</small></div>
     </div>`;
   // Refinements #8 change 15: Highest Ranked Exercises, the whole width: your three best ranks, big plates with the rank name under each;
   // a tap on a plate pops a small bubble with the exercise (wire/04: data-rkbub). Fewer than three: quiet empty slots and one line on how to earn one.
