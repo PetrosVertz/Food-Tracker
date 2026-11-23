@@ -238,10 +238,10 @@ Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-tes
 | sissy_squat | Sissy squat | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
 | spanish_squat | Spanish squat | band | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
 | wall_sit | Wall sit | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
-| bulgarian | Bulgarian split squat | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
-| lunges | Walking lunges | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
-| reverse_lunge | Reverse lunge | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
-| step_up | Step-up | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
+| bulgarian | Bulgarian split squat | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
+| lunges | Walking lunges | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
+| reverse_lunge | Reverse lunge | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
+| step_up | Step-up | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
 | leg_ext | Leg extension | machine | C | stack | 1 | both | reps |  | Machine stack / plates as shown on the machine |
 | hack_squat_bb | Barbell hack squat | barbell | C | bar | 1 | both | reps |  | Shared bar: weight is the bar total |
 | reverse_hack | Reverse hack squat | machine | C | stack | 1 | both | reps |  | Machine stack / plates as shown on the machine |
@@ -250,10 +250,10 @@ Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-tes
 | pause_squat | Pause squat | barbell | C | bar | 1 | both | reps |  | Shared bar: weight is the bar total |
 | cossack | Cossack squat | bodyweight | P | bw | 1 | side | reps |  | Bodyweight (added weight / assistance as before); reps per side |
 | step_down | Step-down | bodyweight | P | bw | 1 | side | reps |  | Bodyweight (added weight / assistance as before); reps per side |
-| lateral_lunge | Lateral lunge | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
-| curtsy_lunge | Curtsy lunge | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
+| lateral_lunge | Lateral lunge | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
+| curtsy_lunge | Curtsy lunge | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
 | smith_split_squat | Smith machine split squat | machine | P | bar | 1 | side | reps |  | Shared Smith bar: weight is the bar total; reps per leg |
-| front_foot_split | Front-foot elevated split squat | dumbbell | P | hand | 2 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 2 bells, change with the load chip. Weight typed is per bell; reps per leg** |
+| front_foot_split | Front-foot elevated split squat | dumbbell | P | hand | 1 | side | reps |  | **AMBIGUOUS: one working leg with 1 or 2 bells; default 1 bell, change to 2 bells with the load chip. Weight typed is per bell; reps per leg** |
 | pistol_squat | Pistol squat | bodyweight | P | bw | 1 | side | reps |  | Bodyweight (added weight / assistance as before); reps per side |
 | jump_squat | Jump squat | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
 | box_jump | Box jump | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
