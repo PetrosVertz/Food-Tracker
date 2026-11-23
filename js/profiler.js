@@ -57,6 +57,8 @@ const Profiler = (() => {
       m.forecasts = m.forecasts.slice(-KEEP_FORECASTS); save(m);
     }catch(e){}
   }
+  // the same, but only when the phone has nothing else to do (never competes with the screen)
+  const tickIdle = why => { const f = () => tick(why); if(typeof requestIdleCallback === 'function') requestIdleCallback(f, { timeout: 15000 }); else setTimeout(f, 1000); };
   function afterWorkout(ses){   // right after a workout is finished: what RECOVERY+ says now, and what the workout was
     try{
       const m = load(), f = forecastNow('workout'); if(f) m.forecasts.push(f);
@@ -69,7 +71,7 @@ const Profiler = (() => {
   if(typeof window !== 'undefined' && window.addEventListener){
     window.addEventListener('error', e => logError(e.message, (e.filename || '').split('/').pop() + ':' + e.lineno));
     window.addEventListener('unhandledrejection', e => logError('promise: ' + (e.reason && e.reason.message || e.reason), ''));
-    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') tick('visible'); });
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') tickIdle('visible'); });
   }
 
   // ---------- the report ----------
@@ -245,5 +247,5 @@ const Profiler = (() => {
     const r = report(), blob = new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' }), name = 'foodtracker-beta-profile-' + dayKey(Date.now()) + '.json';
     try{ return await Phone.shareFile(blob, name); }catch(e){ if(e && e.name === 'AbortError') return 'cancelled'; Phone.download(blob, name); return 'downloaded'; }
   }
-  return { tick, afterWorkout, report, text, exportFile, forecastNow, logError };
+  return { tick, tickIdle, afterWorkout, report, text, exportFile, forecastNow, logError };
 })();

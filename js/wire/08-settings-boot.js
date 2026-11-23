@@ -218,4 +218,4 @@ Coach.init(); aiGate(); pillsBoot();   // and greys out the AI controls when the
 
 // beta profiler: Settings › User Profile (Beta) › Export (js/profiler.js); it records on its own, the person only exports
 $('betaExport').addEventListener('click', async () => { const r = await Profiler.exportFile(); if(r !== 'cancelled') $('betaMsg').textContent = t('betaDone'); });
-if(typeof Profiler !== 'undefined') setTimeout(() => Profiler.tick('open'), 3000);
+if(typeof Profiler !== 'undefined') setTimeout(() => Profiler.tickIdle('open'), 8000);   // well after start-up, and only when the phone is idle
