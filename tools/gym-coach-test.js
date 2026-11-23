@@ -33,6 +33,7 @@ const GYM = read('js/gym.js'), W04 = read('js/wire/04-gym.js'), CORE = read('js/
 const SRC = [
   read('js/data/strings.js').replace(/^const /gm, 'var '),
   read('js/data/gym.js').replace(/^const /gm, 'var ').replace(/^let /gm, 'var '),
+  read('js/data/gym-lat.js').replace(/^const /gm, 'var '), read('js/gym-lat.js').replace(/^const /gm, 'var '),
   pick(CORE, ['norm', 't'], 'core.js'),
   pick(W01, ['uid', 'esc', 'r1', 'fmt'], 'wire/01'),
   pick(W03, ['daysUntil'], 'wire/03'), 'var _exc = null;',

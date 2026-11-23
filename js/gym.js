@@ -30,10 +30,10 @@ function exIcon(x, size){
 // ---------- history helpers ----------
 function exHistory(exId, excludeId){
   return sessions.filter(s => s.id !== excludeId).map(s => { const x = s.exercises.find(e => e.exId === exId); if(!x) return null;
-    const work = x.sets.filter(st => st.done && st.type !== 'W' && st.w !== '' && st.r !== '');
+    const work = x.sets.filter(st => st.done && st.type !== 'W' && st.w !== '' && st.r !== '').map(st => x.cv && x.cv.l === 'total' && !st.side ? { ...st, w: String(Lat.unitW(x, st)) } : st);   // a typed total is read per implement; the saved set is untouched
     if(!work.length) return null;
     const top = work.reduce((b, st) => (+st.w > +b.w || (+st.w === +b.w && +st.r > +b.r)) ? st : b, work[0]);
-    return { date: s.date, start: s.start, sets: work, top, e1: Math.max(...work.map(st => e1rm(+st.w, +st.r, exId))) }; }).filter(Boolean).sort((a, b) => a.start.localeCompare(b.start));
+    return { date: s.date, start: s.start, cv: x.cv, sets: work, top, e1: Math.max(...work.map(st => e1rm(+st.w, +st.r, exId))) }; }).filter(Boolean).sort((a, b) => a.start.localeCompare(b.start));
 }
 
 function lastSessionDate(){ const s = sessions.slice().sort((a, b) => b.start.localeCompare(a.start))[0]; return s ? s.date : (profile.gymLast || null); }
@@ -82,7 +82,7 @@ const gx = () => settings.gx || (settings.gx = {});
 // 0.7.9.1: Hide Set Markers is a drop-down of three: Warm-Up (W), Drop Set (D), Failure (F). gx().hideM = { W:true, … } = not offered on sets any more.
 // The old single switch (hideMarks) becomes all three hidden.
 // 0.7.9.6: ONE place for the Exercise Settings defaults: only the three pills are on; a switch someone has changed keeps their choice
-const GX_DEF = { rank: true, uniPill: true, formPill: true, swapPill: true, lbAtt: false, warnSore: false, tips: false, uniBoth: false, half: false, neg: false, rir: false, sound: false };
+const GX_DEF = { rank: true, uniPill: true, formPill: true, swapPill: true, lbAtt: false, warnSore: false, tips: false, uniBoth: true, half: false, neg: false, rir: false, sound: false };
 // Petros: Exercise Settings for all exercises at once ('all') or for each exercise on its own ('each'): settings.gxMode (unset = not asked
 // yet: the first tap on a card's gear asks). In 'each' mode an exercise's own choices live in settings.gxEx[exId] ({ key: bool, hideM });
 // anything it has not changed reads the general settings (gx()), so a new exercise starts from them, and switching back to 'all' keeps
@@ -119,7 +119,7 @@ function startSession(tpl){
   active = { id: uid(), date: todayKey(), start: now.toISOString(), clock0: tpl && tpl.exercises.length ? now.getTime() : null, tplId: tpl ? tpl.id : null, name: tpl ? tpl.name : '', type: tpl ? tpl.type : 'full', prs: [],
     exercises: tpl ? tpl.exercises.map(e => ({ exId: e.exId, reps: e.reps, rest: e.rest ?? exById(e.exId).rest, sets: Array.from({ length: e.sets || 3 }, () => newSet()), ...(e.ss ? { ss: e.ss } : {}) })) : [] };
   normalizeSS(active.exercises);   // only neighbours stay linked
-  active.exercises.forEach((x, i) => { const e = tpl.exercises[i]; if(e && e.uni !== undefined ? e.uni : isUni(x.exId)) makeUni(x, true); });   // one side at a time: L / R sets
+  active.exercises.forEach((x, i) => { const e = tpl && tpl.exercises[i]; cvInit(x); if(e && e.uni !== undefined ? e.uni : isUni(x.exId)) makeUni(x, true); });   // one side at a time: L / R sets
   saveG('act');
   // today becomes a gym day; discarding the workout puts the day back as it was
   const tk = todayKey(), di = dayInfo(tk); active.dayBefore = days[tk] ? { ...days[tk] } : null;
@@ -239,28 +239,32 @@ function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
 function tickSet(x, s, row, xi, si){
-  if(s.done){ const mate = gOn('uniBoth', x.exId) && x.uni && s.side === 'L' && x.sets[si + 1] && x.sets[si + 1].side === 'R' ? x.sets[si + 1] : null; if(mate){ mate.done = false; delete mate.at; }   // the tall tick reopens both sides
-    s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVol(x.exId, x.sets) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
+  Lat.ensurePairs(x);
+  if(s.done){ const mi = jointOn(x) ? Lat.mate(x, si) : -1, mt = mi >= 0 && x.sets[mi].done ? x.sets[mi] : null; if(mt){ mt.done = false; mt.pr = null; delete mt.at; }   // the tall tick reopens both sides (the recorded values stay as they were)
+    s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVolBasis(x.exId, x.sets, x.cv) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
   const wi = row.querySelector('[data-w]'), ri = row.querySelector('[data-r]'), card = isCardio(x.exId);
   if(atOn(x) && s.type !== 'W') s.r = '1';   // attempt mode: a ticked set is a single
   if(s.w === '' && wi.placeholder && !isNaN(+wi.placeholder)) s.w = wi.placeholder; if(s.r === '' && ri && ri.placeholder && !isNaN(+ri.placeholder)) s.r = ri.placeholder;
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
-  s.done = true; s.at = Date.now(); Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
+  if(x.cv && x.cv.ask && !x.uni && !s.side && !card && s.type !== 'W'){ toast(t('cvPickFirst')); openCv(xi, true); return; }   // a movement that can be done together OR alternating: say which before it is saved
+  s.done = true; s.at = Date.now(); delete s.tw; delete s.tr; Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
   coachCheer(x.sets.every(z => z.done) ? 'last' : 'set');
   if(card){   // cardio records: longest time, farthest distance (only against earlier workouts)
     const hist = exHistory(x.exId, active.id);
     if(hist.length){ [['t', 'r'], ['d', 'w']].forEach(([kind, k]) => { const prev = Math.max(...hist.flatMap(h => h.sets.map(z => +z[k] || 0))), cur = +s[k] || 0;
       if(cur > prev && !active.prs.some(p => p.exId === x.exId && p.kind === kind && p.v >= cur)){ active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === kind)); active.prs.push({ exId: x.exId, kind, v: cur }); s.pr = kind; celebrate(); toast(t(kind === 't' ? 'prT' : 'prD', { n: exName(x.exId), v: fmt(cur) })); } }); }
   }
-  let both = false;   // one-sided exercise + the setting: finishing L finishes R too
-  if(gOn('uniBoth', x.exId) && x.uni && s.side === 'L'){ const o = x.sets[si + 1]; if(o && o.side === 'R' && !o.done){ if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); both = true; si++; } }
+  let both = false;   // one tap finishes the pair: this side and its mate (found by pair id, never by position), one set, one rest
+  const mi2 = s.side && jointOn(x) ? Lat.mate(x, si) : -1;
+  if(mi2 >= 0 && Lat.open(x.sets[mi2])){ const o = x.sets[mi2]; if(o.w === '') o.w = s.w; if(o.r === '') o.r = s.r; o.done = true; o.at = Date.now(); delete o.tw; delete o.tr; both = true; si = Math.max(si, mi2); }
+  const waitMate = s.side === 'L' && !both && (() => { const m = Lat.mate(x, si); return m >= 0 && Lat.open(x.sets[m]); })() || (s.side === 'L' && !both && !s.pr && x.uni && x.sets[si + 1] && x.sets[si + 1].side === 'R' && !x.sets[si + 1].done);   // L done, R still to do: the rest starts after R
   if(!card && s.type !== 'W'){
     const hist = exHistory(x.exId, active.id), same = active.exercises.filter(z => z.exId === x.exId);
     if(hist.length){
-      const prevMaxW = Math.max(...hist.flatMap(h => h.sets.map(z => +z.w))), curOther = Math.max(0, ...same.flatMap(z => z.sets).filter(z => z !== s && z.done && z.type !== 'W').map(z => +z.w));
-      if(exById(x.exId).e !== 'bodyweight' && +s.w > prevMaxW && +s.w > curOther){ s.pr = 'w'; active.prs.push({ exId: x.exId, kind: 'w', w: +s.w, r: +s.r }); celebrate(); toast(t('prW', { n: exName(x.exId), w: fmt(+s.w), r: s.r })); }
-      const prevVol = bestVolBefore(x.exId), curVol = same.reduce((a, z) => a + exVol(x.exId, z.sets), 0);
+      const uw = Lat.unitW(x, s), prevMaxW = Math.max(...hist.flatMap(h => h.sets.map(z => +z.w))), curOther = Math.max(0, ...same.flatMap(o => o.sets.filter(z => z !== s && z.done && z.type !== 'W').map(z => Lat.unitW(o, z))));
+      if(exById(x.exId).e !== 'bodyweight' && uw > prevMaxW && uw > curOther){ s.pr = 'w'; active.prs.push({ exId: x.exId, kind: 'w', w: uw, r: +s.r }); celebrate(); toast(t('prW', { n: exName(x.exId), w: fmt(uw), r: s.r })); }
+      const prevVol = bestVolBefore(x.exId), curVol = same.reduce((a, z) => a + exVolBasis(x.exId, z.sets, z.cv), 0);
       if(!x.volPR && curVol > prevVol){ x.volPR = true; s.pr = 'v'; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v'));
         active.prs.push({ exId: x.exId, kind: 'v', vol: Math.round(curVol), prev: Math.round(prevVol) });
         celebrate(); setTimeout(celebrate, 350); toast(t('prV', { n: exName(x.exId), v: Math.round(curVol).toLocaleString() })); }
@@ -270,14 +274,14 @@ function tickSet(x, s, row, xi, si){
   if(s.pr) coachCheer('pr');
   saveG('act');
   SSNEXT = null; const nxt = x.sets[si + 1], moreDrop = nxt && nxt.drop && !nxt.done;   // no rest between drops
-  if(!card && !(x.uni && s.side === 'L' && !both) && !moreDrop){
+  if(!card && !waitMate && !moreDrop){
     const go = s.type === 'W' ? null : ssNext(xi);   // superset: straight to the partner's next set
     if(go) SSNEXT = go;
     else { const rest = s.type === 'W' ? 60 : ssRest(x); REST = { end: Date.now() + rest * 1000, total: rest, rang: false, xi, si }; }
   }
   if(!card && s.type !== 'W' && +s.r === 1 && x.attempt) boardCheer(x, s);   // Refinements #8: only a single ticked with the trophy on is a leaderboard 1RM
   autoEndMark(REST ? REST.end : 0);   // the auto-end wait starts when this rest ends (or now, with no rest)
-  if(s.type !== 'W' && !moreDrop && !(x.uni && s.side === 'L' && !both) && x.sets.every(z => z.done)){   // 0.7.1: the next set is already waiting under the rest timer
+  if(s.type !== 'W' && !moreDrop && !waitMate && x.sets.every(z => z.done || z.skip)){   // 0.7.1: the next set is already waiting under the rest timer
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
     if(atOn(x)) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
     x.sets.push(...add); saveG('act'); }
@@ -326,7 +330,10 @@ function dropWeight(x, w){
   const h = sessions.slice().reverse().flatMap(s => s.exercises.filter(z => z.exId === x.exId)).find(z => z.sets.some(st => st.drop));
   let ratio = .78; if(h){ const j = h.sets.findIndex(st => st.drop), p = h.sets[j - 1]; if(p && +p.w > 0 && +h.sets[j].w > 0) ratio = Math.min(.95, Math.max(.4, +h.sets[j].w / +p.w)); }
   return w > 0 ? String(Math.max(0, r25(w * ratio, e))) : ''; }
-function addDrop(x, j){ const s = x.sets[j]; x.sets.splice(j + 1, 0, { ...newSet('D'), drop: true, w: dropWeight(x, s.w || (s.done ? s.w : '')), side: s.side }); if(!x.sets[j + 1].side) delete x.sets[j + 1].side; }
+function addDrop(x, j){ const s = x.sets[j]; Lat.ensurePairs(x);
+  if(s.side && s.pr && jointOn(x)){   // a pair: the drop is a lighter PAIR under it, with its own pair id, so no row is ever detached from its mate
+    const end = Math.max(...Lat.pairIdx(x, j)), w = dropWeight(x, s.w || (s.done ? s.w : '')), pair = Lat.newPair('D', uid, true); pair.forEach(z => { z.w = w; }); x.sets.splice(end + 1, 0, ...pair); return; }
+  x.sets.splice(j + 1, 0, { ...newSet('D'), drop: true, w: dropWeight(x, s.w || (s.done ? s.w : '')), side: s.side }); if(!x.sets[j + 1].side) delete x.sets[j + 1].side; }
 
 function tickRest(){
   if(!REST) return; const left = REST.end - Date.now();
@@ -343,17 +350,21 @@ function autoEndMark(t){ if(!active) return; active.idleFrom = Math.max(Date.now
 // The exercise picker (openExPick, pkFit, pkHave …) lives in js/expick.js (V27).
 
 // ---------- exercise details: muscles %, form, common mistakes ----------
-function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; if(isUni(id)) makeUni(x, true);
+function addToSession(id){ const x = { exId: id, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest, sets: [newSet()] }; cvInit(x); if(isUni(id)) makeUni(x, true);
   active.exercises.push(x); active.cur = active.exercises.length - 1; saveG('act'); renderSession();
   const i = active.exercises.length - 1; setTimeout(() => { showCard(document.querySelector(`.exc[data-x="${i}"]`)); }, 60); }
 
 // unilateral exercises: L and R sets in pairs; rest starts after the R side
 const UNI_RE = /single|one[- ]?arm|one[- ]?leg|1[- ]arm|unilateral|bulgarian|split squat|lunge|step[- ]?up|pistol|concentration|kickback|suitcase/i;
-const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && (typeof ex.uni === 'boolean' && Array.isArray(ex.mus) ? ex.uni : UNI_RE.test(ex.en || '')); };
-const uniPair = s => [{ ...newSet(s && s.type), side: 'L' }, { ...newSet(s && s.type), side: 'R' }];
-function makeUni(x, on){ x.uni = on;
-  if(on) x.sets = x.sets.flatMap(s => s.side ? [s] : [{ ...s, side: 'L' }, { ...newSet(s.type), side: 'R' }]);
-  else x.sets = x.sets.filter(s => s.side !== 'R').map(s => { const c = { ...s }; delete c.side; return c; }); }
+const isUni = id => { const ex = exById(id); return !!ex && !isCardio(id) && (typeof ex.uni === 'boolean' && Array.isArray(ex.mus) ? ex.uni : Lat.info(id) ? Lat.defaultPaired(id, ex) : UNI_RE.test(ex.en || '')); };   // built-ins: the reviewed table (js/data/gym-lat.js); custom: what its creator chose
+const uniPair = s => Lat.newPair(s && s.type, uid);
+// one-tap finishing for THIS exercise: an explicit choice (this exercise's own, else the general one, true OR false) always wins; otherwise the card's own snapshot
+// from when it was made (x.jt, new work = on); a workout already running from before this update has no snapshot and keeps the old default (off)
+function uniExplicit(id){ const o = gxOwn(id); if(o && o.uniBoth != null) return !!o.uniBoth; const v = gx().uniBoth; return v === undefined || v === null ? undefined : !!v; }
+const jointOn = x => !!x.uni && (uniExplicit(x.exId) !== undefined ? uniExplicit(x.exId) : x.jt === true);
+function makeUni(x, on){ Lat.makeUni(x, on, uid); if(on && x.jt === undefined) x.jt = true; }
+// the load convention of a new exercise card (old cards have none and keep the meaning they always had)
+function cvInit(x){ if(!isCardio(x.exId)){ const c = Lat.defaultCv(x.exId, exById(x.exId)); if(c) x.cv = c; else delete x.cv; } else delete x.cv; return x; }
 
 // ---------- Swap (canvas Gym.dc.html): frosted bottom sheet, every exercise ranked by how alike its muscle use is ----------
 function swapMatch(a, b){ let d = 0, na = 0, nb = 0; new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => { const x = a[k] || 0, y = b[k] || 0; d += x * y; na += x * x; nb += y * y; });
@@ -502,6 +513,7 @@ const recName = (g, v) => { const all = RecoveryCore.HEADS21.filter(h => Recover
 const recWhen = (d, tm) => { const n = daysUntil(d); return t('recNextWhen', { d: n === 0 ? t('recDayToday') : n === 1 ? t('recDayTomorrow') : t('wdFull').split(' ')[new Date(d + 'T12:00:00').getDay()], t: fmtClock(tm) }); };
 function recNextCard(r){
   const tr = r.tr, nx = r.next, a = r.nextA, hist = tr.evidence.sessionsTotal;
+  if(!ui.wpAdv || !nx) return '';   // the next workout shows only when the Week Planner is in Advanced mode and a workout is planned; otherwise nothing
   const notGroups = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(tr.groups[g].state));
   let title = t('recNextT'), sub = '', msg = '';
   if(!hist) msg = t('recAsNoHistory');
@@ -920,9 +932,9 @@ function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
-  const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets));
+  Lat.ensurePairs(x); const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets, x.cv));
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
-  const uniPill = card || ex.e === 'barbell' || !gOn('uniPill', x.exId) ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
+  const uniPill = card || (!Lat.canPair(x.exId, ex) && !x.uni) || !gOn('uniPill', x.exId) ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
   const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
@@ -945,23 +957,44 @@ function cardHtml(x, i){
     const lastDrop = !hideM('D', x.exId) && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
     const restHere = REST && REST.xi === i && REST.si === j;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
-    const merge = gOn('uniBoth', x.exId) && x.uni && s.side === 'L' && x.sets[j + 1] && x.sets[j + 1].side === 'R', mate = gOn('uniBoth', x.exId) && x.uni && s.side === 'R' && j > 0 && x.sets[j - 1].side === 'L';   // 0.7.9.1: one tall tick spans the L and R rows
+    const jm = jointOn(x) && s.side && !s.skip ? Lat.mate(x, j) : -1, merge = jm === j + 1 && s.side === 'L' && !x.sets[jm].skip, mate = jm === j - 1 && s.side === 'R' && !x.sets[jm].skip;   // 0.7.9.1: one tall tick spans the L and R rows
     const xtra = extrasHtml(s, j, x.exId);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
     // a finished set older than the newest finished one may be drawn compact when the card is at its height limit (.exc.capped); reopened rows stay full (SET_OPEN: screen state only, never saved)
     const old = s.done && j < lastDone && !SET_OPEN.has(s) ? ' old' : '';
-    return `<div class="setrow t-${ty}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
+    const sk = !!s.skip, offBtns = jointOn(x) && s.side === 'R' && !s.done && !s.skip && jm === j - 1 && !x.sets[jm].done ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('oneSideL')}</button><button type="button" data-skip data-j="${jm}">${t('oneSideR')}</button></div>` : '';
+    const bothBtn = sk ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('bothSides')}</button></div>` : '';
+    return `<div class="setrow t-${ty}${sk ? ' skipped' : ''}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
-        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}">${ICO_TICK}</button></div>` + xtra +
+        <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}"${sk ? ' disabled' : ''}>${ICO_TICK}</button></div>` + (sk ? '' : xtra) + offBtns + bothBtn +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
-  return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${x.uni && gOn('uniBoth', x.exId) ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
+  return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${jointOn(x) ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
     ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    <div class="setlist" data-sl="${i}">${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
+    <div class="setlist" data-sl="${i}">${cvChip(x)}${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
     ${rows}</div>
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
       : `<div class="exfoot">${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button></div>`}</div>`;
 }
+
+// the load convention beside the weight: what the typed number means (per hand, total of both bells, bar, stack) and whether reps are counted per side
+function cvText(cv, rows){ if(!cv) return ''; const k = Lat.labelKey(cv, rows); if(!k) return ''; return t(k) + (!rows && cv.rp === 'side' ? ' · ' + t('cvRepsSide') : !rows && cv.rp === 'both' && cv.n === 2 && (cv.l === 'hand' || cv.l === 'total') ? ' · ' + t('cvRepsBoth') : ''); }
+function cvChip(x){ if(isCardio(x.exId) || !x.cv || !x.sets.length) return ''; const txt = x.cv.ask && !x.uni ? t('cvPick') : cvText(x.cv, !!x.uni); if(!txt) return '';
+  return Lat.options(x).length ? `<button type="button" class="cvchip${x.cv.ask && !x.uni ? ' need' : ''}" data-cv aria-label="${esc(t('cvT'))}: ${esc(txt)}"><span>${t('kgLbl')} · ${esc(txt)}</span>${svgIcon('chevD', 12, 2.6)}</button>` : `<div class="cvchip static"><span>${t('kgLbl')} · ${esc(txt)}</span></div>`; }
+function openCv(xi, fromTick){ const x = active && active.exercises[xi]; if(!x || !x.cv) return; const opts = Lat.options(x), locked = x.sets.some(z => z.done) && !x.cv.ask; /* a first choice still pending can be made even after Left / Right rows were finished */
+  $('cvT').textContent = t('cvT'); $('cvSub').textContent = locked ? t('cvLocked') : exName(x.exId);
+  $('cvList').innerHTML = opts.map((o, i) => { const on = o.l === x.cv.l && o.n === x.cv.n && o.rp === x.cv.rp && !x.cv.ask; return `<button class="pickopt ${on ? 'on' : ''}" data-cvo="${i}" ${locked ? 'disabled' : ''}>${esc(cvText(o, !!x.uni))}${on ? `<b>${svgIcon('check', 18, 2.4)}</b>` : ''}</button>`; }).join('');
+  CVX = { xi, opts }; open('ovCv'); }
+let CVX = null;
+// a different exercise in an untouched card: fresh sets in its own default layout (Left / Right or one row) and its own load convention
+function latReset(x){ const n = Math.max(1, x.sets.filter(isMainSet).length); x.sets = Array.from({ length: n }, () => newSet()); x.uni = false; delete x.jt; cvInit(x); if(isUni(x.exId)) makeUni(x, true); }
+function cvChoose(i){ if(!CVX || !active) return; const x = active.exercises[CVX.xi], o = CVX.opts[i]; if(!x || !o || (x.sets.some(z => z.done) && !x.cv.ask)) return;
+  x.cv = { ...x.cv, l: o.l, n: o.n, rp: o.rp }; delete x.cv.ask; delete x.cv.pt;
+  if(o.l === 'total' && x.sets.some(z => z.side)){ x.cv.l = 'hand'; x.cv.pt = 1; } /* rows are per hand; a matched pair merges back to the total */ saveG('act'); close('ovCv'); CVX = null; renderSession(); }
+// typing in the Left row fills the Right row that has not been touched by hand, visibly and as you type; editing Right by hand ends that field's mirroring
+function latEdited(x, j, k){ const s = x.sets[j]; if(!s || !s.side || !s.pr) return; if(s.side === 'R'){ s['t' + k] = true; return; }
+  const m = Lat.mate(x, j); if(m < 0) return; const o = x.sets[m]; if(o.done || o.skip || o['t' + k]) return; o[k] = s[k];
+  const xi = active.exercises.indexOf(x), el = document.querySelector(`#sesBody .exc[data-x="${xi}"] .setrow[data-s="${m}"] [data-${k}]`); if(el) el.value = s[k]; }
 
 // rest bracket: a thin blue box under the set just finished; the outline draws in, then burns from the left to meet on the right at 0:00
 function restBracket(){
@@ -1114,7 +1147,7 @@ function openExInfo(id, addCb, keep){
   if(x.custom){ exInfoCustom(x, addCb, keep); return; }
   const mus = Object.entries(x.mu).sort((a, b) => b[1] - a[1]), L_ = lang === 'el' ? 1 : 0;
   const cues = (CUES[x.p] || []).map(c => c[L_]).concat(SPECIFIC[id] ? [SPECIFIC[id][L_]] : []), errs = (MISTAKES[x.p] || []).map(c => c[L_]);
-  const h = exHistory(id), bestW = h.length ? Math.max(...h.flatMap(s => s.sets.map(z => +z.w))) : null, bestV = h.length ? Math.max(...h.map(s => exVol(id, s.sets.map(z => ({ ...z, done: true }))))) : null;
+  const h = exHistory(id), bestW = h.length ? Math.max(...h.flatMap(s => s.sets.map(z => +z.w))) : null, bestV = h.length ? Math.max(...h.map(s => exVol(id, s.sets.map(z => ({ ...z, done: true })), s.cv))) : null;
   $('eiBody').innerHTML = `<div class="row" style="align-items:center;justify-content:flex-start;gap:12px"><div><h2 style="margin:0">${esc(exName(x))}</h2><small class="rmeta">${EL(x.e)} · ${ML(x.m)}</small></div><button type="button" class="pill2 formb eiform" id="eiForm" aria-label="${t('formT')}">${ICO_EYE}${t('formPill')}</button></div>
     ${h.length ? `<p class="rmeta" style="margin:10px 0 0">${t('bestW')}: <b>${fmt(bestW)} kg</b> · ${t('bestV')}: <b>${Math.round(bestV).toLocaleString()} kg</b></p>` : ''}
     ${isCardio(id) ? '' : `<div class="eimap">${raExerciseSVG(x.mu, { sex: recSex(), colours: HEAD_COL, idPrefix: 'ei', maxWidth: 340 })}</div>`}
@@ -1286,7 +1319,7 @@ function askSaveTpl(ses){
 function saveSessionAsTpl(){
   if(!SV) return; const name = $('svName').value.trim() || typeLabel_(inferDayType(SV.exercises));
   const tpl = { id: uid(), name, type: inferDayType(SV.exercises),
-    exercises: SV.exercises.map(x => ({ exId: x.exId, sets: x.sets.filter(isMainSet).length || 3, reps: x.reps, rest: x.rest, ...(x.ss ? { ss: x.ss } : {}), ...(x.uni ? { uni: true } : {}) })) };
+    exercises: SV.exercises.map(x => ({ exId: x.exId, sets: x.sets.filter(isMainSet).length || 3, reps: x.reps, rest: x.rest, ...(x.ss ? { ss: x.ss } : {}), ...(x.uni ? { uni: true } : isUni(x.exId) ? { uni: false } : {}) })) };
   tpls.push(tpl); saveG('tpl'); SV.tplId = tpl.id; SV.name = name; saveG('ses'); SV = null;
   close('ovSaveTpl'); document.querySelectorAll('[data-smtpl]').forEach(b => b.remove()); renderAll(); toast(t('tplSavedT', { n: name }));
 }

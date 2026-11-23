@@ -527,6 +527,12 @@ catch (e) { fail('food coach: tools/food-coach-test.js\n' + String(e.stdout || '
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/store-test.js')], { stdio: 'pipe' }).toString(); ok('store: ' + (out.match(/^ok /gm) || []).length + ' storage / backup / import safety checks pass (tools/store-test.js)'); }
 catch (e) { fail('store: tools/store-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
+// Left / Right + load convention (js/data/gym-lat.js, js/gym-lat.js): every built-in exercise reviewed, named exercises, equal volume for equal work, pair round trip, drop pairs (tools/lat-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/lat-test.js')], { stdio: 'pipe' }).toString(); ok('left / right: ' + (out.match(/^ok /gm) || []).length + ' coverage / conversion / pair / drop checks pass (tools/lat-test.js)'); }
+catch (e) { fail('left / right: tools/lat-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+// Beta profiler (js/profiler.js): report, progress indicators, forecast check, bounded log (tools/profiler-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/profiler-test.js')], { stdio: 'pipe' }).toString(); ok('beta profiler: ' + (out.match(/^ok /gm) || []).length + ' report / progress / forecast / bounded-log checks pass (tools/profiler-test.js)'); }
+catch (e) { fail('beta profiler: tools/profiler-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 // Gym Coach intelligence (js/gym-intel.js + Gym Coach in gym.js): progression, evidence, live, hints, proposals + approval, memory, offline, Greek (tools/gym-coach-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/gym-coach-test.js')], { stdio: 'pipe' }).toString(); ok('gym coach: ' + (out.match(/^ok /gm) || []).length + ' progression / live / approval / memory / offline checks pass (tools/gym-coach-test.js)'); }
 catch (e) { fail('gym coach: tools/gym-coach-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
