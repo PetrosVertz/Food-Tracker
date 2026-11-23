@@ -26,6 +26,7 @@ const ICON = {
   scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/>',
   camera: '<path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
   keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M6.5 13.5h.01M17.5 13.5h.01M9.5 14h5"/>',
+  cart: '<path d="M3 4h2.2l2.3 11h10.6l2-8H6.4"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="16.5" cy="19.5" r="1.4"/>',   // Petros: Groceries in the Food Library hub
   bag: '<path d="M5 8h14l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/>',   // Refinements #4: Food Library hub
   bowl: '<path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 21h8M9 7c0-1.5 1-2 1-3.5M14 7c0-1.5 1-2 1-3.5"/>',
   pot: '<path d="M4 11h16v4.5a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5z"/><path d="M2 11h2M20 11h2M8.5 11a3.5 1.5 0 0 1 7 0"/><path d="M10 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5M14 3.5c-.8.8-.8 1.7 0 2.5s.8 1.7 0 2.5"/>',
@@ -106,15 +107,18 @@ function drawTheme(){
   const v = $('sThemeVal'); if(v) v.textContent = `${t({ dark: 'thDark', light: 'thLight', auto: 'thAuto' }[mode])} · ${p[1]}`;
 }
 // ---------- 0.6.9.3: what the app is used for — "mainly gym work" puts Gym Buddy first (nothing is hidden) ----------
-// 0.7.9: Kitchen (Fridge, Groceries) can be switched off in Settings › Tabs: four tabs. 0.7.9.1: Recipes always live in Food Library
+// Petros: Inventory (the old Fridge) and Groceries live in the Food Library, as two pills of its carousel; there is no Kitchen tab.
+// Settings › Tabs › Inventory off (ui.noKitchen, the same saved switch as before): the two pills and hub tiles stay, greyed out, and
+// nothing opens them; the app and the AI see an empty fridge, as before. Recipes always live in Food Library.
 const kitchenOn = () => !ui.noKitchen;
 function applyTabOrder(){
-  const order = (ui.gymFirst ? ['gym', 'today', 'food', 'fridge'] : ['today', 'gym', 'food', 'fridge']).filter(k => k !== 'fridge' || kitchenOn());
+  const order = ui.gymFirst ? ['gym', 'today', 'food'] : ['today', 'gym', 'food'];
   TABS3.splice(0, TABS3.length, ...order);
-  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); });
-    const fb = bar.querySelector('[data-tab="fridge"]'); if(fb) fb.classList.toggle('hide', !kitchenOn()); }
+  const bar = $('rail'); if(bar){ const last = bar.querySelector('[data-tab="profile"]'); order.forEach(k => { const b = bar.querySelector(`[data-tab="${k}"]`); if(b) bar.insertBefore(b, last); }); }
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if($('sKitchen')) $('sKitchen').checked = kitchenOn();
+  if(typeof FOOD_CAR === 'object' && FOOD_CAR.refresh) FOOD_CAR.refresh();
+  if(typeof renderFoodHub === 'function' && $('fhInvN')) renderFoodHub();
   if(typeof pillsAll === 'function') pillsAll();
 }
 const fabBtn = (icon, label) => `<span class="fabic">${svgIcon(icon, 18, 2.4)}</span>${esc(label)}`;   // main button: line icon before the text
@@ -203,7 +207,8 @@ function goBack(){
   if(opens.length){
     const top = opens[0].id;
     if(top === 'ovExPick' && pkBack()) return;   // V27: Back first clears a search, then closes (js/expick.js)
-    if(top === 'ovExCreate' && cxBack()) return;   // the creator: steps back out of a multi-select first (js/excreate.js)
+    if(top === 'ovExCreate' && cxBack()) return;
+    if(top === 'ovExSet' && exSetBack()) return;   // Exercise Settings: Back leaves an open section first, then closes (js/gym.js)   // the creator: steps back out of a multi-select first (js/excreate.js)
     if(top === 'ovCoach'){ Coach.minimize(); return; }   // 0.7.4.3: Back shrinks the coach chat into its robot bubble
     if(top === 'ovSession'){ close('ovSession'); renderAll(); } else close(top); return;
   }
@@ -326,38 +331,37 @@ function route(){
   if(h.startsWith('gym-') && !GSEC[h]){ h = 'gym'; history.replaceState(null, '', '#gym'); }   // a Gym section that no longer exists (an old #gym-partner link, a saved last page): the Gym hub
   { const prev = route.last; route.last = h; if(prev && prev !== h && !SWITCHING && tabOf(prev) === tabOf(h)) pillSwap(true); }   // 0.7.9: pills changing inside a tab glide too
   const kit = kitchenOn();
-  if(!kit && (h === 'fridge' || h === 'groc')){ h = homeHash().slice(1); history.replaceState(null, '', '#' + h); }   // Kitchen is off: nothing opens it
-  const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Kitchen = Fridge · Groceries under one pill
-  const page = kv ? (kv === 'groc' ? 'groc' : 'fridge') : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
-  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgFridge','fridge'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p && !(p === 'fridge' && page === 'groc')));
+  if(!kit && (h === 'fridge' || h === 'groc')){ h = 'food'; history.replaceState(null, '', '#food'); }   // Inventory is off: nothing opens it (the Food Library hub)
+  const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Petros: Inventory (#fridge) and Groceries (#groc) are Food Library sections
+  const page = kv ? 'foods' : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
+  [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
   { const shown = document.querySelector('section.page:not(.hide):not(.pghost)');   // 0.7.9.2: a page that newly appears fades in with a small rise (a tab switch runs its own cross-fade)
     if(shown && route.shown !== shown && !SWITCHING && shown.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) shown.animate([{ opacity: 0, transform: 'translate3d(0,6px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 300, easing: TAB_EASE });
     route.shown = shown; }
-  // 0.6.9: Fridge and Groceries are one page; only the list under the pill changes, so the pill glides
-  $('fridgeView').classList.toggle('hide', kv !== 'fridge'); $('pgGroc').classList.toggle('hide', kv !== 'groc');
-  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : 'store';   // 0.6.3.1: three tabs
-  const fhub = page === 'foods' && !['foods', 'meals', 'supps'].includes(h);   // Refinements #4: the Food Library opens on its hub
+  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : kv || 'store';   // five Food Library sections (Inventory, Groceries since Petros' change)
+  const fhub = page === 'foods' && !['foods', 'meals', 'supps'].includes(h) && !kv;   // Refinements #4: the Food Library opens on its hub
+  $('fridgeView').classList.toggle('hide', fhub || tab !== 'fridge'); $('pgGroc').classList.toggle('hide', fhub || tab !== 'groc');
   $('fHub').classList.toggle('hide', !fhub); $('fTabs').classList.toggle('hide', fhub); $('backBtn').classList.toggle('hide', fhub);
-  $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', meals: 'tabMeals', supps: 'tabSupps' }[tab]);
+  $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', meals: 'tabMeals', supps: 'tabSupps', fridge: 'tFridge', groc: 'tGroc' }[tab]);
+  $('fScanBtn').classList.toggle('hide', !!kv);   // the barcode button is for Store-Bought foods; Inventory has its own scan button
   if(fhub) renderFoodHub(); else if(page === 'foods' && typeof FOOD_CAR === 'object') FOOD_CAR.set(h);
   $('storeView').classList.toggle('hide', fhub || tab !== 'store');
   $('mealsView').classList.toggle('hide', fhub || tab !== 'meals');
   $('foodSupps').classList.toggle('hide', fhub || tab !== 'supps');
-  document.querySelectorAll('.fgseg').forEach(sg => sg.querySelectorAll('[data-fg]').forEach(b => b.classList.toggle('on', b.dataset.fg === kv)));
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', (page === 'foods' && tab === 'meals' && !fhub) || page === 'groc' || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
-  { const fl = page === 'today' ? t('logFab') : page === 'fridge' ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
+  fab.classList.toggle('hide', (page === 'foods' && (tab === 'meals' || tab === 'groc') && !fhub) || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  { const fl = page === 'today' ? t('logFab') : tab === 'fridge' && !fhub ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
-  fab.dataset.action = tab === 'meals' ? 'meals' : ['today','fridge','gym'].includes(page) ? page : tab;
+  fab.dataset.action = ['today','gym'].includes(page) ? page : fhub ? 'store' : tab;
   if(h === 'gym-lib'){ fab.dataset.action = 'gymlib'; fab.innerHTML = fabBtn('plus', t('createWorkout')); }
   else if(page === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   // a section change inside the same page (a pill or a page swipe: Gym sections, Food Library sections) redraws only that page; any other move redraws
   // everything as before. Measured: renderAll() was ~19 ms of a ~25 ms section change at 4× CPU slowdown, the frame the swipe lands on.
   const same = route.page === page && !!route.page; route.page = page;
   if(same && page === 'gym'){ renderGym(); renderTodayRec(); syncFab2(); }
-  else if(same && page === 'foods'){ render(); renderMeals(); renderSupps(); syncFab2(); }
+  else if(same && page === 'foods'){ render(); renderMeals(); renderSupps(); if(kv === 'fridge') renderFridge(); else if(kv === 'groc') renderGroc(); syncFab2(); }
   else renderAll();
   if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
@@ -369,7 +373,8 @@ function route(){
 // All pills are as wide as the longest label (measured when labels or the width change, never while moving), so every pill's
 // place is known in advance and a frame only reads scrollLeft and writes transform + opacity. A disabled pill (Coming Soon)
 // can be seen but never chosen. Reduce Motion: instant jumps, no scaling.
-//   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true? }], onPick: key => … })
+//   const c = pillCarousel(el, { items: [{ key, label: () => text, soon: true?, off: () => bool? }], onPick: key => … })
+//   off: greyed out and never chosen while it returns true (no Coming Soon line); c.refresh() after it changes
 //   c.set(key)   show this pill in the middle without calling onPick (when the page is drawn)
 //   page: { area, views }  (Refinements #4) swiping the page sideways moves to the next or previous pill, like flipping photos:
 //   the section follows the finger 1:1 (shared drag helper), then slides out while the next one slides in. views() = what is showing.
@@ -394,18 +399,21 @@ function swipePages(page, car, stepTo, pills){
       const clear = v => { v.style.transform = ''; v.style.opacity = ''; v.style.willChange = ''; };
       const go = ok && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
       if(!go){ pills.back(); vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
+      // Petros: the whole page glides across instead of snapping: the old section carries on with the finger's speed all the way out
+      // (a soft, critically damped spring), and the next one glides in from that side over about a third of a second, no bounce.
       pills.lead(dir);
-      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * Math.max(w * .6, Math.abs(dx) + 48) }, { x: s.vx }, { k: 420, damp: 1, fill: 'forwards', op: [op0, 0] }); });
+      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w }, { x: s.vx }, { k: 190, damp: 1, fill: 'forwards', op: [op0, .1] }); });
       setTimeout(() => { const old = vs; if(!stepTo(dir)){ pills.back(); old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
         old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
-        page.views().forEach(v => springTo(v, { x: dir * w * .45 }, { x: 0 }, { x: s.vx }, { k: 300, op: [0, 1] })); }, 130); } });
+        page.views().forEach(v => springTo(v, { x: dir * w * .7 }, { x: 0 }, { x: s.vx }, { k: 150, damp: 1, op: [.15, 1] })); }, 150); } });
 }
 function pillCarousel(el, { items, onPick, page }){
   const n = items.length, R = 3;
   el.classList.add('pcar'); el.setAttribute('role', 'tablist');
   el.innerHTML = `<span class="pcknob" aria-hidden="true"></span><div class="pcrow"><i class="pcsp"></i>${Array.from({ length: n * R }, (_, i) => { const it = items[i % n], mid = i >= n && i < 2 * n;
     return `<button type="button" role="tab" data-car="${esc(it.key)}" data-i="${i}"${it.soon ? ' class="soon" aria-disabled="true"' : ''}${mid ? '' : ' tabindex="-1" aria-hidden="true"'}><span class="pcf"><b></b>${it.soon ? '<small></small>' : ''}</span></button>`; }).join('')}<i class="pcsp"></i></div>`;
-  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], faces = btns.map(b => b.firstChild), itm = i => items[i % n];   // faces: what turns and fades (the buttons stay square, so the snap reads true boxes)
+  const row = el.querySelector('.pcrow'), btns = [...row.querySelectorAll('button')], faces = btns.map(b => b.firstChild), itm = i => items[i % n];
+  const dis = i => { const it = itm(i); return !!(it.soon || (it.off && it.off())); };   // can be seen, never chosen   // faces: what turns and fades (the buttons stay square, so the snap reads true boxes)
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, near = -1, step = 0, w = 0, labels = '', raf = 0, settleT = 0, jumping = false, gliding = false, hold = false;   // hold: this pill's own tap / swipe is picking, so set() must not jump the strip (the glide does the moving)
   // Petros: while the page under the pills is swiped, the pills turn with it like a wheel (the chosen label slides out of the highlight while
@@ -450,7 +458,7 @@ function pillCarousel(el, { items, onPick, page }){
   function look(i, x, o, red){   // pill i's transform + opacity when the strip is at x, pushed by o
     const d = Math.max(-1.5, Math.min(1.5, (i * step - x) / step)), a = Math.min(1, Math.abs(d)), tx = `translate3d(${(-o).toFixed(2)}px,0,0) `;
     return [red ? tx : `${tx}perspective(${CAR_PERSP}px) rotateY(${(d * CAR_TURN).toFixed(2)}deg) scale(${(1 - CAR_SHRINK * a).toFixed(4)})`,
-      ((1 - CAR_FADE * a) * (itm(i).soon ? .5 : 1)).toFixed(3)]; }
+      ((1 - CAR_FADE * a) * (dis(i) ? .5 : 1)).toFixed(3)]; }
   function frame(){ raf = 0; if(!step) return;
     const x = pushed ? sl + off : row.scrollLeft, red = reduce();   // pushed: no layout read while the finger moves
     if(!nat()) faces.forEach((f, i) => { const [tf, op] = look(i, x, off, red); f.style.transform = tf; f.style.opacity = op; });
@@ -463,7 +471,7 @@ function pillCarousel(el, { items, onPick, page }){
     if(cur < 0 || (cur >= n && cur < 2 * n) || !step) return; const j = n + cur % n;
     jumping = true; near = j; mark(j); row.scrollLeft = j * step; frame(); setTimeout(() => { jumping = false; }, 60); }
   const fade = () => { if(page) carFade(page.views()); };
-  function pick(i){ if(i < 0 || itm(i).soon) { centre(cur, true); return; }
+  function pick(i){ if(i < 0 || dis(i)) { centre(cur, true); return; }
     if(i === cur) return; const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } }
   function settle(){ clearTimeout(settleT); if(pushed) return; jumping = gliding = false; row.style.scrollSnapType = ''; if(!step) return; pick(Math.max(0, Math.min(btns.length - 1, Math.round(row.scrollLeft / step)))); if(!gliding){ wrap(); trim(); } }
   function trim(){   // the browser's snap reads the tilted pill's box and can stop a few px short: nudge the resting strip onto the exact spot
@@ -474,20 +482,23 @@ function pillCarousel(el, { items, onPick, page }){
     settleT = setTimeout(settle, 140); }, { passive: true });
   row.addEventListener('scrollend', () => { if(pushed){ if(sld && nat()) endSlide(sld); return; } if(step && Math.abs(row.scrollLeft / step - Math.round(row.scrollLeft / step)) * step < 2) settle(); });   // only once it rests on a pill
   row.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const i = +b.dataset.i;
-    if(itm(i).soon){ Phone.haptic(); return; }
+    if(dis(i)){ Phone.haptic(); return; }
     if(i === cur) return; Phone.haptic(); const same = cur >= 0 && cur % n === i % n; mark(i); if(!same){ hold = true; try{ onPick(itm(i).key); } finally{ hold = false; } fade(); } centre(i, true); });
   function stepTo(dir){   // the next (1) or previous (-1) pill that can be chosen, round the loop; false if there is none
     if(cur < 0) return false; let i = cur;
-    for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!itm(i).soon) break; }
+    for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!dis(i)) break; }
     if(i % n === cur % n) return false;
     const from = cur, was = pushed; mark(i); hold = true; try{ onPick(itm(i).key); } finally{ hold = false; }
     if(!was){ centre(i, true); return true; }
     const land = () => { if(near !== i) Phone.haptic(); off = 0; jumping = true; near = i; row.scrollLeft = sl = i * step; frame(); unpush(); setTimeout(() => { jumping = false; wrap(); }, 60); };
     const s = sliding((i - from) * step); if(s) s.done = land; else slideOff((i - from) * step, 240, land);   // the glide started on release carries on, one move
     return true; }
-  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260, () => { off = 0; frame(); unpush(); }), lead: dir => slideOff(dir * step, 300) });
+  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260, () => { off = 0; frame(); unpush(); }), lead: dir => slideOff(dir * step, 380) });   // in step with the page glide (Petros: smoother)
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
+  function refresh(){ btns.forEach((b, i) => { const d = dis(i), off = d && !itm(i).soon; b.classList.toggle('off', off); if(d) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled'); }); frame(); }
+  refresh();
   return {
+    refresh,
     set(key){ const k = items.findIndex(it => it.key === key); if(k < 0) return;
       const i = cur >= 0 && cur % n === k ? cur : n + k;   // keep the copy it is on (a tap's glide may still be on its way there)
       if(!measure()) { mark(i); return; }

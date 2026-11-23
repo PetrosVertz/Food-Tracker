@@ -28,6 +28,11 @@ function renderFoodHub(){
   $('fhStoreN').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
   $('fhRecN').textContent = meals.length === 1 ? t('nRecipe1') : t('nRecipes', { n: meals.length });
   $('fhSuppN').textContent = supps.length === 1 ? t('nSupp1') : t('nSupps', { n: supps.length });
+  // Petros: Inventory and Groceries tiles (greyed out while Settings › Tabs › Inventory is off)
+  const on = kitchenOn(), inv = on ? liveItems().length : 0, gr = on ? groc.filter(g => !g.done).length : 0;
+  $('fhInvN').textContent = !on ? t('invOff') : inv ? t('fridgeSubOk', { n: inv }) : t('fridgeSubEmpty');
+  $('fhGrocN').textContent = !on ? t('invOff') : gr ? t('grocSub', { n: gr }) : t('grocSubEmpty');
+  ['fhInv', 'fhGroc'].forEach(id => { $(id).classList.toggle('off', !on); $(id).setAttribute('aria-disabled', String(!on)); });
 }
 
 // ======================= store-bought list =======================

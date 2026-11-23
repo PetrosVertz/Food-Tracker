@@ -1,5 +1,6 @@
 // Exercise Picker V27 (Add Exercise): Upper | All Muscles | Lower on top (tap or drag the highlight), then ONE row of filter pills at a time
-// (muscle → head → equipment) that folds into the chosen pill, the chosen path under it, two-column exercise cards, global search at the bottom.
+// (muscle → head → equipment) that folds into the chosen pill, the chosen path under it, two-column exercise cards, global search at the bottom
+// (on top while there is text in it). One tap adds and closes; a long press selects several (live workout, workout builder).
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 // Data: the built-in library + your own exercises (EX()), muscle list EXM (js/excustom.js), history = completed sets in `sessions` (read only).
 // Search is ExSearch.query (js/exsearch.js), always over every exercise. Nothing here saves anything except through the callers' own code.
@@ -28,15 +29,16 @@ function pkHistory(){
 const pkDisc = id => { let h = 2166136261; for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
 // ---------- open / close ----------
-// cb(id) adds the exercise. o.multi: the picker stays open after an add (live workout, workout builder) and offers Undo through o.undo(id).
-// o.muscle / o.group / o.cardio open straight at that muscle (Gym Coach › Replace).
+// cb(id) adds the exercise. Petros: one tap adds it and closes the picker. o.multi (live workout, workout builder): a long press on a
+// card starts Select mode instead; then taps select / unselect and Add (N) adds them all, in the order chosen (cb once per exercise,
+// then o.done(ids) if given). o.muscle / o.group / o.cardio open straight at that muscle (Gym Coach › Replace).
 function openExPick(cb, o){
   o = o || {}; pkCancelAnim();
   const m = o.cardio ? 'cardio' : EXM[o.muscle] ? o.muscle : EXM[o.group] && o.group !== 'abductors' ? o.group : null;
-  PK = { cb, multi: !!o.multi, undo: o.undo || null, region: m && m !== 'cardio' ? exmRegion(m) : 'all', muscle: m, head: null, eq: null,
+  PK = { cb, multi: !!o.multi, done: o.done || null, sel: [], selOn: false, region: m && m !== 'cardio' ? exmRegion(m) : 'all', muscle: m, head: null, eq: null,
     step: m ? (pkHeadsOf(m).length ? 'head' : 'equipment') : 'region', collapsed: false, user: true, limit: PK_STEP, q: '', last: null, hist: pkHistory() };
   if(!m && o.group === 'arms') PK.region = 'up';
-  $('exSearch').value = ''; pkClr(); pkToastHide();
+  $('exSearch').value = ''; pkClr(); pkToastHide(); pkSelBar();
   pkDraw(); open('ovExPick'); pkFit(); $('pkBody').scrollTop = 0; pkSegPut(false);
 }
 // the window always matches the visible screen, so the search strip sits right above the keyboard while typing
@@ -46,8 +48,8 @@ function pkFit(){ const ov = $('ovExPick'), vv = window.visualViewport; if(!vv |
 function pkHave(){ const op = id => $(id).classList.contains('open');
   const l = op('ovTpl') && TP ? TP.exercises : active && op('ovSession') ? active.exercises : [];
   return new Set(l.map(e => e.exId)); }
-// Back / Escape: a search is cleared first; otherwise the window closes (ui.js goBack)
-function pkBack(){ if(!$('exSearch').value) return false; $('exSearch').value = ''; pkSearch(); return true; }
+// Back / Escape: a search is cleared first, then Select mode ends; otherwise the window closes (ui.js goBack)
+function pkBack(){ if($('exSearch').value){ $('exSearch').value = ''; pkSearch(); return true; } if(PK.selOn){ pkSelEnd(); return true; } return false; }
 
 // ---------- which exercises, in which order ----------
 function pkHits(x, m, head){
@@ -121,14 +123,16 @@ function pkArt(x){
   if(!x) return '';
   if(isCardio(x.id)) return exIcon(x, 70);
   const mu = x.custom ? Object.fromEntries(Object.keys(x.mu || {}).map(h => [h, 100])) : x.mu;   // your own: the chosen muscles lit evenly (no made-up shares)
-  return miniMap({ id: x.id, mu }, true).replace(/ width="46" height="56"/, ' width="104" height="116"');
+  return miniMap({ id: x.id, mu }, true);   // the RECOVERY+ figure, cut to the card (raExerciseSVG in js/recovery-anatomy.js)
 }
 function pkCard(x, k, have, i){
   const nm = exName(x), inW = have.has(x.id), focus = PK.head && k === PK.muscle ? PK.head : k;
   const use = x.custom ? t('pkCustom') : isCardio(x.id) ? '' : t('muUse', { p: Math.round(HEADS[focus] && !EXM[focus] ? +(x.mu || {})[focus] || 0 : exmUse(x, focus)) });
   const badge = x.custom ? `<span class="pkpuz" role="img" aria-label="${esc(t('pkCustomL'))}">${gymIco('puzzle', 18, 1.9)}</span>`
     : `<button type="button" class="pkinfo" data-exinfo="${x.id}" aria-label="${esc(t('pkInfoL', { n: nm }))}">${svgIcon('info', 18, 2)}</button>`;
-  return `<div class="pkcard${inW ? ' added' : ''}" data-ex="${x.id}" role="button" tabindex="0" aria-label="${esc(t('pkAddL', { n: nm }))}" style="--i:${Math.min(i, 9)}">`
+  const si = PK.sel ? PK.sel.indexOf(x.id) : -1;
+  return `<div class="pkcard${inW ? ' added' : ''}${si > -1 ? ' sel' : ''}" data-ex="${x.id}" role="button" tabindex="0" aria-label="${esc(t('pkAddL', { n: nm }))}"${PK.selOn ? ` aria-pressed="${si > -1}"` : ''} style="--i:${Math.min(i, 9)}">`
+    + `<span class="pksn" aria-hidden="true">${si > -1 ? si + 1 : ''}</span>`
     + `<div class="pkctop"><span class="pkeq"><span>${esc(exTitle(EL(x.e)))}</span>${eqIcon(x.e, 14)}</span>${badge}</div>`
     + `<div class="pkart" data-art="${x.id}" aria-hidden="true"></div>`
     + `<div class="pkcbot"><span class="pkname">${esc(nm)}</span>${use ? `<span class="pkuse">${esc(use)}</span>` : ''}${inW ? `<span class="pkin" aria-hidden="true">${svgIcon('check', 12, 3)}</span>` : ''}</div></div>`;
@@ -154,6 +158,7 @@ function pkDrawResults(){
   else { const show = L.items.slice(0, PK.limit); more = L.items.length - show.length; html = `<div class="pkgrid">${show.map((x, i) => pkCard(x, PK.muscle || exmOf(x), have, i)).join('')}</div>`; }
   grid.innerHTML = html; grid.classList.toggle('grouped', L.mode === 'grouped');
   $('pkMore').classList.toggle('hide', !more); if(more) $('pkMore').textContent = t('pkMore', { n: more });
+  $('pkHold').classList.toggle('hide', !PK.multi || PK.selOn || !n);
   pkArtWatch();
 }
 function pkDraw(){ pkDrawFilters(); pkDrawResults(); }
@@ -239,38 +244,74 @@ function pkSegSetup(){
       if(PK_REG[k] !== PK.region) pkRegion(PK_REG[k]); else pkSegMark(); } });
 }
 
-// ---------- adding: one tap adds, the picker keeps your filters; Undo takes it back ----------
+// ---------- adding (Petros): one tap adds and closes; a long press starts Select mode, Add (N) adds them all ----------
 let PK_TT = 0;
-function pkToast(msg, undoId){
-  const el = $('pkToast'); el.querySelector('.pktm').innerHTML = `${undoId ? svgIcon('check', 13, 2.6) : ''}<span>${esc(msg)}</span>`;
-  $('pkUndo').classList.toggle('hide', !undoId); $('pkUndo').dataset.id = undoId || '';
-  el.classList.add('show'); clearTimeout(PK_TT); PK_TT = setTimeout(pkToastHide, 4300);
+function pkToast(msg){
+  const el = $('pkToast'); el.querySelector('.pktm').innerHTML = `<span>${esc(msg)}</span>`;
+  el.classList.add('show'); clearTimeout(PK_TT); PK_TT = setTimeout(pkToastHide, 3200);
 }
 function pkToastHide(){ clearTimeout(PK_TT); $('pkToast').classList.remove('show'); }
 function pkPick(id){
   const x = exById(id); if(!x || !PK.cb) return;
-  if(!PK.multi){ close('ovExPick'); PK.cb(id); return; }
-  if(pkHave().has(id)){ Phone.haptic(); pkToast(t('pkHave')); return; }
-  PK.cb(id); PK.last = id; Phone.haptic();
-  const had = !!$('exSearch').value; $('exSearch').value = ''; $('exSearch').blur(); pkClr();
-  if(had){ PK.q = ''; PK.limit = PK_STEP; PK.user = true; $('pkBody').scrollTop = 0; pkDraw(); } else pkMarkHave();
-  pkToast(t('pkAdded', { n: exName(x) }), id);
+  if(PK.selOn){ pkSelToggle(id); return; }
+  if(PK.multi && pkHave().has(id)){ Phone.haptic(); pkToast(t('pkHave')); return; }
+  Phone.haptic(); const cb = PK.cb, done = PK.done; pkFinish(); cb(id); if(done) done([id]);
 }
-// only the ticks and outlines change after an add or Undo (no redraw, no lost scroll)
-function pkMarkHave(){ const have = pkHave();
-  $('pkGrid').querySelectorAll('.pkcard').forEach(c => { const on = have.has(c.dataset.ex); if(on === c.classList.contains('added')) return;
-    c.classList.toggle('added', on); const b = c.querySelector('.pkcbot'), k = b.querySelector('.pkin');
-    if(on && !k) b.insertAdjacentHTML('beforeend', `<span class="pkin" aria-hidden="true">${svgIcon('check', 12, 3)}</span>`); else if(!on && k) k.remove(); }); }
-function pkUndo(){ const id = $('pkUndo').dataset.id; if(!id || !PK.undo) return; PK.undo(id); PK.last = null; pkMarkHave(); pkToast(t('pkRemoved')); }
+// added: the window's work is done, so its search text is not brought back as a draft next time (js/draft.js)
+function pkFinish(){ Draft.commit('ovExPick'); $('exSearch').value = ''; pkClr(); close('ovExPick'); }
+// Select mode: the cards keep their order number; the bar at the bottom shows Cancel and Add (N)
+function pkSelStart(id){
+  if(!PK.multi || !PK.cb || PK.selOn) return;
+  if(pkHave().has(id)){ Phone.haptic(); pkToast(t('pkHave')); return; }
+  PK.selOn = true; PK.sel = [id]; Phone.haptic(); pkToastHide(); pkMarkSel(); pkSelBar(); $('pkHold').classList.add('hide');
+}
+function pkSelToggle(id){
+  const i = PK.sel.indexOf(id);
+  if(i > -1) PK.sel.splice(i, 1); else if(pkHave().has(id)){ Phone.haptic(); pkToast(t('pkHave')); return; } else PK.sel.push(id);
+  Phone.haptic(); pkMarkSel(); pkSelBar();
+}
+function pkSelEnd(){ PK.selOn = false; PK.sel = []; pkMarkSel(); pkSelBar(); }
+function pkSelAdd(){
+  const ids = PK.sel.filter(id => exById(id)); if(!ids.length) return;
+  const cb = PK.cb, done = PK.done; PK.selOn = false; PK.sel = []; pkSelBar(); Phone.haptic();
+  pkFinish(); ids.forEach(id => cb(id)); if(done) done(ids);
+}
+function pkSelBar(){
+  const bar = $('pkSelBar'), on = !!(PK.selOn), n = on ? PK.sel.length : 0;
+  $('ovExPick').classList.toggle('pkselect', on); bar.classList.toggle('show', on); bar.setAttribute('aria-hidden', String(!on));
+  $('pkSelN').textContent = t(n === 1 ? 'pkSel1' : 'pkSelN', { n });
+  const add = $('pkSelAdd'); add.textContent = t('pkSelAdd', { n }); add.disabled = !n;
+}
+// only the order numbers and outlines change (no redraw, no lost scroll)
+function pkMarkSel(){
+  $('pkGrid').querySelectorAll('.pkcard[data-ex]').forEach(c => { const i = PK.selOn ? PK.sel.indexOf(c.dataset.ex) : -1;
+    c.classList.toggle('sel', i > -1); c.querySelector('.pksn').textContent = i > -1 ? i + 1 : '';
+    if(PK.selOn) c.setAttribute('aria-pressed', String(i > -1)); else c.removeAttribute('aria-pressed'); });
+}
+// a long press: the finger stays put for 450 ms (a scroll or a drag cancels it); the tap that follows is swallowed
+function pkLongPress(body){
+  let tm = 0, x0 = 0, y0 = 0, st0 = 0, card = null; PK.ate = false;
+  const stop = () => { clearTimeout(tm); tm = 0; if(card) card.classList.remove('pressing'); card = null; };
+  body.addEventListener('pointerdown', e => { stop(); PK.ate = false; if(!PK.multi || PK.selOn || e.button > 0) return;
+    const c = e.target.closest('.pkcard[data-ex]'); if(!c || e.target.closest('[data-exinfo]')) return;
+    card = c; x0 = e.clientX; y0 = e.clientY; st0 = body.scrollTop; c.classList.add('pressing');
+    tm = setTimeout(() => { const id = card && card.dataset.ex; stop(); if(!id) return; PK.ate = true; pkSelStart(id); }, 450); }, { passive: true });
+  body.addEventListener('pointermove', e => { if(tm && Math.hypot(e.clientX - x0, e.clientY - y0) > 8) stop(); }, { passive: true });
+  ['pointerup', 'pointercancel'].forEach(k => body.addEventListener(k, () => { if(tm) stop(); }, { passive: true }));
+  body.addEventListener('scroll', () => { if(tm && Math.abs(body.scrollTop - st0) > 8) stop(); }, { passive: true });   // the list really moved
+  body.addEventListener('contextmenu', e => { if(e.target.closest('.pkcard')) e.preventDefault(); });
+}
 
 // ---------- search: always over every exercise (filters are kept for when the box is cleared) ----------
-function pkClr(){ $('pkClr').classList.toggle('hide', !$('exSearch').value); }
-function pkSearch(){ pkCancelAnim(); PK.q = $('exSearch').value.trim(); pkClr(); PK.limit = PK_STEP; if(!PK.q) PK.user = true; $('pkBody').scrollTop = 0; pkDraw(); }
+function pkClr(){ $('pkClr').classList.toggle('hide', !$('exSearch').value); $('ovExPick').classList.toggle('pksearching', !!$('exSearch').value); }
+// Petros: while there is text in the box, the filters step aside and the search bar sits on top; the cards fill the rest of the screen
+function pkSearch(){ pkCancelAnim(); PK.q = $('exSearch').value.trim(); pkClr(); PK.limit = PK_STEP; if(!PK.q) PK.user = true;
+  $('ovExPick').classList.toggle('pksearching', !!$('exSearch').value); $('pkBody').scrollTop = 0; pkDraw(); }
 
 // ---------- wiring (called once from js/wire/04-gym.js) ----------
 function pkSetup(){
   const body = $('pkBody'), fil = $('pkFil');
-  $('pkReset').innerHTML = gymIco('reset', 19, 2.1); $('ovExPick').querySelector('.pksi').innerHTML = svgIcon('search', 19, 2.1);
+  $('pkReset').innerHTML = gymIco('reset', 19, 2.1); $('pkSelX').innerHTML = svgIcon('x', 18, 2.4); $('ovExPick').querySelector('.pksi').innerHTML = svgIcon('search', 19, 2.1);
   $('pkClr').innerHTML = svgIcon('x', 13, 2.6); $('pkCustom').querySelector('.pkplus').innerHTML = svgIcon('plus', 18, 2.2);
   fil.addEventListener('click', e => {
     const back = e.target.closest('[data-pkback]'), pill = e.target.closest('[data-c]'), jump = e.target.closest('[data-jump]'), go = e.target.closest('[data-goto]');
@@ -281,10 +322,11 @@ function pkSetup(){
   $('pkReset').addEventListener('click', () => { Phone.haptic(); pkReset(); });
   pkSegSetup();
   body.addEventListener('click', e => {
-    const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); const id = inf.dataset.exinfo; openExInfo(id, PK.multi ? () => pkPick(id) : PK.cb, PK.multi); return; }
+    const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); const id = inf.dataset.exinfo; openExInfo(id, () => pkPick(id), true); return; }
     if(e.target.closest('#pkMore')){ PK.limit += PK_STEP; pkDrawResults(); return; }
     if(e.target.closest('#pkCustom')){ openExCreate(); return; }
-    const c = e.target.closest('.pkcard[data-ex]'); if(c) pkPick(c.dataset.ex); });
+    const c = e.target.closest('.pkcard[data-ex]'); if(!c) return; if(PK.ate){ PK.ate = false; return; } pkPick(c.dataset.ex); });
+  pkLongPress(body);
   body.addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.pkcard[data-ex]')){ e.preventDefault(); pkPick(e.target.dataset.ex); } });
   // scrolling the cards folds the filter row away (the region pill stays); back at the top it opens again
   let folded = false;
@@ -294,6 +336,6 @@ function pkSetup(){
   sx.addEventListener('focus', () => { if(PK.q) fil.classList.add('compact'); });
   sx.addEventListener('keydown', e => { if(e.key !== 'Enter' || e.isComposing) return; e.preventDefault(); const f = $('pkGrid').querySelector('.pkcard[data-ex]'); if(f && PK.q){ sx.blur(); pkPick(f.dataset.ex); } });
   $('pkClr').addEventListener('click', () => { sx.value = ''; pkSearch(); sx.blur(); });
-  $('pkUndo').addEventListener('click', pkUndo);
+  $('pkSelAdd').addEventListener('click', pkSelAdd); $('pkSelX').addEventListener('click', () => { Phone.haptic(); pkSelEnd(); });
   if(window.visualViewport){ visualViewport.addEventListener('resize', pkFit); visualViewport.addEventListener('scroll', pkFit); }
 }

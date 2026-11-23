@@ -16,7 +16,7 @@ async function page(browser, port, o = {}){
     localStorage.setItem('ft.profile.v1', JSON.stringify({ sex: o.sex || 'm' })); for(const [k, v] of Object.entries(o.seed || {})) localStorage.setItem(k, JSON.stringify(v)); }, [o]);
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(300);
   if(!o.noSession){ await p.evaluate(() => { location.hash = '#gym'; startSession({ id: 't', name: 'T', type: 'push', exercises: [] }); }); await p.waitForTimeout(200);
-    await p.evaluate(() => openExPick(addToSession, { multi: true, undo: sesUndoAdd })); await p.waitForTimeout(450); }
+    await p.evaluate(() => openExPick(addToSession, { multi: true })); await p.waitForTimeout(450); }
   return p;
 }
 const S = p => p.evaluate(() => ({ region: PK.region, muscle: PK.muscle, head: PK.head, eq: PK.eq, step: PK.step, q: PK.q, n: active ? active.exercises.length : -1,
@@ -25,7 +25,7 @@ const S = p => p.evaluate(() => ({ region: PK.region, muscle: PK.muscle, head: P
 const wait = (p, ms) => p.waitForTimeout(ms || 380);
 
 async function run(browser, port){
-  const bad = [], ok = [], must = (v, what) => { (v ? ok : bad).push(what); };
+  const bad = [], ok = [], must = (v, what) => { (v ? ok : bad).push(what); if(process.env.PK_LIVE) console.log((v ? 'ok    ' : 'FAIL  ') + what); };   // PK_LIVE=1: print each check as it runs
   // 1. first look: All Muscles, the centred Choose Muscle pill, every exercise, two readable columns at 390
   { const p = await page(browser, port); const s = await S(p);
     const g = await p.evaluate(() => { const c = [...document.querySelectorAll('#pkGrid .pkcard')].slice(0, 2).map(e => e.getBoundingClientRect()); const b = document.querySelector('.pkreopen').getBoundingClientRect();
@@ -86,16 +86,35 @@ async function run(browser, port){
     await p.fill('#exSearch', 'zzqqxx'); await wait(p, 150); must(await p.$eval('#pkGrid', e => /No Matching Exercises/.test(e.innerText)) && await p.$eval('#pkCustom', e => e.offsetHeight > 0), 'empty search: message + Create Custom Exercise still there');
     await p.keyboard.press('Escape'); await wait(p, 200); t = await S(p);
     must(!t.q && t.muscle === 'chest' && t.step === 'head', 'Escape clears the search and the chest filter is back');
-    // 7. add: one tap, search cleared, filters kept, Undo; already added does nothing; info adds nothing
+    // 7. typing: the filters step aside, the search bar goes on top, the cards fill the screen (Petros)
     await p.fill('#exSearch', 'bench press'); await wait(p, 150);
-    await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 200); t = await S(p);
-    must(t.n === 1 && !t.q && t.muscle === 'chest' && /Bench Press Added/.test(t.toast) && /Undo/.test(t.toast), 'add: one exercise, search cleared, chest kept, Undo offered');
-    must(await p.evaluate(() => document.activeElement !== $('exSearch')), 'keyboard dismissed after add');
-    await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 150); t = await S(p);
-    must(t.n === 1 && /Already/.test(t.toast), 'tapping an added exercise adds nothing');
-    await p.click('#pkGrid .pkcard[data-ex="bench"]'); await p.click('#pkGrid .pkcard:not(.added)'); await wait(p, 120);
-    await p.click('#pkUndo'); await wait(p, 150); t = await S(p);
-    must(t.n === 1 && /Removed/.test(t.toast), 'Undo takes back the last add only');
+    { const g = await p.evaluate(() => ({ on: $('ovExPick').classList.contains('pksearching'), fil: $('pkFil').offsetHeight, reg: document.querySelector('.pkreg').offsetHeight,
+        box: document.querySelector('.pksbox').getBoundingClientRect().top, grid: $('pkGrid').getBoundingClientRect().top }));
+      must(g.on && !g.fil && !g.reg && g.box < 140 && g.grid > g.box && g.grid < 260, 'typing: filters hidden, search bar on top, cards right under it ' + JSON.stringify(g)); }
+    // one tap adds and closes the picker
+    await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 300); t = await S(p);
+    must(t.n === 1 && await p.evaluate(() => !$('ovExPick').classList.contains('open')), 'one tap: added and the picker closes');
+    const reopen = async () => { await wait(p, 700); await p.evaluate(() => openExPick(addToSession, { multi: true })); await wait(p, 450); };   // after the workout has shown the new card
+    await reopen(); must(!(await p.evaluate(() => $('ovExPick').classList.contains('pksearching'))), 'reopened: search bar back at the bottom, filters shown');
+    await p.click('#pkGrid .pkcard[data-ex="bench"]').catch(async () => { await p.fill('#exSearch', 'bench press'); await wait(p, 150); await p.click('#pkGrid .pkcard[data-ex="bench"]'); }); await wait(p, 150); t = await S(p);
+    must(t.n === 1 && /Already/.test(t.toast) && await p.evaluate(() => $('ovExPick').classList.contains('open')), 'tapping an exercise already in the workout adds nothing, picker stays');
+    await p.fill('#exSearch', ''); await wait(p, 150);
+    // a long press starts Select mode; taps select and unselect; Add (N) adds them in order and closes
+    const ids = await p.evaluate(() => [...document.querySelectorAll('#pkGrid .pkcard:not(.added)')].slice(0, 4).map(c => c.dataset.ex));
+    const press = async (id, ms) => { const b = await p.$eval(`#pkGrid .pkcard[data-ex="${id}"]`, e => { e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+      await p.mouse.move(b.x, b.y); await p.mouse.down(); await p.waitForTimeout(ms); await p.mouse.up(); await wait(p, 80); };
+    await press(ids[0], 650);
+    let sel = await p.evaluate(() => ({ on: PK.selOn, sel: PK.sel.slice(), bar: $('pkSelBar').classList.contains('show'), add: $('pkSelAdd').textContent, open: $('ovExPick').classList.contains('open'), n: active.exercises.length }));
+    must(sel.on && sel.sel.join() === ids[0] && sel.bar && sel.add === 'Add (1)' && sel.open && sel.n === 1, 'long press: Select mode, that card chosen, nothing added yet ' + JSON.stringify(sel));
+    for(const id of [ids[1], ids[2], ids[1], ids[3]]) await press(id, 40);
+    sel = await p.evaluate(() => ({ sel: PK.sel.slice(), add: $('pkSelAdd').textContent, nums: [...document.querySelectorAll('#pkGrid .pkcard.sel .pksn')].map(e => e.textContent).sort().join() }));
+    must(sel.sel.join() === [ids[0], ids[2], ids[3]].join() && sel.add === 'Add (3)' && sel.nums === '1,2,3', 'a second tap unselects; numbers follow the order ' + JSON.stringify(sel));
+    await p.click('#pkSelAdd'); await wait(p, 300);
+    sel = await p.evaluate(() => ({ ex: active.exercises.map(x => x.exId), open: $('ovExPick').classList.contains('open'), on: PK.selOn }));
+    must(sel.ex.join() === ['bench', ids[0], ids[2], ids[3]].join() && !sel.open && !sel.on, 'Add (3): all three added in order, picker closed');
+    await reopen(); await press(ids[1], 650); await p.click('#pkSelX'); await wait(p, 150);
+    must(await p.evaluate(() => !PK.selOn && !document.querySelector('#pkGrid .pkcard.sel') && $('ovExPick').classList.contains('open') && active.exercises.length === 4), 'Cancel leaves Select mode, adds nothing');
+    t = await S(p);
     const n0 = t.n; await p.click('#pkGrid .pkcard[data-ex="cable_crossover"] .pkinfo').catch(async () => p.click('#pkGrid .pkinfo')); await wait(p, 300);
     must(await p.evaluate(() => $('ovExInfo').classList.contains('open') && $('ovExPick').classList.contains('open')) && (await S(p)).n === n0, 'info opens details, adds nothing, picker stays');
     await p.evaluate(() => close('ovExInfo')); await wait(p, 300);
@@ -131,6 +150,7 @@ async function run(browser, port){
     const sv = await p.evaluate(() => ({ list: JSON.parse(localStorage.getItem('ft.gym.custom') || '[]'), n: active.exercises.length, open: $('ovExCreate').classList.contains('open') }));
     const c = sv.list[0] || {};
     must(sv.list.length === 1 && c.en === 'Single-Arm Cable Fly' && c.e === 'cable' && c.mus.join() === 'chest' && c.uni === false && !sv.open && sv.n === 1, 'saved through Store in Title Case and added once');
+    await p.evaluate(() => openExPick(addToSession, { multi: true })); await wait(p, 450);   // saving added it and closed the picker (like a tap)
     await p.fill('#exSearch', 'single arm cable fly'); await wait(p, 200);
     const card = await p.$eval(`#pkGrid .pkcard[data-ex="${c.id}"]`, e => ({ use: e.querySelector('.pkuse').textContent, puz: !!e.querySelector('.pkpuz'), info: !!e.querySelector('.pkinfo') })).catch(() => null);
     must(card && card.use === 'Custom' && card.puz && !card.info, 'custom card: puzzle mark, "Custom", no percentage');
@@ -205,6 +225,31 @@ async function run(browser, port){
     must(t.muscle === 'back' && t.step === 'head', 'reduced motion: a pill tap steps at once');
     must(o.sx && o.seg && o.cols === 2 && o.title === 'Προσθήκη Άσκησης', '320 px Greek: two columns, region labels fit, no sideways scroll ' + (o.sx && o.seg && o.cols === 2 ? '' : JSON.stringify(o)));
     must(!p.errs.length, 'no page errors at 320 px Greek ' + p.errs.join(' | '));
+    await p.close(); }
+  // 12. Exercise Settings (Petros): first gear tap asks; individual = this exercise only (shared ones stay shared); back to all keeps them
+  { const p = await page(browser, port, { dark: true });
+    await p.evaluate(() => { close('ovExPick'); addToSession('bench'); addToSession('ohp'); renderSession(); }); await wait(p, 600);
+    const gear = () => p.evaluate(() => document.querySelector('.exc[data-x="0"] [data-exset]').click());
+    await gear(); await wait(p, 400);
+    must(await p.evaluate(() => $('ovExSetAsk').classList.contains('open') && !$('ovExSet').classList.contains('open')), 'gear, first time: asks Same for All or Individual');
+    await p.click('[data-gxask="each"]'); await wait(p, 400);
+    must(await p.evaluate(() => settings.gxMode === 'each' && $('ovExSet').classList.contains('open') && document.querySelectorAll('#exsBody [data-exsec]').length === 5 && !!document.querySelector('#exsMode [data-gxmode].on')),
+      'Individual: settings open on the list of five sections, the switch on top is on');
+    await p.click('[data-exsec="sets"]'); await p.click('[data-gx="half"]'); await wait(p, 200);
+    let r = await p.evaluate(() => ({ b: gOn('half', 'bench'), o: gOn('half', 'ohp'), g: gOn('half'), box0: !!document.querySelector('.exc[data-x="0"] [data-sxrow]'), box1: !!document.querySelector('.exc[data-x="1"] [data-sxrow]') }));
+    must(r.b && !r.o && !r.g && r.box0 && !r.box1, 'Half Reps on for Bench Press only: its card shows the box, Overhead Press does not ' + JSON.stringify(r));
+    await p.evaluate(() => goBack()); await wait(p, 150);
+    must(await p.evaluate(() => $('ovExSet').classList.contains('open') && !!document.querySelector('#exsBody [data-exsec]')), 'Back leaves the section first, the window stays');
+    await p.click('[data-exsec="social"]'); await p.click('[data-gx="lbAtt"]'); await wait(p, 150);
+    must(await p.evaluate(() => settings.gx.lbAtt === true && !(settings.gxEx.bench || {}).lbAtt && gOn('lbAtt', 'ohp')), 'Leaderboards stay the same for all exercises');
+    await p.evaluate(() => goBack()); await p.click('[data-exsec="machine"]'); await wait(p, 150);
+    must(await p.evaluate(() => !!document.querySelector('#exsBody .exsoon .switch[disabled]')), 'Machine Position Reminders: shown, Coming Soon, cannot be turned on');
+    await p.click('[data-gxmode]'); await wait(p, 150);
+    r = await p.evaluate(() => ({ m: settings.gxMode, b: gOn('half', 'bench'), kept: settings.gxEx.bench.half }));
+    must(r.m === 'all' && !r.b && r.kept === true, 'switch off: every exercise uses the same settings, Bench Press keeps its own for later');
+    await p.evaluate(() => close('ovExSet')); await wait(p, 350); await gear(); await wait(p, 350);
+    must(await p.evaluate(() => !$('ovExSetAsk').classList.contains('open') && $('ovExSet').classList.contains('open')), 'gear again: no question, settings open (remembered)');
+    must(!p.errs.length, 'no page errors in Exercise Settings ' + p.errs.join(' | '));
     await p.close(); }
   return { ok, bad };
 }

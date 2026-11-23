@@ -288,7 +288,7 @@ html.pwa .aitrash{bottom:auto;top:calc(var(--appH,100vh) - max(24px,env(safe-are
 .overlay.center .sheet:not(.tall){min-height:0}   /* 0.7.9.5: small windows (Add Shopping, Quick Add, Units …) end right after their last button instead of keeping a 440px minimum height */
 /* Fridge: tidier spacing; no Fridge/Freezer tabs */
 #fLoc{display:none!important}
-#pgFridge .fgseg{margin:6px 0 var(--s3)} #pgFridge .search{margin:0 0 var(--s3)} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
+#fridgeView .search{margin:0 0 var(--s3)} #fAlerts .alert{margin:0 0 10px} #fList .card{margin-bottom:10px}
 .frzrow{margin:10px 0}
 /* Home Screen app: everything a little lower */
 html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-bottom) - 8px) - 70px)!important}
@@ -336,6 +336,9 @@ html.pwa .fab{top:calc(var(--appH,100vh) - 58px - max(6px, env(safe-area-inset-b
 .fhub .tile{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;min-height:0;padding:var(--s4);text-align:left}
 .fhub .tile>span:not(.e){flex:1;min-width:0}
 .fhub .tile.wide{grid-column:1/-1}
+/* Petros: Inventory and Groceries side by side; greyed out (and never opened) while Settings › Tabs › Inventory is off */
+.fhpair{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:inherit}
+.fhub .tile.off{opacity:.45;cursor:default}
 .fhub .tile b{overflow-wrap:anywhere}
 .fhub .tile em{display:block;font-style:normal;font-weight:400;color:var(--muted);font-size:15px;line-height:1.2}
 /* Refinements #4 (change 9): Food Library rows, calmer */
