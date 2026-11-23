@@ -385,27 +385,51 @@ function carFade(els){   // the content under the carousel: a light cross fade, 
 }
 // Endless (Refinements #4, Petros): the pills are drawn three times in a row and the row always rests on the middle copy; after it
 // settles on a copy to the left or right it jumps (unseen: same labels in the same places) back to the middle, so it never runs out.
+// Petros: a real carousel. While the finger moves, the next section is already there, riding next to the current one: it comes in
+// from the right (swipe left) or the left (swipe right) at the same speed, so there is never an empty page. Let go past the line (or
+// flick) and both glide on together with the finger's speed; short of it, both spring back. Only transform changes while moving.
+// page.viewsFor(key) = the elements of that section (in page order), page.prep(key) draws one that is not drawn in the background.
 function swipePages(page, car, stepTo, pills){
   const NO = 'input,textarea,select,button.stepper,.pcar,.swipebox [data-id],.swipebox .exc,.swipebox .tpcard,.mxr,[data-noswipe],svg.anat,.anatomy';
-  let w = 0, vs = [];
+  let w = 0, vs = [], nb = null, nbDir = 0, top0 = 0;   // nb: the neighbour section being shown { dir, els }
   page.area.style.touchAction = 'pan-y';   // sideways is ours: the phone never starts its own pan (which cancelled the swipe or made the page wobble); rows that scroll sideways inside still do
+  if(getComputedStyle(page.area).position === 'static') page.area.style.position = 'relative';   // the neighbour is placed inside the page
   const sideScroll = t => { for(let e = t; e && e !== page.area; e = e.parentElement){ if(e.scrollWidth > e.clientWidth + 2){ const ox = getComputedStyle(e).overflowX; if(ox === 'auto' || ox === 'scroll') return true; } } return false; };
+  const put = (els, x) => els.forEach(v => { v.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`; });
+  function hideNb(){ if(!nb) return; nb.els.forEach(v => { v.getAnimations().forEach(a => a.cancel()); v.classList.add('hide'); ['position', 'top', 'left', 'width', 'transform', 'willChange', 'zIndex', 'margin'].forEach(k => { v.style[k] = ''; }); }); nb = null; nbDir = 0; }
+  function showNb(dir){   // the section on that side, drawn and laid next to the current one (same top, same width)
+    if(nbDir === dir) return; hideNb(); const key = pills.peek(dir); if(!key || !page.viewsFor) return;
+    const els = page.viewsFor(key).filter(Boolean); if(!els.length || els.some(v => vs.includes(v))) return;
+    try{ if(page.prep) page.prep(key); }catch(e){}
+    const c = vs[0], st = page.area.scrollTop; top0 = c.offsetTop;
+    let y = top0 + Math.max(0, st - top0);   // scrolled down: the neighbour starts at the top of the screen
+    els.forEach(v => { v.classList.remove('hide'); Object.assign(v.style, { position: 'absolute', top: y + 'px', left: c.offsetLeft + 'px', width: c.offsetWidth + 'px', margin: '0', zIndex: '1', willChange: 'transform' }); y += v.offsetHeight; });
+    nb = { dir, els }; nbDir = dir; }
   dragger(page.area, { axis: 'x', slop: 12,
     item: e => car.classList.contains('hide') || document.querySelector('.overlay.open') || e.target.closest(NO) || sideScroll(e.target) ? null : page.area,
-    start: () => { w = page.area.clientWidth || 360; vs = page.views(); vs.forEach(v => { v.getAnimations().forEach(a => a.cancel()); v.style.willChange = 'transform,opacity'; }); },
-    move: s => { const tr = `translate3d(${s.dx.toFixed(1)}px,0,0)`, op = (1 - Math.min(.5, Math.abs(s.dx) / w * .6)).toFixed(3);
-      vs.forEach(v => { v.style.transform = tr; v.style.opacity = op; }); pills.drag(-s.dx / w); },
-    end: (s, ok) => { const dx = s.dx, dir = dx < 0 ? 1 : -1, op0 = 1 - Math.min(.5, Math.abs(dx) / w * .6);
+    start: () => { w = page.area.clientWidth || 360; hideNb(); vs = page.views(); vs.forEach(v => { v.getAnimations().forEach(a => a.cancel()); v.style.willChange = 'transform'; }); },
+    move: s => { const d = s.dx < 0 ? 1 : -1; if(Math.abs(s.dx) > 2) showNb(d);
+      put(vs, s.dx); if(nb) put(nb.els, s.dx + nb.dir * w); pills.drag(-s.dx / w); },
+    end: (s, ok) => { const dx = s.dx, dir = dx < 0 ? 1 : -1;
       const clear = v => { v.style.transform = ''; v.style.opacity = ''; v.style.willChange = ''; };
-      const go = ok && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
-      if(!go){ pills.back(); vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { op: [op0, 1] }); }); return; }
-      // Petros: the whole page glides across instead of snapping: the old section carries on with the finger's speed all the way out
-      // (a soft, critically damped spring), and the next one glides in from that side over about a third of a second, no bounce.
-      pills.lead(dir);
-      vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w }, { x: s.vx }, { k: 190, damp: 1, fill: 'forwards', op: [op0, .1] }); });
-      setTimeout(() => { const old = vs; if(!stepTo(dir)){ pills.back(); old.forEach(v => { v.getAnimations().forEach(a => a.cancel()); }); return; }
-        old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
-        page.views().forEach(v => springTo(v, { x: dir * w * .7 }, { x: 0 }, { x: s.vx }, { k: 150, damp: 1, op: [.15, 1] })); }, 150); } });
+      const go = ok && !!nb && nb.dir === dir && (Math.abs(dx) > w * .28 || (Math.abs(s.vx) > .45 && Math.abs(dx) > 40 && Math.sign(s.vx) === Math.sign(dx)));
+      const spring = { k: 210, damp: 1, fill: 'forwards' };   // one spring for both, so they stay joined
+      if(!go){ pills.back(); const n0 = nb; vs.forEach(v => { clear(v); springTo(v, { x: dx }, { x: 0 }, { x: s.vx }, { k: 260, damp: 1 }); });
+        if(n0){ let a = null; n0.els.forEach(v => { v.style.transform = ''; a = springTo(v, { x: dx + n0.dir * w }, { x: n0.dir * w }, { x: s.vx }, { k: 260, damp: 1, fill: 'forwards' }); });
+          if(a) a.onfinish = () => { if(nb === n0) hideNb(); }; else hideNb(); }
+        return; }
+      pills.lead(dir); const n0 = nb, old = vs; let last = null;
+      old.forEach(v => { clear(v); springTo(v, { x: dx }, { x: -dir * w }, { x: s.vx }, spring); });
+      n0.els.forEach(v => { v.style.transform = ''; last = springTo(v, { x: dx + dir * w }, { x: 0 }, { x: s.vx }, spring); });
+      let done = false; const land = () => { if(done) return; done = true;
+        if(nb !== n0){ old.forEach(v => v.getAnimations().forEach(a => a.cancel())); return; }   // a new drag took over
+        navKeepScroll = true;
+        if(!stepTo(dir)){ pills.back(); old.forEach(v => v.getAnimations().forEach(a => a.cancel())); hideNb(); navKeepScroll = false; return; }
+        navKeepScroll = false;
+        n0.els.forEach(v => { v.getAnimations().forEach(a => a.cancel()); ['position', 'top', 'left', 'width', 'transform', 'willChange', 'zIndex', 'margin'].forEach(k => { v.style[k] = ''; }); });
+        nb = null; nbDir = 0; old.forEach(v => v.getAnimations().forEach(a => a.cancel()));
+        page.area.scrollTop = Math.min(page.area.scrollTop, top0); };   // the new section stays exactly where it was on screen (scrolled down: its top at the top)
+      if(last) last.onfinish = land; else land(); setTimeout(land, 900); } });
 }
 function pillCarousel(el, { items, onPick, page }){
   const n = items.length, R = 3;
@@ -493,7 +517,8 @@ function pillCarousel(el, { items, onPick, page }){
     const land = () => { if(near !== i) Phone.haptic(); off = 0; jumping = true; near = i; row.scrollLeft = sl = i * step; frame(); unpush(); setTimeout(() => { jumping = false; wrap(); }, 60); };
     const s = sliding((i - from) * step); if(s) s.done = land; else slideOff((i - from) * step, 240, land);   // the glide started on release carries on, one move
     return true; }
-  if(page) swipePages(page, el, stepTo, { drag: dragOff, back: () => slideOff(0, 260, () => { off = 0; frame(); unpush(); }), lead: dir => slideOff(dir * step, 380) });   // in step with the page glide (Petros: smoother)
+  function peek(dir){ if(cur < 0) return null; let i = cur; for(let k = 0; k < n; k++){ i = (i + dir + 3 * n) % (3 * n); if(!dis(i)) break; } return i % n === cur % n ? null : itm(i).key; }   // the section a swipe that way would open
+  if(page) swipePages(page, el, stepTo, { peek, drag: dragOff, back: () => slideOff(0, 260, () => { off = 0; frame(); unpush(); }), lead: dir => slideOff(dir * step, 380) });   // in step with the page glide (Petros: smoother)
   if(window.ResizeObserver) new ResizeObserver(() => { if(cur >= 0 && measure()) centre(cur, false); }).observe(el);
   function refresh(){ btns.forEach((b, i) => { const d = dis(i), off = d && !itm(i).soon; b.classList.toggle('off', off); if(d) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled'); }); frame(); }
   refresh();

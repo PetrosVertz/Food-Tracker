@@ -69,6 +69,22 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   await go(p, 'today'); await go(p, 'profile');
   ok(await p.evaluate(() => ui.pfLift === 'deadlift' && document.querySelector('#lbCar .pcrow>button.on').dataset.car === 'deadlift'), 'Leaderboards: Deadlift chosen and still chosen after leaving and coming back');
   await p.close();
+  // 6. Petros: a real carousel: halfway through a page swipe the next section is already there, right next to the current one
+  { const tp = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }); tp.on('pageerror', e => errs.push(e.message));
+    await tp.goto(`http://localhost:${port}/`);
+    await tp.evaluate(() => { localStorage.clear(); localStorage.setItem('ft.ui.v1', JSON.stringify({ setupDone: true, lang: 'en', lastBackup: new Date().toISOString(), theme: { mode: 'dark' } })); });
+    await tp.goto(`http://localhost:${port}/?r=1`); await sleep(400);
+    const cdp = await tp.context().newCDPSession(tp), touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
+    const bx = id => tp.evaluate(id => { const e = document.getElementById(id), r = e.getBoundingClientRect(); return { x: Math.round(r.left), w: Math.round(r.width), on: !e.classList.contains('hide') }; }, id);
+    for(const [h, a, b, dx, want] of [['gym-week', 'gPlanV', 'gRecV', -240, '#gym-rec'], ['gym-prog', 'gProgV', 'gTplV', 240, '#gym-lib'], ['meals', 'mealsView', 'foodSupps', -240, '#supps']]){
+      await tp.evaluate(h => { location.hash = h; }, h); await sleep(800);
+      await touch('touchStart', 300, 500); for(let i = 1; i <= 20; i++){ await touch('touchMove', 300 + dx * i / 40, 500); await sleep(8); } await sleep(40);
+      const A = await bx(a), B = await bx(b);
+      for(let i = 21; i <= 40; i++){ await touch('touchMove', 300 + dx * i / 40, 500); await sleep(8); } await touch('touchEnd'); await sleep(1100);
+      const end = await tp.evaluate(([a, b]) => ({ h: location.hash, a: !document.getElementById(a).classList.contains('hide'), b: document.getElementById(b).style.position }), [a, b]);
+      ok(A.on && B.on && Math.abs(Math.abs(B.x - A.x) - 390) <= 2 && end.h === want && !end.a && !end.b,
+        `swipe ${h} → ${want}: halfway both sections show side by side (${A.x} / ${B.x}), then ${end.h} alone, in place`); }
+    await tp.close(); }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); srv.close(); console.log(fails ? `\n${fails} check(s) failed` : '\nAll carousel checks passed.'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); srv.close(); process.exit(1); });
