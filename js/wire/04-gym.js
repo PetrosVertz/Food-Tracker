@@ -111,6 +111,7 @@ $('sesBody').addEventListener('click', e => {
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
   if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
   const tb = e.target.closest('[data-tierinfo]'); if(tb){ Phone.haptic(); return showTierGap(tb); }
+  const nab = e.target.closest('[data-rankna]'); if(nab){ Phone.haptic(); return showRankNa(nab); }
   // tiers need body weight + sex: open Settings › Body on top of the workout; after Save the cards redraw with their tier
   if(e.target.closest('[data-tierbody]')){ Phone.haptic(); fillSettings(); open('ovSBody'); $('sBodySave').addEventListener('click', () => { if(active) renderSession(); }, { once: true }); return; }
   const rr = e.target.closest('[data-rir]'); if(rr){ const rx = exAt(rr), rw = rr.closest('[data-sxrow]'), rs2 = rx && rw && rx.sets[+rw.dataset.sxrow]; if(rs2){ const k = +rr.dataset.rir; if(rs2.rir === k) delete rs2.rir; else rs2.rir = k; saveG('act'); renderSession(); } return; }

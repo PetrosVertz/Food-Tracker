@@ -810,24 +810,39 @@ function rankIcon(tier, n, size){ const h = size || 26;
   return `<img class="rankic" src="${rankSrc(tier, n, h)}" width="${h}" height="${h}" alt="${esc(tierName(n))}" decoding="async" draggable="false">`; }
 // the badge top right on the exercise card (just left of the gear); tap → the rank name and the gap to the next level
 const tierBadge = tf => `<button type="button" class="tierbadge tr-${tf.tier}" data-tierinfo aria-label="${esc(tf.label)}">${rankIcon(tf.tier, tf.n, 52)}</button>`;
+// Athlete Rank v0.4: an exercise that does not compete keeps the slot: a muted empty plate with a small red X; tap / Enter → "Ranking not available"
+const rankNaBadge = code => `<button type="button" class="tierbadge rankna" data-rankna="${esc(code)}" aria-haspopup="dialog" aria-label="${esc(t('rankNaT'))}">${rankIcon('bronze', 0, 52)}<span class="rnax" aria-hidden="true">${svgIcon('x', 14, 3)}</span></button>`;
+const RANK_NA_TXT = { machine_cable: 'rankNaMachine', other_equipment: 'rankNaOther', insufficient_benchmark: 'rankNaData', protocol: 'rankNaProtocol', assisted: 'rankNaAssist' };
+function showRankNa(btn){ hideTip(); const code = btn.dataset.rankna, p = document.createElement('div');
+  p.className = 'tippop rankna-pop'; p.id = 'tipPop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-labelledby', 'rankNaH'); p.tabIndex = -1; p.style.zIndex = zTop + 50;
+  p.innerHTML = `<b id="rankNaH">${esc(t('rankNaT'))}</b><p>${esc(t(RANK_NA_TXT[code] || 'rankNaData'))}</p>`;
+  document.body.appendChild(p); const r = btn.getBoundingClientRect(), w = p.offsetWidth;
+  p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; p.focus({ preventScroll: true });
+  const esc_ = e => { if(e.key !== 'Escape') return; e.preventDefault(); e.stopPropagation(); hideTip(); btn.focus(); };
+  document.addEventListener('keydown', esc_, true); new MutationObserver((m, o) => { if(!p.isConnected){ document.removeEventListener('keydown', esc_, true); o.disconnect(); } }).observe(document.body, { childList: true }); }
+// the next level, said as something to do: a weight × reps, the reps alone, added weight × reps, or "beat your best" while protected
+const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t('tierNextReps', { r: nx.reps }) : nx.add != null ? t('tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
   hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
-  p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap', { kg: fmt(tf.next.kg), tier: tf.next.label }) : t('tierTop')}`);
+  p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap2', { what: rankNextTxt(tf.next), tier: tf.next.label }) : t('tierTop')}`);
   p.innerHTML = tierBarHtml(tf);
   document.body.appendChild(p);
   const r = btn.getBoundingClientRect(), w = p.offsetWidth;
   p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
 // the kg still needed, then [current plate] bar in the tier colour [next plate]; shared by the rank bubble and the Rank Up window (rank-fx.js)
 function tierBarHtml(tf){ const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
-  return `<b class="tgkg">${nx ? esc(t('tierGapKg', { kg: fmt(nx.kg) })) : esc(t('tierTop'))}</b>
+  return `<b class="tgkg">${nx ? esc(rankNextTxt(nx)) : esc(t('tierTop'))}</b>${tf.protected ? `<small class="tgprot">${esc(t('rankProt'))}</small>` : ''}
     <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`; }
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
 // · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
 // e1 (optional): a real 1RM from elsewhere (Profile › Add a 1RM); it counts as your peak, or as a normal trainee's if there are no workouts
 // noLive: leave the workout in progress out (the rank as of the last saved workout)
-function tierFor(exId, e1, noLive){ const std = tierStd(exId); if(!std) return null; const body = tierBody(); if(!body) return { need: true };
+// Athlete Rank v0.4 is live (js/rank-v04.js): a typed 1RM (e1) never gives a rank there. The body below is the old engine, kept only as the
+// clearly marked fallback for RANK4.on = false.
+function tierFor(exId, e1, noLive){ if(typeof RANK4 !== 'undefined' && RANK4.on) return rank4For(exId, noLive);
+  const std = tierStd(exId); if(!std) return null; const body = tierBody(); if(!body) return { need: true };
   let parts = rankParts(tierList(exId, noLive));
   if(+e1 > parts.P) parts = parts.P > 0 ? { ...parts, P: +e1 } : rankRefParts(+e1);
   if(!(parts.P > 0)) return { none: true };
@@ -884,7 +899,7 @@ function cardHtml(x, i){
   const uniPill = card || ex.e === 'barbell' || !gOn('uniPill') ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore') ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
-  const rk = tf && tf.label && gOn('rank'), head = `<div class="extop${rk || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
+  const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills${uniPill || gOn('formPill') || (!card && gOn('swapPill')) ? '' : ' hide'}">${uniPill}${gOn('formPill') ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill') ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)

@@ -1141,3 +1141,19 @@ Object.assign(S, {   // Settings › AI › What You Told the Coaches: edit a no
   memEditBad: ['That can’t be kept as a note. Write a plain fact about you, like “My left knee hurts on squats”.', 'Αυτό δεν μπορεί να κρατηθεί ως σημείωση. Γράψε ένα απλό γεγονός για σένα, π.χ. «Με πονάει το αριστερό γόνατο στα squat».'],
   memEditGone: ['That note was deleted meanwhile.', 'Η σημείωση διαγράφηκε στο μεταξύ.'],
 });
+
+Object.assign(S, {   // Athlete Rank v0.4 (gym.js rankNaBadge / showRankNa / rankNextTxt)
+  rankNaT: ['Ranking not available', 'Η κατάταξη δεν είναι διαθέσιμη'],
+  rankNaMachine: ['This exercise can still be tracked for workouts, personal records, and progress, but competitive ranking is unavailable because machine and cable resistance varies between equipment and gyms.',
+    'Αυτή η άσκηση καταγράφεται κανονικά στις προπονήσεις, στα ρεκόρ και στην πρόοδό σου, αλλά δεν έχει κατάταξη, γιατί η αντίσταση στα μηχανήματα και στις τροχαλίες διαφέρει από μηχάνημα σε μηχάνημα και από γυμναστήριο σε γυμναστήριο.'],
+  rankNaOther: ['This exercise can still be tracked for workouts, personal records, and progress, but competitive ranking is unavailable because this equipment’s resistance can’t be compared fairly between people.',
+    'Αυτή η άσκηση καταγράφεται κανονικά στις προπονήσεις, στα ρεκόρ και στην πρόοδό σου, αλλά δεν έχει κατάταξη, γιατί η αντίσταση αυτού του εξοπλισμού δεν συγκρίνεται δίκαια ανάμεσα σε ανθρώπους.'],
+  rankNaData: ['There isn’t enough reliable benchmark data to rank this exercise yet. It can still be tracked for workouts, personal records, and progress.',
+    'Δεν υπάρχουν ακόμα αρκετά αξιόπιστα δεδομένα αναφοράς για να έχει κατάταξη αυτή η άσκηση. Καταγράφεται κανονικά στις προπονήσεις, στα ρεκόρ και στην πρόοδό σου.'],
+  rankNaProtocol: ['This exercise is measured in a way that can’t be compared fairly (speed, time or an uneven load), so it has no ranking. It can still be tracked for workouts, personal records, and progress.',
+    'Αυτή η άσκηση μετριέται με τρόπο που δεν συγκρίνεται δίκαια (ταχύτητα, χρόνος ή άνιση φόρτιση), οπότε δεν έχει κατάταξη. Καταγράφεται κανονικά στις προπονήσεις, στα ρεκόρ και στην πρόοδό σου.'],
+  rankNaAssist: ['Assisted sets are tracked for personal records and progress, but they are not ranked.', 'Τα υποβοηθούμενα σετ καταγράφονται για ρεκόρ και πρόοδο, αλλά δεν έχουν κατάταξη.'],
+  tierNextSet: ['{w} kg × {r} reps', '{w} kg × {r} επαναλήψεις'], tierNextReps: ['{r} strict reps', '{r} καθαρές επαναλήψεις'], tierNextAdd: ['+{a} kg × {r} reps', '+{a} kg × {r} επαναλήψεις'],
+  tierNextBeat: ['Beat your best set to move up', 'Ξεπέρασε το καλύτερο σετ σου για να ανέβεις'], tierGap2: ['{what} for {tier}', '{what} για {tier}'],
+  rankProt: ['Protected this season: new benchmarks lowered this rank by at most two levels.', 'Προστατεύεται αυτή τη σεζόν: τα νέα δεδομένα αναφοράς χαμήλωσαν αυτή την κατάταξη το πολύ κατά δύο επίπεδα.'],
+});
