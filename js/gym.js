@@ -502,6 +502,7 @@ const recName = (g, v) => { const all = RecoveryCore.HEADS21.filter(h => Recover
 const recWhen = (d, tm) => { const n = daysUntil(d); return t('recNextWhen', { d: n === 0 ? t('recDayToday') : n === 1 ? t('recDayTomorrow') : t('wdFull').split(' ')[new Date(d + 'T12:00:00').getDay()], t: fmtClock(tm) }); };
 function recNextCard(r){
   const tr = r.tr, nx = r.next, a = r.nextA, hist = tr.evidence.sessionsTotal;
+  if(!ui.wpAdv || !nx) return '';   // the next workout shows only when the Week Planner is in Advanced mode and a workout is planned; otherwise nothing
   const notGroups = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(tr.groups[g].state));
   let title = t('recNextT'), sub = '', msg = '';
   if(!hist) msg = t('recAsNoHistory');
