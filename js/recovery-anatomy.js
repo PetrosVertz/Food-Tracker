@@ -1,6 +1,7 @@
 // RECOVERY+ anatomy renderer: the approved male / female 2.5D figures (js/data/recovery-anatomy.js), drawn as live SVG regions.
-// Used only by RECOVERY+ (the page body and the small muscle pictures in its tiles). The exercise picker, exercise info, swap and rank
-// pictures keep anatomySVG() / gymBodySVG() in gym.js, unchanged.
+// Used by RECOVERY+ (the page body and the small muscle pictures in its tiles) and, through raExerciseSVG() below, by the exercise
+// pictures: picker cards, swap list (miniMap in gym.js) and exercise info. The custom exercise creator (tap muscles to choose them),
+// the form figure and rank pictures keep anatomySVG() / gymBodySVG() in gym.js.
 //
 // recoveryAnatomySVG({
 //   sex: 'm' | 'f'            (anything else: male),
@@ -92,4 +93,26 @@ function recoveryAnatomySVG(o){
     `<g stroke="none"><g id="${P}body">${paths.join('')}</g></g>` +
     z.map(([c, d]) => `<path d="${d}" fill="${c}"/>`).join('') +
     `<g fill="#fff">${hl.map((d, i) => `<path d="${d}" fill-opacity="${[.05, .055, .06][i]}"/>`).join('')}</g></svg>`;
+}
+
+// ---------- an exercise on the RECOVERY+ figure (Petros: the picker, swap list and exercise info use the new figures) ----------
+// mu: { headId: share 0-100 }. Each worked head in its own muscle colour (colours: { headId: hex }), stronger = works more; the rest
+// stays the figure's neutral graphite. o.thumb: one side (the one that shows more of the work) and one half (upper / lower body), cut
+// to the card picture's shape (w:h = o.aspect, default .9). Otherwise front and back side by side.
+function raMix(hex, p){ const a = String(hex || '').replace('#', ''), b = RA_NEUTRAL.slice(1); if(a.length !== 6) return hex || RA_NEUTRAL;
+  const c = i => Math.round(parseInt(a.slice(i, i + 2), 16) * p + parseInt(b.slice(i, i + 2), 16) * (1 - p)).toString(16).padStart(2, '0');
+  return '#' + c(0) + c(2) + c(4); }
+function raExerciseCols(mu, colours){ const v = Object.entries(mu || {}).filter(([h, n]) => RA_GROUP[h] && +n > 0), max = Math.max(1, ...v.map(([, n]) => +n)), o = {};
+  v.forEach(([h, n]) => { o[h] = raMix((colours || {})[h] || '#c6f432', .42 + .58 * Math.min(1, +n / max)); }); return o; }
+const RA_LOW = new Set(['quads', 'hamstrings', 'glutes', 'abductors', 'adductors', 'calves']);
+function raExerciseSVG(mu, o){
+  o = o || {}; const S = raSex(o.sex), cols = raExerciseCols(mu, o.colours), P = o.idPrefix || 'rx';
+  if(!o.thumb) return recoveryAnatomySVG({ sex: S, view: 'both', colorsByHead: cols, idPrefix: P, maxWidth: o.maxWidth || 340, label: o.label });
+  const D = RA_DATA[S], ids = f => new Set(D[f].p.map(([id]) => id)), w = (f, set) => Object.entries(mu || {}).reduce((a, [h, n]) => a + (set.has(h) ? +n || 0 : 0), 0);
+  const F = ids('f'), B = ids('b'), fig = w('f', F) >= w('b', B) ? 'f' : 'b';
+  let lo = 0, up = 0; Object.entries(mu || {}).forEach(([h, n]) => { if(RA_LOW.has(h)) lo += +n || 0; else if(RA_GROUP[h]) up += +n || 0; });
+  const [bx, by, bw, bh] = D[fig].box, half = lo > up ? [by + bh * .43, bh * .57] : [by, bh * .5], A = o.aspect || .9;
+  let cw = bw * 1.04, ch = half[1]; if(cw / ch < A) cw = ch * A; else ch = cw / A;
+  const cx = bx + bw / 2, cy = half[0] + half[1] / 2;
+  return recoveryAnatomySVG({ sex: S, view: fig === 'f' ? 'front' : 'back', colorsByHead: cols, crop: [cx - cw / 2, cy - ch / 2, cw, ch], idPrefix: P, w: o.w, h: o.h });
 }
