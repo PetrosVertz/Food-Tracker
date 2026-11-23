@@ -66,9 +66,9 @@ const S = {
  kcalOk:['Macros check out (~{n} kcal).','Τα μακρο ταιριάζουν (~{n} kcal).'],
  needName:['Give the product a name','Δώσε όνομα στο προϊόν'], needMacros:['Protein, carbs and fat are needed','Χρειάζονται πρωτεΐνη, υδατάνθρακες και λιπαρά'], numbersOff:['Some numbers look off','Κάποιοι αριθμοί δεν φαίνονται σωστοί'],
  typePack:['Type a pack size first','Γράψε πρώτα μέγεθος συσκευασίας'],
- almost:['Almost there','Σχεδόν έτοιμο'], almostSub:['Fill in what’s missing, then save.','Συμπλήρωσε ό,τι λείπει και αποθήκευσε.'], addBrand:['Add brand','Προσθήκη μάρκας'], brandName:['Brand name','Όνομα μάρκας'],
- weighOne:['Weigh One','Ζύγισε μία'], countThem:['Count Them','Μέτρησέ τες'],
- eachIs:['{a} ÷ {n} = <b>{s} each</b>','{a} ÷ {n} = <b>{s} η καθεμία</b>'],
+ 
+ 
+ 
  sameCode:['This barcode is already saved as “{n}”. Save another one anyway?','Αυτό το barcode υπάρχει ήδη ως «{n}». Αποθήκευση ξανά;'],
  sameName:['You already have “{n}”. Save a second one anyway?','Έχεις ήδη «{n}». Αποθήκευση δεύτερου;'],
  saved:['Saved {i}','Αποθηκεύτηκε {i}'], updated:['Updated','Ενημερώθηκε'], deleted:['Deleted {n}','Διαγράφηκε: {n}'], undo:['Undo','Αναίρεση'],
@@ -675,7 +675,7 @@ Object.assign(S, {
 // 0.7.7 shell: Profile tab (Settings now opens from the gear on Profile)
 Object.assign(S, {
   tabProfile: ['Social Hub', 'Κοινωνικό Κέντρο'],
-  pfYou: ['You', 'Εσύ'], pfFriendsSoon: ['Friends Soon', 'Φίλοι Σύντομα'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
+  pfYou: ['You', 'Εσύ'], pfShare: ['Share a Workout', 'Μοιράσου μια Προπόνηση'],
   frzSkipBtn: ['Skip', 'Παράλειψη'], frzGoBtn: ['Go to Gym', 'Πήγαινε στο Γυμναστήριο'],
   pfStreak: ['Workout Streak', 'Σερί Προπονήσεων'], pfHighRank: ['Highest Ranked Exercises', 'Ασκήσεις Με Την Υψηλότερη Κατάταξη'], pfNoRank: ['Finish a workout to get your first rank.', 'Ολοκλήρωσε μια προπόνηση για την πρώτη σου κατάταξη.'],
   rkCustomize: ['Customize', 'Προσαρμογή'], rkReset: ['Reset to Automatic', 'Επαναφορά σε Αυτόματο'], rkTitle: ['Choose 3 Exercises', 'Διάλεξε 3 Ασκήσεις'],
@@ -823,7 +823,7 @@ Object.assign(S, {   // Refinements #2: the Gym Buddy carousel; carSoon = a Comi
   carSoon: ['Coming Soon', 'Σύντομα'],
 });
 Object.assign(S, {   // Refinements #4: the Food Library hub
-  tabMyMeals: ['My Meals', 'Τα Γεύματά Μου'], fhFoods: ['Foods', 'Τρόφιμα'],
+  fhFoods: ['Foods', 'Τρόφιμα'],
   nRecipes: ['{n} Recipes', '{n} Συνταγές'], nRecipe1: ['1 Recipe', '1 Συνταγή'], nSupps: ['{n} Supplements', '{n} Συμπληρώματα'], nSupp1: ['1 Supplement', '1 Συμπλήρωμα'],
 });
 Object.assign(S, {   // Refinements #5 · Food Coach complex meals: one card (js/meal.js)

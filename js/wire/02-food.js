@@ -9,12 +9,11 @@ $('backBtn2').addEventListener('click', () => goBack());
 
 
 // Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
-// My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
+// (My Meals, a Coming Soon tile and pill with no screen, was removed: saved meals are under Recipes.)
 document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
-$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); else if(e.target.closest('.fhsoon')) Phone.haptic(); });
+$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); });
 const FOOD_CAR = pillCarousel($('fTabs'), {
-  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
-    { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
+  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
   page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide')) }
 });
@@ -84,38 +83,6 @@ $('packList').addEventListener('click', e => {
 ['fKcal','fP','fC','fF'].forEach(id => $(id).addEventListener('input', checkKcal));
 
 $('saveBtn').addEventListener('click', trySave);
-
-document.querySelectorAll('#mBrandSeg button').forEach(b => b.addEventListener('click', () => {
-  M.brandMode = b.dataset.v; setSeg('#mBrandSeg', M.brandMode);
-  $('mBrand').classList.toggle('hide', M.brandMode !== 'add');
-  if(M.brandMode === 'add') setTimeout(() => $('mBrand').focus(), 50);
-  checkMissing();
-}));
-
-$('mBrand').addEventListener('input', checkMissing);
-
-$('mBrand').addEventListener('keydown', e => { if(e.key === 'Enter' && !$('mSave').disabled) $('mSave').click(); });
-
-$('mSave').addEventListener('click', () => {
-  if(M.needBrand){ if(M.brandMode === 'none') setNoBrand(true); else { setNoBrand(false); $('fBrand').value = $('mBrand').value.trim(); } }
-  if(M.needType){ F.typeTouched = true; setType(M.cat, M.sub, false); }
-  close('ovMissing'); trySave();
-});
-
-document.querySelectorAll('#pcSeg button').forEach(b => b.addEventListener('click', () => { setPcMode(b.dataset.v); setTimeout(() => $(b.dataset.v === 'weigh' ? 'pcG' : 'pcN').focus(), 50); }));
-
-['pcG','pcN','pcPack'].forEach(id => { $(id).addEventListener('input', pcCheck); $(id).addEventListener('keydown', e => { if(e.key === 'Enter' && !$('pcSave').disabled) $('pcSave').click(); }); });
-
-$('pcSave').addEventListener('click', () => {
-  const v = pcValue(); if(!v) return;
-  if(PC.mode === 'count'){ const p = num('pcPack'); if(!F.packs.includes(p)) F.packs.push(p); F.usual = p; drawPacks(); }
-  $('fPiece').value = v; F.pieceSkipped = false; pieceHint(); updatePreview();
-  close('ovPiece'); trySave();
-});
-
-$('pcSkip').addEventListener('click', () => { F.pieceSkipped = true; close('ovPiece'); trySave(); });
-
-$('pcNone').addEventListener('click', () => { F.piecesTouched = true; setPieces('none'); close('ovPiece'); trySave(); });
 
 $('delBtn').addEventListener('click', () => {
   const i = foods.findIndex(x => x.id === F.editingId); if(i === -1) return;

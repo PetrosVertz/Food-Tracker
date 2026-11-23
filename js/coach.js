@@ -133,7 +133,7 @@ Return ONLY JSON: {"reply": string}`, img);
     const mem = text && typeof Supervisor !== 'undefined' ? Supervisor.begin(id, text) : null;
     if(mem && (mem.added.length || mem.dropped.length)) toast(t(mem.added.length ? 'memSaved' : 'memForgot'), t('undo'), () => { mem.added.forEach(x => AthleteMemory.remove(x.id)); AthleteMemory.restore(mem.dropped); });
     // a clear question for the other coach (no photo: photos stay with the coach that reads them) is answered by that coach, here in this chat
-    const to = text && !img && typeof Supervisor !== 'undefined' && Supervisor.handoff ? Supervisor.handoff(text, id, k => !!(CFG[k] && CFG[k].send)) : null;
+    const keep = cfg(id).keep, to = text && !img && !(keep && keep(text)) && typeof Supervisor !== 'undefined' && Supervisor.handoff ? Supervisor.handoff(text, id, k => !!(CFG[k] && CFG[k].send)) : null;   // keep: the coach recognises its own subject in it
     if(to){ w.status = t('coachHandoff', { n: title(to) }); draw(); }
     const ch = api(c, to), f = cfg(to || id);
     try{ await (f.send || talk)(text, ch, img); }

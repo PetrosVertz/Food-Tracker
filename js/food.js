@@ -222,26 +222,6 @@ function readForm(){
   return { name: $('fName').value.trim(), brand: F.noBrand ? '' : $('fBrand').value.trim(), vals };
 }
 
-function checkMissing(){
-  const brandOk = !M.needBrand || M.brandMode === 'none' || (M.brandMode === 'add' && $('mBrand').value.trim());
-  $('mSave').disabled = !(brandOk && (!M.needType || !!M.cat));
-}
-
-function setPcMode(m){ PC.mode = m; setSeg('#pcSeg', m); $('pcWeigh').classList.toggle('hide', m !== 'weigh'); $('pcCount').classList.toggle('hide', m !== 'count'); pcCheck(); }
-
-function pcValue(){ if(PC.mode === 'weigh') return num('pcG') > 0 ? num('pcG') : null; const n = num('pcN'), p = num('pcPack'); return n > 0 && p > 0 ? r1(p / n) : null; }
-
-function pcCheck(){
-  const v = pcValue(), el = $('pcRes');
-  $('pcSave').disabled = !v;
-  if(v){
-    const k = num('fKcal') ?? (num('fP')*4 + num('fC')*4 + num('fF')*9), m = v/100;
-    el.innerHTML = (PC.mode === 'count' ? t('eachIs', { a: fmtSize(num('pcPack'), F.unit), n: num('pcN'), s: fmtSize(v, F.unit) }) + '<br>' : '') +
-      `${t('onePiece', { w: W(F.pieces) })}: <b>${Math.round(k*m)} kcal</b> · P ${r1(num('fP')*m)} · C ${r1(num('fC')*m)} · F ${r1(num('fF')*m)}`;
-    el.classList.add('show');
-  } else el.classList.remove('show');
-}
-
 async function commit(){
   const { name, brand, vals } = readForm();
   if(vals.kcal === null) vals.kcal = Math.round(vals.protein*4 + vals.carbs*4 + vals.fat*9);

@@ -50,7 +50,6 @@
   <div id="fHub" class="hide">
     <div class="tiles fhub">
       <button class="tile fhmain" data-fsec="foods"><span class="e hubic" data-fic="bag"></span><span><b data-t="tabStore"></b><em data-t="fhFoods"></em><small id="fhStoreN"></small></span></button>
-      <button class="tile soon fhsoon" type="button" aria-disabled="true" tabindex="-1"><span class="e hubic" data-fic="bowl"></span><span><b data-t="tabMyMeals"></b><small data-t="carSoon"></small></span></button>
       <button class="tile wide" data-fsec="meals"><span class="e hubic" data-fic="pot"></span><span><b data-t="tabMeals"></b><small id="fhRecN"></small></span></button>
       <button class="tile wide" data-fsec="supps"><span class="e hubic" data-fic="capsule"></span><span><b data-t="tabSupps"></b><small id="fhSuppN"></small></span></button>
     </div>
@@ -436,45 +435,6 @@
   <p class="sub" data-t="pickTypeSub"></p>
   <div id="typePicker"></div>
   <div class="actions"><button class="btn" data-close data-t="cancel"></button></div>
-</div></div>
-
-<!-- ============ MISSING BRAND / TYPE ============ -->
-<div class="overlay" id="ovMissing"><div class="sheet">
-  <h2 data-t="almost"></h2>
-  <p class="sub" data-t="almostSub"></p>
-  <div id="mBrandSec">
-    <h3 data-t="brand"></h3>
-    <div class="seg" id="mBrandSeg"><button data-v="add" data-t="addBrand"></button><button data-v="none" data-t="noBrand"></button></div>
-    <input id="mBrand" class="hide" style="margin-top:10px" data-tp="brandName" autocomplete="off" list="brandList">
-  </div>
-  <div id="mTypeSec">
-    <h3 data-t="foodType"></h3>
-    <div id="mTypePicker"></div>
-  </div>
-  <div class="actions">
-    <button class="btn" data-close data-t="back"></button>
-    <button class="btn primary" id="mSave" disabled data-t="save"></button>
-  </div>
-</div></div>
-
-<!-- ============ PIECE WEIGHT ============ -->
-<div class="overlay" id="ovPiece"><div class="sheet">
-  <h2 id="pcTitle"></h2>
-  <p class="sub" id="pcSub"></p>
-  <div class="seg" id="pcSeg"><button data-v="weigh" data-t="weighOne"></button><button data-v="count" data-t="countThem"></button></div>
-  <div id="pcWeigh"><label for="pcG" id="pcGl"></label><input id="pcG" type="number" inputmode="decimal" step="any" min="0" placeholder="20"></div>
-  <div id="pcCount" class="hide">
-    <div class="grid">
-      <div><label for="pcN" id="pcNl"></label><input id="pcN" type="number" inputmode="numeric" step="1" min="1" placeholder="10"></div>
-      <div><label for="pcPack" id="pcPackl"></label><input id="pcPack" type="number" inputmode="decimal" step="any" min="0" placeholder="200"></div>
-    </div>
-  </div>
-  <div class="preview" id="pcRes"></div>
-  <button class="linkbtn" id="pcNone" style="margin-top:10px"></button>
-  <div class="actions">
-    <button class="btn" id="pcSkip" data-t="skip"></button>
-    <button class="btn primary" id="pcSave" disabled data-t="save"></button>
-  </div>
 </div></div>
 
 <!-- ============ COOK A MEAL ============ -->

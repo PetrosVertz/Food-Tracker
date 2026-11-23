@@ -1061,6 +1061,9 @@ function logQRestore(ch){
   return out.length ? out : null;
 }
 // "what should I eat?" in Food Coach: Fill My Macros, shown as the same greyed suggestion cards (and on Today)
+// every word (4+ letters) of a built-in food's English or Greek name, minus words gym talk shares; built once
+let FOODW = null; const FOODW_NOT = new Set(['press', 'plate', 'bench', 'rows', 'squat', 'curl', 'with', 'without', 'free', 'light', 'heavy', 'cooked', 'grilled', 'fried', 'boiled', 'raw', 'whole', 'mixed', 'plain']);
+const foodWords = () => FOODW || (FOODW = new Set(GEN.flatMap(g => [g.en, g.el, g.alias].filter(Boolean).flatMap(s => norm(String(s)).split(' '))).filter(x => x.length >= 4 && !FOODW_NOT.has(x))));
 // meals: ideas that came in the answer already (no request); null = this message's one request is spent and brought none (a short reply, no
 // second request); undefined = ask for them now (the one request of a clear "what should I eat?")
 async function logQSuggest(ch, reply, meals){
@@ -1165,7 +1168,9 @@ function logQUndoOf(m, a){
 
 // wiring (called once from wire/03, where the Log Food sheet is wired): Food Coach answers with logQSend; the rows inside its cards
 function logQWire(){
+  // keep: a message that names a dish or a food the app knows stays with Food Coach even if it also says "gym" (no handoff; Athlete OS routing)
   Coach.setup('chef', { kind: 'chef', title: () => t('coachFood'), first: () => t('coachFoodHi'), send: logQSend,
+    keep: txt => { try{ if(mealDetect(txt).dish) return true; const w = norm(txt).split(' '); return w.some(x => x.length >= 4 && foodWords().has(x)); }catch(e){ return false; } },
     persist: { load: (id, ch) => logQRestore(ch), save: (id, msgs) => msgs ? logQPersist(msgs) : FoodCoach.chatClear() } });   // Food Coach 2.0: the chat survives a restart (coach.js persist)
   const list = $('coachList');
   const msgOf = el => { const b = el.closest('[data-mid]'); const x = b && FC[b.dataset.mid]; return x ? x.m : null; };

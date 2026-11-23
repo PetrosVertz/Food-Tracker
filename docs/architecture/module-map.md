@@ -3,7 +3,7 @@
 Source-verified 2026-11-22 (v0.7.10.7 + V3 hardening). **The code wins over this page**: if a path or symbol here is wrong, grep, fix the code task, then fix this row. `node tools/check.js` fails when a path or `name()` below stops existing.
 
 All scripts are classic browser scripts sharing one global scope, loaded in the order of `index.html`:
-config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features (`gym-intel` right after `gym`) → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. `js/wire/11-v059.js` is dead (not loaded) — do not edit it.
+config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`) → data (`strings`, foods, gym, anatomy, rank bench) → helpers (`core`, `draft`, `ui`, `coach`) → features (`gym-intel` right after `gym`) → `know` → Athlete OS (`js/athlete/*`) → `wire/01…10` (state, listeners, first render). A file may only use, **at load time**, what earlier files define; inside functions anything global is fine. (The unloaded `wire/11-v059.js` was deleted in the activation round.)
 
 ## Routing table
 
