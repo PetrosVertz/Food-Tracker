@@ -1184,3 +1184,13 @@ Object.assign(S, {   // Beta profiler (js/profiler.js)
   betaExport: ['Export Profile', 'Εξαγωγή Προφίλ'],
   betaDone: ['Profile file ready.', 'Το αρχείο προφίλ είναι έτοιμο.'],
 });
+
+Object.assign(S, {   // Left / Right and the load convention beside the weight (js/gym-lat.js, gym.js › cvChip)
+  cvT: ['How To Count This Exercise', 'Πώς Μετράς Αυτή Την Άσκηση'],
+  cvHand: ['Per Hand', 'Ανά Χέρι'], cvHand2: ['Per Bell · 2 Bells', 'Ανά Αλτήρα · 2 Αλτήρες'], cvOne: ['One Bell', 'Ένας Αλτήρας'], cvTotal: ['Total Of Both Bells', 'Σύνολο Των Δύο Αλτήρων'],
+  cvBar: ['Bar Total', 'Σύνολο Μπάρας'], cvStack: ['Stack', 'Στοίβα'], cvStackSide: ['Stack Per Side', 'Στοίβα Ανά Πλευρά'],
+  cvRepsSide: ['Reps Each Side', 'Επαναλήψεις Ανά Πλευρά'], cvRepsBoth: ['Reps Together', 'Επαναλήψεις Μαζί'],
+  cvPick: ['Choose How To Count', 'Διάλεξε Πώς Μετράς'], cvPickFirst: ['Choose how this is counted before the first set.', 'Διάλεξε πώς μετριέται πριν το πρώτο σετ.'],
+  cvLocked: ['This can only change before the first finished set.', 'Αυτό αλλάζει μόνο πριν το πρώτο ολοκληρωμένο σετ.'],
+  oneSideL: ['Left Only', 'Μόνο Αριστερά'], oneSideR: ['Right Only', 'Μόνο Δεξιά'], bothSides: ['Both Sides', 'Και Οι Δύο Πλευρές'],
+});

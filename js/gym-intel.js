@@ -218,8 +218,8 @@ const GymIntel = (() => {
     if(op.type === 'swap'){ const e = exById(op.to);
       if(x.sets.some(z => z.done)){ const n = { exId: op.to, reps: x.reps, rest: e.rest || x.rest, sets: open.map(() => mk()) }; if(!n.sets.length) n.sets.push(mk());
         act.exercises.splice(op.xi + 1, 0, n); return () => { const i = act.exercises.indexOf(n); if(i > -1 && !n.sets.some(z => z.done)) act.exercises.splice(i, 1); }; }
-      const was = { exId: x.exId, rest: x.rest, uni: x.uni }; x.exId = op.to; x.rest = e.rest || x.rest; x.sets.forEach(z => { if(!z.done){ z.w = ''; } });
-      return () => { if(!x.sets.some(z => z.done)){ x.exId = was.exId; x.rest = was.rest; if(was.uni) x.uni = was.uni; } }; }
+      const was = { exId: x.exId, rest: x.rest, uni: x.uni }; x.exId = op.to; x.rest = e.rest || x.rest; x.sets.forEach(z => { if(!z.done){ z.w = ''; } }); if(!x.sets.some(z => z.done) && typeof latReset === 'function'){ was.cv = x.cv; was.sets = x.sets; was.uni2 = x.uni; was.jt = x.jt; latReset(x); }
+      return () => { if(!x.sets.some(z => z.done)){ x.exId = was.exId; x.rest = was.rest; if(was.sets){ x.sets = was.sets; x.uni = was.uni2; x.jt = was.jt; if(was.cv) x.cv = was.cv; else delete x.cv; } else if(was.uni) x.uni = was.uni; } }; }
     return null;
   }
   // one line describing the op (for the card): english-free, built from strings

@@ -82,13 +82,16 @@ function gymSetKcal(exId, s, bw){
 // a set that counts on its own: not a warm-up, not the R half of an L/R pair, not a drop under another set
 const isMainSet = s => s.type !== 'W' && s.side !== 'R' && !s.drop;
 
-const exVol = (exId, sets) => sets.filter(s => s.done && s.type !== 'W').reduce((a, s) => a + loadOf(exId, s.w) * (+s.r || 0), 0);
+// real external volume (two 20 kg bells × 12 = 480; 40 kg total × 12 = 480; a Left / Right pair of 20 × 12 = 480); old sets without a convention count w × r as always (js/gym-lat.js)
+const exVol = (exId, sets, cv) => { const x = { exId, cv }; return sets.filter(s => s.done && s.type !== 'W').reduce((a, s) => a + Lat.volume(x, s, loadOf), 0); };
+// the like-for-like volume records are compared on (per-implement weight × reps × sides), so a two-bell set never fakes a record against older history
+const exVolBasis = (exId, sets, cv) => { const x = { exId, cv }; return sets.filter(s => s.done && s.type !== 'W').reduce((a, s) => a + Lat.basis(x, s, loadOf), 0); };
 
 const exAt = el => { const c = el.closest('[data-x]'); return c ? active.exercises[+c.dataset.x] : null; };
 
 $('sesBody').addEventListener('input', e => {
   const x = exAt(e.target), row = e.target.closest('[data-s]'); if(!x || !row) return; const s = x.sets[+row.dataset.s];
-  if(e.target.matches('[data-w]')) s.w = e.target.value.replace(',', '.'); if(e.target.matches('[data-r]')) s.r = e.target.value; if(e.target.matches('[data-cal]')) s.cal = e.target.value; if(e.target.matches('[data-lvl]')) s.lvl = e.target.value; saveG('act');
+  if(e.target.matches('[data-w]')){ s.w = e.target.value.replace(',', '.'); latEdited(x, +row.dataset.s, 'w'); } if(e.target.matches('[data-r]')){ s.r = e.target.value; latEdited(x, +row.dataset.s, 'r'); } if(e.target.matches('[data-cal]')) s.cal = e.target.value; if(e.target.matches('[data-lvl]')) s.lvl = e.target.value; saveG('act');
 });
 // 0.7.10.4: half reps / negatives are picked on the scroll wheel (openSx in gym.js), not typed
 $('sesBody').addEventListener('click', e => { const b = e.target.closest('[data-sxpick]'); if(!b) return; const x = exAt(b), row = b.closest('[data-sxrow]'); if(!x || !row) return; Phone.haptic(); openSx(x, +row.dataset.sxrow, b.dataset.sxpick); });
@@ -118,6 +121,8 @@ $('sesBody').addEventListener('click', e => {
   const dm = e.target.closest('[data-demo]'); if(dm){ const dx = exAt(dm); if(dx) openDemo(dx.exId); return; }
   const x = exAt(e.target); if(!x) return; const xi = active.exercises.indexOf(x), row = e.target.closest('[data-s]'), s = row ? x.sets[+row.dataset.s] : null;
   if(e.target.closest('[data-uni]')){ makeUni(x, !x.uni); saveG('act'); renderSession(); return; }   // L / R: one side at a time
+  const sk = e.target.closest('[data-skip]'); if(sk){ const t2 = x.sets[+sk.dataset.j]; if(t2 && !t2.done){ if(t2.skip) delete t2.skip; else t2.skip = true; saveG('act'); renderSession(); } return; }   // work done on one side only: the other side is simply not recorded
+  if(e.target.closest('[data-cv]')){ Phone.haptic(); return openCv(xi, false); }   // the load convention chip
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
@@ -144,7 +149,7 @@ $('sesSupps').addEventListener('click', e => {
   if(suppLog[k][b.dataset.ssup]) delete suppLog[k][b.dataset.ssup]; else suppLog[k][b.dataset.ssup] = true; Store.save('suppLog', suppLog); renderSession(); renderSupps();
 });
 
-const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); return h.length ? Math.max(...h.map(z => exVol(exId, z.sets.map(s => ({ ...s, done: true }))))) : 0; };
+const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); return h.length ? Math.max(...h.map(z => exVolBasis(exId, z.sets.map(s => ({ ...s, done: true })), z.cv))) : 0; };
 
 
 $('restBar').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if(b) restAdjust(b.dataset.rs); });
@@ -163,8 +168,9 @@ $('sesAddEx').addEventListener('click', () => openExPick(addToSession, { multi: 
 $('swList').addEventListener('click', e => {
   const inf = e.target.closest('[data-exinfo]'); if(inf){ e.stopPropagation(); openExInfo(inf.dataset.exinfo); return; }
   const b = e.target.closest('[data-ex]'); if(!b) return; const x = active.exercises[SW.xi], nx = exById(b.dataset.ex);
-  x.exId = nx.id; x.rest = nx.rest; x.volPR = false; x.sets = x.sets.filter(s => s.done).length ? x.sets.filter(s => !s.done).length ? x.sets.map(s => s.done ? s : newSet()) : [...x.sets, newSet()] : x.sets.filter(s => s.type !== 'W').map(() => newSet());
+  const hadDone = x.sets.some(s => s.done); x.exId = nx.id; x.rest = nx.rest; x.volPR = false; x.sets = x.sets.filter(s => s.done).length ? x.sets.filter(s => !s.done).length ? x.sets.map(s => s.done ? s : newSet()) : [...x.sets, newSet()] : x.sets.filter(s => s.type !== 'W').map(() => newSet());
   if(!x.sets.length) x.sets = [newSet()];
+  if(!hadDone) latReset(x);   // nothing finished yet: the new exercise starts from its own reviewed layout and load convention (finished sets keep the meaning they were typed with)
   saveG('act'); close('ovSwap'); renderSession(); toast(t('swapped', { n: exName(nx) }));
 });
 
@@ -208,7 +214,7 @@ async function finishWorkout(auto){
   if(!doneSets.length){ if(!auto) toast(t('noSets')); return false; }
   const end = auto ? new Date(lastSetAt()) : new Date(), mins = Math.max(1, Math.round((end - (active.clock0 || new Date(active.start).getTime())) / 60000));
   const bw = bodyW(), kcal = Math.round(active.exercises.reduce((a, x) => a + x.sets.filter(s => s.done).reduce((b, s) => b + gymSetKcal(x.exId, s, bw), 0), 0) / 5) * 5;
-  const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets), 0));
+  const vol = Math.round(active.exercises.filter(x => !isCardio(x.exId)).reduce((a, x) => a + exVol(x.exId, x.sets, x.cv), 0));
   const ses = { ...active, end: end.toISOString(), mins, kcal, vol, exercises: active.exercises.map(x => ({ ...x, sets: x.sets.filter(s => s.done) })).filter(x => x.sets.length) };
   if(!ses.name || ses.name === t('emptyWorkout')) ses.name = typeLabel_(inferDayType(ses.exercises));   // unnamed: Push / Pull / Legs… from what was done
   delete ses.last; delete ses.dayBefore; delete ses.cur; delete ses.idleFrom; delete ses.askedAt; delete ses.idleAsked; if(auto === true) ses.autoEnded = true;
@@ -414,3 +420,4 @@ $('gRecV').addEventListener('click', e => {
   if(e.target.closest('#recAdvSw')){ ui.recAdv = !ui.recAdv; saveUI(); Phone.haptic(); renderRecovery(); return; }
   const o = e.target.closest('[data-recopt]'); if(o){ settings[o.dataset.recopt] = !settings[o.dataset.recopt]; Store.save('settings', settings); RecoveryPlus.invalidate(); Phone.haptic(); renderRecovery(); }
 });
+$('cvList').addEventListener('click', e => { const o = e.target.closest('[data-cvo]'); if(o) cvChoose(+o.dataset.cvo); });

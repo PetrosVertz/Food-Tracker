@@ -119,10 +119,10 @@ function stepSet(b){
   const hasPh = inp.placeholder && !isNaN(+inp.placeholder), st = stepOf(x.exId, k);
   if(s[k] === '' && !hasPh){ // nothing to go on yet: start from a sensible number instead of 0
     const e0 = exById(x.exId).e, start = k === 'r' ? (isCardio(x.exId) ? 20 : (parseInt(String(x.reps || '').split('-')[0], 10) || 8)) : isCardio(x.exId) ? (k === 'cal' ? 100 : 1) : ({ barbell: 20, dumbbell: 10, machine: 20, cable: 10, kettlebell: 8, bodyweight: 0, band: 0 }[e0] ?? 10);
-    s[k] = String(start); inp.value = s[k]; saveG('act'); return; }
+    s[k] = String(start); inp.value = s[k]; latEdited(x, +row.dataset.s, k); saveG('act'); return; }
   const cur = s[k] !== '' ? +s[k] : (hasPh ? +inp.placeholder : 0);
   let v = Math.max(0, r1(cur + st * +b.dataset.d)); if(s[k] === '' && inp.placeholder && !isNaN(+inp.placeholder) && +b.dataset.d > 0 && cur === +inp.placeholder) v = cur; // first tap takes the suggestion
-  s[k] = String(v); inp.value = s[k]; saveG('act');
+  s[k] = String(v); inp.value = s[k]; latEdited(x, +row.dataset.s, k); saveG('act');
 }
 
 const bumpReps = (r, d) => { const parts = String(r).split('-').map(x => parseInt(x, 10)).filter(n => !isNaN(n)); if(!parts.length) return String(Math.max(1, 10 + d)); return parts.map(n => Math.max(1, n + d)).join('-'); };

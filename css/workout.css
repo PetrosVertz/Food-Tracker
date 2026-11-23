@@ -952,3 +952,13 @@ body.inses .coachbub{display:none!important}
 :root[data-theme="dark"] .rnax{color:#ff5b4f}
 .rankna-pop{width:min(280px,calc(100vw - 32px))} .rankna-pop b{display:block;margin-bottom:4px} .rankna-pop p{margin:0} .rankna-pop:focus{outline:none}
 .tgprot{display:block;margin-top:4px;font-size:12px;color:var(--t-muted)}
+
+/* Left / Right: load convention chip, one-side-only links, skipped row */
+.cvchip{display:inline-flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 10px;border-radius:999px;border:1px solid var(--t-line,rgba(127,127,127,.35));background:transparent;color:var(--t-muted);font:inherit;font-size:var(--fs-label);max-width:100%}
+.cvchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
+.cvchip.need{border-color:var(--t-accent);font-weight:600}
+.onesd{display:flex;gap:8px;justify-content:center;margin:2px 0 6px}
+.onesd button{background:none;border:0;padding:4px 8px;font:inherit;font-size:var(--fs-label);color:var(--t-accent-ink,var(--t-accent));text-decoration:underline;cursor:pointer}
+.setrow.skipped{opacity:.5}
+.setrow.skipped input{pointer-events:none}
