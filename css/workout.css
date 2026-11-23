@@ -327,6 +327,41 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 @media (max-width:360px){#ovExPick .pkrtop h2{font-size:15px!important}.pkmeta{font-size:9px}.pkmeta b{font-size:10.5px}}
 @media (max-width:350px){.pkgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px}.pkcard{height:194px}.pkname{font-size:13.5px}.pkuse{font-size:10.5px}}
 
+/* Petros: Select mode (long press a card): order numbers on the chosen cards, a bar with Cancel · N Selected · Add (N) */
+.pkcard{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pkcard.pressing{transform:scale(.955);transition:transform .45s ease-out}
+.pkcard.sel{border-color:var(--t-accent);box-shadow:0 0 0 2px var(--t-accent)}
+.pksn{position:absolute;z-index:3;right:7px;bottom:7px;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:var(--t-accent);color:var(--t-on);font-size:12px;font-weight:850;line-height:1;box-shadow:0 0 0 2px var(--pk-paper)}
+.pksn:empty{display:none}
+.pkcard.sel .pkin{display:none}
+.pkhold{margin:-6px 2px 10px;font-size:11px;font-weight:650;color:var(--pk-muted)} .pkhold.hide{display:none}
+.pkselbar{position:absolute;z-index:21;left:calc(14px + var(--pkx));right:calc(14px + var(--pkx));bottom:calc(78px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;padding:7px 7px 7px 8px;border-radius:999px;
+  background:#1c2021;color:#fff;box-shadow:0 7px 25px #0004;transform:translateY(18px);opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(.22,1,.36,1),opacity .2s}
+.pkselbar.show{transform:none;opacity:1;pointer-events:auto}
+.pkselx{flex:none;display:grid;place-items:center;width:38px;height:38px;padding:0;border:0;border-radius:50%;background:#ffffff1a;color:#fff;cursor:pointer}
+.pkseln{flex:1;min-width:0;font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkseladd{flex:none;height:38px;padding:0 18px;border:0;border-radius:999px;background:var(--t-accent);color:var(--t-on);font:inherit;font-size:13px;font-weight:850;cursor:pointer}
+.pkseladd:disabled{opacity:.45;cursor:default}
+#ovExPick.pkselect #pkBody{padding-bottom:170px}
+#ovExPick.pkselect .pktoast{bottom:calc(136px + env(safe-area-inset-bottom))}
+/* Petros: while there is text in the search box, the filters step aside and the box sits on top; the cards fill the screen below it */
+#ovExPick .pktop{order:-2} #ovExPick .pksearch{order:-1}
+#ovExPick.pksearching .pkreg,#ovExPick.pksearching .pkfil{display:none}
+#ovExPick.pksearching .pksearch{position:relative;bottom:auto;padding:10px calc(13px + var(--pkx)) 8px;background:var(--pk-bg);border-bottom:1px solid var(--pk-line)}
+#ovExPick.pksearching #pkBody{padding-bottom:calc(28px + env(safe-area-inset-bottom));animation:pkSrIn .22s ease-out both}
+#ovExPick.pksearching.pkselect #pkBody{padding-bottom:96px}
+#ovExPick.pksearching .pktoast{bottom:calc(14px + env(safe-area-inset-bottom))}
+#ovExPick.pksearching .pkselbar{bottom:calc(12px + env(safe-area-inset-bottom))}
+#ovExPick.pksearching.pkselect .pktoast{bottom:calc(72px + env(safe-area-inset-bottom))}
+#ovExPick.pksearching.kb .pkselbar{bottom:10px}
+@keyframes pkSrIn{from{opacity:.4;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.pkcard.pressing{transform:none}.pkselbar{transition:none}#ovExPick.pksearching #pkBody{animation:none}}
+/* Create Workout (Petros): the weights note under each exercise's name; the cards just added glow once */
+.tpcard .tph .ttl small.tpkg{display:block;margin-top:2px;font-size:11px;color:var(--t-muted)}
+.tpcard.tpnew{animation:tpNew 1.6s ease-out both}
+@keyframes tpNew{0%,35%{box-shadow:0 0 0 2px var(--t-accent)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.tpcard.tpnew{animation:none}}
+
 /* ---------- Create Custom Exercise ---------- */
 .cxtop{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:calc(12px + env(safe-area-inset-top)) calc(15px + var(--pkx)) 12px;background:var(--pk-bg);border-bottom:1px solid var(--pk-line)}
 .cxback,.cxqr{display:grid;place-items:center;flex:0 0 37px;width:37px;height:38px;padding:0;border:0;border-radius:11px;background:transparent;color:var(--pk-text);cursor:pointer}
@@ -780,8 +815,16 @@ body.inses .coachbub{display:none!important}
 .exc.unib .setrow.lmerge .sok{width:48px;border-radius:14px}
 .exc.unib .setrow.lmerge .sok svg{width:24px;height:24px}
 /* Exercise Settings tabs */
-#exsTabs{margin:var(--s2) 0 var(--s1)}
+/* Petros: Exercise Settings like the main Settings page: the all / individual switch on top, then a list of sections (tap to open) */
 #ovExSet #exsBody{min-height:300px}
+.exsmode{margin:var(--s2) 0 var(--s1);padding:var(--s3) var(--s4);border:1px solid var(--t-edge);border-radius:var(--r-row);background:var(--t-card)}
+.exslist .exsec{justify-content:space-between;text-align:left;cursor:pointer}
+.exslist .exsec>span{display:flex;flex-direction:column;gap:2px;min-width:0} .exslist .exsec small{color:var(--t-muted);font-size:var(--fs-label);font-weight:var(--w-reg)}
+.exslist .exsec.soon b{color:var(--t-muted)}
+.exsechd{display:flex;align-items:center;gap:var(--s2);margin:var(--s2) 0 var(--s1)} .exsechd b{font-size:var(--fs-title,18px)} .exsechd small{margin-left:auto;color:var(--t-muted);font-size:var(--fs-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%}
+.exsrow small.exsall{margin-top:4px;color:var(--t-accent-ink,var(--t-accent));font-weight:var(--w-med)}
+.exsoon{opacity:.55} .exsoon .switch{cursor:default}
+.exsask{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s3) 0} .exsask .opt{margin:0} .exsask small{display:block;margin-top:3px;color:var(--t-muted);font-size:var(--fs-label)}
 .smtpl{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--s2);margin-top:var(--s3)}
 
 /* the cards below the one you are on show only while you swipe */

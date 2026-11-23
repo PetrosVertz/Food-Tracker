@@ -109,7 +109,7 @@ $('sesBody').addEventListener('click', e => {
   const ab = e.target.closest('[data-attempt]'); if(ab) return atToggle(+ab.closest('.exc').dataset.x);   // trophy: Leaderboard Attempt on this exercise
   const rs = e.target.closest('[data-rs]'); if(rs) return restAdjust(rs.dataset.rs);
   const sp = e.target.closest('[data-step]'); if(sp) return stepSet(sp);
-  if(e.target.closest('[data-exset]')){ Phone.haptic(); return openExSet(); }
+  if(e.target.closest('[data-exset]')){ Phone.haptic(); const ex = exAt(e.target); return openExSet(ex && ex.exId); }   // Petros: this card's exercise (individual settings)
   const tb = e.target.closest('[data-tierinfo]'); if(tb){ Phone.haptic(); return showTierGap(tb); }
   const nab = e.target.closest('[data-rankna]'); if(nab){ Phone.haptic(); return showRankNa(nab); }
   // tiers need body weight + sex: open Settings › Body on top of the workout; after Save the cards redraw with their tier
@@ -121,8 +121,8 @@ $('sesBody').addEventListener('click', e => {
   if(e.target.closest('[data-info]')) return openExInfo(x.exId);
   if(e.target.closest('[data-adddrop]')){ const j = x.sets.map((z, k) => z.drop ? k : -1).filter(k => k >= 0).pop(); if(j !== undefined) addDrop(x, j); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-type]') && s){ const j = +row.dataset.s;
-    if(s.drop){ if(!hideM('D')){ addDrop(x, j); saveG('act'); renderSession(); } return; }   // ↘ on a drop: one more drop
-    const cyc = ['N', 'W', 'D', 'F']; let nt = s.type; for(let q = 0; q < 4; q++){ nt = cyc[(cyc.indexOf(nt) + 1) % 4]; if(nt === 'N' || !hideM(nt)) break; }   // skip the markers hidden in Exercise Settings
+    if(s.drop){ if(!hideM('D', x.exId)){ addDrop(x, j); saveG('act'); renderSession(); } return; }   // ↘ on a drop: one more drop
+    const cyc = ['N', 'W', 'D', 'F']; let nt = s.type; for(let q = 0; q < 4; q++){ nt = cyc[(cyc.indexOf(nt) + 1) % 4]; if(nt === 'N' || !hideM(nt, x.exId)) break; }   // skip the markers hidden in Exercise Settings
     if(nt === s.type) return; s.type = nt;
     if(s.type === 'D' && !(x.sets[j + 1] || {}).drop) addDrop(x, j);   // Drop Set: a lighter row appears under it
     if(s.type === 'F'){ while(x.sets[j + 1] && x.sets[j + 1].drop && !x.sets[j + 1].done) x.sets.splice(j + 1, 1); }
@@ -156,10 +156,8 @@ const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu)
 // Exercise Picker V27 (js/expick.js) and the custom exercise creator (js/excreate.js)
 pkSetup(); cxSetup();
 
-// V27: the picker stays open after an add (one tap each), with Undo; Undo only takes back an exercise that has no done set yet
-function sesUndoAdd(id){ if(!active) return; for(let i = active.exercises.length - 1; i >= 0; i--){ const x = active.exercises[i];
-  if(x.exId === id && !x.sets.some(z => z.done)){ active.exercises.splice(i, 1); active.cur = Math.max(0, Math.min(active.cur || 0, active.exercises.length - 1)); saveG('act'); renderSession(); return; } } }
-$('sesAddEx').addEventListener('click', () => openExPick(addToSession, { multi: true, undo: sesUndoAdd }));
+// Petros: one tap adds the exercise and closes the picker; a long press selects several, Add (N) adds them all
+$('sesAddEx').addEventListener('click', () => openExPick(addToSession, { multi: true }));
 
 
 $('swList').addEventListener('click', e => {
@@ -328,8 +326,13 @@ $('tpList').addEventListener('click', e => {
 
 $('tpList').addEventListener('input', e => { if(e.target.matches('[data-reps]')) TP.exercises[+e.target.closest('[data-i]').dataset.i].reps = e.target.value; });
 
-$('tpAdd').addEventListener('click', () => openExPick(id => { TP.exercises.push({ exId: id, sets: isCardio(id) ? 1 : 3, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest }); drawTpl(); },
-  { multi: true, undo: id => { const i = TP.exercises.map(e => e.exId).lastIndexOf(id); if(i > -1){ TP.exercises.splice(i, 1); drawTpl(); } } }));
+// Petros: one tap adds one exercise (its card with Sets and Rest, ready to change) and closes the picker; a long press selects several,
+// Add (N) adds them all with the usual sets and rest, then each card is set one by one. The first new card is brought into view.
+$('tpAdd').addEventListener('click', () => openExPick(id => { TP.exercises.push({ exId: id, sets: isCardio(id) ? 1 : 3, reps: isCardio(id) ? '20' : defReps(exById(id).rest), rest: exById(id).rest }); },
+  { multi: true, done: ids => { const first = TP.exercises.length - ids.length; drawTpl();
+    const c = $('tpList').querySelector(`.tpcard[data-i="${first}"]`); if(!c) return;
+    setTimeout(() => { c.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      $('tpList').querySelectorAll('.tpcard').forEach((el, i) => el.classList.toggle('tpnew', i >= first)); }, 260); } }));
 
 $('tpSave').addEventListener('click', () => {
   TP.type = inferType(TP.exercises); TP.name = $('tpName').value.trim() || typeLabel_(TP.type);

@@ -102,7 +102,7 @@ let QA = null;
    // recovery reminders live only in Today now
 
 // ---------- launcher, tab swipes ----------
-const TABS3 = ['today', 'gym', 'food', 'fridge'];   // left → right on the bottom bar; Profile always comes last
+const TABS3 = ['today', 'gym', 'food'];   // left → right on the bottom bar; Profile always comes last (Petros: no Kitchen tab, Inventory + Groceries are in Food Library)
 
 // ---------- first-time setup ----------
 let SUP = { step: 0 };

@@ -53,6 +53,7 @@
       <button class="tile soon fhsoon" type="button" aria-disabled="true" tabindex="-1"><span class="e hubic" data-fic="bowl"></span><span><b data-t="tabMyMeals"></b><small data-t="carSoon"></small></span></button>
       <button class="tile wide" data-fsec="meals"><span class="e hubic" data-fic="pot"></span><span><b data-t="tabMeals"></b><small id="fhRecN"></small></span></button>
       <button class="tile wide" data-fsec="supps"><span class="e hubic" data-fic="capsule"></span><span><b data-t="tabSupps"></b><small id="fhSuppN"></small></span></button>
+      <div class="fhpair"><button class="tile" data-fsec="fridge" id="fhInv"><span class="e hubic" data-fic="fridge"></span><span><b data-t="tFridge"></b><small id="fhInvN"></small></span></button><button class="tile" data-fsec="groc" id="fhGroc"><span class="e hubic" data-fic="cart"></span><span><b data-t="tGroc"></b><small id="fhGrocN"></small></span></button></div>
     </div>
   </div>
   <div class="hide" id="fTabs"></div>
@@ -74,6 +75,18 @@
     <div class="progress"><i id="sProg" style="width:0"></i></div>
     <div class="list" id="sList"></div>
   </div>
+  <!-- Petros: Inventory (the old Kitchen › Fridge) and Groceries are Food Library sections now -->
+  <div id="fridgeView" class="hide">
+  <div class="mpill" id="fLoc"><button data-v="all" data-t="all"></button><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
+  <input class="search" id="fSearch" type="search" data-tp="searchFridge" autocomplete="off">
+  <div class="list" id="fList"></div>
+</div>
+  <div id="pgGroc" class="hide">
+  <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
+  <div id="gSugg" class="sres"></div>
+  <div class="list" id="gList" style="margin-top:12px"></div>
+  <div id="gDone"></div>
+</div>
 </section>
 
 <!-- ============ MY SUPPLEMENTS ============ -->
@@ -131,24 +144,8 @@
   <div id="gRecV" class="hide"></div>
 </section>
 
-<!-- ============ FRIDGE ============ -->
-<section class="page wrap hide" id="pgFridge">
-  <header>
-    <div class="left"><h1 data-t="tabFridge"></h1></div>
-  </header>
-<div class="mpill fgseg"><button data-fg="fridge" data-t="tFridge"></button><button data-fg="groc" data-t="tGroc"></button></div>
-  <div id="fridgeView">
-  <div class="mpill" id="fLoc"><button data-v="all" data-t="all"></button><button data-v="fridge" data-t="locFridge"></button><button data-v="freezer" data-t="locFreezer"></button><button data-v="cupboard" data-t="locCupboard"></button></div>
-  <input class="search" id="fSearch" type="search" data-tp="searchFridge" autocomplete="off">
-  <div class="list" id="fList"></div>
-</div>
-  <div id="pgGroc" class="hide">
-  <div class="brandrow" style="margin:6px 0 4px"><input id="gIn" data-tp="gAddPh" autocomplete="off"><button class="btn small primary" id="gAdd" data-t="add"></button></div>
-  <div id="gSugg" class="sres"></div>
-  <div class="list" id="gList" style="margin-top:12px"></div>
-  <div id="gDone"></div>
-</div>
-</section><section class="page wrap hide" id="pgSettings"><header><div class="left"><button class="backarrow" id="sBackBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="settings"></h1></div></header><div class="ssearch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input id="sSearch" type="search" autocomplete="off" enterkeyhint="search" data-tp="shSearchPh"><button class="ssx hide" id="sSearchX" type="button" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div><div id="sResults" class="pgroup hide"></div><div id="sMain"><button class="bknow" type="button" id="sBackupNow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg><b data-t="shBackupNow"></b><small id="sBackupLast"></small></button><div class="pgroup"><button class="prow pmain" type="button" id="sPhotoBtn"><span data-t="stProfile"></span></button><button class="prow pmain" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span></button><button class="prow pmain" type="button" data-sp="ovSBody"><span data-t="stBody"></span></button><button class="prow pmain" type="button" data-sp="ovSFood"><span data-t="stFoodPrefs"></span></button><button class="prow pmain" type="button" data-sp="ovSAI"><span data-t="stAI"></span></button><button class="prow pmain" type="button" data-sp="ovSData"><span data-t="stData"></span></button><button class="prow pmain" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span></button></div></div><div class="ver">Food Tracker · Gym Buddy · v0.7</div></section>
+<!-- Inventory and Groceries (the old Kitchen tab) are Food Library sections: see #fridgeView / #pgGroc above -->
+<section class="page wrap hide" id="pgSettings"><header><div class="left"><button class="backarrow" id="sBackBtn" aria-label="Back" data-ta="back"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 data-t="settings"></h1></div></header><div class="ssearch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input id="sSearch" type="search" autocomplete="off" enterkeyhint="search" data-tp="shSearchPh"><button class="ssx hide" id="sSearchX" type="button" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div><div id="sResults" class="pgroup hide"></div><div id="sMain"><button class="bknow" type="button" id="sBackupNow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg><b data-t="shBackupNow"></b><small id="sBackupLast"></small></button><div class="pgroup"><button class="prow pmain" type="button" id="sPhotoBtn"><span data-t="stProfile"></span></button><button class="prow pmain" type="button" data-sp="ovSCustom"><span data-t="stCustom"></span></button><button class="prow pmain" type="button" data-sp="ovSBody"><span data-t="stBody"></span></button><button class="prow pmain" type="button" data-sp="ovSFood"><span data-t="stFoodPrefs"></span></button><button class="prow pmain" type="button" data-sp="ovSAI"><span data-t="stAI"></span></button><button class="prow pmain" type="button" data-sp="ovSData"><span data-t="stData"></span></button><button class="prow pmain" type="button" data-sp="ovSAbout"><span data-t="stAbout"></span></button></div></div><div class="ver">Food Tracker · Gym Buddy · v0.7</div></section>
 
 <!-- ============ PROFILE (0.7.7) ============ -->
 <section class="page wrap hide" id="pgProfile">
@@ -164,7 +161,6 @@
   <button data-tab="today" class="r-today"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></svg></span><span class="sr" data-t="tabToday"></span></button>
   <button data-tab="gym" class="r-gym"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg></span><span class="sr" data-t="tabGym"></span></button>
   <button data-tab="food" class="r-food"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span class="sr" data-t="tabFood"></span></button>
-  <button data-tab="fridge" class="r-fridge"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 10h12M9 6v1M9 13v3"/></svg></span><span class="sr" data-t="tabFridge"></span></button>
   <button data-tab="profile" class="r-profile"><span class="ri"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20.5a8 8 0 0 1 16 0"/></svg></span><span class="sr" data-t="tabProfile"></span></button>
 </nav>
 
@@ -586,7 +582,7 @@
 
 <!-- ============ PICK EXERCISE (V27, js/expick.js) ============ -->
 <!-- Title row (back arrow from wire/10, title, gym robot in a live workout, Reset Filters); Upper | All Muscles | Lower (stays while the
-     cards scroll); one progressive filter row + the chosen path; the cards; the search pill floating at the bottom over a soft fade. -->
+     cards scroll); one progressive filter row + the chosen path; the cards; the search pill floating at the bottom over a soft fade (on top while you type); the Select bar (long press). -->
 <div class="overlay" id="ovExPick"><div class="sheet tall pksheet">
   <div class="pktop">
     <div class="pkbar" id="pkBar"><h2 data-t="pkTitle"></h2><div class="pkbarr"><button class="pkbulb hide" type="button" id="pkBulb" aria-label="What next?" data-ta="nxT"></button><button type="button" class="pkreset" id="pkReset" data-ta="pkReset"></button></div></div>
@@ -594,11 +590,12 @@
   <div class="pkreg"><div class="pkseg" id="pkRegion" role="group" data-ta="pkRegionL"><span class="pkind" id="pkInd" aria-hidden="true"></span><button type="button" data-r="up" data-t="pkUp"></button><button type="button" data-r="all" data-t="allMuscles"></button><button type="button" data-r="low" data-t="pkLow"></button></div></div>
   <section class="pkfil" id="pkFil"><div class="pkstage" id="pkStage"><div class="pkstt" id="pkStt"></div><div id="pkOpts"></div><div class="pkskip" id="pkHint"></div></div>
     <div class="pkfh"><span class="pkft" data-t="pkFilters"></span></div><div class="pkpath" id="pkPath"></div></section>
-  <div id="pkBody"><div class="pkrtop"><h2 id="pkRLabel"></h2><div class="pkmeta" id="pkMeta"></div></div><div id="pkGrid"></div>
+  <div id="pkBody"><div class="pkrtop"><h2 id="pkRLabel"></h2><div class="pkmeta" id="pkMeta"></div></div><p class="pkhold hide" id="pkHold" data-t="pkHold"></p><div id="pkGrid"></div>
     <button type="button" class="pkmore hide" id="pkMore"></button>
     <button type="button" class="pkcustom" id="pkCustom"><span class="pkplus" aria-hidden="true"></span><span class="pkcc"><strong data-t="pkCreate"></strong><small data-t="pkCreateSub"></small></span></button></div>
   <div class="pksearch"><label class="pksbox"><span class="pksi" aria-hidden="true"></span><input id="exSearch" type="search" data-tp="pkSearchPh" data-ta="pkSearchPh" autocomplete="off" enterkeyhint="search"><button type="button" class="pkclr hide" id="pkClr" data-ta="pkClear"></button></label></div>
-  <div class="pktoast" id="pkToast" role="status" aria-live="polite"><span class="pktm"></span><button type="button" id="pkUndo" class="hide" data-t="undo"></button></div>
+  <div class="pktoast" id="pkToast" role="status" aria-live="polite"><span class="pktm"></span></div>
+  <div class="pkselbar" id="pkSelBar" aria-hidden="true"><button type="button" class="pkselx" id="pkSelX" data-ta="pkSelCancel"></button><span class="pkseln" id="pkSelN" role="status" aria-live="polite"></span><button type="button" class="pkseladd" id="pkSelAdd"></button></div>
 </div></div>
 
 <!-- ============ CREATE CUSTOM EXERCISE (V27, js/excreate.js) ============ -->
@@ -657,9 +654,17 @@
 </div></div>
 <div class="overlay" id="ovExSet"><div class="sheet">
   <h2 data-t="exSettings"></h2>
-  <div class="seg" id="exsTabs"></div>
+  <div id="exsMode"></div>
   <div id="exsBody"></div>
   <div class="actions"><button class="btn" data-close data-t="close"></button></div>
+</div></div>
+<!-- Petros: the first tap on a card's gear asks how Exercise Settings are kept (js/gym.js › openExSet, exSetChoose) -->
+<div class="overlay" id="ovExSetAsk"><div class="sheet">
+  <h2 data-t="exSettings"></h2>
+  <p class="hint" data-t="exsAskQ"></p>
+  <div class="exsask"><button class="opt bigopt" type="button" data-gxask="all"><span><b data-t="exsAskAll"></b><small data-t="exsAskAllS"></small></span></button>
+    <button class="opt bigopt" type="button" data-gxask="each"><span><b data-t="exsAskEach"></b><small data-t="exsAskEachS"></small></span></button></div>
+  <p class="hint" data-t="exsAskNote"></p>
 </div></div>
 
 <div class="overlay" id="ovSwap"><div class="sheet swapsheet">

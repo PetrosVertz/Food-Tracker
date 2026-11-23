@@ -3,7 +3,7 @@
 
 // ======================= text in both languages =======================
 const S = {
- tFridge:['Fridge','Ψυγείο'],
+ tFridge:['Inventory','Απόθεμα'],
  tGroc:['Groceries','Ψώνια'], soon:['soon','σύντομα'],
  nFoods:['{n} foods','{n} τρόφιμα'], nFood:['1 food','1 τρόφιμο'], nMeals:['{n} meals','{n} φαγητά'], nMeal:['1 meal','1 φαγητό'],
  tabStore:['Store-Bought','Από το μαγαζί'], tabMeals:['Recipes','Συνταγές'],
@@ -179,7 +179,7 @@ const S = {
  planNeedTargets:['Set your targets first (Targets, at the top).','Βάλε πρώτα τους στόχους σου (Στόχοι, πάνω).'],
  planLogged:['Added {n} foods','Προστέθηκαν {n} τρόφιμα'], planUnmatched:['{n} not found in your foods, not logged','{n} δεν βρέθηκαν στα τρόφιμά σου, δεν καταγράφηκαν'], dropPlan:['Clear Plan','Διαγραφή πλάνου'],
  // fridge
- locFridge:['Fridge','Ψυγείο'], locFreezer:['Freezer','Κατάψυξη'], locCupboard:['Cupboard','Ντουλάπι'], searchFridge:['Search the fridge…','Αναζήτηση στο ψυγείο…'],
+ locFridge:['Fridge','Ψυγείο'], locFreezer:['Freezer','Κατάψυξη'], locCupboard:['Cupboard','Ντουλάπι'], searchFridge:['Search your inventory…','Αναζήτηση στο απόθεμα…'],
  emptyFridge:['<b>Your fridge is empty</b>Tap Scan Receipt after shopping, or Add Food. Ticked groceries can go straight in too.','<b>Το ψυγείο είναι άδειο</b>Σκάναρε ό,τι αγόρασες ή τσέκαρε από τη λίστα για ψώνια και βάλ’ τα μέσα.'],
  addFridgeHow:['Add to fridge','Προσθήκη στο ψυγείο'],
  howMuch:['How much','Πόσο'], whereKept:['Where','Πού'],
@@ -717,8 +717,9 @@ Object.assign(S, {
 // ---------- 0.7.9 shell: tab names, Settings › Tabs ----------
 Object.assign(S, {
   stTabs: ['Tabs', 'Καρτέλες'],
-  kitchenSw: ['Kitchen Tab', 'Καρτέλα Κουζίνα'],
-  kitchenSwSub: ['Fridge and Groceries. Turn it off for four tabs at the bottom. Your recipes always stay in Food Library › Recipes.', 'Ψυγείο και Ψώνια. Κλείσ’ το για τέσσερις καρτέλες κάτω. Οι συνταγές σου μένουν πάντα στη Βιβλιοθήκη Τροφίμων › Συνταγές.'],
+  kitchenSw: ['Inventory', 'Απόθεμα'],
+  kitchenSwSub: ['Inventory and Groceries in the Food Library. Turned off, they stay there greyed out and nothing goes into your inventory.', 'Απόθεμα και Ψώνια στη Βιβλιοθήκη Τροφίμων. Όταν είναι κλειστό, μένουν εκεί γκριζαρισμένα και τίποτα δεν μπαίνει στο απόθεμά σου.'],
+  invOff: ['Off in Settings', 'Κλειστό στις Ρυθμίσεις'], invOffT: ['Turn on Inventory in Settings › Tabs', 'Άνοιξε το Απόθεμα στις Ρυθμίσεις › Καρτέλες'],
   tabsOrderSub: ['Mainly gym work puts Gym Buddy first.', 'Κυρίως γυμναστήριο: το Gym Buddy μπαίνει πρώτο.'],
 });
 
@@ -818,6 +819,16 @@ Object.assign(S, {   // Refinements: live workout bottom card, Exercise Settings
   sxHalf: ['Half Reps', 'Μισές'], sxNeg: ['Negatives', 'Αρνητικές'],   // the short titles beside the circles on a set
   swipeAdd: ['Swipe To Add Exercise', 'Σύρε Για Νέα Άσκηση'], swipeNext: ['Swipe For Next Exercise', 'Σύρε Για Επόμενη Άσκηση'], smSaveTpl: ['Save As Workout', 'Αποθήκευση Ως Προπόνηση'],
   exsTabSocial: ['Social', 'Κοινωνικά'], exsTabButtons: ['Buttons', 'Κουμπιά'], exsTabSets: ['Sets', 'Σετ'], exsTabAlerts: ['Alerts', 'Ειδοποιήσεις'],
+  // Petros: Exercise Settings for all exercises or each on its own, sections like the main Settings page, Machine (Coming Soon)
+  exsTabMachine: ['Machine', 'Μηχάνημα'], exsMachT: ['Machine Position Reminders', 'Υπενθύμιση Θέσεων Μηχανήματος'], exsMachS: ['Remembers where you set the seat and levers on each machine.', 'Θυμάται πού έβαλες το κάθισμα και τους μοχλούς σε κάθε μηχάνημα.'],
+  exsSecSocialS: ['Ranks and leaderboards', 'Κατατάξεις και πίνακες'], exsSecButtonsS: ['The buttons on the card', 'Τα κουμπιά στην κάρτα'], exsSecSetsS: ['Sides, markers, half reps, negatives, reps in reserve', 'Πλευρές, σημάδια, μισές επαναλήψεις, αρνητικές, RIR'], exsSecAlertsS: ['Warnings, tips and sounds', 'Προειδοποιήσεις, συμβουλές και ήχοι'],
+  exsModeT: ['Settings Set Individually', 'Ρυθμίσεις ανά Άσκηση'], exsModeOnS: ['On: {n} keeps its own settings. Turn off for the same settings on every exercise.', 'Ναι: η άσκηση {n} κρατά δικές της ρυθμίσεις. Κλείσ’ το για ίδιες ρυθμίσεις σε όλες.'],
+  exsModeOnNo: ['On: each exercise keeps its own settings. Here you set the starting ones.', 'Ναι: κάθε άσκηση κρατά δικές της ρυθμίσεις. Εδώ ορίζεις τις αρχικές.'], exsModeOffS: ['Off: every exercise uses the same settings.', 'Όχι: όλες οι ασκήσεις έχουν τις ίδιες ρυθμίσεις.'],
+  exsShared: ['Same for All Exercises', 'Ίδιο για Όλες τις Ασκήσεις'],
+  exsAskQ: ['How do you want to keep your exercise settings?', 'Πώς θες να κρατάς τις ρυθμίσεις των ασκήσεων;'],
+  exsAskAll: ['Same for All Exercises', 'Ίδιες για Όλες τις Ασκήσεις'], exsAskAllS: ['Set them once, every exercise uses them.', 'Τις ορίζεις μία φορά, ισχύουν για όλες.'],
+  exsAskEach: ['Individual per Exercise', 'Ξεχωριστές ανά Άσκηση'], exsAskEachS: ['Each exercise remembers its own. Ranks, leaderboards, tips and sounds stay the same for all.', 'Κάθε άσκηση θυμάται τις δικές της. Κατατάξεις, πίνακες, συμβουλές και ήχοι μένουν ίδια για όλες.'],
+  exsAskNote: ['You can change this any time at the top of Exercise Settings.', 'Μπορείς να το αλλάξεις όποτε θες, πάνω στις Ρυθμίσεις Άσκησης.'],
 });
 Object.assign(S, {   // Refinements #2: the Gym Buddy carousel; carSoon = a Coming Soon pill or tile
   carSoon: ['Coming Soon', 'Σύντομα'],
@@ -1079,7 +1090,8 @@ Object.assign(S, {   // ==== Exercise Picker V27 (js/expick.js) + Create Custom 
   pkNoMatch: ['No Matching Exercises', 'Καμία Άσκηση Δεν Ταιριάζει'], pkNoMatchSub: ['Try another muscle, equipment type, or search.', 'Δοκίμασε άλλο μυ, εξοπλισμό ή αναζήτηση.'],
   pkMore: ['Show More · {n} Remaining', 'Περισσότερες · {n} Ακόμα'],
   pkCreate: ['Create Custom Exercise', 'Δημιουργία Δικής σου Άσκησης'], pkCreateSub: ['Not in the library? Create your own.', 'Δεν υπάρχει στη λίστα; Φτιάξε τη δική σου.'],
-  pkAdded: ['{n} Added', 'Προστέθηκε: {n}'], pkRemoved: ['Exercise Removed', 'Η Άσκηση Αφαιρέθηκε'], pkHave: ['Already In This Workout', 'Υπάρχει Ήδη στην Προπόνηση'],
+  pkSel1: ['1 Selected', '1 Επιλεγμένη'], pkSelN: ['{n} Selected', '{n} Επιλεγμένες'], pkSelAdd: ['Add ({n})', 'Προσθήκη ({n})'], pkSelCancel: ['Cancel Selection', 'Ακύρωση Επιλογής'],
+  pkHold: ['Hold an Exercise to Select Several', 'Κράτα Πατημένη μια Άσκηση για Πολλές Μαζί'], tpKgNote: ['Weights are added when you do this exercise in a workout.', 'Τα κιλά μπαίνουν όταν κάνεις την άσκηση σε προπόνηση.'], pkHave: ['Already In This Workout', 'Υπάρχει Ήδη στην Προπόνηση'],
   pkSearchPh: ['Search Exercises…', 'Αναζήτηση Ασκήσεων…'], pkClear: ['Clear Search', 'Καθαρισμός Αναζήτησης'],
   cxLib: ['Exercise Library', 'Βιβλιοθήκη Ασκήσεων'], cxImportL: ['Import Exercise QR', 'Εισαγωγή Άσκησης από QR'],
   cxName: ['Exercise Name', 'Όνομα Άσκησης'], cxRequired: ['Required', 'Υποχρεωτικό'], cxNamePh: ['e.g. Single-Arm Cable Press', 'π.χ. Πιέσεις Καλωδίου Με Ένα Χέρι'],

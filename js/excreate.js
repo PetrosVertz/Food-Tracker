@@ -237,7 +237,7 @@ function cxSave(){
   if(r.added) saveG('custom');
   Draft.commit('ovExCreate'); cxClose(); pkDrawResults();   // saved: the typed name is not offered again
   pkPick(r.id);
-  if(!r.added) setTimeout(() => pkToast(t('cxReused')), PK.multi ? 900 : 0);
+  if(!r.added) setTimeout(() => $('ovExPick').classList.contains('open') ? pkToast(t('cxReused')) : toast(t('cxReused')), 900);   // the picker may have closed (one tap = add and close)
 }
 
 // ---------- one exercise by QR: share (from its details) and import (the creator's QR button, or any workout scan) ----------

@@ -27,14 +27,17 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   p = await open('en', { lastIn_gym: 'gym-partner' }); await p.evaluate(() => { history.replaceState(null, '', '#gym-partner'); route(); }); await sleep(400);
   ok(await p.evaluate(() => location.hash === '#gym' && ui.lastIn_gym === 'gym'), 'a saved last page "gym-partner" is replaced by the Gym hub'); await p.close();
   // 2. the chosen title is not cut (EN, GR, larger text)
-  for(const [lang, hash, z] of [['en', 'gym-prog', 1], ['el', 'gym-week', 1], ['el', 'gym-rec', 1.3], ['el', 'meals', 1.3]]){
+  for(const [lang, hash, z] of [['en', 'gym-prog', 1], ['en', 'meals', 1], ['en', 'supps', 1], ['en', 'foods', 1], ['el', 'gym-week', 1], ['el', 'gym-rec', 1.3], ['el', 'meals', 1.3]]){
     p = await open(lang); await go(p, hash);
     if(z !== 1){ await p.evaluate(z => { document.querySelectorAll('.pcar').forEach(c => { c.style.fontSize = z + 'em'; }); dispatchEvent(new Event('resize')); }, z); await sleep(400); }
     const sel = hash.startsWith('gym') ? '#gTabs' : '#fTabs';
     const m = await p.evaluate(sel => { const b = document.querySelector(sel + ' .pcrow>button.on b'), r = document.createRange(); r.selectNodeContents(b);
       const ink = r.getBoundingClientRect(), cs = getComputedStyle(b), pad = parseFloat(cs.paddingLeft), box = b.getBoundingClientRect();
-      return { txt: b.textContent, room: +(pad).toFixed(1), inside: ink.left >= box.left + pad - .5 && ink.right <= box.right - pad + .5, ell: b.scrollWidth > b.clientWidth + 1 }; }, sel);
+      const btn = b.closest('button').getBoundingClientRect();
+      return { txt: b.textContent, room: +(pad).toFixed(1), inside: ink.left >= box.left + pad - .5 && ink.right <= box.right - pad + .5, ell: b.scrollWidth > b.clientWidth + 1,
+        low: +(box.bottom - ink.bottom).toFixed(1), high: +(ink.top - box.top).toFixed(1), h: Math.round(btn.height) }; }, sel);
     ok(m.room >= 2.5 && m.inside && !m.ell, `${lang} ${hash}${z !== 1 ? ' at ' + z + '× text' : ''}: chosen "${m.txt}" has ${m.room} px room each side for the slant and outline, not cut`);
+    ok(m.low >= 2 && m.high >= 0 && m.h <= 46, `${lang} ${hash}${z !== 1 ? ' at ' + z + '× text' : ''}: tails of g / p / y fit (${m.low} px below the line), pill stays ${m.h} px tall`);
     await p.close(); }
   // 3. keyboard + Food routes
   p = await open('en'); await go(p, 'gym-prog');
@@ -42,6 +45,20 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   ok(await p.evaluate(() => location.hash === '#gym-week' && document.querySelector('#gTabs .pcrow>button.on').dataset.car === 'gym-week' && !document.getElementById('gPlanV').classList.contains('hide')), 'keyboard Enter on Week Planner: route, chosen pill and section agree');
   await go(p, 'foods'); await p.click('#fTabs .pcrow>button[data-car="supps"]:not([aria-hidden])'); await sleep(700);
   ok(await p.evaluate(() => location.hash === '#supps' && !document.getElementById('foodSupps').classList.contains('hide')), 'Food Library pills still route (Supplements)');
+  await p.close();
+  // 4. Petros: Inventory (was Fridge) and Groceries are Food Library pills; no Kitchen tab; the Settings switch greys them out
+  p = await open('en'); await go(p, 'foods');
+  let k = await p.evaluate(() => ({ pills: [...document.querySelectorAll('#fTabs .pcrow>button:not([aria-hidden])')].map(b => b.dataset.car).join(), rail: [...document.querySelectorAll('#rail [data-tab]')].map(b => b.dataset.tab).join() }));
+  ok(k.pills === 'foods,meals,supps,fridge,groc,mymeals' && k.rail === 'today,gym,food,profile', `Food Library pills ${k.pills}; bottom bar ${k.rail}`);
+  await p.click('#fTabs .pcrow>button[data-car="fridge"]:not([aria-hidden])'); await sleep(700);
+  ok(await p.evaluate(() => location.hash === '#fridge' && !$('fridgeView').classList.contains('hide') && $('storeView').classList.contains('hide') && document.querySelector('#pgFoods h1').textContent === 'Inventory' && $('fab').dataset.action === 'fridge' && document.querySelector('#rail .on').dataset.tab === 'food'),
+    'Inventory pill: the inventory list, title Inventory, Add Food button, Food Library tab lit');
+  await p.close();
+  p = await open('en', { noKitchen: true }); await go(p, 'fridge');
+  k = await p.evaluate(() => ({ h: location.hash, off: [...document.querySelectorAll('#fTabs .pcrow>button.off:not([aria-hidden])')].map(b => b.dataset.car).join(), tiles: ['fhInv', 'fhGroc'].every(id => $(id).classList.contains('off')) }));
+  ok(k.h === '#food' && k.off === 'fridge,groc' && k.tiles, `Inventory off: #fridge opens the hub, pills ${k.off} and both tiles greyed out`);
+  await go(p, 'supps'); await p.evaluate(() => document.querySelector('#fTabs .pcrow>button[data-car="groc"]:not([aria-hidden])').click()); await sleep(600);   // aria-disabled: a plain tap
+  ok(await p.evaluate(() => location.hash === '#supps'), 'a greyed-out pill cannot be chosen');
   await p.close();
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); srv.close(); console.log(fails ? `\n${fails} check(s) failed` : '\nAll carousel checks passed.'); process.exit(fails ? 1 : 0);

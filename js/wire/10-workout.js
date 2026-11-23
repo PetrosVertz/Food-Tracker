@@ -131,12 +131,15 @@ $('sesCoach').addEventListener('click', () => { Phone.haptic(); gcOpenLive(); })
     document.body.classList.toggle('inses', on);
     if(!on && !active) Coach.dismiss('gymlive'); }).observe($('ovSession'), { attributes: true, attributeFilter: ['class'] }); }
 
-// Exercise Settings sheet: switches save at once and the open workout redraws; the four tabs switch the list
-$('exsTabs').addEventListener('click', e => { const b = e.target.closest('[data-exstab]'); if(!b || b.dataset.exstab === EXS_TAB) return; Phone.haptic(); EXS_TAB = b.dataset.exstab; drawExSet(); $('exsBody').scrollTop = 0; });
+// Exercise Settings (Petros): switches save at once and the open workout redraws. The list of sections opens one at a time (Back returns);
+// the switch on top changes all ↔ individual; with individual on, the card's exercise keeps its own choices (shared ones stay shared).
+$('exsMode').addEventListener('click', e => { if(!e.target.closest('[data-gxmode]')) return; Phone.haptic(); setGxMode(gxEach() ? 'all' : 'each'); drawExSet(); if(active) renderSession(); });
 $('exsBody').addEventListener('click', e => {
+  const sec = e.target.closest('[data-exsec]'); if(sec){ Phone.haptic(); EXS_SEC = sec.dataset.exsec; EXS_MK = false; drawExSet(); $('exsBody').scrollTop = 0; return; }
   if(e.target.closest('[data-hmopen]')){ EXS_MK = !EXS_MK; Phone.haptic(); drawExSet(); return; }
-  const hm = e.target.closest('[data-hm]'); if(hm){ Phone.haptic(); const G = gx(); hideM('W'); G.hideM = G.hideM || {}; if(G.hideM[hm.dataset.hm]) delete G.hideM[hm.dataset.hm]; else G.hideM[hm.dataset.hm] = true; Store.save('settings', settings); drawExSet(); if(active) renderSession(); return; }
-  const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, !gOn(b.dataset.gx)); drawExSet(); if(active) renderSession(); });
+  const hm = e.target.closest('[data-hm]'); if(hm){ Phone.haptic(); toggleHideM(hm.dataset.hm, EXS_EX); drawExSet(); if(active) renderSession(); return; }
+  const b = e.target.closest('[data-gx]'); if(!b) return; Phone.haptic(); setGx(b.dataset.gx, !gOn(b.dataset.gx, EXS_EX), EXS_EX); drawExSet(); if(active) renderSession(); });
+$('ovExSetAsk').addEventListener('click', e => { const b = e.target.closest('[data-gxask]'); if(b) exSetChoose(b.dataset.gxask); });
 
 // 0.7.9.6 Pick Exercise: the back arrow sits in the title row of the solid top strip
 { const b = $('ovExPick').querySelector('.sheet>.sback'); if(b) $('pkBar').prepend(b); }

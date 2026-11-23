@@ -11,12 +11,15 @@ $('backBtn2').addEventListener('click', () => goBack());
 // Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
 // My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
 document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
-$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]'); if(b) go(b.dataset.fsec); else if(e.target.closest('.fhsoon')) Phone.haptic(); });
+$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]');
+  if(!b){ if(e.target.closest('.fhsoon')) Phone.haptic(); return; }
+  if(b.classList.contains('off')){ Phone.haptic(); toast(t('invOffT')); return; } go(b.dataset.fsec); });
 const FOOD_CAR = pillCarousel($('fTabs'), {
   items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
+    { key: 'fridge', label: () => t('tFridge'), off: () => !kitchenOn() }, { key: 'groc', label: () => t('tGroc'), off: () => !kitchenOn() },   // Petros: Inventory + Groceries
     { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
-  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps'].map($).filter(el => !el.classList.contains('hide')) }
+  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps', 'fridgeView', 'pgGroc'].map($).filter(el => !el.classList.contains('hide')) }
 });
 
 // the floating button does the main thing of each page; the second one (Food Track, Fridge) is next to it

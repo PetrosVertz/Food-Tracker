@@ -28,7 +28,8 @@ const AI = (() => {
   // (the Kitchen clerk in Kitchen). Switching to another area fades it away (.away, opacity only; it stays where it is), coming back fades
   // it in (.back). A bubble put in the trash or closed is removed as before, so it stays gone.
   const AREA = { today: 'food', food: 'food', gym: 'gym', fridge: 'kitchen', profile: 'profile' };
-  const areaNow = () => AREA[typeof tabOf === 'function' ? tabOf(location.hash.slice(1) || 'today') : 'today'] || 'food';
+  const areaNow = () => { const h = location.hash.slice(1) || 'today'; if(h === 'fridge' || h === 'groc') return 'kitchen';   // Inventory / Groceries keep their own area inside the Food Library
+    return AREA[typeof tabOf === 'function' ? tabOf(h) : 'today'] || 'food'; };
   function areaSync(){ const a = areaNow();
     document.querySelectorAll('.aibub[data-area]').forEach(b => { const away = b.dataset.area !== a; if(away === b.classList.contains('away')) return;
       b.classList.toggle('away', away); b.classList.toggle('back', !away); }); }
