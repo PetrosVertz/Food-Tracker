@@ -222,10 +222,11 @@ function saveOrm(){
 function delOrm(id){ profile.orm = ormList().filter(o => o.id !== id); if(!profile.orm.length) delete profile.orm; saveProfile(); drawOrmList(); renderProfile(); }
 
 // ---------- Refinements #8 change 14: the friends leaderboard, one rep max only, one lift at a time ----------
-// The pill on top drops down Bench Press, Deadlift, Squat (ui.pfLift remembers the choice). Rows: place, picture, name, weight (your kg / lb setting;
+// Petros: the lifts are the shared rotating pill carousel (pillCarousel in ui.js, like Gym and Food Library): Bench Press, Squat, Deadlift
+// (ui.pfLift remembers the choice; choosing one redraws only the list, so the pills glide undisturbed). Rows: place, picture, name, weight (your kg / lb setting;
 // stored in kg). Places 1-3 are gold, silver and bronze (--lb-gold/-silver/-bronze, theme.css); a shared weight shares the place, the first to lift it first.
 // Friends need accounts and sync, which do not exist yet (0.8+): LB_FRIENDS is where their rows plug in; today it is empty.
-const LB_LIFTS = ['bench', 'deadlift', 'squat'];
+const LB_LIFTS = ['bench', 'squat', 'deadlift'];
 const LB_SHOW_ME = true;   // Petros has not confirmed showing you in the list: false leaves your row out (the "join" line still shows when you have no single)
 const lbLift = () => LB_LIFTS.includes(ui.pfLift) ? ui.pfLift : LB_LIFTS[0];
 let LB_FRIENDS = [];   // friends' best singles, once accounts and sync exist: [{ name, photo, initial, kg, date }] (empty until then)
@@ -236,23 +237,27 @@ function lbRows(exId){
   const L = lbFriends().filter(f => f && f.kg > 0).concat(me).sort((a, b) => b.kg - a.kg || String(a.date).localeCompare(String(b.date)));
   L.forEach((r, i) => { r.place = i && L[i - 1].kg === r.kg ? L[i - 1].place : i + 1; }); return { rows: L, mine };
 }
-function lbHtml(){
+function lbListHtml(){
   const ex = lbLift(), { rows, mine } = lbRows(ex), friends = lbFriends().length;
-  const pill = `<div class="lbpick"><button type="button" class="lbpill" data-lbpill aria-haspopup="listbox" aria-expanded="false"><span>${esc(exName(ex))}</span>${svgIcon('chevD', 18, 2.4)}</button>
-      <div class="lbmenu" role="listbox" aria-label="${esc(t('pfBoards'))}">${LB_LIFTS.map(id => `<button type="button" role="option" class="lbopt${id === ex ? ' on' : ''}" data-lblift="${id}" aria-selected="${id === ex}"><span>${esc(exName(id))}</span>${id === ex ? svgIcon('check', 18, 2.4) : ''}</button>`).join('')}</div></div>`;
   const av = r => `<span class="lbav">${r.photo ? `<img class="avimg" src="${r.photo}" alt="">` : r.initial ? esc(r.initial) : svgIcon('user', 18, 2)}</span>`;
   const list = rows.map(r => `<button type="button" class="lbrow${r.me ? ' me' : ''}${r.place <= 3 ? ' lb' + r.place : ''}" data-lbrow>
       <b class="lbn">${r.place}</b>${av(r)}<span class="lbname"><span>${esc(r.name)}</span><small class="lbdate">${esc(fmtDate(r.date + 'T12:00:00'))}${r.src === 'manual' ? ` · ${esc(t('ormManual'))}` : ''}</small></span><b class="lbw">${lbW(r.kg)}</b></button>`).join('');
   const empty = !rows.length ? `<p class="pfempty lbempty"><b>${esc(t('lbNoneYet'))}</b>${esc(t(friends ? 'lbNoneSub' : 'lbNoFriends'))}</p>` : '';
   const join = !mine ? `<p class="pfline lbjoin">${esc(t('lbJoin'))}</p>${gOn('lbAtt') ? '' : `<p class="pfline lbjoin">${esc(t('lbJoinHow'))}</p>`}` : '';
-  return `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p>${pill}
-    <div class="pfcard pfboards lblist" id="lbList">${list}${empty}${join}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button></div>`;
+  return `${list}${empty}${join}<button class="btn pform" type="button" data-orm>${svgIcon('plus', 18, 2.2)}<span>${esc(t('ormAdd'))}</span></button>`;
 }
-// the lift menu: drops down under the pill (transform and opacity only), closes on a pick, a tap elsewhere or Escape; the list cross-fades to the new lift
-function lbMenu(show){ const p = document.querySelector('#pfBody .lbpick'); if(!p) return; p.classList.toggle('open', show); p.querySelector('[data-lbpill]').setAttribute('aria-expanded', String(show)); }
-function lbPick(id){ if(!LB_LIFTS.includes(id)) return; lbMenu(false); if(id === lbLift()) return; ui.pfLift = id; saveUI(); Phone.haptic();
-  const box = $('lbList'), go = () => { const y = $('pfBody').scrollTop; renderProfile(); $('pfBody').scrollTop = y; const nb = $('lbList'); if(nb){ nb.classList.add('lbin'); } };
-  if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return go();
+function lbHtml(){
+  return `<h3 class="pfh">${svgIcon('podium', 18, 2)}<span>${esc(t('pfBoards'))}</span></h3><p class="pfsub">${esc(t('pfBoardsSub'))}</p><div class="lbcar" id="lbCar" aria-label="${esc(t('pfBoards'))}"></div>
+    <div class="pfcard pfboards lblist" id="lbList">${lbListHtml()}</div>`;
+}
+// the carousel is built again each time the Social Hub is drawn (renderProfile), then shows the remembered lift without a glide
+function lbCarMount(){ const el = $('lbCar'); if(!el) return;
+  pillCarousel(el, { items: LB_LIFTS.map(id => ({ key: id, label: () => exName(exById(id)) })), onPick: lbPick }).set(lbLift()); }
+// a new lift: only the list cross-fades (the carousel keeps gliding)
+function lbPick(id){ if(!LB_LIFTS.includes(id) || id === lbLift()) return; ui.pfLift = id; saveUI();
+  const box = $('lbList'); if(!box) return;
+  const go = () => { box.innerHTML = lbListHtml(); box.classList.remove('lbout', 'lbin'); void box.offsetWidth; box.classList.add('lbin'); };
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return go();
   box.classList.add('lbout'); setTimeout(go, 140); }
 
 function renderProfile(){
@@ -280,4 +285,5 @@ function renderProfile(){
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`
     + `<p class="pfsub">${esc(t(statPins().length >= STAT_PIN_MAX ? 'stPinsFull' : 'stPinsSub', { n: statPins().length, m: STAT_PIN_MAX }))}</p>`
     + `<div class="pfstatgrid">${statCards()}</div>`;
+  lbCarMount();
 }

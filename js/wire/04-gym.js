@@ -394,13 +394,10 @@ $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){
   // Refinements #8: the leaderboard lift menu (Bench Press, Deadlift, Squat) and a row tap showing the date it was lifted
   // Refinements #8: a tap on a Highest Ranked plate pops a small bubble with its exercise; it fades after 3 s or on a tap elsewhere
   const rb = e.target.closest('[data-rkbub]'); if(rb){ const on = !rb.classList.contains('bub'); rkBubClose(); if(on){ rb.classList.add('bub'); Phone.haptic(); RKBUB_T = setTimeout(rkBubClose, 3000); } return; }
-  if(e.target.closest('[data-lbpill]')){ Phone.haptic(); const p = e.target.closest('.lbpick'); lbMenu(!p.classList.contains('open')); return; }
-  const lb = e.target.closest('[data-lblift]'); if(lb){ lbPick(lb.dataset.lblift); return; }
   const lr = e.target.closest('[data-lbrow]'); if(lr){ lr.classList.toggle('showd'); return; } });
-document.addEventListener('pointerdown', e => { if(!e.target.closest('.lbpick')) lbMenu(false); if(!e.target.closest('[data-rkbub]')) rkBubClose(); }, true);
+document.addEventListener('pointerdown', e => { if(!e.target.closest('[data-rkbub]')) rkBubClose(); }, true);
 let RKBUB_T = 0;
 function rkBubClose(){ clearTimeout(RKBUB_T); document.querySelectorAll('.pfrkslot.bub').forEach(b => b.classList.remove('bub')); }
-document.addEventListener('keydown', e => { if(e.key === 'Escape') lbMenu(false); });
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
 $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });
