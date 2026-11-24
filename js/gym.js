@@ -250,14 +250,13 @@ let SES_ADD = null;
 const sesMs = () => active && active.clock0 ? Date.now() - active.clock0 : 0;
 
 const clk = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}` : `${m}:${String(ss).padStart(2, '0')}`; };
-const exTime = x => clk((x.t1 || Date.now()) - x.t0);
+
 // the Gym Coach robot cheers when a set is finished (bigger when it is a record or the last set of the exercise); transform only
 function coachCheer(kind){ const b = $('sesCoach'); if(!b || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   b.classList.remove('cheer1', 'cheer2', 'cheer3'); void b.offsetWidth; b.classList.add(kind === 'pr' ? 'cheer3' : kind === 'last' ? 'cheer2' : 'cheer1');
   clearTimeout(b._ct); b._ct = setTimeout(() => b.classList.remove('cheer1', 'cheer2', 'cheer3'), 1300); }
 function tickClock(){ if(!active || !$('ovSession').classList.contains('open')) return;
-  $('sesClock').textContent = clk(sesMs());
-  document.querySelectorAll('#sesBody [data-xt]').forEach(el => { const x = active.exercises[+el.dataset.xt]; if(x && x.t0) el.textContent = exTime(x); }); }
+  $('sesClock').textContent = clk(sesMs()); }
 
 function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(`.exc[data-x="${xi}"] .setrow[data-s="${si}"] [data-w]`); if(!el) return;
   if(el.closest('.exc.capped')) listReveal(el.closest('.setlist'), el.closest('.setrow')); else el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); }   // a card at its height limit scrolls only its own set list
@@ -817,7 +816,7 @@ function renderTodayRec(){
 function gymStartToday(){
   if(active) return openSession();
   const pl = planFor(todayKey()), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
-  if(tp || !tpls.length) return startSession(tp || null);
+  if(!tpls.length || (tp && !ui.wpAdv)) return startSession(tp || null);   // Advanced Week Planner on: always the list, never a preset on its own
   $('gStart').click();
 }
 
@@ -864,11 +863,11 @@ function showRankNa(btn){ hideTip(); const code = btn.dataset.rankna, p = docume
   const esc_ = e => { if(e.key !== 'Escape') return; e.preventDefault(); e.stopPropagation(); hideTip(); btn.focus(); };
   document.addEventListener('keydown', esc_, true); new MutationObserver((m, o) => { if(!p.isConnected){ document.removeEventListener('keydown', esc_, true); o.disconnect(); } }).observe(document.body, { childList: true }); }
 // the next level, said as something to do: a weight × reps, the reps alone, added weight × reps, or "beat your best" while protected
-const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t('tierNextReps', { r: nx.reps }) : nx.add != null ? t('tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
+const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t(nx.sec ? 'tierNextSecs' : 'tierNextReps', { r: nx.reps }) : nx.add != null ? t(nx.sec ? 'tierNextAddSecs' : 'tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
-  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.dataset.tg = btn.closest('[data-x]') ? btn.closest('[data-x]').dataset.x : ''; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
   p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap2', { what: rankNextTxt(tf.next), tier: tf.next.label }) : t('tierTop')}`);
   p.innerHTML = tierBarHtml(tf);
   document.body.appendChild(p);
@@ -876,7 +875,7 @@ function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!t
   p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
 // the kg still needed, then [current plate] bar in the tier colour [next plate]; shared by the rank bubble and the Rank Up window (rank-fx.js)
 function tierBarHtml(tf){ const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
-  return `<b class="tgkg">${nx ? esc(rankNextTxt(nx)) : esc(t('tierTop'))}</b>${tf.protected ? `<small class="tgprot">${esc(t('rankProt'))}</small>` : ''}
+  return `<b class="tgkg">${nx ? `<span class="tgup">${svgIcon('arrowUp', 16, 2.8)}</span>${esc(rankNextTxt(nx))}` : esc(t('tierTop'))}</b>${tf.protected ? `<small class="tgprot">${esc(t('rankProt'))}</small>` : ''}
     <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`; }
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
 // · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
@@ -958,7 +957,7 @@ function cardHtml(x, i){
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
   const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
-      ${tierNeed}<div class="exsub"><small class="exmeta"><span style="color:${gymInk(muCol(ex.h)) || 'inherit'}">${ML(ex.h)}</span> · <span style="color:${gymInk(EQ_COL[ex.e]) || 'inherit'}">${EL(ex.e)}</span>${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
+      ${tierNeed}<div class="exsub"><small class="exmeta"><span style="color:${gymInk(muCol(ex.h)) || 'inherit'}">${ML(ex.h)}</span> · <span style="color:${gymInk(EQ_COL[ex.e]) || 'inherit'}">${EL(ex.e)}</span></small>
       <div class="expills">${uniPill}${gOn('formPill', x.exId) ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill', x.exId) ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';

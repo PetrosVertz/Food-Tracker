@@ -1166,7 +1166,7 @@ Object.assign(S, {   // Athlete Rank v0.4 (gym.js rankNaBadge / showRankNa / ran
   rankNaProtocol: ['This exercise is measured in a way that can’t be compared fairly (speed, time or an uneven load), so it has no ranking. It can still be tracked for workouts, personal records, and progress.',
     'Αυτή η άσκηση μετριέται με τρόπο που δεν συγκρίνεται δίκαια (ταχύτητα, χρόνος ή άνιση φόρτιση), οπότε δεν έχει κατάταξη. Καταγράφεται κανονικά στις προπονήσεις, στα ρεκόρ και στην πρόοδό σου.'],
   rankNaAssist: ['Assisted sets are tracked for personal records and progress, but they are not ranked.', 'Τα υποβοηθούμενα σετ καταγράφονται για ρεκόρ και πρόοδο, αλλά δεν έχουν κατάταξη.'],
-  tierNextSet: ['{w} kg × {r} reps', '{w} kg × {r} επαναλήψεις'], tierNextReps: ['{r} strict reps', '{r} καθαρές επαναλήψεις'], tierNextAdd: ['+{a} kg × {r} reps', '+{a} kg × {r} επαναλήψεις'],
+  tierNextSet: ['{w} kg × {r} reps', '{w} kg × {r} επαναλήψεις'], tierNextReps: ['{r} strict reps', '{r} καθαρές επαναλήψεις'], tierNextSecs: ['{r} s hold', 'Κράτημα {r} δλ'], tierNextAddSecs: ['+{a} kg × {r} s', '+{a} kg × {r} δλ'], tierNextAdd: ['+{a} kg × {r} reps', '+{a} kg × {r} επαναλήψεις'],
   tierNextBeat: ['Beat your best set to move up', 'Ξεπέρασε το καλύτερο σετ σου για να ανέβεις'], tierGap2: ['{what} for {tier}', '{what} για {tier}'],
   rankProt: ['Protected this season: new benchmarks lowered this rank by at most two levels.', 'Προστατεύεται αυτή τη σεζόν: τα νέα δεδομένα αναφοράς χαμήλωσαν αυτή την κατάταξη το πολύ κατά δύο επίπεδα.'],
 });
@@ -1197,7 +1197,7 @@ Object.assign(S, {   // Left / Right and the load convention beside the weight (
 });
 
 Object.assign(S, {   // 0.8 (24 Nov): bento homes for Food Library (food.js › renderFoodHub) and Gym Buddy (gym.js › renderGymHub); new section names
-  tabStore: ['Foods', 'Τρόφιμα'], tabMyMeals: ['Meals', 'Γεύματα'], tabMeals: ['Recipes', 'Συνταγές'], tabSupps: ['Supps', 'Συμπληρώματα'], tSupps: ['Supps', 'Συμπληρώματα'],
+  tabStore: ['Foods', 'Τρόφιμα'], tabMyMeals: ['Meals', 'Γεύματα'], tabMeals: ['Recipes', 'Συνταγές'], tabSupps: ['Supplements', 'Συμπληρώματα'], tSupps: ['Supplements', 'Συμπληρώματα'],
   tGroc: ['Shopping List', 'Λίστα Αγορών'], tFridge: ['My Fridge', 'Το Ψυγείο Μου'],
   invOffT: ['Turn on My Fridge in Settings › Tabs', 'Άνοιξε το Ψυγείο Μου στις Ρυθμίσεις › Καρτέλες'],
   fhSaved: ['foods saved', 'αποθηκευμένα τρόφιμα'], fhSaved1: ['food saved', 'αποθηκευμένο τρόφιμο'],

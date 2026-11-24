@@ -1,6 +1,6 @@
 # Exercise inventory — Left / Right default, load unit, rep unit
 
-341 built-in exercises · 75 open paired · 29 flagged AMBIGUOUS (equipment setup cannot be told from the catalog; a labelled default is used and the load chip changes it).
+326 built-in exercises · 75 open paired · 29 flagged AMBIGUOUS (equipment setup cannot be told from the catalog; a labelled default is used and the load chip changes it).
 
 Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-test.js` checks every built-in ID is covered). Mode P = opens as Left / Right rows, C = one row.
 
@@ -194,6 +194,9 @@ Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-tes
 | bb_wrist_curl | Barbell wrist curl | barbell | C | bar | 1 | both | reps |  | Shared bar: weight is the bar total |
 | plate_pinch | Plate pinch hold | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
 | dead_hang | Dead hang | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| active_hang | Active hang | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| flexed_arm_hang | Flexed-arm hang | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| towel_hang | Towel hang | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
 | cable_crunch | Cable crunch | cable | C | stack | 1 | both | reps |  | Cable stack (one attachment, both arms) |
 | crunch | Crunch | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
 | ab_machine | Ab crunch machine | machine | C | stack | 1 | both | reps |  | Machine stack / plates as shown on the machine |
@@ -202,6 +205,10 @@ Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-tes
 | knee_raise | Captain’s chair knee raise | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
 | ab_wheel | Ab wheel rollout | bodyweight | C | bw | 1 | both | reps |  | Bodyweight (added weight / assistance as before) |
 | plank | Plank | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| reverse_plank | Reverse plank | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| bear_hold | Bear hold | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| tuck_lsit | Tuck L-sit | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
+| glute_bridge_hold | Glute bridge hold | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
 | side_plank | Side plank | bodyweight | P | bw | 1 | side | sec |  | Side hold per side; time is kept in the reps field as before |
 | dead_bug | Dead bug | bodyweight | C | bw | 1 | both | reps |  | Continuous alternating drill: reps are the natural total across both sides |
 | hollow_hold | Hollow hold | bodyweight | C | bw | 1 | both | sec |  | Hold; time is kept in the reps field as before |
@@ -325,25 +332,3 @@ Generated from `js/data/gym-lat.js` (the code is the source; `node tools/lat-tes
 | kb_deadlift | Kettlebell deadlift | kettlebell | C | hand | 1 | both | reps |  | One implement held with both hands: weight is that implement |
 | kb_carry | Kettlebell carry | kettlebell | C | hand | 1 | both | reps |  | **AMBIGUOUS: one implement assumed; can also be done one side at a time (use Left / Right)** |
 | kb_two_hand_swing | American kettlebell swing | kettlebell | C | hand | 1 | both | reps |  | One implement held with both hands: weight is that implement |
-| ski_erg | Ski erg | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| spin_bike | Spin bike | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| recumbent_bike | Recumbent bike | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| sled_pull | Sled pull | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| cycling_outdoor | Outdoor cycling | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| hiking | Hiking | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| walking | Walking | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| burpee | Burpee | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| jumping_jacks | Jumping jacks | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| sprint_intervals | Sprint intervals | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| treadmill | Treadmill | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| incline_walk | Incline treadmill walk | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| bike | Exercise bike | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| assault_bike | Air bike | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| rower | Rowing machine | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| stairs | Stair climber | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| elliptical | Elliptical | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| running | Outdoor run | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| jump_rope | Jump rope | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| battle_ropes | Battle ropes | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| swimming | Swimming | bodyweight | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |
-| sled_push | Sled push | machine | C | none | 1 | both | min |  | Cardio keeps its own time / distance fields |

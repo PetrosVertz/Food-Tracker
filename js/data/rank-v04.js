@@ -59,6 +59,20 @@ const RANK04 = {
     pushup: { m: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 57, 64, 72, 80, 90], f: [2, 5, 8, 12, 15, 19, 23, 27, 31, 35, 40, 45, 51, 57, 65], k: .5, share: .65 },
     inverted_row: { m: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 34, 38, 42, 46, 50], f: [2, 4, 6, 8, 10, 12, 15, 18, 21, 24, 27, 30, 34, 38, 42], k: .7, share: .6 },
   },
+  // timed holds (dead hang, plank, ...): a SEPARATE rank on time. Seconds needed for each level (Bronze III … Diamond I) at the reference body weight with no
+  // extra weight; a heavier lifter needs less (× (ref / bw)^k). A belt / plate adds kg: share = the part of body weight that is held, ep = how fast
+  // time falls as the load rises (a bigger ep = a flatter curve; the same Epley-style conversion the rep tables use, with time in seconds). PROVISIONAL
+  // design values written for this app (no published percentile table exists for these holds); replace a row when real data does.
+  holdBw: (() => { const f = (a, x) => a.map(v => Math.max(1, Math.round(v * x)));
+    const T = { deadhang: [8, 15, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240], flexhang: [3, 5, 8, 12, 16, 20, 25, 30, 36, 42, 50, 60, 70, 80, 90],
+      plank: [15, 25, 35, 45, 60, 75, 90, 110, 130, 160, 200, 250, 300, 420, 600], sideplank: [10, 15, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240],
+      hollow: [10, 15, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240], lsit: [3, 5, 8, 12, 16, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120],
+      wallsit: [20, 30, 45, 60, 75, 90, 110, 130, 150, 180, 210, 240, 300, 360, 420] };
+    const P = { deadhang: [.8, .7, 1, 60], flexhang: [.6, 1, 1, 30], plank: [.9, .3, .6, 60], sideplank: [.9, .3, .5, 60], hollow: [.9, .4, .6, 60], lsit: [.8, .8, .8, 45], wallsit: [.9, .2, .5, 60] };
+    return Object.fromEntries(Object.keys(T).map(k => [k, { m: T[k], f: f(T[k], P[k][0]), k: P[k][1], share: P[k][2], ep: P[k][3], hold: true }])); })(),
+  // hold id → [table, time multiplier] (more time needed when the variation is easier)
+  holdVar: { dead_hang: ['deadhang', 1], active_hang: ['deadhang', .7], towel_hang: ['deadhang', .55], flexed_arm_hang: ['flexhang', 1], plank: ['plank', 1], reverse_plank: ['plank', .8],
+    side_plank: ['sideplank', 1], hollow_hold: ['hollow', 1], lsit: ['lsit', 1], tuck_lsit: ['lsit', 1.8], wall_sit: ['wallsit', 1] },
   // bodyweight variations: [base table, reps multiplier] (more reps needed when easier)
   bwVar: { pullup: ['pullup', 1], chinup: ['pullup', 1.1], wide_pullup: ['pullup', .85], neutral_pullup: ['pullup', 1.05], dips: ['dips', 1], dip_bar_triceps: ['dips', 1],
     pushup: ['pushup', 1], decline_pushup: ['pushup', .85], diamond_pushup: ['pushup', .8], close_pushup: ['pushup', .85], deficit_pushup: ['pushup', .9], incline_pushup: ['pushup', 1.4],

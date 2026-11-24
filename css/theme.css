@@ -1451,3 +1451,17 @@ body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 110px;opaci
 .iconbtn{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .swipetip{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 78%,transparent))!important}
 html.appbg *,html.appbg *::before,html.appbg *::after,.offscr,.offscr *{animation-play-state:paused!important}
+
+/* ======================= 0.8 (24 Nov): Eaten closer to the hero card ======================= */
+/* "Eaten" + its arrow sit right under the hero card, and the foods fade out right at the title instead of a gap below it */
+#pgToday #dEatenFold>summary{margin-top:0}
+#pgToday.pinned #dEatenWrap{margin-top:calc(var(--s2) * -1)}
+#pgToday.pinned #dScroll{top:var(--sumh,36px);padding-top:2px;-webkit-mask-image:linear-gradient(#0000 0,#000 6px);mask-image:linear-gradient(#0000 0,#000 6px)}
+/* the pills slide down the way they pop up: the same spring, fully visible on the way, fading only once they are tucked in */
+:is(#fab,#fab2,.coachpill){transition:translate .42s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 110px;opacity:0!important;pointer-events:none;transition:translate .38s cubic-bezier(.4,0,.2,1),opacity .14s .26s}
+@media (prefers-reduced-motion: reduce){ :is(#fab,#fab2,.coachpill){transition:none!important} }
+
+/* the planned workout in the Start Workout list (Advanced Week Planner): a gold star on the right */
+.strow .stplan{margin-left:auto;display:flex;color:#d9a400}
+.strow .stplan svg{fill:currentColor}

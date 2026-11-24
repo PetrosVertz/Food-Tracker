@@ -31,11 +31,11 @@ const pkDisc = id => { let h = 2166136261; for(let i = 0; i < id.length; i++){ h
 // ---------- open / close ----------
 // cb(id) adds the exercise. Petros: one tap adds it and closes the picker. o.multi (live workout, workout builder): a long press on a
 // card starts Select mode instead; then taps select / unselect and Add (N) adds them all, in the order chosen (cb once per exercise,
-// then o.done(ids) if given). o.muscle / o.group / o.cardio open straight at that muscle (Gym Coach › Replace).
+// then o.done(ids) if given). o.muscle / o.group open straight at that muscle (Gym Coach › Replace).
 function openExPick(cb, o){
   o = o || {}; pkCancelAnim();
-  const m = o.cardio ? 'cardio' : EXM[o.muscle] ? o.muscle : EXM[o.group] && o.group !== 'abductors' ? o.group : null;
-  PK = { cb, multi: !!o.multi, done: o.done || null, sel: [], selOn: false, region: m && m !== 'cardio' ? exmRegion(m) : 'all', muscle: m, head: null, eq: null,
+  const m = EXM[o.muscle] ? o.muscle : EXM[o.group] && o.group !== 'abductors' ? o.group : null;
+  PK = { cb, multi: !!o.multi, done: o.done || null, sel: [], selOn: false, region: m ? exmRegion(m) : 'all', muscle: m, head: null, eq: null,
     step: m ? (pkHeadsOf(m).length ? 'head' : 'equipment') : 'region', collapsed: false, user: true, limit: PK_STEP, q: '', last: null, hist: pkHistory() };
   if(!m && o.group === 'arms') PK.region = 'up';
   $('exSearch').value = ''; pkClr(); pkToastHide(); pkSelBar();
@@ -54,13 +54,12 @@ function pkBack(){ if($('exSearch').value){ $('exSearch').value = ''; pkSearch()
 // ---------- which exercises, in which order ----------
 function pkHits(x, m, head){
   if(x.custom){ const s = cxSpec(x); if(!s.mus.includes(m)) return false; if(!head) return true; const mine = s.heads.filter(h => exmHeads(m).includes(h)); return !mine.length || mine.includes(head); }
-  if(m === 'cardio') return x.m === 'cardio';
   return head ? (+(x.mu || {})[head] || 0) >= 25 : exmUse(x, m) >= 25;
 }
 const pkGrouped = () => !PK.q && !PK.muscle && (PK.region !== 'all' || !!PK.eq);
 function pkList(){
   const H = PK.hist, h = id => H.get(id) || { n: 0, at: 0 }, hist = (a, b) => h(b.id).n - h(a.id).n || h(b.id).at - h(a.id).at;
-  const use = (x, k) => { const v = x.custom ? null : PK.head && k === PK.muscle ? +(x.mu || {})[PK.head] || 0 : k === 'cardio' ? (x.m === 'cardio' ? 100 - cardioRank(x.id) : 0) : exmUse(x, k); return v == null ? -1 : v; };
+  const use = (x, k) => { const v = x.custom ? null : PK.head && k === PK.muscle ? +(x.mu || {})[PK.head] || 0 : exmUse(x, k); return v == null ? -1 : v; };
   const byName = (a, b) => exName(a).localeCompare(exName(b));
   if(PK.q){
     const r = ExSearch.query(PK.q, { list: EX(), lang, sessions });
@@ -72,7 +71,7 @@ function pkList(){
   if(PK.eq) l = l.filter(x => x.e === PK.eq);
   if(pkGrouped()){
     const bins = new Map(); l.forEach(x => { const k = exmOf(x); if(!bins.has(k)) bins.set(k, []); bins.get(k).push(x); });
-    const order = [...EXM_UP, ...EXM_LOW, 'cardio'], rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
+    const order = [...EXM_UP, ...EXM_LOW], rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
     const groups = [...bins.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
       .map(k => ({ k, items: bins.get(k).sort((a, b) => use(b, k) - use(a, k) || hist(a, b) || byName(a, b)) }));
     return { mode: 'grouped', groups, n: l.length };
@@ -94,7 +93,7 @@ function pkCrumbs(){
 function pkPills(){
   const st = PK.step, all = [['all', t('all')]];
   let opts = [], sel = 'all';
-  if(st === 'muscle'){ opts = all.concat((PK.region === 'all' ? [...EXM_UP, ...EXM_LOW, 'cardio'] : PK.region === 'up' ? EXM_UP : EXM_LOW).map(k => [k, pkName(k)])); sel = PK.muscle || 'all'; }
+  if(st === 'muscle'){ opts = all.concat((PK.region === 'all' ? [...EXM_UP, ...EXM_LOW] : PK.region === 'up' ? EXM_UP : EXM_LOW).map(k => [k, pkName(k)])); sel = PK.muscle || 'all'; }
   else if(st === 'head'){ opts = all.concat(pkHeadsOf(PK.muscle).map(k => [k, pkName(k)])); sel = PK.head || 'all'; }
   else if(st === 'equipment'){ opts = all.concat(EQ_ORDER.map(e => [e, exTitle(EL(e))])); sel = PK.eq || 'all'; }
   return opts.map(([v, l]) => {
@@ -121,13 +120,12 @@ function pkDrawFilters(){
 // ---------- the cards ----------
 function pkArt(x){
   if(!x) return '';
-  if(isCardio(x.id)) return exIcon(x, 70);
   const mu = x.custom ? Object.fromEntries(Object.keys(x.mu || {}).map(h => [h, 100])) : x.mu;   // your own: the chosen muscles lit evenly (no made-up shares)
   return miniMap({ id: x.id, mu }, true);   // the RECOVERY+ figure, cut to the card (raExerciseSVG in js/recovery-anatomy.js)
 }
 function pkCard(x, k, have, i){
   const nm = exName(x), inW = have.has(x.id), focus = PK.head && k === PK.muscle ? PK.head : k;
-  const use = x.custom ? t('pkCustom') : isCardio(x.id) ? '' : t('muUse', { p: Math.round(HEADS[focus] && !EXM[focus] ? +(x.mu || {})[focus] || 0 : exmUse(x, focus)) });
+  const use = x.custom ? t('pkCustom') : t('muUse', { p: Math.round(HEADS[focus] && !EXM[focus] ? +(x.mu || {})[focus] || 0 : exmUse(x, focus)) });
   const badge = x.custom ? `<span class="pkpuz" role="img" aria-label="${esc(t('pkCustomL'))}">${gymIco('puzzle', 18, 1.9)}</span>`
     : `<button type="button" class="pkinfo" data-exinfo="${x.id}" aria-label="${esc(t('pkInfoL', { n: nm }))}">${svgIcon('info', 18, 2)}</button>`;
   const si = PK.sel ? PK.sel.indexOf(x.id) : -1;

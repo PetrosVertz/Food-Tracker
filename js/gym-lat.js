@@ -35,9 +35,11 @@ const Lat = (() => {
   // typed weight expressed per implement (what history, progression and PR checks compare); only a typed TOTAL needs converting
   const unitW = (x, s) => { const w = num(s.w), cv = x && x.cv; return cv && cv.l === 'total' && !s.side ? w / Math.max(1, cv.n || 1) : w; };
   // real external volume of one row, with the caller's body-weight / assistance rule (loadOf) applied to the external load
-  const volume = (x, s, loadOf) => (loadOf ? loadOf(x.exId, ext(x, s)) : ext(x, s)) * num(s.r) * sides(x, s);
+  // a timed hold keeps SECONDS in r; setReps() (wire/04-gym.js) turns them into rep-equivalents with the exercise's own factor (plain reps stay as typed)
+  const repsOf = (x, s) => typeof setReps === 'function' ? setReps(x.exId, s.r) : num(s.r);
+  const volume = (x, s, loadOf) => (loadOf ? loadOf(x.exId, ext(x, s)) : ext(x, s)) * repsOf(x, s) * sides(x, s);
   // the like-for-like volume that records are compared on (per-implement weight × reps × sides), so a new two-bell set never fakes a record against old history
-  const basis = (x, s, loadOf) => (loadOf ? loadOf(x.exId, unitW(x, s)) : unitW(x, s)) * num(s.r) * sides(x, s);
+  const basis = (x, s, loadOf) => (loadOf ? loadOf(x.exId, unitW(x, s)) : unitW(x, s)) * repsOf(x, s) * sides(x, s);
 
   // ---- pairs
   const newPr = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);

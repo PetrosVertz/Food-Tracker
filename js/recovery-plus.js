@@ -55,13 +55,15 @@ const RecoveryCore = (() => {
     return n ? out : null;
   }
   // effort of one finished set (0 = does not count): warm-ups 0; the R half of an L/R pair 0 (the pair counts once); a drop under a set 0.4
-  function setEffort(z){
+  // rec (optional): the exercise record; a timed hold (rec.hold = seconds per rep-equivalent) counts its seconds ÷ that factor as reps
+  const repsOf = (z, rec) => { const n = +z.r || 0; return rec && rec.hold > 0 && n > 0 ? Math.max(1, Math.round(n / rec.hold)) : n; };
+  function setEffort(z, rec){
     if(!z || !z.done || z.type === 'W' || z.side === 'R') return 0;
     const E = CFG.effort, rir = isNum(z.rir) ? Math.max(0, Math.round(z.rir)) : (isNum(+z.rir) && z.rir !== '' && z.rir != null ? Math.max(0, Math.round(+z.rir)) : null);
     let e = rir == null ? (z.type === 'F' ? E.fail : 1) : E.rir[Math.min(4, rir)];
     if(z.type === 'F') e = Math.max(e, E.fail);
     if(z.type === 'D') e *= E.dropSet;
-    const reps = +z.r || 0; if(reps >= 20) e *= E.lightReps; else if(reps > 0 && reps <= 5) e *= E.heavyReps;
+    const reps = repsOf(z, rec); if(reps >= 20) e *= E.lightReps; else if(reps > 0 && reps <= 5) e *= E.heavyReps;
     if(+z.ng > 0) e *= E.negatives;
     return (z.drop ? CFG.dropChild : 1) * e;
   }
@@ -73,7 +75,7 @@ const RecoveryCore = (() => {
     const list = (Array.isArray(sessions) ? sessions : []).filter(s => s && Array.isArray(s.exercises) && isFinite(sesEnd(s))).slice().sort((a, b) => sesEnd(a) - sesEnd(b));
     const byEx = {};   // exId → [{ end, best }]
     list.forEach(s => s.exercises.forEach(x => { if(!x || !x.exId) return; let best = 0;
-      (x.sets || []).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop || z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0)); });
+      (x.sets || []).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop || z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), repsOf(z, ex ? ex(x.exId) : null))); });
       (byEx[x.exId] = byEx[x.exId] || []).push({ end: sesEnd(s), best, sid: s.id }); }));
     return { list, byEx };
   }
@@ -82,15 +84,15 @@ const RecoveryCore = (() => {
     const out = {}, unknown = [], end = sesEnd(s);
     (s.exercises || []).forEach(x => {
       if(!x || !x.exId) return; const rec = ex(x.exId), mu = muOf(rec);
-      const counted = (x.sets || []).filter(z => setEffort(z) > 0);
+      const counted = (x.sets || []).filter(z => setEffort(z, rec) > 0);
       if(!counted.length) return;
       if(!mu){ if(!rec || rec.m !== 'cardio') unknown.push(x.exId); return; }
       const prior = (idx.byEx[x.exId] || []).filter(q => q.end < end - 6e4), recent = prior.filter(q => end - q.end <= 90 * 864e5);
       const nov = CFG.novelty[Math.min(2, prior.length >= 3 ? 2 : prior.length ? 1 : 0)];
       const ecc = /hinge|squat|lunge|rdl|split|nordic|bulgarian/i.test(`${rec.p || ''} ${x.exId}`) ? CFG.effort.eccentric : 1;
       const best = Math.max(0, ...recent.map(q => q.best));
-      counted.forEach(z => { let e = setEffort(z) * nov * ecc;
-        if(best > 0){ const v = e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0); if(v > 0){ const r = v / best; if(r >= CFG.relInt.hi) e *= CFG.relInt.hiX; else if(r < CFG.relInt.lo) e *= CFG.relInt.loX; } }
+      counted.forEach(z => { let e = setEffort(z, rec) * nov * ecc;
+        if(best > 0){ const v = e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), repsOf(z, rec)); if(v > 0){ const r = v / best; if(r >= CFG.relInt.hi) e *= CFG.relInt.hiX; else if(r < CFG.relInt.lo) e *= CFG.relInt.loX; } }
         Object.entries(mu).forEach(([h, pc]) => { const o = out[h] = out[h] || { load: 0, sets: 0, rirSets: 0, failSets: 0, dropSets: 0, ex: [] };
           o.load += pc / 100 * e;
           if(pc >= 10 && !z.drop){ o.sets++; if(z.rir != null && z.rir !== '') o.rirSets++; if(z.type === 'F' || z.rir === 0) o.failSets++; if(z.type === 'D') o.dropSets++; }
@@ -185,8 +187,8 @@ const RecoveryCore = (() => {
   // ---------------------------------------------------------------- in-workout (acute) fatigue — separate from recovery
   function acuteFatigue(o){
     const a = o.active, now = isNum(o.now) ? o.now : Date.now(), out = {}; if(!a || !Array.isArray(a.exercises)) return out;
-    a.exercises.forEach(x => { const mu = muOf(o.ex(x.exId)); if(!mu) return;
-      (x.sets || []).forEach(z => { const e = setEffort(z); if(!e) return; const at = isNum(z.at) ? z.at : now, mins = Math.max(0, (now - at) / 6e4), k = Math.pow(.5, mins / CFG.acuteHalfMin);
+    a.exercises.forEach(x => { const rec = o.ex(x.exId), mu = muOf(rec); if(!mu) return;
+      (x.sets || []).forEach(z => { const e = setEffort(z, rec); if(!e) return; const at = isNum(z.at) ? z.at : now, mins = Math.max(0, (now - at) / 6e4), k = Math.pow(.5, mins / CFG.acuteHalfMin);
         Object.entries(mu).forEach(([h, pc]) => { out[h] = (out[h] || 0) + pc / 100 * e * k; }); }); });
     Object.keys(out).forEach(h => { out[h] = Math.round((1 - Math.exp(-out[h] / 3)) * 100) / 100; });
     return out;

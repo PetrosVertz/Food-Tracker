@@ -19,6 +19,7 @@ const RankV4Core = (() => {
       if(/assist/.test(id)) return { prOnly: 'assisted' };
       if(ex.custom) return { prOnly: 'insufficient_benchmark' };
       if(D.prOnly[id]) return { prOnly: D.prOnly[id] };
+      if(code === 'w' && D.holdVar && D.holdVar[id]){ const h = D.holdVar[id]; return { eng: 'bw', base: h[0], mult: h[1], hold: true, q: 'provisional' }; }
       if(code === 'w'){ const v = D.bwVar[id]; return v ? { eng: 'bw', base: v[0], mult: v[1], q: 'provisional' } : { prOnly: 'insufficient_benchmark' }; }
       const l = D.load[id]; if(!l || !D.engines[code]) return { prOnly: 'insufficient_benchmark' };
       return { eng: 'load', anchor: l[0], f: l[1], table: l[2], proto: l[3], q: l[4] === 'sourced' ? 'sourced' : 'provisional' };
@@ -35,8 +36,9 @@ const RankV4Core = (() => {
     // load target: the kg (as this exercise is entered) a set of r reps needs for level n
     const loadTarget = (c, body, n, r) => { if(n <= 0) return 0; const m = refMax(c.anchor, body.sex, body.bw, n); return m == null ? null : m * c.f * tbl(c.table, r); };
     // bodyweight: reps needed at level n with no added weight; added kg needed for r reps (reference side: the level's reps turned into a load with Epley)
-    const bwReps = (c, body, n) => { const t = D.bw[c.base]; return Math.max(1, t[body.sex][n] * c.mult * Math.pow(D.refBw[body.sex] / body.bw, t.k)); };
-    const bwAdd = (c, body, n, r) => { const R = bwReps(c, body, n); if(r >= R) return 0; const L = body.bw * D.bw[c.base].share; return L * ((1 + R / 30) / (1 + r / 30) - 1); };
+    const tab = c => D.bw[c.base] || D.holdBw[c.base];   // a hold's table is in seconds
+    const bwReps = (c, body, n) => { const t = tab(c); return Math.max(1, t[body.sex][n] * c.mult * Math.pow(D.refBw[body.sex] / body.bw, t.k)); };
+    const bwAdd = (c, body, n, r) => { const R = bwReps(c, body, n); if(r >= R) return 0; const T = tab(c), ep = T.ep || 30, L = body.bw * T.share; return L * ((1 + R / ep) / (1 + r / ep) - 1); };
     // one set → { n, frac, check } or null (does not qualify)
     function scoreSet(c, body, set){
       const r = Math.floor(+set.r || 0); if(!(r >= 1)) return null;
@@ -54,8 +56,8 @@ const RankV4Core = (() => {
     // what the next level needs, from the user's own best set: a weight × those reps, the reps alone, or the added weight for those reps
     function nextFor(c, body, best){ const n = best.n + 1; if(n > TOP) return null;
       if(c.eng === 'load'){ const step = c.proto === 'bar' ? 1.25 : 1, w = Math.ceil(loadTarget(c, body, n, best.r) / step - 1e-9) * step; return { n, w, r: best.r, kg: Math.max(0.5, w - best.w) }; }
-      if(best.w > 0){ const add = Math.max(0.5, Math.ceil(bwAdd(c, body, n, best.r) * 2) / 2); return { n, add, r: best.r, kg: Math.max(0.5, add - best.w) }; }
-      return { n, reps: Math.ceil(bwReps(c, body, n) - 1e-9), kg: null }; }
+      if(best.w > 0){ const add = Math.max(0.5, Math.ceil(bwAdd(c, body, n, best.r) * 2) / 2); return { n, add, r: best.r, kg: Math.max(0.5, add - best.w), ...(c.hold ? { sec: true } : {}) }; }
+      return { n, reps: Math.ceil(bwReps(c, body, n) - 1e-9), kg: null, ...(c.hold ? { sec: true } : {}) }; }
     // sessions: [{ date, bw, sets: [{ w, r, ok?, before? }] }] (qualifying sets only; the caller drops warm-ups, drops and unfinished sets)
     function evaluate(c, sex, sessions){
       if(!c || !c.eng) return null; let best = null, bestBody = null; const checks = [];
@@ -118,6 +120,6 @@ function rank4For(exId, noLive){
   if(r.need) return { need: true, why: r.why }; if(r.none) return { none: true, checks: r.checks };
   const season = rank4Season(), fl = season.floor && season.floor[exId], n = fl != null && fl > r.n ? fl : r.n, prot = n > r.n;
   const res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n), frac: prot ? 0 : r.frac, raw: r.n, protected: prot, q: r.q, checks: r.checks, best: r.best, fatigue: { before: r.best.before } };
-  if(r.next && !prot){ const nx = r.next; res.next = { n: nx.n, tier: TIERS[Math.floor(nx.n / 3)], label: tierName(nx.n), kg: nx.kg, w: nx.w, r: nx.r, reps: nx.reps, add: nx.add }; }
+  if(r.next && !prot){ const nx = r.next; res.next = { n: nx.n, tier: TIERS[Math.floor(nx.n / 3)], label: tierName(nx.n), kg: nx.kg, w: nx.w, r: nx.r, reps: nx.reps, add: nx.add, sec: nx.sec }; }
   else if(n < RankV4Core.TOP){ const nn = n + 1; res.next = { n: nn, tier: TIERS[Math.floor(nn / 3)], label: tierName(nn), kg: null, beat: true }; }
   return res; }

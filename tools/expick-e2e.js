@@ -38,7 +38,7 @@ async function run(browser, port){
     const o1 = s.cards.slice(0, 12).join(); await p.evaluate(() => { pkDraw(); }); must((await S(p)).cards.slice(0, 12).join() === o1, 'newcomer discovery order is stable');
     // 2. muscle → head → equipment, real usage order, back clears the step, reset clears all
     await p.click('.pkreopen'); await wait(p);
-    must(await p.$$eval('#pkRail [data-c="muscle"]', l => l.length) === 14, 'muscle row: All + 12 muscles + cardio');
+    must(await p.$$eval('#pkRail [data-c="muscle"]', l => l.length) === 13, 'muscle row: All + 12 muscles');
     await p.click('[data-c="muscle"][data-v="chest"]'); await wait(p);
     let t = await S(p); const use = await p.evaluate(ids => ids.map(id => exmUse(exById(id), 'chest')), t.cards);
     must(t.muscle === 'chest' && t.step === 'head', 'chest → head row');
