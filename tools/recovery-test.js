@@ -68,10 +68,53 @@ const freeze = o => { if(o && typeof o === 'object'){ Object.freeze(o); Object.v
   ok(L({ rir: 0 }) > L({}) && L({ type: 'F' }) > L({}), 'RIR 0 and failure count more than missing RIR');
   ok(L({ rir: 3 }) < L({}), 'RIR 3 counts less');
   ok(L({ type: 'W' }) === 0 && L({ done: false }) === 0, 'warm-ups and unfinished sets count 0');
-  ok(L({ side: 'R' }) === 0 && L({ side: 'L' }) === 1, 'L/R pair counts once (on the L half)');
-  ok(Math.abs(L({ drop: true }) - .4) < 1e-9, 'a drop under a set counts 40 %, not a full set');
-  ok(L({ type: 'D' }) > L({}), 'a drop set counts a little more');
+  ok(L({ side: 'R' }) === 1 && L({ side: 'L' }) === 1, 'each side row has its own full effort (they are summed per side, not added together: see section 5b)');
+  ok(Math.abs(L({ drop: true }) - .4) < 1e-9, 'a completed drop extension with no parent to compare counts 40 %, not a full set');
+  ok(L({ type: 'D' }) === L({}), 'a drop MARKER alone adds nothing above the completed parent set');
   ok(C.setEffort({ done: true, w: 'abc', r: null }) === 1 && isFinite(C.setEffort({ done: true, rir: 'x' })), 'odd values do not produce NaN'); }
+
+// 5b. Dose rules (Prompt 3, stage 1): per-side pairs, effort signals applied once, drop extensions, half reps, negatives
+{ const T1 = arr => TR([ses('a', 1, [['curl', arr]])]); const L = o => C.setEffort(set(o)), P = o => ({ ...set(o) });
+  // blank vs explicit zero, and an explicit entry counts on its own set even on a first-ever workout
+  ok(L({ rir: 0 }) === 1.3 && L({}) === 1 && L({ rir: '' }) === 1 && L({ rir: null }) === 1, 'blank / empty RIR stays neutral; an explicit 0 counts as 1.30 on its own set');
+  const first = T1([set({ rir: 0 }), ...sets(3)]), blank = T1(sets(4));
+  ok(first.heads.biceps.hours > blank.heads.biceps.hours, 'first workout ever: one explicit RIR 0 set counts more than a blank one (no habit is inferred)');
+  // failure + RIR 0 is one signal, applied once
+  ok(L({ type: 'F', rir: 0 }) === 1.3 && L({ type: 'F' }) === 1.3 && L({ rir: 0 }) === 1.3, 'failure + RIR 0 = 1.30 once, never stacked');
+  ok(L({ type: 'F', rir: 3 }) === 1 && L({ type: 'F', rir: 1 }) === 1.3, 'a failure mark with RIR 3 is a contradiction and counts as a normal effort; RIR 1 + failure counts once as failure');
+  // drop: marker alone, completed extensions, unopened chain
+  const parent = set({ w: 40, r: 10 }), ext = set({ w: 30, r: 8, drop: true, type: 'D' });
+  ok(Math.abs(C.setEffort(ext, parent) - .6) < 1e-9, 'a completed drop 30 kg x 8 under 40 kg x 10 counts 60 % of a set (0.8 reps x 0.75 load)');
+  ok(C.setEffort(set({ w: 2, r: 1, drop: true }), parent) >= .15 && C.setEffort(set({ w: 2, r: 1, drop: true }), parent) < .2 && C.setEffort(set({ w: 40, r: 10, drop: true }), parent) === .7, 'a tiny extension counts at least 15 %, a near-copy at most 70 %: never a fresh full set');
+  ok(C.setEffort({ ...ext, done: false }, parent) === 0, 'an untouched drop row earns no credit');
+  const base = T1([parent]), mark = T1([{ ...parent, type: 'D' }]);
+  const chain = T1([{ ...parent, type: 'D' }, ext, { ...ext, w: 20 }]), unopened = T1([{ ...parent, type: 'D' }, { ...ext, done: false }, { ...ext, done: false, w: 20 }]);
+  const three = T1(sets(3, { w: 40 }));
+  ok(mark.heads.biceps.hours === base.heads.biceps.hours, 'a drop set marker alone: exactly the parent set (no extra fatigue)');
+  ok(unopened.heads.biceps.hours === base.heads.biceps.hours, 'an unopened drop chain: exactly the parent set');
+  ok(chain.heads.biceps.hours > base.heads.biceps.hours && chain.heads.biceps.hours < three.heads.biceps.hours, 'a completed drop chain adds partial work: more than the parent, less than three full sets');
+  ok(chain.heads.biceps.contrib[0].dropExt === 2 && chain.heads.biceps.contrib[0].sets === 1, 'Advanced data: two completed extensions kept apart from the one parent set');
+  // half reps recorded, no hours; extra negatives modest and capped
+  const hr = T1([{ ...parent, hr: 6 }]), ng1 = T1([{ ...parent, ng: 2 }]), ng40 = T1([{ ...parent, ng: 40 }]), ng9 = T1([{ ...parent, ng: 9 }]);
+  ok(hr.heads.biceps.hours === base.heads.biceps.hours && hr.heads.biceps.contrib[0].halfReps === 6, 'half reps only: recorded for Advanced, no hours added, never converted into full reps');
+  ok(ng1.heads.biceps.hours >= base.heads.biceps.hours && ng40.heads.biceps.hours === ng9.heads.biceps.hours, 'extra negatives: a small effect that stops growing (cap +10 %)');
+  // paired sides: independent per side, more fatigued side wins, equal sides = one logical set
+  const pr = (l, r) => ['L', 'R'].map((side, i) => ({ ...set(i ? r : l), side }));
+  const comp1 = T1([set({})]), eq = T1(pr({}, {}));
+  ok(eq.heads.biceps.hours === comp1.heads.biceps.hours && eq.heads.biceps.side === null, 'matched sides: a Left / Right pair is ONE logical set, same hours as the compact set');
+  const hardR = T1(pr({}, { type: 'F' })), failC = T1([set({ type: 'F' })]);
+  ok(hardR.heads.biceps.hours === failC.heads.biceps.hours && hardR.heads.biceps.side === 'R', 'hard right / easy left: the more fatigued side (right) drives the tile and is named');
+  const oneL = T1([{ ...set({}), side: 'L' }]);
+  ok(oneL.heads.biceps.hours === comp1.heads.biceps.hours && oneL.heads.biceps.side === 'L', 'one side only: only that side is fatigued (the other side is not invented)');
+  const alt = T1([...pr({ type: 'F' }, {}), ...pr({}, { type: 'F' })]), bothF = T1([...pr({ type: 'F' }, { type: 'F' }), ...pr({ type: 'F' }, { type: 'F' })]);
+  const oneFnorm = T1([set({ type: 'F' }), set({})]);
+  ok(alt.heads.biceps.hours === oneFnorm.heads.biceps.hours && alt.heads.biceps.hours < bothF.heads.biceps.hours, 'alternating which side works hardest: each side did one hard + one easy set, not one fictional side that did both hard');
+  const withAnn = [...pr({ rir: 1, hr: 2, ng: 1 }, { rir: 1, hr: 2, ng: 1 })], cmp = [set({ rir: 1, hr: 4, ng: 2 })];
+  ok(T1(withAnn).heads.biceps.hours === T1(cmp).heads.biceps.hours, 'the same annotations give the same hours in Left / Right rows and in the compact layout');
+}
+// 5c. Regression replays on the real catalog (the brief's numbers): unchanged because those workouts have no drops, sides or annotations
+{ const RP = require('./recovery-replay.js').R;
+  ok(RP['biceps after 3 preacher sets to failure'] === 31 && RP['side delts after 3 ordinary sets of 12'] === 23 && RP['side delts after 12 ordinary sets of 12'] === 77, 'replays: 31 h biceps (3 preacher failure sets), 23 h and 77 h side delts (3 / 12 sets of 12) are unchanged by the dose rules'); }
 
 // 6. Edited / deleted workouts: pure recompute from the list
 { const list = [ses('a', 5, [['bench', sets(5)]])], before = TR(list), after = TR([]);

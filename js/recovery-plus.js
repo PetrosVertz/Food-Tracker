@@ -31,8 +31,12 @@ const RecoveryCore = (() => {
     minLoad: .25,          // below this a head is not counted as trained in that workout
     significant: 25,       // % share of an exercise that makes a head matter for that exercise's warning
     primary: 40,           // % share that makes a head a primary mover
-    dropChild: .4,         // a drop under another set adds 40 % of a set (it is not a new full set)
-    effort: { fail: 1.3, rir: [1.3, 1.15, 1, .9, .8], dropSet: 1.15, heavyReps: 1.08, lightReps: .85, negatives: 1.1, eccentric: 1.15 },
+    dropChild: .4,         // a completed drop extension with no parent to compare with adds 40 % of a set; with a parent it is scaled by its real reps and load (dropPart)
+    dropPart: { min: .15, max: .7, loadFloor: .4 },   // a completed extension is partial work: reps / parent reps x relative load, kept between 15 % and 70 % of a set
+    // failure and RIR 0 are ONE effort signal (applied once, 1.30: provisional, kept until its effect on real histories is examined); an explicit RIR 2+ on a set
+    // also marked failure is a contradiction: the set counts as a normal effort (and the reason is recorded). No drop-marker bonus: a marker alone adds nothing.
+    // negatives: a deliberately logged extra-negative count adds 2.5 % per rep up to +10 %; the ordinary lowering phase is already part of every rep. Half reps: recorded, no hours.
+    effort: { fail: 1.3, rir: [1.3, 1.15, 1, .9, .8], heavyReps: 1.08, lightReps: .85, negStep: .025, negCap: .1, eccentric: 1.15 },
     novelty: [1.15, 1.07, 1],  // first time / 1–2 times before / familiar (repeated-bout effect)
     relInt: { hi: .92, hiX: 1.06, lo: .6, loX: .85 },
     calib: { min: .85, max: 1.2, needN: 3, step: .04, days: 90 },
@@ -54,48 +58,66 @@ const RecoveryCore = (() => {
     Object.entries(ex.mu).forEach(([h, v]) => { if(GROUP[h] && isNum(+v) && +v > 0){ out[h] = Math.min(100, +v); n++; } });
     return n ? out : null;
   }
-  // effort of one finished set (0 = does not count): warm-ups 0; the R half of an L/R pair 0 (the pair counts once); a drop under a set 0.4
-  function setEffort(z){
-    if(!z || !z.done || z.type === 'W' || z.side === 'R') return 0;
+  // effort of one finished set (0 = does not count): warm-ups 0; blank RIR = normal effort (never failure); an explicit RIR 0 and a failure mark are one signal.
+  // A completed drop extension (z.drop) is partial work: scaled by its real reps and load against `parent` (the set it drops from) when that is known, else 40 %.
+  // Left and right rows each count for their own side (sessionHeadLoads); a pair is one logical set per side.
+  function setEffort(z, parent){
+    if(!z || !z.done || z.type === 'W') return 0;
     const E = CFG.effort, rir = isNum(z.rir) ? Math.max(0, Math.round(z.rir)) : (isNum(+z.rir) && z.rir !== '' && z.rir != null ? Math.max(0, Math.round(+z.rir)) : null);
-    let e = rir == null ? (z.type === 'F' ? E.fail : 1) : E.rir[Math.min(4, rir)];
-    if(z.type === 'F') e = Math.max(e, E.fail);
-    if(z.type === 'D') e *= E.dropSet;
+    const failMark = z.type === 'F' || rir === 0;
+    let e = failMark ? (z.type === 'F' && rir != null && rir >= 2 ? 1 : E.fail) : rir == null ? 1 : E.rir[Math.min(4, rir)];
     const reps = +z.r || 0; if(reps >= 20) e *= E.lightReps; else if(reps > 0 && reps <= 5) e *= E.heavyReps;
-    if(+z.ng > 0) e *= E.negatives;
-    return (z.drop ? CFG.dropChild : 1) * e;
+    if(+z.ng > 0) e *= 1 + Math.min(E.negCap, E.negStep * Math.min(40, +z.ng));
+    return (z.drop ? dropPart(z, parent) : 1) * e;
+  }
+  const effortConflict = z => !!z && z.type === 'F' && isNum(+z.rir) && z.rir !== '' && z.rir != null && +z.rir >= 2;
+  function dropPart(z, parent){
+    if(!parent || !(+parent.r > 0) || !(+z.r > 0)) return CFG.dropChild;
+    const P = CFG.dropPart, repsF = Math.min(1, +z.r / +parent.r), loadF = +parent.w > 0 && +z.w > 0 ? Math.max(P.loadFloor, Math.min(1, +z.w / +parent.w)) : 1;
+    return Math.max(P.min, Math.min(P.max, repsF * loadF * 1.0));
   }
   const e1 = (load, r) => r >= 1 && r <= 12 && load > 0 ? load * (1 + r / 30) : 0;
 
   // ---------------------------------------------------------------- history index (built once per data change)
   // ex(exId) → exercise record { mu, p, id, en, m }; loadOf(exId, w) → kg actually moved (bodyweight / assisted conventions)
-  function indexHistory(sessions, ex, loadOf){
+  function indexHistory(sessions, ex, loadOf, setsOf){
+    const SO = typeof setsOf === 'function' ? setsOf : x => x.sets || [];   // per-implement view of an exercise's sets (js/gym-lat.js › Lat.sets); default: as saved
     const list = (Array.isArray(sessions) ? sessions : []).filter(s => s && Array.isArray(s.exercises) && isFinite(sesEnd(s))).slice().sort((a, b) => sesEnd(a) - sesEnd(b));
     const byEx = {};   // exId → [{ end, best }]
     list.forEach(s => s.exercises.forEach(x => { if(!x || !x.exId) return; let best = 0;
-      (x.sets || []).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop || z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0)); });
+      SO(x).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop || z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0)); });   // the Left row stands for a pair's comparable set
       (byEx[x.exId] = byEx[x.exId] || []).push({ end: sesEnd(s), best, sid: s.id }); }));
-    return { list, byEx };
+    return { list, byEx, setsOf: SO };
   }
-  // per session per head: { load, sets, rirSets, failSets, dropSets, ex:[ids] } + unknown exercises
+  // per session per head: { load (the more fatigued side), L, R (each side's load), sets, rirSets, failSets, dropSets (parents marked as a drop set), dropExt (completed
+  // drop extensions), halfReps / negs (recorded, informational), conflicts, ex:[ids] } + unknown exercises.
+  // Left and right rows add to their own side only; a one-row (bilateral / compact) set adds to both sides. The head's load is the MORE fatigued side, so a pair of
+  // equal sides is one logical set, and alternating which side works hardest does not build one imaginary side that did all the hardest work.
   function sessionHeadLoads(s, idx, ex, loadOf){
-    const out = {}, unknown = [], end = sesEnd(s);
+    const out = {}, unknown = [], end = sesEnd(s), SO = idx.setsOf || (x => x.sets || []);
     (s.exercises || []).forEach(x => {
-      if(!x || !x.exId) return; const rec = ex(x.exId), mu = muOf(rec);
-      const counted = (x.sets || []).filter(z => setEffort(z) > 0);
+      if(!x || !x.exId) return; const rec = ex(x.exId), mu = muOf(rec), S = SO(x);
+      const counted = S.filter(z => setEffort(z) > 0);
       if(!counted.length) return;
       if(!mu){ if(!rec || rec.m !== 'cardio') unknown.push(x.exId); return; }
       const prior = (idx.byEx[x.exId] || []).filter(q => q.end < end - 6e4), recent = prior.filter(q => end - q.end <= 90 * 864e5);
       const nov = CFG.novelty[Math.min(2, prior.length >= 3 ? 2 : prior.length ? 1 : 0)];
       const ecc = /hinge|squat|lunge|rdl|split|nordic|bulgarian/i.test(`${rec.p || ''} ${x.exId}`) ? CFG.effort.eccentric : 1;
       const best = Math.max(0, ...recent.map(q => q.best));
-      counted.forEach(z => { let e = setEffort(z) * nov * ecc;
-        if(best > 0){ const v = e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0); if(v > 0){ const r = v / best; if(r >= CFG.relInt.hi) e *= CFG.relInt.hiX; else if(r < CFG.relInt.lo) e *= CFG.relInt.loX; } }
-        Object.entries(mu).forEach(([h, pc]) => { const o = out[h] = out[h] || { load: 0, sets: 0, rirSets: 0, failSets: 0, dropSets: 0, ex: [] };
-          o.load += pc / 100 * e;
-          if(pc >= 10 && !z.drop){ o.sets++; if(z.rir != null && z.rir !== '') o.rirSets++; if(z.type === 'F' || z.rir === 0) o.failSets++; if(z.type === 'D') o.dropSets++; }
+      S.forEach((z, i) => { if(setEffort(z) <= 0) return;
+        let parent = null; if(z.drop){ for(let k = i - 1; k >= 0; k--){ const q = S[k]; if(q && q.done && !q.drop && q.type !== 'W' && (q.side || null) === (z.side || null)){ parent = q; break; } } }
+        let e = setEffort(z, parent) * nov * ecc;
+        if(best > 0 && !z.drop){ const v = e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0); if(v > 0){ const r = v / best; if(r >= CFG.relInt.hi) e *= CFG.relInt.hiX; else if(r < CFG.relInt.lo) e *= CFG.relInt.loX; } }
+        const sides = z.side === 'L' ? [0] : z.side === 'R' ? [1] : [0, 1];
+        Object.entries(mu).forEach(([h, pc]) => { const o = out[h] = out[h] || { load: 0, L: 0, R: 0, sets: 0, setsL: 0, setsR: 0, rirSets: 0, failSets: 0, dropSets: 0, dropExt: 0, halfReps: 0, negs: 0, conflicts: 0, ex: [] };
+          sides.forEach(k => { o[k ? 'R' : 'L'] += pc / 100 * e; });
+          if(pc >= 10){
+            if(z.drop) o.dropExt++;
+            else { sides.forEach(k => { o[k ? 'setsR' : 'setsL']++; }); if(z.rir != null && z.rir !== '') o.rirSets += 1 / sides.length; if(z.type === 'F' || (z.rir != null && z.rir !== '' && +z.rir === 0)) o.failSets += 1 / sides.length; if(z.type === 'D') o.dropSets += 1 / sides.length; if(effortConflict(z)) o.conflicts++; }
+            if(+z.hr > 0) o.halfReps += +z.hr; if(+z.ng > 0) o.negs += +z.ng; }   // totals as logged: a compact set's count equals the sum of its two rows
           if(!o.ex.includes(x.exId)) o.ex.push(x.exId); }); });
     });
+    Object.values(out).forEach(o => { o.load = Math.max(o.L, o.R); o.sets = Math.max(o.setsL, o.setsR); o.rirSets = Math.round(o.rirSets); o.failSets = Math.round(o.failSets); o.dropSets = Math.round(o.dropSets); });
     return { heads: out, unknown };
   }
 
@@ -124,7 +146,7 @@ const RecoveryCore = (() => {
   // o: { sessions, ex, loadOf, now, calib? } → { heads, groups, evidence, unknownExercises, contrib }
   function trainingRecovery(o){
     const now = isNum(o.now) ? o.now : Date.now(), ex = o.ex, loadOf = o.loadOf;
-    const idx = o.idx || indexHistory(o.sessions, ex, loadOf), cal = o.calib || calibrate(idx, ex, now);
+    const idx = o.idx || indexHistory(o.sessions, ex, loadOf, o.setsOf), cal = o.calib || calibrate(idx, ex, now);
     const past = idx.list.filter(s => sesEnd(s) <= now + 6e4);
     const evidence = { sessionsTotal: past.length, recent14: past.filter(s => now - sesEnd(s) <= 14 * 864e5).length,
       lastAt: past.length ? sesEnd(past[past.length - 1]) : null };
@@ -133,9 +155,12 @@ const RecoveryCore = (() => {
       const r = sessionHeadLoads(s, idx, ex, loadOf); r.unknown.forEach(u => unknownExercises.add(u));
       Object.entries(r.heads).forEach(([h, v]) => { if(v.load < CFG.minLoad) return;
         const f = cal[GROUP[h]] && cal[GROUP[h]].used ? cal[GROUP[h]].f : 1;
-        (contrib[h] = contrib[h] || []).push({ sid: s.id, date: s.date, end: sesEnd(s), load: v.load, A: Math.min(1, v.load / CFG.loadFull), T: headHours(h, v.load) * f,
-          sets: v.sets, rirSets: v.rirSets, failSets: v.failSets, dropSets: v.dropSets, ex: v.ex, unknown: r.unknown.length > 0 }); }); });
-    const fatigueAt = (h, t) => Math.min(1, (contrib[h] || []).reduce((a, c) => a + c.A * Math.max(0, 1 - (t - c.end) / 36e5 / c.T), 0));
+        const sd = [v.L, v.R].map(l => ({ A: Math.min(1, l / CFG.loadFull), T: headHours(h, l) * f }));   // each side fades on its own clock
+        (contrib[h] = contrib[h] || []).push({ sid: s.id, date: s.date, end: sesEnd(s), load: v.load, A: Math.min(1, v.load / CFG.loadFull), T: headHours(h, v.load) * f, sd, loadL: v.L, loadR: v.R,
+          sets: v.sets, rirSets: v.rirSets, failSets: v.failSets, dropSets: v.dropSets, dropExt: v.dropExt, halfReps: v.halfReps, negs: v.negs, conflicts: v.conflicts, ex: v.ex, unknown: r.unknown.length > 0 }); }); });
+    // fatigue of a head = its MORE fatigued side (several workouts add up per side, capped at 1); for equal sides this is exactly the one-number model
+    const sideAt = (h, t, k) => Math.min(1, (contrib[h] || []).reduce((a, c) => a + c.sd[k].A * Math.max(0, 1 - (t - c.end) / 36e5 / c.sd[k].T), 0));
+    const fatigueAt = (h, t) => Math.max(sideAt(h, t, 0), sideAt(h, t, 1));
     const heads = {};
     HEADS21.forEach(h => {
       const cs = contrib[h] || [];
@@ -163,9 +188,10 @@ const RecoveryCore = (() => {
       }
       const spread = { low: .35, moderate: .25, high: .15 }[conf] || .3;
       heads[h] = { state: st, hours, conf, p: Math.round((1 - fatigueAt(h, now)) * 100) / 100, reasons, source: 'estimated',
-        range: hours > 0 ? [Math.max(1, Math.round(hours * (1 - spread))), Math.round(hours * (1 + spread))] : [0, 0], readyAt: hi, contrib: cs };
+        range: hours > 0 ? [Math.max(1, Math.round(hours * (1 - spread))), Math.round(hours * (1 + spread))] : [0, 0], readyAt: hi, contrib: cs,
+        side: Math.abs(sideAt(h, now, 0) - sideAt(h, now, 1)) > .02 ? (sideAt(h, now, 0) > sideAt(h, now, 1) ? 'L' : 'R') : null };
     });
-    return { heads, groups: groupsOf(heads), evidence, unknownExercises: [...unknownExercises], calib: cal, fatigueAt };
+    return { heads, groups: groupsOf(heads), evidence, unknownExercises: [...unknownExercises], calib: cal, fatigueAt, sideAt };
   }
   // a group shows its worst head; "which heads" is kept, so the page can say "Arms · Biceps" and a triceps exercise is judged by triceps only
   function groupsOf(heads){
@@ -185,9 +211,12 @@ const RecoveryCore = (() => {
   // ---------------------------------------------------------------- in-workout (acute) fatigue — separate from recovery
   function acuteFatigue(o){
     const a = o.active, now = isNum(o.now) ? o.now : Date.now(), out = {}; if(!a || !Array.isArray(a.exercises)) return out;
-    a.exercises.forEach(x => { const mu = muOf(o.ex(x.exId)); if(!mu) return;
-      (x.sets || []).forEach(z => { const e = setEffort(z); if(!e) return; const at = isNum(z.at) ? z.at : now, mins = Math.max(0, (now - at) / 6e4), k = Math.pow(.5, mins / CFG.acuteHalfMin);
-        Object.entries(mu).forEach(([h, pc]) => { out[h] = (out[h] || 0) + pc / 100 * e * k; }); }); });
+    const sides = {};   // head → [left, right]: the same per-side rule as the saved-workout dose; the live value is the more fatigued side
+    a.exercises.forEach(x => { const mu = muOf(o.ex(x.exId)); if(!mu) return; const S = (o.setsOf ? o.setsOf(x) : x.sets) || [];
+      S.forEach((z, i) => { let parent = null; if(z.drop){ for(let k = i - 1; k >= 0; k--){ const q = S[k]; if(q && q.done && !q.drop && q.type !== 'W' && (q.side || null) === (z.side || null)){ parent = q; break; } } }
+        const e = setEffort(z, parent); if(!e) return; const at = isNum(z.at) ? z.at : now, mins = Math.max(0, (now - at) / 6e4), k = Math.pow(.5, mins / CFG.acuteHalfMin), ks = z.side === 'L' ? [0] : z.side === 'R' ? [1] : [0, 1];
+        Object.entries(mu).forEach(([h, pc]) => { const v = sides[h] = sides[h] || [0, 0]; ks.forEach(j => { v[j] += pc / 100 * e * k; }); }); }); });
+    Object.keys(sides).forEach(h => { out[h] = Math.max(sides[h][0], sides[h][1]); });
     Object.keys(out).forEach(h => { out[h] = Math.round((1 - Math.exp(-out[h] / 3)) * 100) / 100; });
     return out;
   }
@@ -373,6 +402,7 @@ const RecoveryPlus = (() => {
   function invalidate(){ dirty = true; }
   const exFn = id => { try{ const x = exById(id); return x && x.m === 'other' && !(x.mu && Object.keys(x.mu).length) ? null : x; }catch(e){ return null; } };
   const loadFn = (id, w) => { try{ return loadOf(id, w); }catch(e){ return +w || 0; } };
+  const setsFn = x => { try{ return typeof Lat === 'object' ? Lat.sets(x) : (x.sets || []); }catch(e){ return x.sets || []; } };   // per-implement weights (a typed total is read per bell); the saved sets are untouched
   // opt-outs (device setting, Settings › AI › RECOVERY+ data; default on): no read, no publish when off
   const useFood = () => !(typeof settings !== 'undefined' && settings && settings.recNoFood);
   const useSleep = () => !(typeof settings !== 'undefined' && settings && settings.recNoSleep);
@@ -404,7 +434,7 @@ const RecoveryPlus = (() => {
     now = now || Date.now();
     if(cache && !dirty && now - cache.base.at < 10 * 6e4 && cache.base.day === todayKey()) return derive(cache.base, now);
     const S = typeof sessions !== 'undefined' ? sessions : [];
-    const idx = C.indexHistory(S, exFn, loadFn), calib = C.calibrate(idx, exFn, now);
+    const idx = C.indexHistory(S, exFn, loadFn, setsFn), calib = C.calibrate(idx, exFn, now);
     const tk = todayKey(), tg = typeof targets !== 'undefined' ? targets : null;
     const next = nextPlan(now);
     const sleep = C.evaluateSleepSupport({ records: useSleep() ? sleepRecords() : [], optOut: !useSleep(), now });
@@ -415,10 +445,10 @@ const RecoveryPlus = (() => {
   }
   // time-dependent part: cheap, recomputed on every read
   function derive(b, now){
-    const tr = C.trainingRecovery({ idx: b.idx, calib: b.calib, ex: exFn, loadOf: loadFn, now });
+    const tr = C.trainingRecovery({ idx: b.idx, calib: b.calib, ex: exFn, loadOf: loadFn, setsOf: setsFn, now });
     const nextA = b.next ? C.assessWorkout(tr, b.next, exFn) : null;
     const readiness = C.buildOverallReadiness(tr, b.sleep, b.nutr, nextA);
-    const act = typeof active !== 'undefined' && active ? C.acuteFatigue({ active, ex: exFn, now }) : {};
+    const act = typeof active !== 'undefined' && active ? C.acuteFatigue({ active, ex: exFn, setsOf: setsFn, now }) : {};
     return { tr, next: b.next, nextA, sleep: b.sleep, nutr: b.nutr, readiness, acute: act, now };
   }
   // sleep: no sleep source exists in the app today (no watch / Health link; watchSleepHours() was always null). Athlete OS or a future

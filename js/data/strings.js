@@ -1198,3 +1198,10 @@ Object.assign(S, {   // Left / Right and the load convention beside the weight (
 Object.assign(S, {   // Athlete Rank: the next target in the way the card is logged
   tierNextTotal: ['{w} kg total × {r} reps', '{w} kg συνολικά × {r} επαναλήψεις'], tierNextEach: ['{w} kg × {r} reps each side', '{w} kg × {r} επαναλήψεις ανά πλευρά'],
 });
+
+Object.assign(S, {   // RECOVERY+ Advanced: dose detail kept apart (js/gym.js › recAdvanced)
+  recDExt: ['{n} completed drop extensions (partial work, counted apart from the sets)', '{n} ολοκληρωμένες επεκτάσεις drop (μερική δουλειά, ξεχωριστά από τα σετ)'],
+  recDHalf: ['{n} half reps recorded (not counted as full reps)', '{n} μισές επαναλήψεις καταγράφηκαν (δεν μετρούν ως πλήρεις)'],
+  recDNegs: ['{n} extra negatives recorded (small, capped effect)', '{n} επιπλέον αρνητικές καταγράφηκαν (μικρή, περιορισμένη επίδραση)'],
+  recDSideL: ['The left side is the more fatigued', 'Η αριστερή πλευρά είναι η πιο κουρασμένη'], recDSideR: ['The right side is the more fatigued', 'Η δεξιά πλευρά είναι η πιο κουρασμένη'],
+});

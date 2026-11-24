@@ -422,7 +422,7 @@ function celebrate(){
 // The sleep multiplier (sleepFactor / watchSleepHours) is retired: sleep never changes muscle hours (RECOVERY+ › sleep context instead),
 // and the AI's hours (ses.recov) are kept only as old saved data: they no longer change any estimate.
 const exRec = id => { const x = exById(id); return x && x.m === 'other' && !(x.mu && Object.keys(x.mu).length) ? null : x; };
-function headLoads(ses){ const idx = RecoveryCore.indexHistory(sessions, exRec, loadOf), r = RecoveryCore.sessionHeadLoads(ses, idx, exRec, loadOf), out = {};
+function headLoads(ses){ const idx = RecoveryCore.indexHistory(sessions, exRec, loadOf, Lat.sets), r = RecoveryCore.sessionHeadLoads(ses, idx, exRec, loadOf), out = {};
   Object.entries(r.heads).forEach(([h, v]) => { out[h] = v.load; }); return out; }
 // hours until each trained group of ONE workout is ready again (saved with the workout as ses.recovEst; a record of that day, not a live clock)
 function estimateRecovery(ses){ const L = headLoads(ses), g = {};
@@ -564,10 +564,10 @@ function recAdvanced(r, sore){
   const tr = r.tr, rows = [];
   sore.forEach(([g, v]) => { const hs = v.heads.length ? v.heads : v.all;
     const items = hs.map(h => { const x = tr.heads[h], cs = x.contrib || [], sets = cs.reduce((a, c) => a + c.sets, 0), rir = cs.reduce((a, c) => a + c.rirSets, 0),
-        fail = cs.reduce((a, c) => a + c.failSets, 0), drop = cs.reduce((a, c) => a + c.dropSets, 0), exs = [...new Set(cs.flatMap(c => c.ex))];
+        fail = cs.reduce((a, c) => a + c.failSets, 0), drop = cs.reduce((a, c) => a + c.dropSets, 0), ext = cs.reduce((a, c) => a + (c.dropExt || 0), 0), half = cs.reduce((a, c) => a + (c.halfReps || 0), 0), negs = cs.reduce((a, c) => a + (c.negs || 0), 0), exs = [...new Set(cs.flatMap(c => c.ex))];
       const top = exs[0], sc = top ? strengthChange(top) : null;
       const li = [t('recDSets', { n: sets, s: cs.length }), exs.length ? t('recDEx', { e: exs.slice(0, 3).map(id => exName(id)).join(', ') }) : '',
-        sets ? (rir ? t('recDRir', { a: rir, b: sets }) : t('recDRirNone')) : '', fail ? t('recDFail', { n: fail }) : '', drop ? t('recDDrop', { n: drop }) : '',
+        sets ? (rir ? t('recDRir', { a: rir, b: sets }) : t('recDRirNone')) : '', fail ? t('recDFail', { n: fail }) : '', drop ? t('recDDrop', { n: drop }) : '', ext ? t('recDExt', { n: ext }) : '', half ? t('recDHalf', { n: Math.round(half) }) : '', negs ? t('recDNegs', { n: Math.round(negs) }) : '', x.side ? t(x.side === 'L' ? 'recDSideL' : 'recDSideR') : '',
         x.range && x.hours > 0 ? t('recDRange', { a: x.range[0], b: x.range[1] }) : '', t('recDConf', { c: REC_CONF(x.conf) }),
         sc && sc.pct != null ? t('recDTrend', { e: exName(top), s: (sc.pct >= 0 ? '+' : '') + Math.round(sc.pct) + '%' }) : top ? t('recDTrendNone') : '',
         x.reasons.includes('personal_faster') ? t('recPersFast') : x.reasons.includes('personal_slower') ? t('recPersSlow') : '',
