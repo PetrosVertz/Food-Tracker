@@ -300,6 +300,12 @@ $('tgBox').addEventListener('input', e => { const id = e.target.id || '', m = id
 ui.floc = 'all';
 $('faFrozen').addEventListener('change', () => { const b = $('faLoc').querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); });
 
+// My Food Log: scrolling the foods down tucks Log Food + the coach button into the bar (body.pillsunk); scrolling up, or touching anywhere else, brings them back
+{ const pg = $('pgToday'), unsink = () => document.body.classList.remove('pillsunk'); let last = 0;
+  if(pg){ pg.addEventListener('scroll', e => { const el = e.target; if(el !== $('dScroll') && el !== pg) return; const y = el.scrollTop;
+      if(y > last + 6 && y > 24) document.body.classList.add('pillsunk'); else if(y < last - 6 || y <= 24) unsink(); last = y; }, { capture: true, passive: true });
+    document.addEventListener('pointerdown', e => { if(!e.target.closest('#dScroll')) unsink(); }, { passive: true });
+    addEventListener('hashchange', () => { unsink(); last = 0; }); } }
 // 0.8: My Food Log keeps its top pinned while there is room (today.js todayFit); re-checked when the top or the screen changes size
 if(typeof ResizeObserver === 'function'){ const ro = new ResizeObserver(() => { cancelAnimationFrame(todayFit.f); todayFit.f = requestAnimationFrame(todayFit); });
   ['dBlocks', 'pgToday'].forEach(id => $(id) && ro.observe($(id))); const mc = document.querySelector('#pgToday .macrocard'); if(mc) ro.observe(mc); }

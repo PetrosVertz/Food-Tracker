@@ -1241,7 +1241,7 @@ function renderGymHub(fresh){
   { const st = ghStats(), s = ghPick(st.out, fresh);
     setHTML($('ghProg'), ghHead('progress', 'hubProg') + (s ? `<div class="btstat big"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : `<p class="btempty">${esc(t('ghNoSes'))}</p>`) +
       (sessions.length ? `<div class="ghvol">${ghLine(st.wv)}<small class="btsub">${esc(t('ghVol8'))}</small></div>` : '')); }
-  // RECOVERY+: only the body, front and back, sliding every 5 s
+  // RECOVERY+: only the body, front and back, sliding every 9 s
   { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 150 });
     const side = GH_REC.side, key = JSON.stringify(col) + recSex() + lang;
     if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
@@ -1269,18 +1269,19 @@ function renderGymWeek(){
     em.classList.toggle('marq', over > 1 && em.parentNode.classList.contains('today') && !matchMedia('(prefers-reduced-motion: reduce)').matches);
     if(over > 1) em.style.setProperty('--mq', `-${over + 4}px`); }));
 }
-// the RECOVERY+ tile switches sides every 5 s with a slide (out to one side and fading, the other in from the other side with a slight spring).
+// the RECOVERY+ tile switches sides every 9 s: the body slides out to the left and fades; only when it is almost gone does the other side fade in from the right (never one pushing the other).
 // Only while the Gym home shows and the app is visible; Reduce Motion = no automatic switch.
 const GH_REC = { side: 0, tm: 0 };
 function ghRecStop(){ clearTimeout(GH_REC.tm); GH_REC.tm = 0; }
-function ghRecArm(){ ghRecStop(); if(matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden) return; GH_REC.tm = setTimeout(ghRecFlip, 5000); }
+function ghRecArm(){ ghRecStop(); if(matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden) return; GH_REC.tm = setTimeout(ghRecFlip, 9000); }
 function ghRecFlip(){ GH_REC.tm = 0; const box = $('ghRec'); if(!box || document.hidden || box.offsetParent === null || $('gHub').classList.contains('hide')) return;
   if(box.classList.contains('offscr')){ ghRecArm(); return; }   // scrolled out of view: wait, no slide
   const figs = box.querySelectorAll('.ghfig'); if(figs.length < 2) return; const from = figs[GH_REC.side], to = figs[1 - GH_REC.side], dir = GH_REC.side ? -1 : 1;
   GH_REC.side = 1 - GH_REC.side; box.querySelectorAll('.ghdots i').forEach((d, i) => d.classList.toggle('on', i === GH_REC.side));
-  to.classList.remove('off');
-  from.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: `translate3d(${-dir * 70}%,0,0)`, opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.45,0,.2,1)' }).onfinish = () => from.classList.add('off');
-  to.animate([{ transform: `translate3d(${dir * 70}%,0,0)`, opacity: 0 }, { transform: `translate3d(${-dir * 3}%,0,0)`, opacity: 1, offset: .75 }, { transform: 'translate3d(0,0,0)', opacity: 1 }], { duration: 560, easing: 'cubic-bezier(.3,1.1,.5,1)' });
+  const OUT = 900, IN = 1000, GAP = OUT * .8;   // the new side starts when the old one is ~80 % gone
+  from.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: `translate3d(${-dir * 60}%,0,0)`, opacity: 0 }], { duration: OUT, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = () => { from.classList.add('off'); from.getAnimations().forEach(a => a.cancel()); };
+  to.style.opacity = '0'; to.classList.remove('off');
+  to.animate([{ transform: `translate3d(${dir * 60}%,0,0)`, opacity: 0 }, { transform: 'translate3d(0,0,0)', opacity: 1 }], { duration: IN, delay: GAP, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'both' }).onfinish = () => { to.style.opacity = ''; to.getAnimations().forEach(a => a.cancel()); };
   ghRecArm(); }
 document.addEventListener('visibilitychange', () => { if(document.hidden) ghRecStop(); else if($('ghRec') && !$('gHub').classList.contains('hide') && !$('pgGym').classList.contains('hide')) ghRecArm(); });
 

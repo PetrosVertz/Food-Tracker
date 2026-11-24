@@ -87,14 +87,14 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     must(s.text === 'RECOVERY+' && s.dots === 2, 'RECOVERY+: only the body + two dots, no numbers');
     must(s.label.some(x => /Long Workout/.test(x)) && s.label.includes('Rest'), 'advanced mode: workout names under the pills');
     must(await p.evaluate(() => { const m = document.querySelector('#ghWeek .wpd.today em'), c = document.querySelector('#ghWeek .wpd:not(.today) em.cut'); return (!m || !m.classList.contains('cut')) && (!!c || !!(m && m.classList.contains('marq'))); }), 'long names: today scrolls (marquee), the others are cut with a fade');
-    const side0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(5700);
+    const side0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(9700);
     s = await p.evaluate(() => ({ side: GH_REC.side, on: [...document.querySelectorAll('#ghRec .ghdots i')].findIndex(e => e.classList.contains('on')) }));
-    must(s.side !== side0 && s.on === s.side, 'RECOVERY+ switches sides after 5 s, dots follow');
+    must(s.side !== side0 && s.on === s.side, 'RECOVERY+ switches sides after 9 s, dots follow');
     await p.evaluate(() => { location.hash = '#gym-prog'; }); await p.waitForTimeout(400); must(await p.evaluate(() => !GH_REC.tm), 'the slide stops when the Gym home is not showing');
     await p.evaluate(() => { location.hash = '#gym'; }); await p.waitForTimeout(500);
     await tap(p, '#ghWeek'); await p.waitForTimeout(400); must(await p.evaluate(() => location.hash === '#gym-week'), 'Week Planner tile opens the planner');
     must(!p.errs.length, 'no page errors (Gym Buddy) ' + p.errs.slice(0, 2).join(' | ')); await p.close();
-    p = await open(browser, port, { hash: '#gym', reduce: true }); const r0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(5600);
+    p = await open(browser, port, { hash: '#gym', reduce: true }); const r0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(9600);
     must(await p.evaluate(s0 => GH_REC.side === s0 && !GH_REC.tm, r0), 'Reduce Motion: no automatic switch'); await p.close();
     p = await open(browser, port, { hash: '#gym', empty: true });
     must(await p.evaluate(() => /No workouts saved yet/.test($('ghLib').innerText) && document.querySelectorAll('#ghWeek .wpd.rest').length === 7), 'Gym, brand-new user: empty states'); await p.close();
