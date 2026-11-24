@@ -270,7 +270,7 @@ html{transition:background-color .3s}
 .lwsearch{display:flex;gap:var(--s2)}
 .lwsearch input{flex:1;min-width:0;padding:var(--s3) var(--s4);border-radius:14px;border:1.5px solid var(--t-accent);background:var(--t-bg);color:var(--t-text);font-family:inherit;font-size:16px;outline:none;box-shadow:none}
 .lwscan{flex:0 0 46px;border-radius:14px;border:0;background:var(--t-sel);color:var(--t-text);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.lwacts{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:var(--s2)}   /* Refinements (change 18): Fill My Macros takes the whole row (the Food Coach button left; its pill on Today stays) */
+.lwacts{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s2)}   /* Refinements (change 18): Fill My Macros takes the whole row (the Food Coach button left; its pill on Today stays) */
 .lwacts button{height:48px;border-radius:12px;border:0;background:var(--t-sel);color:var(--t-text);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-med);cursor:pointer;padding:0 var(--s1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lwadded{display:flex;gap:6px;flex-wrap:wrap} .lwadded:empty{display:none}
 .lchip{font-size:var(--fs-label);padding:var(--s1) 10px;border-radius:999px;background:var(--t-done-soft);border:1px solid color-mix(in srgb,var(--t-done) 45%,transparent);color:var(--t-done)}
@@ -1481,3 +1481,36 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 #dBlocks .gdline{gap:var(--s3)}
 #dBlocks .gdline .gdlab{font-size:17px;padding-left:var(--s2)}
 #dBlocks .gdline .gymstartbtn{height:34px;padding:0 16px;font-size:var(--fs-body)}
+
+/* ======================= 0.8 (24 Nov): Logged Foods line — Fill My Macros pill, always open, soft fade under the title ======================= */
+/* no arrow any more: the list is always open and the Fill My Macros pill sits where the arrow was */
+#dEatenFold>summary::after,#dEatenFold[open]>summary::after{display:none!important}
+#dEatenFold>summary{cursor:default}
+/* a little taller than before so the title, the pill and the round Same-as-Yesterday button breathe */
+#pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{min-height:56px;padding-top:var(--s2);padding-bottom:var(--s2);gap:var(--s2)}
+#dEatenN{margin-right:auto}
+.fmpill{margin-left:auto;flex:0 0 auto;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 var(--s4) 0 var(--s2);border-radius:999px;border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font-family:inherit;font-size:var(--fs-label);font-weight:var(--w-bold);letter-spacing:0;cursor:pointer;white-space:nowrap;transition:padding .32s cubic-bezier(.3,1.2,.5,1),background .2s}
+.fmpill:active{transform:scale(.97)}
+.fmpill .fmface{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center} .fmpill .fmface .robot{display:block;margin-top:2px}
+.fmpill .fmt{display:inline-block;max-width:170px;overflow:hidden;transition:max-width .32s cubic-bezier(.3,1.2,.5,1),opacity .18s}
+.fmpill .tdots{display:none;margin-left:0}
+/* thinking: the words slide away so the pill shrinks sideways; the chef looks around and three dots hop */
+.fmpill.busy{padding:0 var(--s4) 0 var(--s2);gap:4px;background:color-mix(in srgb,var(--t-accent) 14%,var(--t-card2))}
+.fmpill.busy .fmt{max-width:0;opacity:0}
+.fmpill.busy .tdots{display:inline-flex}
+/* the foods slide up BEHIND the title: a thin, soft blur band right under it that fades out downwards, plus a short fade on the list's top edge */
+#pgToday.pinned #dEatenFold>summary{position:relative;z-index:3}
+#pgToday.pinned #dEatenFold>summary::before{content:'';position:absolute;left:0;right:0;top:100%;height:16px;pointer-events:none;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);-webkit-mask-image:linear-gradient(#000,#0000);mask-image:linear-gradient(#000,#0000)}
+#pgToday.pinned #dScroll{top:calc(var(--sumh,56px) - 14px);padding-top:14px;-webkit-mask-image:linear-gradient(#0000 0,#000 26px);mask-image:linear-gradient(#0000 0,#000 26px)}
+@media (prefers-reduced-motion: reduce){ .fmpill,.fmpill .fmt{transition:none} }
+
+/* ======================= 0.8 (24 Nov): pop-ups drop in from the top ======================= */
+/* the toast (Added…, Undo) now drops down from above the top edge, stays a bit longer, then lifts back up; it no longer sits over the pills */
+.toast,html.pwa .toast{top:calc(env(safe-area-inset-top) + 10px)!important;bottom:auto!important;transform:translateX(-50%) translateY(-170%)!important;opacity:0;
+  transition:transform .5s cubic-bezier(.22,1.2,.36,1),opacity .25s!important}
+.toast.show,html.pwa .toast.show{transform:translateX(-50%) translateY(0)!important;opacity:1}
+.toast:not(.show){transition:transform .38s cubic-bezier(.5,0,.75,0),opacity .3s .1s!important}
+@media (prefers-reduced-motion: reduce){ .toast,html.pwa .toast,.toast:not(.show){transform:translateX(-50%)!important;transition:opacity .2s!important} }
+
+/* the Workout / Resume pill on the Gym Day / Rest Day line: smaller, hugging its word */
+#dBlocks .gdline .gymstartbtn{height:28px;padding:0 12px;font-size:13px;line-height:1;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0}

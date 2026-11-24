@@ -53,16 +53,28 @@ function openLogSearch(){ $('lSearch').value = ''; LW = { rows: {}, open: null, 
 // Food Coach's "what should I eat?" gives the same cards in the chat (logQSuggest); adding in either place adds it in both.
 function renderPlan(){
   const p = plans[curDay], el = $('planShow');
-  if(!p || !(p.meals || []).some(m => !m.logged)){ el.innerHTML = ''; return; }   // added suggestions move into Eaten
-  el.innerHTML = (p.meals || []).map((m, i) => m.logged ? '' : planCardHtml(m, i)).join('');
+  // one card per food (Banana, then Chicken…), each with its own Add; added or swiped-away foods leave the list
+  el.innerHTML = p ? (p.meals || []).map((m, i) => m.logged ? '' : (m.items || []).map((it, j) => it.logged || !(Number(it.grams) > 0) ? '' : planItemCardHtml(m, i, j, it)).join('')).join('') : '';
 }
 const planName = m => m.title || (m.items || []).map(it => it.name).join(', ');
 const planAmt = m => (m.items || []).map(it => `${it.name} ${r1(it.grams || 0)} g`).join(' · ');
 function planRowHtml(m){
   return `<div class="et"><span class="name"><span class="nmt">${esc(planName(m))}</span></span><small class="esub"><b class="p">P ${fmt(m.protein || 0)}</b> · <b class="c">C ${fmt(m.carbs || 0)}</b> · <b class="f">F ${fmt(m.fat || 0)}</b> · <span class="eamt">${esc(planAmt(m))}</span></small></div><span class="ekc">${Math.round(m.kcal || 0)}<small>kcal</small></span>`;
 }
-function planCardHtml(m, i){
-  return `<div class="card eatrow sugg" data-pi="${i}">${planRowHtml(m)}<button class="sgadd" type="button" data-plog="${i}">${t('add')}</button></div>`;
+// what one suggested food is (looked up without saving anything) and its numbers for the grams shown
+function planItemInfo(it, save){
+  const meal = meals.find(x => norm(x.name) === norm(it.name));
+  if(meal) return { name: meal.name, icon: mealIcon(meal), unit: 'g', per: meal, meal };
+  const ref = matchIng([it.name, it.name_en]); let f = null, g = null;
+  if(ref && ref.type === 'my') f = foods.find(x => x.id === ref.id);
+  else if(ref && ref.type === 'gen'){ g = GENBY[ref.id]; if(g && save) f = saveGeneric(g); }
+  if(f) return { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f };
+  return g ? { name: it.name, icon: '', unit: g.unit, per: g, gen: g } : null;
+}
+function planItemCardHtml(m, i, j, it){
+  const info = planItemInfo(it, false), x = info ? macrosFor(info.per, Number(it.grams)) : null;
+  const sub = x ? `<b class="p">P ${fmt(x.p)}</b> · <b class="c">C ${fmt(x.c)}</b> · <b class="f">F ${fmt(x.f)}</b> · ` : '';
+  return `<div class="card eatrow sugg" data-pi="${i}" data-pj="${j}"><div class="et"><span class="name"><span class="nmt">${esc(it.name)}</span></span><small class="esub">${sub}<span class="eamt">${r1(it.grams || 0)} g</span></small></div>${x ? `<span class="ekc">${x.kcal}<small>kcal</small></span>` : ''}<button class="sgadd" type="button" data-plog="${i}" data-pj="${j}">${t('add')}</button></div>`;
 }
 function planPrompt(){
   const tg = targetFor(curDay), di = dayInfo(curDay), tot = dayTotals(curDay), isToday = daysUntil(curDay) === 0;
@@ -91,39 +103,45 @@ function planKeep(r){
   if(tg) planFit(r, { k: tg.k - tot.kcal, p: tg.p - tot.p, c: tg.c - tot.c, f: tg.f - tot.f });   // 0.6.5: never over what's left
   plans[curDay] = r; Store.save('plans', plans); renderPlan(); return r;
 }
-// Add: every food of that suggestion goes into Eaten (with Undo); returns the undo, or null when nothing could be added
-function planLogMeal(day, m){
+// Add: the given foods of a suggestion go into Eaten (with Undo); returns the undo, or null when nothing could be added.
+// all = the whole suggestion (Food Coach's card): foods that can't be matched are still marked as handled, as before.
+function planLogItems(day, m, its, all){
   if(!m || m.logged) return null;
-  const added = [], took = []; let miss = 0;
-  (m.items || []).forEach(it => {
+  const added = [], marked = []; let miss = 0;
+  its.forEach(it => {
+    if(it.logged) return;
     const g = Number(it.grams); if(!(g > 0)) return;
-    const meal = meals.find(x => norm(x.name) === norm(it.name));
-    let info = null;
-    if(meal) info = { name: meal.name, icon: mealIcon(meal), unit: 'g', per: meal, meal };
-    else { const ref = matchIng([it.name, it.name_en]); let f = null;
-      if(ref && ref.type === 'my') f = foods.find(x => x.id === ref.id); else if(ref && ref.type === 'gen') f = saveGeneric(GENBY[ref.id]);
-      if(f) info = { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f }; }
-    if(!info){ miss++; return; }
-    logEntry(day, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM()); const l = dayLog[day]; added.push(l[l.length - 1]);
-    if(it.from === 'fridge' && kitchenOn()){ const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }; try{ takeFromFridge(key, g); took.push(1); }catch(e){} }
+    const info = planItemInfo(it, true);
+    if(!info){ miss++; if(all) marked.push(it); return; }
+    logEntry(day, info, g, m.time && toMin(m.time) !== null ? m.time : nowHM()); const l = dayLog[day]; added.push(l[l.length - 1]); marked.push(it);
+    if(it.from === 'fridge' && kitchenOn()){ const key = info.meal ? { mealId: info.meal.id } : { foodId: info.food.id }; try{ takeFromFridge(key, g); }catch(e){} }
   });
   if(!added.length){ toast(t('planUnmatched', { n: miss })); return null; }
-  m.logged = true; Store.save('plans', plans); renderAll();
+  marked.forEach(it => { it.logged = true; });
+  m.logged = (m.items || []).every(it => it.logged || !(Number(it.grams) > 0));
+  Store.save('plans', plans); renderAll();
   let undone = false;
   const undo = () => { if(undone) return; undone = true; const ids = new Set(added.map(e => e.id));
-    dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog(); m.logged = false; Store.save('plans', plans); renderAll(); planChatSync(); };
+    dayLog[day] = (dayLog[day] || []).filter(e => !ids.has(e.id)); saveLog(); marked.forEach(it => { it.logged = false; }); m.logged = false; Store.save('plans', plans); renderAll(); planChatSync(); };
   PUNDO.set(m, undo);
   return { undo, n: added.length, miss };
 }
+const planLogMeal = (day, m) => planLogItems(day, m, (m && m.items) || [], true);
 const PUNDO = new WeakMap(), PLANCH = [];   // a suggestion's Undo; the suggestion cards shown in Food Coach ({ m, card, ch })
 function planAddMeal(day, m){
   const r = planLogMeal(day, m); if(!r) return; Phone.haptic(); planChatSync();
-  toast(t('planLogged', { n: r.n }) + (r.miss ? ' · ' + t('planUnmatched', { n: r.miss }) : ''), t('undo'), r.undo);
+  toast(t(r.n === 1 ? 'planLoggedOne' : 'planLogged', { n: r.n }) + (r.miss ? ' · ' + t('planUnmatched', { n: r.miss }) : ''), t('undo'), r.undo);
 }
-const planAdd = i => { const p = plans[curDay]; if(p) planAddMeal(curDay, p.meals[i]); };
-// swipe a suggestion away (Undo in the toast)
-function planDrop(i){ const p = plans[curDay], m = p && p.meals[i]; if(!m) return; m.logged = 'dropped'; Store.save('plans', plans); renderPlan(); planChatSync();
-  toast(t('planDropped'), t('undo'), () => { m.logged = false; Store.save('plans', plans); renderPlan(); planChatSync(); }); }
+function planAddItem(i, j){
+  const p = plans[curDay], m = p && p.meals[i], it = m && (m.items || [])[j]; if(!it) return;
+  const r = planLogItems(curDay, m, [it]); if(!r) return; Phone.haptic(); planChatSync();
+  toast(t(r.n === 1 ? 'planLoggedOne' : 'planLogged', { n: r.n }) + (r.miss ? ' · ' + t('planUnmatched', { n: r.miss }) : ''), t('undo'), r.undo);
+}
+// swipe one suggested food away (Undo in the toast)
+function planDropItem(i, j){ const p = plans[curDay], m = p && p.meals[i], it = m && (m.items || [])[j]; if(!it) return; it.logged = 'dropped';
+  const done = () => (m.items || []).every(x => x.logged || !(Number(x.grams) > 0)); if(done()) m.logged = m.items.every(x => x.logged === 'dropped' || !(Number(x.grams) > 0)) ? 'dropped' : true;
+  Store.save('plans', plans); renderPlan(); planChatSync();
+  toast(t('planDropped'), t('undo'), () => { it.logged = false; m.logged = false; Store.save('plans', plans); renderPlan(); planChatSync(); }); }
 // the chat's suggestion cards follow what happened on Today (and the other way round)
 function planChatSync(){
   PLANCH.forEach(x => { const on = !!x.m.logged;
@@ -637,8 +655,6 @@ function lddToggle(row, dd){ const mn = row.querySelector('.ldm'); mn.classList.
   const lim = Math.min(innerHeight, b.bottom) - 8, ceil = Math.max(topClear(), b.top) + 8;
   if(r.bottom + 4 + h > lim && r.top - 4 - h >= ceil) mn.classList.add('up'); }
 function hideTip(){ const p = $('tipPop'); if(p) p.remove(); }
-// plan my day runs from the Log food sheet; progress shows on Today where the plan lands
-function planStat(txt){ const el = $('planShow'); el.innerHTML = `<div class="planstat"><span class="hint">${AI.dots(txt)} ${AI.badge()}</span><button class="linkbtn" id="planCancel">${t('cancel')}</button></div>`; }
 
 // 0.6.3.1: dishes (souvlaki, moussaka…) from Quick Add are saved as Home-cooked meals, not store-bought foods
 function dishMeal(d){

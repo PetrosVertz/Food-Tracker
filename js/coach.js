@@ -228,6 +228,9 @@ Return ONLY JSON: {"reply": string}`, img);
     AI.drag(b, null, 'coachBub_' + id, { start: () => ghostStart(id), move: ghostMove, end: (p, s) => ghostEnd(b, p, s) }); AI.areaSync();
     return b;
   }
+  // Fill My Macros thinking while this coach is already out as a bubble: the bubble glows and its robot does the thinking face (no second bubble)
+  function think(id, on){ const b = $('cb-' + id); if(!b) return;
+    b.innerHTML = (on ? '<span class="rglow"></span>' : '') + `<span class="rcore">${AI.robot(kindOf(id), 40, !!on)}</span>`; }
   function dismiss(id){
     const c = CH[id]; if(c && c.ctl) c.ctl.abort(); delete CH[id];
     const p = cfg(id).persist; if(p) try{ p.save(id, null); }catch(e){}
@@ -342,5 +345,5 @@ Return ONLY JSON: {"reply": string}`, img);
     if(text) c.msgs.push({ who: 'bot', text: String(text) });
     if(cards && cards.length) c.msgs.push({ who: 'bot', cards: cards.map(x => ({ ...x, cid: uid() })) });
     if(cur === id) draw(); keepMsgs(id); }
-  return { setup(id, o){ CFG[id] = { ...(CFG[id] || {}), ...(o || {}) }; }, open: open_, minimize, dismiss, has, closed, init, pillSync, post, isOpen: () => !!cur };
+  return { setup(id, o){ CFG[id] = { ...(CFG[id] || {}), ...(o || {}) }; }, open: open_, minimize, think, dismiss, has, closed, init, pillSync, post, isOpen: () => !!cur };
 })();
