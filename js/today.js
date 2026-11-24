@@ -451,7 +451,8 @@ function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.index
 // 0.8 (24 Nov): the top of My Food Log (gym-day line + hero card) stays put and only the Eaten list scrolls. When the top takes too much of
 // the screen (small phone, Advanced open, larger text) the whole page scrolls as before. One layout read per change (ResizeObserver), never while moving.
 function todayFit(){ const pg = $('pgToday'), w = $('dEatenWrap'); if(!pg || !w || pg.classList.contains('hide')) return;
-  const room = pg.clientHeight - w.offsetTop; pg.classList.toggle('pinned', room >= 240); }
+  const room = pg.clientHeight - w.offsetTop; pg.classList.toggle('pinned', room >= 240);
+  const sm = document.querySelector('#dEatenFold>summary'); if(sm && pg.classList.contains('pinned')) pg.style.setProperty('--sumh', (Math.ceil(sm.scrollHeight) + 10) + 'px'); }
 function renderToday(){
   const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   const diff = daysUntil(d);
