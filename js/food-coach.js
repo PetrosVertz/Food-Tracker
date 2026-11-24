@@ -21,7 +21,7 @@ const FoodCoach = (() => {
     ena: 1, mia: 1, dyo: 2, dio: 2, duo: 2, tria: 3, tessera: 4, miso: .5 };   // Greeklish
   // unit words → [unit, factor]; glass / can / bottle become ml
   const UNITS = [
-    [/^(g|gr|grs|gram|grams|gramm\p{L}*|γρ|γραμ\p{L}*|γραμμ\p{L}*)$/u, 'g', 1], [/^(kg|kgs|kilo\p{L}*|κιλ\p{L}*)$/u, 'g', 1000], [/^(oz|ounces?)$/, 'g', 28.35],
+    [/^(g|gr|grs|gram|grams|gramm\p{L}*|γ|γρ|γραμ\p{L}*|γραμμ\p{L}*)$/u, 'g', 1], [/^(kg|kgs|kilo\p{L}*|κιλ\p{L}*)$/u, 'g', 1000], [/^(oz|ounces?)$/, 'g', 28.35],
     [/^(ml|mls|millilit\p{L}*|μλ)$/u, 'ml', 1], [/^(l|lt|ltr|lit\p{L}*|λιτρ\p{L}*)$/u, 'ml', 1000],
     [/^(slices?|φετα|φετεσ|φετουλ\p{L}*)$/u, 'slice', 1], [/^(cups?|φλιτζαν\p{L}*|κουπα|κουπεσ)$/u, 'cup', 1],
     [/^(tbsps?|tablespoons?|κ\.σ\.?|κουταλιεσ?|κουταλια)$/, 'tbsp', 1], [/^(tsps?|teaspoons?|κ\.γ\.?|κουταλακι\p{L}*)$/u, 'tsp', 1],
@@ -41,6 +41,25 @@ const FoodCoach = (() => {
   const TAIL_A = /^(after|before|post|pre|at|for|this|μετα|πριν|για|στο|στη|στην|το)$/, TAIL_N = /^(gym|workout|training|lunch|dinner|breakfast|morning|evening|night|γυμναστηριο|προπονηση|μεσημερι|μεσημεριανο|βραδυ|βραδινο|πρωι|πρωινο)$/;
   const NUTR = { protein: /^(protein|proteins|πρωτεϊν\p{L}*|πρωτειν\p{L}*)$/u, carbs: /^(carbs?|carbohydrates?|υδατανθρακ\p{L}*)$/u, fat: /^(fats?|λιπαρ\p{L}*|λιπο\p{L}*)$/u, kcal: /^(kcal|cal|calories|θερμιδ\p{L}*)$/u };
   const COOKED = /^(cooked|boiled|grilled|fried|baked|roasted|steamed|scrambled|poached|μαγειρεμεν\p{L}*|βραστ\p{L}*|ψητ\p{L}*|τηγανητ\p{L}*|φουρνου|σχαρασ)$/u, RAW = /^(raw|uncooked|dry|ωμ\p{L}*|αμαγειρευτ\p{L}*)$/u;
+  // 0.8 (24 Nov): words that are never a food (Greek + English, accents removed, ς → σ). ONE list: add new ones here.
+  // They are dropped from food names wherever they appear; amounts and separators ("and", "with", "και", "με") are read before this.
+  const FILLER = new Set(('yesterday today tonight earlier ordered order takeaway takeout delivery delivered ate eaten eat had have drank drink some little bit ' +
+    'plate plates bowl of with and also just then my a an the ' +
+    'χθεσ χτεσ προχθεσ σημερα αποψε παρηγγειλα παραγγειλα παραγγελια ντελιβερι delivery εφαγα φαγαμε εφαγε ηπια ηπιαμε λιγο λιγη λιγεσ λιγα λιγακι ' +
+    'ενα μια ενασ πιατο πιατα μπολ με και επισησ μετα μου').split(' '));
+  const isFiller = w => FILLER.has(N(w));
+  // common Greek food words → the English name the matcher knows (also used for name_en)
+  const ALIAS = [[/^μακαρον\p{L}*|^ζυμαρικ\p{L}*|^πασ?τα$|^σπαγγετ\p{L}*/u, 'pasta'], [/^κιμα\p{L}*\s+(μοσχαρ\p{L}*|βοδιν\p{L}*)|^(μοσχαρ\p{L}*|βοδιν\p{L}*)\s+κιμα\p{L}*/u, 'beef mince'], [/^κιμα\p{L}*$/u, 'beef mince'],
+    [/^ρυζ\p{L}*/u, 'rice'], [/^κοτοπουλ\p{L}*\s+στηθ\p{L}*|^στηθ\p{L}*\s+κοτοπουλ\p{L}*/u, 'chicken breast'], [/^κοτοπουλ\p{L}*/u, 'chicken'], [/^πατατ\p{L}*\s+τηγανητ\p{L}*|^τηγανητ\p{L}*\s+πατατ\p{L}*/u, 'fries'],
+    [/^πατατ\p{L}*$/u, 'potatoes'], [/^γιαουρτ\p{L}*/u, 'yoghurt'], [/^αυγ\p{L}*/u, 'eggs'], [/^ψωμ\p{L}*/u, 'bread'], [/^γαλα\p{L}*$/u, 'milk'], [/^τυρ\p{L}*$/u, 'cheese'],
+    [/^σολομ\p{L}*/u, 'salmon'], [/^τονο\p{L}*/u, 'tuna'], [/^μπανανα\p{L}*/u, 'banana'], [/^μηλ\p{L}*$/u, 'apple'], [/^βρωμ\p{L}*/u, 'oats'], [/^σαλατ\p{L}*$/u, 'salad']];
+  const alias = nm => { const n = N(nm); for(const [re, en] of ALIAS) if(re.test(n) && n.replace(re, '').trim().split(' ').filter(Boolean).length === 0) return en; return null; };
+  // what a message says about when and where: "yesterday / χθες" logs to yesterday; "takeaway / delivery / παρήγγειλα" = a restaurant portion
+  function when(txt){ const s = N(txt);
+    return { day: /(?<![\p{L}\p{N}])(yesterday|χθεσ|χτεσ)(?![\p{L}\p{N}])/u.test(s) ? -1 : 0,
+      takeaway: /(?<![\p{L}\p{N}])(takeaway|take-away|takeout|delivery|delivered|ordered|restaurant|παρηγγειλα|παραγγειλα|παραγγελια|ντελιβερι|εστιατοριο|ταβερνα|σουβλατζιδικο)(?![\p{L}\p{N}])/u.test(s) }; }
+  // is there an amount anywhere ("200g", "2 eggs", "a slice of", "ένα πιάτο")?
+  const hasAmount = txt => /\d/.test(txt) || N(txt).split(/[^\p{L}\p{N}.]+/u).some(w => unitOf(w.replace(/\.$/, '')) || (NUMW[w] != null && NUMW[w] !== 1));
   const numOf = w => { if(/^\d+([.,]\d+)?$/.test(w)) return parseFloat(w.replace(',', '.')); if(/^\d+\/\d+$/.test(w)){ const [a, b] = w.split('/'); return +a / +b; } return NUMW[w] ?? null; };
   const unitOf = w => { for(const [re, u, f] of UNITS) if(re.test(w)) return [u, f]; return null; };
   const nutrOf = w => Object.keys(NUTR).find(k => NUTR[k].test(w)) || null;
@@ -50,7 +69,7 @@ const FoodCoach = (() => {
   // "in <sauce>" unless what follows is a stated nutrient ("with 20g protein" belongs to the bar, it is not its weight).
   function parse(txt){
     const src = String(txt || '').slice(0, 600), out = [];
-    const sentences = src.split(/(?<=[.!?;])\s+|\n+/).map(s => s.trim()).filter(s => s && !/\?\s*$/.test(s));
+    const sentences = src.replace(/(\d\s*)(γρ|gr|grs|kg|κιλ|lt|ml|τεμ|κ\.σ|κ\.γ)\.(?=\s)/giu, '$1$2').split(/(?<=[.!?;])\s+|\n+/).map(s => s.trim()).filter(s => s && !/\?\s*$/.test(s));
     for(const sen of sentences){
       const toks = sen.replace(PAIRS, '$1\u0001$2\u0001$3').replace(/([,;+&])(?!\S*\u0001)/g, ' $1 ').replace(/(\d)([a-zα-ωά-ώ]+)/giu, '$1 $2').replace(/(?<![\p{L}\p{N}])(\d+)x(?![\p{L}\p{N}])/giu, 'x$1').split(/\s+/).filter(Boolean);
       let seg = [];
@@ -99,6 +118,7 @@ const FoodCoach = (() => {
       const u = unitOf(w); if(u && qty == null && !name.length && !KEEP_IN_NAME.test(w) && w !== 'φετα'){ qty = 1; unit = u[0]; factor = u[1]; if(N(words[i + 1] || '') === 'of') i++; continue; }   // (φέτα alone is feta cheese) "a slice of bread", "glass of milk"
       if(COOKED.test(w)) state = 'cooked'; else if(RAW.test(w)) state = 'raw';
       if(!name.length && (LEAD.test(w) || ART.test(w))) continue;
+      if(isFiller(w)) continue;   // 0.8: never part of a food name
       name.push(raw.replace(/[,.!:;]+$/, ''));
     }
     // "… after the gym", "… for lunch", "μετά το γυμναστήριο": cut from the time word on (word by word: \b does not work on Greek)
@@ -110,7 +130,7 @@ const FoodCoach = (() => {
     if(!nm && !stated) return null;
     if(qty != null) qty *= mult; else if(mult > 1){ qty = mult; unit = 'piece'; }
     const g = qty != null && (unit === 'g' || unit === 'ml') ? Math.round(qty * factor * 10) / 10 : null;
-    return { text: text.slice(0, 80), name: nm.slice(0, 60), name_en: nm.slice(0, 60), brand: '', qty: g != null ? g : qty, unit: g != null ? unit : unit, grams: g, ml: unit === 'ml',
+    return { text: text.slice(0, 80), name: nm.slice(0, 60), name_en: (alias(nm) || nm).slice(0, 60), brand: '', qty: g != null ? g : qty, unit: g != null ? unit : unit, grams: g, ml: unit === 'ml',
       kcal: null, protein: null, carbs: null, fat: null, total: null, stated, state };
   }
 
@@ -225,5 +245,5 @@ const FoodCoach = (() => {
     const row = a => ({ n: a.ms.length, p50: pct(a.ms, 50), p95: pct(a.ms, 95), callsPerAnswer: a.ms.length ? Math.round(a.calls / a.ms.length * 100) / 100 : 0 });
     return { all: row({ ms: l.map(x => x[1]), calls: l.reduce((a, x) => a + x[2], 0) }), ...Object.fromEntries(Object.entries(by).map(([k, v]) => [k, row(v)])) }; }
 
-  return { parse, correction, quick, wantsIdeas, check, usable, context, chatLoad, chatSave, chatClear, track, stats, pct };
+  return { parse, correction, quick, wantsIdeas, when, hasAmount, isFiller, alias, FILLER, check, usable, context, chatLoad, chatSave, chatClear, track, stats, pct };
 })();
