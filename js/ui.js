@@ -187,7 +187,15 @@ function applyLang(){
   setSeg('#sLang', lang);
 }
 
-function toast(msg, actLabel, act){
+// The small icon on the left says where the message comes from: the page you are on (Food Log, Meals, Supplements, Inventory, Groceries,
+// Gym, Progress, Settings, Profile). A caller can also name it: toast(msg, label, undo, 'capsule').
+function toastKind(){
+  const h = location.hash.replace('#', '');
+  return h === 'meals' ? 'pot' : h === 'supps' ? 'capsule' : h === 'fridge' ? 'fridge' : h === 'groc' ? 'cart' : h === 'gym-prog' ? 'trend' : h.startsWith('gym') ? 'gym'
+    : h === 'settings' ? 'settings' : h === 'profile' ? 'user' : 'bowl';
+}
+function toast(msg, actLabel, act, kind){
+  $('toastIc').innerHTML = svgIcon(ICON[kind] ? kind : toastKind(), 18, 2);
   $('toastMsg').textContent = msg; const b = $('toastAct');
   if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { $('toast').classList.remove('show'); act(); }; }
   else { b.classList.add('hide'); b.onclick = null; }
