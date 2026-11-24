@@ -106,10 +106,19 @@ $('amFinish').addEventListener('click', () => {
   close('ovAmt'); renderAll(); toast(t('finishedToast', { n: AM.info.name }) + (added ? ' ' + t('toList') : ''));
 });
 
+// 0.8 (24 Nov): the Shopping List add box uses the Log Food search engine (Search.local) and puts first what you actually buy:
+// 1. foods you bought before (in My Fridge now or ticked on this list before), with your usual pack and count; 2. other foods you logged,
+// most logged first; 3. your other saved foods; 4. the built-in list. Picking one links it, so ticking it later puts the right pack in My Fridge.
+function grocBought(){ const s = new Set(); fridge.forEach(it => { if(it.foodId) s.add(it.foodId); }); groc.forEach(g => { if(g.done && g.foodId) s.add(g.foodId); }); foods.forEach(f => { if(f.usualPack) s.add(f.id); }); return s; }
+function grocLogged(){ const n = {}; Object.keys(dayLog).forEach(d => (dayLog[d] || []).forEach(e => { if(e.refId && e.kind !== 'meal') n[e.refId] = (n[e.refId] || 0) + 1; })); return n; }
+function grocRank(mine){ const b = grocBought(), lg = grocLogged(), tier = f => b.has(f.id) ? 0 : lg[f.id] ? 1 : 2;
+  return mine.map((f, i) => ({ f, i, k: tier(f) })).sort((x, y) => x.k - y.k || (x.k === 1 ? (lg[y.f.id] || 0) - (lg[x.f.id] || 0) : 0) || x.i - y.i).map(x => ({ f: x.f, k: x.k })); }
 $('gIn').addEventListener('input', () => {
   const q = $('gIn').value.trim(); if(!q){ $('gSugg').innerHTML = ''; return; }
-  GS = searchLocal(q); GS.mine = GS.mine.slice(0, 4); GS.std = GS.std.slice(0, 3);
-  $('gSugg').innerHTML = GS.mine.map((f, i) => itemHtml('m', i, catIcon(f.cat), foodName(f), f.brand && !f.noBrand ? esc(f.brand) : t('grpMine'))).join('') +
+  GS = searchLocal(q, false, { mineMax: 40 }); const R = grocRank(GS.mine).slice(0, 5); GS.mine = R.map(r => r.f); GS.std = GS.std.slice(0, 3);
+  const usual = f => [f.usualPack ? fmtSize(f.usualPack, f.unit || 'g') : '', (f.usualCount || 1) > 1 ? '×' + f.usualCount : ''].filter(Boolean).join(' ');
+  $('gSugg').innerHTML = R.map((r, i) => { const f = r.f, u = r.k === 0 ? usual(f) : '';
+      return itemHtml('m', i, catIcon(f.cat), foodName(f), [r.k === 0 ? t('grpBought') : r.k === 1 ? t('grpLogged') : (f.brand && !f.noBrand ? esc(f.brand) : t('grpMine')), u ? esc(u) : ''].filter(Boolean).join(' · ')); }).join('') +
     GS.std.map((g, i) => itemHtml('s', i, catIcon(g.cat), L(g), t('grpStd'))).join('') +
     `<button class="sitem" data-k="t"><span class="t"><b>${t('addAsText', { q: esc(q) })}</b></span></button>`;
 });
@@ -290,3 +299,7 @@ $('tgBox').addEventListener('input', e => { const id = e.target.id || '', m = id
 // Fridge: no Fridge/Freezer tabs; "Frozen" is a switch when adding, frozen things show ❄️
 ui.floc = 'all';
 $('faFrozen').addEventListener('change', () => { const b = $('faLoc').querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); });
+
+// 0.8: My Food Log keeps its top pinned while there is room (today.js todayFit); re-checked when the top or the screen changes size
+if(typeof ResizeObserver === 'function'){ const ro = new ResizeObserver(() => { cancelAnimationFrame(todayFit.f); todayFit.f = requestAnimationFrame(todayFit); });
+  ['dBlocks', 'pgToday'].forEach(id => $(id) && ro.observe($(id))); const mc = document.querySelector('#pgToday .macrocard'); if(mc) ro.observe(mc); }

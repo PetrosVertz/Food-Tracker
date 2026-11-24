@@ -113,16 +113,20 @@ $('sesBody').addEventListener('click', e => { const ok = e.target.closest('[data
 // keep the screen on (it's released automatically when you switch apps)
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('ovSession').classList.contains('open')) keepAwake(true); });
 
-// rest bar glides (updated every frame, not once a second)
-(function restLoop(){
+// rest bar glides (updated every frame, not once a second). 0.8: the loop runs only while a rest is on screen and the app is visible
+// (restKick() starts it: the 500 ms tick and coming back to the app); the glow shrinks with transform (scaleX from the right), not left.
+function restLoop(){
   const fz = REST && $('rbFuse');
-  if(fz){ const left = Math.max(0, REST.end - Date.now()), prog = Math.min(1, 1 - left / (REST.total * 1000)), secs = Math.ceil(left / 1000);
+  if(!fz || document.hidden){ restLoop.on = false; return; }
+  { const left = Math.max(0, REST.end - Date.now()), prog = Math.min(1, 1 - left / (REST.total * 1000)), secs = Math.ceil(left / 1000);
     const L = restFit(fz);
     if(L){ const ps = fz.querySelectorAll('path'); ps.forEach(p => p.setAttribute('stroke-dashoffset', String(-L * prog)));   // the lines burn from the left and meet on the right
-      const g = $('rbGlow'); if(g){ g.style.left = (ps[0].getPointAtLength(Math.min(L, L * prog)).x / fz.clientWidth * 100).toFixed(2) + '%'; g.style.opacity = .6 + .4 * prog; } }
-    const tx = $('restTxt2'); if(tx){ tx.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'); tx.classList.toggle('last', secs <= 10 && left > 0); }
+      const g = $('rbGlow'); if(g){ const f = Math.min(1, Math.max(0, ps[0].getPointAtLength(Math.min(L, L * prog)).x / fz.clientWidth)); g.style.transformOrigin = '100% 50%'; g.style.transform = `scaleX(${(1 - f).toFixed(4)})`; g.style.opacity = .6 + .4 * prog; } }
+    const tx = $('restTxt2'); if(tx){ const v = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'); if(tx.textContent !== v) tx.textContent = v; tx.classList.toggle('last', secs <= 10 && left > 0); }
     if(!left) tickRest(); }
-  requestAnimationFrame(restLoop); })();
+  requestAnimationFrame(restLoop); }
+function restKick(){ if(restLoop.on || !REST || document.hidden || !$('rbFuse')) return; restLoop.on = true; requestAnimationFrame(restLoop); }
+document.addEventListener('visibilitychange', restKick); restKick();
 
 // 0.7.7: the Gym Coach robot lives in the live workout header (top right). Tap it → the chat. 0.7.8: closing the chat makes no floating bubble (coach.js HEAD).
 // When the workout ends its chat ends with it (the next workout starts a fresh chat).

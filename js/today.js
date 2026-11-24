@@ -448,6 +448,10 @@ Return ONLY JSON: {"name":string (short name in ${lang === 'el' ? 'Greek' : 'Eng
 function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.indexOf(QA); if(i > -1){ l.splice(i, 1); saveLog(); } close('ovQuick'); renderAll(); }
 
 // ---------- Today: just gym or rest; a small reminder instead of time + type fields ----------
+// 0.8 (24 Nov): the top of My Food Log (gym-day line + hero card) stays put and only the Eaten list scrolls. When the top takes too much of
+// the screen (small phone, Advanced open, larger text) the whole page scrolls as before. One layout read per change (ResizeObserver), never while moving.
+function todayFit(){ const pg = $('pgToday'), w = $('dEatenWrap'); if(!pg || !w || pg.classList.contains('hide')) return;
+  const room = pg.clientHeight - w.offsetTop; pg.classList.toggle('pinned', room >= 240); }
 function renderToday(){
   const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   const diff = daysUntil(d);
@@ -751,6 +755,7 @@ function logQState(info, it){
       if(j < 0) j = units.findIndex(x => x.k === 'pc' || x.k === 'plate' || x.k === 'pack'); }
     if(j > -1) return mk(j, qty);
     g = +it.grams || 0;
+    if(!g && /serv|portion|plate|μεριδ|πιατ/.test(un)) g = qty * (it.rest ? 330 : 250);   // 0.8: a plate / serving with no size on file; a takeaway portion is bigger
   } else { const last = info.meal || info.food ? lastEntryOf((info.meal || info.food).id) : null; g = last ? last.amt : +it.grams || 0; }
   if(!(g > 0)) g = 100;
   return mk(gi, r1(g / units[gi].size));
@@ -966,14 +971,20 @@ async function logQAnswer(txt, ch, how){
   let note = reply || t('logQGot');
   if(!parts){
     how.path = 'offline'; parts = FoodCoach.parse(txt);
-    if(!parts.length){ ch.say(err ? AI.friendly(err) : reply || t('logQFail')); return; }
+    // 0.8: only confident matches. A row counts when it closely matches a real food (or a Greek alias), or when you wrote an amount for it;
+    // the rest ("how are you", "a plate of … with some …" leftovers) is ignored. No food words and no amounts = just talking: no card.
+    parts = parts.filter(p => p.qty != null || p.stated || logQMem(p) || logQLocal(p));
+    if(!parts.length){ if(!FoodCoach.hasAmount(txt)){ how.path = 'local'; ch.say(logQTalk()); return; } ch.say(err ? AI.friendly(err) : reply || t('logQFail')); return; }
     note = err || !ai ? (AI.hasKey() ? t('logQOffline') : t('logQLocalOnly')) : reply || t('logQGot');
   }
   logQShow(txt, ch, parts, note, parts && !how.path.startsWith('off') ? fix : null);
 }
 // one list on screen: rows found on the phone at once, the background label check for branded estimates
 function logQShow(txt, ch, parts, note, fixOf){
-  const m = { id: uid(), items: logQRebuild(parts), mk: 'm:' + norm(txt), state: 'ready', fixOf: fixOf || null, at: todayKey() };
+  // 0.8: "yesterday / χθες" logs to yesterday; "takeaway / delivery / παρήγγειλα" makes a food without an amount one restaurant portion
+  const wh = FoodCoach.when(txt); if(wh.takeaway) parts = parts.map(p => p.ref || p.tmp ? p : p.qty == null ? { ...p, qty: 1, unit: 'serving', rest: true } : { ...p, rest: true });
+  const m = { id: uid(), items: logQRebuild(parts), mk: 'm:' + norm(txt), state: 'ready', fixOf: fixOf || null, at: todayKey(), day: wh.day ? addDays(todayKey(), wh.day) : null };
+  if(m.day) note += ' ' + t('logQYest');
   logQResolve(m);
   ch.say(note + (m.fixOf && m.fixOf.state === 'logged' ? ' ' + t('logQFixNote') : ''));
   logQPrev = m; logQCard(m, ch);
@@ -1012,6 +1023,8 @@ function logQApplyCmd(prev, cmd, ch){
   else { ch.say(t('logQFixed')); logQRedraw(m); }
   return true;
 }
+// 0.8: a message that is just talking (no food words, no amounts) and no AI to chat: a short answer in the coach's personality, no card
+function logQTalk(){ const b = (typeof Persona === 'object' && Persona.prefs && Persona.prefs().base) || 'balanced'; return t('logQTalk_' + (['balanced', 'motivator', 'analytical'].includes(b) ? b : 'balanced')); }
 // thanks / hello / totals, in plain words
 function logQQuick(q, prev){
   if(q.kind === 'thanks') return t('logQThanks');
@@ -1125,7 +1138,7 @@ function logQLogAll(m, keep){   // keep: the meal name for Add & Save
   if(m.items.some(it => it.busy)){ toast(t('logQFind')); return; }
   if(!logQCanAdd(m)){ toast(t(m.items.length ? 'logQPickRows' : 'logQNothing')); return; }   // never a silent skip
   const fx = m.fixOf; if(fx && fx.state === 'logged' && fx.undo) fx.undo();   // a correction replaces the list it corrects
-  const day = curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], rows = [];
+  const day = m.day || curDay, tm = daysUntil(day) === 0 ? nowHM() : '13:00', added = [], rows = [];   // 0.8: "yesterday" in the message = yesterday
   m.items.forEach(it => { const st = it.st, r = lwCalc(st); if(!(r.g > 0)) return;
     let info = st.info;
     if(info.gen) info = fInfo_(saveGeneric(info.gen));

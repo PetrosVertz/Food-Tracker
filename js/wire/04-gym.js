@@ -153,7 +153,7 @@ const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); 
 
 $('restBar').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if(b) restAdjust(b.dataset.rs); });
 
-setInterval(() => { tickRest(); tickClock(); }, 500);
+setInterval(() => { tickRest(); tickClock(); if(typeof restKick === 'function') restKick(); }, 500);
 
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 

@@ -86,19 +86,24 @@ async function run(browser, port){
     await p.fill('#exSearch', 'zzqqxx'); await wait(p, 150); must(await p.$eval('#pkGrid', e => /No Matching Exercises/.test(e.innerText)) && await p.$eval('#pkCustom', e => e.offsetHeight > 0), 'empty search: message + Create Custom Exercise still there');
     await p.keyboard.press('Escape'); await wait(p, 200); t = await S(p);
     must(!t.q && t.muscle === 'chest' && t.step === 'head', 'Escape clears the search and the chest filter is back');
-    // 7. typing: the filters step aside, the search bar goes on top, the cards fill the screen (Petros)
-    await p.fill('#exSearch', 'bench press'); await wait(p, 150);
+    // 7. typing (0.8): the search bar stays docked at the bottom (above the keyboard); the results panel slides up and fills the screen above it
+    { const a0 = await p.$eval('#exSearch', e => [e.type, e.autocomplete, e.getAttribute('autocorrect'), e.getAttribute('autocapitalize'), e.spellcheck, e.enterKeyHint, e.name].join());
+      must(a0 === 'search,off,off,off,false,done,exq', 'search box: no AutoFill Contact hints ' + a0); }
+    await p.fill('#exSearch', 'bench press'); await wait(p, 450);
     { const g = await p.evaluate(() => ({ on: $('ovExPick').classList.contains('pksearching'), fil: $('pkFil').offsetHeight, reg: document.querySelector('.pkreg').offsetHeight,
-        box: document.querySelector('.pksbox').getBoundingClientRect().top, grid: $('pkGrid').getBoundingClientRect().top }));
-      must(g.on && !g.fil && !g.reg && g.box < 140 && g.grid > g.box && g.grid < 260, 'typing: filters hidden, search bar on top, cards right under it ' + JSON.stringify(g)); }
+        box: document.querySelector('.pksbox').getBoundingClientRect().top, grid: $('pkGrid').getBoundingClientRect().top, vh: innerHeight, body: $('pkBody').getBoundingClientRect().top }));
+      must(g.on && !g.fil && !g.reg && g.box > g.vh - 120 && g.grid < g.box && g.body < 60, 'typing: filters hidden, search bar stays at the bottom, results fill the screen above it ' + JSON.stringify(g)); }
     // one tap adds and closes the picker
     await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 300); t = await S(p);
     must(t.n === 1 && await p.evaluate(() => !$('ovExPick').classList.contains('open')), 'one tap: added and the picker closes');
     const reopen = async () => { await wait(p, 700); await p.evaluate(() => openExPick(addToSession, { multi: true })); await wait(p, 450); };   // after the workout has shown the new card
-    await reopen(); must(!(await p.evaluate(() => $('ovExPick').classList.contains('pksearching'))), 'reopened: search bar back at the bottom, filters shown');
+    await reopen(); must(!(await p.evaluate(() => $('ovExPick').classList.contains('pksearching'))), 'reopened: no results panel, filters shown');
+    // Enter (Done on the keyboard) with nothing chosen: the results slide back down, the picker stays
+    await p.fill('#exSearch', 'curl'); await wait(p, 400); await p.press('#exSearch', 'Enter'); await wait(p, 400);
+    must(await p.evaluate(() => !$('ovExPick').classList.contains('pksearching') && !$('exSearch').value && $('ovExPick').classList.contains('open') && document.activeElement !== $('exSearch')), 'Enter: results slide down, keyboard hidden, picker open');
     await p.fill('#exSearch', 'bench press'); await wait(p, 150); await p.click('#pkGrid .pkcard[data-ex="bench"]'); await wait(p, 150); t = await S(p);
     must(t.n === 1 && /Already/.test(t.toast) && await p.evaluate(() => $('ovExPick').classList.contains('open')), 'tapping an exercise already in the workout adds nothing, picker stays');
-    await p.fill('#exSearch', ''); await wait(p, 150);
+    await p.fill('#exSearch', ''); await wait(p, 450);   // the results panel slides down (240 ms)
     // a long press starts Select mode; taps select and unselect; Add (N) adds them in order and closes
     const ids = await p.evaluate(() => [...document.querySelectorAll('#pkGrid .pkcard:not(.added)')].slice(0, 4).map(c => c.dataset.ex));
     const press = async (id, ms) => { const b = await p.$eval(`#pkGrid .pkcard[data-ex="${id}"]`, e => { e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
@@ -112,8 +117,16 @@ async function run(browser, port){
     await p.click('#pkSelAdd'); await wait(p, 300);
     sel = await p.evaluate(() => ({ ex: active.exercises.map(x => x.exId), open: $('ovExPick').classList.contains('open'), on: PK.selOn }));
     must(sel.ex.join() === ['bench', ids[0], ids[2], ids[3]].join() && !sel.open && !sel.on, 'Add (3): all three added in order, picker closed');
+    // while searching: long press = Select mode, the Done button sits top right; Enter adds the chosen ones and closes
+    await reopen(); await p.fill('#exSearch', 'curl'); await wait(p, 450);
+    { const cid = await p.evaluate(() => [...document.querySelectorAll('#pkGrid .pkcard:not(.added)')].slice(0, 2).map(c => c.dataset.ex)); await press(cid[0], 650); await press(cid[1], 40);
+      const d = await p.evaluate(() => { const b = $('pkDone'), r = b.getBoundingClientRect(); return { shown: !b.classList.contains('hide') && r.height > 0, right: r.right > innerWidth - 80, top: r.top < 120, txt: b.textContent, bar: getComputedStyle($('pkSelBar')).display }; });
+      must(d.shown && d.right && d.top && d.txt === 'Done (2)' && d.bar === 'none', 'searching + Select mode: Done (2) top right, no bottom bar ' + JSON.stringify(d));
+      await p.press('#exSearch', 'Enter'); await wait(p, 400);
+      const r = await p.evaluate(() => ({ n: active.exercises.length, open: $('ovExPick').classList.contains('open') }));
+      must(r.n === 6 && !r.open, 'Enter in Select mode: both added, picker closed ' + JSON.stringify(r)); }
     await reopen(); await press(ids[1], 650); await p.click('#pkSelX'); await wait(p, 150);
-    must(await p.evaluate(() => !PK.selOn && !document.querySelector('#pkGrid .pkcard.sel') && $('ovExPick').classList.contains('open') && active.exercises.length === 4), 'Cancel leaves Select mode, adds nothing');
+    must(await p.evaluate(() => !PK.selOn && !document.querySelector('#pkGrid .pkcard.sel') && $('ovExPick').classList.contains('open') && active.exercises.length === 6), 'Cancel leaves Select mode, adds nothing');
     t = await S(p);
     const n0 = t.n; await p.click('#pkGrid .pkcard[data-ex="cable_crossover"] .pkinfo', { timeout: 1500 }).catch(async () => p.click('#pkGrid .pkinfo')); await wait(p, 300);
     must(await p.evaluate(() => $('ovExInfo').classList.contains('open') && $('ovExPick').classList.contains('open')) && (await S(p)).n === n0, 'info opens details, adds nothing, picker stays');

@@ -281,6 +281,7 @@ function pkSelBar(){
   $('ovExPick').classList.toggle('pkselect', on); bar.classList.toggle('show', on); bar.setAttribute('aria-hidden', String(!on));
   $('pkSelN').textContent = t(n === 1 ? 'pkSel1' : 'pkSelN', { n });
   const add = $('pkSelAdd'); add.textContent = t('pkSelAdd', { n }); add.disabled = !n;
+  const dn = $('pkDone'); if(dn){ dn.classList.toggle('hide', !on || !PK.q); dn.textContent = n ? t('pkDoneN', { n }) : t('done'); }   // 0.8: while searching, Done sits top right
 }
 // only the order numbers and outlines change (no redraw, no lost scroll)
 function pkMarkSel(){
@@ -303,10 +304,20 @@ function pkLongPress(body){
 }
 
 // ---------- search: always over every exercise (filters are kept for when the box is cleared) ----------
-function pkClr(){ $('pkClr').classList.toggle('hide', !$('exSearch').value); $('ovExPick').classList.toggle('pksearching', !!$('exSearch').value); }
-// Petros: while there is text in the box, the filters step aside and the search bar sits on top; the cards fill the rest of the screen
+// 0.8 (24 Nov): the search bar stays docked right above the keyboard (pkFit follows the visible screen). Once typing starts, the results panel
+// slides up over the picker and fills everything above the bar; clearing the box (or Done on the keyboard) slides it back down.
+function pkClr(){ const on = !!$('exSearch').value, ov = $('ovExPick'), was = ov.classList.contains('pksearching'); $('pkClr').classList.toggle('hide', !on);
+  if(on === was) return;
+  const body = $('pkBody'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; body.getAnimations().forEach(a => a.cancel());
+  if(on){ ov.classList.add('pksearching'); if(!reduce && body.animate) body.animate([{ transform: 'translate3d(0,100%,0)', opacity: .4 }, { transform: 'translate3d(0,0,0)', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.3,1.08,.5,1)' }); return; }
+  if(reduce || !body.animate || !ov.classList.contains('open')){ ov.classList.remove('pksearching'); return; }
+  body.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: 'translate3d(0,100%,0)', opacity: .4 }], { duration: 240, easing: 'cubic-bezier(.45,0,.2,1)' }).onfinish = () => { if(!$('exSearch').value) ov.classList.remove('pksearching'); }; }
 function pkSearch(){ pkCancelAnim(); PK.q = $('exSearch').value.trim(); pkClr(); PK.limit = PK_STEP; if(!PK.q) PK.user = true;
-  $('ovExPick').classList.toggle('pksearching', !!$('exSearch').value); $('pkBody').scrollTop = 0; pkDraw(); }
+  $('pkBody').scrollTop = 0; pkDraw(); pkSelBar(); }
+// Done on the keyboard: the chosen exercises are added (Select mode); otherwise the keyboard goes away and the results slide back down
+function pkSearchDone(){ const sx = $('exSearch'); sx.blur();
+  if(PK.selOn && PK.sel.length){ pkSelAdd(); return; }
+  if(PK.selOn) pkSelEnd(); sx.value = ''; pkSearch(); }
 
 // ---------- wiring (called once from js/wire/04-gym.js) ----------
 function pkSetup(){
@@ -334,7 +345,8 @@ function pkSetup(){
   const sx = $('exSearch');
   sx.addEventListener('input', pkSearch);
   sx.addEventListener('focus', () => { if(PK.q) fil.classList.add('compact'); });
-  sx.addEventListener('keydown', e => { if(e.key !== 'Enter' || e.isComposing) return; e.preventDefault(); const f = $('pkGrid').querySelector('.pkcard[data-ex]'); if(f && PK.q){ sx.blur(); pkPick(f.dataset.ex); } });
+  sx.addEventListener('keydown', e => { if(e.key !== 'Enter' || e.isComposing) return; e.preventDefault(); pkSearchDone(); });
+  $('pkDone').addEventListener('click', () => { Phone.haptic(); pkSearchDone(); });
   $('pkClr').addEventListener('click', () => { sx.value = ''; pkSearch(); sx.blur(); });
   $('pkSelAdd').addEventListener('click', pkSelAdd); $('pkSelX').addEventListener('click', () => { Phone.haptic(); pkSelEnd(); });
   if(window.visualViewport){ visualViewport.addEventListener('resize', pkFit); visualViewport.addEventListener('scroll', pkFit); }

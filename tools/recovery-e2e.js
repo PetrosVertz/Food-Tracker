@@ -87,7 +87,7 @@ function seed(sex, withHistory){
   ok(offline === 1, 'offline and without Athlete OS: RECOVERY+ renders');
   await p.close();
   // 5. Gym hub mini map uses the new figure
-  p = await open({ sex: 'f', hash: 'gym' }); const mini = await p.evaluate(() => !!document.querySelector('#gMiniRec svg.ra-svg'));
+  p = await open({ sex: 'f', hash: 'gym' }); const mini = await p.evaluate(() => !!document.querySelector('#ghRec svg.ra-svg'));
   ok(mini, 'Gym hub recovery mini map uses the RECOVERY+ figure'); await p.close();
   // one snapshot for everyone: the Recovery page, Athlete OS and Gym Coach read the same RECOVERY+ version; a finished workout changes it for all three
   { const q = await open({ sex: 'm' });

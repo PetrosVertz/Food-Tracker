@@ -15,7 +15,13 @@ $('amSave').addEventListener('click', () => {
   const m = macrosFor(AM.info.per, e.amt); Object.assign(e, m); saveLog();
 });
 
-// Skip on the Gym Today card. Change #13: the streak counts workouts per week, not which days, so skipping needs no freeze;
+// 0.8: a long press on the slim gym-day line also skips (the Skip button is hidden when the phone is too narrow for it)
+{ let tm = 0, x0 = 0, y0 = 0; const stop = () => { clearTimeout(tm); tm = 0; };
+  $('dBlocks').addEventListener('pointerdown', e => { stop(); const c = e.target.closest('[data-gdhold]'); if(!c || e.target.closest('button')) return; x0 = e.clientX; y0 = e.clientY;
+    tm = setTimeout(() => { tm = 0; Phone.haptic(); skipGymDay(); }, 550); }, { passive: true });
+  $('dBlocks').addEventListener('pointermove', e => { if(tm && Math.hypot(e.clientX - x0, e.clientY - y0) > 8) stop(); }, { passive: true });
+  ['pointerup', 'pointercancel'].forEach(k => $('dBlocks').addEventListener(k, stop, { passive: true })); }
+// Skip on the Gym Day card. Change #13: the streak counts workouts per week, not which days, so skipping needs no freeze;
 // when today was the last chance to reach this week's goal, say so first (Skip anyway / Go to Gym).
 async function skipGymDay(){
   const v = Streak.view();

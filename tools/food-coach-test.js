@@ -104,6 +104,11 @@ const P = [
   ['2 tost kai ena gala', [['tost', 2, 'piece'], ['gala', 1, 'piece']]],
   ['200g κοτόπουλο and rice', [['κοτόπουλο', 200, 'g'], ['rice', null, null]]],
   ['freddo espresso και ένα κρουασάν', [['freddo espresso', null, null], ['κρουασάν', 1, 'piece']]],
+  // 0.8 (24 Nov): Greek units attached or not, "γρ." is not the end of a sentence, filler words are never foods
+  ['250γ κιμάς μοσχάρι και 250γ μακαρόνια', [['κιμάς μοσχάρι', 250, 'g'], ['μακαρόνια', 250, 'g']]],
+  ['250 γρ. κιμά', [['κιμά', 250, 'g']]],
+  ['300 γραμμάρια κοτόπουλο και 1 κιλό ρύζι', [['κοτόπουλο', 300, 'g'], ['ρύζι', 1000, 'g']]],
+  ['χθες παρήγγειλα ένα πιάτο μακαρόνια με λίγες πατάτες τηγανητές', [['μακαρόνια', 1, 'serving'], ['πατάτες τηγανητές', null, null]]],
 ];
 const ext = { items: 0, names: 0, qty: 0 };
 P.forEach(([msg, want]) => {
@@ -244,5 +249,13 @@ F.chatClear(); ((F.chatLoad() || { msgs: [] }).msgs.length === 0 && F.stats().al
 (!JSON.stringify(mem.coachChat || {}).includes('peanut')) ? ok() : fail('the speed log must hold no message text');
 
 const pct = n => Math.round(n / ext.items * 1000) / 10;
+// ---- 0.8: filler words, aliases, when / takeaway, chat vs log (FoodCoach.when, alias, isFiller, hasAmount) ----
+['χθες', 'σήμερα', 'παρήγγειλα', 'έφαγα', 'ήπια', 'λίγο', 'πιάτο', 'με', 'και', 'yesterday', 'ordered', 'some', 'plate'].forEach(w => F.isFiller(w) ? ok() : fail('filler: ' + w));
+[['μακαρόνια', 'pasta'], ['κιμάς μοσχάρι', 'beef mince'], ['ρύζι', 'rice'], ['κοτόπουλο', 'chicken'], ['πατάτες τηγανητές', 'fries'], ['γιαούρτι', 'yoghurt'], ['αυγά', 'eggs'], ['μακαρόνια με κιμά', null]]
+  .forEach(([a, b]) => F.alias(a) === b ? ok() : fail(`alias ${a} → ${F.alias(a)} (want ${b})`));
+[['χθες έφαγα ρύζι', -1, false], ['yesterday I ordered pizza', -1, true], ['παρήγγειλα σουβλάκια', 0, true], ['2 eggs', 0, false]]
+  .forEach(([m, d, tk]) => { const w = F.when(m); w.day === d && w.takeaway === tk ? ok() : fail(`when "${m}": ${JSON.stringify(w)}`); });
+[['how are you doing today', false], ['τι κάνεις;', false], ['250γ ρύζι', true], ['a slice of bread', true], ['δύο αυγά', true]]
+  .forEach(([m, a]) => F.hasAmount(m) === a ? ok() : fail(`hasAmount "${m}" = ${F.hasAmount(m)}`));
 console.log(`food coach: ${pass} ok, ${fails} failed · extraction ${pct(ext.names)} % names, ${pct(ext.qty)} % quantities over ${ext.items} foods in ${P.length} messages · built-in kcal error vs reference ${(errSum / errN * 100).toFixed(1)} % (n=${errN})`);
 process.exit(fails ? 1 : 0);

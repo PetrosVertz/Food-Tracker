@@ -51,8 +51,8 @@ const port = srv.address().port, sleep = ms => new Promise(r => setTimeout(r, ms
   let k = await p.evaluate(() => ({ pills: [...document.querySelectorAll('#fTabs .pcrow>button:not([aria-hidden])')].map(b => b.dataset.car).join(), rail: [...document.querySelectorAll('#rail [data-tab]')].map(b => b.dataset.tab).join() }));
   ok(k.pills === 'foods,meals,supps,fridge,groc,mymeals' && k.rail === 'today,gym,food,profile', `Food Library pills ${k.pills}; bottom bar ${k.rail}`);
   await p.click('#fTabs .pcrow>button[data-car="fridge"]:not([aria-hidden])'); await sleep(700);
-  ok(await p.evaluate(() => location.hash === '#fridge' && !$('fridgeView').classList.contains('hide') && $('storeView').classList.contains('hide') && document.querySelector('#pgFoods h1').textContent === 'Inventory' && $('fab').dataset.action === 'fridge' && document.querySelector('#rail .on').dataset.tab === 'food'),
-    'Inventory pill: the inventory list, title Inventory, Add Food button, Food Library tab lit');
+  ok(await p.evaluate(() => location.hash === '#fridge' && !$('fridgeView').classList.contains('hide') && $('storeView').classList.contains('hide') && document.querySelector('#pgFoods h1').textContent === 'My Fridge' && $('fab').dataset.action === 'fridge' && document.querySelector('#rail .on').dataset.tab === 'food'),
+    'My Fridge pill: the fridge list, title My Fridge, Add Food button, Food Library tab lit');
   await p.close();
   p = await open('en', { noKitchen: true }); await go(p, 'fridge');
   k = await p.evaluate(() => ({ h: location.hash, off: [...document.querySelectorAll('#fTabs .pcrow>button.off:not([aria-hidden])')].map(b => b.dataset.car).join(), tiles: ['fhInv', 'fhGroc'].every(id => $(id).classList.contains('off')) }));
