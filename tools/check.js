@@ -638,7 +638,13 @@ function pickerE2E() {
     ok('exercise picker e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/expick-e2e.js)'); }
   catch (e) { fail('exercise picker e2e: tools/expick-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
 }
-aiTests().then(() => process.argv.includes('--boot') ? boot().then(coachE2E).then(pickerE2E) : null).then(() => {
+// 0.8 bento homes + My Food Log (--boot only)
+function bentoE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/bento-e2e.js'), ...(STRICT ? ['--strict'] : [])], { stdio: 'pipe', timeout: 240000 }).toString();
+    ok('bento homes e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/bento-e2e.js)'); }
+  catch (e) { fail('bento homes e2e: tools/bento-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
+}
+aiTests().then(() => process.argv.includes('--boot') ? boot().then(coachE2E).then(pickerE2E).then(bentoE2E) : null).then(() => {
   const partial = !process.argv.includes('--boot') ? ' (browser checks not run: add --boot)' : '';
   console.log(fails ? `\n${fails} problem(s) to fix.` : '\nAll checks passed.' + partial);
   process.exit(fails ? 1 : 0);

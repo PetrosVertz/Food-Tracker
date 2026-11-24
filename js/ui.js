@@ -136,21 +136,33 @@ document.addEventListener('scroll', e => { const el = e.target; if(el.nodeType =
 
 const PILL_SEL = '.mpill,.seg,.rail';
 const RAIL_KNOB = 44;   // the bottom bar's selected-tab circle (theme.css .rail>.knob; the profile photo is 36 px inside it)
+// 0.8 performance: the knob moves with transform only. Its size is written only when it really changes (equal columns: once), never
+// animated; position and size are cached, so a repeat call writes nothing. will-change is on only while it glides, and the bottom bar's
+// blur is paused under its knob while it slides (.rail.sliding). Taps (class changes) reposition at once, in the next frame; resizes are debounced.
 function pillSync(el){
   let k = el.querySelector(':scope > .knob'), fresh = false;
   if(!k){ k = document.createElement('i'); k.className = 'knob'; k.setAttribute('aria-hidden', 'true'); el.prepend(k); fresh = true; pillRO && pillRO.observe(el); }
   const b = el.querySelector(':scope > button.on');
-  if(!b || !b.offsetWidth){ k.style.opacity = 0; k.dataset.shown = ''; return; }
+  if(!b || !b.offsetWidth){ if(k.dataset.shown){ k.style.opacity = 0; k.dataset.shown = ''; } return; }
   const rail = el.classList.contains('rail');   // 0.7.9.1: the bottom bar's marker is the same 44 px circle on every tab (icons and the photo), so it never resizes while it slides
   const w = rail ? RAIL_KNOB : b.offsetWidth, hh = rail ? RAIL_KNOB : b.offsetHeight,
     x = b.offsetLeft + (b.offsetWidth - w) / 2, y = b.offsetTop + (b.offsetHeight - hh) / 2, jump = fresh || !k.dataset.shown;
+  const key = `${x}|${y}`, size = `${w}|${hh}`;
+  if(!jump && k._at === key && k._sz === size) return;   // nothing moved: no writes
   if(jump) k.style.transition = 'none';
-  k.style.width = w + 'px'; k.style.height = hh + 'px'; k.style.transform = `translate(${x}px,${y}px)`; k.style.opacity = 1; k.dataset.shown = '1';
+  if(k._sz !== size){ k.style.width = w + 'px'; k.style.height = hh + 'px'; k._sz = size; }
+  if(k._at !== key){ if(!jump && k._at !== undefined && !matchMedia('(prefers-reduced-motion: reduce)').matches){ k.style.willChange = 'transform'; if(rail) el.classList.add('sliding');
+      clearTimeout(k._mv); k._mv = setTimeout(() => { k.style.willChange = ''; el.classList.remove('sliding'); }, 420); }
+    k.style.transform = `translate3d(${x}px,${y}px,0)`; k._at = key; }
+  if(!k.dataset.shown){ k.style.opacity = 1; k.dataset.shown = '1'; }
   if(jump){ void k.offsetWidth; k.style.transition = ''; }
 }
-const pillRO = typeof ResizeObserver === 'function' ? new ResizeObserver(es => es.forEach(e => pillSync(e.target))) : null;
-let pillQ = new Set(), pillRaf = 0;
+const pillRO = typeof ResizeObserver === 'function' ? new ResizeObserver(es => es.forEach(e => pillLater(e.target))) : null;
+let pillQ = new Set(), pillRaf = 0, pillRz = new Set(), pillRzT = 0;
 function pillQueue(el){ pillQ.add(el); if(!pillRaf) pillRaf = requestAnimationFrame(() => { pillRaf = 0; const q = [...pillQ]; pillQ.clear(); q.forEach(e => e.isConnected && pillSync(e)); }); }
+// a size change: the knob is put right once things settle (a selector that just appeared, with no knob shown yet, is put right at once)
+function pillLater(el){ const k = el.querySelector(':scope > .knob'); if(!k || !k.dataset.shown){ pillQueue(el); return; }
+  pillRz.add(el); clearTimeout(pillRzT); pillRzT = setTimeout(() => { const q = [...pillRz]; pillRz.clear(); q.forEach(pillQueue); }, 120); }
 function pillsAll(){ document.querySelectorAll(PILL_SEL).forEach(pillQueue); }
 new MutationObserver(recs => { for(const r of recs){
     const t = r.target; if(t.nodeType !== 1) continue;
@@ -158,7 +170,7 @@ new MutationObserver(recs => { for(const r of recs){
     if(t.matches(PILL_SEL)) pillQueue(t);
     r.addedNodes.forEach(n => { if(n.nodeType !== 1) return; ibtnFill(n); if(n.matches(PILL_SEL)) pillQueue(n); n.querySelectorAll && n.querySelectorAll(PILL_SEL).forEach(pillQueue); });
   } }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
-addEventListener('resize', pillsAll); document.addEventListener('DOMContentLoaded', pillsAll); if(document.fonts) document.fonts.ready.then(pillsAll);
+addEventListener('resize', () => document.querySelectorAll(PILL_SEL).forEach(pillLater)); document.addEventListener('DOMContentLoaded', pillsAll); if(document.fonts) document.fonts.ready.then(pillsAll);
 
 
 // App shell: navigation, tabs, launcher, sheets, toasts, setup, settings, backup, motion, haptics, in-app pickers. (functions only)
@@ -337,6 +349,13 @@ function bentoFit(pg, grid){ pg = $(pg); grid = $(grid); if(!pg || !grid || pg.c
   pg.classList.remove('bentofree'); const avail = grid.clientHeight; pg.classList.add('bentofree'); const need = grid.offsetHeight;
   pg.classList.toggle('bentofree', need > avail + 1); }
 addEventListener('resize', () => { clearTimeout(bentoFit.tm); bentoFit.tm = setTimeout(() => { bentoFit('pgFoods', 'fBento'); bentoFit('pgGym', 'gBento'); }, 150); });
+// 0.8 performance: looping work stops when it cannot be seen. App in the background: every CSS animation pauses (html.appbg);
+// an element scrolled out of view gets .offscr (its animations pause; JS loops check it). Only transform / opacity animate anyway.
+document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('appbg', document.hidden));
+const offscrIO = typeof IntersectionObserver === 'function' ? new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('offscr', !e.isIntersecting))) : null;
+function pauseOffscreen(el){ if(el && offscrIO && !el._io){ el._io = 1; offscrIO.observe(el); } }
+// only write when the markup really changed (no rebuild, no lost state such as a running slide or scroll)
+function setHTML(el, html){ if(!el || el._h === html) return false; el.innerHTML = html; el._h = html; return true; }
 // tiles rise in one after another (opacity + a small lift, 60 ms apart); Reduce Motion: they are simply there
 function bentoRise(box){ if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   [...box.children].forEach((el, i) => { if(el.animate && !el.classList.contains('hide')) el.animate([{ opacity: 0, transform: 'translate3d(0,14px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 420, delay: i * 60, easing: 'cubic-bezier(.3,1.25,.5,1)', fill: 'backwards' }); }); }
@@ -366,6 +385,7 @@ function route(){
   $('storeView').classList.toggle('hide', fhub || tab !== 'store');
   $('mealsView').classList.toggle('hide', fhub || tab !== 'meals');
   $('foodSupps').classList.toggle('hide', fhub || tab !== 'supps');
+  if(fhub) bentoFit('pgFoods', 'fBento');   // 0.8: measured once the other sections are hidden
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');

@@ -285,7 +285,7 @@ function tickSet(x, s, row, xi, si){
     const add = x.uni ? uniPair() : [newSet()]; add.forEach(z => z.auto = true);
     if(atOn(x)) add.forEach(z => { z.r = '1'; z.w = String(r25(+s.w + (exById(x.exId).e === 'dumbbell' ? 2 : 2.5), exById(x.exId).e)); });   // the next single, a step up
     x.sets.push(...add); saveG('act'); }
-  renderSession(); tickRest(); gcNudgeCheck();   // Gym Coach intelligence: rarely, one quiet hint (a dot on the robot)
+  renderSession(); tickRest(); if(typeof restKick === 'function') restKick(); gcNudgeCheck();   // Gym Coach intelligence: rarely, one quiet hint (a dot on the robot)
   if(SSNEXT) setTimeout(() => { const el = document.querySelector(`#sesBody [data-x="${SSNEXT.xi}"] [data-s="${SSNEXT.si}"]`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
 }
 
@@ -1212,17 +1212,17 @@ function renderGymHub(fresh){
   // Workouts: which muscles your saved workouts train most
   { const tot = ghMuscleSets(), keys = Object.keys(tot).sort((a, b) => tot[b] - tot[a]), top = keys.slice(0, 4), mx = top.length ? tot[top[0]] : 1;
     const low = GH_MAIN.filter(k => !top.includes(k)).sort((a, b) => (tot[a] || 0) - (tot[b] || 0))[0];
-    $('ghLib').innerHTML = ghHead('workouts', 'hubLib') + (top.length ? `<small class="btsub">${esc(t('ghMost'))}</small><div class="btbars">${top.map((k, i) => `<div class="btbar${i ? '' : ' acc'}"><span><em>${esc(ML(k))}</em><b>${Math.round(tot[k])}</b></span><i><u style="transform:scaleX(${(tot[k] / mx).toFixed(3)})"></u></i></div>`).join('')}</div>
-      ${low && top.length >= 2 ? `<em class="btlow">${esc(t('ghLow', { n: ML(low), v: Math.round(tot[low] || 0) }))}</em>` : ''}` : `<p class="btempty">${esc(t('ghNoTpl'))}</p>`); }
+    setHTML($('ghLib'), ghHead('workouts', 'hubLib') + (top.length ? `<small class="btsub">${esc(t('ghMost'))}</small><div class="btbars">${top.map((k, i) => `<div class="btbar${i ? '' : ' acc'}"><span><em>${esc(ML(k))}</em><b>${Math.round(tot[k])}</b></span><i><u style="transform:scaleX(${(tot[k] / mx).toFixed(3)})"></u></i></div>`).join('')}</div>
+      ${low && top.length >= 2 ? `<em class="btlow">${esc(t('ghLow', { n: ML(low), v: Math.round(tot[low] || 0) }))}</em>` : ''}` : `<p class="btempty">${esc(t('ghNoTpl'))}</p>`)); }
   // Progress: one rotating stat + the 8-week volume line
   { const st = ghStats(), s = ghPick(st.out, fresh);
-    $('ghProg').innerHTML = ghHead('progress', 'hubProg') + (s ? `<div class="btstat big"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : `<p class="btempty">${esc(t('ghNoSes'))}</p>`) +
-      (sessions.length ? `<div class="ghvol">${ghLine(st.wv)}<small class="btsub">${esc(t('ghVol8'))}</small></div>` : ''); }
+    setHTML($('ghProg'), ghHead('progress', 'hubProg') + (s ? `<div class="btstat big"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : `<p class="btempty">${esc(t('ghNoSes'))}</p>`) +
+      (sessions.length ? `<div class="ghvol">${ghLine(st.wv)}<small class="btsub">${esc(t('ghVol8'))}</small></div>` : '')); }
   // RECOVERY+: only the body, front and back, sliding every 5 s
   { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 150 });
-    const side = GH_REC.side;
-    $('ghRec').innerHTML = ghHead('', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`;
-    $('ghRec').setAttribute('aria-label', t('hubRec')); ghRecArm(); }
+    const side = GH_REC.side, key = JSON.stringify(col) + recSex() + lang;
+    if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
+    $('ghRec').setAttribute('aria-label', t('hubRec')); pauseOffscreen($('ghRec')); if(!GH_REC.tm) ghRecArm(); }
   renderGymWeek();
   // the grid ends just above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
   { const fab = $('fab'), pg = $('pgGym'); if(fab && !fab.classList.contains('hide')){ const top = fab.getBoundingClientRect().top; if(top > 0) pg.style.setProperty('--fabclear', Math.round(pg.clientHeight - top + 10) + 'px'); } }
@@ -1239,7 +1239,8 @@ function renderGymWeek(){
     const tp = gym && p.tpl !== 'gym' ? tpls.find(x => x.id === p.tpl) : null, lab = !gym && !done ? t('restDayS') : adv ? (tp ? tp.name : t('gymL')) : t('gymL');
     const ic = done ? svgIcon('check', 18, 3) : gym ? svgIcon('workouts', 18, 2) : '<u></u>';
     return `<span class="wpd ${done ? 'done' : gym ? 'gym' : 'rest'}${today ? ' today' : ''}"><small>${esc((wd[d] || '').charAt(0))}</small><i>${ic}</i><em><span>${esc(lab)}</span></em></span>`; }).join('');
-  $('ghWeek').innerHTML = ghHead('calendar', 'hubWeek', `${esc(t('ghTotal'))} <b>${n}</b>`) + `<div class="wpdays">${pills}</div>`;
+  pauseOffscreen($('ghWeek'));
+  if(!setHTML($('ghWeek'), ghHead('calendar', 'hubWeek', `${esc(t('ghTotal'))} <b>${n}</b>`) + `<div class="wpdays">${pills}</div>`)) return;   // unchanged: the marquee keeps running
   requestAnimationFrame(() => $('ghWeek').querySelectorAll('.wpd em').forEach(em => { const sp = em.firstChild, over = sp.scrollWidth - em.clientWidth;
     em.classList.toggle('cut', over > 1 && !em.parentNode.classList.contains('today'));
     em.classList.toggle('marq', over > 1 && em.parentNode.classList.contains('today') && !matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1251,6 +1252,7 @@ const GH_REC = { side: 0, tm: 0 };
 function ghRecStop(){ clearTimeout(GH_REC.tm); GH_REC.tm = 0; }
 function ghRecArm(){ ghRecStop(); if(matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden) return; GH_REC.tm = setTimeout(ghRecFlip, 5000); }
 function ghRecFlip(){ GH_REC.tm = 0; const box = $('ghRec'); if(!box || document.hidden || box.offsetParent === null || $('gHub').classList.contains('hide')) return;
+  if(box.classList.contains('offscr')){ ghRecArm(); return; }   // scrolled out of view: wait, no slide
   const figs = box.querySelectorAll('.ghfig'); if(figs.length < 2) return; const from = figs[GH_REC.side], to = figs[1 - GH_REC.side], dir = GH_REC.side ? -1 : 1;
   GH_REC.side = 1 - GH_REC.side; box.querySelectorAll('.ghdots i').forEach((d, i) => d.classList.toggle('on', i === GH_REC.side));
   to.classList.remove('off');
