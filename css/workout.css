@@ -113,13 +113,14 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .exname{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
 .exhead small{font-size:var(--fs-label);color:var(--t-muted)}
 .exhead .xt{color:var(--t-text);font-weight:var(--w-med);font-variant-numeric:tabular-nums}
-.expills{display:flex;justify-content:center;gap:var(--s2);margin-top:var(--s2)}
+.expills{display:contents}   /* the pills are flex items of .exsub, beside the muscle · equipment line */
+.exsub{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px var(--s2);max-width:100%}
+.exmeta{min-width:0;max-width:100%;font-weight:var(--w-med)}
+.exsub .pill2{width:auto;min-width:0;height:26px;padding:0 10px}
 .pill2{width:72px;height:28px;box-sizing:border-box;padding:0;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-med);display:flex;align-items:center;justify-content:center;gap:var(--s1);border:0;background:var(--t-sel);color:var(--t-text);cursor:pointer}
 .pill2.uni{letter-spacing:.5px;background:var(--t-card2);border:1px solid var(--t-line);color:var(--t-muted);transition:background .2s,color .2s,border-color .2s}
 .pill2.uni.on{background:#eef0f2;border-color:#eef0f2;color:#0b0d0f;font-style:italic}
 .exinfo{font-size:var(--fs-label);color:var(--t-muted);text-align:center;line-height:1.4}
-.wuhint{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);font-size:var(--fs-label);color:var(--t-muted)}
-.wuhint button{border:0;border-radius:var(--r-pill);background:var(--t-sel);color:var(--t-text);font-size:var(--fs-label);font-weight:var(--w-med);padding:6px var(--s3)}
 
 /* set setter (weights stay 800) */
 .sethead,.setrow{display:grid!important;grid-template-columns:40px 1fr 1fr 38px!important;gap:var(--s2)!important;align-items:center}
@@ -754,7 +755,8 @@ body.inses .coachbub{display:none!important}
 .exc.capped .setrow.old .sok{height:28px}
 .exc.capped .setrow.old .sok svg{width:15px;height:15px}
 .exc.capped .setrow.old.lmerge .sok{height:calc(28px*2 + var(--s2));margin-bottom:calc(-28px - var(--s2))}
-.exfoot{display:flex;flex-direction:column;gap:var(--s2)}
+.exfoot{display:flex;flex-direction:row;gap:var(--s2)}
+.exfoot>button{flex:1 1 0;min-width:0;width:auto;height:36px;margin-top:0;white-space:nowrap}
 /* a phone on its side: the whole card scrolls inside itself and New Set / End Exercise stay pinned at its foot */
 #ovSession #sesBody>.exc.short{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
 #ovSession #sesBody>.exc.short>.setlist{flex:0 0 auto;overflow:visible}
@@ -764,11 +766,7 @@ body.inses .coachbub{display:none!important}
 #ovSession #sesBody>.exc.tight{gap:6px;padding-top:var(--s3);padding-bottom:var(--s3)}
 .exc.tight .exname{font-size:22px!important}
 .exc.tight .exhead{gap:2px;margin-bottom:0}
-.exc.tight .expills{margin-top:2px}
 .exc.tight .tierneed{display:none}
-.exc.tight .exfoot{flex-direction:row}
-.exc.tight .exfoot>button{flex:1 1 auto;min-width:0;margin-top:0;padding:0 var(--s3);white-space:nowrap;font-size:14px}
-.exc.tight .exfoot>.newset{flex:0 1 auto}
 #ovSession #sesBody>.exc:first-child{margin-top:var(--lead,0px)}
 #ovSession #sesBody>.addexbig{visibility:hidden;border:0;min-height:88px}   /* the last page is only the landing spot for the swipe; the tip above the bottom card is what you see */
 #ovSession #sesBody>.empty{display:grid;place-items:center;min-height:96px;margin:0 0 var(--s3)}
@@ -962,3 +960,8 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .onesd button{background:none;border:0;padding:4px 8px;font:inherit;font-size:var(--fs-label);color:var(--t-accent-ink,var(--t-accent));text-decoration:underline;cursor:pointer}
 .setrow.skipped{opacity:.5}
 .setrow.skipped input{pointer-events:none}
+
+/* the kg heading above the sets opens the load picker (what the number means: per hand, bar, stack); it replaces the old chip that took a line */
+.sethead .kgh{display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gcwu{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:var(--fs-label)}
+.gcwu b{font-weight:var(--w-med);white-space:nowrap}

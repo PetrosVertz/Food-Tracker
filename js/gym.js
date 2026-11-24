@@ -71,9 +71,12 @@ function usualReps(exId){
   const v = pick.sort((a, b) => a - b), m = v[Math.floor(v.length / 2)]; return Math.max(3, Math.min(20, Math.round(m)));
 }
 
-function warmupFor(exId, w){
+// the colour of a muscle (a group, or one head of it) for the small line under an exercise's name
+const muCol = k => (typeof HEAD_COL !== 'undefined' && HEAD_COL[k]) || (GROUPS[k] && GROUPS[k][3]) || (HEADS[k] && GROUPS[HEADS[k][2]] && GROUPS[HEADS[k][2]][3]) || null;
+// warm-up sets for a working weight: 3 by default; the Gym Coach asks for 2 (about half, then three quarters)
+function warmupFor(exId, w, two){
   const ex = exById(exId); if(!(w >= 20) || ex.e === 'bodyweight' || isCardio(exId)) return [];
-  return [[.4, 8], [.6, 5], [.8, 3]].map(([p, r]) => ({ w: Math.max(ex.e === 'barbell' ? 20 : 0, r25(w * p, ex.e)), r })).filter((x, i, a) => x.w > 0 && (i === 0 || x.w > a[i - 1].w));
+  return (two ? [[.5, 8], [.75, 4]] : [[.4, 8], [.6, 5], [.8, 3]]).map(([p, r]) => ({ w: Math.max(ex.e === 'barbell' ? 20 : 0, r25(w * p, ex.e)), r })).filter((x, i, a) => x.w > 0 && (i === 0 || x.w > a[i - 1].w));
 }
 
 // ---------- live session ----------
@@ -125,7 +128,29 @@ function startSession(tpl){
   const tk = todayKey(), di = dayInfo(tk); active.dayBefore = days[tk] ? { ...days[tk] } : null;
   days[tk] = { ...di, type: 'gym', work: workKind(active.type), time: profile.realStart || !di.time || di.type !== 'gym' ? fromMin(now.getHours() * 60 + now.getMinutes()) : di.time }; delete days[tk].guessed; saveDays();
   close('ovStart'); renderAll(); openSession();
+  if(tpl && active.exercises.length) gcWarmupHint();
   if(!active.exercises.length){ EMPTY_START = true; $('sesAddEx').click(); }   // an empty workout goes straight to the exercise list; picking one starts it
+}
+// Gym Coach, when a saved workout is started: "I would suggest warm-ups for these", 1-2 light sets (kg x reps) for each lift that has a known working weight.
+// Plain rules, no AI. It waits in the live chat (a dot on the robot) and never sits on an exercise card. Add puts the sets in at the top, with Undo.
+function gcWarmupHint(){
+  if(!active) return;
+  const wid = active.id, list = active.exercises.map((x, i) => { if(hideM('W', x.exId) || x.sets.some(s => s.type === 'W' || s.done)) return null;
+    const sug = suggestFor(x.exId, x.reps); if(!sug || !(!sug.first || sug.est)) return null;
+    const wu = warmupFor(x.exId, sug.w, true); return wu.length ? { x, wu } : null; }).filter(Boolean);
+  if(!list.length) return;
+  const line = o => `${esc(exName(o.x.exId))}: <b>${o.wu.map(w => `${fmt(w.w)} kg × ${w.r}`).join(' · ')}</b>`;
+  const card = { title: t('gcWarmT'), sub: t('gcWarmSub'), body: `<ul class="gcwu">${list.map(o => `<li>${line(o)}</li>`).join('')}</ul>`,
+    actions: [
+      { label: t('gcWarmAdd'), primary: true, run(cd, ch){ if(cd.done) return;
+        if(!active || active.id !== wid){ ch.update(cd, { done: t('gciStale') }); return; }
+        const added = []; list.forEach(o => { if(!active.exercises.includes(o.x) || o.x.sets.some(s => s.type === 'W' || s.done)) return;
+          const sets = o.wu.map(w => ({ id: uid(), type: 'W', w: String(w.w), r: String(w.r), done: false })); o.x.sets.unshift(...sets); added.push([o.x, sets]); });
+        saveG('act'); renderSession();
+        ch.update(cd, { done: t('gcWarmDone'), undo(){ if(active && active.id === wid){ added.forEach(([x, sets]) => { x.sets = x.sets.filter(s => !sets.includes(s)); }); saveG('act'); renderSession(); } } }); } },
+      { label: t('gciNotNow'), run(cd, ch){ if(cd.done) return; ch.update(cd, { done: t('gciKept') }); } } ] };
+  Coach.post('gymlive', t('gcWarmIntro'), [card]);
+  const b = $('sesCoach'); if(b) b.classList.add('nudge');
 }
 // backing out of that first exercise list: no workout is started, back to the Gym Hub with Start Workout
 let EMPTY_START = false;
@@ -938,12 +963,11 @@ function cardHtml(x, i){
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
   const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
-      <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
-      <div class="expills${uniPill || gOn('formPill', x.exId) || (!card && gOn('swapPill', x.exId)) ? '' : ' hide'}">${uniPill}${gOn('formPill', x.exId) ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill', x.exId) ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
+      ${tierNeed}<div class="exsub"><small class="exmeta"><span style="color:${gymInk(muCol(ex.h)) || 'inherit'}">${ML(ex.h)}</span> · <span style="color:${gymInk(EQ_COL[ex.e]) || 'inherit'}">${EL(ex.e)}</span>${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
+      <div class="expills">${uniPill}${gOn('formPill', x.exId) ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill', x.exId) ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
   if(gOn('tips') && !x.ended && sug && sug.est && !x.sets.some(s => s.done)) info = t('estNew', { w: fmt(sug.w), r: sug.r });
-  const G = gx(), hasWarm = x.sets.some(s => s.type === 'W'), wu = !hideM('W', x.exId) && !x.ended && sug && (!sug.first || sug.est) && !hasWarm && !x.sets.some(s => s.done) ? warmupFor(x.exId, sug.w) : [];
   let n = 0, prevVals = null, lastDone = -1; x.sets.forEach((s, j) => { if(s.done) lastDone = j; });
   // an L/R pair stays together: the newest finished pair is never compacted
   if(lastDone > 0 && x.sets[lastDone].side === 'R' && x.sets[lastDone - 1].side === 'L') lastDone--;
@@ -970,8 +994,7 @@ function cardHtml(x, i){
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${jointOn(x) ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
-    ${wu.length ? `<div class="wuhint"><span>${t('warmupS', { s: wu.map(w => `${fmt(w.w)}×${w.r}`).join(' · ') })}</span><button data-warm>${t('addWarm')}</button></div>` : ''}
-    <div class="setlist" data-sl="${i}">${cvChip(x)}${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span><span>${card ? t('kmLbl') : t('kgLbl')}</span>${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
+    <div class="setlist" data-sl="${i}">${cvChip(x)}${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span>${x.cv && Lat.options(x).length ? `<button type="button" class="kgh" data-cv aria-label="${esc(t('cvT'))}">${t('kgLbl')}${svgIcon('chevD', 10, 2.6)}</button>` : `<span>${t('kgLbl')}</span>`}${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
     ${rows}</div>
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
       : `<div class="exfoot">${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button></div>`}</div>`;
@@ -979,8 +1002,8 @@ function cardHtml(x, i){
 
 // the load convention beside the weight: what the typed number means (per hand, total of both bells, bar, stack) and whether reps are counted per side
 function cvText(cv, rows){ if(!cv) return ''; const k = Lat.labelKey(cv, rows); if(!k) return ''; return t(k) + (!rows && cv.rp === 'side' ? ' · ' + t('cvRepsSide') : !rows && cv.rp === 'both' && cv.n === 2 && (cv.l === 'hand' || cv.l === 'total') ? ' · ' + t('cvRepsBoth') : ''); }
-function cvChip(x){ if(isCardio(x.exId) || !x.cv || !x.sets.length) return ''; const txt = x.cv.ask && !x.uni ? t('cvPick') : cvText(x.cv, !!x.uni); if(!txt) return '';
-  return Lat.options(x).length ? `<button type="button" class="cvchip${x.cv.ask && !x.uni ? ' need' : ''}" data-cv aria-label="${esc(t('cvT'))}: ${esc(txt)}"><span>${t('kgLbl')} · ${esc(txt)}</span>${svgIcon('chevD', 12, 2.6)}</button>` : `<div class="cvchip static"><span>${t('kgLbl')} · ${esc(txt)}</span></div>`; }
+function cvChip(x){ if(isCardio(x.exId) || !x.cv || !x.sets.length || !(x.cv.ask && !x.uni)) return ''; const txt = t('cvPick');
+  return Lat.options(x).length ? `<button type="button" class="cvchip need" data-cv aria-label="${esc(t('cvT'))}: ${esc(txt)}"><span>${t('kgLbl')} · ${esc(txt)}</span>${svgIcon('chevD', 12, 2.6)}</button>` : `<div class="cvchip static"><span>${t('kgLbl')} · ${esc(txt)}</span></div>`; }
 function openCv(xi, fromTick){ const x = active && active.exercises[xi]; if(!x || !x.cv) return; const opts = Lat.options(x), locked = x.sets.some(z => z.done) && !x.cv.ask; /* a first choice still pending can be made even after Left / Right rows were finished */
   $('cvT').textContent = t('cvT'); $('cvSub').textContent = locked ? t('cvLocked') : exName(x.exId);
   $('cvList').innerHTML = opts.map((o, i) => { const on = o.l === x.cv.l && o.n === x.cv.n && o.rp === x.cv.rp && !x.cv.ask; return `<button class="pickopt ${on ? 'on' : ''}" data-cvo="${i}" ${locked ? 'disabled' : ''}>${esc(cvText(o, !!x.uni))}${on ? `<b>${svgIcon('check', 18, 2.4)}</b>` : ''}</button>`; }).join('');

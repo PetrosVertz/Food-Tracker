@@ -139,7 +139,6 @@ $('sesBody').addEventListener('click', e => {
     const next = active.exercises.findIndex(z => !z.ended); setTimeout(() => showCard(next >= 0 ? document.querySelector(`.exc[data-x="${next}"]`) : $('sesAddEx')), 60); return; }
   if(e.target.closest('[data-reopen]')){ x.ended = false; x.t1 = null; saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-rest]')){ const opts = [60, 90, 120, 150, 180, 240, 300]; x.rest = opts[(opts.indexOf(x.rest) + 1) % opts.length] || 90; saveG('act'); renderSession(); return; }
-  if(e.target.closest('[data-warm]')){ const sug = suggestFor(x.exId, x.reps); x.sets.unshift(...warmupFor(x.exId, sug.w).map(w => ({ id: uid(), type: 'W', w: String(w.w), r: String(w.r), done: false }))); saveG('act'); renderSession(); return; }
   if(e.target.closest('[data-swap]')){ openSwap(xi); return; }
   if(e.target.closest('[data-xrm]')){ active.exercises.splice(xi, 1); if(REST && REST.xi === xi) REST = null; saveG('act'); renderSession(); return; }
 });
