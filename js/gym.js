@@ -961,8 +961,8 @@ function cardHtml(x, i){
     const xtra = extrasHtml(s, j, x.exId);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
     // a finished set older than the newest finished one may be drawn compact when the card is at its height limit (.exc.capped); reopened rows stay full (SET_OPEN: screen state only, never saved)
     const old = s.done && j < lastDone && !SET_OPEN.has(s) ? ' old' : '';
-    const sk = !!s.skip, offBtns = jointOn(x) && s.side === 'R' && !s.done && !s.skip && jm === j - 1 && !x.sets[jm].done ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('oneSideL')}</button><button type="button" data-skip data-j="${jm}">${t('oneSideR')}</button></div>` : '';
-    const bothBtn = sk ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('bothSides')}</button></div>` : '';
+    const sk = !!s.skip, offBtns = '';   // 0.8: no Left Only / Right Only chooser; the L | R pill is a plain on / off switch
+    const bothBtn = sk ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('bothSides')}</button></div>` : '';   // a side skipped before 0.8 can still be brought back
     return `<div class="setrow t-${ty}${sk ? ' skipped' : ''}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
         <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}"${sk ? ' disabled' : ''}>${ICO_TICK}</button></div>` + (sk ? '' : xtra) + offBtns + bothBtn +

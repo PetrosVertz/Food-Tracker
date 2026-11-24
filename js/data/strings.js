@@ -1220,6 +1220,7 @@ Object.assign(S, {   // 0.8 (24 Nov): bento homes for Food Library (food.js › 
   ghVol: ['Training volume', 'Όγκος προπόνησης'], ghPr: ['Newest PR · {n} ×{r}', 'Νέο ρεκόρ · {n} ×{r}'], ghBest: ['Best lift · {n} ×{r}', 'Καλύτερη άρση · {n} ×{r}'],
   ghMus: ['{n} strength', 'Δύναμη · {n}'], ghNoSes: ['Your first workout shows up here', 'Η πρώτη σου προπόνηση θα φανεί εδώ'], ghVol8: ['Volume · 8 weeks', 'Όγκος · 8 εβδομάδες'],
   ghTotal: ['Total Gym Sessions', 'Σύνολο Προπονήσεων'],
+  pkDoneN: ['Done ({n})', 'Τέλος ({n})'],
   kitchenSw: ['My Fridge', 'Το Ψυγείο Μου'],
   kitchenSwSub: ['My Fridge and Shopping List in the Food Library. Turned off, they stay there greyed out and nothing goes into your fridge.', 'Το Ψυγείο Μου και η Λίστα Αγορών στη Βιβλιοθήκη Τροφίμων. Όταν είναι κλειστά, μένουν εκεί γκρι και τίποτα δεν μπαίνει στο ψυγείο σου.'],
 });
