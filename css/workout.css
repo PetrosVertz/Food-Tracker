@@ -985,3 +985,8 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .exsub .exmeta{flex:0 1 auto;min-width:0;display:block;margin:0;font-size:11px;letter-spacing:-.2px;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exsub .pill2{flex:none;height:22px;padding:0 5px;gap:3px;font-size:11px;line-height:1;margin:0}
 .exsub .pill2 svg{width:12px;height:12px;flex:none}
+
+/* the exercise title sits a touch higher (more air under the top row); the muscle · equipment line keeps its place */
+.extop{margin-bottom:-22px}
+.extop.has{margin-bottom:-8px}
+.exhead .exname{margin-bottom:3px}
