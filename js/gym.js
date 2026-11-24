@@ -525,8 +525,9 @@ const recColor = h => h <= 0 ? REC_COL.ok : h <= 24 ? recMix(REC_COL.ok, REC_COL
 const recFill = m => Object.fromEntries(Object.entries(m).filter(([, v]) => v.col).map(([g, v]) => [g, v.col])), recLows = m => new Set(Object.entries(m).filter(([, v]) => v.st === 'low').map(([g]) => g));
 // head colours for the RECOVERY+ figure: each head by its own hours; unknown heads get none (neutral graphite)
 // Dark mode only: the figure's green / orange / red are softened toward the dark background (they were too bright against it); Light mode is unchanged
-const recDim = c => document.documentElement.getAttribute('data-theme') === 'dark' ? recMix(c, '#2a2f33', .42) : c;
-function recHeadColors(tr){ const out = {}; RecoveryCore.HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state !== 'unknown') out[h] = recDim(recColor(v.hours)); }); return out; }
+// green stays softened a little less than before (.30, was .42); orange and red are barely softened so they read bright against the dark body
+const recDim = (c, h) => document.documentElement.getAttribute('data-theme') === 'dark' ? recMix(c, '#2a2f33', h <= 0 ? .30 : h <= 24 ? .30 - .24 * (h / 24) : Math.max(0, .06 - .06 * ((h - 24) / 48))) : c;
+function recHeadColors(tr){ const out = {}; RecoveryCore.HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state !== 'unknown') out[h] = recDim(recColor(v.hours), v.hours); }); return out; }
 
 function tplGroups(tp){ const s = new Set(); tp.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h] && HEADS[h][2] !== 'cardio') s.add(HEADS[h][2]); })); return [...s]; }
 
@@ -638,7 +639,7 @@ const fmtDay = d => { const x = new Date(d + 'T12:00:00'); return x.toLocaleDate
 // one muscle group cut from the RECOVERY+ body (same artwork), each not-ready head in its own state colour; crop from the drawn geometry
 function recMuscleSVG(g){
   const r = RecoveryPlus.compute(), v = r.tr.groups[g], hs = v.heads.length ? v.heads : v.all, c = raCropFor(recSex(), hs); if(!c) return '';
-  const cols = {}; hs.forEach(h => { const x = r.tr.heads[h]; if(x.state !== 'unknown') cols[h] = recDim(recColor(x.hours)); });
+  const cols = {}; hs.forEach(h => { const x = r.tr.heads[h]; if(x.state !== 'unknown') cols[h] = recDim(recColor(x.hours), x.hours); });
   return recoveryAnatomySVG({ sex: recSex(), view: c.fig === 'f' ? 'front' : 'back', colorsByHead: cols, only: hs, crop: c.box, idPrefix: 'rt' + g });
 }
 function recTick(){

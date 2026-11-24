@@ -514,7 +514,7 @@ function pillCarousel(el, { items, onPick, page }){
     if(txt === labels && rw === w) return true;
     labels = txt; w = rw;
     btns.forEach((b, i) => { b.querySelector('b').textContent = itm(i).label(); const sm = b.querySelector('small'); if(sm) sm.textContent = t('carSoon'); });
-    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.slice(n, 2 * n).map(b => b.scrollWidth))) + 12, Math.round(rw * .62)); el.classList.remove('meas');
+    el.classList.add('meas'); const pw = Math.min(Math.ceil(Math.max(...btns.slice(n, 2 * n).map(b => b.scrollWidth))) + 12, Math.round(rw * (el.classList.contains('lbcar') ? .9 : .62))); el.classList.remove('meas');
     el.style.setProperty('--pw', pw + 'px'); step = pw + CAR_GAP; el.style.setProperty('--pr', (1.5 * step).toFixed(1) + 'px'); return true;
   }
   function look(i, x, o, red){   // pill i's transform + opacity when the strip is at x, pushed by o
