@@ -49,3 +49,19 @@ Architecture map, contracts and test map: `docs/architecture/`. Health check: `n
 
 All scripts share one global scope and load in the order listed in `index.html`: config → platform → data → functions → wiring.
 Data lives only in the browser (localStorage); use Settings → backup to move it.
+
+## Changelog
+
+### 0.8.0 (24 Nov 2026)
+- **Food Library home is a bento grid** (Foods, Meals | Supps, Recipes | Shopping List, My Fridge) that fills the screen between the header and the bottom bar; each tile is a live preview and opens its page. Foods has a rotating stat (never the same twice in a row) and a macro ring (tap a segment: a bubble with the count, 2 s, others dim). No floating buttons; a bigger scan button top right. Sections renamed: Foods, Meals, Recipes, Supps, Shopping List, My Fridge.
+- **Gym Buddy home is a bento grid**: Workouts (most-trained muscles from your saved workouts, least-trained in amber), Progress (rotating stat + 8-week volume line), RECOVERY+ (body only, front and back slide every 5 s), Week Planner (day pills, Total Gym Sessions, Gym / Rest or workout names with a marquee for today's long name). Start Workout stays as the floating pill.
+- Both homes: centred title with today's date, streak bubble top left; they scroll only when they don't fit (small phones, larger text).
+- **Streak bubble** on My Food Log, Food Library and Gym Buddy; tap it for the streak history with a 6-week calendar of trained days.
+- **My Food Log**: the top (gym-day line + hero card) stays put and only the Eaten list scrolls; slimmer hero; the gym-day card is one slim line (Gym Day with Start / Skip, or Rest Day; long press also skips). The old "Gym Today" label is gone.
+- **Live workout**: the L | R pill is a plain on / off switch (no Left Only / Right Only chooser).
+- **Add Exercise search**: no AutoFill Contact; the search bar stays above the keyboard, results slide up over the picker, one tap adds, long press selects several with Done top right, Done on the keyboard slides everything back.
+- **Shopping List add box** ranks foods you bought before (with your usual pack and count), then foods you log, then your other foods, then the built-in list; a plain text item can be saved as a food after you tick it.
+- **Food Coach**: decides chat or log first (no food card for small talk), one Greek + English filler-word list, Greek units (`γ`, `γρ.`, `γραμμάρια`, `κιλό`…) attached or not, Greek aliases (μακαρόνια → pasta, κιμάς → beef mince…), "yesterday / χθες" logs to yesterday, "takeaway / παρήγγειλα" = a restaurant portion. Regression test: `250γ κιμάς μοσχάρι και 250γ μακαρόνια` offline gives 250 g beef mince + 250 g pasta.
+- **Look**: tab bars without a border (slightly lighter fill); a thinner outline on the selected pill.
+- **Performance** (nothing looks different): the selector knob moves with transform only and is placed once per tap (resizes debounced); blur only on the bottom bar (paused while its marker slides) and one open sheet; the rest timer loop, Recovery slide and planner marquee stop when hidden or off screen; home tiles are rewritten only when their content changed.
+- Tests: `tools/bento-e2e.js` (new, run by `check.js --boot`), new cases in `tools/expick-e2e.js`, `tools/food-coach-e2e.js` and `tools/food-coach-test.js`.

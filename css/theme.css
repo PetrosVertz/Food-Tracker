@@ -34,7 +34,7 @@
   /* main selector pill (dark: white pill, accent italic letters with a thin dark outline) */
   --t-mp-bg:linear-gradient(180deg,#ffffff 0%,#eceef0 100%);
   --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.3);
-  --t-mp-text:var(--t-accent); --t-mp-stroke:2.4px #0b0d0f;
+  --t-mp-text:var(--t-accent); --t-mp-stroke:1.2px #0b0d0f;
   /* secondary selector (quiet grey) */
   --t-sp-bg:#34373b; --t-sp-shadow:inset 0 0 0 1px #44484d; --t-sp-text:#ffffff;
 
@@ -122,7 +122,7 @@ button:not(.fab):active{transform:scale(.96);opacity:.85}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s,transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
 .mpill>button.hide,.seg>button.hide{display:none}
 .mpill>.knob,.seg>.knob,.rail>.knob{position:absolute;top:0;left:0;width:0;height:0;z-index:0;pointer-events:none;border-radius:var(--r-pill);opacity:0;
-  transition:transform .26s cubic-bezier(.3,1.3,.6,1),width .26s cubic-bezier(.3,1.3,.6,1),height .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}
+  transition:transform .26s cubic-bezier(.3,1.3,.6,1),opacity .15s}   /* 0.8: transform + opacity only (size is written, never animated) */
 /* main: white pill (dark) / near-black pill (light); the chosen word is bold italic accent with a thin dark outline */
 .mpill>.knob{background:var(--t-mp-bg);box-shadow:var(--t-mp-shadow)}
 .mpill>button.on{color:var(--t-mp-text)!important;font-weight:var(--w-bold);font-style:italic;-webkit-text-stroke:var(--t-mp-stroke);paint-order:stroke fill}
@@ -789,7 +789,7 @@ body.has-coachpill #fab{right:var(--cpr)!important}
 body.noai :is(button,label,a,[role="button"]):is(.aiafter,.coachpill,.coachbub,[data-ai],:has(.aiafter,.aibadge,.aib)):not(#ovSAI *,#ovSetup *,#toast *){opacity:.42;filter:grayscale(1)}
 @media (prefers-reduced-motion: reduce){ #ovCoach.open .sheet.coachwin{animation:coachFade .2s ease-out both!important} #ovCoach.closing .sheet.coachwin{animation:coachFadeOut .2s ease-in both!important} #ovCoach,#ovCoach .sheet.coachwin,.coachbub{transition:none!important} #fab{transition:none} .coachpill.cghost,.coachpill.cghost>*{transition:opacity .12s;transform:none} }
 /* 0.7.9 shell: profile photo — the Profile tab shows your photo (or initial) in a circle; its bubble becomes a round ring */
-.rail>.knob{border-radius:50%;will-change:transform;transition:transform .34s cubic-bezier(.45,0,.2,1),opacity .15s}   /* 0.7.9.2: one soft ease-in-out glide, no bounce, transform only */
+.rail>.knob{border-radius:50%;transition:transform .34s cubic-bezier(.45,0,.2,1),opacity .15s}   /* 0.7.9.2: one soft ease-in-out glide, no bounce, transform only */
 .rail .avimg,.rail .avini{width:36px;height:36px;border-radius:50%;display:block;object-fit:cover}   /* 0.7.9.1: a little bigger, so the ring of the 44 px marker around it is slim */
 .avini{display:flex!important;align-items:center;justify-content:center;background:var(--t-card2);color:var(--t-text);font-size:15px;font-weight:var(--w-bold);font-style:normal}
 .rail>button.on .avini{background:var(--t-card)}
@@ -1247,3 +1247,183 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* Social Hub: the Friends spot (dashed, coming with accounts) */
 .pffr{padding-top:var(--s3)}
 .pffr .pfav{width:60px;height:60px;color:var(--t-muted);border:1.5px dashed var(--t-line);background:none}
+
+/* ======================= 0.8 (24 Nov): bento homes (Food Library, Gym Buddy) ======================= */
+/* The grid fills the screen between the header and the bottom bar (a small gap above the bar; on Gym Buddy above the Start Workout pill).
+   Rows grow from their content up (minmax(min-content, …fr)), so when it does not fit (iPhone SE, larger text) the page simply scrolls. */
+:root{--t-dairy:#e6e2d6;--bt-hi:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 42%)}
+:root[data-theme="light"]{--t-dairy:#a89a74;--bt-hi:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0) 42%)}
+section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;padding-bottom:calc(64px + max(24px, env(safe-area-inset-bottom) - 10px) + 10px)!important}
+#pgGym.bentopg{padding-bottom:var(--fabclear,calc(64px + max(24px, env(safe-area-inset-bottom) - 10px) + 86px))!important}
+.bentopg>*{flex:0 0 auto}
+.bentopg #fHub,.bentopg #gHub{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.bentopg #fHub.hide,.bentopg #gHub.hide{display:none}
+.bento{flex:1 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:2px}
+.fbento{grid-template-rows:minmax(min-content,196fr) minmax(min-content,140fr) minmax(min-content,140fr) minmax(min-content,118fr)}
+.gbento{grid-template-rows:minmax(min-content,189fr) minmax(min-content,189fr) minmax(min-content,162fr)}
+.bt-foods,.bt-wide{grid-column:1/-1}
+.bentofree #fHub,.bentofree #gHub,.bentofree .bento{flex:0 0 auto}
+.bentofree .bento{grid-template-rows:none}
+#ghLib{grid-column:1;grid-row:1} #ghProg{grid-column:1;grid-row:2} #ghRec{grid-column:2;grid-row:1/3} #ghWeek{grid-column:1/-1;grid-row:3}
+.bt{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;padding:12px var(--s4) 10px;overflow:hidden;cursor:pointer;color:var(--t-text);text-align:left;
+  background:var(--bt-hi),var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);box-shadow:var(--t-shadow);
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:transform .12s cubic-bezier(.3,1.3,.6,1),opacity .12s}
+.bt:active{transform:scale(.97)}
+.bt:focus-visible{outline:2px solid var(--t-accent);outline-offset:2px}
+.bt.off{opacity:.45}
+.bth{display:flex;align-items:center;gap:var(--s2);min-width:0;height:20px}
+.bth>b{font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btic{display:flex;color:var(--t-muted);flex:0 0 auto}
+.btr{margin-left:auto;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);white-space:nowrap;flex:0 0 auto}
+.btr b{color:var(--t-text);font-weight:800;font-style:italic;margin-left:2px}
+.bthero{display:flex;align-items:baseline;gap:var(--s2);min-width:0}
+.btnum{font-size:var(--fs-hero);font-weight:800;font-style:italic;letter-spacing:-.6px;line-height:1}
+.bthero>span,.btsub{line-height:1.2;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
+.btstat{display:flex;align-items:baseline;gap:6px;min-width:0}
+.btstat b{color:var(--t-accent-ink,var(--t-accent));font-size:var(--fs-title);font-weight:var(--w-bold);font-style:italic;white-space:nowrap}
+.btstat span{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btstat.big{flex-direction:column;align-items:flex-start;gap:2px}
+.btstat.big b{font-size:var(--fs-clock);font-weight:800;letter-spacing:-.5px;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.btstat.big span{max-width:100%}
+.btempty{margin:auto 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);line-height:1.35}
+.btname{font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto}
+.btlow{line-height:1.2;font-style:normal;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-warm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btbars{display:flex;flex-direction:column;gap:5px}
+.btbar>span{display:flex;justify-content:space-between;gap:var(--s2);font-size:var(--fs-label);font-weight:var(--w-med);line-height:1.2}
+.btbar em{font-style:normal;color:color-mix(in srgb,var(--t-text) 80%,var(--t-muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.btbar b{font-weight:var(--w-bold);font-style:italic;flex:0 0 auto}
+.btbar>i{display:block;height:5px;margin-top:3px;border-radius:3px;background:var(--t-card2);overflow:hidden}
+.btbar u{display:block;height:100%;border-radius:3px;background:color-mix(in srgb,var(--t-text) 88%,var(--t-card));transform-origin:0 50%}
+.btbar.acc u{background:var(--t-accent)}
+.btringrow{display:flex;align-items:center;gap:10px;min-width:0}
+.btring{position:relative;width:44px;height:44px;flex:0 0 44px}
+.btring svg{display:block}
+.btring circle{fill:none;stroke-width:5;stroke-linecap:round}
+.btring .trk{stroke:var(--t-card2)} .btring.acc .val{stroke:var(--t-accent)} .btring.ok .val{stroke:var(--t-done)}
+.btring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-label);font-weight:800;font-style:italic}
+.btlist{display:flex;flex-direction:column;gap:2px;margin-top:auto;min-width:0}
+.btlist span{position:relative;padding-left:11px;font-size:var(--fs-label);font-weight:var(--w-med);color:color-mix(in srgb,var(--t-text) 80%,var(--t-muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btlist span::before{content:'';position:absolute;left:1px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:var(--t-muted)}
+/* Foods: text on the left, the macro ring on the right */
+#fhFoods{flex-direction:row;align-items:center;gap:var(--s3)}
+#fhFoods .btcol{flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;gap:var(--s2)}
+#fhFoods .bthero{margin-top:auto}
+#fhFoods .btstat:last-child{margin-bottom:auto}
+#fhFoods .btstat{flex-direction:column;align-items:flex-start;gap:2px;margin-bottom:2px}
+#fhFoods .btstat span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fring{position:relative;width:116px;height:116px;flex:0 0 116px}
+.fring svg{display:block;width:100%;height:100%;overflow:visible}
+.fring circle{fill:none;stroke-width:12}
+.fring .trk{stroke:var(--t-card2)}
+.fring .seg{stroke-linecap:round;pointer-events:stroke;cursor:pointer;transition:opacity .2s}
+.fring .seg.dim{opacity:.28}
+.s-p{stroke:var(--t-p)} .s-c{stroke:var(--t-c)} .s-f{stroke:var(--t-f)}
+.fringt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1.25}
+.fringt b{font-size:11px;font-weight:var(--w-bold)} .fringt small{font-size:11px;font-weight:var(--w-med);color:var(--t-muted)}
+.fbub{position:absolute;right:-2px;bottom:calc(100% - 4px);z-index:2;white-space:nowrap;padding:6px 11px;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-bold);
+  color:var(--k);background:color-mix(in srgb,var(--k) 18%,var(--t-sel));box-shadow:0 0 0 1px color-mix(in srgb,var(--k) 35%,transparent),0 6px 16px rgba(0,0,0,.35);transform-origin:85% 100%;pointer-events:none}
+.fbub.k-p{--k:var(--t-p)} .fbub.k-c{--k:var(--t-c)} .fbub.k-f{--k:var(--t-f)}
+/* Supps: 7 day dots (done green, missed dark, today an accent ring, half filled when partly done) */
+.sdots{display:flex;justify-content:space-between;margin-top:auto}
+.sdot{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sdot i{display:block;width:14px;height:14px;border-radius:50%;background:var(--t-card2)}
+.sdot.done i{background:var(--t-done)}
+.sdot.part i{background:linear-gradient(90deg,var(--t-done) 50%,var(--t-card2) 50%)}
+.sdot.today i{box-shadow:inset 0 0 0 2px var(--t-accent);background:transparent}
+.sdot.today.part i{background:linear-gradient(90deg,var(--t-accent) 50%,transparent 50%)}
+.sdot.today.done i{background:var(--t-done)}
+.sdot small{font-size:10px;font-weight:var(--w-med);color:var(--t-muted)} .sdot.today small{color:var(--t-text)}
+/* My Fridge: stacked bar by kind + legend */
+.fstack{display:flex;gap:3px;height:10px;margin-top:auto}
+.fstack i,.flegend i{background:var(--t-p)}
+.fstack i{border-radius:5px}
+.k-p{--kc:var(--t-p)} .k-d{--kc:var(--t-dairy)} .k-c{--kc:var(--t-c)} .k-v{--kc:var(--t-done)}
+.fstack i[class],.flegend i[class]{background:var(--kc)}
+.flegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-label);font-weight:var(--w-med);color:color-mix(in srgb,var(--t-text) 80%,var(--t-muted))}
+.flegend span{display:inline-flex;align-items:center;gap:6px}
+.flegend i{display:inline-block;width:7px;height:7px;border-radius:50%}
+/* RECOVERY+: only the body; front and back slide every 5 s (gym.js ghRecFlip) */
+.ghfigs{position:relative;flex:1;min-height:150px}
+.ghfig{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ghfig.off{opacity:0;pointer-events:none}
+.ghfig svg{height:100%!important;width:auto!important;max-width:100%;max-height:100%}
+.ghdots{display:flex;justify-content:center;gap:6px}
+.ghdots i{display:block;width:6px;height:6px;border-radius:50%;background:var(--t-sel)}
+.ghdots i.on{background:var(--t-text)}
+/* Progress: the 8-week volume line */
+.ghvol{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.ghline{display:block;width:100%;height:auto;overflow:visible}
+.ghline .base{stroke:var(--t-line);stroke-width:1}
+.ghline .ln{fill:none;stroke:var(--t-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ghline .dot{fill:var(--t-accent)}
+/* Week Planner: seven day pills */
+.wpdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:auto}
+.wpd{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.wpd small{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
+.wpd.today small{color:var(--t-text)}
+.wpd>i{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:var(--t-card2);color:var(--t-muted)}
+.wpd.gym>i{background:var(--t-sel);color:var(--t-text)}
+.wpd.done>i{background:var(--t-done);color:var(--t-done-ink)}
+.wpd.today>i{box-shadow:inset 0 0 0 2px var(--t-accent);color:var(--t-accent-ink,var(--t-accent))}
+.wpd.today.done>i{color:var(--t-done-ink)}
+.wpd>i u{display:block;width:10px;height:2px;border-radius:1px;background:var(--t-tick-edge)}
+.wpd em{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-align:center;font-style:normal;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-text)}
+.wpd.rest em{color:var(--t-muted)} .wpd.today em{font-weight:var(--w-bold)}
+.wpd em span{display:inline-block}
+.wpd em.cut,.wpd em.marq{text-align:left}
+.wpd em.cut{-webkit-mask-image:linear-gradient(90deg,#000 65%,transparent);mask-image:linear-gradient(90deg,#000 65%,transparent)}
+.wpd em.marq{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.wpd em.marq span{animation:wpMarq 7s ease-in-out infinite alternate}
+@keyframes wpMarq{0%,22%{transform:translate3d(0,0,0)}78%,100%{transform:translate3d(var(--mq,0),0,0)}}
+/* header on a bento home: centred title, date under it, streak bubble left, bigger scan button right */
+section.page.bentopg>header{height:calc(var(--hpad) + 70px)}
+section.page.bentopg>header.longtitle .left h1{font-size:22px!important}
+section.page>header .hdate{position:absolute!important;left:0;right:0;top:calc(var(--hpad) + 42px);margin:0;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);pointer-events:none;white-space:nowrap}
+.bentopg #fScanBtn{width:48px;height:48px;flex-basis:48px;border-radius:50%;background:var(--t-card)!important;border:1px solid var(--t-glass-edge)!important}
+.stkbub{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px 0 8px;border-radius:var(--r-pill);flex:0 0 auto;
+  background:var(--t-card)!important;border:1px solid var(--t-glass-edge)!important;color:var(--t-text);cursor:pointer}
+.stkbub .stkbi{display:flex;color:var(--t-accent-ink,var(--t-accent))}
+.stkbub b{font-size:var(--fs-body);font-weight:800;font-style:italic}
+.stkbub:empty{display:none}
+@media (prefers-reduced-motion: reduce){ .wpd em.marq span{animation:none} }
+
+/* ======================= 0.8 (24 Nov): My Food Log ======================= */
+/* the top (gym-day line + hero card) is pinned; only the Eaten list scrolls (today.js todayFit adds .pinned when there is room) */
+#pgToday.pinned{display:flex;flex-direction:column;overflow:hidden!important;padding-bottom:0!important}
+#pgToday.pinned>*{flex:0 0 auto}
+#pgToday.pinned>#dEatenWrap{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(190px + env(safe-area-inset-bottom));margin:0 -4px;padding-left:4px;padding-right:4px}
+/* a slimmer hero card */
+#pgToday .macrocard{padding:var(--s3) var(--s4)!important;margin-top:var(--s2)}
+#pgToday .mrow.hero{margin-top:var(--s2)}
+#pgToday .advwrap{margin-top:var(--s2);padding-top:var(--s1)}
+/* the gym-day card is one slim line (about 44 px): icon + Gym Day / Rest Day, then Start and Skip */
+#dBlocks .remind.gdline{height:44px;min-height:0;padding:0 6px 0 var(--s3)!important;margin:var(--s2) 0 0;align-items:center;gap:var(--s2);animation:none;container-type:inline-size}
+#dBlocks .gdline .gdlab{flex:1;min-width:0;text-align:left;font-size:var(--fs-body);font-weight:var(--w-bold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dBlocks .gdline.rest .gymdayic{color:var(--t-muted)}
+#dBlocks .gdline .gymdaybtns{gap:2px}
+#dBlocks .gdline .gymstartbtn{height:32px;padding:0 14px;border:0;background:var(--t-accent);color:var(--t-on);font-size:var(--fs-label);font-weight:var(--w-bold)}
+#dBlocks .gdline .skipbtn{height:32px;padding:0 10px;margin:0;border:0!important;background:none!important;color:var(--t-muted);font-size:var(--fs-label);font-weight:var(--w-med)}
+@container (max-width:250px){ #dBlocks .gdline [data-skipday]{display:none} }
+/* streak history calendar (streak.js stkCalendar) */
+.stkcalg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:var(--s2) 0;text-align:center}
+.stkcalg small{font-size:var(--fs-label);color:var(--t-muted);font-weight:var(--w-med)}
+.stkcalg i{font-style:normal;display:flex;align-items:center;justify-content:center;height:32px;border-radius:50%;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);background:var(--t-card2)}
+.stkcalg i.on{background:var(--t-done);color:var(--t-done-ink);font-weight:var(--w-bold)}
+.stkcalg i.today{box-shadow:inset 0 0 0 2px var(--t-accent)}
+.stkcalg i.fut{opacity:.35}
+
+/* ======================= 0.8 (24 Nov): look tweaks ======================= */
+/* tab bars / main selectors: no border, just a slightly lighter dark fill (Light keeps its own) */
+:root{--t-tabfill:#202124}
+:root[data-theme="light"]{--t-tabfill:var(--t-card2)}
+.mpill,.seg,.pcar{background:var(--t-tabfill)!important;border:0!important;box-shadow:none!important}
+.pkseg{background:var(--t-tabfill)!important;border:0!important;box-shadow:none!important}
+:root[data-theme="light"] .pkseg{background:#e1e3e6!important}
+
+/* ======================= 0.8 (24 Nov): performance (nothing looks different) ======================= */
+/* the bottom bar's blur pauses while its marker slides (ui.js pillSync); the tint is a touch stronger meanwhile so it reads the same */
+.rail.sliding{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:color-mix(in srgb,var(--t-bar,var(--t-glass)) 82%,var(--t-bg))!important}
+/* blur only on the bottom bar and one open sheet: the header icon buttons and the swipe strip are solid tints */
+.iconbtn{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.swipetip{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:linear-gradient(to bottom,color-mix(in srgb,var(--t-bg) 0%,transparent),color-mix(in srgb,var(--t-bg) 78%,transparent))!important}
+html.appbg *,html.appbg *::before,html.appbg *::after,.offscr,.offscr *{animation-play-state:paused!important}

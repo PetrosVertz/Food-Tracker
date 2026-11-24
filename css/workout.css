@@ -345,17 +345,20 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 #ovExPick.pkselect #pkBody{padding-bottom:170px}
 #ovExPick.pkselect .pktoast{bottom:calc(136px + env(safe-area-inset-bottom))}
 /* Petros: while there is text in the search box, the filters step aside and the box sits on top; the cards fill the screen below it */
-#ovExPick .pktop{order:-2} #ovExPick .pksearch{order:-1}
 #ovExPick.pksearching .pkreg,#ovExPick.pksearching .pkfil{display:none}
-#ovExPick.pksearching .pksearch{position:relative;bottom:auto;padding:10px calc(13px + var(--pkx)) 8px;background:var(--pk-bg);border-bottom:1px solid var(--pk-line)}
-#ovExPick.pksearching #pkBody{padding-bottom:calc(28px + env(safe-area-inset-bottom));animation:pkSrIn .22s ease-out both}
-#ovExPick.pksearching.pkselect #pkBody{padding-bottom:96px}
-#ovExPick.pksearching .pktoast{bottom:calc(14px + env(safe-area-inset-bottom))}
+/* 0.8 (24 Nov): typing keeps the search bar docked above the keyboard; the results panel (#pkBody) slides up (expick.js pkClr) and fills everything above it */
+#ovExPick.pksearching .pktop{display:none}
+#ovExPick.pksearching #pkBody{padding-top:calc(14px + var(--hpad,0px));padding-bottom:calc(84px + env(safe-area-inset-bottom));background:var(--pk-bg);will-change:transform}
+#ovExPick.pksearching.kb #pkBody{padding-bottom:76px}
+#ovExPick.pksearching .pkselbar{display:none}
+.pkrtop{grid-template-columns:minmax(0,1fr) minmax(0,max-content) max-content}
+.pkdone{height:34px;padding:0 16px;border:0;border-radius:var(--r-pill,999px);background:var(--t-accent);color:var(--t-on);font-weight:700;font-size:15px;white-space:nowrap}
+#ovExPick.pksearching .pktoast{bottom:calc(84px + env(safe-area-inset-bottom))}
 #ovExPick.pksearching .pkselbar{bottom:calc(12px + env(safe-area-inset-bottom))}
 #ovExPick.pksearching.pkselect .pktoast{bottom:calc(72px + env(safe-area-inset-bottom))}
 #ovExPick.pksearching.kb .pkselbar{bottom:10px}
 @keyframes pkSrIn{from{opacity:.4;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.pkcard.pressing{transform:none}.pkselbar{transition:none}#ovExPick.pksearching #pkBody{animation:none}}
+@media (prefers-reduced-motion:reduce){.pkcard.pressing{transform:none}.pkselbar{transition:none}#ovExPick.pksearching #pkBody{will-change:auto}}
 /* Create Workout (Petros): the weights note under each exercise's name; the cards just added glow once */
 .tpcard .tph .ttl small.tpkg{display:block;margin-top:2px;font-size:11px;color:var(--t-muted)}
 .tpcard.tpnew{animation:tpNew 1.6s ease-out both}

@@ -93,9 +93,11 @@ const tabOf = h => h === 'profile' || h === 'settings' ? 'profile' : h === 'toda
 document.querySelectorAll('.overlay .sheet').forEach(sh => { const ov = sh.parentElement.id; if(ov === 'ovLang' || ov === 'ovSession' || ov === 'ovAsk' || ov === 'ovPick') return;
   const b = document.createElement('button'); b.className = 'sback'; b.type = 'button'; b.setAttribute('aria-label', t('back')); b.dataset.ta = 'back'; b.innerHTML = BACK_SVG; b.addEventListener('click', goBack); sh.prepend(b); });
 
-$('gHubTiles').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if(b) go(b.dataset.sec); });
+$('gBento').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if(b) go(b.dataset.sec); });
+$('gBento').addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-sec]')){ e.preventDefault(); e.target.click(); } });
 
-$('gMiniRec').addEventListener('click', () => go('gym-rec'));
+// 0.8: the streak bubble (top left of the main pages) opens the streak history
+document.addEventListener('click', e => { if(e.target.closest('.stkbub')){ Phone.haptic(); openStreak(); } });
 
 $('gBackBtn').addEventListener('click', goBack);
 

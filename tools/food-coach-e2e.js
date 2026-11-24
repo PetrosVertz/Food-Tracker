@@ -159,6 +159,20 @@ function answer(prompt){
   if (L.can || (await addBtn()) !== true) fail('an unknown food must keep Add off'); else ok('unknown food: "Not Found" row keeps Add off, nothing silently skipped');
   if (L.rows[0].kcal != null) fail('unknown food must not get made-up values (not 0 kcal either)');
   await page.evaluate(() => { const x = FC[logQPrev.id]; document.querySelector(`#coachList [data-mid="${logQPrev.id}"] [data-qrm]`).click(); });
+  // 0.8 regression (24 Nov): Greek amounts with the AI offline: two rows, 250 g beef mince + 250 g pasta (not 100 g mince and "γ μακαρόνια: Not found")
+  r = await send('250γ κιμάς μοσχάρι και 250γ μακαρόνια'); L = await last();
+  { const okRows = L && L.rows.length === 2 && /mince|κιμά/i.test(L.rows[0].name) && L.rows[0].g === 250 && /pasta|μακαρ|ζυμαρ/i.test(L.rows[1].name) && L.rows[1].g === 250 && L.rows.every(x => x.src !== 'none');
+    if(!okRows) fail('Greek amounts offline: ' + JSON.stringify(L && L.rows)); else ok(`Greek amounts offline: ${L.rows.map(x => `${x.name} ${x.g} g [${x.src}]`).join('; ')}`); }
+  await page.evaluate(() => { const m = logQPrev; m.items.slice().forEach(() => { const b = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qrm]`); if(b) b.click(); }); });
+  // filler words and context: "χθες παρήγγειλα ένα πιάτο μακαρόνια με λίγες πατάτες τηγανητές" = pasta + fries, for yesterday, a restaurant portion
+  r = await send('χθες παρήγγειλα ένα πιάτο μακαρόνια με λίγες πατάτες τηγανητές'); L = await last();
+  { const d = await page.evaluate(() => ({ day: logQPrev.day, y: addDays(todayKey(), -1) }));
+    if(!L || L.rows.length !== 2 || !L.rows.every(x => x.src !== 'none') || d.day !== d.y) fail('fillers / yesterday: ' + JSON.stringify({ rows: L && L.rows, d }));
+    else ok(`fillers + yesterday: ${L.rows.map(x => `${x.name} ${x.g} g`).join('; ')} → ${d.day}`); }
+  await page.evaluate(() => { const m = logQPrev; m.items.slice().forEach(() => { const b = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qrm]`); if(b) b.click(); }); });
+  // just talking with the AI offline: an answer, no food card
+  { const c0 = (await page.evaluate(() => document.querySelectorAll('#coachList .lqcard').length)); r = await send('how are you doing today');
+    if(r.cards !== c0 || !r.text) fail(`just talking: ${r.cards - c0} new card(s), text "${r.text}"`); else ok(`just talking: no card, answer "${r.text.slice(0, 60)}…"`); }
   AI.mode = 'ok';
   AI.mode = 'slow'; await page.evaluate(() => AIProvider.coolReset()); r = await send('slow model test food');
   if (r.ms > 20000) fail(`slow provider: answer took ${r.ms} ms (budget 16 s)`); else ok(`slow / busy provider: offline answer after ${r.ms} ms (16 s budget, not minutes)`);

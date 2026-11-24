@@ -40,6 +40,8 @@ config → platform (`store`, `backup`, `phone`, `ai-provider`, `ai-usage`, `ai`
 | Navigation, sheets, themes, icons, drag | shell | `js/ui.js` › `route()`, `open()`, `close()`, `svgIcon()`, `applyTheme()` | ui, settings (device only) | everything | boot, `tools/overlap.js` |
 | Offline cache / updates | shell | `sw.js` | — | — | `tools/sw-test.js` |
 | Time display (12 / 24 h) | shell | `js/ui.js` › `fmtClock()`, `clock24()`, `syncClocks()`; setting page in `js/wire/08-settings-boot.js` › `drawTimeFmt()` | ui.timeFmt (device only; stored times stay "HH:MM") | planner, Gym/Rest pill, carb windows, workout alerts | boot |
+| Bento homes (0.8): Food Library + Gym Buddy home grids, header date + streak bubble, fit / scroll fallback | foods (Food Library tiles), gym (Gym tiles), shell (layout) | `js/food.js` › `renderFoodHub()`, `foodClass()`, `fhStats()`; `js/gym.js` › `renderGymHub()`, `renderGymWeek()`, `ghMuscleSets()`, `ghRecFlip()`; shared `js/ui.js` › `hubHead()`, `bentoFit()`, `bentoRise()`, `setHTML()`; streak bubble `js/streak.js` › `drawStkBubs()`, `stkCalendar()`; ring bubble in `js/wire/02-food.js` › `fhBubble()` | ui.fhStat, ui.gpStat (device: last rotating stat) | — (read-only over foods, meals, dayLog, supps, suppLog, fridge, groc, tpls, sessions, gymPlan) | `tools/bento-e2e.js` |
+| My Food Log pinned top + slim gym-day line (0.8) | log / gym | `js/today.js` › `todayFit()`; `js/gym.js` › `renderTodayRec()` | — | — | `tools/bento-e2e.js` |
 | Texts (EN + GR) | each topic | `js/data/strings.js` (the last `Object.assign` that sets a key wins) | — | — | `check.js` strings |
 
 ## Planned owners (not built — do not create files for them until their prompt says so)
