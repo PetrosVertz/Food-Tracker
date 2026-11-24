@@ -1456,7 +1456,7 @@ html.appbg *,html.appbg *::before,html.appbg *::after,.offscr,.offscr *{animatio
 /* "Eaten" + its arrow sit right under the hero card, and the foods fade out right at the title instead of a gap below it */
 #pgToday #dEatenFold>summary{margin-top:0}
 #pgToday.pinned #dEatenWrap{margin-top:calc(var(--s2) * -1)}
-#pgToday.pinned #dScroll{top:var(--sumh,36px);padding-top:2px;-webkit-mask-image:linear-gradient(#0000 0,#000 6px);mask-image:linear-gradient(#0000 0,#000 6px)}
+#pgToday.pinned #dScroll{top:var(--sumh,36px);padding-top:2px;-webkit-mask-image:linear-gradient(#0000 0,#000 3px);mask-image:linear-gradient(#0000 0,#000 6px)}
 /* the pills slide down INTO the navigation bar (they are layered behind it) and fade out as they reach it; coming back they rise out of the bar with the same spring */
 :is(#fab,#fab2,.coachpill){transition:translate .42s cubic-bezier(.34,1.56,.64,1),opacity .12s .05s}
 body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 62px;opacity:0;pointer-events:none;transition:translate .36s cubic-bezier(.4,0,.2,1),opacity .14s .18s}
@@ -1474,4 +1474,4 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 /* Logged Foods title: starts where the hero card's corner curve ends (so the eye isn't caught under the curve), the arrow mirrors it on the right;
    the foods scrolling up now disappear closer to the title */
 #pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{padding-left:20px;padding-right:20px}
-#pgToday.pinned #dScroll{top:calc(var(--sumh,36px) - 2px)}
+#pgToday.pinned #dScroll{top:calc(var(--sumh,36px) - 9px)}

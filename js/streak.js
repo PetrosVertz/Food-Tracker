@@ -228,10 +228,10 @@ const STK_BUB_ICON = () => `<svg width="22" height="22" viewBox="0 0 24 24" fill
 function drawStkBubs(){ const bs = document.querySelectorAll('.stkbub'); if(!bs.length) return; let v; try{ v = Streak.view(); }catch(e){ return; }
   const html = `<span class="stkbi">${flameIcon(v.total, 22)}</span><b>${v.total}</b>`, lab = streakLabel(v);
   bs.forEach(b => { if(b.innerHTML !== html) b.innerHTML = html; b.setAttribute('aria-label', lab); }); }
-// 0.8: the streak history: the last six weeks, Monday to Sunday, every day you trained in green (today has a ring)
-function stkCalendar(){ const days = Streak.qualDays(sessions), tk = todayKey(), w0 = Streak.add(Streak.monday(tk), -35), wd = t('wdShort').split(' ');
+// 0.8: the streak history: the last four weeks, Monday to Sunday, every day you trained in green (today has a ring)
+function stkCalendar(){ const days = Streak.qualDays(sessions), tk = todayKey(), w0 = Streak.add(Streak.monday(tk), -21), wd = t('wdShort').split(' ');
   const head = [1, 2, 3, 4, 5, 6, 0].map(d => `<small>${esc((wd[d] || '').charAt(0))}</small>`).join('');
-  const cells = Array.from({ length: 42 }, (_, i) => { const d = Streak.add(w0, i), on = days.has(d), fut = d > tk;
+  const cells = Array.from({ length: 28 }, (_, i) => { const d = Streak.add(w0, i), on = days.has(d), fut = d > tk;
     return `<i class="${on ? 'on' : ''}${d === tk ? ' today' : ''}${fut ? ' fut' : ''}">${+d.slice(8)}</i>`; }).join('');
   return `<div class="stkcard stkcal"><div class="stkrowt"><b>${esc(t('stkCal'))}</b></div><div class="stkcalg">${head}${cells}</div><small>${esc(t('stkCalSub'))}</small></div>`; }
 function openStreak(intro){ drawStreak(intro); $('toast').classList.remove('show'); open('ovStreak');
@@ -248,14 +248,17 @@ function drawStreak(intro){
   const chal = `<div class="stkcard stkchal${chOn ? ' earned' : ''}"><div class="stkrowt"><b>${esc(t('stkChal'))}</b>${chOn ? `<span class="stkchip stk-met">${esc(t('stkChalEarned'))}</span>` : `<span class="stkchn">${esc(t('stkChalN', { n: ch.n, m: ch.of }))}</span>`}</div>
       ${chOn ? '' : `<div class="stkbar" role="progressbar" aria-valuemin="0" aria-valuemax="${ch.of}" aria-valuenow="${ch.n}"><i style="transform:scaleX(${ch.n / ch.of})"></i></div><small>${esc(t('stkChalPair', { a: stkDate(ch.from), b: stkDate(ch.to) }))}</small>`}
       <small>${esc(chOn ? t('stkChalEarnedSub', { d: stkDate(ch.claimedAt) }) : t('stkChalSub'))}</small></div>`;
-  const how = `<details class="stkhow"${firstTime ? ' open' : ''}><summary>${esc(t('stkHow'))}</summary><ul>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<li>${esc(t('stkHow' + i))}</li>`).join('')}</ul></details>`;
-  box.innerHTML = `<div class="stkhead stk-${v.state}"><span class="stkfl">${flameIcon(v.total, 40)}</span><span class="stknum"><b>${v.total}</b><small>${esc(t('pfStreak'))}</small></span><span class="stkchip stk-${v.state}">${esc(t(chip))}</span></div>
-    <p class="stkline">${esc(streakLine(v, false))}</p>
+  const how = `<details class="stkhow"${firstTime ? ' open' : ''}><summary><span>${esc(t('stkHow'))}</span><i class="stkchev" aria-hidden="true">${svgIcon('chevD', 18, 2.4)}</i></summary><ul>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<li>${esc(t('stkHow' + i))}</li>`).join('')}</ul></details>`;
+  // layout (0.8): a centred header (flame + number, the label and status under it), Personal Best right under it, then the week, the four-week history,
+  // savers, the challenge and the how-to. The status sentence is shown only when it says something the week card does not (a lost / protected streak, a last chance).
+  const line = ['on', 'met'].includes(v.state) ? '' : streakLine(v, false);
+  box.innerHTML = `<div class="stkhead stk-${v.state}"><div class="stkbig"><span class="stkfl">${flameIcon(v.total, 34)}</span><b class="stkn">${v.total}</b></div><div class="stksub"><span>${esc(t('pfStreak'))}</span><span class="stkchip stk-${v.state}">${esc(t(chip))}</span></div></div>
+    <div class="stkcard stkbest"><span>${esc(t('stkBest'))}</span><b>${v.best}</b></div>
+    ${line ? `<p class="stkline">${esc(line)}</p>` : ''}
     ${v.on ? `<div class="stkcard stkweek"><div class="stkrowt"><b>${esc(t('stkWeek'))}</b><span>${esc(t('stkWeekOf', { d: w.done, t: w.target }))}</span></div><div class="stkcells">${cells}</div>
       <small>${esc(w.need ? t(w.open === 1 ? 'stkWeekNeed1' : 'stkWeekNeed', { n: w.need, d: w.open }) : t('stkWeekDone'))}${w.next !== w.target ? ' · ' + esc(t('stkWeekNext', { n: w.next })) : ''}</small></div>` : ''}
     ${stkCalendar()}
     ${savers}
-    <div class="stkcard stkbest"><span>${esc(t('stkBest'))}</span><b>${v.best}</b></div>
     ${chal}${how}`;
 }
 // once-only messages (a streak lost, protected, a last chance…): shown as one toast when the app opens or comes back; the rest are marked seen
