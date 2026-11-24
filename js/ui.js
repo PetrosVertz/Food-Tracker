@@ -94,7 +94,7 @@ function applyTheme(){
   set('--t-accent', L ? p[4] : p[2]); set('--t-on', L ? p[5] : p[3]); set('--t-knob-on', bestOn(L ? p[4] : p[2])); set('--t-accent-ink', L ? p[6] : p[2]);
   set('--t-toast-act', L ? (mono ? '#ffffff' : p[2]) : p[6]);              // toast is near-black in Light (bright accent), near-white in Dark (dark ink)
   set('--t-mp-text', mono ? (L ? '#ffffff' : '#0a0a0b') : p[2]);                 // the main pill keeps the bright accent (on black in Light)
-  set('--t-mp-stroke', !L && !mono ? '2.4px #0b0d0f' : '0');
+  set('--t-mp-stroke', !L && !mono ? '1.2px #0b0d0f' : '0');
   set('--t-ready', THEME_WARM.includes(p[0]) ? 'var(--t-done)' : 'var(--t-accent)');
   const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', L ? '#e2e3e6' : '#000000');
   pillsAll && pillsAll();

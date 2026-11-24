@@ -34,7 +34,7 @@
   /* main selector pill (dark: white pill, accent italic letters with a thin dark outline) */
   --t-mp-bg:linear-gradient(180deg,#ffffff 0%,#eceef0 100%);
   --t-mp-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.3);
-  --t-mp-text:var(--t-accent); --t-mp-stroke:2.4px #0b0d0f;
+  --t-mp-text:var(--t-accent); --t-mp-stroke:1.2px #0b0d0f;
   /* secondary selector (quiet grey) */
   --t-sp-bg:#34373b; --t-sp-shadow:inset 0 0 0 1px #44484d; --t-sp-text:#ffffff;
 
@@ -1411,3 +1411,11 @@ section.page>header .hdate{position:absolute!important;left:0;right:0;top:calc(v
 .stkcalg i.on{background:var(--t-done);color:var(--t-done-ink);font-weight:var(--w-bold)}
 .stkcalg i.today{box-shadow:inset 0 0 0 2px var(--t-accent)}
 .stkcalg i.fut{opacity:.35}
+
+/* ======================= 0.8 (24 Nov): look tweaks ======================= */
+/* tab bars / main selectors: no border, just a slightly lighter dark fill (Light keeps its own) */
+:root{--t-tabfill:#202124}
+:root[data-theme="light"]{--t-tabfill:var(--t-card2)}
+.mpill,.seg,.pcar{background:var(--t-tabfill)!important;border:0!important;box-shadow:none!important}
+.pkseg{background:var(--t-tabfill)!important;border:0!important;box-shadow:none!important}
+:root[data-theme="light"] .pkseg{background:#e1e3e6!important}
