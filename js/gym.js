@@ -473,7 +473,12 @@ function recMapNow(){ if(!_recMapV || Date.now() - _recMapAt > 30000){ _recMapV 
 function exSore(exId){ const mu = RecoveryCore.muOf(exById(exId)); if(!mu) return null; const r = RecoveryPlus.compute();
   const hs = Object.entries(mu).filter(([, pc]) => pc >= RecoveryCore.CFG.significant).map(([h]) => h).filter(h => r.tr.heads[h].state === 'recovering' || r.tr.heads[h].state === 'needs_rest');
   if(!hs.length) return null; hs.sort((a, b) => r.tr.heads[b].hours - r.tr.heads[a].hours); const v = r.tr.heads[hs[0]];
-  return { h: v.hours, st: RecoveryCore.legacySt(v.state), p: v.p, head: hs[0], heads: hs }; }
+  return { h: v.hours, st: RecoveryCore.legacySt(v.state), p: v.p, head: hs[0], heads: hs, cd: recCd(v) }; }
+// the ready countdown, said the same on every screen: a range while waiting ("16–22 h"), "Likely ready within N h" inside the window, "Likely ready" after it,
+// days when it is a first workout or far away. Rendered from the stored earliest / latest times, so it is right after foregrounding or offline and never negative.
+function recCd(v, now){ const c = RecoveryCore.countdown(v, now || Date.now());
+  return c.kind === 'range' ? t('recCdRange', { a: c.a, b: c.b }) : c.kind === 'within' ? t('recCdWithin', { n: c.n }) : c.kind === 'ready' ? t('recCdReady')
+    : c.kind === 'days' ? (c.a === c.b ? t(c.a === 1 ? 'recCdDay1' : 'recCdDayN', { a: c.a }) : t('recCdDays', { a: c.a, b: c.b })) : ''; }
 const recStateH = h => h > 24 ? 'low' : h > 0 ? 'mid' : 'ok';
 function recMap(){ return RecoveryPlus.legacyMap(); }
 // 0.7.7: a smooth gradient instead of stages: green (ready) → yellow (24 h left) → red (3 days or more left). The label still follows recStateH.
@@ -551,7 +556,7 @@ function renderRecovery(){
   clearInterval(REC_T); REC_T = sore.length ? setInterval(recTick, 60000) : 0;
 }
 const recTile = ([g, v]) => `<div class="rectile ${RecoveryCore.legacySt(v.state)}" data-rg="${g}" data-h="${v.hours}"><b class="rtn">${esc(recName(g, v))}</b><div class="rtpic">${recMuscleSVG(g)}</div>
-  <span class="rth">${gymIco('clock', 16, 2)}<b>${v.hours}</b><small>${t('recHrs')}</small></span></div>`;
+  <span class="rth">${gymIco('clock', 16, 2)}<b>${esc(recCd(v))}</b></span></div>`;
 // one insight at most; a tip shown on each of the last 3 days steps aside for a day (device memory, ui.recIns)
 function recInsight(r){
   const mem = (ui.recIns && typeof ui.recIns === 'object') ? ui.recIns : {}, tk = todayKey();
@@ -572,8 +577,8 @@ function recAdvanced(r, sore){
         sc && sc.pct != null ? t('recDTrend', { e: exName(top), s: (sc.pct >= 0 ? '+' : '') + Math.round(sc.pct) + '%' }) : top ? t('recDTrendNone') : '',
         x.reasons.includes('personal_faster') ? t('recPersFast') : x.reasons.includes('personal_slower') ? t('recPersSlow') : '',
         x.reasons.includes('unmapped_exercise_in_session') ? t('recDUnmapped') : ''].filter(Boolean);
-      return `<div class="radh"><b>${esc(ML(h))}</b> <small>${t({ needs_rest: 'recLow', recovering: 'recMid', ready: 'recReady' }[x.state] || 'recUnknown')}${x.hours ? ` · ${x.hours} ${t('recHrs')}` : ''}</small><ul>${li.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`; }).join('');
-    rows.push(`<details class="radrow"><summary>${esc(recName(g, v))}<small>${v.hours} ${t('recHrs')}</small></summary>${items}</details>`); });
+      return `<div class="radh"><b>${esc(ML(h))}</b> <small>${t({ needs_rest: 'recLow', recovering: 'recMid', ready: 'recReady' }[x.state] || 'recUnknown')}${x.state !== 'ready' && x.state !== 'unknown' ? ` · ${esc(recCd(x))}` : ''}</small><ul>${li.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`; }).join('');
+    rows.push(`<details class="radrow"><summary>${esc(recName(g, v))}<small>${esc(recCd(v))}</small></summary>${items}</details>`); });
   const a = r.nextA, why = a && a.limitingDetail && a.limitingDetail.length ? a.limitingDetail.slice(0, 4).map(l => t('recWhyRow', { m: ML(l.h), h: l.hours, n: l.primary || l.any })).join(' ') : a ? t('recWhyNone') : t('recWhyNoPlan');
   const sl = r.sleep, sleepTx = settings.recNoSleep ? t('recOff') : sl.status === 'unknown' ? t('recSleepNone') : sl.reasonCodes.includes('repeated_short_sleep') ? t('recSleepShort', { h: sl.avg7 || '–' })
     : sl.reasonCodes.includes('short_sleep_single') ? t('recSleepSingle', { h: sl.lastNightHours }) : t('recSleepOk', { h: sl.avg7 || sl.lastNightHours || '–' });
@@ -603,7 +608,7 @@ function recTick(){
   if([...box.children].some(el => +el.dataset.h !== tr.groups[el.dataset.rg].hours)){ const f = $('recFig'); if(f) f.innerHTML = recFigure(); }   // the body's colours move with the hours
   const gone = [];
   [...box.children].forEach(el => { const v = tr.groups[el.dataset.rg], st = RecoveryCore.legacySt(v.state); if(st === 'ok' || st === 'unk'){ gone.push(el); return; }
-    el.dataset.h = v.hours; el.querySelector('.rth b').textContent = v.hours;
+    el.dataset.h = v.hours; el.querySelector('.rth b').textContent = recCd(v);
     if(!el.classList.contains(st)){ el.classList.remove('low', 'mid'); el.classList.add(st); el.querySelector('.rtpic').innerHTML = recMuscleSVG(el.dataset.rg); } });
   if(!gone.length) return;
   if(gone.length === box.children.length || still){ if(gone.length === box.children.length) renderRecovery(); else gone.forEach(el => el.remove()); return; }
@@ -943,7 +948,7 @@ function cardHtml(x, i){
   const uniPill = card || (!Lat.canPair(x.exId, ex) && !x.uni) || !gOn('uniPill', x.exId) ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
-  const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
+  const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(sore.cd)}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
       <small>${ML(ex.h)} · ${EL(ex.e)}${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>${tierNeed}
       <div class="expills${uniPill || gOn('formPill', x.exId) || (!card && gOn('swapPill', x.exId)) ? '' : ' hide'}">${uniPill}${gOn('formPill', x.exId) ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill', x.exId) ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)

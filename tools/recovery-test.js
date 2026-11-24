@@ -116,6 +116,44 @@ const freeze = o => { if(o && typeof o === 'object'){ Object.freeze(o); Object.v
 { const RP = require('./recovery-replay.js').R;
   ok(RP['biceps after 3 preacher sets to failure'] === 31 && RP['side delts after 3 ordinary sets of 12'] === 23 && RP['side delts after 12 ordinary sets of 12'] === 77, 'replays: 31 h biceps (3 preacher failure sets), 23 h and 77 h side delts (3 / 12 sets of 12) are unchanged by the dose rules'); }
 
+// 5d. The ready window (Prompt 3, stage 2): absolute earliest / latest times, the countdown, the 24 h boundary, first workout
+{ const HIST = (endAgo, k = 6) => [...Array.from({ length: 4 }, (_, i) => ses('h' + i, 200 + i * 24, [['curl', sets(3)]])), ses('z', endAgo, [['curl', sets(k, { type: 'F' })]])];   // regular history, then one hard workout
+  const t0 = TR(HIST(0)), hb = t0.heads.biceps;
+  ok(hb.state !== 'ready' && hb.readyFrom < NOW + hb.hours * H && hb.readyBy > NOW + hb.hours * H && isFinite(hb.readyFrom) && isFinite(hb.readyBy), 'a recovering head carries an earliest and a latest ready time around the central estimate');
+  const t6 = TR(HIST(0), NOW + 6 * H);
+  ok(t6.heads.biceps.readyFrom === hb.readyFrom && t6.heads.biceps.readyBy === hb.readyBy, 'the window is stored as timestamps: it does not drift or jump as time passes');
+  ok(hb.range[0] <= hb.hours && hb.range[1] >= hb.hours && hb.range[1] > hb.range[0], 'the shown range is around the central hours and is not a fixed +/- 3 h (' + hb.range.join('-') + ' for ' + hb.hours + ')');
+  // the brief's example: 28-34 h window
+  const w = { state: 'recovering', readyFrom: NOW + 28 * H, readyBy: NOW + 34 * H };
+  const cd = k => C.countdown(w, NOW + k * H);
+  ok(cd(0).kind === 'range' && cd(0).a === 28 && cd(0).b === 34, 'initial window 28-34 h shows 28-34 h');
+  ok(cd(12).kind === 'range' && cd(12).a === 16 && cd(12).b === 22, 'after 12 h it shows 16-22 h');
+  ok(cd(28).kind === 'within' && cd(28).n === 6, 'on reaching the lower bound: "likely ready within 6 h"');
+  ok(cd(31).kind === 'within' && cd(31).n === 3, 'inside the window it counts down to the latest time');
+  ok(cd(34).kind === 'ready' && cd(60).kind === 'ready', 'at the upper bound (and after, absent new evidence): ready, never negative');
+  ok([0, 5, 27.9, 28, 33.9, 34, 90].every(k => { const c = cd(k); return !('a' in c) || (c.a >= 0 && c.b >= c.a); }), 'no countdown value is ever negative');
+  ok(C.countdown({ state: 'unknown' }, NOW).kind === 'unknown', 'unknown stays unknown');
+  ok(C.windowText(w, NOW + 12 * H) === 'ready in 16–22 h' && C.windowText(w, NOW + 30 * H) === 'likely ready within 4 h', 'coaches get the same range as plain text');
+  // the 24 h colour boundary and the window
+  ok(C.windowState('needs_rest', NOW, NOW + 30 * H, NOW + 40 * H, true) === 'needs_rest' && C.windowState('needs_rest', NOW + 31 * H, NOW + 30 * H, NOW + 40 * H, true) === 'recovering', 'Needs Rest only before the window opens; inside the window it is at most Recovering');
+  ok(C.windowState('ready', NOW + 1, NOW, NOW + 5 * H, true) === 'recovering' && C.windowState('ready', NOW + 6 * H, NOW, NOW + 5 * H, true) === 'ready', 'past the central estimate but before the latest time it stays Recovering; after it, Ready');
+  ok(C.windowState('ready', NOW, NOW, NOW, false) === 'ready', 'a muscle that was not trained has no window to wait for');
+  // the tail: central time passed, window not yet closed -> a tile still shows "within"
+  const lateNow = NOW + (hb.readyFrom - NOW) + 1, tl = TR(HIST(0), lateNow).heads.biceps;
+  ok(['recovering', 'ready'].includes(tl.state) && tl.state !== 'needs_rest', 'inside the window the head is never Needs Rest (' + tl.state + ')');
+  // evidence sets the width
+  const first = TR([ses('a', 0, [['curl', sets(6, { type: 'F' })]])]).heads.biceps, reg = hb;
+  const wd = v => (v.readyBy - v.readyFrom) / (v.readyBy + v.readyFrom - 2 * NOW || 1);
+  ok(first.coarse === true && C.countdown(first, NOW).kind === 'days', 'a first workout is broad and shown as days ("about 1-2 days")');
+  ok(wd(first) > wd(reg), 'little history gives a wider window than a regular history');
+  // snapshot: the same window for every consumer
+  const sn = C.snapshot({ tr: TR(HIST(0)), sleep: C.evaluateSleepSupport({ records: [], now: NOW }), nutr: C.evaluateNutritionSupport({ days: {}, today: '2026-11-23', now: NOW }), readiness: C.buildOverallReadiness(TR(HIST(0)), C.evaluateSleepSupport({ records: [], now: NOW }), C.evaluateNutritionSupport({ days: {}, today: '2026-11-23', now: NOW }), null), acute: {}, now: NOW });
+  const tr0 = TR(HIST(0));
+  ok(sn.muscleHeads.biceps.readyWindow && sn.muscleHeads.biceps.readyWindow.from === Math.round(tr0.heads.biceps.readyFrom) && sn.groups.arms.readyFrom === Math.round(tr0.groups.arms.readyFrom) && sn.groups.arms.readyBy === Math.round(tr0.groups.arms.readyBy), 'the snapshot carries the same window as the engine (groups and heads)');
+  ok(sn.muscleHeads.chest_mid.readyWindow === undefined && sn.groups.chest.readyBy === undefined, 'a ready muscle has no window in the snapshot');
+  ok(sn.validUntil <= NOW + 10 * 6e4 && sn.validUntil > NOW, 'validUntil still refreshes within 10 minutes');
+}
+
 // 6. Edited / deleted workouts: pure recompute from the list
 { const list = [ses('a', 5, [['bench', sets(5)]])], before = TR(list), after = TR([]);
   ok(before.heads.chest_mid.state !== 'ready' && after.heads.chest_mid.state === 'unknown', 'deleting the only workout: chest goes back to unknown');

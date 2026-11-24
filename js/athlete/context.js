@@ -58,7 +58,7 @@ const AthleteContext = (() => {
     streak(){ const t = S('training'); return streakLine(t && t.streak).trim(); },
     recovery(){ const r = S('recovery'); if(!r.known) return '';
       const src = r.src === 'recovery+' ? 'RECOVERY+ (authoritative; explain it, never recompute or change it)' : 'app estimate';
-      const rec = r.recovering.length ? `still recovering ${r.recovering.slice(0, 6).map(x => `${x.group}${x.heads && x.heads.length ? ` (${x.heads.join(', ')})` : ''} ~${x.hoursLeft} h`).join(', ')}; the rest ready.` : 'every muscle group ready.';
+      const rec = r.recovering.length ? `still recovering ${r.recovering.slice(0, 6).map(x => `${x.group}${x.heads && x.heads.length ? ` (${x.heads.join(', ')})` : ''}${x.readyBy && typeof RecoveryCore !== 'undefined' ? ' ' + RecoveryCore.windowText(x) : ` ~${x.hoursLeft} h`}`).join(', ')}; the rest ready.` : 'every muscle group ready.';
       const nx = r.next ? ` Next planned workout: ${r.next.assessment}${r.next.limitingMuscles && r.next.limitingMuscles.length ? ` (limiting: ${r.next.limitingMuscles.join(', ')})` : ''}; advice only, the user decides.` : '';
       const ctx = [r.sleep && r.sleep.status !== 'unknown' ? `sleep ${r.sleep.status}` : '', r.food && r.food.status !== 'unknown' ? `food ${r.food.status}${r.food.reasons && r.food.reasons.length ? ` (${r.food.reasons.slice(0, 3).join(', ')})` : ''}` : ''].filter(Boolean).join('; ');
       return `Recovery (${src}): ${rec}${nx}${ctx ? ` Context: ${ctx}.` : ''} Missing food or sleep logs mean unknown, not bad.`; },

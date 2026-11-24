@@ -242,7 +242,7 @@ const GymIntel = (() => {
         // the shared contract: recovery.v1 (or the older { v: 1, groups } subset); snapshotId says which version this coach answer was built on
         if(s && (s.version === 'recovery.v1' || s.v === 1) && s.groups && typeof s.groups === 'object'){
           const stale = !(s.at > 0) || Date.now() - s.at > 6 * 36e5;
-          const gl = Object.entries(s.groups).map(([group, v]) => ({ group, state: v && ['recovering', 'ready'].includes(v.state) ? v.state : 'unknown', hoursLeft: v && isFinite(v.hoursLeft) ? Math.round(v.hoursLeft) : null, low: v && v.conf === 'low' }));
+          const gl = Object.entries(s.groups).map(([group, v]) => ({ group, state: v && ['recovering', 'ready'].includes(v.state) ? v.state : 'unknown', hoursLeft: v && isFinite(v.hoursLeft) ? Math.round(v.hoursLeft) : null, low: v && v.conf === 'low', ...(v && isFinite(v.readyBy) ? { readyFrom: v.readyFrom, readyBy: v.readyBy, coarse: !!v.coarse } : {}) }));
           const rd = s.readiness && ['normal', 'reduced', 'low'].includes(s.readiness.level) ? { level: s.readiness.level, note: String(s.readiness.why || '').slice(0, 120) } : { level: 'unknown' };
           return { src: 'recovery+', stale, groups: gl, readiness: rd, id: s.snapshotId || null, next: s.nextWorkout || null };
         }
@@ -305,7 +305,7 @@ const GymIntel = (() => {
     [...(typeof tpls !== 'undefined' && tpls ? tpls : []).flatMap(tp => tp.exercises || []), ...(typeof sessions !== 'undefined' ? sessions : []).slice(-20).flatMap(s => s.exercises || [])].forEach(x => { const e = exById(x.exId).e; if(e) eq.add(e); });
     return [...eq]; }
   function recoveryPack(){ const r = recovery(); if(r.src === 'none') return 'Recovery: unknown.';
-    const rec = r.groups.filter(g => g.state === 'recovering').sort((a, b) => (b.hoursLeft || 0) - (a.hoursLeft || 0)).map(g => `${g.group}${g.hoursLeft ? ` ~${g.hoursLeft} h` : ''}`);
+    const rec = r.groups.filter(g => g.state === 'recovering').sort((a, b) => (b.hoursLeft || 0) - (a.hoursLeft || 0)).map(g => `${g.group}${g.readyBy && typeof RecoveryCore !== 'undefined' ? ` ${RecoveryCore.windowText(g)}` : g.hoursLeft ? ` ~${g.hoursLeft} h` : ''}`);
     const unk = r.groups.filter(g => g.state === 'unknown').map(g => g.group);
     // unknown stays unknown: "recovered" is said only of groups RECOVERY+ actually knows
     const rdy = r.groups.filter(g => g.state === 'ready').map(g => g.group), sum = rec.length ? 'still recovering: ' + rec.join(', ') : rdy.length ? (unk.length ? 'recovered: ' + rdy.join(', ') : 'all groups look recovered') : 'no finished workouts to judge from';

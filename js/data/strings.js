@@ -1205,3 +1205,8 @@ Object.assign(S, {   // RECOVERY+ Advanced: dose detail kept apart (js/gym.js �
   recDNegs: ['{n} extra negatives recorded (small, capped effect)', '{n} επιπλέον αρνητικές καταγράφηκαν (μικρή, περιορισμένη επίδραση)'],
   recDSideL: ['The left side is the more fatigued', 'Η αριστερή πλευρά είναι η πιο κουρασμένη'], recDSideR: ['The right side is the more fatigued', 'Η δεξιά πλευρά είναι η πιο κουρασμένη'],
 });
+
+Object.assign(S, {   // RECOVERY+ ready countdown (js/gym.js › recCd; one wording on the page, the map, exercise warnings and the tiles)
+  recCdRange: ['{a}–{b} h', '{a}–{b} ώρ.'], recCdWithin: ['Likely ready within {n} h', 'Πιθανώς έτοιμο σε {n} ώρ.'], recCdReady: ['Likely ready', 'Πιθανώς έτοιμο'],
+  recCdDays: ['About {a}–{b} days', 'Περίπου {a}–{b} ημέρες'], recCdDay1: ['About 1 day', 'Περίπου 1 ημέρα'], recCdDayN: ['About {a} days', 'Περίπου {a} ημέρες'],
+});

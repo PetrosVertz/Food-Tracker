@@ -40,6 +40,10 @@ const RecoveryCore = (() => {
     novelty: [1.15, 1.07, 1],  // first time / 1–2 times before / familiar (repeated-bout effect)
     relInt: { hi: .92, hiX: 1.06, lo: .6, loX: .85 },
     calib: { min: .85, max: 1.2, needN: 3, step: .04, days: 90 },
+    // the ready WINDOW: earliest / latest ready time = the central estimate ± a share of its own length (time since the last relevant workout), the share set by how
+    // much evidence there is: a first workout is broad (shown as days), little history wide, a calibrated group with logged effort tight. Stored as timestamps, so
+    // the range does not drift or jump as time passes. Needs Rest (> 24 h left) can only show BEFORE the window opens; inside it the state is Recovering.
+    spread: { first: .5, low: .35, moderate: .22, high: .12 },
     acuteHalfMin: 25,      // in-workout fatigue fades with a ~25 min half-life (separate from recovery)
     staleLogDays: 21,      // no logged workout for this long: "ready" only with low confidence
   };
@@ -142,6 +146,33 @@ const RecoveryCore = (() => {
     return out;
   }
 
+  // ---------------------------------------------------------------- the ready window (earliest / latest ready time) and how it is said
+  // state: Needs Rest only while the window has not opened and more than 24 h are left (the existing colour boundary, on the central estimate); once inside the
+  // window it is at most Recovering ("likely ready within …"); past the latest time (or nothing to wait for) it is Ready
+  function windowState(stC, now, from, by, trained){
+    if(!trained) return 'ready';
+    if(now >= by) return 'ready';
+    if(now >= from) return 'recovering';
+    return stC === 'ready' ? 'recovering' : stC;
+  }
+  // remaining hours as a [lowest, highest] pair, never negative, at least one hour apart
+  function windowHours(from, by, now){ const a = Math.max(0, Math.round((from - now) / 36e5)), b = Math.max(a, Math.round((by - now) / 36e5)); return [a, b > a ? b : a + 1]; }
+  // what to show for one head / group at time `now`, from the stored timestamps (so it is right after foregrounding or offline, and never negative):
+  //   { kind: 'range', a, b } hours left between a and b · { kind: 'days', a, b } coarse (first workout or far away) · { kind: 'within', n } inside the window ·
+  //   { kind: 'ready' } past the latest time · { kind: 'unknown' }
+  function countdown(v, now){
+    if(!v || v.state === 'unknown') return { kind: 'unknown' };
+    if(!isFinite(v.readyBy) || now >= v.readyBy) return { kind: 'ready' };
+    if(now >= v.readyFrom) return { kind: 'within', n: Math.max(1, Math.ceil((v.readyBy - now) / 36e5 - 1e-6)) };
+    const [a, b] = windowHours(v.readyFrom, v.readyBy, now);
+    if(v.coarse || b > 72){ const da = Math.max(1, Math.floor(a / 24 + .5)), db = Math.max(da, Math.ceil(b / 24 - 1e-6)); return { kind: 'days', a: da, b: db }; }
+    return { kind: 'range', a, b };
+  }
+
+  // the same range as plain English for coaches / Athlete OS (they explain it; the numbers are the screen's)
+  function windowText(v, now){ const c = countdown(v, isNum(now) ? now : Date.now());
+    return c.kind === 'range' ? `ready in ${c.a}–${c.b} h` : c.kind === 'within' ? `likely ready within ${c.n} h` : c.kind === 'days' ? `ready in about ${c.a === c.b ? c.a : c.a + '–' + c.b} day${c.b > 1 ? 's' : ''}` : c.kind === 'ready' ? 'likely ready' : ''; }
+
   // ---------------------------------------------------------------- local muscle recovery
   // o: { sessions, ex, loadOf, now, calib? } → { heads, groups, evidence, unknownExercises, contrib }
   function trainingRecovery(o){
@@ -165,12 +196,16 @@ const RecoveryCore = (() => {
     HEADS21.forEach(h => {
       const cs = contrib[h] || [];
       if(!evidence.sessionsTotal){ heads[h] = { state: 'unknown', hours: null, conf: 'unknown', p: null, reasons: ['no_workout_history'], source: 'unknown', contrib: [] }; return; }
-      let lo = now, hi = now + 200 * 36e5;
-      if(fatigueAt(h, now) <= CFG.readyAt) hi = now;
-      else { for(let i = 0; i < 40 && hi - lo > 6e5; i++){ const m = (lo + hi) / 2; if(fatigueAt(h, m) <= CFG.readyAt) hi = m; else lo = m; } }
-      const hours = Math.max(0, Math.ceil((hi - now) / 36e5 - 1e-6)), st = stateOfH(hours), reasons = [];
+      // the central time fatigue falls to the ready level: found on a FIXED absolute interval (from the last workout), so it is the same number whenever it is asked
+      // (the window below is stored as timestamps and must not move with the clock). Nothing trained recently = nothing to wait for.
+      let hi = now;
+      if(cs.length){ const t0 = Math.max(...cs.map(c => c.end));
+        if(fatigueAt(h, t0) <= CFG.readyAt) hi = t0;
+        else { let lo = t0, up = t0 + 400 * 36e5; for(let i = 0; i < 48; i++){ const m = (lo + up) / 2; if(fatigueAt(h, m) <= CFG.readyAt) up = m; else lo = m; } hi = up; }
+        if(hi < now && fatigueAt(h, now) > CFG.readyAt) hi = now; }
+      const hours = Math.max(0, Math.ceil((hi - now) / 36e5 - 1e-6)), stC = stateOfH(hours), reasons = [];
       let conf = 'moderate';
-      if(st === 'ready'){
+      if(stC === 'ready'){
         if(!cs.length) reasons.push('not_trained_recently');
         else reasons.push('recovered_since_last_workout');
         if(!evidence.lastAt || now - evidence.lastAt > CFG.staleLogDays * 864e5){ conf = 'low'; reasons.push('no_recent_logs'); }
@@ -186,9 +221,15 @@ const RecoveryCore = (() => {
         if(!rir) reasons.push('rir_not_recorded');
         if(cal[GROUP[h]] && cal[GROUP[h]].used && cal[GROUP[h]].f !== 1) reasons.push(cal[GROUP[h]].f > 1 ? 'personal_slower' : 'personal_faster');
       }
-      const spread = { low: .35, moderate: .25, high: .15 }[conf] || .3;
+      // the window and the state that follows it
+      const lastEnd = cs.length ? Math.max(...cs.map(c => c.end)) : null, firstWorkout = evidence.sessionsTotal < 2;
+      const centre = hi;   // when the central estimate crosses "ready" (already in the past for a muscle whose central time has gone by)
+      const W = lastEnd == null ? 0 : Math.max(36e5, centre - lastEnd), sp = firstWorkout ? CFG.spread.first : CFG.spread[conf] || CFG.spread.low;
+      const readyFrom = lastEnd == null ? now : centre - sp * W, readyBy = lastEnd == null ? now : centre + sp * W;
+      const st = windowState(stC, now, readyFrom, readyBy, cs.length > 0);
+      if(st === 'recovering' && stC === 'ready') reasons.push('inside_ready_window');
       heads[h] = { state: st, hours, conf, p: Math.round((1 - fatigueAt(h, now)) * 100) / 100, reasons, source: 'estimated',
-        range: hours > 0 ? [Math.max(1, Math.round(hours * (1 - spread))), Math.round(hours * (1 + spread))] : [0, 0], readyAt: hi, contrib: cs,
+        range: st === 'ready' ? [0, 0] : windowHours(readyFrom, readyBy, now), readyAt: hi, readyFrom, readyBy, coarse: firstWorkout && st !== 'ready', contrib: cs,
         side: Math.abs(sideAt(h, now, 0) - sideAt(h, now, 1)) > .02 ? (sideAt(h, now, 0) > sideAt(h, now, 1) ? 'L' : 'R') : null };
     });
     return { heads, groups: groupsOf(heads), evidence, unknownExercises: [...unknownExercises], calib: cal, fatigueAt, sideAt };
@@ -201,7 +242,7 @@ const RecoveryCore = (() => {
       const worst = known.reduce((a, h) => rank[heads[h].state] > rank[heads[a].state] || (rank[heads[h].state] === rank[heads[a].state] && heads[h].hours > heads[a].hours) ? h : a, known[0]);
       const not = known.filter(h => heads[h].state !== 'ready').sort((a, b) => heads[b].hours - heads[a].hours);
       out[g] = { state: heads[worst].state, hours: heads[worst].hours, conf: not.length ? not.map(h => heads[h].conf).reduce(confMin) : known.map(h => heads[h].conf).reduce(confMin),
-        heads: not, all: hs, range: heads[worst].range }; });
+        heads: not, all: hs, range: heads[worst].range, readyFrom: heads[worst].readyFrom, readyBy: heads[worst].readyBy, coarse: heads[worst].coarse }; });
     return out;
   }
   // head state at a future time (no new workouts assumed): hours left shrink with the clock
@@ -365,9 +406,10 @@ const RecoveryCore = (() => {
   function snapshot(o){
     const { tr, sleep, nutr, next, plan, readiness, acute, now, shareSleep, shareFood } = o;
     const head = {}; HEADS21.forEach(h => { const v = tr.heads[h];
-      head[h] = { state: v.state, confidence: v.conf, remainingHoursRange: v.state !== 'unknown' && v.hours > 0 ? v.range : undefined, reasons: v.reasons.slice(), source: v.source }; });
+      head[h] = { state: v.state, confidence: v.conf, remainingHoursRange: v.state !== 'unknown' && v.state !== 'ready' ? v.range : undefined, readyWindow: v.state !== 'unknown' && v.state !== 'ready' ? { from: Math.round(v.readyFrom), by: Math.round(v.readyBy), coarse: !!v.coarse } : undefined, reasons: v.reasons.slice(), source: v.source }; });
     const groups = {}; GROUPS10.forEach(g => { const v = tr.groups[g];
-      groups[g] = { state: v.state === 'unknown' ? 'unknown' : v.state === 'ready' ? 'ready' : 'recovering', detail: v.state, hoursLeft: v.hours, conf: v.conf, heads: v.heads.slice() }; });
+      groups[g] = { state: v.state === 'unknown' ? 'unknown' : v.state === 'ready' ? 'ready' : 'recovering', detail: v.state, hoursLeft: v.hours, conf: v.conf, heads: v.heads.slice(),
+        ...(v.state !== 'unknown' && v.state !== 'ready' && isFinite(v.readyBy) ? { readyFrom: Math.round(v.readyFrom), readyBy: Math.round(v.readyBy), coarse: !!v.coarse } : {}) }; });
     const fresh = tr.evidence.lastAt && now - tr.evidence.lastAt <= 14 * 864e5 ? 'current' : tr.evidence.lastAt ? 'stale' : 'unknown';
     const s = { v: 1, version: 'recovery.v1', at: now, generatedAt: new Date(now).toISOString(), engineVersion: ENGINE, dataFreshness: fresh,
       groups, muscleHeads: head,
@@ -384,12 +426,13 @@ const RecoveryCore = (() => {
     // validUntil: when a muscle state next changes with time alone (a head reaches ready, or Needs Rest turns Recovering at 24 h left), at most 10 min ahead,
     // so a consumer that caches the snapshot refreshes in time. snapshotId: a short fingerprint of what it says (not the time), so a consumer can show
     // which version it received and tell a real change from a re-read.
-    const edges = []; HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state === 'unknown' || !(v.hours > 0)) return; edges.push(v.hours); if(v.hours > 24) edges.push(v.hours - 24); });
+    const edges = []; HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state === 'unknown' || v.state === 'ready') return; if(v.hours > 0){ edges.push(v.hours); if(v.hours > 24) edges.push(v.hours - 24); }
+      [v.readyFrom, v.readyBy].forEach(t => { const d = (t - now) / 36e5; if(d > 0) edges.push(d); }); });
     s.validUntil = now + Math.min(10 * 6e4, ...edges.filter(x => x > 0).map(x => x * 36e5 + 1000));
     s.snapshotId = 'r1-' + fingerprint(JSON.stringify([groups, Object.entries(head).map(([h, v]) => h + v.state), s.readiness.level, s.nextWorkout || null, s.support.nutrition ? s.support.nutrition.status : '', s.support.sleep ? s.support.sleep.status : '']));
     return s;
   }
-  return { ENGINE, CFG, HEADS21, GROUP, GROUPS10, muOf, setEffort, indexHistory, sessionHeadLoads, calibrate, trainingRecovery, stateAt, acuteFatigue,
+  return { ENGINE, CFG, HEADS21, GROUP, GROUPS10, muOf, windowState, windowHours, countdown, windowText, setEffort, indexHistory, sessionHeadLoads, calibrate, trainingRecovery, stateAt, acuteFatigue,
     evaluateSleepSupport, evaluateNutritionSupport, assessWorkout, buildOverallReadiness, buildDecisionInsight, snapshot, legacySt, headHours };
 })();
 

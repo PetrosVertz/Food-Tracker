@@ -1120,7 +1120,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .rectile .rtn{align-self:stretch;font-size:var(--fs-body);font-weight:var(--w-med);color:var(--t-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rtpic{width:100%;height:96px;display:flex;justify-content:center} .rtpic svg{display:block;width:100%;height:100%;pointer-events:none}
 .rth{display:inline-flex;align-items:center;gap:var(--s1);font-variant-numeric:tabular-nums}
-.rth b{font-size:var(--fs-title);font-weight:var(--w-bold);color:var(--t-text)} .rth small{font-size:var(--fs-label);color:var(--t-muted)}
+.rth{max-width:100%;align-items:flex-start}.rth b{font-size:var(--fs-body,15px);line-height:1.25;font-weight:var(--w-bold);color:var(--t-text);overflow-wrap:anywhere} .rth small{font-size:var(--fs-label);color:var(--t-muted)}
 .rectile.mid .rth svg{color:var(--t-mid)} .rectile.low .rth svg{color:var(--t-sore)}
 .recall{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;padding:var(--s5) var(--s4);margin-bottom:var(--s4);color:var(--t-text);animation:recTileIn .32s ease-out both}
 .recall svg{color:var(--t-done)} .recall b{font-size:var(--fs-body);font-weight:var(--w-bold)}

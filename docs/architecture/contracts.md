@@ -91,8 +91,9 @@ Network first. Only files listed in `SHELL` are cached, and only good (200) answ
 ## RECOVERY+ snapshot (`js/recovery-plus.js` › `RecoveryPlus.snapshot()`) — built
 The one recovery owner. Read-only, computed locally (no AI, no network), cached until a relevant Store save or 10 min.
 `{ v: 1, version: 'recovery.v1', at, generatedAt, engineVersion, dataFreshness: 'current' | 'stale' | 'unknown',`
-`groups: { <10 groups>: { state: 'recovering' | 'ready' | 'unknown', detail: 'needs_rest' | 'recovering' | 'ready' | 'unknown', hoursLeft, conf, heads: [not-ready head ids] } },`
-`muscleHeads: { <21 head ids>: { state: 'ready' | 'recovering' | 'needs_rest' | 'unknown', confidence, remainingHoursRange?, reasons: [codes], source } },`
+`groups: { <10 groups>: { state: 'recovering' | 'ready' | 'unknown', detail: 'needs_rest' | 'recovering' | 'ready' | 'unknown', hoursLeft (central estimate), conf, heads: [not-ready head ids], readyFrom?, readyBy?, coarse? (ms timestamps of the earliest / latest ready time, only while not ready) } },`
+`muscleHeads: { <21 head ids>: { state: 'ready' | 'recovering' | 'needs_rest' | 'unknown', confidence, remainingHoursRange? (from the window, never negative), readyWindow?: { from, by, coarse } (ms), reasons: [codes], source } },`
+**Ready window**: every consumer (recovery page and tiles, map, exercise warning, Today text, Athlete OS, Gym Coach) says the SAME range, rendered from `readyFrom` / `readyBy` with `RecoveryCore.countdown(v, now)` (screens: `recCd()` in gym.js; coaches: `RecoveryCore.windowText(v)`), never from a re-computed hours number. Needs Rest only shows before the window opens (and > 24 h left on the central estimate); inside the window the state is at most Recovering; past `readyBy` it is Ready.
 `readiness: { level: 'normal' | 'reduced' | 'unknown', conf, why }, overall: { assessment: 'ready' | 'caution' | 'unknown', confidence, reasons },`
 `nextWorkout?: { workoutId, scheduledAt, assessment: 'proceed' | 'consider_adjustment' | 'unknown', limitingMuscles, suggestionCodes },`
 `activeSession?: { acuteFatigueByHead }, provenance, support: { sleep?, nutrition?: { status, confidence, eligibleCompletedDays, reasons, goalContext, goalAssessment }, overallReadinessReasons, cautionScope } }`.

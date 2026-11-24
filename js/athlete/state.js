@@ -109,7 +109,7 @@ const AthleteState = (() => {
       const R = g('RecoveryPlus');
       if(R && R.snapshot){ try{ const s = R.snapshot();
         if(s && s.v === 1 && s.groups){ const known = Object.values(s.groups).some(v => v.state !== 'unknown');
-          const groups = Object.entries(s.groups).filter(([, v]) => v.state === 'recovering').map(([gr, v]) => ({ group: gr, hoursLeft: v.hoursLeft, heads: v.heads || [], conf: v.conf })).sort((a, b) => b.hoursLeft - a.hoursLeft);
+          const groups = Object.entries(s.groups).filter(([, v]) => v.state === 'recovering').map(([gr, v]) => ({ group: gr, hoursLeft: v.hoursLeft, heads: v.heads || [], conf: v.conf, ...(isFinite(v.readyBy) ? { readyFrom: v.readyFrom, readyBy: v.readyBy, coarse: !!v.coarse } : {}) })).sort((a, b) => b.hoursLeft - a.hoursLeft);
           const sp = s.support || {};
           return { known, recovering: groups, kind: 'calculated', src: 'recovery+', snapshotId: s.snapshotId || null, version: s.version || null, at: s.at, _exp: s.validUntil || Date.now() + 10 * 60e3, readiness: s.overall, next: s.nextWorkout || null,
             sleep: sp.sleep ? { status: sp.sleep.status, conf: sp.sleep.confidence } : null, food: sp.nutrition ? { status: sp.nutrition.status, reasons: sp.nutrition.reasons, goal: sp.nutrition.goalContext } : null }; } }catch(e){ console.warn('recovery+ snapshot', e); } }   // never silent: a broken snapshot once hid behind this fallback
