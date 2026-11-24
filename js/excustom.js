@@ -6,14 +6,14 @@
 // Arms are three muscles here (biceps, triceps, forearms), like the V27 design; abductors is its own muscle only in the creator.
 const EXM = { chest: ['chest_upper', 'chest_mid', 'chest_lower'], back: ['lats', 'upper_back', 'traps', 'lower_back'], shoulders: ['delt_front', 'delt_side', 'delt_rear'],
   biceps: ['biceps'], triceps: ['triceps'], forearms: ['forearms'], core: ['abs', 'obliques'],
-  quads: ['quads'], hamstrings: ['hamstrings'], glutes: ['glutes', 'abductors'], adductors: ['adductors'], calves: ['calves'], abductors: ['abductors'], cardio: ['cardio'] };
+  quads: ['quads'], hamstrings: ['hamstrings'], glutes: ['glutes', 'abductors'], adductors: ['adductors'], calves: ['calves'], abductors: ['abductors'] };
 const EXM_UP = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core'], EXM_LOW = ['quads', 'hamstrings', 'glutes', 'adductors', 'calves'];
 const CX_MUSCLES = [...EXM_UP, ...EXM_LOW, 'abductors'];   // the creator's muscle pills (V27 order)
 const exmCol = k => (GROUPS[k] && GROUPS[k][3]) || HEAD_COL[k] || '#8b949c';   // the app's muscle colour (group colour, or the head's for arms)
 const exmHeads = k => EXM[k] || [];
 const exmHasHeads = k => exmHeads(k).length > 1;   // chest, back, shoulders, core, glutes offer the head step
 const exmOfHead = h => h === 'abductors' ? 'glutes' : Object.keys(EXM).find(k => k !== 'abductors' && EXM[k].includes(h)) || null;
-const exmRegion = k => EXM_UP.includes(k) ? 'up' : EXM_LOW.includes(k) || k === 'abductors' ? 'low' : k === 'cardio' ? 'cardio' : 'up';
+const exmRegion = k => EXM_UP.includes(k) ? 'up' : EXM_LOW.includes(k) || k === 'abductors' ? 'low' : 'up';
 // an exercise's own picker muscle: your exercise's first (primary) muscle, an arm exercise's head, else its group
 const exmOf = x => x && Array.isArray(x.mus) && x.mus.length ? x.mus[0] : x && x.m === 'arms' ? x.h : (x && x.m) || 'other';
 // how much of the work a muscle (or one head) does in a built-in exercise, from the library's own percentages. Your own exercises: null (unknown)

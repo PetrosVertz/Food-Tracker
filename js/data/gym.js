@@ -215,7 +215,10 @@ const LIB_RAW = [
  ['cable_wrist_curl','Cable wrist curl','Κάμψεις καρπών στο καλώδιο','c','curl','forearms:100'],
  ['bb_wrist_curl','Barbell wrist curl','Κάμψεις καρπών με μπάρα','b','curl','forearms:100'],
  ['plate_pinch','Plate pinch hold','Κράτημα δίσκων με τσίμπημα','w','carry','forearms:80 traps:20'],
- ['dead_hang','Dead hang','Κρέμασμα στο μονόζυγο','w','core_stab','forearms:50 lats:30 upper_back:20'],
+ ['dead_hang','Dead hang','Κρέμασμα στο μονόζυγο','w','hang','forearms:50 lats:30 upper_back:20'],
+ ['active_hang','Active hang','Ενεργό κρέμασμα','w','hang','lats:40 upper_back:30 forearms:30'],
+ ['flexed_arm_hang','Flexed-arm hang','Κρέμασμα με λυγισμένα χέρια','w','hang','biceps:40 lats:30 forearms:30'],
+ ['towel_hang','Towel hang','Κρέμασμα με πετσέτα','w','hang','forearms:70 lats:20 upper_back:10'],
  // core
  ['cable_crunch','Cable crunch','Κοιλιακοί στο καλώδιο','c','core_flex','abs:90 obliques:10'],
  ['crunch','Crunch','Κοιλιακοί','w','core_flex','abs:90 obliques:10'],
@@ -225,6 +228,10 @@ const LIB_RAW = [
  ['knee_raise','Captain’s chair knee raise','Ανυψώσεις γονάτων','w','core_flex','abs:85 obliques:15'],
  ['ab_wheel','Ab wheel rollout','Ροδάκι κοιλιακών','w','core_stab','abs:80 obliques:10 lats:10'],
  ['plank','Plank','Σανίδα','w','core_stab','abs:70 obliques:30'],
+ ['reverse_plank','Reverse plank','Ανάποδη σανίδα','w','core_stab','glutes:40 lower_back:30 hamstrings:30'],
+ ['bear_hold','Bear hold','Bear hold','w','core_stab','abs:50 quads:25 delt_front:25'],
+ ['tuck_lsit','Tuck L-sit','Tuck L-sit','w','core_stab','abs:70 triceps:20 obliques:10'],
+ ['glute_bridge_hold','Glute bridge hold','Κράτημα γέφυρας γλουτών','w','hip','glutes:70 hamstrings:30'],
  ['side_plank','Side plank','Πλάγια σανίδα','w','core_stab','obliques:80 abs:20'],
  ['dead_bug','Dead bug','Dead bug','w','core_stab','abs:85 obliques:15'],
  ['hollow_hold','Hollow hold','Hollow hold','w','core_stab','abs:90 obliques:10'],
@@ -354,26 +361,17 @@ const LIB_RAW = [
  ['kb_deadlift','Kettlebell deadlift','Άρσεις θανάτου με kettlebell','k','hinge','glutes:35 hamstrings:35 lower_back:30'],
  ['kb_carry','Kettlebell carry','Μεταφορά kettlebell','k','carry','forearms:35 traps:30 obliques:20 abs:15'],
  ['kb_two_hand_swing','American kettlebell swing','Αμερικάνικες αιωρήσεις kettlebell','k','hinge','glutes:40 hamstrings:30 delt_front:15 lower_back:15'],
- // cardio
- ['ski_erg','Ski erg','Ski erg','m','cardio','cardio:100'],
- ['spin_bike','Spin bike','Ποδήλατο spinning','m','cardio','cardio:100'],
- ['recumbent_bike','Recumbent bike','Ξαπλωτό ποδήλατο','m','cardio','cardio:100'],
- ['sled_pull','Sled pull','Τράβηγμα έλκηθρου','m','cardio','cardio:100'],
- ['cycling_outdoor','Outdoor cycling','Ποδήλατο έξω','w','cardio','cardio:100'],
- ['hiking','Hiking','Πεζοπορία','w','cardio','cardio:100'],
- ['walking','Walking','Περπάτημα','w','cardio','cardio:100'],
- ['burpee','Burpee','Burpees','w','cardio','cardio:100'],
- ['jumping_jacks','Jumping jacks','Jumping jacks','w','cardio','cardio:100'],
- ['sprint_intervals','Sprint intervals','Διαλειμματικά σπριντ','w','cardio','cardio:100'],
- ['treadmill','Treadmill','Διάδρομος','m','cardio','cardio:100'], ['incline_walk','Incline treadmill walk','Περπάτημα σε κλίση','m','cardio','cardio:100'],
- ['bike','Exercise bike','Ποδήλατο','m','cardio','cardio:100'], ['assault_bike','Air bike','Air bike','m','cardio','cardio:100'],
- ['rower','Rowing machine','Κωπηλατικό','m','cardio','cardio:100'], ['stairs','Stair climber','Σκαλοπάτια','m','cardio','cardio:100'],
- ['elliptical','Elliptical','Ελλειπτικό','m','cardio','cardio:100'], ['running','Outdoor run','Τρέξιμο έξω','w','cardio','cardio:100'],
- ['jump_rope','Jump rope','Σχοινάκι','w','cardio','cardio:100'], ['battle_ropes','Battle ropes','Battle ropes','w','cardio','cardio:100'],
- ['swimming','Swimming','Κολύμπι','w','cardio','cardio:100'], ['sled_push','Sled push','Σπρώξιμο έλκηθρου','m','cardio','cardio:100'],
 ];
 
-const REST_BY_PATTERN = { press_h:150, press_v:150, row:120, pulldown:120, squat:180, hinge:180, lunge:120, dip:120, pushup:90, fly:90, pullover:90, curl:90, ext:90, legcurl:90, legext:90, hip:90, raise:60, shrug:60, calf:60, core_flex:60, core_stab:60, carry:90, cardio:0 };
+// Cardio left the app (a possible future Cardio tab): the ids that were removed. Old workouts keep their history; saved presets and the week plan drop them (wire/05).
+const CARDIO_GONE = new Set(['ski_erg', 'spin_bike', 'recumbent_bike', 'sled_pull', 'cycling_outdoor', 'hiking', 'walking', 'burpee', 'jumping_jacks', 'sprint_intervals', 'treadmill', 'incline_walk', 'bike', 'assault_bike', 'rower', 'stairs', 'elliptical', 'running', 'jump_rope', 'battle_ropes', 'swimming', 'sled_push']);
+
+// Timed holds: id → seconds that count as ONE rep-equivalent for volume, recovery and progress (the time itself is saved in the set's reps field, as always).
+// A hang is easier on the muscles than a plank, so each has its own factor. Everything here shows a time box and a countdown with a ding on the card.
+const HOLD = { dead_hang: 8, active_hang: 6, flexed_arm_hang: 3, towel_hang: 6, plank: 10, side_plank: 8, reverse_plank: 8, bear_hold: 8, hollow_hold: 6, lsit: 4, tuck_lsit: 5,
+  wall_sit: 8, glute_bridge_hold: 8, copenhagen: 6, pallof_hold: 6, spanish_squat: 6, superman: 5, plate_pinch: 6 };
+
+const REST_BY_PATTERN = { press_h:150, press_v:150, row:120, pulldown:120, squat:180, hinge:180, lunge:120, dip:120, pushup:90, fly:90, pullover:90, curl:90, ext:90, legcurl:90, legext:90, hip:90, raise:60, shrug:60, calf:60, core_flex:60, core_stab:60, carry:90, hang:60 };
 
 // ---------- form cues and common mistakes, by movement type (+ specific notes for the big lifts) ----------
 const CUES = {
@@ -399,7 +397,7 @@ const CUES = {
   carry:[['Tall posture, shoulders back, short quick steps.','Όρθια στάση, ώμοι πίσω, μικρά γρήγορα βήματα.'],['Grip hard; don’t let the weights swing.','Κράτα σφιχτά· μην αφήνεις τα βάρη να ταλαντεύονται.']],
   dip:[['Lean forward slightly for chest, stay upright for triceps.','Γείρε λίγο μπροστά για στήθος, μείνε όρθιος για τρικέφαλους.'],['Go down until the upper arm is about parallel, shoulders down.','Κατέβα μέχρι ο βραχίονας να είναι περίπου παράλληλος, ώμοι κάτω.']],
   pushup:[['Hands under the shoulders, body in one straight line.','Χέρια κάτω από τους ώμους, σώμα σε ευθεία γραμμή.'],['Chest to the floor, elbows ~45°.','Στήθος ως το πάτωμα, αγκώνες ~45°.']],
-  cardio:[['Warm up for 3–5 minutes before pushing the pace.','Ζέσταμα 3–5 λεπτά πριν ανεβάσεις ρυθμό.'],['Most sessions at a pace where you can still talk.','Οι περισσότερες προπονήσεις σε ρυθμό που μπορείς να μιλάς.']],
+  hang:[['Shoulders away from the ears, grip the bar with the whole hand.','Ώμοι μακριά από τα αυτιά, πιάσε τη μπάρα με όλο το χέρι.'],['Breathe slowly; let go the moment the ding sounds.','Ανάπνεε αργά· άφησε μόλις ακούσεις το ding.']],
 };
 
 const MISTAKES = {
@@ -425,7 +423,7 @@ const MISTAKES = {
   carry:[['Leaning to one side.','Γέρνεις στο πλάι.']],
   dip:[['Going too deep with shoulders rolling forward.','Πολύ βαθιά, με τους ώμους να γέρνουν μπροστά.'],['Shrugging up to the ears.','Ώμοι μέχρι τα αυτιά.']],
   pushup:[['Hips sagging.','Η λεκάνη πέφτει.'],['Half reps.','Μισές επαναλήψεις.']],
-  cardio:[['Going all-out every session.','Στο φουλ σε κάθε προπόνηση.']],
+  hang:[['Letting go early or swinging.','Άφημα νωρίς ή αιώρηση.'],['Shrugging into the ears.','Ώμοι μέχρι τα αυτιά.']],
 };
 
 const SPECIFIC = {
@@ -637,6 +635,13 @@ const ALSO_RAW = {
   bb_wrist_curl:'barbell forearm curl | behind-the-back wrist curl',
   plate_pinch:'plate pinch | pinch grip hold | pinch hold',
   dead_hang:'bar hang | hang | passive hang | κρέμασμα',
+  active_hang:'scapular hang | scap hang | shoulder hang | bar hang active',
+  flexed_arm_hang:'chin over bar hold | chin-up hold | top pull-up hold | flexed hang',
+  towel_hang:'towel grip hang | towel dead hang | grip hang',
+  reverse_plank:'reverse bridge | table top hold | back plank',
+  bear_hold:'bear plank | quadruped hold | knee hover plank',
+  tuck_lsit:'tucked l sit | tuck sit | knee tuck hold',
+  glute_bridge_hold:'bridge hold | isometric bridge | hip bridge hold',
   cable_crunch:'rope crunch | cable ab crunch | kneeling crunch | κοιλιακοί καλώδιο',
   crunch:'sit-up | ab crunch | floor crunch | σούπερ κοιλιακοί | κοιλιακοί στο πάτωμα',
   ab_machine:'abdominal crunch machine | seated crunch machine | ab machine | κοιλιακοί μηχάνημα',
@@ -768,28 +773,6 @@ const ALSO_RAW = {
   kb_deadlift:'kb deadlift | kettlebell dl | sumo kettlebell deadlift',
   kb_carry:'kb carry | kettlebell farmer carry | kettlebell walk',
   kb_two_hand_swing:'american swing | overhead kettlebell swing | kb american swing',
-  ski_erg:'skierg | ski-erg | ski machine | skiing machine',
-  spin_bike:'spinning | spin class | indoor cycling | spinning bike | στατικό ποδήλατο spinning',
-  recumbent_bike:'recumbent | semi recumbent bike | reclined bike | ξαπλωτό ποδήλατο',
-  sled_pull:'sled drag | sled pulls | backward sled drag | prowler pull',
-  cycling_outdoor:'cycling | road cycling | bike ride | biking | ποδηλασία',
-  hiking:'hike | trail walk | hill walk | πεζοπορία',
-  walking:'walk | brisk walk | outdoor walk | steps | περπάτημα',
-  burpee:'burpees | burpee jump | μπέρπις',
-  jumping_jacks:'jumping jack | star jumps | jack jumps',
-  sprint_intervals:'sprints | hiit sprints | sprint intervals | interval sprints | hiit | σπριντ',
-  treadmill:'running machine | tread | jog | jogging | run | δρόμος | διάδρομος | treadmill run',
-  incline_walk:'incline treadmill | treadmill incline | incline walking | 12-3-30 | hill treadmill',
-  bike:'stationary bike | exercise bike | upright bike | cycle | cycling | static bike | στατικό ποδήλατο',
-  assault_bike:'assault bike | air bike | airdyne | echo bike | fan bike | rogue echo',
-  rower:'rowing machine | row machine cardio | concept2 | concept 2 | erg | rowerg | indoor rower | κωπηλατικό',
-  stairs:'stair climber | stairmaster | stepmill | step mill | stair machine | stairs | σκάλα',
-  elliptical:'cross trainer | crosstrainer | elliptical trainer | orbitrek | ελλειπτικό',
-  running:'outdoor running | jog outside | road run | τρέξιμο',
-  jump_rope:'skipping rope | skipping | rope skipping | σχοινάκι | jump rope',
-  battle_ropes:'battle rope | heavy ropes | rope waves | ropes | σχοινιά',
-  swimming:'swim | laps | pool | κολύμβηση | κολύμπι',
-  sled_push:'prowler | prowler push | sled pushes | push sled | sled',
 };
 const ALSO = Object.fromEntries(Object.entries(ALSO_RAW).map(([k, v]) => [k, v.split('|').map(s => s.trim()).filter(Boolean)]));
 

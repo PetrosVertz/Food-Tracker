@@ -11,12 +11,11 @@ const ex = id => { const r = LIB_RAW.find(a => a[0] === id); return r ? { id, en
 
 // 1. coverage
 const ids = LIB_RAW.map(a => a[0]);
-ok(ids.length === 341 && new Set(ids).size === 341, '341 built-in exercises, unique ids');
+ok(ids.length === 326 && new Set(ids).size === 326, '326 built-in exercises, unique ids');
 ok(ids.every(i => Array.isArray(LAT[i]) && LAT[i].length === 7), 'every built-in id has a reviewed entry (mode, load, n, rp, unit, alt, note)');
 ok(Object.keys(LAT).every(i => ids.includes(i)), 'no entry for an id that does not exist');
 ok(Object.values(LAT).every(a => ['P', 'C'].includes(a[0]) && ['hand', 'bar', 'stack', 'bw', 'band', 'none'].includes(a[1]) && [1, 2].includes(a[2]) && ['both', 'side'].includes(a[3]) && ['reps', 'sec', 'min'].includes(a[4])), 'every entry uses only known values');
 ok(Object.values(LAT).filter(a => a[0] === 'P').every(a => a[3] === 'side' || a[5] === 1), 'a paired default either counts reps per side or asks together / alternating');
-ok(ids.filter(i => ex(i).m === 'cardio').every(i => LAT[i][0] === 'C' && LAT[i][4] === 'min'), 'cardio keeps its own fields (never paired)');
 const doc = read('docs/gym-lateral-inventory.md'); ok(ids.every(i => doc.includes('| ' + i + ' |')), 'the inventory document lists every id');
 
 // 2. the brief's named exercises

@@ -49,7 +49,7 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     s = await p.evaluate(() => ({ n: $('fhFoods').querySelector('.btnum').textContent, segs: [...document.querySelectorAll('#fhFoods [data-seg]')].map(e => e.dataset.seg).join(), stat: $('fhFoods').querySelector('.btstat b').textContent,
       chev: !!$('fHub').querySelector('.chev,[class*="chevron"]'), chips: !!$('fhFoods').querySelector('.mchip'), names: [...document.querySelectorAll('#fBento .bth b')].map(e => e.textContent).join('|') }));
     must(s.n === '8' && s.segs === 'p,c,f' && !!s.stat && !s.chev, `Foods: 8 saved, rotating stat "${s.stat}", ring split p/c/f, no chevron`);
-    must(s.names === 'Foods|Meals|Supps|Recipes|Shopping List|My Fridge', 'new section names: ' + s.names);
+    must(s.names === 'Foods|Meals|Supplements|Recipes|Shopping List|My Fridge', 'new section names: ' + s.names);
     await segTap(p, 'f'); await p.waitForTimeout(400);
     s = await p.evaluate(() => { const b = document.querySelector('#fhFoods .fbub'); return { on: !b.classList.contains('hide'), txt: b.textContent, k: b.className, dim: [...document.querySelectorAll('#fhFoods [data-seg].dim')].map(e => e.dataset.seg).join(), hash: location.hash }; });
     must(s.on && /3 fat-rich foods in total/.test(s.txt) && /k-f/.test(s.k) && s.dim === 'p,c' && s.hash === '#food', `ring tap: bubble "${s.txt}" in the segment colour, others dim, page stays`);

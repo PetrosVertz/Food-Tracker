@@ -66,7 +66,9 @@ document.addEventListener('click', e => { const ok = e.target.closest('[data-ok]
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-tip]');
   if(b){ e.preventDefault(); e.stopPropagation(); if($('tipPop') && $('tipPop').dataset.k === b.dataset.tip){ hideTip(); return; } showTip(b.dataset.tip, b); $('tipPop').dataset.k = b.dataset.tip; return; }
-  if($('tipPop')) hideTip();
+  const rk = e.target.closest('[data-tierinfo]'), pop = $('tipPop');   // tapping the rank icon again closes its bubble
+  if(rk && pop && pop.dataset.tg !== undefined && pop.dataset.tg === ((rk.closest('[data-x]') || {}).dataset || {}).x){ hideTip(); e.preventDefault(); e.stopPropagation(); return; }
+  if(pop) hideTip();
 }, true);
 addEventListener('scroll', hideTip, true);
 addEventListener('hashchange', hideTip);

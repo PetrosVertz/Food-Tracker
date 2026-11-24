@@ -250,20 +250,19 @@ let SES_ADD = null;
 const sesMs = () => active && active.clock0 ? Date.now() - active.clock0 : 0;
 
 const clk = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}` : `${m}:${String(ss).padStart(2, '0')}`; };
-const exTime = x => clk((x.t1 || Date.now()) - x.t0);
+
 // the Gym Coach robot cheers when a set is finished (bigger when it is a record or the last set of the exercise); transform only
 function coachCheer(kind){ const b = $('sesCoach'); if(!b || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   b.classList.remove('cheer1', 'cheer2', 'cheer3'); void b.offsetWidth; b.classList.add(kind === 'pr' ? 'cheer3' : kind === 'last' ? 'cheer2' : 'cheer1');
   clearTimeout(b._ct); b._ct = setTimeout(() => b.classList.remove('cheer1', 'cheer2', 'cheer3'), 1300); }
 function tickClock(){ if(!active || !$('ovSession').classList.contains('open')) return;
-  $('sesClock').textContent = clk(sesMs());
-  document.querySelectorAll('#sesBody [data-xt]').forEach(el => { const x = active.exercises[+el.dataset.xt]; if(x && x.t0) el.textContent = exTime(x); }); }
+  $('sesClock').textContent = clk(sesMs()); }
 
 function focusSet(xi, si){ setTimeout(() => { const el = document.querySelector(`.exc[data-x="${xi}"] .setrow[data-s="${si}"] [data-w]`); if(!el) return;
   if(el.closest('.exc.capped')) listReveal(el.closest('.setlist'), el.closest('.setrow')); else el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); }   // a card at its height limit scrolls only its own set list
 
 // records: a WEIGHT record (heaviest set) and a VOLUME record (total kg moved across all sets) — volume counts more
-function tickSet(x, s, row, xi, si){
+function tickSet(x, s, row, xi, si, fromHold){
   Lat.ensurePairs(x);
   if(s.done){ const mi = jointOn(x) ? Lat.mate(x, si) : -1, mt = mi >= 0 && x.sets[mi].done ? x.sets[mi] : null; if(mt){ mt.done = false; mt.pr = null; delete mt.at; }   // the tall tick reopens both sides (the recorded values stay as they were)
     s.done = false; if(s.pr === 't' || s.pr === 'd') active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === s.pr)); s.pr = null; delete s.at; if(x.volPR && exVolBasis(x.exId, x.sets, x.cv) <= bestVolBefore(x.exId)){ x.volPR = false; active.prs = active.prs.filter(p => !(p.exId === x.exId && p.kind === 'v')); } saveG('act'); renderSession(); return; }
@@ -273,6 +272,7 @@ function tickSet(x, s, row, xi, si){
   if(s.r === '' || (!card && s.w === '' && !gymBwDash(x.exId))){ toast(t(card ? 'needCardio' : 'needSetVals')); (s.w === '' && !card ? wi : ri).focus(); return; }
   if(s.w === '') s.w = '0';
   if(x.cv && x.cv.ask && !x.uni && !s.side && !card && s.type !== 'W'){ toast(t('cvPickFirst')); openCv(xi, true); return; }   // a movement that can be done together OR alternating: say which before it is saved
+  if(isHold(x.exId) && s.type !== 'W' && !fromHold){ if(HOLDRUN && HOLDRUN.xi === xi && HOLDRUN.si === si) return holdStop(); if(HOLDRUN) HOLDRUN = null; return holdStart(x, xi, si); }   // a hold: the tick starts the countdown; the set is saved when it ends
   s.done = true; s.at = Date.now(); delete s.tw; delete s.tr; Phone.unlockAudio(); if(!x.t0) x.t0 = Date.now();
   coachCheer(x.sets.every(z => z.done) ? 'last' : 'set');
   if(card){   // cardio records: longest time, farthest distance (only against earlier workouts)
@@ -360,6 +360,24 @@ function addDrop(x, j){ const s = x.sets[j]; Lat.ensurePairs(x);
     const end = Math.max(...Lat.pairIdx(x, j)), w = dropWeight(x, s.w || (s.done ? s.w : '')), pair = Lat.newPair('D', uid, true); pair.forEach(z => { z.w = w; }); x.sets.splice(end + 1, 0, ...pair); return; }
   x.sets.splice(j + 1, 0, { ...newSet('D'), drop: true, w: dropWeight(x, s.w || (s.done ? s.w : '')), side: s.side }); if(!x.sets[j + 1].side) delete x.sets[j + 1].side; }
 
+// ---------- timed holds (dead hang, plank, ...): type the seconds, tap the tick: a 5 s get-ready count, then the hold counts down and a ding says let go ----------
+// HOLDRUN = { xi, si, t0, lead, total, rang } (screen state only). Tapping the tick while holding stops early and saves the seconds really held; during the
+// get-ready count it cancels. The set is saved through tickSet() like any other, with the time in the reps field.
+let HOLDRUN = null;
+const holdBox = () => `<div class="holdcd" data-hold role="timer" aria-live="off"><b data-hn>${holdText()}</b><small data-hl>${t(holdLeft().lead ? 'holdReady' : 'holdGo')}</small></div>`;
+function holdLeft(){ if(!HOLDRUN) return { lead: false, n: 0, held: 0 }; const e = (Date.now() - HOLDRUN.t0) / 1000;
+  return e < HOLDRUN.lead ? { lead: true, n: Math.ceil(HOLDRUN.lead - e), held: 0 } : { lead: false, n: Math.max(0, Math.ceil(HOLDRUN.total - (e - HOLDRUN.lead))), held: Math.min(HOLDRUN.total, e - HOLDRUN.lead) }; }
+const holdText = () => { const l = holdLeft(), n = l.n; return l.lead ? String(n) : n >= 60 ? `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}` : String(n); };
+function holdStart(x, xi, si){ const s = x.sets[si], secs = Math.floor(+s.r); if(!(secs >= 1)) return;
+  Phone.unlockAudio(); HOLDRUN = { xi, si, t0: Date.now(), lead: 5, total: secs, rang: false }; Phone.haptic(); renderSession(); }
+function holdStop(){ if(!HOLDRUN) return; const h = HOLDRUN, l = holdLeft(); HOLDRUN = null;
+  if(l.lead || l.held < 1){ renderSession(); return; }   // cancelled before the hold began (or under a second): nothing saved
+  holdDone(h, Math.floor(l.held)); }
+function holdDone(h, secs){ const x = active && active.exercises[h.xi], s = x && x.sets[h.si]; HOLDRUN = null; if(!s || s.done){ renderSession(); return; }
+  s.r = String(Math.max(1, secs)); renderSession(); const row = document.querySelector(`#sesBody .exc[data-x="${h.xi}"] .setrow[data-s="${h.si}"]`); if(row) tickSet(x, s, row, h.xi, h.si, true); }
+function tickHold(){ if(!HOLDRUN) return; if(!active){ HOLDRUN = null; return; } const l = holdLeft(), el = document.querySelector('#sesBody [data-hn]');
+  if(!l.lead && l.n <= 0 && !HOLDRUN.rang){ HOLDRUN.rang = true; if(gOn('sound')) Phone.sound('bell'); Phone.vibrate([300, 120, 300]); return holdDone(HOLDRUN, HOLDRUN.total); }
+  if(el){ const t0 = holdText(); if(el.textContent !== t0) el.textContent = t0; const sm = document.querySelector('#sesBody [data-hl]'); if(sm){ const k = t(l.lead ? 'holdReady' : 'holdGo'); if(sm.textContent !== k) sm.textContent = k; } } }
 function tickRest(){
   if(!REST) return; const left = REST.end - Date.now();
   if(left <= 0 && !REST.rang){ REST.rang = true; if(gOn('sound')) Phone.sound('bell'); Phone.vibrate([300, 120, 300]); if(!$('ovSession').classList.contains('open')) toast(t('restDone'));
@@ -817,7 +835,7 @@ function renderTodayRec(){
 function gymStartToday(){
   if(active) return openSession();
   const pl = planFor(todayKey()), tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl);
-  if(tp || !tpls.length) return startSession(tp || null);
+  if(!tpls.length || (tp && !ui.wpAdv)) return startSession(tp || null);   // Advanced Week Planner on: always the list, never a preset on its own
   $('gStart').click();
 }
 
@@ -864,11 +882,11 @@ function showRankNa(btn){ hideTip(); const code = btn.dataset.rankna, p = docume
   const esc_ = e => { if(e.key !== 'Escape') return; e.preventDefault(); e.stopPropagation(); hideTip(); btn.focus(); };
   document.addEventListener('keydown', esc_, true); new MutationObserver((m, o) => { if(!p.isConnected){ document.removeEventListener('keydown', esc_, true); o.disconnect(); } }).observe(document.body, { childList: true }); }
 // the next level, said as something to do: a weight × reps, the reps alone, added weight × reps, or "beat your best" while protected
-const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t('tierNextReps', { r: nx.reps }) : nx.add != null ? t('tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
+const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t(nx.sec ? 'tierNextSecs' : 'tierNextReps', { r: nx.reps }) : nx.add != null ? t(nx.sec ? 'tierNextAddSecs' : 'tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
 function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
-  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
+  hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.dataset.tg = btn.closest('[data-x]') ? btn.closest('[data-x]').dataset.x : ''; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
   p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap2', { what: rankNextTxt(tf.next), tier: tf.next.label }) : t('tierTop')}`);
   p.innerHTML = tierBarHtml(tf);
   document.body.appendChild(p);
@@ -876,7 +894,7 @@ function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!t
   p.style.left = Math.max(16, Math.min(innerWidth - w - 16, r.left)) + 'px'; p.style.top = (r.bottom + 8) + 'px'; }
 // the kg still needed, then [current plate] bar in the tier colour [next plate]; shared by the rank bubble and the Rank Up window (rank-fx.js)
 function tierBarHtml(tf){ const nx = tf.next, pct = nx ? Math.max(0, Math.min(100, tf.frac * 100)) : 100, end = (tier, n, lbl) => `<span class="tgend">${rankIcon(tier, n, 20)}<small>${esc(lbl)}</small></span>`;
-  return `<b class="tgkg">${nx ? esc(rankNextTxt(nx)) : esc(t('tierTop'))}</b>${tf.protected ? `<small class="tgprot">${esc(t('rankProt'))}</small>` : ''}
+  return `<b class="tgkg">${nx ? `<span class="tgup">${svgIcon('arrowUp', 16, 2.8)}</span>${esc(rankNextTxt(nx))}` : esc(t('tierTop'))}</b>${tf.protected ? `<small class="tgprot">${esc(t('rankProt'))}</small>` : ''}
     <div class="tgrow tr-${tf.tier}">${end(tf.tier, tf.n, tf.label)}<span class="tgbar"><i style="transform:scaleX(${(pct / 100).toFixed(3)})"></i></span>${nx ? end(nx.tier, nx.n, nx.label) : ''}</div>`; }
 // → null (no tiers for this lift) · { need: true } (body weight or sex missing) · { none: true } (no sets yet)
 // · { n (0–14), tier, label, frac (0…1 along this level), next?: { n, tier, label, kg (estimated 1RM still needed) } }
@@ -950,7 +968,7 @@ function drawExSet(){
 
 function cardHtml(x, i){
   const ex = exById(x.exId), card = isCardio(x.exId), sc = x.ss ? ssColor(active.exercises, x.ss) : null;
-  const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
+  const hold = isHold(x.exId), doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
   Lat.ensurePairs(x); const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets, x.cv));
   const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
@@ -958,7 +976,7 @@ function cardHtml(x, i){
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
   const rk = tf && tf.label && gOn('rank'), na = !rk && tf && tf.na && gOn('rank'), head = `<div class="extop${rk || na || sore ? ' has' : ''}"><span class="extier" data-tier>${rk ? tierBadge(tf) : na ? rankNaBadge(tf.na) : ''}${sore ? `<button type="button" class="sorewarn" data-tip="sore${i}" data-tip1="${esc(t('soreBub2', { m: ML(sore.head) }))}" data-tip2="${esc(t('soreBubH', { h: Math.ceil(sore.h) }))}" aria-label="${esc(t('soreBub2', { m: ML(sore.head) }))}">${svgIcon('warn', 20, 2.2)}</button>` : ''}</span><button type="button" class="exgear" data-exset aria-label="${t('exSettings')}">${svgIcon('settings', 20, 2)}</button></div><div class="exhead">${atAvail(x) ? `<button type="button" class="attbtn${x.attempt ? ' on' : ''}" data-attempt aria-pressed="${!!x.attempt}" aria-label="${esc(t('atBtn'))}">${ICO_TROPHY}</button>` : ''}<span class="exnrow"><b class="exname${atOn(x) ? ' gold' : ''}" data-info>${esc(exName(ex))}</b></span>
-      ${tierNeed}<div class="exsub"><small class="exmeta"><span style="color:${gymInk(muCol(ex.h)) || 'inherit'}">${ML(ex.h)}</span> · <span style="color:${gymInk(EQ_COL[ex.e]) || 'inherit'}">${EL(ex.e)}</span>${x.t0 ? ` · <span class="xt" data-xt="${i}">${exTime(x)}</span>` : ''}</small>
+      ${tierNeed}<div class="exsub"><small class="exmeta"><span style="color:${gymInk(muCol(ex.h)) || 'inherit'}">${ML(ex.h)}</span> · <span style="color:${gymInk(EQ_COL[ex.e]) || 'inherit'}">${EL(ex.e)}</span></small>
       <div class="expills">${uniPill}${gOn('formPill', x.exId) ? `<button class="pill2" data-demo>${ICO_EYE}${t('formPill')}</button>` : ''}${card || !gOn('swapPill', x.exId) ? '' : `<button class="pill2" data-swap>${ICO_SWAP}${t('swapPill')}</button>`}</div></div></div>`;
   // 0.6.9: a suggestion line only on an exercise you're doing for the first time ("last time / try" is gone; the grey hints in the boxes stay)
   let info = '';
@@ -970,11 +988,12 @@ function cardHtml(x, i){
     if(isMainSet(s)) n++;
     let ph = s.type === 'W' ? {} : prevVals ? prevVals : (sug && (!sug.first || sug.est) ? { w: sug.w, r: String(sug.r).split('-').pop() } : sug && sug.last ? { w: sug.last.top.w, r: sug.last.top.r } : {});
     if(s.type !== 'W' && (s.w !== '' || s.r !== '')) prevVals = { w: s.w || ph.w, r: s.r || ph.r };
+    if(hold) ph = { ...ph, r: String((prevVals && +prevVals.r) || (sug && sug.last && +sug.last.top.r) || 30) };   // a hold: seconds, never the rep range
     if(gymBwDash(x.exId) && !(+ph.w > 0)) ph = { ...ph, w: '–' };   // bodyweight: your weight is counted for you; type only extra (belt) or assistance
-    const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
+    const box = k => `<div class="gymsbox"><button data-step="${k}" data-d="-1" aria-label="${t('gMinusL')}">−</button><input data-${k} inputmode="${k === 'w' ? 'decimal' : 'numeric'}" value="${s[k]}" placeholder="${ph[k] ?? (k === 'w' ? (card ? 'km' : 'kg') : (card ? 'min' : hold ? t('secLbl') : t('repsLbl')))}" aria-label="${k === 'w' ? t('kgLbl') : hold ? t('secLbl') : t('repsLbl')}"><button data-step="${k}" data-d="1" aria-label="${t('gPlusL')}">+</button></div>`;
     const ty = s.drop ? 'D' : s.type, base = s.drop ? 'D' : ty === 'N' ? n : ty, lbl = s.side ? `${base}/${s.side}` : base;
     const lastDrop = !hideM('D', x.exId) && s.drop && !(x.sets[j + 1] && x.sets[j + 1].drop) && !x.ended;
-    const restHere = REST && REST.xi === i && REST.si === j;
+    const restHere = REST && REST.xi === i && REST.si === j, holdOn = HOLDRUN && HOLDRUN.xi === i ? HOLDRUN.si : -1;
     if(card) return cardioRow(x, s, j) + (restHere ? restBracket() : '');
     const jm = jointOn(x) && s.side && !s.skip ? Lat.mate(x, j) : -1, merge = jm === j + 1 && s.side === 'L' && !x.sets[jm].skip, mate = jm === j - 1 && s.side === 'R' && !x.sets[jm].skip;   // 0.7.9.1: one tall tick spans the L and R rows
     const xtra = extrasHtml(s, j, x.exId);   // Refinements: half reps / negatives sit right under their own hand's set, also with one tick for both hands
@@ -982,14 +1001,14 @@ function cardHtml(x, i){
     const old = s.done && j < lastDone && !SET_OPEN.has(s) ? ' old' : '';
     const sk = !!s.skip, offBtns = '';   // 0.8: no Left Only / Right Only chooser; the L | R pill is a plain on / off switch
     const bothBtn = sk ? `<div class="onesd"><button type="button" data-skip data-j="${j}">${t('bothSides')}</button></div>` : '';   // a side skipped before 0.8 can still be brought back
-    return `<div class="setrow t-${ty}${sk ? ' skipped' : ''}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
-        <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : box('r')}
+    return `<div class="setrow t-${ty}${holdOn === j ? ' holding' : ''}${sk ? ' skipped' : ''}${merge ? ' lmerge' : ''}${mate ? ' rmate' : ''}${atOn(x) && s.type !== 'W' ? ' attset' : ''}${old} ${s.done ? 'done' : ''} ${s.pr ? 'pr' : ''} ${s.drop ? 'drop' : ''} ${s.side ? 'pair' : ''} ${s.side === 'R' ? 'rside' : ''} ${SSNEXT && SSNEXT.xi === i && SSNEXT.si === j ? 'ssnext' : ''}" data-s="${j}">
+        <button class="snum ${ty === 'N' ? 'tn' : 'tb'}" data-type aria-label="${t('tapNum')}">${lbl}</button>${box('w')}${atOn(x) && s.type !== 'W' ? '' : holdOn === j ? holdBox() : box('r')}
         <button class="sok" data-ok aria-label="${s.done ? t('setDoneL') : t('markDoneL')}"${sk ? ' disabled' : ''}>${ICO_TICK}</button></div>` + (sk ? '' : xtra) + offBtns + bothBtn +
       (lastDrop ? `<button class="adddrop" data-adddrop>${svgIcon('plus', 12, 2.6)} ${t('dropMore')}</button>` : '') + (restHere ? restBracket() : '');
   }).join('');
   return `<div class="exc open ${x.ended ? 'ended' : ''} ${sc ? 'ss' : ''}${jointOn(x) ? ' unib' : ''}" data-x="${i}"${ssStyle}>${ssl}${head}
     ${info ? `<div class="exinfo">${info}</div>` : ''}
-    <div class="setlist" data-sl="${i}">${cvChip(x)}${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span>${x.cv && Lat.options(x).length ? `<button type="button" class="kgh" data-cv aria-label="${esc(t('cvT'))}">${t('kgLbl')}${svgIcon('chevD', 10, 2.6)}</button>` : `<span>${t('kgLbl')}</span>`}${atOn(x) ? '' : `<span>${card ? t('minLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
+    <div class="setlist" data-sl="${i}">${cvChip(x)}${x.sets.length && !card ? `<div class="sethead${atOn(x) ? ' attset' : ''}"><span>${t('setLbl')}</span>${x.cv && Lat.options(x).length ? `<button type="button" class="kgh" data-cv aria-label="${esc(t('cvT'))}">${t('kgLbl')}${svgIcon('chevD', 10, 2.6)}</button>` : `<span>${t('kgLbl')}</span>`}${atOn(x) ? '' : `<span>${card ? t('minLbl') : hold ? t('secLbl') : t('repsLbl')}</span>`}<span></span></div>` : ''}
     ${rows}</div>
     ${x.ended ? `<div class="exdone"><span class="exdt">${svgIcon('check', 16, 2.6)}${t('exDone')} · ${t('nSets', { n: doneN })}${card ? '' : ` · ${vol.toLocaleString()} kg`}${x.sets.some(s => s.pr === 'w') ? ' · ' + t('prWLine') : ''}${x.volPR ? ' · ' + t('prVLine') : ''}</span><button class="linkbtn" data-reopen>${t('reopenEx')}</button></div>`
       : `<div class="exfoot">${card ? '' : `<button class="newset" data-addset>${t('newSetPill')}</button>`}<button class="endex2" data-endex>${t('endExPill')}</button></div>`}</div>`;

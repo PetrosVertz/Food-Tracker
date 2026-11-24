@@ -73,6 +73,15 @@ const freeze = o => { if(o && typeof o === 'object'){ Object.freeze(o); Object.v
   ok(L({ type: 'D' }) > L({}), 'a drop set counts a little more');
   ok(C.setEffort({ done: true, w: 'abc', r: null }) === 1 && isFinite(C.setEffort({ done: true, rir: 'x' })), 'odd values do not produce NaN'); }
 
+// 5b. Timed holds: the reps field holds SECONDS; rec.hold (seconds per rep-equivalent) turns them into reps, so a minute's plank is not "60 reps"
+{ const plank = { id: 'plank', mu: { abs: 70, obliques: 30 }, p: 'core_stab', hold: 10 }, hang = { id: 'dead_hang', mu: { forearms: 50, lats: 30, upper_back: 20 }, p: 'hang', hold: 8 };
+  ok(C.setEffort(set({ r: 60 }), plank) === 1, 'a 60 s plank counts as a normal set (6 rep-equivalents), not a 60-rep light set');
+  ok(C.setEffort(set({ r: 60 })) < 1, 'without the hold factor 60 would read as 60 reps (the old, wrong reading)');
+  ok(C.setEffort(set({ r: 80 }), hang) === 1 && C.setEffort(set({ r: 80 }), plank) === 1 && isFinite(C.setEffort(set({ r: 'x' }), hang)), 'each hold has its own factor (80 s = 10 reps of a hang, 8 of a plank); odd values stay finite');
+  const LIBH = { ...LIB, plank, dead_hang: hang }, exH = id => LIBH[id] || null;
+  const idx = C.indexHistory([ses('h1', 30, [['plank', [set({ w: 0, r: 60 })]]])], exH, loadOf);
+  ok(C.sessionHeadLoads(ses('h2', 20, [['plank', [set({ w: 0, r: 60 })]]]), idx, exH, loadOf).heads.abs.load > 0, 'a plank session loads the abs'); }
+
 // 6. Edited / deleted workouts: pure recompute from the list
 { const list = [ses('a', 5, [['bench', sets(5)]])], before = TR(list), after = TR([]);
   ok(before.heads.chest_mid.state !== 'ready' && after.heads.chest_mid.state === 'unknown', 'deleting the only workout: chest goes back to unknown');

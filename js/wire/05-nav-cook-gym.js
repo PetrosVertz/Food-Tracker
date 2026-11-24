@@ -133,6 +133,14 @@ if(!ui.seedClean053){
   tpls = tpls.filter(x => !(seedNames.has(x.name) && !used.has(x.id))); saveG('tpl'); ui.seedClean053 = true; saveUI();
 }
 
+// Cardio is gone: saved presets lose their cardio exercises (a preset that was only cardio is removed and leaves the week plan); the cardio work type becomes Full Body.
+// Workout history is never touched. Safe to run on every start.
+{ let ch = false; const gone = [];
+  tpls = tpls.map(tp => { const all = tp.exercises || [], ex = all.filter(e => !CARDIO_GONE.has(e.exId)); if(ex.length === all.length && tp.type !== 'cardio') return tp;
+    ch = true; if(all.length && !ex.length) gone.push(tp.id); return { ...tp, exercises: ex, type: tp.type === 'cardio' ? 'full' : tp.type }; }).filter(tp => !gone.includes(tp.id));
+  Object.keys(gymPlan).forEach(k => { const p = gymPlan[k]; if(!p) return; if(gone.includes(p.tpl)){ ch = true; p.tpl = null; if(!p.work) delete gymPlan[k]; } if(p && p.work === 'cardio'){ ch = true; p.work = 'full'; } });
+  if(ch){ saveG('tpl'); saveG('plan'); } }
+
 const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${s || 16}" fill="none" stroke="${gymInk(EQ_COL[e]) || 'currentColor'}" style="overflow:visible;color:${gymInk(EQ_COL[e]) || 'inherit'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EQ_ICON[e] || ''}</svg>`;
 
 

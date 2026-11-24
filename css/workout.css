@@ -112,7 +112,6 @@ body.noai .sescoach{opacity:.42;filter:grayscale(1)}
 .exhead{display:flex;flex-direction:column;align-items:center;gap:var(--s1);margin-bottom:var(--s1);text-align:center}
 .exname{font-size:var(--fs-clock);font-weight:var(--w-bold);font-style:italic;letter-spacing:-.4px;color:var(--t-clock);cursor:pointer}
 .exhead small{font-size:var(--fs-label);color:var(--t-muted)}
-.exhead .xt{color:var(--t-text);font-weight:var(--w-med);font-variant-numeric:tabular-nums}
 .expills{display:contents}   /* the pills are flex items of .exsub, beside the muscle · equipment line */
 .exsub{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px var(--s2);max-width:100%}
 .exmeta{min-width:0;max-width:100%;font-weight:var(--w-med)}
@@ -968,3 +967,26 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .sethead .kgh{display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .gcwu{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:var(--fs-label)}
 .gcwu b{font-weight:var(--w-med);white-space:nowrap}
+
+/* rank bubble: a green up arrow in front of what the next level needs */
+.tiergap .tgkg{display:flex;align-items:center;justify-content:center;gap:4px}
+.tiergap .tgup{display:inline-flex;color:var(--t-done)}
+
+/* timed hold (dead hang, plank, ...): the seconds box becomes the countdown; a quiet pulse in the accent colour, no layout change */
+.holdcd{height:38px;border-radius:var(--r-input);background:color-mix(in srgb,var(--t-accent) 14%,var(--t-card2));border:1px solid var(--t-accent);display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;font-variant-numeric:tabular-nums}
+.holdcd b{font-size:20px;font-weight:var(--w-bold);font-style:italic;color:var(--t-accent-ink,var(--t-accent));line-height:1}
+.holdcd small{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-text)}
+.setrow.holding .sok{background:var(--t-accent);color:var(--t-on)}
+
+
+/* Exercise card: the muscle · equipment line and its pills (L | R, Form, Swap: none to three) sit on ONE centre line and the whole row is centred;
+   a little smaller so all three pills fit beside the text without wrapping */
+.exsub{flex-wrap:nowrap;justify-content:center;align-items:center;gap:5px;min-height:22px}
+.exsub .exmeta{flex:0 1 auto;min-width:0;display:block;margin:0;font-size:11px;letter-spacing:-.2px;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exsub .pill2{flex:none;height:22px;padding:0 5px;gap:3px;font-size:11px;line-height:1;margin:0}
+.exsub .pill2 svg{width:12px;height:12px;flex:none}
+
+/* the exercise title sits a touch higher (more air under the top row); the muscle · equipment line keeps its place */
+.extop{margin-bottom:-22px}
+.extop.has{margin-bottom:-8px}
+.exhead .exname{margin-bottom:3px}

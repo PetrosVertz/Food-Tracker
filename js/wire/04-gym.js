@@ -11,7 +11,7 @@ const ML = k => (MUSCLES[k] || MUSCLES.other)[lang === 'el' ? 1 : 0], EL = k => 
 const HEAVY = new Set(['bench','incline_bench','squat','front_squat','deadlift','sumo_deadlift','trap_bar_dl','ohp']);
 
 const LIB = LIB_RAW.map(([id, en, el, eq, p, mu]) => { const m_ = parseMu(mu), th = topHead(m_);
-  return { id, en, el, al: ALSO[id] || [], e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90 }; });
+  return { id, en, el, al: ALSO[id] || [], e: EQ[eq], p, mu: m_, h: th, m: HEADS[th] ? HEADS[th][2] : 'other', rest: HEAVY.has(id) ? 180 : REST_BY_PATTERN[p] ?? 90, ...(HOLD[id] ? { hold: HOLD[id] } : {}) }; });
 
 let exCustom = cxRestore(Store.load('exCustom', [])), tpls = Store.load('tpls', null), gymPlan = Store.load('gymPlan', {}), sessions = Store.load('sessions', []), active = Store.load('active', null), comeback = Store.load('comeback', null);
 
@@ -27,7 +27,11 @@ const exById = id => { const l = EX(); if(!_exIdx || _exIdx.l !== l){ const m = 
 const exTitle = s => String(s || '').replace(/(^|[\s(\-/])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
 const exName = x => exTitle((typeof x === 'string' ? exById(x) : x)[lang === 'el' ? 'el' : 'en']);
 
-const isCardio = id => exById(id).m === 'cardio';
+const isCardio = id => exById(id).m === 'cardio';   // cardio exercises are gone from the app; this stays false for everything (old history reads as plain "other")
+// timed hold (dead hang, plank, ...): the set's reps field keeps SECONDS. holdSec = seconds per rep-equivalent (js/data/gym.js › HOLD), 0 for ordinary lifts
+const holdSec = id => { const e = exById(id); return e && e.hold > 0 ? e.hold : 0; }, isHold = id => holdSec(id) > 0;
+// reps a set counts as in volume, recovery and progress: a hold's seconds ÷ its factor (never below 1), the plain reps otherwise
+const setReps = (exId, r) => { const h = holdSec(exId), n = +r || 0; return h && n > 0 ? Math.max(1, Math.round(n / h)) : n; };
 
 const r25 = (x, e) => e === 'dumbbell' ? Math.round(x) : Math.round(x / 2.5) * 2.5;
 
@@ -76,7 +80,7 @@ const loadOf = (exId, w) => gymIsAssist(exId) ? Math.max(0, bodyW() - (+w || 0))
 function gymSetKcal(exId, s, bw){
   if(isCardio(exId)) return +s.cal > 0 ? +s.cal : bw * 7 * (+s.r || 0) / 60;   // calories typed from the machine win
   const mu = exById(exId).mu || {}, big = Object.entries(mu).reduce((a, [h, v]) => a + (BIG_HEADS.has(h) ? v : 0), 0) / 100;
-  const reps = Math.min(1.4, Math.max(.7, Math.sqrt((+s.r || 8) / 10)));
+  const reps = Math.min(1.4, Math.max(.7, Math.sqrt((setReps(exId, s.r) || 8) / 10)));
   return bw * .33 * (.75 + .45 * big) * reps * (s.type === 'W' ? .5 : 1) * (s.drop ? .6 : 1) * (s.side ? .6 : 1); }
 
 // a set that counts on its own: not a warm-up, not the R half of an L/R pair, not a drop under another set
@@ -153,7 +157,7 @@ const bestVolBefore = exId => { const h = exHistory(exId, active && active.id); 
 
 $('restBar').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if(b) restAdjust(b.dataset.rs); });
 
-setInterval(() => { tickRest(); tickClock(); if(typeof restKick === 'function') restKick(); }, 500);
+setInterval(() => { tickRest(); tickHold(); tickClock(); if(typeof restKick === 'function') restKick(); }, 500);
 
 const exScore = (x, key) => HEADS[key] ? (x.mu[key] || 0) : Object.entries(x.mu).filter(([h]) => HEADS[h] && HEADS[h][2] === key).reduce((a, [, v]) => a + v, 0);
 
@@ -292,11 +296,11 @@ const GYM_CAR = pillCarousel($('gTabs'), {
 $('gStart').addEventListener('click', () => {
   if(active) return openSession();
   const pick = forcePick; forcePick = false;   // "Other workout" always shows the list
-  const pl = planFor(todayKey()), planned = pl && pl.tpl && tpls.find(x => x.id === pl.tpl); if(planned && !pick) return startSession(planned);   // a planned day starts straight away
+  const pl = planFor(todayKey()), planned = pl && pl.tpl && tpls.find(x => x.id === pl.tpl); if(planned && !pick && !ui.wpAdv) return startSession(planned);   // a planned day starts straight away (with the Advanced Week Planner on, the list opens instead and the planned one carries a gold star)
   if(!tpls.length) return startSession(null);   // nothing saved yet: straight into an empty workout
   const today = planFor(todayKey()), tp = today && today.tpl && tpls.find(x => x.id === today.tpl);
   // Saved Workouts (0.6.9.3; 0.7.2 memory card): a memory card for each, the name in slanted capitals; Start Empty Workout underneath
-  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${gymIco('card', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span></button>`).join('');
+  $('stList').innerHTML = (tp ? [tp] : []).concat(tpls.filter(x => x !== tp)).map(x => `<button class="strow ${x === tp ? 'today' : ''}" data-st="${x.id}"><span class="stic">${gymIco('card', 26, 1.7)}</span><span class="t"><b>${esc(x.name).toUpperCase()}</b><small>${t('nEx', { n: x.exercises.length })}${x === tp ? ' · ' + t('stToday') : ''}</small></span>${x === tp && ui.wpAdv ? `<span class="stplan" role="img" aria-label="${esc(t('stToday'))}">${svgIcon('star', 22, 1.6)}</span>` : ''}</button>`).join('');
   gymHeadRobot('stCoach'); open('ovStart');
 });
 

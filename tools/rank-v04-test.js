@@ -53,8 +53,16 @@ const t1 = E.loadTarget(cls('bench'), { sex: 'm', bw: 80 }, 6, 1), t8 = E.loadTa
 ok(t1 > t8 * 1.2, `rep table: Gold III bench at 80 kg needs ${t1.toFixed(1)} kg × 1 but ${t8.toFixed(1)} kg × 8`);
 // 10. excluded equipment and reasons
 const ex = ['leg_press', 'lat_pulldown', 'cable_curl', 'smith_bench', 'pec_deck'].map(id => cls(id).excluded), band = cls('band_curl').excluded;
-ok(ex.every(x => x === 'machine_cable') && band === 'other_equipment' && cls('kb_swing').prOnly === 'protocol' && cls('plank') && cls('plank').prOnly === 'insufficient_benchmark',
+ok(ex.every(x => x === 'machine_cable') && band === 'other_equipment' && cls('kb_swing').prOnly === 'protocol' && cls('copenhagen') && cls('copenhagen').prOnly === 'insufficient_benchmark',
   'machine / cable / Smith = machine_cable; band = other equipment; ballistic / timed = protocol; no benchmark = insufficient (each its own text)');
+// 10b. timed holds: their own rank on time (seconds in the reps field), body weight and an optional belt
+{ const hc = cls('dead_hang'), lv = (id, bw, sets) => E.evaluate(cls(id), 'm', [{ date: '2026-01-01', bw, sets }]).n;
+  ok(hc && hc.hold && cls('plank').hold && cls('wall_sit').hold && cls('lsit').hold, 'dead hang, plank, wall sit and L-sit are timed holds with their own table');
+  ok(lv('dead_hang', 70, [{ w: 0, r: 30 }]) < lv('dead_hang', 70, [{ w: 0, r: 60 }]) && lv('dead_hang', 70, [{ w: 0, r: 60 }]) < lv('dead_hang', 70, [{ w: 0, r: 120 }]), 'a longer hang ranks higher (30 s < 60 s < 120 s)');
+  ok(lv('dead_hang', 70, [{ w: 10, r: 40 }]) > lv('dead_hang', 70, [{ w: 0, r: 40 }]), 'a belt with extra kg at the same time ranks higher');
+  ok(lv('dead_hang', 100, [{ w: 0, r: 60 }]) >= lv('dead_hang', 60, [{ w: 0, r: 60 }]), 'a heavier lifter holding the same time is not ranked lower');
+  const nx = E.evaluate(hc, 'm', [{ date: '2026-01-01', bw: 70, sets: [{ w: 0, r: 30 }] }]).next; ok(nx && nx.sec === true && nx.reps > 30, 'what the next level needs is more seconds, flagged as time');
+  ok(lv('plank', 70, [{ w: 0, r: 20 }]) < lv('plank', 70, [{ w: 0, r: 180 }]) && lv('tuck_lsit', 70, [{ w: 0, r: 20 }]) <= lv('lsit', 70, [{ w: 0, r: 20 }]) + 99, 'plank and the L-sit variants rank on time too'); }
 // 11. a typed or estimated 1RM never ranks: the engine has no 1RM input; a single at the target counts as a real set
 const s1 = rank('bench', 'm', 80, [[E.loadTarget(cls('bench'), { sex: 'm', bw: 80 }, 9, 1) + 0.01, 1]]);
 ok(s1.n === 9, 'an actual heavy single counts like any set (no estimated 1RM on the user side)');
