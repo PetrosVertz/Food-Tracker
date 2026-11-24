@@ -51,6 +51,24 @@ const Lat = (() => {
   // the other side of a pair (index), by pair id; -1 when there is none
   function mate(x, j){ const s = x.sets[j]; if(!s || !s.side || !s.pr) return -1; return x.sets.findIndex((z, k) => k !== j && z.pr === s.pr && z.side && z.side !== s.side); }
   const pairIdx = (x, j) => { const m = mate(x, j); return m < 0 ? [j] : [Math.min(j, m), Math.max(j, m)]; };
+  // the finished work of one exercise as LOGICAL sets, for rank and other consumers that must count one pair once: warm-ups and drop rows are left out;
+  // a one-row set is { kind: 'one', row }; both sides of a pair (found by pair id, else an L directly followed by its R) are { kind: 'pair', L, R };
+  // a side with no finished mate (one side only, or the other side not done) is { kind: 'lone', row }. Pure: nothing is tagged or changed.
+  function logical(x){
+    const S = (x && x.sets) || [], out = [], seen = new Set();
+    S.forEach((z, j) => {
+      if(seen.has(j) || z.type === 'W' || z.drop) return; seen.add(j);
+      if(!z.side){ if(z.done) out.push({ kind: 'one', row: z }); return; }
+      let m = -1;
+      if(z.pr) m = S.findIndex((q, k) => k !== j && q.pr === z.pr && q.side && q.side !== z.side);
+      else if(z.side === 'L' && S[j + 1] && S[j + 1].side === 'R' && !S[j + 1].pr && !S[j + 1].drop) m = j + 1;
+      if(m >= 0) seen.add(m);
+      const o = m >= 0 ? S[m] : null, Lr = z.side === 'L' ? z : o, Rr = z.side === 'R' ? z : o;
+      if(Lr && Lr.done && Rr && Rr.done) out.push({ kind: 'pair', L: Lr, R: Rr });
+      else { const d = z.done ? z : o && o.done ? o : null; if(d) out.push({ kind: 'lone', row: d }); }
+    });
+    return out;
+  }
   const open = z => !z.done && !z.skip;
   // two matching rows can be one compact set only when nothing would be lost
   const ANN = ['type', 'drop', 'hr', 'ng', 'rir', 'cal', 'lvl'];
@@ -93,5 +111,5 @@ const Lat = (() => {
   // text key for a convention (strings.js cv_*) and whether reps per side must be said
   const labelKey = (cv, rows) => !cv ? '' : cv.l === 'total' ? 'cvTotal' : cv.l === 'bar' ? 'cvBar' : cv.l === 'stack' ? (rows ? 'cvStackSide' : 'cvStack') : cv.l === 'hand' ? ((rows ? rowN(cv) : cv.n) >= 2 ? 'cvHand2' : (rows || cv.rp === 'side' ? 'cvHand' : 'cvOne')) : '';
 
-  return { sets, info, defaultPaired, canPair, defaultCv, rowN, ext, sides, unitW, volume, basis, ensurePairs, mate, pairIdx, open, matched, makeUni, newPair, freshSet, options, labelKey, newPr };
+  return { logical, sets, info, defaultPaired, canPair, defaultCv, rowN, ext, sides, unitW, volume, basis, ensurePairs, mate, pairIdx, open, matched, makeUni, newPair, freshSet, options, labelKey, newPr };
 })();

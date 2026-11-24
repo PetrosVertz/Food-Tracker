@@ -527,6 +527,9 @@ catch (e) { fail('food coach: tools/food-coach-test.js\n' + String(e.stdout || '
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/store-test.js')], { stdio: 'pipe' }).toString(); ok('store: ' + (out.match(/^ok /gm) || []).length + ' storage / backup / import safety checks pass (tools/store-test.js)'); }
 catch (e) { fail('store: tools/store-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 
+// Athlete Rank for Left / Right pairs and compact entries (tools/rank-pair-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/rank-pair-test.js')], { stdio: 'pipe' }).toString(); ok('rank pairs: ' + (out.match(/^ok /gm) || []).length + ' lower-side / equivalence / one-side / extras / restore checks pass (tools/rank-pair-test.js)'); }
+catch (e) { fail('rank pairs: tools/rank-pair-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 // Left / Right + load convention (js/data/gym-lat.js, js/gym-lat.js): every built-in exercise reviewed, named exercises, equal volume for equal work, pair round trip, drop pairs (tools/lat-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/lat-test.js')], { stdio: 'pipe' }).toString(); ok('left / right: ' + (out.match(/^ok /gm) || []).length + ' coverage / conversion / pair / drop checks pass (tools/lat-test.js)'); }
 catch (e) { fail('left / right: tools/lat-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
@@ -634,6 +637,9 @@ function coachE2E() {
 }
 // Exercise Picker V27 + Create Custom Exercise end to end in the browser (--boot only)
 function pickerE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/rank-pair-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
+    ok('rank pairs e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/rank-pair-e2e.js)'); }
+  catch (e) { fail('rank pairs e2e: tools/rank-pair-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
   try { const out = execFileSync(process.execPath, [path.join(root, 'tools/lateral-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
     ok('left / right e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/lateral-e2e.js)'); }
   catch (e) { fail('left / right e2e: tools/lateral-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }

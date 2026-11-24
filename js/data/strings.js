@@ -1194,3 +1194,7 @@ Object.assign(S, {   // Left / Right and the load convention beside the weight (
   cvLocked: ['This can only change before the first finished set.', 'Αυτό αλλάζει μόνο πριν το πρώτο ολοκληρωμένο σετ.'],
   oneSideL: ['Left Only', 'Μόνο Αριστερά'], oneSideR: ['Right Only', 'Μόνο Δεξιά'], bothSides: ['Both Sides', 'Και Οι Δύο Πλευρές'],
 });
+
+Object.assign(S, {   // Athlete Rank: the next target in the way the card is logged
+  tierNextTotal: ['{w} kg total × {r} reps', '{w} kg συνολικά × {r} επαναλήψεις'], tierNextEach: ['{w} kg × {r} reps each side', '{w} kg × {r} επαναλήψεις ανά πλευρά'],
+});

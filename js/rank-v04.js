@@ -56,15 +56,22 @@ const RankV4Core = (() => {
       if(c.eng === 'load'){ const step = c.proto === 'bar' ? 1.25 : 1, w = Math.ceil(loadTarget(c, body, n, best.r) / step - 1e-9) * step; return { n, w, r: best.r, kg: Math.max(0.5, w - best.w) }; }
       if(best.w > 0){ const add = Math.max(0.5, Math.ceil(bwAdd(c, body, n, best.r) * 2) / 2); return { n, add, r: best.r, kg: Math.max(0.5, add - best.w) }; }
       return { n, reps: Math.ceil(bwReps(c, body, n) - 1e-9), kg: null }; }
-    // sessions: [{ date, bw, sets: [{ w, r, ok?, before? }] }] (qualifying sets only; the caller drops warm-ups, drops and unfinished sets)
+    // one LOGICAL set → its score. A pair (both sides finished) earns the LOWER of its two sides, each scored on its own weight and reps against the same
+    // benchmark (never one side's weight with the other's reps); a side with no finished mate is kept (counted in `lone`) but earns no rank.
+    function scoreEntry(c, body, st){
+      if(st.lone) return null;
+      const a = scoreSet(c, body, st); if(!st.pair) return a;
+      const b = scoreSet(c, body, st.pair); if(!a || !b) return null; if(a.check || b.check) return { check: true };
+      return b.n < a.n || (b.n === a.n && b.frac < a.frac) ? { ...b, side: 'R', pair: true } : { ...a, side: 'L', pair: true }; }
+    // sessions: [{ date, bw, sets: [{ w, r, ok?, before?, pair?: { w, r, ok? }, lone? }] }] (qualifying logical sets only; the caller drops warm-ups, drops and unfinished sets)
     function evaluate(c, sex, sessions){
-      if(!c || !c.eng) return null; let best = null, bestBody = null; const checks = [];
+      if(!c || !c.eng) return null; let best = null, bestBody = null, lone = 0; const checks = [];
       (sessions || []).forEach(s => { if(!(s.bw > 30)) return; const body = { sex, bw: s.bw };
-        s.sets.forEach(st => { const x = scoreSet(c, body, st); if(!x) return; if(x.check){ checks.push({ date: s.date, w: +st.w || 0, r: +st.r }); return; }
+        s.sets.forEach(st => { if(st.lone && Math.floor(+st.r || 0) >= 1) lone++; const x = scoreEntry(c, body, st); if(!x) return; if(x.check){ checks.push({ date: s.date, w: +st.w || 0, r: +st.r }); return; }
           if(!best || x.n > best.n || (x.n === best.n && x.frac > best.frac)){ best = { ...x, date: s.date, before: st.before || 0 }; bestBody = body; } }); });
-      if(!best) return { none: true, checks };
-      return { n: best.n, frac: best.frac, best, next: nextFor(c, bestBody, best), checks, q: c.q }; }
-    return { classify, scoreSet, evaluate, loadTarget, bwReps, bwAdd, nextFor, refMax, tbl };
+      if(!best) return { none: true, checks, lone };
+      return { n: best.n, frac: best.frac, best, next: nextFor(c, bestBody, best), checks, q: c.q, lone }; }
+    return { classify, scoreSet, scoreEntry, evaluate, loadTarget, bwReps, bwAdd, nextFor, refMax, tbl };
   }
   // ---- seasons (pure): two a year, UTC
   const seasonOf = ms => { const d = new Date(ms); return d.getUTCFullYear() + '-H' + (d.getUTCMonth() < 6 ? 1 : 2); };
@@ -96,10 +103,19 @@ function rank4BwAt(date){ const w = typeof weights === 'object' && weights ? wei
 function rank4Sessions(exId, noLive){ const out = [], mu = (exById(exId) || {}).mu || {}, main = Object.keys(mu).filter(h => mu[h] >= 25);
   const add = s => { let before = 0, sets = [];
     (s.exercises || []).forEach(x => { const xm = (exById(x.exId) || {}).mu || {}, hits = main.some(h => (xm[h] || 0) >= 25);
-      (x.sets || []).forEach(st => { if(!st.done) return; if(x.exId === exId && isMainSet(st) && st.r !== '' && +st.r >= 1) sets.push({ w: st.w === '' ? 0 : +st.w || 0, r: +st.r, ok: !!st.ok, before });
-        if(hits && isMainSet(st)) before++; }); });
+      Lat.logical(x).forEach(e => { if(x.exId === exId){ const st = rank4Entry(x, e, before); if(st) sets.push(st); }
+        if(hits) before++; }); });
     if(sets.length) out.push({ date: s.date, bw: rank4BwAt(s.date), sets }); };
   sessions.forEach(add); if(typeof active !== 'undefined' && active && !noLive) add(active); return out; }
+// one logical set → what the rank engine scores. The weight is read PER IMPLEMENT (a typed total is divided by its bells) because the standards are per hand.
+// Rank-specific selection: gym.js isMainSet (which drops every R row) stays as it is for the features that need it.
+function rank4Entry(x, e, before){
+  const one = (row, extra) => { const w = row.w === '' ? 0 : +Lat.unitW(x, row) || 0, r = +row.r; return r >= 1 ? { w, r, ok: !!row.ok, before, ...extra } : null; };
+  if(e.kind === 'one') return one(e.row);
+  if(e.kind === 'pair'){ const a = one(e.L), b = one(e.R); if(a && b) return { ...a, pair: { w: b.w, r: b.r, ok: b.ok } }; return one(e.L || e.R, { lone: true }); }
+  // a lone side: workouts from before Left / Right carried the convention (no x.cv) counted their Left row as the set, as before; new work keeps it without a rank
+  if(!x.cv) return e.row.side === 'R' ? null : one(e.row);
+  return one(e.row, { lone: true }); }
 // the season record (profile.rankSeason, synced with the profile, in backups): brought up to date once per day / after workouts and imports
 function rank4Season(){ const now = Date.now(), rec = profile.rankSeason;
   if(rec && rec.v === 1 && rec.sid === RankV4Core.seasonOf(now) && rec._d === todayKey()) return rec;
@@ -115,9 +131,9 @@ function rank4Raw(exId, noLive){ const E = rank4(), c = E.classify(exId, exById(
 function rank4For(exId, noLive){
   const r = rank4Raw(exId, noLive); if(!r) return null;
   if(r.excluded || r.prOnly) return { na: r.excluded || r.prOnly };
-  if(r.need) return { need: true, why: r.why }; if(r.none) return { none: true, checks: r.checks };
+  if(r.need) return { need: true, why: r.why }; if(r.none) return { none: true, checks: r.checks, lone: r.lone || 0 };
   const season = rank4Season(), fl = season.floor && season.floor[exId], n = fl != null && fl > r.n ? fl : r.n, prot = n > r.n;
-  const res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n), frac: prot ? 0 : r.frac, raw: r.n, protected: prot, q: r.q, checks: r.checks, best: r.best, fatigue: { before: r.best.before } };
+  const res = { n, tier: TIERS[Math.floor(n / 3)], label: tierName(n), frac: prot ? 0 : r.frac, raw: r.n, protected: prot, q: r.q, checks: r.checks, best: r.best, fatigue: { before: r.best.before }, sides: r.best.pair ? 'both' : 'single', lone: r.lone || 0 };
   if(r.next && !prot){ const nx = r.next; res.next = { n: nx.n, tier: TIERS[Math.floor(nx.n / 3)], label: tierName(nx.n), kg: nx.kg, w: nx.w, r: nx.r, reps: nx.reps, add: nx.add }; }
   else if(n < RankV4Core.TOP){ const nn = n + 1; res.next = { n: nn, tier: TIERS[Math.floor(nn / 3)], label: tierName(nn), kg: null, beat: true }; }
   return res; }

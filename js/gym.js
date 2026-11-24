@@ -844,10 +844,16 @@ function showRankNa(btn){ hideTip(); const code = btn.dataset.rankna, p = docume
   const esc_ = e => { if(e.key !== 'Escape') return; e.preventDefault(); e.stopPropagation(); hideTip(); btn.focus(); };
   document.addEventListener('keydown', esc_, true); new MutationObserver((m, o) => { if(!p.isConnected){ document.removeEventListener('keydown', esc_, true); o.disconnect(); } }).observe(document.body, { childList: true }); }
 // the next level, said as something to do: a weight × reps, the reps alone, added weight × reps, or "beat your best" while protected
-const rankNextTxt = nx => nx.w != null ? t('tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t('tierNextReps', { r: nx.reps }) : nx.add != null ? t('tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
+const rankNextTxt = nx => nx.w != null ? t(nx.tot ? 'tierNextTotal' : nx.each ? 'tierNextEach' : 'tierNextSet', { w: fmt(nx.w), r: nx.r }) : nx.reps != null ? t('tierNextReps', { r: nx.reps }) : nx.add != null ? t('tierNextAdd', { a: fmt(nx.add), r: nx.r }) : nx.beat ? t('tierNextBeat') : t('tierGapKg', { kg: fmt(nx.kg) });
 // 0.7.10: tap the rank → a bubble with a bar in the current tier's colour that fills towards the next level; the kg still needed written once.
 // Current rank icon at the left end, the next one at the right; at Diamond 1 the bar is full and says so.
-function showTierGap(btn){ const x = exAt(btn), tf = x && tierFor(x.exId); if(!tf || !tf.label) return;
+// the rank of an exercise card with its next target said in the way this card is logged (standards are per hand: a card typing a TOTAL sees the total,
+// a Left / Right or each-side card sees "each side"); the rank itself is the same whichever way it is logged
+function tierForX(x, noLive){ const tf = tierFor(x.exId, undefined, noLive); if(!tf || !tf.next || tf.next.w == null) return tf;
+  if(x.cv && x.cv.l === 'total' && !x.uni) return { ...tf, next: { ...tf.next, w: Math.round(tf.next.w * (x.cv.n || 1) * 100) / 100, tot: true } };
+  if(x.uni || (x.cv && x.cv.rp === 'side' && Lat.info(x.exId) && Lat.info(x.exId).mode === 'P')) return { ...tf, next: { ...tf.next, each: true } };
+  return tf; }
+function showTierGap(btn){ const x = exAt(btn), tf = x && tierForX(x); if(!tf || !tf.label) return;
   hideTip(); const p = document.createElement('div'); p.className = 'tippop tiergap'; p.id = 'tipPop'; p.setAttribute('role', 'tooltip'); p.style.zIndex = zTop + 50;
   p.setAttribute('aria-label', `${tf.label} · ${tf.next ? t('tierGap2', { what: rankNextTxt(tf.next), tier: tf.next.label }) : t('tierTop')}`);
   p.innerHTML = tierBarHtml(tf);
@@ -933,7 +939,7 @@ function cardHtml(x, i){
   const doneN = x.sets.filter(s => s.done && isMainSet(s)).length, fresh = !x.ended && !x.sets.some(s => s.done);
   const ssl = sc ? `<div class="sslbl">${t('superset')}</div>` : '', ssStyle = sc ? ` style="--ssc:${sc}"` : '';
   Lat.ensurePairs(x); const sug = suggestFor(x.exId, x.reps), vol = Math.round(exVol(x.exId, x.sets, x.cv));
-  const tf = card ? null : tierFor(x.exId), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
+  const tf = card ? null : tierForX(x), tierNeed = tf && tf.need ? `<button class="tierneed" type="button" data-tierbody>${t('tierNeedBody')}</button>` : '';
   const uniPill = card || (!Lat.canPair(x.exId, ex) && !x.uni) || !gOn('uniPill', x.exId) ? '' : `<button class="pill2 uni ${x.uni ? 'on' : ''}" data-uni aria-pressed="${!!x.uni}" aria-label="${t('uniT')}">L | R</button>`;
   const sore = !card && gOn('warnSore', x.exId) ? exSore(x.exId) : null;
   // 0.7.10: the top row of the card: on the left the rank badge, then the sore-muscle warning (each only if switched on); the gear stays top right. The title gets the full width below
