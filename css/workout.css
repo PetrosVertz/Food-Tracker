@@ -990,3 +990,23 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .extop{margin-bottom:-22px}
 .extop.has{margin-bottom:-8px}
 .exhead .exname{margin-bottom:3px}
+
+/* ======================= 0.8 (24 Nov): streak window, tidier ======================= */
+/* smaller: it scrolls inside instead of filling the screen; the back arrow no longer floats beside the content (that pushed everything to the right) */
+#ovStreak .sheet{max-height:78vh;padding-top:44px;padding-inline:16px;position:relative}
+#ovStreak .sheet>.sback{position:absolute;left:8px;top:8px;float:none;margin:0}
+#stkBody{gap:var(--s2);width:100%;margin:0;align-items:stretch}
+.stkhead{flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:0 0 var(--s1)}
+.stkbig{display:flex;align-items:center;justify-content:center;gap:var(--s2)}
+.stkbig .stkfl{width:auto;height:auto;background:none;border-radius:0}
+.stkn{font-size:44px;font-weight:800;font-style:italic;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.03em}
+.stksub{display:flex;align-items:center;justify-content:center;gap:var(--s2);font-size:var(--fs-label);color:var(--t-muted)}
+.stkline{text-align:center;font-size:var(--fs-label);color:var(--t-muted)}
+.stkbest{justify-content:center;gap:var(--s2);padding:var(--s2) var(--s3)}
+.stkcard.stkbest{flex-direction:row;align-items:baseline}
+.stkcalg{gap:4px;margin:var(--s1) 0}
+.stkcalg i{height:30px}
+.stkhow summary{display:flex;align-items:center;justify-content:center;gap:6px}
+.stkhow .stkchev{display:inline-flex;color:var(--t-muted);transition:transform .25s cubic-bezier(.2,.9,.25,1)}
+.stkhow[open] .stkchev{transform:rotate(180deg)}
+@media (prefers-reduced-motion: reduce){ .stkhow .stkchev{transition:none} }

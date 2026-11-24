@@ -301,10 +301,10 @@ ui.floc = 'all';
 $('faFrozen').addEventListener('change', () => { const b = $('faLoc').querySelector(`[data-v="${$('faFrozen').checked ? 'freezer' : 'fridge'}"]`); if(b) b.click(); });
 
 // My Food Log: scrolling the foods down slides Log Food + the coach button down into the bar (body.pillsunk). They come back up only when the
-// list is back at its very top (or on leaving the page); scrolling up a little or touching elsewhere does not bring them back.
+// list is back at its very top (or on leaving the page); the first nudge down starts them sinking; scrolling up a little or touching elsewhere does not bring them back.
 { const pg = $('pgToday'), unsink = () => document.body.classList.remove('pillsunk'); let last = 0;
   if(pg){ pg.addEventListener('scroll', e => { const el = e.target; if(el !== $('dScroll') && el !== pg) return; const y = el.scrollTop;
-      if(y > 24 && y > last + 6) document.body.classList.add('pillsunk'); else if(y <= 2) unsink(); last = y; }, { capture: true, passive: true });
+      if(y > 1 && y > last + 1) document.body.classList.add('pillsunk'); else if(y <= 2) unsink(); last = y; }, { capture: true, passive: true });
     addEventListener('hashchange', () => { unsink(); last = 0; }); } }
 // 0.8: My Food Log keeps its top pinned while there is room (today.js todayFit); re-checked when the top or the screen changes size
 if(typeof ResizeObserver === 'function'){ const ro = new ResizeObserver(() => { cancelAnimationFrame(todayFit.f); todayFit.f = requestAnimationFrame(todayFit); });

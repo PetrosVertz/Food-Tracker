@@ -106,7 +106,7 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     must(gl && gl.h <= 46 && !/Today/.test(gl.t) && /(Gym Day|Rest Day)/.test(gl.t), `gym-day card is one slim line (${gl && gl.h} px): "${gl && gl.t}"`);
     await tap(p, '#pgToday .stkbub'); await p.waitForTimeout(500);
     s = await p.evaluate(() => ({ open: $('ovStreak').classList.contains('open'), cells: document.querySelectorAll('#stkBody .stkcalg i').length, on: document.querySelectorAll('#stkBody .stkcalg i.on').length }));
-    must(s.open && s.cells === 42 && s.on >= 1, `streak bubble opens the history: calendar of 6 weeks, ${s.on} trained days`);
+    must(s.open && s.cells === 28 && s.on >= 1, `streak bubble opens the history: calendar of 4 weeks, ${s.on} trained days`);
     must(!p.errs.length, 'no page errors (My Food Log) ' + p.errs.slice(0, 2).join(' | ')); await p.close();
     // Greek + light: no errors, nothing cut off sideways
     p = await open(browser, port, { hash: '#food', lang: 'el', light: true });

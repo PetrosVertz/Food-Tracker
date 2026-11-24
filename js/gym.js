@@ -524,7 +524,9 @@ const recMix = (a, b, p) => `color-mix(in srgb, ${b} ${Math.round(Math.max(0, Ma
 const recColor = h => h <= 0 ? REC_COL.ok : h <= 24 ? recMix(REC_COL.ok, REC_COL.mid, h / 24) : recMix(REC_COL.mid, REC_COL.low, (h - 24) / 48);
 const recFill = m => Object.fromEntries(Object.entries(m).filter(([, v]) => v.col).map(([g, v]) => [g, v.col])), recLows = m => new Set(Object.entries(m).filter(([, v]) => v.st === 'low').map(([g]) => g));
 // head colours for the RECOVERY+ figure: each head by its own hours; unknown heads get none (neutral graphite)
-function recHeadColors(tr){ const out = {}; RecoveryCore.HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state !== 'unknown') out[h] = recColor(v.hours); }); return out; }
+// Dark mode only: the figure's green / orange / red are softened toward the dark background (they were too bright against it); Light mode is unchanged
+const recDim = c => document.documentElement.getAttribute('data-theme') === 'dark' ? recMix(c, '#2a2f33', .42) : c;
+function recHeadColors(tr){ const out = {}; RecoveryCore.HEADS21.forEach(h => { const v = tr.heads[h]; if(v.state !== 'unknown') out[h] = recDim(recColor(v.hours)); }); return out; }
 
 function tplGroups(tp){ const s = new Set(); tp.exercises.forEach(e => Object.entries(exById(e.exId).mu).forEach(([h, v]) => { if(v >= 40 && HEADS[h] && HEADS[h][2] !== 'cardio') s.add(HEADS[h][2]); })); return [...s]; }
 
@@ -636,7 +638,7 @@ const fmtDay = d => { const x = new Date(d + 'T12:00:00'); return x.toLocaleDate
 // one muscle group cut from the RECOVERY+ body (same artwork), each not-ready head in its own state colour; crop from the drawn geometry
 function recMuscleSVG(g){
   const r = RecoveryPlus.compute(), v = r.tr.groups[g], hs = v.heads.length ? v.heads : v.all, c = raCropFor(recSex(), hs); if(!c) return '';
-  const cols = {}; hs.forEach(h => { const x = r.tr.heads[h]; if(x.state !== 'unknown') cols[h] = recColor(x.hours); });
+  const cols = {}; hs.forEach(h => { const x = r.tr.heads[h]; if(x.state !== 'unknown') cols[h] = recDim(recColor(x.hours)); });
   return recoveryAnatomySVG({ sex: recSex(), view: c.fig === 'f' ? 'front' : 'back', colorsByHead: cols, only: hs, crop: c.box, idPrefix: 'rt' + g });
 }
 function recTick(){
@@ -825,9 +827,10 @@ function renderTodayRec(){
   let lab, btns = '', gym = false;
   if(di.type === 'gym'){ gym = true; lab = t('gymDay');
     if(isToday && live) btns = `<button class="gymstartbtn" type="button" data-gymresume>${t('gdResume')}</button>`;
-    else if(!live) btns = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdStart')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
+    else if(!live) btns = `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>` + (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdWorkout')}</button>` : ''); }
   else if(skipped){ lab = t('gymSkipped'); btns = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }
-  else lab = t('restDay');
+  else{ lab = t('restDay');   // a rest day has no Skip, but a Workout bubble (or Resume) when you feel like training anyway
+    if(isToday) btns = live ? `<button class="gymstartbtn" type="button" data-gymresume>${t('gdResume')}</button>` : !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdWorkout')}</button>` : ''; }
   $('dBlocks').innerHTML = `<div class="remind gdline${gym ? ' gym' : ' rest'}"${gym && !live ? ' data-gdhold' : ''}><span class="gymdayic">${svgIcon('workouts', 20, 1.9)}</span><b class="gdlab">${esc(lab)}</b>${btns ? `<div class="gymdaybtns">${btns}</div>` : ''}</div>`;
 }
 
@@ -1263,7 +1266,7 @@ function renderGymHub(fresh){
   // RECOVERY+: only the body, front and back, sliding every 9 s
   { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 150 });
     const side = GH_REC.side, key = JSON.stringify(col) + recSex() + lang;
-    if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
+    if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('bolt', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
     $('ghRec').setAttribute('aria-label', t('hubRec')); pauseOffscreen($('ghRec')); if(!GH_REC.tm) ghRecArm(); }
   renderGymWeek();
   // the grid ends just above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
