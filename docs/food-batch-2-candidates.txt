@@ -1,0 +1,270 @@
+175119|Atlantic mackerel, raw|Σκουμπρί Ατλαντικού, ωμό|fish|fishgen|uncooked
+175120|Atlantic mackerel, cooked with dry heat|Σκουμπρί Ατλαντικού, ψημένο|fish|fishgen|cooked
+174183|Anchovies, canned in oil, drained|Αντζούγιες σε λάδι, στραγγισμένες|fish|fishgen|ready
+175140|Sardines in tomato sauce, canned, drained with bones|Σαρδέλες σε σάλτσα ντομάτας, κονσέρβα|fish|fishgen|ready
+175118|Herring, pickled|Ρέγγα παστή σε ξύδι|fish|fishgen|ready
+173668|Herring, kippered|Ρέγγα καπνιστή|fish|fishgen|ready
+174190|Cod, dried and salted|Μπακαλιάρος παστός|fish|fishgen|uncooked
+174189|Cod, canned|Μπακαλιάρος, κονσέρβα|fish|fishgen|ready
+175159|Yellowfin tuna, raw|Τόνος κιτρινόπτερος, ωμός|fish|tuna|uncooked
+172006|Yellowfin tuna, cooked with dry heat|Τόνος κιτρινόπτερος, ψημένος|fish|tuna|cooked
+173706|Bluefin tuna, raw|Τόνος κόκκινος, ωμός|fish|tuna|uncooked
+173707|Bluefin tuna, cooked with dry heat|Τόνος κόκκινος, ψημένος|fish|tuna|cooked
+175156|Skipjack tuna, raw|Τόνος skipjack, ωμός|fish|tuna|uncooked
+172005|Skipjack tuna, cooked with dry heat|Τόνος skipjack, ψημένος|fish|tuna|cooked
+174227|Light tuna in oil, canned, drained|Τόνος light σε λάδι, κονσέρβα, στραγγισμένος|fish|tuna|ready
+175157|White tuna in oil, canned, drained|Λευκός τόνος σε λάδι, κονσέρβα, στραγγισμένος|fish|tuna|ready
+175158|White tuna in water, canned, drained|Λευκός τόνος σε νερό, κονσέρβα, στραγγισμένος|fish|tuna|ready
+173686|Atlantic salmon, wild, raw|Σολομός Ατλαντικού άγριος, ωμός|fish|salmon|uncooked
+171998|Atlantic salmon, wild, cooked with dry heat|Σολομός Ατλαντικού άγριος, ψημένος|fish|salmon|cooked
+173691|Sockeye salmon, raw|Σολομός sockeye, ωμός|fish|salmon|uncooked
+173692|Sockeye salmon, cooked with dry heat|Σολομός sockeye, ψημένος|fish|salmon|cooked
+175138|Pink salmon, raw|Ροζ σολομός, ωμός|fish|salmon|uncooked
+172001|Pink salmon, cooked with dry heat|Ροζ σολομός, ψημένος|fish|salmon|cooked
+173688|Chinook salmon, raw|Σολομός chinook, ωμός|fish|salmon|uncooked
+171999|Chinook salmon, cooked with dry heat|Σολομός chinook, ψημένος|fish|salmon|cooked
+173715|Farmed coho salmon, raw|Σολομός coho εκτροφής, ωμός|fish|salmon|uncooked
+173716|Farmed coho salmon, cooked with dry heat|Σολομός coho εκτροφής, ψημένος|fish|salmon|cooked
+173690|Pink salmon, canned, with bones and liquid|Ροζ σολομός, κονσέρβα|fish|salmon|ready
+173693|Sockeye salmon, canned, drained|Σολομός sockeye, κονσέρβα, στραγγισμένος|fish|salmon|ready
+174196|Flounder and sole, raw|Γλώσσα και ρέγγα πλατύψαρο, ωμή|fish|fishgen|uncooked
+174197|Flounder and sole, cooked with dry heat|Γλώσσα και πλατύψαρο, ψημένη|fish|fishgen|cooked
+173698|Snapper, raw|Σνάπερ (κοκκινόψαρο), ωμό|fish|fishgen|uncooked
+173699|Snapper, cooked with dry heat|Σνάπερ (κοκκινόψαρο), ψημένο|fish|fishgen|cooked
+171962|Grouper, raw|Ροφός, ωμός|fish|fishgen|uncooked
+171963|Grouper, cooked with dry heat|Ροφός, ψημένος|fish|fishgen|cooked
+173676|Monkfish, raw|Μπακαλιάρος πέτρας (βατραχόψαρο), ωμός|fish|fishgen|uncooked
+171996|Monkfish, cooked with dry heat|Βατραχόψαρο, ψημένο|fish|fishgen|cooked
+171959|Mahi-mahi, raw|Κορυφαίνα (μάχι-μάχι), ωμή|fish|fishgen|uncooked
+171992|Mahi-mahi, cooked with dry heat|Κορυφαίνα (μάχι-μάχι), ψημένη|fish|fishgen|cooked
+175130|Alaska pollock, raw|Πολλάκι Αλάσκας, ωμό|fish|fishgen|uncooked
+173681|Alaska pollock, cooked with dry heat|Πολλάκι Αλάσκας, ψημένο|fish|fishgen|cooked
+175176|Tilapia, raw|Τιλάπια, ωμή|fish|fishgen|uncooked
+175177|Tilapia, cooked with dry heat|Τιλάπια, ψημένη|fish|fishgen|cooked
+173713|Whiting, raw|Μερλάγκος, ωμός|fish|fishgen|uncooked
+175161|Whiting, cooked with dry heat|Μερλάγκος, ψημένος|fish|fishgen|cooked
+173678|Perch, raw|Πέρκα, ωμή|fish|fishgen|uncooked
+173679|Perch, cooked with dry heat|Πέρκα, ψημένη|fish|fishgen|cooked
+175165|Farmed catfish, raw|Γατόψαρο εκτροφής, ωμό|fish|fishgen|uncooked
+175166|Farmed catfish, cooked with dry heat|Γατόψαρο εκτροφής, ψημένο|fish|fishgen|cooked
+174193|Eel, raw|Χέλι, ωμό|fish|fishgen|uncooked
+174194|Eel, cooked with dry heat|Χέλι, ψημένο|fish|fishgen|cooked
+173697|Shark, raw|Σκυλόψαρο, ωμό|fish|fishgen|uncooked
+173701|Sturgeon, raw|Οξύρρυγχος, ωμός|fish|fishgen|uncooked
+175148|Sturgeon, cooked with dry heat|Οξύρρυγχος, ψημένος|fish|fishgen|cooked
+174199|Haddock, smoked|Μπακαλιάρος καπνιστός (haddock)|fish|fishgen|ready
+175132|Fish roe, raw|Αυγά ψαριού, ωμά|fish|fishgen|uncooked
+174239|Fish roe, cooked with dry heat|Αυγά ψαριού, ψημένα|fish|fishgen|cooked
+174188|Caviar, black and red|Χαβιάρι, μαύρο και κόκκινο|fish|fishgen|ready
+173702|Surimi|Σουρίμι|fish|fishgen|ready
+171970|Shrimp, breaded and fried|Γαρίδες πανέ τηγανητές|fish|shrimp|cooked
+174204|Blue crab, raw|Κάβουρας μπλε, ωμός|fish|fishgen|uncooked
+174205|Blue crab, cooked with moist heat|Κάβουρας μπλε, βραστός|fish|fishgen|cooked
+175164|Alaska king crab, raw|Βασιλικός κάβουρας Αλάσκας, ωμός|fish|fishgen|uncooked
+174202|Alaska king crab, cooked with moist heat|Βασιλικός κάβουρας Αλάσκας, βραστός|fish|fishgen|cooked
+174208|Lobster, raw|Αστακός, ωμός|fish|fishgen|uncooked
+174209|Lobster, cooked with moist heat|Αστακός, βραστός|fish|fishgen|cooked
+174211|Spiny lobster, raw|Καραβίδα (αστακός ακανθώδης), ωμή|fish|fishgen|uncooked
+172009|Spiny lobster, cooked with moist heat|Καραβίδα (αστακός ακανθώδης), βραστή|fish|fishgen|cooked
+174214|Clams, raw|Αχιβάδες, ωμές|fish|fishgen|uncooked
+171975|Clams, cooked with moist heat|Αχιβάδες, βραστές|fish|fishgen|cooked
+171976|Clams, canned, drained|Αχιβάδες, κονσέρβα, στραγγισμένες|fish|fishgen|ready
+174219|Pacific oysters, raw|Στρείδια Ειρηνικού, ωμά|fish|fishgen|uncooked
+174250|Pacific oysters, cooked with moist heat|Στρείδια Ειρηνικού, βραστά|fish|fishgen|cooked
+171978|Eastern oysters, wild, raw|Στρείδια Ατλαντικού, ωμά|fish|fishgen|uncooked
+174220|Scallops, raw|Χτένια, ωμά|fish|fishgen|uncooked
+167742|Scallops, steamed|Χτένια, στον ατμό|fish|fishgen|cooked
+174215|Cuttlefish, raw|Σουπιά, ωμή|fish|squid|uncooked
+172010|Cuttlefish, cooked with moist heat|Σουπιά, βραστή|fish|squid|cooked
+169248|Iceberg lettuce, raw|Μαρούλι iceberg, ωμό|veg|leafy|uncooked
+169247|Romaine lettuce, raw|Μαρούλι ρομάνα, ωμό|veg|leafy|uncooked
+168431|Red leaf lettuce, raw|Μαρούλι κόκκινο φυλλώδες, ωμό|veg|leafy|uncooked
+169249|Green leaf lettuce, raw|Μαρούλι πράσινο φυλλώδες, ωμό|veg|leafy|uncooked
+168429|Butterhead lettuce, raw|Μαρούλι βουτύρου, ωμό|veg|leafy|uncooked
+168413|Escarole, boiled|Ανδίβι (σκαρόλα), βρασμένο|veg|leafy|cooked
+169992|Chicory greens, raw|Ραδίκι, ωμό|veg|leafy|uncooked
+170404|Witloof chicory, raw|Ενδίβια λευκή (witloof), ωμή|veg|leafy|uncooked
+169977|Red cabbage, raw|Κόκκινο λάχανο, ωμό|veg|leafy|uncooked
+170388|Savoy cabbage, raw|Λάχανο σαβοϊκό, ωμό|veg|leafy|uncooked
+169979|Chinese cabbage, raw|Κινέζικο λάχανο, ωμό|veg|leafy|uncooked
+170390|Pak choi, raw|Πακ τσόι, ωμό|veg|leafy|uncooked
+170381|Broccoli raab, raw|Ραπίνι (μπρόκολο ραάμπ), ωμό|veg|leafy|uncooked
+170382|Broccoli raab, cooked|Ραπίνι (μπρόκολο ραάμπ), μαγειρεμένο|veg|leafy|cooked
+170406|Collard greens, raw|Λαχανίδες (collards), ωμές|veg|leafy|uncooked
+169256|Mustard greens, raw|Φύλλα μουστάρδας, ωμά|veg|leafy|uncooked
+170061|Turnip greens, raw|Φύλλα γογγυλιού, ωμά|veg|leafy|uncooked
+170375|Beet greens, raw|Φύλλα παντζαριού, ωμά|veg|leafy|uncooked
+170068|Watercress, raw|Νεροκάρδαμο, ωμό|veg|leafy|uncooked
+169994|Chives, raw|Σχοινόπρασο, ωμό|veg|general|uncooked
+169997|Coriander (cilantro) leaves, raw|Κόλιανδρος φρέσκος, ωμός|veg|leafy|uncooked
+170008|Sweet onions, raw|Κρεμμύδια γλυκά, ωμά|veg|onion|uncooked
+170499|Shallots, raw|Ασκαλώνια, ωμά|veg|onion|uncooked
+170004|Yellow onions, sautéed|Κρεμμύδια κίτρινα, σοταρισμένα|veg|onion|cooked
+169225|Cucumber, peeled, raw|Αγγούρι ξεφλουδισμένο, ωμό|veg|cucumber|uncooked
+168558|Dill pickles|Αγγουράκια τουρσί με άνηθο|veg|cucumber|ready
+168464|Yellow summer squash, raw|Κολοκυθάκι κίτρινο, ωμό|veg|general|uncooked
+168472|Acorn squash, raw|Κολοκύθα acorn, ωμή|veg|general|uncooked
+169298|Spaghetti squash, raw|Κολοκύθα σπαγγέτι, ωμή|veg|general|uncooked
+169998|Sweet corn, yellow, raw|Καλαμπόκι γλυκό κίτρινο, ωμό|veg|corn|uncooked
+168550|Red peppers, sautéed|Κόκκινες πιπεριές, σοταρισμένες|veg|pepper|cooked
+170024|Green peppers, sautéed|Πράσινες πιπεριές, σοταρισμένες|veg|pepper|cooked
+169383|Yellow peppers, raw|Κίτρινες πιπεριές, ωμές|veg|pepper|uncooked
+169394|Banana peppers, raw|Πιπεριές μπανάνα, ωμές|veg|pepper|uncooked
+168578|Hungarian peppers, raw|Πιπεριές ουγγαρέζικες, ωμές|veg|pepper|uncooked
+170106|Red chili peppers, raw|Κόκκινες καυτερές πιπεριές, ωμές|veg|pepper|uncooked
+170497|Green chili peppers, raw|Πράσινες καυτερές πιπεριές, ωμές|veg|pepper|uncooked
+170026|Potatoes, flesh and skin, raw|Πατάτες με τη φλούδα, ωμές|veg|potato|uncooked
+170029|Red potatoes, flesh and skin, raw|Κόκκινες πατάτες με τη φλούδα, ωμές|veg|potato|uncooked
+170435|Red potatoes, flesh and skin, baked|Κόκκινες πατάτες με τη φλούδα, ψητές|veg|potato|cooked
+170030|Russet potatoes, flesh and skin, baked|Πατάτες russet με τη φλούδα, ψητές|veg|potato|cooked
+170092|Potato pancakes|Πατατοκεφτέδες τηγανητοί|veg|potato|cooked
+170038|Scalloped potatoes with butter|Πατάτες φούρνου με κρέμα και βούτυρο|veg|potato|cooked
+170442|Au gratin potatoes with butter|Πατάτες γκρατέν με βούτυρο|veg|potato|cooked
+170050|Tomatoes, red, cooked|Ντομάτες κόκκινες, μαγειρεμένες|veg|tomato|cooked
+170456|Green tomatoes, raw|Ντομάτες πράσινες, ωμές|veg|tomato|uncooked
+170096|Yellow tomatoes, raw|Ντομάτες κίτρινες, ωμές|veg|tomato|uncooked
+170502|Orange tomatoes, raw|Ντομάτες πορτοκαλί, ωμές|veg|tomato|uncooked
+169382|Enoki mushrooms, raw|Μανιτάρια enoki, ωμά|veg|mushroom|uncooked
+169403|Maitake mushrooms, raw|Μανιτάρια maitake, ωμά|veg|mushroom|uncooked
+168435|Shiitake mushrooms, stir-fried|Μανιτάρια shiitake, τηγανητά σε τηγάνι|veg|mushroom|cooked
+169243|Portabella mushrooms, grilled|Μανιτάρια πορτομπέλο, ψητά στη σχάρα|veg|mushroom|cooked
+169320|Yellow snap beans, raw|Φασολάκια κίτρινα, ωμά|veg|general|uncooked
+168574|Fava beans in pod, raw|Κουκιά με τον λοβό, ωμά|veg|general|uncooked
+170377|Broad beans, immature seeds, raw|Κουκιά φρέσκα (σπόροι), ωμά|veg|general|uncooked
+170010|Edible-podded peas, raw|Αρακάς με λοβό (snow peas), ωμός|veg|peas|uncooked
+168396|Lima beans, immature seeds, raw|Φασόλια λίμα φρέσκα, ωμά|veg|general|uncooked
+170400|Celeriac, raw|Σελινόριζα, ωμή|veg|general|uncooked
+170417|Parsnips, raw|Παστινάκι, ωμό|veg|general|uncooked
+169981|Cardoon, raw|Κάρδουνο (αγριαγκινάρα), ωμό|veg|general|uncooked
+169985|Cassava, raw|Μανιόκα, ωμή|veg|general|uncooked
+170071|Yam, raw|Γιαμ, ωμό|veg|sweetpotato|uncooked
+169389|Green cauliflower, raw|Κουνουπίδι πράσινο (ρομανέσκο), ωμό|veg|broccoli|uncooked
+170392|Kimchi|Κιμτσί|veg|general|ready
+167714|Hearts of palm, raw|Καρδιές φοίνικα, ωμές|veg|general|uncooked
+170496|Wakame seaweed, raw|Φύκια wakame, ωμά|veg|leafy|uncooked
+168458|Laver (nori) seaweed, raw|Φύκια nori, ωμά|veg|leafy|uncooked
+168457|Kelp seaweed, raw|Φύκια kelp, ωμά|veg|leafy|uncooked
+168556|Tomato ketchup|Κέτσαπ|oils|sauce|ready
+169282|Green soybeans (edamame), raw|Σόγια πράσινη (edamame), ωμή|legumes|general|uncooked
+168164|Golden raisins, seedless|Σταφίδες ξανθές, χωρίς κουκούτσια|fruit|dried|ready
+168165|Dark raisins, seedless|Σταφίδες μαύρες, χωρίς κουκούτσια|fruit|dried|ready
+168191|Medjool dates|Χουρμάδες medjool|fruit|dried|ready
+171726|Deglet Noor dates|Χουρμάδες deglet noor|fruit|dried|ready
+169092|Cantaloupe melon, raw|Πεπόνι κανταλούπ, ωμό|fruit|general|uncooked
+169911|Honeydew melon, raw|Πεπόνι honeydew, ωμό|fruit|general|uncooked
+169913|Mulberries, raw|Μούρα, ωμά|fruit|berries|uncooked
+169914|Nectarines, raw|Νεκταρίνια, ωμά|fruit|peach|uncooked
+169917|Navel oranges, raw|Πορτοκάλια navel, ωμά|fruit|orange|uncooked
+169916|Valencia oranges, raw|Πορτοκάλια Valencia, ωμά|fruit|orange|uncooked
+169926|Papaya, raw|Παπάγια, ωμή|fruit|general|uncooked
+169928|Yellow peaches, raw|Ροδάκινα κίτρινα, ωμά|fruit|peach|uncooked
+169941|Japanese persimmons, raw|Λωτός ιαπωνικός, ωμός|fruit|general|uncooked
+169908|Loquats, raw|Μούσμουλα, ωμά|fruit|general|uncooked
+171706|California avocados, raw|Αβοκάντο Καλιφόρνιας, ωμά|veg|avocado|uncooked
+171707|Florida avocados, raw|Αβοκάντο Φλόριντα, ωμά|veg|avocado|uncooked
+171722|Cranberries, raw|Κράνμπερι, ωμά|fruit|berries|uncooked
+171727|Elderberries, raw|Μούρα κουφοξυλιάς (σαμπούκος), ωμά|fruit|berries|uncooked
+173030|Gooseberries, raw|Φραγκοστάφυλα, ωμά|fruit|berries|uncooked
+173033|Grapefruit, raw|Γκρέιπφρουτ, ωμό|fruit|general|uncooked
+173044|Guavas, raw|Γκουάβα, ωμή|fruit|general|uncooked
+173946|Blackberries, raw|Βατόμουρα, ωμά|fruit|berries|uncooked
+173954|Sour cherries, raw|Βύσσινα, ωμά|fruit|cherries|uncooked
+173964|Red and white currants, raw|Κόκκινα και λευκά φραγκοστάφυλα (ribes), ωμά|fruit|berries|uncooked
+174687|Jackfruit, raw|Τζακφρουτ, ωμό|fruit|general|uncooked
+168211|SunGold kiwifruit, raw|Ακτινίδιο κίτρινο (SunGold), ωμό|fruit|kiwi|uncooked
+171715|Starfruit, raw|Καράμπολα, ωμή|fruit|general|uncooked
+173953|Cherimoya, raw|Τσεριμόγια, ωμή|fruit|general|uncooked
+167761|Soursop, raw|Γκραβιόλα (soursop), ωμή|fruit|general|uncooked
+169130|Plantains, raw|Πλατάνια (μπανάνες μαγειρέματος), ωμά|fruit|banana|uncooked
+169103|Orange peel, raw|Φλούδα πορτοκαλιού, ωμή|fruit|orange|uncooked
+167749|Lemon peel, raw|Φλούδα λεμονιού, ωμή|fruit|lemon|uncooked
+170582|Hazelnuts, blanched|Φουντούκια, ξεφλουδισμένα|nuts|general|ready
+170190|Chestnuts, roasted|Κάστανα, ψητά|nuts|general|cooked
+170574|Chestnuts, raw|Κάστανα, ωμά|nuts|general|uncooked
+170169|Coconut meat, raw|Καρύδα φρέσκια, ωμή|nuts|general|uncooked
+170148|Hemp seeds, hulled|Σπόροι κάνναβης, ξεφλουδισμένοι|nuts|seeds|ready
+169412|Sesame seeds, hulled, dried|Σουσάμι ξεφλουδισμένο|nuts|seeds|ready
+170160|Almond paste|Πάστα αμυγδάλου|nuts|almonds|ready
+169426|Pistachios, dry roasted with salt|Φιστίκια Αιγίνης, καβουρδισμένα με αλάτι|nuts|general|ready
+169421|Cashews, dry roasted with salt|Κάσιους, καβουρδισμένα με αλάτι|nuts|general|ready
+168598|Macadamia nuts, dry roasted with salt|Μακαντέμια, καβουρδισμένα με αλάτι|nuts|general|ready
+169424|Pecans, dry roasted with salt|Πεκάν, καβουρδισμένα με αλάτι|nuts|general|ready
+168602|Almonds, oil roasted, lightly salted|Αμύγδαλα, τηγανισμένα, ελαφρά αλατισμένα|nuts|almonds|ready
+169418|Sunflower seed kernels, dry roasted with salt|Ηλιόσποροι, καβουρδισμένοι με αλάτι|nuts|seeds|ready
+168603|Almond butter with salt|Βούτυρο αμυγδάλου με αλάτι|nuts|pb|ready
+168597|Cashew butter with salt|Βούτυρο κάσιους με αλάτι|nuts|pb|ready
+170845|Mozzarella cheese, whole milk|Μοτσαρέλα, πλήρης|dairy|cheese|ready
+170848|Parmesan cheese, hard|Παρμεζάνα, σκληρή|dairy|cheese|ready
+170851|Ricotta cheese, whole milk|Ρικότα, πλήρης|dairy|cheese|ready
+171251|Swiss cheese|Ελβετικό τυρί (ementhal)|dairy|cheese|ready
+171244|Mozzarella cheese, low moisture, part-skim|Μοτσαρέλα χαμηλής υγρασίας, μερικώς άπαχη|dairy|cheese|ready
+169079|Cream cheese, low fat|Τυρί κρέμα, χαμηλών λιπαρών|dairy|cheese|ready
+168114|Cottage cheese, low fat 1%, no sodium added|Τυρί cottage 1%, χωρίς προσθήκη αλατιού|dairy|cheese|ready
+170882|Sheep milk|Πρόβειο γάλα|dairy|milk|ready
+170874|Buttermilk, low fat|Ξινόγαλα (buttermilk), χαμηλών λιπαρών|dairy|milk|ready
+170903|Greek yogurt, plain, low fat|Γιαούρτι στραγγιστό σκέτο, χαμηλών λιπαρών|dairy|yogurt|ready
+170886|Plain yogurt, low fat|Γιαούρτι σκέτο, χαμηλών λιπαρών|dairy|yogurt|ready
+170887|Plain yogurt, skim milk|Γιαούρτι σκέτο, άπαχο|dairy|yogurt|ready
+171257|Sour cream, cultured|Ξινή κρέμα|dairy|cream|ready
+170859|Heavy whipping cream|Κρέμα γάλακτος για σαντιγί|dairy|cream|ready
+174370|Lamb mince, raw|Κιμάς αρνίσιος, ωμός|meat|lamb|uncooked
+172544|Lamb mince, cooked, broiled|Κιμάς αρνίσιος, ψημένος|meat|lamb|cooked
+172521|Domestic rabbit, raw|Κουνέλι εκτροφής, ωμό|meat|general|uncooked
+174347|Wild rabbit, raw|Αγριοκούνελο, ωμό|meat|general|uncooked
+174348|Wild rabbit, stewed|Αγριοκούνελο, μαγειρεμένο στιφάδο|meat|general|cooked
+173822|Veal leg, lean, roasted|Μοσχάρι γάλακτος μπούτι, άπαχο, ψητό|meat|beef|cooked
+173826|Veal loin, lean, raw|Μοσχάρι γάλακτος φιλέτο, άπαχο, ωμό|meat|beef|uncooked
+173829|Veal rib, lean, braised|Μοσχάρι γάλακτος παϊδάκια, άπαχα, βραστά|meat|beef|cooked
+173839|Veal shoulder blade, lean, braised|Μοσχάρι γάλακτος ωμοπλάτη, άπαχη, βραστή|meat|beef|cooked
+173841|Veal sirloin, lean, braised|Μοσχάρι γάλακτος κόντρα φιλέτο, άπαχο, βραστό|meat|beef|cooked
+172643|Veal cutlet, raw|Σνίτσελ μοσχαρίσιο, ωμό|meat|beef|uncooked
+168249|Pork tenderloin, lean, raw|Χοιρινό φιλέτο, άπαχο, ωμό|meat|pork|uncooked
+168230|Pork loin, lean, raw|Χοιρινή καρέ, άπαχη, ωμή|meat|pork|uncooked
+167914|Bacon, baked|Μπέικον, ψημένο|meat|pork|cooked
+171052|Chicken, meat only, raw|Κοτόπουλο, κρέας χωρίς δέρμα, ωμό|meat|chicken|uncooked
+171054|Chicken, meat only, roasted|Κοτόπουλο, κρέας χωρίς δέρμα, ψητό|meat|chicken|cooked
+171053|Chicken, meat only, fried|Κοτόπουλο, κρέας χωρίς δέρμα, τηγανητό|meat|chicken|cooked
+171061|Chicken liver, simmered|Συκωτάκια κοτόπουλου, βραστά|meat|chicken|cooked
+171059|Chicken heart, simmered|Καρδιές κοτόπουλου, βραστές|meat|chicken|cooked
+169902|Quail, cooked|Ορτύκι, ψημένο|meat|general|cooked
+169903|Pheasant, cooked|Φασιανός, ψημένος|meat|general|cooked
+171081|Turkey, whole with skin, raw|Γαλοπούλα ολόκληρη με δέρμα, ωμή|meat|turkey|uncooked
+171079|Squab (pigeon), raw|Περιστέρι, ωμό|meat|general|uncooked
+172423|Lupins, raw|Λούπινα (θέρμος), ωμά|legumes|general|uncooked
+172428|Green split peas, raw|Αρακάς πράσινος σπαστός, ωμός|legumes|general|uncooked
+172436|Pigeon peas, raw|Αρακάς περιστεριού, ωμός|legumes|general|uncooked
+172442|Miso|Μίσο|legumes|general|ready
+172443|Natto|Νάττο|legumes|general|ready
+172454|Hummus, home prepared|Χούμους σπιτικός|legumes|chickpeas|ready
+172441|Soybeans, dry roasted|Σόγια ξηρή, καβουρδισμένη|legumes|general|ready
+168872|Oat bran, raw|Πίτουρο βρώμης, ωμό|bread|oats|uncooked
+168873|Oat bran, cooked|Πίτουρο βρώμης, μαγειρεμένο|bread|oats|cooked
+168884|Rye grain|Σίκαλη, σπόροι|bread|flour|uncooked
+168885|Rye flour, dark|Αλεύρι σίκαλης, σκούρο|bread|flour|ready
+168892|Wheat germ, crude|Βλαστάρι σιταριού|bread|cereal|ready
+168896|White bread flour|Αλεύρι σκληρό για ψωμί|bread|flour|ready
+168944|Whole-grain soft wheat flour|Αλεύρι ολικής άλεσης, μαλακό σιτάρι|bread|flour|ready
+168898|Brown rice flour|Αλεύρι καστανού ρυζιού|bread|flour|ready
+169715|Semolina|Σιμιγδάλι|bread|flour|ready
+169698|Cornstarch|Κορν φλάουερ (άμυλο καλαμποκιού)|bread|flour|ready
+169697|Cornmeal, whole-grain, yellow|Αλεύρι καλαμποκιού κίτρινο, ολικής|bread|flour|ready
+169707|Parboiled long-grain rice, dry|Ρύζι parboiled μακρύκοκκο, άψητο|rice|rice|uncooked
+169708|Parboiled long-grain rice, cooked|Ρύζι parboiled μακρύκοκκο, μαγειρεμένο|rice|rice|cooked
+168889|Hard red spring wheat|Σιτάρι σκληρό, ολόκληρο|bread|flour|uncooked
+167943|Potato bread|Ψωμί πατάτας|bread|bread|ready
+167944|Cheese bread|Τυρόψωμο|bread|bread|ready
+167532|White wheat bread|Ψωμί λευκό σταρένιο|bread|bread|ready
+167533|Wheat bagels|Μπέιγκελ σταρένια|bread|bread|ready
+172232|Basil, fresh|Βασιλικός, φρέσκος|oils|seasoning|ready
+173470|Thyme, fresh|Θυμάρι, φρέσκο|oils|seasoning|ready
+173473|Rosemary, fresh|Δεντρολίβανο, φρέσκο|oils|seasoning|ready
+173474|Peppermint, fresh|Μέντα, φρέσκια|oils|seasoning|ready
+173475|Spearmint, fresh|Δυόσμος, φρέσκος|oils|seasoning|ready
+172239|Spearmint, dried|Δυόσμος, ξερός|oils|seasoning|ready
+172240|Red wine vinegar|Ξίδι κόκκινου κρασιού|oils|seasoning|ready
+173469|Cider vinegar|Ξίδι μηλίτη|oils|seasoning|ready
+172237|Distilled vinegar|Ξίδι λευκό|oils|seasoning|ready
+172234|Prepared yellow mustard|Μουστάρδα κίτρινη|oils|sauce|ready
+173472|Prepared horseradish|Χρένο, έτοιμο|oils|sauce|ready
+170936|Savory, ground|Θρούμπι, αλεσμένο|oils|seasoning|ready
+171318|Chervil, dried|Χαιρέφυλλο, ξερό|oils|seasoning|ready
