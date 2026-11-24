@@ -86,7 +86,9 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     must(!!s.stat && s.line, `Progress: rotating stat "${s.stat}" + 8-week line with an end dot`);
     must(s.text === 'RECOVERY+' && s.dots === 2, 'RECOVERY+: only the body + two dots, no numbers');
     must(s.label.some(x => /Long Workout/.test(x)) && s.label.includes('Rest'), 'advanced mode: workout names under the pills');
-    must(await p.evaluate(() => { const m = document.querySelector('#ghWeek .wpd.today em'), c = document.querySelector('#ghWeek .wpd:not(.today) em.cut'); return (!m || !m.classList.contains('cut')) && (!!c || !!(m && m.classList.contains('marq'))); }), 'long names: today scrolls (marquee), the others are cut with a fade');
+    must(await p.evaluate(() => [...document.querySelectorAll('#ghWeek .wpd em')].filter(e => e.firstChild && e.firstChild.className === 'tk' || e.scrollWidth <= e.clientWidth + 1).length === 7), 'long names: any day whose name does not fit scrolls like a news ticker (js/core.js), the rest sit still');
+    must(await p.evaluate(async () => { const sp = $('ghProg').querySelector('.btstat.big span'); if(!sp) return true; sp.textContent = 'Best lift · Smith Incline Bench Press Machine Heavy'; await new Promise(r => setTimeout(r, 400));
+      const i = sp.querySelector('.tk>.tki'); return !!i && getComputedStyle(i).animationName === 'tkRun'; }), 'Progress: a too-long line scrolls like a news ticker');
     const side0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(9700);
     s = await p.evaluate(() => ({ side: GH_REC.side, on: [...document.querySelectorAll('#ghRec .ghdots i')].findIndex(e => e.classList.contains('on')) }));
     must(s.side !== side0 && s.on === s.side, 'RECOVERY+ switches sides after 9 s, dots follow');

@@ -1376,12 +1376,6 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 .wpd>i u{display:block;width:10px;height:2px;border-radius:1px;background:var(--t-tick-edge)}
 .wpd em{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-align:center;font-style:normal;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-text)}
 .wpd.rest em{color:var(--t-muted)} .wpd.today em{font-weight:var(--w-bold)}
-.wpd em span{display:inline-block}
-.wpd em.cut,.wpd em.marq{text-align:left}
-.wpd em.cut{-webkit-mask-image:linear-gradient(90deg,#000 65%,transparent);mask-image:linear-gradient(90deg,#000 65%,transparent)}
-.wpd em.marq{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.wpd em.marq span{animation:wpMarq 7s ease-in-out infinite alternate}
-@keyframes wpMarq{0%,22%{transform:translate3d(0,0,0)}78%,100%{transform:translate3d(var(--mq,0),0,0)}}
 /* header on a bento home: centred title, date under it, streak bubble left, bigger scan button right */
 section.page.bentopg>header{height:calc(var(--hpad) + 70px)}
 section.page.bentopg>header.longtitle .left h1{font-size:22px!important}
@@ -1401,7 +1395,6 @@ section.page>header .hbtns{align-items:center}
 .stkbub .stkbi{display:flex;color:var(--t-accent-ink,var(--t-accent))}
 .stkbub b{font-size:var(--fs-body);font-weight:800;font-style:italic}
 .stkbub:empty{display:none}
-@media (prefers-reduced-motion: reduce){ .wpd em.marq span{animation:none} }
 
 /* ======================= 0.8 (24 Nov): My Food Log ======================= */
 /* the top (gym-day line + hero card) is pinned; only the Eaten list scrolls (today.js todayFit adds .pinned when there is room) */

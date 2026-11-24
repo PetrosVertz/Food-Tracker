@@ -1283,13 +1283,9 @@ function renderGymWeek(){
     if(gym || done) n++;
     const tp = gym && p.tpl !== 'gym' ? tpls.find(x => x.id === p.tpl) : null, lab = !gym && !done ? t('restDayS') : adv ? (tp ? tp.name : t('gymL')) : t('gymL');
     const ic = done ? svgIcon('check', 18, 3) : gym ? svgIcon('workouts', 18, 2) : '<u></u>';
-    return `<span class="wpd ${done ? 'done' : gym ? 'gym' : 'rest'}${today ? ' today' : ''}"><small>${esc((wd[d] || '').charAt(0))}</small><i>${ic}</i><em><span>${esc(lab)}</span></em></span>`; }).join('');
+    return `<span class="wpd ${done ? 'done' : gym ? 'gym' : 'rest'}${today ? ' today' : ''}"><small>${esc((wd[d] || '').charAt(0))}</small><i>${ic}</i><em>${esc(lab)}</em></span>`; }).join('');
   pauseOffscreen($('ghWeek'));
-  if(!setHTML($('ghWeek'), ghHead('calendar', 'hubWeek', `${esc(t('ghTotal'))} <b>${n}</b>`) + `<div class="wpdays">${pills}</div>`)) return;   // unchanged: the marquee keeps running
-  requestAnimationFrame(() => $('ghWeek').querySelectorAll('.wpd em').forEach(em => { const sp = em.firstChild, over = sp.scrollWidth - em.clientWidth;
-    em.classList.toggle('cut', over > 1 && !em.parentNode.classList.contains('today'));
-    em.classList.toggle('marq', over > 1 && em.parentNode.classList.contains('today') && !matchMedia('(prefers-reduced-motion: reduce)').matches);
-    if(over > 1) em.style.setProperty('--mq', `-${over + 4}px`); }));
+  if(!setHTML($('ghWeek'), ghHead('calendar', 'hubWeek', `${esc(t('ghTotal'))} <b>${n}</b>`) + `<div class="wpdays">${pills}</div>`)) return;   // unchanged: the ticker keeps running
 }
 // the RECOVERY+ tile switches sides every 9 s: the body slides out to the left and fades; only when it is almost gone does the other side fade in from the right (never one pushing the other).
 // Only while the Gym home shows and the app is visible; Reduce Motion = no automatic switch.
