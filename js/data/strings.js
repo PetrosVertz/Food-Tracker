@@ -1233,3 +1233,11 @@ Object.assign(S, {   // 0.8 (24 Nov): bento homes for Food Library (food.js › 
   kitchenSw: ['My Fridge', 'Το Ψυγείο Μου'],
   kitchenSwSub: ['My Fridge and Shopping List in the Food Library. Turned off, they stay there greyed out and nothing goes into your fridge.', 'Το Ψυγείο Μου και η Λίστα Αγορών στη Βιβλιοθήκη Τροφίμων. Όταν είναι κλειστά, μένουν εκεί γκρι και τίποτα δεν μπαίνει στο ψυγείο σου.'],
 });
+
+Object.assign(S, {
+  foodBar: ['Bar','Μπάρα'], foodBars: ['Bars','Μπάρες'], foodServing: ['Serving','Μερίδα'],
+  cupChopped: ['Cup, chopped','Φλιτζάνι, ψιλοκομμένο'], cupSliced: ['Cup, sliced','Φλιτζάνι, σε φέτες'],
+  cupDiced: ['Cup, diced','Φλιτζάνι, σε κύβους'], foodCup: ['Cup','Φλιτζάνι'],
+  foodTbsp: ['Tbsp','Κ. σούπας'], foodTsp: ['Tsp','Κ. γλυκού'],
+  smallEgg: ['Small egg','Μικρό αυγό'], mediumEgg: ['Medium egg','Μεσαίο αυγό'], largeEgg: ['Large egg','Μεγάλο αυγό']
+});

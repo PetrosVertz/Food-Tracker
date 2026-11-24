@@ -2,7 +2,7 @@
 // Food Track · Gym Buddy — plain browser script (no build step). All files share one global scope; load order is set in index.html.
 
 function portion(f){
-  const pw = f.pieces && f.pieces !== 'none' ? (f.piece || f.serving || null) : null;
+  const pw = foodPieceSize(f);
   const pack = f.usualPack || null;
   let mode = f.display || 'auto';
   if(mode === 'auto') mode = pw ? 'piece' : (pack && pack <= SMALL_PACK ? 'pack' : '100');
@@ -195,7 +195,7 @@ function setDisplay(v){ F.display = v; setSeg('#fDisplay', v); updatePreview(); 
 function pieceHint(){
   const pw = num('fPiece'), el = $('pieceHint');
   if(pw) el.textContent = t('everyCounts', { w: W(F.pieces), s: fmtSize(pw, F.unit) });
-  else if(F.serving) el.textContent = t('usingEst', { s: fmtSize(F.serving, F.unit) });
+  else if(F.serving && F.source !== 'openfoodfacts') el.textContent = t('usingEst', { s: fmtSize(F.serving, F.unit) });
   else el.textContent = t('weighOrCount', { w: W(F.pieces) });
 }
 
@@ -239,7 +239,7 @@ function updatePreview(){
   if(k===null) k = p*4 + c*4 + f*9;
   const line = (amt, label) => { const m = amt/100; return `${label}: <b>${Math.round(k*m)} kcal</b> · P ${r1(p*m)} · C ${r1(c*m)} · F ${r1(f*m)}`; };
   const parts = [];
-  const pw = F.pieces !== 'none' ? (num('fPiece') || F.serving) : null;
+  const pw = foodPieceSize({pieces: F.pieces, piece: num('fPiece'), serving: F.serving, source: F.source});
   if(pw) parts.push(line(pw, `${t('onePiece', { w: W(F.pieces) })} (${num('fPiece') ? '' : '≈'}${fmtSize(pw, F.unit)})`));
   if(F.usual) parts.push(line(F.usual, `${t('wholePack')} (${fmtSize(F.usual, F.unit)})`));
   el.innerHTML = parts.join('<br>'); el.classList.toggle('show', parts.length > 0);
@@ -253,7 +253,7 @@ function openForm(data, sourceNote, mode, opts){
   F.stateTouched = mode === 'edit';
   F.unitTouched = mode === 'edit' || !!data.unitFromLabel || !!data.gid;
   F.typeTouched = !!data.cat && (mode === 'edit' || !!data.gid);
-  F.piecesTouched = mode === 'edit' || !!data.gid;
+  F.piecesTouched = mode === 'edit' || !!data.gid || ['openfoodfacts','label photo','item photo'].includes(data.source);
   F.source = data.source || (sourceNote ? sourceNote : 'manual');
   F.gid = data.gid || null;
   F.packs = [...data.packs]; F.usual = data.usualPack ?? (F.packs[0] ?? null);
@@ -322,7 +322,7 @@ async function commit(){
   if(F.onSaved){ const cb = F.onSaved; F.onSaved = null; cb(saved); return; }
   if(!wasEdit && scanCtx){ const c = scanCtx; scanCtx = null;
     if(c === 'fridge') return openFridgeAdd(saved);
-    if(c === 'log') return openAmt({ mode: 'log', info: { name: foodName(saved), icon: iconOf(saved) || '', unit: saved.unit, per: saved, food: saved, piece: saved.pieces !== 'none' ? (saved.piece || saved.serving || null) : null, pw: saved.pieces } }); }
+    if(c === 'log') return openAmt({ mode: 'log', info: { name: foodName(saved), icon: iconOf(saved) || '', unit: saved.unit, per: saved, food: saved, piece: foodPieceSize(saved), pw: saved.pieces } }); }
   if(wasEdit) toast(t('updated'));
   else if(F.fromScan) toast(lastAutoFridge ? t('inFridgeToo', { i: '' }) : t('saved', { i: '' }), t('scanNext'), () => startScan());
   else if(lastAutoFridge){ const it = lastAutoFridge; toast(t('inFridgeToo', { i: '' }), t('notInFridge'), () => { fridge = fridge.filter(x => x.id !== it.id); saveFridge(); renderAll(); }); }
@@ -371,29 +371,99 @@ async function startScan(ctx){
 
 function stopScan(){ scanOn = false; clearTimeout(scanLoop); if(stream){ stream.getTracks().forEach(tr => tr.stop()); stream = null; } const v = $('video'); if(v) v.srcObject = null; }
 
+// Normalize only the units the food form can represent. Keep grams and millilitres separate.
+function labelAmount(value, unit){
+  const n = Number(String(value ?? '').replace(',', '.'));
+  const scale = { g: 1, gr: 1, kg: 1000, ml: 1, cl: 10, l: 1000, lt: 1000 }[unit];
+  return n > 0 && Number.isFinite(n) && scale ? { size: n * scale, unit: ['g','gr','kg'].includes(unit) ? 'g' : 'ml' } : null;
+}
+
+function labelWeights(text){
+  const re = /(\d+(?:[.,]\d+)?)\s*(kg|gr|g|ml|cl|lt|l|γρ)(?![\p{L}])/giu;
+  return [...String(text || '').matchAll(re)].map(m => labelAmount(m[1], m[2].toLowerCase().replace('γρ','g')));
+}
+
 function parseQty(p){
-  let n = Number(p.product_quantity), u = String(p.product_quantity_unit || '').toLowerCase();
-  if(!(n > 0)){
-    const m = String(p.quantity || '').toLowerCase().replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(kg|g|gr|l|lt|ml|cl)\b/);
-    if(!m) return null; n = Number(m[1]); u = m[2];
-    if(u === 'kg'){ n *= 1000; u = 'g'; } if(u === 'l' || u === 'lt'){ n *= 1000; u = 'ml'; } if(u === 'cl'){ n *= 10; u = 'ml'; } if(u === 'gr') u = 'g';
+  const structured = labelAmount(p.product_quantity, String(p.product_quantity_unit || '').toLowerCase());
+  if(structured) return structured;
+  const text = norm(p.quantity);
+  const weights = labelWeights(text);
+  if(weights.length !== 1) return null;
+  const multi = text.match(/^(\d+)\s*(?:bars?|μπαρεσ)?\s*[x×]\s*\d/i);
+  const each = text.match(/^(\d+)\s*(?:bars?|μπαρεσ|pieces?|slices?)\s+(?:of\s+)?\d+.*(?:each|ανά τεμάχιο|ανα τεμαχιο)$/u)
+    || text.match(/^(\d+)\s*(?:bars?|μπαρεσ|pieces?|slices?)\s+of\s+\d/u);
+  if(each) return { ...weights[0], size: Number(each[1]) * weights[0].size };
+  if(multi) return +multi[1] > 0 ? { ...weights[0], size: +multi[1] * weights[0].size } : null;
+  if(/[x×]\s*\d/i.test(text)) return null;
+  return weights[0];
+}
+
+// Counts need explicit label evidence. A packet can contain two bars and a serving can be half a bar.
+function offPortions(p, pack){
+  const servingText = norm(p.serving_size);
+  const qtyText = norm(p.quantity);
+  const unit = String(p.serving_quantity_unit || '').toLowerCase();
+  const weights = labelWeights(servingText);
+  const printed = weights.length === 1 ? weights[0] : null;
+  const structured = labelAmount(p.serving_quantity, unit || printed?.unit || pack?.unit);
+  const basis = pack?.unit || printed?.unit || structured?.unit;
+  const agrees = (a,b) => !a || !b || (a.unit === b.unit && Math.abs(a.size - b.size) < 0.11);
+  const serving = agrees(printed, structured) && weights.length <= 1 ? printed || structured : null;
+  const sv = serving?.unit === basis ? serving?.size : null;
+  const result = { serving: sv || null, pieces: 'none', piece: null, unit: basis };
+  if(basis !== 'g') return result;
+  function count(text){
+    const m = text.match(/(?:^|[^\p{L}\d/.,])(\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?|one|μια|ενα|half(?:\s+(?:a|of a))?|½)\s*(?:(?:cereal|protein|granola|snack)\s+)?(bars?|slices?|pieces?|μπαρα|μπαρεσ|φετα|φετεσ|τεμαχι[οα])(?!\p{L})/u);
+    if(!m){
+      const oneBar = /^(?:(?:cereal|protein|granola)\s+)?(?:bar|μπαρα)\s*[(,]?\s*\d/u.test(text);
+      return oneBar ? { n: 1, kind: 'bar' } : null;
+    }
+    const raw = m[1].replace(/\s/g,'').replace(',','.');
+    let n;
+    if(raw.includes('/')){ const [a,b] = raw.split('/').map(Number); n = a / b; }
+    else n = /^(one|μια|ενα)$/.test(raw) ? 1 : /^(half|½)/.test(raw) ? 0.5 : Number(raw);
+    return Number.isFinite(n) && n > 0 ? { n, kind: /^(bar|μπαρ)/.test(m[2]) ? 'bar' : /^(slice|φετ)/.test(m[2]) ? 'slice' : 'piece' } : null;
   }
-  return (u === 'g' || u === 'ml') ? { size: Math.round(n), unit: u } : null;
+  const perServing = count(servingText), perPack = count(qtyText);
+  const each = (text, size, c) => {
+    if(!c || !size || /\d\s*[-–]\s*\d/.test(text)) return null;
+    const oneWeight = /(?:\beach\b|ανά μπάρα|ανα μπαρα)/.test(text);
+    return { kind: c.kind, size: oneWeight ? size : size / c.n };
+  };
+  const a = each(servingText, sv, perServing);
+  const b = perPack && pack ? { kind: perPack.kind, size: pack.size / perPack.n } : null;
+  if(a && b && (a.kind !== b.kind || !agrees({unit:'g',size:a.size},{unit:'g',size:b.size}))) return result;
+  const barName = norm([p.product_name, p.product_name_en, p.product_name_el].filter(Boolean).join(' '));
+  const singleBar = /(?:^|[^\p{L}])(?:bar|μπαρα)(?!\p{L})/u.test(barName) && !/(?:bars\b|μπαρεσ|pack|κουτι)/u.test(barName)
+    && sv && pack && Math.abs(sv - pack.size) < 0.01 && !/\d\s*[×x]\s*\d/.test(qtyText)
+    && (!servingText || /^(?:\d+(?:[.,]\d+)?\s*(g|gr|γρ))$/.test(servingText));
+  const known = a || b || (singleBar ? { kind: 'bar', size: sv } : null);
+  if(known && known.size > 0 && (!pack || known.size <= pack.size + .1)){
+    result.pieces = known.kind; result.piece = Math.round(known.size * 1000) / 1000;
+  }
+  return result;
+}
+
+// Photo scans use the same count rules as a barcode. Only printed portions enter a saved record.
+function photoPortions(d){
+  const pack = labelAmount(d.packSize, d.unit);
+  const p = offPortions({ product_name: d.name, serving_size: d.servingLabel, quantity: d.quantityLabel }, pack);
+  Object.assign(d, {pieces: p.pieces, piece: p.piece, serving: p.serving});
+  if(pack) Object.assign(d, {packs: [pack.size], usualPack: pack.size, unitFromLabel: true});
 }
 
 function offToFood(p, code){
   const n = p.nutriments || {};
-  const g = k => { const v = n[k + '_100g']; return (v === undefined || v === '' || v === null) ? null : r1(Number(v)); };
-  let kcal = g('energy-kcal'); if(kcal === null && n['energy_100g'] != null) kcal = Math.round(Number(n['energy_100g']) / 4.184);
-  const q = parseQty(p);
+  const g = k => { const v = n[k + '_100g']; const value = typeof v === 'number' || (typeof v === 'string' && v.trim()) ? Number(v) : NaN; return Number.isFinite(value) && value >= 0 ? value : null; };
+  let kcal = g('energy-kcal'); const kj = g('energy-kj') ?? g('energy'); if(kcal === null && kj !== null) kcal = Math.round(kj / 4.184);
+  const q = parseQty(p), portions = offPortions(p, q), potassium = g('potassium');
   return {
     barcode: code || p.code || null, brand: (p.brands || '').split(',')[0].trim(),
     name: (lang === 'el' ? p.product_name_el : p.product_name_en) || p.product_name || p.product_name_el || p.product_name_en || p.generic_name || '',
     hint: (p.categories_tags || []).slice(-3).map(x => x.replace(/^\w\w:/,'').replace(/-/g,' ')).join(' '),
     kcal, protein: g('proteins'), carbs: g('carbohydrates'), fat: g('fat'),
-    fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'), potassium: n['potassium_100g'] != null ? Math.round(Number(n['potassium_100g']) * 1000) : null,
-    serving: p.serving_quantity ? Number(p.serving_quantity) : null,
-    unit: q ? q.unit : undefined, unitFromLabel: !!q, packs: q ? [q.size] : [], usualPack: q ? q.size : null, source: 'openfoodfacts'
+    fiber: g('fiber'), sugar: g('sugars'), satFat: g('saturated-fat'), salt: g('salt'), potassium: potassium === null ? null : Math.round(potassium * 1000),
+    ...portions, unitFromLabel: !!portions.unit, packs: q ? [q.size] : [], usualPack: q ? q.size : null, source: 'openfoodfacts'
   };
 }
 
@@ -402,14 +472,25 @@ async function lookup(code){
   const existing = foods.find(f => f.barcode === code);
   if(existing){ close('ovScan');
     if(scanCtx === 'fridge'){ scanCtx = null; openFridgeAdd(existing); return; }
-    if(scanCtx === 'log'){ scanCtx = null; openAmt({ mode: 'log', info: { name: foodName(existing), icon: iconOf(existing) || '', unit: existing.unit, per: existing, food: existing, piece: existing.pieces !== 'none' ? (existing.piece || existing.serving || null) : null, pw: existing.pieces } }); return; }
-    toast(t('alreadyHave')); openForm(existing, null, 'edit'); return; }
+    if(scanCtx === 'log'){ scanCtx = null; openAmt({ mode: 'log', info: fInfo_(existing) }); return; }
+    toast(t('alreadyHave')); openForm(barcodePortionsForView(existing), null, 'edit'); return; }
+  const local = LABEL_BY_CODE[code];
+  if(local){
+    close('ovScan');
+    if(scanCtx === 'log'){ scanCtx = null; openAmt({ mode: 'log', info: fInfo_(saveGeneric(local)) }); }
+    else if(scanCtx === 'fridge'){ scanCtx = null; openFridgeAdd(saveGeneric(local)); }
+    else openForm({ ...local, name: L(local), source: 'label' }, local.brand, 'new', { fromScan: true });
+    return;
+  }
   try{
     const r = await fetchT(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${OFF_FIELDS}`, {}, 9000);
     const j = await r.json();
     if(j.status !== 1 || !j.product) return notFound(code, t('notInOFF'));
     const data = offToFood(j.product, code);
     if(data.protein === null && data.carbs === null && data.fat === null) return notFound(code, t('noMacros'));
+    if([data.kcal, data.protein, data.carbs, data.fat].some(v => v == null)){
+      close('ovScan'); openForm(data, 'Open Food Facts', 'new', { fromScan: true }); return;
+    }
     if(scanCtx === 'log'){ scanCtx = null; close('ovScan'); const f = saveOnlineFood({ ...data, source: 'openfoodfacts' }); renderAll(); openAmt({ mode: 'log', info: fInfo_(f) }); toast(t('scanSaved')); return; }
     close('ovScan'); openForm(data, 'Open Food Facts', 'new', { fromScan: true });
   }catch(e){ notFound(code, t('lookupFail')); }
@@ -590,7 +671,7 @@ function drawSupTimes(){ $('supTimes').innerHTML = SLOTS.map(sl => `<button data
 
 function faHint(){
   const f = FA.food, a = num('faAmt') || 0, n = num('faCount') || 1;
-  $('faHint').textContent = f && f.pieces !== 'none' && (f.piece || f.serving) ? `≈ ${Math.round(a * n / (f.piece || f.serving))} ${WS(f.pieces)}` : (n > 1 ? `= ${fmtSize(a * n, f ? f.unit : 'g')}` : '');
+  $('faHint').textContent = f && foodPieceSize(f) ? `≈ ${Math.round(a * n / foodPieceSize(f))} ${WS(f.pieces)}` : (n > 1 ? `= ${fmtSize(a * n, f ? f.unit : 'g')}` : '');
 }
 
 function amRes(){
@@ -642,10 +723,11 @@ function tgCheck(){
 }
 
 function saveGeneric(g){
-  const existing = foods.find(f => f.gid === g.gid); if(existing) return existing;
+  const existing = foods.find(f => f.gid === g.gid || (g.barcode && f.barcode === g.barcode)); if(existing) return existing;
   const now = new Date().toISOString();
-  const f = normFood({ id: uid(), gid: g.gid, name: L(g), brand:'', noBrand:true, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
+  const f = normFood({ id: uid(), gid: g.gid, name: L(g), brand:g.brand || '', noBrand:!g.brand, barcode:g.barcode || null, cat:g.cat, sub:g.sub, unit:g.unit, state:g.state,
     kcal:g.kcal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber: g.fiber ?? null, salt: g.salt ?? null, potassium: g.potassium ?? null,
+    sugar:g.sugar, satFat:g.satFat, packs:g.packs || [], usualPack:g.usualPack, serving:g.serving,
     pieces:g.pieces, piece:g.piece, pieceSkipped: !g.piece && g.pieces !== 'none', source:'standard', createdAt: now, updatedAt: now });
   foods.push(f); saveFoods(); renderAll(); return f;
 }
@@ -702,7 +784,7 @@ function saveOnlineFood(d){
   const now = new Date().toISOString(), g = guessType(d.name + ' ' + (d.hint || ''));
   const f = normFood({ id: uid(), name: d.name, brand: d.brand || '', noBrand: !d.brand, barcode: d.barcode || null, cat: g ? g.cat : 'other', sub: g ? g.sub : 'general', unit: d.unit || 'g', state: d.state || 'ready',
     kcal: d.kcal ?? Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9), protein: d.protein, carbs: d.carbs, fat: d.fat, fiber: d.fiber ?? null, salt: d.salt ?? null, potassium: d.potassium ?? null,
-    packs: d.packs || [], usualPack: d.usualPack || null, pieces: 'none', serving: d.serving || null, source: d.source || 'online', createdAt: now, updatedAt: now });
+    packs: d.packs || [], usualPack: d.usualPack || null, pieces: d.pieces || 'none', piece: d.piece || null, serving: d.serving || null, sugar: d.sugar, satFat: d.satFat, source: d.source || 'online', createdAt: now, updatedAt: now });
   foods.push(f); saveFoods(); return f;
 }
 

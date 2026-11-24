@@ -10,7 +10,7 @@ GEN.forEach(g => { const x = EXTRA[g.gid]; if(x){ g.fiber = x[0]; g.salt = r1(x[
 COOKED.forEach(([id, rawId, en, el, kcal, protein, carbs, fat, fib, na, k]) => {
   const raw = GENBY[rawId]; if(!raw) return;
   const g = { ...raw, gid: id, en, el, alias: raw.alias, state: 'cooked', kcal, protein, carbs, fat, fiber: fib, salt: r1(na * 2.5 / 1000 * 100) / 100, potassium: k };
-  g.hay = norm(`${en} ${el} ${raw.alias} cooked μαγειρεμενο βραστο ψητο ${subOf(raw.cat, raw.sub).en} ${subOf(raw.cat, raw.sub).el}`);
+  g.hay = norm(`${en} ${el} ${raw.alias} cooked μαγειρεμενο ${subOf(raw.cat, raw.sub).en} ${subOf(raw.cat, raw.sub).el}`);
   GEN.push(g); GENBY[id] = g; PAIR[rawId] = id; PAIR[id] = rawId;
 });
 
@@ -150,6 +150,19 @@ const eqIcon = (e, s) => `<svg viewBox="0 0 24 24" width="${s || 16}" height="${
     pieces: pieces || 'none', piece: piece || null, hay: norm(`${en} ${el} ${alias} ${so.en || ''} ${so.el || ''} ${(so.kw || []).join(' ')}`) };
   GEN.push(g); GENBY[id] = g;
 });
+
+for (const data of [...SR_FOODS, ...SURVEY_FOODS, ...LABEL_FOODS]) {
+  const old = GENBY[data.gid];
+  if (old) {
+    Object.assign(old, data);
+    continue;
+  }
+  const g = { pieces: 'none', piece: null, alias: '', ...data };
+  g.hay = norm([g.en, g.el, g.alias, g.barcode].filter(Boolean).join(' '));
+  GEN.push(g);
+  GENBY[g.gid] = g;
+}
+const LABEL_BY_CODE = Object.fromEntries(LABEL_FOODS.filter(g => g.barcode).map(g => [g.barcode, GENBY[g.gid]]));
 
 const POPI = Object.fromEntries(POP.map((g, i) => [g, i]));
 

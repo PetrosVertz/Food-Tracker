@@ -1,0 +1,318 @@
+fdc_id	existing_id	english	greek	category	subcategory	state	source_description
+171077	chicken_breast						Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw
+171477	chicken_breast_c						Chicken, broilers or fryers, breast, meat only, cooked, roasted
+171060	chicken_liver						Chicken, liver, all classes, raw
+171790	beef_mince5						Beef, ground, 95% lean meat / 5% fat, raw
+174030	beef_mince10						Beef, ground, 90% lean meat / 10% fat, raw
+174036	beef_mince20						Beef, ground, 80% lean meat / 20% fat, raw
+171287	egg						Egg, whole, raw, fresh
+172183	egg_white						Egg, white, raw, fresh
+173424	egg_c						Egg, whole, cooked, hard-boiled
+173424	boiled_egg						Egg, whole, cooked, hard-boiled
+172186	poached_egg						Egg, whole, cooked, poached
+169756	rice_white						Rice, white, long-grain, regular, raw, unenriched
+169757	rice_cooked						Rice, white, long-grain, regular, unenriched, cooked without salt
+169757	rice_white_boiled						Rice, white, long-grain, regular, unenriched, cooked without salt
+169703	rice_brown						Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)
+169704	rice_brown_c						Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)
+168927	pasta						Pasta, dry, unenriched
+168928	pasta_cooked						Pasta, cooked, unenriched, without added salt
+168928	pasta_boiled						Pasta, cooked, unenriched, without added salt
+169738	pasta_ww						Pasta, whole-wheat, dry (Includes foods for USDA's Food Distribution Program)
+168910	pasta_ww_c						Pasta, whole-wheat, cooked (Includes foods for USDA's Food Distribution Program)
+173904	oats						Cereals, oats, regular and quick, not fortified, dry
+173905	oats_c						Cereals, oats, regular and quick, unenriched, cooked with water (includes boiling and microwaving), without salt
+172420	lentils						Lentils, raw
+172421	lentils_c						Lentils, mature seeds, cooked, boiled, without salt
+173756	chickpeas						Chickpeas (garbanzo beans, bengal gram), mature seeds, raw
+173757	chickpeas_c						Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt
+173800	chickpeas_can						Chickpeas (garbanzo beans, bengal gram), mature seeds, canned, drained solids
+175202	beans						Beans, white, mature seeds, raw
+175203	beans_c						Beans, white, mature seeds, cooked, boiled, without salt
+173734	black_beans						Beans, black, mature seeds, raw
+174285	kidney_can						Beans, kidney, red, mature seeds, canned, drained solids
+168874	quinoa						Quinoa, uncooked
+168917	quinoa_c						Quinoa, cooked
+169699	couscous						Couscous, dry
+169700	couscous_c						Couscous, cooked
+170688	bulgur						Bulgur, dry
+170287	bulgur_c						Bulgur, cooked
+173420	feta						Cheese, feta
+171241	gouda						Cheese, gouda
+173419	edam						Cheese, edam
+173414	cheddar						Cheese, cheddar (Includes foods for USDA's Food Distribution Program)
+173418	cream_cheese						Cheese, cream
+175167	salmon						Fish, salmon, Atlantic, farmed, raw
+175168	salmon_c						Fish, salmon, Atlantic, farmed, cooked, dry heat
+171955	cod						Fish, cod, Atlantic, raw
+171956	cod_c						Fish, cod, Atlantic, cooked, dry heat
+174182	anchovy						Fish, anchovy, european, raw
+174218	octopus						Mollusks, octopus, common, raw
+174223	squid						Mollusks, squid, mixed species, raw
+171688	apple						Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)
+173944	banana						Bananas, raw
+169118	pear						Pears, raw
+169097	orange						Oranges, raw, all commercial varieties
+167762	strawberry						Strawberries, raw
+171711	blueberries						Blueberries, raw
+167765	watermelon						Watermelon, raw
+168153	kiwi						Kiwifruit, green, raw
+169134	pomegranate						Pomegranates, raw
+169124	pineapple						Pineapple, raw, all varieties
+169910	mango						Mangos, raw
+167755	raspberries						Raspberries, raw
+169949	plum						Plums, raw
+171697	apricot						Apricots, raw
+171719	cherries						Cherries, sweet, raw
+173021	figs						Figs, raw
+168162	prunes						Plums, dried (prunes), uncooked
+174665	dried_figs						Figs, dried, uncooked
+169105	mandarin						Tangerines, (mandarin oranges), raw
+174683	grapes						Grapes, red or green (European type, such as Thompson seedless), raw
+167746	lemon						Lemons, raw, without peel
+170379	broccoli						Broccoli, raw
+170393	carrot						Carrots, raw
+170394	carrot_c						Carrots, cooked, boiled, drained, without salt
+169986	cauliflower						Cauliflower, raw
+170397	cauliflower_c						Cauliflower, cooked, boiled, drained, without salt
+168462	spinach						Spinach, raw
+168463	spinach_c						Spinach, cooked, boiled, drained, without salt
+169230	garlic						Garlic, raw
+170000	onion						Onions, raw
+169246	leek						Leeks, (bulb and lower leaf-portion), raw
+169988	celery						Celery, raw
+170416	parsley						Parsley, fresh
+168389	asparagus						Asparagus, raw
+169205	artichoke						Artichokes, (globe or french), raw
+169260	okra						Okra, raw
+170383	brussels						Brussels sprouts, raw
+169961	green_beans						Beans, snap, green, raw
+169141	green_beans_c						Beans, snap, green, cooked, boiled, drained, without salt
+169291	zucchini						Squash, summer, zucchini, includes skin, raw
+169292	zucchini_c						Squash, summer, zucchini, includes skin, cooked, boiled, drained, without salt
+169228	eggplant						Eggplant, raw
+169387	rocket						Arugula, raw
+169145	beetroot						Beets, raw
+168448	pumpkin						Pumpkin, raw
+169251	mushroom						Mushrooms, white, raw
+171705	avocado						Avocados, raw, all commercial varieties
+170108	pepper_red						Peppers, sweet, red, raw
+170427	pepper_green						Peppers, sweet, green, raw
+170457	tomato						Tomatoes, red, ripe, raw, year round average
+170419	peas						Peas, green, raw
+168409	cucumber						Cucumber, with peel, raw
+171413	olive_oil						Oil, olive, salad or cooking
+170567	almonds						Nuts, almonds
+170187	walnuts						Nuts, walnuts, english
+170581	hazelnuts						Nuts, hazelnuts or filberts
+169414	flax						Seeds, flaxseed
+170554	chia						Seeds, chia seeds, dried
+170562	sunflower_seeds						Seeds, sunflower seed kernels, dried
+170556	pumpkin_seeds						Seeds, pumpkin and squash seed kernels, dried
+169640	honey						Honey
+169655	sugar						Sugars, granulated
+170931	black_pepper						Spices, pepper, black
+171328	oregano						Spices, oregano, dried
+170917		Bay leaf, dried	Δάφνη, αποξηραμένα φύλλα	oils	seasoning	ready	Spices, bay leaf
+170918		Caraway seed	Αγριοκύμινο, σπόροι	oils	seasoning	ready	Spices, caraway seed
+170919		Cardamom	Κάρδαμο (κακουλές)	oils	seasoning	ready	Spices, cardamom
+170920		Celery seed	Σπόροι σέλινου	oils	seasoning	ready	Spices, celery seed
+170921		Coriander leaf, dried	Κόλιανδρος, αποξηραμένα φύλλα	oils	seasoning	ready	Spices, coriander leaf, dried
+170922		Coriander seed	Κόλιανδρος, σπόροι	oils	seasoning	ready	Spices, coriander seed
+170923		Cumin seed	Κύμινο, σπόροι	oils	seasoning	ready	Spices, cumin seed
+170924		Curry powder	Κάρι σε σκόνη	oils	seasoning	ready	Spices, curry powder
+170925		Dill seed	Σπόροι άνηθου	oils	seasoning	ready	Spices, dill seed
+170926		Ground ginger	Τζίντζερ σε σκόνη	oils	seasoning	ready	Spices, ginger, ground
+170928		Marjoram, dried	Μαντζουράνα αποξηραμένη	oils	seasoning	ready	Spices, marjoram, dried
+170929		Ground mustard seed	Σπόροι μουστάρδας, αλεσμένοι	oils	seasoning	ready	Spices, mustard seed, ground
+170930		Parsley, dried	Μαϊντανός αποξηραμένος	oils	seasoning	ready	Spices, parsley, dried
+170932		Cayenne pepper	Πιπέρι καγιέν	oils	seasoning	ready	Spices, pepper, red or cayenne
+170933		White pepper	Λευκό πιπέρι	oils	seasoning	ready	Spices, pepper, white
+170934		Saffron	Κρόκος (σαφράν)	oils	seasoning	ready	Spices, saffron
+170935		Ground sage	Φασκόμηλο τριμμένο	oils	seasoning	ready	Spices, sage, ground
+170937		Tarragon, dried	Εστραγκόν αποξηραμένο	oils	seasoning	ready	Spices, tarragon, dried
+170938		Thyme, dried	Θυμάρι αποξηραμένο	oils	seasoning	ready	Spices, thyme, dried
+171315		Ground allspice	Μπαχάρι τριμμένο	oils	seasoning	ready	Spices, allspice, ground
+171316		Anise seed	Σπόροι γλυκάνισου	oils	seasoning	ready	Spices, anise seed
+171317		Basil, dried	Βασιλικός αποξηραμένος	oils	seasoning	ready	Spices, basil, dried
+171319		Chili powder, seasoning blend	Μείγμα μπαχαρικών τσίλι	oils	seasoning	ready	Spices, chili powder
+171320		Ground cinnamon	Κανέλα τριμμένη	oils	seasoning	ready	Spices, cinnamon, ground
+171321		Ground cloves	Γαρίφαλο τριμμένο	oils	seasoning	ready	Spices, cloves, ground
+171322		Dill weed, dried	Άνηθος αποξηραμένος	oils	seasoning	ready	Spices, dill weed, dried
+171323		Fennel seed	Μαραθόσπορος	oils	seasoning	ready	Spices, fennel seed
+171324		Fenugreek seed	Τριγωνέλλα, σπόροι	oils	seasoning	ready	Spices, fenugreek seed
+171325		Garlic powder	Σκόρδο σε σκόνη	oils	seasoning	ready	Spices, garlic powder
+171326		Ground nutmeg	Μοσχοκάρυδο τριμμένο	oils	seasoning	ready	Spices, nutmeg, ground
+171327		Onion powder	Κρεμμύδι σε σκόνη	oils	seasoning	ready	Spices, onion powder
+171329		Paprika	Πάπρικα	oils	seasoning	ready	Spices, paprika
+171333		Rosemary, dried	Δεντρολίβανο αποξηραμένο	oils	seasoning	ready	Spices, rosemary, dried
+172231		Ground turmeric	Κουρκουμάς σε σκόνη	oils	seasoning	ready	Spices, turmeric, ground
+170843		Fontina	Φοντίνα	dairy	cheese	ready	Cheese, fontina
+170844		Monterey Jack	Μοντερέι Τζακ	dairy	cheese	ready	Cheese, monterey
+170846		Low-moisture mozzarella, whole milk	Μοτσαρέλα χαμηλής υγρασίας, πλήρες γάλα	dairy	cheese	ready	Cheese, mozzarella, whole milk, low moisture
+170847		Part-skim mozzarella	Μοτσαρέλα από μερικώς αποβουτυρωμένο γάλα	dairy	cheese	ready	Cheese, mozzarella, part skim milk
+170849		Port de Salut cheese	Τυρί Πορ Σαλί	dairy	cheese	ready	Cheese, port de salut
+170850		Provolone	Προβολόνε	dairy	cheese	ready	Cheese, provolone
+170852		Tilsit cheese	Τυρί Τίλσιτ	dairy	cheese	ready	Cheese, tilsit
+171242		Gruyère	Γκρυγιέρ Ελβετίας	dairy	cheese	ready	Cheese, gruyere
+171243		Limburger	Τυρί Λίμπουργκερ	dairy	cheese	ready	Cheese, limburger
+171245		Muenster	Τυρί Μούνστερ	dairy	cheese	ready	Cheese, muenster
+171246		Neufchâtel	Τυρί Νεσατέλ	dairy	cheese	ready	Cheese, neufchatel
+171247		Parmesan, grated	Παρμεζάνα τριμμένη	dairy	cheese	ready	Cheese, parmesan, grated
+171248		Ricotta, part-skim milk	Ρικότα από μερικώς αποβουτυρωμένο γάλα	dairy	cheese	ready	Cheese, ricotta, part skim milk
+171249		Romano cheese	Τυρί Ρομάνο	dairy	cheese	ready	Cheese, romano
+171250		Roquefort	Ροκφόρ	dairy	cheese	ready	Cheese, roquefort
+172175		Blue cheese	Μπλε τυρί	dairy	cheese	ready	Cheese, blue
+172177		Brie	Μπρι	dairy	cheese	ready	Cheese, brie
+172178		Camembert	Καμαμπέρ	dairy	cheese	ready	Cheese, camembert
+172182		Cottage cheese, 2% milkfat	Τυρί κότατζ 2% λιπαρά	dairy	cheese	ready	Cheese, cottage, lowfat, 2% milkfat
+172197		Hard goat cheese	Σκληρό κατσικίσιο τυρί	dairy	cheese	ready	Cheese, goat, hard type
+172207		Fat-free cream cheese	Τυρί κρέμα χωρίς λιπαρά	dairy	cheese	ready	Cheese, cream, fat free
+173417		Cottage cheese, 1% milkfat	Τυρί κότατζ 1% λιπαρά	dairy	cheese	ready	Cheese, cottage, lowfat, 1% milkfat
+173433		Semisoft goat cheese	Ημίσκληρο κατσικίσιο τυρί	dairy	cheese	ready	Cheese, goat, semisoft type
+173435		Soft goat cheese	Μαλακό κατσικίσιο τυρί	dairy	cheese	ready	Cheese, goat, soft type
+167750		Prickly pear, raw	Φραγκόσυκο	fruit	general	ready	Prickly pears, raw
+167754		Pomelo, raw	Πομέλο	fruit	general	ready	Pummelo, raw
+167758		Rhubarb, raw	Ραβέντι ωμό	fruit	general	ready	Rhubarb, raw
+167763		Tamarind, raw	Ταμάρινδος	fruit	general	ready	Tamarinds, raw
+168154		Kumquat, raw	Κουμκουάτ	fruit	general	ready	Kumquats, raw
+168155		Lime, raw	Μοσχολέμονο (λάιμ)	fruit	general	ready	Limes, raw
+168163		Quince, raw	Κυδώνι ωμό	fruit	general	ready	Quinces, raw
+168176		Feijoa, raw	Φεϊζόα	fruit	general	ready	Feijoa, raw
+168177		Asian pear, raw	Ασιατικό αχλάδι	fruit	general	ready	Pears, asian, raw
+168195		Clementine, raw	Κλημεντίνη	fruit	general	ready	Clementines, raw
+169086		Lychee, raw	Λίτσι	fruit	general	ready	Litchis, raw
+169089		Longan, raw	Λονγκάν	fruit	general	ready	Longans, raw
+169093		Casaba melon, raw	Πεπόνι Κασάμπα	fruit	general	ready	Melons, casaba, raw
+169108		Purple passion fruit, raw	Μοβ φρούτο του πάθους	fruit	general	ready	Passion-fruit, (granadilla), purple, raw
+167793		Fuji apple with skin	Μήλο Φούτζι με φλούδα	fruit	apple	ready	Apples, raw, fuji, with skin (Includes foods for USDA's Food Distribution Program)
+168201		Red Delicious apple with skin	Μήλο Ρεντ Ντελίσιους με φλούδα	fruit	apple	ready	Apples, raw, red delicious, with skin (Includes foods for USDA's Food Distribution Program)
+168202		Golden Delicious apple with skin	Μήλο Γκόλντεν Ντελίσιους με φλούδα	fruit	apple	ready	Apples, raw, golden delicious, with skin
+168203		Granny Smith apple with skin	Ξινόμηλο Γκράνι Σμιθ με φλούδα	fruit	apple	ready	Apples, raw, granny smith, with skin (Includes foods for USDA's Food Distribution Program)
+168204		Gala apple with skin	Μήλο Γκαλά με φλούδα	fruit	apple	ready	Apples, raw, gala, with skin (Includes foods for USDA's Food Distribution Program)
+167776		Bartlett pear, raw	Αχλάδι Μπάρτλετ	fruit	pear	ready	Pears, raw, bartlett (Includes foods for USDA's Food Distribution Program)
+167777		Red Anjou pear, raw	Κόκκινο αχλάδι Ανζού	fruit	pear	ready	Pears, raw, red anjou
+167778		Bosc pear, raw	Αχλάδι Μποσκ	fruit	pear	ready	Pears, raw, bosc (Includes foods for USDA's Food Distribution Program)
+167779		Green Anjou pear, raw	Πράσινο αχλάδι Ανζού	fruit	pear	ready	Pears, raw, green anjou (Includes foods for USDA's Food Distribution Program)
+168422		Chanterelle mushroom, raw	Μανιτάρια κανθαρέλες ωμά	veg	mushroom	uncooked	Mushrooms, Chanterelle, raw
+168423		Morel mushroom, raw	Μανιτάρια μορχέλες ωμά	veg	mushroom	uncooked	Mushrooms, morel, raw
+168434		Cremini mushrooms, raw	Καφέ μανιτάρια κρεμίνι ωμά	veg	mushroom	uncooked	Mushrooms, brown, italian, or crimini, raw
+168580		Oyster mushrooms, raw	Μανιτάρια πλευρώτους ωμά	veg	mushroom	uncooked	Mushrooms, oyster, raw
+169242		Shiitake mushrooms, raw	Μανιτάρια σιτάκε ωμά	veg	mushroom	uncooked	Mushrooms, shiitake, raw
+169255		Portobello mushrooms, raw	Μανιτάρια πορτομπέλο ωμά	veg	mushroom	uncooked	Mushrooms, portabella, raw
+168384		Alfalfa sprouts, raw	Φύτρα μηδικής ωμά	veg	general	uncooked	Alfalfa seeds, sprouted, raw
+168407		Garden cress, raw	Κάρδαμο κήπου ωμό	veg	general	uncooked	Cress, garden, raw
+168412		Endive, raw	Αντίδι ωμό	veg	general	uncooked	Endive, raw
+168421		Kale, raw	Λαχανίδα ωμή	veg	general	uncooked	Kale, raw
+168424		Kohlrabi, raw	Γογγυλοκράμβη ωμή	veg	general	uncooked	Kohlrabi, raw
+168451		Daikon radish, raw	Λευκό ραπάνι ντάικον ωμό	veg	general	uncooked	Radishes, oriental, raw
+168454		Rutabaga, raw	Γουλί (σουηδικό γογγύλι) ωμό	veg	general	uncooked	Rutabagas, raw
+168564		Radicchio, raw	Ραντίτσιο ωμό	veg	general	uncooked	Radicchio, raw
+168566		Tomatillo, raw	Τοματίγιο ωμό	veg	general	uncooked	Tomatillos, raw
+168568		Baby carrots, raw	Μικρά καρότα baby ωμά	veg	general	uncooked	Carrots, baby, raw
+168575		Grape leaves, raw	Αμπελόφυλλα ωμά	veg	general	uncooked	Grape leaves, raw
+168576		Jalapeño peppers, raw	Πιπεριές χαλαπένιο ωμές	veg	general	uncooked	Peppers, jalapeno, raw
+169210		Bamboo shoots, raw	Βλαστοί μπαμπού ωμοί	veg	general	uncooked	Bamboo shoots, raw
+169226		Dandelion greens, raw	Φύλλα ταραξάκου ωμά	veg	general	uncooked	Dandelion greens, raw
+169231		Ginger root, raw	Ρίζα τζίντζερ ωμή	veg	general	uncooked	Ginger root, raw
+169236		Jerusalem artichoke, raw	Τοπιναμπούρ (αγκινάρα Ιερουσαλήμ) ωμό	veg	general	uncooked	Jerusalem-artichokes, raw
+169250		Lotus root, raw	Ρίζα λωτού ωμή	veg	general	uncooked	Lotus root, raw
+169276		Radishes, raw	Ραπανάκια ωμά	veg	general	uncooked	Radishes, raw
+169295		Butternut squash, raw	Κολοκύθα βουτύρου ωμή	veg	general	uncooked	Squash, winter, butternut, raw
+169308		Taro root, raw	Κολοκάσι ωμό	veg	general	uncooked	Taro, raw
+169385		Fennel bulb, raw	Μαραθόριζα (φινόκιο) ωμή	veg	general	uncooked	Fennel, bulb, raw
+169991		Swiss chard, raw	Σέσκουλα ωμά	veg	general	uncooked	Chard, swiss, raw
+170465		Turnips, raw	Γογγύλια ωμά	veg	general	uncooked	Turnips, raw
+168386		Globe artichokes, boiled and drained, unsalted	Αγκινάρες · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Artichokes, (globe or french), cooked, boiled, drained, without salt
+168425		Kohlrabi, boiled and drained, unsalted	Γογγυλοκράμβες · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Kohlrabi, cooked, boiled, drained, without salt
+168426		Leeks, boiled and drained, unsalted	Πράσα · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Leeks, (bulb and lower leaf-portion), cooked, boiled, drained, without salt
+168449		Pumpkin, boiled and drained, unsalted	Κολοκύθα · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Pumpkin, cooked, boiled, drained, without salt
+169211		Bamboo shoots, boiled and drained, unsalted	Βλαστοί μπαμπού · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Bamboo shoots, cooked, boiled, drained, without salt
+169227		Dandelion greens, boiled and drained, unsalted	Φύλλα ταραξάκου · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Dandelion greens, cooked, boiled, drained, without salt
+169229		Aubergines, boiled and drained, unsalted	Μελιτζάνες · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Eggplant, cooked, boiled, drained, without salt
+169238		Kale, boiled and drained, unsalted	Λαχανίδες · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Kale, cooked, boiled, drained, without salt
+169252		White mushrooms, boiled and drained, unsalted	Λευκά μανιτάρια · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Mushrooms, white, cooked, boiled, drained, without salt
+169261		Okra, boiled and drained, unsalted	Μπάμιες · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Okra, cooked, boiled, drained, without salt
+169967		Broccoli, boiled and drained, unsalted	Μπρόκολο · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Broccoli, cooked, boiled, drained, without salt
+169971		Brussels sprouts, boiled and drained, unsalted	Λαχανάκια Βρυξελλών · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Brussels sprouts, cooked, boiled, drained, without salt
+170401		Swiss chard, boiled and drained, unsalted	Σέσκουλα · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Chard, swiss, cooked, boiled, drained, without salt
+170058		Turnips, boiled and drained, unsalted	Γογγύλια · βραστά και στραγγισμένα, χωρίς αλάτι	veg	general	cooked	Turnips, cooked, boiled, drained, without salt
+171952		Carp, raw	Κυπρίνος · ωμό	fish	fishgen	uncooked	Fish, carp, raw
+174185		Carp, cooked with dry heat	Κυπρίνος · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, carp, cooked, dry heat
+171964		Haddock, raw	Μπακαλιάρος εγκλεφίνος · ωμό	fish	fishgen	uncooked	Fish, haddock, raw
+174198		Haddock, cooked with dry heat	Μπακαλιάρος εγκλεφίνος · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, haddock, cooked, dry heat
+171965		Greenland halibut, raw	Ιππόγλωσσος Γροιλανδίας · ωμό	fish	fishgen	uncooked	Fish, halibut, Greenland, raw
+174232		Greenland halibut, cooked with dry heat	Ιππόγλωσσος Γροιλανδίας · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, halibut, greenland, cooked, dry heat
+174200		Atlantic or Pacific halibut, raw	Ιππόγλωσσος Ατλαντικού ή Ειρηνικού · ωμό	fish	fishgen	uncooked	Fish, halibut, Atlantic and Pacific, raw
+174201		Atlantic or Pacific halibut, cooked with dry heat	Ιππόγλωσσος Ατλαντικού ή Ειρηνικού · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, halibut, Atlantic and Pacific, cooked, dry heat
+175116		Atlantic herring, raw	Ρέγγα Ατλαντικού · ωμό	fish	fishgen	uncooked	Fish, herring, Atlantic, raw
+175117		Atlantic herring, cooked with dry heat	Ρέγγα Ατλαντικού · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, herring, Atlantic, cooked, dry heat
+173669		Pacific herring, raw	Ρέγγα Ειρηνικού · ωμό	fish	fishgen	uncooked	Fish, herring, Pacific, raw
+174233		Pacific herring, cooked with dry heat	Ρέγγα Ειρηνικού · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, herring, Pacific, cooked, dry heat
+173703		Swordfish, raw	Ξιφίας · ωμό	fish	fishgen	uncooked	Fish, swordfish, raw
+173704		Swordfish, cooked with dry heat	Ξιφίας · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, swordfish, cooked, dry heat
+173710		European turbot, raw	Ευρωπαϊκό καλκάνι · ωμό	fish	fishgen	uncooked	Fish, turbot, european, raw
+174245		European turbot, cooked with dry heat	Ευρωπαϊκό καλκάνι · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, turbot, european, cooked, dry heat
+175123		Striped mullet, raw	Κέφαλος · ωμό	fish	fishgen	uncooked	Fish, mullet, striped, raw
+175124		Striped mullet, cooked with dry heat	Κέφαλος · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, mullet, striped, cooked, dry heat
+175129		Atlantic pollock, raw	Μπακαλιάρος pollock Ατλαντικού · ωμό	fish	fishgen	uncooked	Fish, pollock, Atlantic, raw
+174237		Atlantic pollock, cooked with dry heat	Μπακαλιάρος pollock Ατλαντικού · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, pollock, Atlantic, cooked, dry heat
+173717		Farmed rainbow trout, raw	Ιριδίζουσα πέστροφα εκτροφής · ωμό	fish	fishgen	uncooked	Fish, trout, rainbow, farmed, raw
+173718		Farmed rainbow trout, cooked with dry heat	Ιριδίζουσα πέστροφα εκτροφής · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, trout, rainbow, farmed, cooked, dry heat
+175154		Wild rainbow trout, raw	Άγρια ιριδίζουσα πέστροφα · ωμό	fish	fishgen	uncooked	Fish, trout, rainbow, wild, raw
+175155		Wild rainbow trout, cooked with dry heat	Άγρια ιριδίζουσα πέστροφα · ψητό χωρίς προσθήκη λίπους	fish	fishgen	cooked	Fish, trout, rainbow, wild, cooked, dry heat
+173735		Black beans, boiled without salt	Μαύρα φασόλια · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, black, mature seeds, cooked, boiled, without salt
+173745		Navy beans, dry	Λευκά φασόλια navy · ξερά	legumes	beans	uncooked	Beans, navy, mature seeds, raw
+173746		Navy beans, boiled without salt	Λευκά φασόλια navy · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, navy, mature seeds, cooked, boiled, without salt
+175189		Borlotti beans, dry	Φασόλια μπαρμπούνια · ξερά	legumes	beans	uncooked	Beans, cranberry (roman), mature seeds, raw
+173736		Borlotti beans, boiled without salt	Φασόλια μπαρμπούνια · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, cranberry (roman), mature seeds, cooked, boiled, without salt
+175190		Great Northern beans, dry	Φασόλια Great Northern · ξερά	legumes	beans	uncooked	Beans, great northern, mature seeds, raw (Includes foods for USDA's Food Distribution Program)
+175191		Great Northern beans, boiled without salt	Φασόλια Great Northern · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, great northern, mature seeds, cooked, boiled, without salt
+173744		Red kidney beans, dry	Κόκκινα φασόλια kidney · ξερά	legumes	beans	uncooked	Beans, kidney, red, mature seeds, raw
+175194		Red kidney beans, boiled without salt	Κόκκινα φασόλια kidney · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, kidney, red, mature seeds, cooked, boiled, without salt
+175199		Pinto beans, dry	Φασόλια πίντο · ξερά	legumes	beans	uncooked	Beans, pinto, mature seeds, raw (Includes foods for USDA's Food Distribution Program)
+175200		Pinto beans, boiled without salt	Φασόλια πίντο · βρασμένα χωρίς αλάτι	legumes	beans	cooked	Beans, pinto, mature seeds, cooked, boiled, without salt
+169702		Millet, dry	Κεχρί · ξηρό	rice	general	uncooked	Millet, raw
+168871		Millet, cooked	Κεχρί · μαγειρεμένο	rice	general	cooked	Millet, cooked
+169726		Wild rice, dry	Άγριο ρύζι · ξηρό	rice	general	uncooked	Wild rice, raw
+168897		Wild rice, cooked	Άγριο ρύζι · μαγειρεμένο	rice	general	cooked	Wild rice, cooked
+169745		Spelt grain, dry	Σιτάρι σπέλτα · ξηρό	rice	general	uncooked	Spelt, uncooked
+169746		Spelt grain, cooked	Σιτάρι σπέλτα · μαγειρεμένο	rice	general	cooked	Spelt, cooked
+169747		Teff grain, dry	Τεφ · ξηρό	rice	general	uncooked	Teff, uncooked
+168918		Teff grain, cooked	Τεφ · μαγειρεμένο	rice	general	cooked	Teff, cooked
+170682		Amaranth grain, dry	Αμάρανθος · ξηρό	rice	general	uncooked	Amaranth grain, uncooked
+170683		Amaranth grain, cooked	Αμάρανθος · μαγειρεμένο	rice	general	cooked	Amaranth grain, cooked
+170284		Pearled barley, dry	Αποφλοιωμένο κριθάρι περλέ · ξηρό	rice	general	uncooked	Barley, pearled, raw
+170285		Pearled barley, cooked	Αποφλοιωμένο κριθάρι περλέ · μαγειρεμένο	rice	general	cooked	Barley, pearled, cooked
+170685		Roasted buckwheat groats, dry	Καβουρδισμένο φαγόπυρο · ξηρό	rice	general	uncooked	Buckwheat groats, roasted, dry
+170686		Roasted buckwheat groats, cooked	Καβουρδισμένο φαγόπυρο · μαγειρεμένο	rice	general	cooked	Buckwheat groats, roasted, cooked
+168908		Somen noodles, dry	Νουντλς σόμεν · ξηρά	pasta	noodles	uncooked	Noodles, japanese, somen, dry
+169742		Rice noodles, dry	Νουντλς ρυζιού · ξηρά	pasta	noodles	uncooked	Rice noodles, dry
+168914		Rice noodles, cooked	Νουντλς ρυζιού · βρασμένα	pasta	noodles	cooked	Rice noodles, cooked
+168899		Gluten-free corn pasta, dry	Ζυμαρικά καλαμποκιού χωρίς γλουτένη · ξηρά	pasta	pasta	uncooked	Pasta, gluten-free, corn, dry
+168900		Gluten-free corn pasta, cooked	Ζυμαρικά καλαμποκιού χωρίς γλουτένη · βρασμένα	pasta	pasta	cooked	Pasta, gluten-free, corn, cooked
+168911		Spinach spaghetti, dry	Σπαγγέτι με σπανάκι · ξηρά	pasta	pasta	uncooked	Spaghetti, spinach, dry
+170178		Macadamia nuts, raw	Μακαντάμια ωμά	nuts	walnuts	ready	Nuts, macadamia nuts, raw
+170179		Macadamia nuts, dry roasted without salt	Μακαντάμια ψημένα χωρίς λάδι ή αλάτι	nuts	walnuts	ready	Nuts, macadamia nuts, dry roasted, without salt added
+170182		Pecans	Καρύδια πεκάν	nuts	walnuts	ready	Nuts, pecans
+170183		Pecans, dry roasted without salt	Πεκάν ψημένα χωρίς λάδι ή αλάτι	nuts	walnuts	ready	Nuts, pecans, dry roasted, without salt added
+170569		Brazil nuts, dried with skin	Καρύδια Βραζιλίας αποξηραμένα με φλούδα	nuts	walnuts	ready	Nuts, brazilnuts, dried, unblanched
+170591		Pine nuts, dried	Κουκουνάρι αποξηραμένο	nuts	walnuts	ready	Nuts, pine nuts, dried
+170583		Hazelnuts, dry roasted without salt	Φουντούκια ψημένα χωρίς λάδι ή αλάτι	nuts	walnuts	ready	Nuts, hazelnuts or filberts, dry roasted, without salt added
+170158		Almonds, dry roasted without salt	Αμύγδαλα ψημένα χωρίς λάδι ή αλάτι	nuts	almonds	ready	Nuts, almonds, dry roasted, without salt added
+168596		Almonds, dry roasted and salted	Αμύγδαλα ψημένα χωρίς λάδι, αλατισμένα	nuts	almonds	ready	Nuts, almonds, dry roasted, with salt added
+170568		Almonds, blanched	Αμύγδαλα ασπρισμένα	nuts	almonds	ready	Nuts, almonds, blanched
+170150		Whole sesame seeds, dried	Σουσάμι αναποφλοίωτο αποξηραμένο	nuts	seeds	ready	Seeds, sesame seeds, whole, dried
+170151		Whole sesame seeds, toasted	Σουσάμι αναποφλοίωτο καβουρδισμένο	nuts	seeds	ready	Seeds, sesame seeds, whole, roasted and toasted
+170155		Sunflower seed butter, unsalted	Βούτυρο ηλιόσπορου ανάλατο	nuts	seeds	ready	Seeds, sunflower seed butter, without salt
+171330		Poppy seeds	Παπαρουνόσπορος	nuts	seeds	ready	Spices, poppy seed
+172189		Duck egg, raw	Αυγό πάπιας ωμό	eggs	egg	uncooked	Egg, duck, whole, fresh, raw
+172190		Goose egg, raw	Αυγό χήνας ωμό	eggs	egg	uncooked	Egg, goose, whole, fresh, raw
+172191		Quail egg, raw	Αυγό ορτυκιού ωμό	eggs	egg	uncooked	Egg, quail, whole, fresh, raw
+171534	chicken_grilled						Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, grilled
+173627	chicken_thigh						Chicken, broilers or fryers, dark meat, thigh, meat only, raw
+172388	chicken_thigh_c						Chicken, broilers or fryers, thigh, meat only, cooked, roasted
+173709	tuna_water						Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)
+173708	tuna_oil						Fish, tuna, light, canned in oil, drained solids
+171796	beef_mince15						Beef, ground, 85% lean meat / 15% fat, raw (Includes foods for USDA's Food Distribution Program)
+169593	cocoa						Cocoa, dry powder, unsweetened

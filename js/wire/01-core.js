@@ -188,7 +188,7 @@ const fmtSize = (n, unit) => unit === 'ml' ? (n >= 1000 ? `${r1(n/1000)} L` : `$
 
 const fmtDate = iso => { try{ return new Date(iso).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day:'numeric', month:'short' }); }catch(e){ return ''; } };
 
-const W = p => t(p === 'slice' ? 'slice' : 'piece'), WS = p => t(p === 'slice' ? 'slicesW' : 'piecesW');
+const W = p => t(p === 'bar' ? 'foodBar' : p === 'slice' ? 'slice' : 'piece'), WS = p => t(p === 'bar' ? 'foodBars' : p === 'slice' ? 'slicesW' : 'piecesW');
 
 document.querySelectorAll('.overlay').forEach(ov => {
   ov.addEventListener('click', e => { if(e.target === ov && ov.id !== 'ovLang') close(ov.id); });

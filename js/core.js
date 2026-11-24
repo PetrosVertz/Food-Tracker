@@ -28,6 +28,7 @@ function guessState(name){
 
 function guessPieces(cat, sub, name){
   const n = norm(name);
+  if(sub === 'bar') return 'bar';
   if(sub === 'bread') return /αλευρ|flour|τριμμα/.test(n) ? 'none' : 'slice';
   if(['wrap','crackers','biscuits','egg','bar','sausage','cake'].includes(sub)) return 'piece';
   if(['cheese','coldcuts'].includes(sub) && /φετεσ|σε φετ|slice|τοστ|toast/.test(n)) return 'slice';
@@ -36,6 +37,19 @@ function guessPieces(cat, sub, name){
 
 // ======================= food records =======================
 // (saving and loading lives in js/platform/store.js)
+// Older automatic scans stored only the serving. Exact local GTIN evidence can supply the missing count on display.
+function barcodePortionsForView(f){
+  if(!f || f.source !== 'openfoodfacts' || !f.barcode || f.piece > 0 || f.pieceSkipped || f.updatedAt !== f.createdAt) return f;
+  const label = LABEL_FOODS.find(x => x.barcode === f.barcode);
+  if(!label?.piece || f.unit !== label.unit || (f.usualPack && f.usualPack !== label.usualPack)) return f;
+  return { ...f, piece: label.piece, pieces: label.pieces, serving: f.serving || label.serving || null };
+}
+
+function foodPieceSize(f){
+  if(!f || !f.pieces || f.pieces === 'none') return null;
+  return f.piece > 0 ? Number(f.piece) : (f.source !== 'openfoodfacts' && f.serving > 0 ? Number(f.serving) : null);
+}
+
 function normFood(f){
   const clean = Object.fromEntries(Object.entries(f || {}).filter(([,v]) => v !== undefined && v !== null));
   const out = Object.assign({ unit:'g', packs:[], usualPack:null, noBrand:false, cat:null, sub:null, state:'ready' }, clean);
@@ -43,7 +57,7 @@ function normFood(f){
   if(!['uncooked','cooked','ready'].includes(out.state)) out.state = 'ready';
   out.packs = Array.isArray(out.packs) ? out.packs.map(Number).filter(n => n > 0) : [];
   out.noBrand = !!out.noBrand;
-  if(!['none','slice','piece'].includes(out.pieces)) out.pieces = guessPieces(out.cat, out.sub, out.name);
+  if(!['none','slice','piece','bar'].includes(out.pieces)) out.pieces = guessPieces(out.cat, out.sub, out.name);
   if(!['auto','piece','pack','100'].includes(out.display)) out.display = 'auto';
   out.pieceSkipped = !!out.pieceSkipped;
   return out;
@@ -71,7 +85,7 @@ function claudeText(){
       `- ${f.noBrand ? '' : (f.brand ? f.brand + ' ' : '')}${f.gid && GENBY[f.gid] ? GENBY[f.gid].en : f.name}${f.sub && f.sub !== 'general' ? ` (${subOf(f.cat,f.sub).en.toLowerCase()})` : ''} [${f.state === 'ready' ? 'ready to eat' : f.state}], per 100 ${f.unit}: ${fmt(f.kcal)} kcal, P ${fmt(f.protein)} / C ${fmt(f.carbs)} / F ${fmt(f.fat)}` +
       (f.fiber!=null?`, fibre ${fmt(f.fiber)}`:'') + (f.sugar!=null?`, sugar ${fmt(f.sugar)}`:'') +
       (f.packs.length ? `; packs ${f.packs.map(p => fmtSize(p, f.unit)).join(', ')}${f.usualPack ? ` (usually ${fmtSize(f.usualPack, f.unit)})` : ''}` : '') +
-      (f.pieces !== 'none' && (f.piece || f.serving) ? `; 1 ${f.pieces} = ${f.piece ? '' : '~'}${fmtSize(r1(f.piece || f.serving), f.unit)}${f.piece ? ' (weighed)' : ' (database estimate)'}` : '') +
+      (foodPieceSize(f) ? `; 1 ${f.pieces} = ${f.piece ? '' : '~'}${fmtSize(r1(foodPieceSize(f)), f.unit)}${f.piece ? ' (per item)' : ' (database estimate)'}` : '') +
       (f.notes ? ` — ${f.notes}` : '')));
   }
   if(meals.length){

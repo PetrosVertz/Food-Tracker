@@ -17,6 +17,8 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/data/strings.js',
   'js/data/foods.js',
   'js/data/foods-more.js',
+  'js/data/foods-sr.js',
+  'js/data/foods-labels.js', 'js/data/foods-survey.js',
   'js/data/portions.js',
   'js/data/gym.js',
   'js/data/gym-lat.js',
