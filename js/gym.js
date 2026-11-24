@@ -825,9 +825,10 @@ function renderTodayRec(){
   let lab, btns = '', gym = false;
   if(di.type === 'gym'){ gym = true; lab = t('gymDay');
     if(isToday && live) btns = `<button class="gymstartbtn" type="button" data-gymresume>${t('gdResume')}</button>`;
-    else if(!live) btns = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdStart')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
+    else if(!live) btns = `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>` + (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdWorkout')}</button>` : ''); }
   else if(skipped){ lab = t('gymSkipped'); btns = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }
-  else lab = t('restDay');
+  else{ lab = t('restDay');   // a rest day has no Skip, but a Workout bubble (or Resume) when you feel like training anyway
+    if(isToday) btns = live ? `<button class="gymstartbtn" type="button" data-gymresume>${t('gdResume')}</button>` : !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdWorkout')}</button>` : ''; }
   $('dBlocks').innerHTML = `<div class="remind gdline${gym ? ' gym' : ' rest'}"${gym && !live ? ' data-gdhold' : ''}><span class="gymdayic">${svgIcon('workouts', 20, 1.9)}</span><b class="gdlab">${esc(lab)}</b>${btns ? `<div class="gymdaybtns">${btns}</div>` : ''}</div>`;
 }
 

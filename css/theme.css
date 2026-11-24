@@ -1475,3 +1475,14 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
    the foods scrolling up now disappear closer to the title */
 #pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{padding-left:20px;padding-right:20px}
 #pgToday.pinned #dScroll{top:calc(var(--sumh,36px) - 9px)}
+
+/* ======================= 0.8 (24 Nov): My Food Log top line ======================= */
+/* Same as Yesterday: a smaller round button right beside the Logged Foods title (it is only there while nothing is logged; once a food is logged the count takes its place) */
+#dEatenN{margin-right:0}
+#dEatenFold>summary .eyest{width:30px;height:30px;border-radius:50%;margin-left:var(--s2);flex:0 0 auto;position:relative;top:3px}
+#dEatenFold>summary .eyest svg{width:17px;height:17px}
+#dEatenFold>summary::after{margin-left:auto!important}
+/* the gym / rest day line: the label a little bigger and moved away from the dumbbell; Skip + a Workout bubble on the right */
+#dBlocks .gdline{gap:var(--s3)}
+#dBlocks .gdline .gdlab{font-size:17px;padding-left:var(--s2)}
+#dBlocks .gdline .gymstartbtn{height:34px;padding:0 16px;font-size:var(--fs-body)}
