@@ -166,9 +166,9 @@ $('photoInput').addEventListener('change', async e => {
   try{
     const img = await shrink(file);
     const d = await gemini(`You read food nutrition labels (often Greek). Return ONLY JSON:
-{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"potassium":number|null,"serving":number|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
-Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. serving = weight of one piece/slice/serving if printed. potassium in mg per 100 g if listed. unit "ml" for drinks/milk/oil. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, img, onTry);
-    if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; }
+{"brand":string|null,"name":string|null,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"potassium":number|null,"servingLabel":string|null,"quantityLabel":string|null,"unit":"g"|"ml","packSize":number|null,"state":"uncooked"|"cooked"|"ready"}
+Rules: values from the per 100 g / 100 ml column, never per serving. kcal not kJ. carbs = total carbohydrate (Υδατάνθρακες), sugar = "εκ των οποίων σάκχαρα". If only per-serving values exist, convert to per 100 using the serving size. Copy the exact printed serving text into servingLabel, including any count, and the printed net quantity into quantityLabel, including multipacks. Use null if absent. potassium in mg per 100 g if listed. Use the unit on the nutrition table. Keep per 100 g and per 100 ml distinct. packSize = net quantity of the whole pack in g or ml. state "uncooked" for dry rice/pasta/oats/raw meat, else "ready". null for anything unreadable.`, img, onTry);
+    photoPortions(d);
     if(d.unit === 'g' || d.unit === 'ml') d.unitFromLabel = true; else delete d.unit;
     if(pendingBarcode) d.barcode = pendingBarcode;
     d.source = 'label photo'; pendingBarcode = null;
@@ -390,14 +390,23 @@ $('itemPhoto').addEventListener('change', async () => {
   const file = $('itemPhoto').files[0]; if(!file) return; const ctx = scanCtx;
   try{
     const img = await shrink(file);
-    const d = await gemini(`This is a photo of a food or drink product (often from a Greek supermarket). Identify it from the packaging (brand, product name, flavour/variant). If a nutrition table is visible, read it; otherwise give typical values for that exact product. Return ONLY JSON:
-{"food":boolean,"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null}
+    const d = await gemini(`This is a photo of a food or drink product (often from a Greek supermarket). Identify it from the packaging (brand, product name, flavour/variant). Read the nutrition table if visible. Return null for values you cannot read. Copy printed serving and net quantity text verbatim, including counts, into servingLabel and quantityLabel. Return ONLY JSON:
+{"food":boolean,"brand":string|null,"name":string,"kcal":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null,"satFat":number|null,"salt":number|null,"unit":"g"|"ml","packSize":number|null,"servingLabel":string|null,"quantityLabel":string|null}
 Values per 100 g / 100 ml, kcal not kJ, carbs = total carbohydrate. packSize = net weight of one pack in g or ml. food = false if it is not something people eat or drink (then only name is needed).`, img);
     if(d && d.food === false && d.name){ close('ovScan'); scanCtx = null;   // not food: it never goes in the fridge, but can be rescued from the skipped list
       if(ctx === 'fridge'){ (SHOP.skipped = SHOP.skipped || []).push({ name: d.name, l: { line: d.name, name_en: d.name, name_el: d.name, brand: d.brand, count: 1 } }); SHOP.scan = null; shopReview(); } else toast(t('notFoodToast', { n: d.name }));
       return; }
-    if(!d || !d.name || d.protein == null) throw new Error('not recognised');
-    if(d.packSize > 0){ d.packs = [Math.round(d.packSize)]; d.usualPack = d.packs[0]; } if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
+    if(!d || !d.name) throw new Error('not recognised');
+    photoPortions(d); if(d.unit !== 'g' && d.unit !== 'ml') d.unit = 'g';
+    if([d.kcal,d.protein,d.carbs,d.fat].some(v => !Number.isFinite(v) || v < 0)){
+      close('ovScan'); d.source = 'item photo';
+      if(ctx === 'fridge' && SHOP.scan){
+        openForm(d, t('theItemPhoto'), 'new', { onSaved: f => {
+          const x = shopItem({scans:1}); shopSetFood(x, f); SHOP.items.push(x); SHOP.scan = null; scanCtx = null; shopReview();
+        } });
+      } else openForm(d, t('theItemPhoto'), 'new');
+      return;
+    }
     if(ctx === 'fridge' && SHOP.scan){ const f = saveOnlineFood({ ...d, source: 'item photo' }), x = shopItem({ scans: 1 }); shopSetFood(x, f); SHOP.items.push(x);
       SHOP.scan = null; close('ovScan'); scanCtx = null; renderAll(); shopReview(); return; }   // the photographed item joins the review list
     close('ovScan'); scanCtx = null;

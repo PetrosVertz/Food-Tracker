@@ -128,7 +128,7 @@ const SMALL_PACK = 350;
 
 // ======================= barcode scanner =======================
 
-const OFF_FIELDS = 'code,product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_quantity,quantity,product_quantity,product_quantity_unit,categories_tags';
+const OFF_FIELDS = 'code,product_name,product_name_el,product_name_en,generic_name,brands,nutriments,serving_size,serving_quantity,serving_quantity_unit,quantity,product_quantity,product_quantity_unit,categories_tags';
 
 // ---- "Add my own recipe": reads ingredients + amounts out of plain text, no AI ----
 const FRAC = { '½':' 1/2', '¼':' 1/4', '¾':' 3/4', '⅓':' 1/3', '⅔':' 2/3', '⅛':' 1/8' };
@@ -187,7 +187,7 @@ const ICON_FIG = {
 // ---------- accurate raw + cooked values (USDA-based, per 100 g) ----------
 // [new id, raw id it pairs with, English, Greek, kcal, protein, carbs, fat, fibre, sodium mg, potassium mg]
 const COOKED = [
- ['chicken_breast_c','chicken_breast','Chicken breast, cooked','Κοτόπουλο στήθος (μαγειρεμένο)',165,31,0,3.6,0,74,256],
+ ['chicken_breast_c','chicken_breast','Chicken breast, skinless, roasted','Στήθος κοτόπουλου χωρίς πέτσα, ψητό φούρνου',165,31,0,3.6,0,74,256],
  ['chicken_thigh_c','chicken_thigh','Chicken thigh, cooked','Κοτόπουλο μπούτι (μαγειρεμένο)',179,24.8,0,8.2,0,106,269],
  ['turkey_breast_c','turkey_breast','Turkey breast, cooked','Γαλοπούλα στήθος (μαγειρεμένη)',147,30,0,2,0,99,249],
  ['beef_mince5_c','beef_mince5','Beef mince 5%, cooked','Κιμάς μοσχαρίσιος 5% (μαγειρεμένος)',164,25.4,0,6.4,0,72,382],

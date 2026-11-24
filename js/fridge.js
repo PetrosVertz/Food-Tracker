@@ -8,7 +8,7 @@ function defaultLoc(f){ return 'fridge'; }   // everything starts in the fridge 
 function itemInfo(it){
   if(it.mealId){ const m = meals.find(x => x.id === it.mealId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, piece: null, meal: m } : null; }
   const f = foods.find(x => x.id === it.foodId); if(!f) return null;
-  return { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces, food: f };
+  return { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, piece: foodPieceSize(f), pw: f.pieces, food: f };
 }
 
 function fmtAmt(qty, info){
@@ -106,7 +106,7 @@ function fridgeKeyForRef(ref){
 
 function autoFridge(f){
   if(!kitchenOn()) return null;   // Refinements #4: a new food does not go into the fridge when Kitchen is off
-  const loc = defaultLoc(f), size = f.usualPack || (f.pieces !== 'none' && (f.piece || f.serving) ? (f.piece || f.serving) * (f.cat === 'eggs' ? 6 : 1) : 100);
+  const loc = defaultLoc(f), size = f.usualPack || (foodPieceSize(f) ? foodPieceSize(f) * (f.cat === 'eggs' ? 6 : 1) : 100);
   const it = { id: uid(), addedAt: new Date().toISOString(), foodId: f.id, qty: r1(size), packSize: size, unit: f.unit, loc, qtyGuess: !f.usualPack };
   fridge.push(it); saveFridge(); lastAutoFridge = it; return it;
 }
@@ -114,7 +114,7 @@ function autoFridge(f){
 // stock badge on My foods cards, e.g. "10/21 slices"
 function stockBadge(f){
   const st = stockOf(f.id); if(!(st > 0)) return '';
-  const pw = f.pieces !== 'none' ? (f.piece || f.serving) : null;
+  const pw = foodPieceSize(f);
   let txt;
   if(pw){ const n = Math.round(st / pw), tot = f.usualPack ? Math.round(f.usualPack / pw) : null; txt = tot && n <= tot ? `${n}/${tot} ${WS(f.pieces)}` : `${n} ${WS(f.pieces)}`; }
   else txt = f.usualPack && st <= f.usualPack && Math.abs(st - f.usualPack) > .5 ? `${fmtSize(st, f.unit)} / ${fmtSize(f.usualPack, f.unit)}` : fmtSize(st, f.unit);

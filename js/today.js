@@ -3,7 +3,7 @@
 
 function infoOfEntry(e){
   if(e.kind === 'meal'){ const m = meals.find(x => x.id === e.refId); return m ? { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null } : null; }
-  const f = foods.find(x => x.id === e.refId); return f ? { name: foodName(f), icon: iconOf(f) || '', unit: f.unit, per: f, food: f, piece: f.pieces !== 'none' ? (f.piece || f.serving || null) : null, pw: f.pieces } : null;
+  const f = foods.find(x => x.id === e.refId); return f ? fInfo_(f) : null;
 }
 
 function dayInfo(d){
@@ -181,19 +181,37 @@ function usuals(){
 // (amount + one unit from a custom list, the cooking slider where it matters, live kcal/P/C/F, Add). The window stays open;
 // what you added shows as green chips at the top. Editing a row only updates that row, never the whole list.
 let LW = { rows: {}, open: null, added: [] };
-// single units for foods where they make sense (v2 #4): the number goes in the box beside the unit
-const LW_UNITS = [
-  [/\begg(s)?\b/, [['Small Egg', 'Μικρό αυγό', 43], ['Medium Egg', 'Μεσαίο αυγό', 50], ['Large Egg', 'Μεγάλο αυγό', 58]]],
-  [/\b(fries|chips|french fr)/, [['Small Portion', 'Μικρή μερίδα', 80], ['Medium Portion', 'Μεσαία μερίδα', 120], ['Large Portion', 'Μεγάλη μερίδα', 160]]],
-  [/chicken breast|στήθος κοτ/, [['Breast', 'Στήθος', 170]]],
-  [/yogh?urt|γιαούρτ/, [['Pot', 'Κεσεδάκι', 170]]],
-  [/\b(rice|oats|cereal|milk)\b|ρύζι|γάλα/, [['Cup', 'Φλιτζάνι', 158]]],
-  [/\boil\b|λάδι/, [['Tbsp', 'Κ. σούπας', 13.5], ['Tsp', 'Κ. γλυκού', 4.5]]] ];
+// Household measures belong to a specific food and preparation.
+function foodMeasures(info){
+  const f = info.food || info.gen || info.online;
+  if(!f) return [];
+  const catalogue = f.gid && GENBY[f.gid];
+  const measures = f.unit === 'g' && catalogue?.measures || {};
+  const keys = { cup: 'foodCup', tbsp: 'foodTbsp', tsp: 'foodTsp' };
+  const units = Object.entries(measures).map(([k, size]) => ({ k, size, l: t(keys[k] || k) }));
+  if(f.piece > 0 && f.pieces && f.pieces !== 'none'){
+    const typicalBar = f.sub === 'bar' && f.gid && !catalogue?.labelUrl && f.pieces === 'piece';
+    units.unshift({ k: 'pc', size: f.piece, l: typicalBar ? '≈ ' + W('bar') : W(f.pieces) });
+  } else if(info.piece > 0 && info.pw && info.pw !== 'none' && f.source !== 'openfoodfacts'){
+    units.unshift({ k: 'pc', size: info.piece, l: W(info.pw) });
+  }
+  if(f.serving > 0 && !units.some(x => x.size === f.serving && x.k === 'pc')){
+    units.push({ k: 'serving', size: f.serving, l: t('foodServing') });
+  }
+  return units;
+}
+function defaultLabelUnit(info, units){
+  const f = info.food || info.gen || info.online;
+  if(!f) return null;
+  if(f.pieces === 'bar' && f.piece > 0) return units.find(x => x.k === 'pc');
+  if(f.source === 'openfoodfacts' && f.serving > 0) return units.find(x => x.k === 'serving');
+  return null;
+}
 // the cooking slider (v1 + v2 #1/#3): three ways of cooking with their own values per 100 g; Title Case labels, no text above
 const LW_COOK = [
-  [/scrambled egg|eggs? scrambled|ομελέτα|αυγά χτυπητά/, 1, [['With Butter / Oil', 'Με βούτυρο / λάδι', 212, 13.8, 2, 16.5], ['Little Oil', 'Λίγο λάδι', 170, 13, 1.5, 12], ['No Fat', 'Χωρίς λιπαρά', 140, 12.6, 1.1, 9.5]]],
-  [/\b(french )?fries\b|\bchips\b|πατάτες τηγαν/, 2, [['Deep Fried', 'Τηγανητές', 312, 3.4, 41, 15], ['Pan / Oven', 'Τηγάνι / φούρνος', 200, 3.2, 33, 6.5], ['Air Fried', 'Air fryer', 150, 3, 30, 2.5]]],
-  [/chicken breast|στήθος κοτ/, 2, [['Fried', 'Τηγανητό', 222, 30, 2, 10], ['Pan, Little Oil', 'Τηγάνι, λίγο λάδι', 187, 31, 0, 6.5], ['Grilled / No Oil', 'Ψητό / χωρίς λάδι', 165, 31, 0, 3.6]]] ];
+  ['scrambled_egg', 1, [['With Butter / Oil', 'Με βούτυρο / λάδι', 212, 13.8, 2, 16.5], ['Little Oil', 'Λίγο λάδι', 170, 13, 1.5, 12], ['No Fat', 'Χωρίς λιπαρά', 140, 12.6, 1.1, 9.5]]],
+  ['fries', 2, [['Deep Fried', 'Τηγανητές', 312, 3.4, 41, 15], ['Pan / Oven', 'Τηγάνι / φούρνος', 200, 3.2, 33, 6.5], ['Air Fried', 'Air fryer', 150, 3, 30, 2.5]]],
+  ['chicken_grilled', 2, [['Fried', 'Τηγανητό', 222, 30, 2, 10], ['Pan, Little Oil', 'Τηγάνι, λίγο λάδι', 187, 31, 0, 6.5], ['Grilled / No Oil', 'Ψητό / χωρίς λάδι', 165, 31, 0, 3.6]]] ];
 const lwL = a => lang === 'el' ? a[1] : a[0];
 function lwInfo(k, i){
   const mInfo = m => ({ name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null });
@@ -201,32 +219,40 @@ function lwInfo(k, i){
   if(k === 'ml') return mInfo(LS.meals[i]);
   if(k === 'm') return fInfo_(LS.mine[i]);
   if(k === 's'){ const g = LS.std[i]; return { ...fInfo_({ ...g, unit: g.unit }), name: L(g), icon: subOf(g.cat, g.sub).icon, food: null, gen: g }; }
-  if(k === 'o'){ const d = LOGON.res[i]; return { name: d.name, icon: '', unit: d.unit || 'g', per: d, food: null, online: d, piece: null }; }
+  if(k === 'o'){ const d = LOGON.res[i]; return { ...fInfo_(d), name: d.name, food: null, online: d }; }
   return null;
 }
 function lwRef(info){ return info.meal ? 'm:' + info.meal.id : info.food ? 'f:' + info.food.id : info.gen ? 'g:' + info.gen.gid : info.online ? 'o:' + (info.online.barcode || info.name) : 'n:' + info.name; }
+function mealPortion(m){
+  if(!m || !(m.cookedWeight > 0)) return null;
+  const servings = +m.recipe?.servings;
+  const estimated = m.cookedEstimated ? '≈ ' : '';
+  if(servings > 1) return {k: 'serving', size: m.cookedWeight / servings, l: estimated + t('foodServing')};
+  if(m.quick || servings === 1) return {k: 'plate', size: m.cookedWeight, l: estimated + t('logUPlate')};
+  return null;
+}
 function lwUnits(info){
-  const u = [], name = norm(info.name || ''), f = info.food || info.gen;
-  const hint = LW_UNITS.find(([re]) => re.test(name)); if(hint && info.unit !== 'ml') hint[1].forEach(x => u.push({ k: 'h' + x[2], l: lwL(x), size: x[2] }));
-  if(!hint && info.piece && info.pw) u.push({ k: 'pc', l: info.pw === 'slice' ? t('logUSlice') : t('logUPiece'), size: info.piece });
+  const f = info.food || info.gen || info.online, u = foodMeasures(info);
   if(f && f.usualPack && f.usualPack <= 1000 && f.usualPack !== info.piece) u.push({ k: 'pack', l: t('logUPack'), size: f.usualPack });
-  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', l: t('logUPlate'), size: Math.round(info.meal.cookedWeight) });
+  const dish = mealPortion(info.meal); if(dish) u.push(dish);
   u.push(info.unit !== 'ml' && UN().f === 'oz' ? { k: 'g', l: t('logUOz'), size: OZ } : { k: 'g', l: info.unit === 'ml' ? t('logUMl') : t('logUG'), size: 1 });
   return u;
 }
 function lwState(k, i){
   const key = k + i; if(LW.rows[key]) return LW.rows[key];
   const info = lwInfo(k, i); if(!info) return null;
-  const ref = lwRef(info), units = lwUnits(info), name = norm(info.name || ''), cook = LW_COOK.find(([re]) => re.test(name));
+  const ref = lwRef(info), units = lwUnits(info), cook = LW_COOK.find(([gid]) => gid === (info.food || info.gen)?.gid);
   const pick = (ui.logUnit || {})[ref], last = info.meal || info.food ? lastEntryOf((info.meal || info.food).id) : (k === 'rc' ? LS.recent[i] : null);
   // v2 #5: grams by default, always grams once you've logged this food in grams; otherwise it opens on your last pick ("2 Medium Eggs")
   let u = units.length - 1, n = r1((last ? last.amt : 100) / units[units.length - 1].size);
   if(pick && pick !== 'g'){ const j = units.findIndex(x => x.k === pick); if(j > -1){ u = j; n = last ? Math.max(.5, Math.round(last.amt / units[j].size * 2) / 2) : 1; } }
+  const preferred = defaultLabelUnit(info, units);
+  if(!last && !pick && preferred){ u = units.indexOf(preferred); n = 1; }
   if(!last && units.length > 1 && !pick && units[0].k !== 'g' && info.meal) { u = 0; n = 1; }
-  const ck = cook ? ((ui.logCook || {})[ref] ?? cook[1]) : null;
+  const ck = cook ? ((ui.logCook || {})[ref] ?? null) : null;
   return (LW.rows[key] = { k, i, info, ref, units, u, n, cook: cook ? cook[2] : null, ck });
 }
-function lwPer(st){ if(!st.cook) return st.info.per; const c = st.cook[st.ck]; return { ...st.info.per, kcal: c[2], protein: c[3], carbs: c[4], fat: c[5] }; }
+function lwPer(st){ if(!st.cook || !st.cook[st.ck]) return st.info.per; const c = st.cook[st.ck]; return { ...st.info.per, kcal: c[2], protein: c[3], carbs: c[4], fat: c[5] }; }
 function lwCalc(st){ const g = (+st.n || 0) * st.units[st.u].size; return { g, ...macrosFor(lwPer(st), g) }; }
 function lwSub(st){ const r = lwCalc(st), un = st.units[st.u], n = +st.n || 0;
   const amt = un.k === 'g' ? fmtSize(r.g, st.info.unit) : `${fmt(n)} ${n === 1 || lang === 'el' || /sp$/.test(un.l) ? un.l : un.l + 's'} · ${fmtSize(r.g, st.info.unit)}`;
@@ -327,7 +353,8 @@ function openAmt(o){
   const chips = [];
   if(info.piece && info.pw) [1, 2, 3].forEach(n => chips.push([n * info.piece, `${n} ${n === 1 ? W(info.pw) : WS(info.pw)}`]));
   if(info.food && info.food.usualPack && info.food.usualPack <= 1000) chips.push([info.food.usualPack, `1 ${t('perPackLabel').replace(/^(per|ανά)\s*/, '')} · ${fmtSize(info.food.usualPack, info.unit)}`]);
-  if(info.meal) [250, 350, 450].forEach(g => chips.push([g, `${g} g`]));
+  const dish = mealPortion(info.meal);
+  if(dish?.k === 'serving') chips.push([dish.size, `1 ${dish.l} · ${fmtSize(dish.size, 'g')}`]);
   if(!info.meal && !(info.piece && info.pw)) (info.unit === 'ml' ? [100, 200, 250, 500] : [50, 100, 150, 200]).forEach(g => chips.push([g, fmtSize(g, info.unit)]));
   if(o.mode === 'use') chips.push([o.item.qty, `${t('logAll')} · ${fmtSize(o.item.qty, info.unit)}`]);
   $('amQuick').innerHTML = chips.map(([v, l]) => `<button data-v="${r1(v)}">${esc(l)}</button>`).join('');
@@ -345,7 +372,15 @@ function openAmt(o){
   
   if(o.mode === 'log'){
     const ref = info.meal ? info.meal.id : info.food ? info.food.id : null, last = ref && lastEntryOf(ref);
-    if(last && !$('amAmt').value){ $('amAmt').value = last.amt; amUnits(o); amRes(); }   // your usual amount, in the unit it fits
+    if(!$('amAmt').value){
+      const preferred = defaultLabelUnit(info, AM.units);
+      if(last || preferred){
+        $('amAmt').value = last ? last.amt : preferred.size;
+        amUnits(o);
+        if(!last && preferred){ AM.u = AM.units.findIndex(x => x.k === preferred.k); $('amU').selectedIndex = AM.u; syncSel($('amU')); amDD(); }
+        amRes();
+      }
+    }   // your usual amount, in the unit it fits
     const stock = info.meal ? mealStock(info.meal.id) : info.food ? stockOf(info.food.id) : 0;
     $('amFridgeTxt').textContent = t('fromFridge', { s: fmtAmt(stock, info) }); $('amFridge').checked = true;
     $('amTitle').innerHTML = `${esc(bareName(info.name))} ${stTag((info.food || {}).state)}`;
@@ -362,9 +397,9 @@ function openAmt(o){
 // amount picker: a number + a unit (g/ml, slices or pieces, packs, plates); the grams behind it are what gets saved
 function amUnits(o){
   const info = AM.info, f = info.food, u = [{ k: 'g', size: 1, l: info.unit }];
-  if(info.piece && info.pw) u.push({ k: 'pc', size: info.piece, l: WS(info.pw) });
-  if(f && f.usualPack && f.usualPack !== info.piece) u.push({ k: 'pack', size: f.usualPack, l: t('uPacks') });
-  if(info.meal && info.meal.cookedWeight && (info.meal.quick || (info.meal.recipe && info.meal.recipe.servings === 1))) u.push({ k: 'plate', size: Math.round(info.meal.cookedWeight), l: t('uPlates') });
+  u.push(...foodMeasures(info));
+  if(f && f.usualPack && f.usualPack !== info.piece) u.push({ k: 'pack', size: f.usualPack, l: t('logUPack') });
+  const dish = mealPortion(info.meal); if(dish) u.push(dish);
   if(o.mode === 'use' && o.item && o.item.packSize && !u.some(x => x.k === 'pack')) u.push({ k: 'pack', size: o.item.packSize, l: t('uPacks') });
   AM.units = u; const g = num('amAmt');
   // start in the unit the amount fits best: whole slices / packs / plates, else grams
@@ -738,21 +773,19 @@ function logQIsFix(txt){
 let logQPrev = null;   // the last list Food Coach showed, so a correction can refer to it
 // one item → a Log Food row state (amount + unit + cooking), from what was typed
 function logQState(info, it){
-  const ref = lwRef(info), units = lwUnits(info), cook = LW_COOK.find(([re]) => re.test(norm(info.name || '')));
+  const ref = lwRef(info), units = lwUnits(info), cook = LW_COOK.find(([gid]) => gid === (info.food || info.gen)?.gid);
   const gi = units.length - 1, qty = +it.qty || 0, un = norm(it.unit || ''), pick = (ui.logUnit || {})[ref];
-  const mk = (u, n) => ({ k: 'q', i: 0, info, ref, units, u, n, cook: cook ? cook[2] : null, ck: cook ? ((ui.logCook || {})[ref] ?? cook[1]) : null });
+  const mk = (u, n) => ({ k: 'q', i: 0, info, ref, units, u, n, cook: cook ? cook[2] : null, ck: cook ? ((ui.logCook || {})[ref] ?? null) : null });
   let g = 0;
   if(qty && /^(g|gr|gram|kg|ml|l$|lt|lit|oz|γρ)/.test(un)) g = qty * (/^(kg|l$|lt|lit)/.test(un) ? 1000 : /^oz/.test(un) ? OZ : 1);
   else if(qty){
-    const want = /cup|φλιτζ/.test(un) ? 'h158' : /tbsp|tablesp|σουπ/.test(un) ? 'h13.5' : /tsp|teasp|γλυκ/.test(un) ? 'h4.5' : null;
+    const want = /cup|φλιτζ/.test(un) ? 'cup' : /tbsp|tablesp|σουπ/.test(un) ? 'tbsp' : /tsp|teasp|γλυκ/.test(un) ? 'tsp' : null;
     let j = -1;
     if(want) j = units.findIndex(x => x.k === want);
-    else if(/serv|portion|plate|μεριδ|πιατ/.test(un)) j = units.findIndex(x => x.k === 'plate');
+    else if(/serv|portion|plate|μεριδ|πιατ/.test(un)) j = units.findIndex(x => x.k === 'serving' || x.k === 'plate');
     else if(/slice|φετ/.test(un)) j = info.pw === 'slice' ? units.findIndex(x => x.k === 'pc') : -1;
     else {   // a count: "4 eggs", "a yogurt"; the unit you last picked in Log Food (your egg size) wins
-      j = units.findIndex(x => x.k === pick && x.k !== 'g');
-      if(j < 0 && units.some(x => x.k === 'h50')){ const egg = Object.values(ui.logUnit || {}).filter(k => ['h43', 'h50', 'h58'].includes(k)).pop(); j = units.findIndex(x => x.k === (egg || 'h50')); }
-      if(j < 0) j = units.findIndex(x => /^h/.test(x.k));
+      j = info.pw === 'bar' ? units.findIndex(x => x.k === 'pc') : units.findIndex(x => x.k === pick && x.k !== 'g');
       if(j < 0) j = units.findIndex(x => x.k === 'pc' || x.k === 'plate' || x.k === 'pack'); }
     if(j > -1) return mk(j, qty);
     g = +it.grams || 0;

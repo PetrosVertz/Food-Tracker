@@ -9,9 +9,9 @@ const SYN_GROUPS = [
   'prawn shrimp', 'mince minced ground', 'rocket arugula', 'scallion springonion', 'biscuit cookie', 'sweet candy', 'soda fizzy softdrink pop',
   'porridge oatmeal', 'beetroot beet', 'chickpea garbanzo', 'capsicum pepper', 'mayo mayonnaise', 'burger hamburger', 'hotdog frankfurter',
   'bbq barbecue barbecued', 'doughnut donut', 'whey proteinpowder', 'fillet filet', 'pancake hotcake', 'coke cola', 'gyro gyros giros',
-  'souvlaki kalamaki skewer', 'pita pitta', 'tzatziki tsatsiki', 'kebab kebap doner', 'pasta spaghetti macaroni penne', 'cooked boiled',
-  'grilled chargrilled', 'roast roasted', 'baked oven', 'fried pan', 'skinless boneless', 'jacket baked', 'ham gammon', 'coriander cilantro',
-  'sultana raisin', 'tuna tunafish', 'mandarin clementine tangerine', 'oat oats', 'granola muesli', 'icecream gelato', 'loaf bread',
+  'chicken κοτοπουλο kotopoulo', 'breast στηθοσ stithos', 'chickpea ρεβιθια ρεβυθια', 'courgette zucchini κολοκυθακι', 'bar μπαρα mpara', 'lentil φακεσ fakes', 'oat βρωμη vromi', 'souvlaki kalamaki skewer', 'pita pitta', 'tzatziki tsatsiki', 'kebab kebap doner', 'cooked boiled',
+  'grilled chargrilled', 'roast roasted', 'baked oven', 'fried pan', 'jacket baked', 'ham gammon', 'coriander cilantro',
+  'sultana raisin', 'tuna tunafish', 'mandarin clementine tangerine', 'oat oats', 'icecream gelato', 'loaf bread',
   'lasagna lasagne', 'coffee espresso', 'cappuccino capuccino', 'freddo fredo', 'frappe frape', 'koulouri simit', 'tiropita cheesepie',
   'spanakopita spinachpie', 'horiatiki greeksalad', 'fasolada beansoup', 'fakes lentilsoup', 'keftedes meatball', 'loukaniko sausage',
 ];
@@ -70,10 +70,11 @@ const Search = (() => {
   function idxOf(kind, x){
     const k = kind + ':' + (x.id || x.gid) + ':' + (x.updatedAt || '') + ':' + lang;
     let v = cache.get(k); if(v) return v;
-    if(kind === 'g') v = mkIdx([L(x), x.en, x.el], `${x.alias || ''} ${x.hay || ''}`);
+    const prep = x.state === 'uncooked' ? 'raw uncooked ωμο ωμη ωμα' : x.state === 'cooked' ? 'cooked μαγειρεμενο μαγειρεμενη μαγειρεμενα' : '';
+    if(kind === 'g') v = mkIdx([L(x), x.en, x.el], `${x.alias || ''} ${x.hay || ''} ${prep}`);
     else if(kind === 'm') v = mkIdx([x.name], (x.ingredients || []).map(i => i.ref && i.ref.name).join(' '));
     else { const g = x.gid && GENBY[x.gid], s = subOf(x.cat, x.sub);
-      v = mkIdx([foodName(x), x.name, g ? g.en : '', g ? g.el : ''], `${x.brand || ''} ${x.barcode || ''} ${g ? g.alias + ' ' + g.hay : ''} ${s ? s.en + ' ' + s.el + ' ' + s.kw.join(' ') : ''}`); }
+      v = mkIdx([foodName(x), x.name, g ? g.en : '', g ? g.el : ''], `${prep} ${x.brand || ''} ${x.barcode || ''} ${g ? g.alias + ' ' + g.hay : ''} ${s ? s.en + ' ' + s.el + ' ' + s.kw.join(' ') : ''}`); }
     cache.set(k, v); return v;
   }
 
@@ -104,11 +105,14 @@ const Search = (() => {
     opts = opts || {};
     const qw = words(text), qn = qw.join(' ');
     if(!qw.length) return { mine: [], std: [], meals: [] };
+    const rawWord = qw.some(w => /^(raw|uncooked|ωμο|ωμα|ωμη|ωμοσ)$/.test(w));
+    const cookedWord = qw.some(w => /^(cooked|boiled|roasted|grilled|βραστ[αοη]|ψητ[αοη]|μαγειρεμεν[αοη])$/.test(w));
+    const fitsState = x => rawWord === cookedWord || (rawWord ? x.state !== 'cooked' : x.state !== 'uncooked');
     const cookBias = st => raw ? (st === 'cooked' ? -6 : 0) : opts.log ? (st === 'cooked' ? 1.5 : st === 'uncooked' ? -1 : 0) : 0;   // cooked first when logging
     const rank = (arr, kind, extra) => arr.map(x => { const s = score(qw, idxOf(kind, x), qn); return { x, s: s > 0 ? s + extra(x) : 0 }; }).filter(r => r.s > 0).sort((a, b) => b.s - a.s).map(r => r.x);
     const have = new Set(foods.map(f => f.gid).filter(Boolean));
-    const mine = rank(foods, 'f', f => habitBonus(f.id) + (f.gid ? .4 * popBonus(f.gid) : 0) + cookBias(f.state)).slice(0, opts.mineMax || 20);
-    const seen = new Set(), std = rank(GEN.filter(g => !have.has(g.gid)), 'g', g => .4 * popBonus(g.gid) + cookBias(g.state))
+    const mine = rank(foods.filter(fitsState), 'f', f => habitBonus(f.id) + (f.gid ? .4 * popBonus(f.gid) : 0) + cookBias(f.state)).slice(0, opts.mineMax || 20);
+    const seen = new Set(), std = rank(GEN.filter(g => !have.has(g.gid) && fitsState(g)), 'g', g => .4 * popBonus(g.gid) + cookBias(g.state))
       .filter(g => { const k = norm(L(g)); return !seen.has(k) && seen.add(k); }).slice(0, opts.stdMax || 50);   // same name twice → once
     const ml = opts.meals ? rank(meals, 'm', m => habitBonus(m.id)).slice(0, 10) : [];
     return { mine, std, meals: ml };

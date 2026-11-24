@@ -266,5 +266,13 @@ if (typeof boot({ 'ft.schema': '2' }).Store.saveMany === 'function') {
   check(!B.plan({ ...base(), streak: mine }, { foods: [] }).changed.includes('streak'), 'streak import: an old backup without a streak record changes nothing');
 }
 
+// A stored bar can have different piece, serving and pack weights.
+{
+  const { Store } = boot();
+  const food = { id: 'wrapped', name: 'Cereal bar', pieces: 'bar', piece: 35, serving: 70, unit: 'g', packs: [210] };
+  Store.save('foods', [food]);
+  check(J(Store.load('foods', [])[0]) === J(food), 'a per-bar weight remains distinct from serving and pack size');
+}
+
 console.log(fails ? `\n${fails} store problem(s), ${passes} ok.` : `\nAll ${passes} store checks passed.`);
 process.exit(fails ? 1 : 0);

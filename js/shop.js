@@ -4,7 +4,7 @@
 
 // ---------- packs: remembered per food (size of one pack + how many you usually buy) ----------
 function guessPack(f){
-  if(f.pieces && f.pieces !== 'none' && (f.piece || f.serving)) return (f.piece || f.serving) * (f.cat === 'eggs' ? 6 : 1);
+  if(foodPieceSize(f)) return foodPieceSize(f) * (f.cat === 'eggs' ? 6 : 1);
   return f.unit === 'ml' ? 1000 : 500;
 }
 function learnPack(foodId, size, count){
@@ -143,11 +143,16 @@ function shopAddCode(code){
 }
 async function shopLookup(x, noCheck){
   const f = foods.find(y => y.barcode === x.code); if(f){ shopSetFood(x, f); return; }
+  const local = LABEL_BY_CODE[x.code];
+  if(local){
+    Object.assign(x, { gid: local.gid, name: L(local), brand: local.brand, unit: local.unit, size: x.size || local.usualPack });
+    return;
+  }
   x.look = 'busy';
   try{
     const r = await fetchT(`https://world.openfoodfacts.org/api/v2/product/${x.code}.json?fields=${OFF_FIELDS}`, {}, 9000), j = await r.json();
     const d = j && j.status === 1 && j.product ? offToFood(j.product, x.code) : null;
-    if(d && d.name && (d.protein !== null || d.carbs !== null || d.fat !== null)){ x.data = { ...d, protein: d.protein ?? 0, carbs: d.carbs ?? 0, fat: d.fat ?? 0 }; x.name = d.name; x.brand = d.brand || ''; x.unit = d.unit || 'g'; x.size = x.size || d.usualPack || null; }
+    if(d && d.name && [d.kcal, d.protein, d.carbs, d.fat].every(Number.isFinite)){ x.data = d; x.name = d.name; x.brand = d.brand || ''; x.unit = d.unit || 'g'; x.size = x.size || d.usualPack || null; }
   }catch(e){}
   if(!x.data && !noCheck && AI.hasKey() && AI.can('search')) await shopFoodCheck(x);   // no food data for this barcode: is it even food?
   x.look = ''; scanUI(); shopRedrawRow(x);
