@@ -1465,3 +1465,8 @@ body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 110px;opaci
 /* the planned workout in the Start Workout list (Advanced Week Planner): a gold star on the right */
 .strow .stplan{margin-left:auto;display:flex;color:#d9a400}
 .strow .stplan svg{fill:currentColor}
+/* the navigation bar follows the pills: scrolling the foods down shrinks it a little and lowers it; it grows back with them at the top of the list.
+   One transform (it keeps its own centring), same spring on the way back */
+.rail{transform-origin:50% 100%;transition:transform .42s cubic-bezier(.34,1.56,.64,1)}
+body.pillsunk .rail{transform:translateX(-50%) translateY(10px) scale(.84);transition:transform .38s cubic-bezier(.4,0,.2,1)}
+@media (prefers-reduced-motion: reduce){ .rail,body.pillsunk .rail{transition:none!important} }

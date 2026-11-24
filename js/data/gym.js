@@ -363,6 +363,9 @@ const LIB_RAW = [
  ['kb_two_hand_swing','American kettlebell swing','Αμερικάνικες αιωρήσεις kettlebell','k','hinge','glutes:40 hamstrings:30 delt_front:15 lower_back:15'],
 ];
 
+// Cardio left the app (a possible future Cardio tab): the ids that were removed. Old workouts keep their history; saved presets and the week plan drop them (wire/05).
+const CARDIO_GONE = new Set(['ski_erg', 'spin_bike', 'recumbent_bike', 'sled_pull', 'cycling_outdoor', 'hiking', 'walking', 'burpee', 'jumping_jacks', 'sprint_intervals', 'treadmill', 'incline_walk', 'bike', 'assault_bike', 'rower', 'stairs', 'elliptical', 'running', 'jump_rope', 'battle_ropes', 'swimming', 'sled_push']);
+
 // Timed holds: id → seconds that count as ONE rep-equivalent for volume, recovery and progress (the time itself is saved in the set's reps field, as always).
 // A hang is easier on the muscles than a plank, so each has its own factor. Everything here shows a time box and a countdown with a ding on the card.
 const HOLD = { dead_hang: 8, active_hang: 6, flexed_arm_hang: 3, towel_hang: 6, plank: 10, side_plank: 8, reverse_plank: 8, bear_hold: 8, hollow_hold: 6, lsit: 4, tuck_lsit: 5,

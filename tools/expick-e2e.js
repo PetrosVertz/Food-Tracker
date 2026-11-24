@@ -50,7 +50,8 @@ async function run(browser, port){
     await p.click('[data-c="equipment"][data-v="cable"]'); await wait(p); t = await S(p);
     const eqs = await p.evaluate(ids => [...new Set(ids.map(id => exById(id).e))], t.cards);
     must(t.eq === 'cable' && t.step === 'done' && t.compact && eqs.join() === 'cable', 'equipment chosen: cable only, filter row folded');
-    must((await p.$eval('#pkPath', e => e.innerText.replace(/\s+/g, ' '))) === 'All · Chest · Upper Chest · Cable', 'path shows All · Chest · Upper Chest · Cable');
+    must((await p.$eval('#pkPath', e => [...e.querySelectorAll('.pkcrumb')].map(c => c.textContent.trim()).join(' · '))) === 'All · Chest · Upper Chest · Cable' && (await p.$$eval('#pkPath .pkdotsep', l => l.length)) === 3, 'path shows All · Chest · Upper Chest · Cable (drawn dots between)');
+    must(await p.$eval('#pkPath', e => { const c = [...e.children].map(k => { const r = k.getBoundingClientRect(); return r.top + r.height / 2; }), b = e.getBoundingClientRect(), k = [...e.children], l = k[0].getBoundingClientRect(), r2 = k[k.length - 1].getBoundingClientRect(); return Math.max(...c) - Math.min(...c) < 1 && Math.abs((l.left + r2.right) / 2 - (b.left + b.right) / 2) < 2; }), 'the filter crumbs share one centre line and the row is centred');
     await p.click('[data-pkback]', { timeout: 1500 }).catch(() => {}); await p.click('.pkcrumb[data-jump="equipment"]'); await wait(p); await p.click('[data-pkback]'); await wait(p); t = await S(p);
     must(t.eq === null && t.head === null && t.step === 'head' && t.muscle === 'chest', 'back from equipment clears equipment and head');
     await p.click('#pkReset'); await wait(p); t = await S(p);

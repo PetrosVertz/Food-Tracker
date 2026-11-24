@@ -222,7 +222,7 @@ Object.assign(S, {
  postMeal:['Plan my post-workout meal','Γεύμα μετά την προπόνηση'], done:['Done','Τέλος'],
  startToday:['Start {n}','Έναρξη: {n}'], startAny:['Start a Workout','Έναρξη προπόνησης'], resume:['Resume Workout · {m} min','Συνέχεια προπόνησης · {m}′'],
  restDone:['Rest is over','Τέλος ξεκούρασης'],
- setLbl:['Set','Σετ'], repsLbl:['reps','επαν.'], kgLbl:['kg','kg'], minLbl:['min','λεπτά'], kmLbl:['km','km'],
+ setLbl:['Set','Σετ'], repsLbl:['reps','επαν.'], secLbl:['sec','δλ'], holdReady:['Get Ready','Ετοιμάσου'], holdGo:['Hold','Κράτα'], kgLbl:['kg','kg'], minLbl:['min','λεπτά'], kmLbl:['km','km'],
  gcWarmIntro:['I\'d suggest warming up before these lifts. Here is a light ramp-up for each one, with the kilos to use.','Σου προτείνω ζέσταμα πριν από αυτές τις ασκήσεις. Να ένα ελαφρύ ανέβασμα για την καθεμία, με τα κιλά που πρέπει να βάλεις.'],
  gcWarmT:['Warm-Up Plan','Πρόγραμμα Ζεσταμάτος'], gcWarmSub:['1-2 light sets per lift','1-2 ελαφρά σετ ανά άσκηση'], gcWarmAdd:['Add Warm-Ups','Προσθήκη Ζεσταμάτων'], gcWarmDone:['Warm-ups added','Τα ζεσταμάτα προστέθηκαν'],
  needSetVals:['Type the weight and reps','Γράψε βάρος και επαναλήψεις'],

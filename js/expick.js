@@ -88,7 +88,7 @@ function pkCrumbs(){
   if(PK.muscle) p.push(['muscle', pkName(PK.muscle), gymInk(exmCol(PK.muscle))]);
   if(PK.head) p.push(['head', pkName(PK.head), gymInk(HEAD_COL[PK.head] || exmCol(PK.muscle))]);
   if(PK.eq) p.push(['equipment', exTitle(EL(PK.eq)), gymInk(EQ_COL[PK.eq])]);
-  return p.map(([k, v, c], i) => `${i ? '<span class="pkdotsep" aria-hidden="true">·</span>' : ''}<button type="button" class="pkcrumb" data-jump="${k === 'region' ? 'muscle' : k}" style="color:${c}" aria-label="${esc(t('pkChange', { n: v }))}">${esc(v)}</button>`).join('');
+  return p.map(([k, v, c], i) => `${i ? '<span class="pkdotsep" aria-hidden="true"></span>' : ''}<button type="button" class="pkcrumb" data-jump="${k === 'region' ? 'muscle' : k}" style="color:${c}" aria-label="${esc(t('pkChange', { n: v }))}">${esc(v)}</button>`).join('');
 }
 function pkPills(){
   const st = PK.step, all = [['all', t('all')]];
