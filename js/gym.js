@@ -496,7 +496,7 @@ function recoveryWarnings(){
   if(r.next && r.next.date === tm && r.nextA && r.nextA.assessment === 'consider_adjustment' && r.next.name){
     out.push(t('recWarnNext', { w: r.next.name, t: fmtClock(r.next.time), m: recHeadList(r.nextA.limiting.slice(0, 2)) })); }
   const di = dayInfo(tk);
-  if(di.type === 'rest'){ const bad = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(r.tr.groups[g].state)); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => ML(g)).join(', ') })); }
+  if(di.type === 'rest'){ const bad = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(r.tr.groups[g].state)); if(bad.length) out.push(t('recRestDay', { m: bad.map(g => { const c = recCd(r.tr.groups[g]); return c ? `${ML(g)} (${c})` : ML(g); }).join(', ') })); }
   return out;
 }
 const recHeadList = hs => hs.map(h => ML(h)).join(', ');
@@ -565,6 +565,7 @@ function recInsight(r){
   const m = mem[pick.code] || { n: 0, last: '' }; if(m.last !== tk){ mem[pick.code] = { n: m.last === addDays(tk, -1) ? m.n + 1 : 1, last: tk }; ui.recIns = mem; saveUI(); }
   return { code: pick.code, text: t('recI_' + pick.code.replace('insight_', '')) };
 }
+const C_EVMIN = () => RecoveryCore.CFG.evalMin;
 function recAdvanced(r, sore){
   const tr = r.tr, rows = [];
   sore.forEach(([g, v]) => { const hs = v.heads.length ? v.heads : v.all;
@@ -589,7 +590,15 @@ function recAdvanced(r, sore){
     t({ consistent_with_target: 'recEnergyOk', below_target: 'recEnergyLow', above_target: 'recEnergyHigh' }[ga.observedEnergyRelation] || 'recEnergyUnknown');
   const ev = tr.evidence, dataTx = ev.sessionsTotal ? t('recDataN', { n: ev.sessionsTotal, d: ev.lastAt ? fmtDay(new Date(ev.lastAt).toISOString().slice(0, 10)) : '–' }) : t('recAsNoHistory');
   const ctx = [[t('recCtxWhy'), why], [t('recCtxSleep'), sleepTx], [t('recCtxFood'), foodTx], [t('goal'), goalTx], [t('recCtxData'), dataTx + ' ' + t('recCtxRule')]];
+  // what it has learned about THIS person (derived from the workout history every time; nothing is stored apart from the forecast journal)
+  const mem = RecoveryPlus.memory(), memRows = Object.entries(mem.groups || {}).filter(([, v]) => v.informative || v.n || v.usualGapH).map(([g, v]) => {
+    const lines = [v.used ? t(v.f < 1 ? 'recMemFast' : v.f > 1 ? 'recMemSlow' : 'recMemSame', { p: Math.abs(Math.round((v.f - 1) * 100)) }) : v.shrunk ? t('recMemShrunk') : v.reset ? t('recMemStale') : t('recMemNone', { n: v.informative || 0 }),
+      v.informative ? t('recMemObs', { a: v.informative, b: v.n }) : '', v.usualGapH ? t('recMemGap', { h: v.usualGapH }) : ''].filter(Boolean);
+    return `<div class="radh"><b>${esc(ML(g))}</b><ul>${lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`; }).join('');
+  const evl = mem.evaluation || {}, evTx = evl.n >= C_EVMIN() ? t('recEvalN', { n: evl.n, a: evl.personal.unnecessaryDelay + evl.personal.tooEarly, b: evl.comparator.unnecessaryDelay + evl.comparator.tooEarly, v: t('recEv_' + evl.verdict) }) : t('recEvalFew', { n: evl.n || 0, k: mem.journalEntries });
+  const memBox = `<h3 class="rech">${t('recMemT')}</h3><div class="card radctx">${memRows || `<p>${esc(t('recMemEmpty'))}</p>`}<div class="radc"><b>${esc(t('recEvalT'))}</b><p>${esc(evTx)}</p><p>${esc(t('recEvalNote'))}</p></div></div>`;
   return `${rows.length ? `<h3 class="rech">${t('recDetailsT')}</h3><div class="radlist">${rows.join('')}</div>` : ''}
+    ${memBox}
     <h3 class="rech">${t('recContextT')}</h3><div class="card radctx">${ctx.map(([k, v]) => `<div class="radc"><b>${esc(k)}</b><p>${esc(v)}</p></div>`).join('')}
       <div class="radsw"><span>${t('recUseFood')}</span><button class="switch ${settings.recNoFood ? '' : 'on'}" type="button" role="switch" data-recopt="recNoFood" aria-checked="${!settings.recNoFood}" aria-label="${t('recUseFood')}"><i></i></button></div>
       <div class="radsw"><span>${t('recUseSleep')}</span><button class="switch ${settings.recNoSleep ? '' : 'on'}" type="button" role="switch" data-recopt="recNoSleep" aria-checked="${!settings.recNoSleep}" aria-label="${t('recUseSleep')}"><i></i></button></div></div>`;

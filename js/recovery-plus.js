@@ -40,6 +40,11 @@ const RecoveryCore = (() => {
     novelty: [1.15, 1.07, 1],  // first time / 1–2 times before / familiar (repeated-bout effect)
     relInt: { hi: .92, hiX: 1.06, lo: .6, loX: .85 },
     calib: { min: .85, max: 1.2, needN: 3, step: .04, days: 90 },
+    // personal memory (derived from the workout history every time, so an edit, a deleted workout, a restored backup or a duplicated session changes it deterministically).
+    // An observation is informative only when it can tell the model something: a comparable set held its usual level BEFORE the earliest ready time (faster than
+    // forecast) or fell clearly AFTER the latest ready time (slower). A good set long after the window, or a drop before it, is what the model already expects.
+    learn: { noise: .03, drop: .05, dropSigma: 1.5, baseN: 3, minGapH: 12, maxGapH: 120, primary: 50, globalDip: .6, globalDipMin: 3, slowGlobalW: .25, slowCtxW: .5, staleDays: 90, widen: 1.25, keepObs: 12 },
+    evalMin: 5, evalMargin: .5, evalWithinDays: 10,
     // the ready WINDOW: earliest / latest ready time = the central estimate ± a share of its own length (time since the last relevant workout), the share set by how
     // much evidence there is: a first workout is broad (shown as days), little history wide, a calibrated group with logged effort tight. Stored as timestamps, so
     // the range does not drift or jump as time passes. Needs Rest (> 24 h left) can only show BEFORE the window opens; inside it the state is Recovering.
@@ -86,12 +91,15 @@ const RecoveryCore = (() => {
   // ex(exId) → exercise record { mu, p, id, en, m }; loadOf(exId, w) → kg actually moved (bodyweight / assisted conventions)
   function indexHistory(sessions, ex, loadOf, setsOf){
     const SO = typeof setsOf === 'function' ? setsOf : x => x.sets || [];   // per-implement view of an exercise's sets (js/gym-lat.js › Lat.sets); default: as saved
-    const list = (Array.isArray(sessions) ? sessions : []).filter(s => s && Array.isArray(s.exercises) && isFinite(sesEnd(s))).slice().sort((a, b) => sesEnd(a) - sesEnd(b));
+    const seenId = new Set();   // a session that appears twice (a duplicated import / restore) counts once, so memory and journal checks cannot be inflated by it
+    const list = (Array.isArray(sessions) ? sessions : []).filter(s => { if(!s || !Array.isArray(s.exercises) || !isFinite(sesEnd(s))) return false; if(s.id != null){ if(seenId.has(s.id)) return false; seenId.add(s.id); } return true; }).slice().sort((a, b) => sesEnd(a) - sesEnd(b));
     const byEx = {};   // exId → [{ end, best }]
-    list.forEach(s => s.exercises.forEach(x => { if(!x || !x.exId) return; let best = 0;
-      SO(x).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop || z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0)); });   // the Left row stands for a pair's comparable set
-      (byEx[x.exId] = byEx[x.exId] || []).push({ end: sesEnd(s), best, sid: s.id }); }));
-    return { list, byEx, setsOf: SO };
+    const sessById = {};
+    list.forEach(s => s.exercises.forEach(x => { if(!x || !x.exId) return; let best = 0, easy = 0, n = 0; sessById[s.id] = s;
+      SO(x).forEach(z => { if(!z || !z.done || z.type === 'W' || z.drop) return; n++; if(isNum(+z.rir) && z.rir !== '' && z.rir != null && +z.rir >= 4) easy++;
+        if(z.side === 'R') return; best = Math.max(best, e1(loadOf ? loadOf(x.exId, +z.w || 0) : (+z.w || 0), +z.r || 0)); });   // the Left row stands for a pair's comparable set
+      (byEx[x.exId] = byEx[x.exId] || []).push({ end: sesEnd(s), best, sid: s.id, sig: x.cv ? [x.cv.l, x.cv.n, x.cv.rp].join('|') : '', easy: n > 0 && easy === n }); }));
+    return { list, byEx, setsOf: SO, sessById };
   }
   // per session per head: { load (the more fatigued side), L, R (each side's load), sets, rirSets, failSets, dropSets (parents marked as a drop set), dropExt (completed
   // drop extensions), halfReps / negs (recorded, informational), conflicts, ex:[ids] } + unknown exercises.
@@ -125,25 +133,84 @@ const RecoveryCore = (() => {
     return { heads: out, unknown };
   }
 
-  // ---------------------------------------------------------------- personal calibration (slow, bounded, needs repeated evidence)
-  // Compares the same exercise across two workouts 24–120 h apart: the top estimated 1RM held (≥ 98 %) although the model expected the main
-  // muscle to still be recovering → "recovers faster" evidence; it fell clearly (< 93 %) although the model expected it ready → "slower".
-  // One poor day never decides: a group needs ≥ 3 such comparisons, and the factor moves 4 % per net comparison, between 0.85 and 1.2.
-  function calibrate(idx, ex, now){
-    const ev = {}, from = now - CFG.calib.days * 864e5;
+  // ---------------------------------------------------------------- personal memory (slow, bounded, needs repeated informative evidence)
+  // Per region (display group), from comparable performances of ONE exercise at a time, in the order they happened:
+  //   comparable = the same exercise and the same setup / convention, a gap of 12–120 h, not a deliberately easy session (all sets RIR ≥ 4), the exercise's own
+  //   baseline from its previous sessions (≥ 3) with its own usual variation (a drop from a normal 9–11 to 9 is weak, repeated drops to 7 are strong);
+  //   only exercises where one muscle does ≥ 50 % of the work attribute to that muscle (a compound lift is never blamed on every contributor);
+  //   the dose at the earlier session and the gap are used together (the forecast window of THAT dose decides what the observation can tell);
+  //   a broad dip across most of a session's exercises, or a known poor-context day, counts for much less on any one muscle.
+  // Learning usual gym timing is separate (usualGapH is shown, never used for the forecast). Needs ≥ 3 informative observations in the last 90 days; the factor moves
+  // 4 % per weighted net observation, between 0.85 and 1.2; no recent evidence = no personal change and a wider window (`reset`).
+  // opts: { ctxFor(dateStr) → 'poor' | null (context the person allowed; unknown stays null), loadOf }
+  function calibrate(idx, ex, now, opts){
+    const L = CFG.learn, ctxFor = opts && typeof opts.ctxFor === 'function' ? opts.ctxFor : null, from = now - CFG.calib.days * 864e5, loadOf = opts && opts.loadOf;
+    const headCache = {}, loadsOf = s => headCache[s.id] || (headCache[s.id] = sessionHeadLoads(s, idx, ex, loadOf).heads);
+    const obs = [];   // { g, h, ex, t, date, kind, w, gapH, T, ratio, sid, why }
+    const compared = {};   // session id → { n, dropped } (for the broad-dip check)
+    const stat = arr => { const m = arr.reduce((a, b) => a + b, 0) / arr.length, sd = Math.sqrt(arr.reduce((a, b) => a + (b - m) * (b - m), 0) / arr.length); return { m, sd: m > 0 ? sd / m : 0 }; };
+    const raw = [];
     Object.entries(idx.byEx).forEach(([id, arr]) => {
-      const mu = muOf(ex(id)); if(!mu) return; const [h, pc] = Object.entries(mu).sort((a, b) => b[1] - a[1])[0]; if(pc < CFG.primary) return;
-      for(let i = 1; i < arr.length; i++){ const A = arr[i - 1], B = arr[i]; if(B.end < from || !(A.best > 0) || !(B.best > 0)) continue;
-        const gap = (B.end - A.end) / 36e5; if(gap < 24 || gap > 120) continue;
-        const expectedReady = gap >= headHours(h, 3) * (1 - CFG.readyAt);
-        const g = GROUP[h], e = ev[g] = ev[g] || { fast: 0, slow: 0, n: 0 };
-        if(!expectedReady && B.best >= A.best * .98){ e.fast++; e.n++; } else if(expectedReady && B.best < A.best * .93){ e.slow++; e.n++; } else e.n++; }
-    });
+      const mu = muOf(ex(id)); if(!mu) return; const [h, pc] = Object.entries(mu).sort((a, b) => b[1] - a[1])[0]; if(pc < L.primary) return;
+      for(let i = 1; i < arr.length; i++){ const A = arr[i - 1], B = arr[i]; if(!(A.best > 0) || !(B.best > 0)) continue;
+        const pri = arr.slice(Math.max(0, i - 8), i).map(q => q.best).filter(v => v > 0); if(pri.length < L.baseN) continue;
+        const base = stat(pri), ratio = B.best / base.m, noise = Math.max(L.noise, base.sd), c = compared[B.sid] = compared[B.sid] || { n: 0, dropped: 0 };
+        const dropped = ratio < 1 - Math.max(L.drop, L.dropSigma * base.sd), held = ratio >= 1 - noise; c.n++; if(dropped) c.dropped++;
+        const gap = (B.end - A.end) / 36e5; if(gap < L.minGapH || gap > L.maxGapH || A.sig !== B.sig || A.easy || B.easy) continue;
+        const sA = idx.sessById && idx.sessById[A.sid]; if(!sA) continue; const ld = loadsOf(sA)[h]; if(!ld || ld.load < CFG.minLoad) continue;
+        const T = headHours(h, ld.load), sp = CFG.spread.moderate;   // the forecast window this dose implied
+        let kind = null; if(held && gap < T * (1 - sp)) kind = 'fast'; else if(dropped && gap >= T * (1 + sp)) kind = 'slow';
+        raw.push({ g: GROUP[h], h, ex: id, t: B.end, date: new Date(B.end).toISOString().slice(0, 10), kind, gapH: Math.round(gap), T: Math.round(T), ratio: Math.round(ratio * 100) / 100, sid: B.sid }); } });
     const out = {};
-    Object.entries(ev).forEach(([g, e]) => { if(e.fast + e.slow < CFG.calib.needN){ out[g] = { f: 1, n: e.n, used: false }; return; }
-      const f = Math.max(CFG.calib.min, Math.min(CFG.calib.max, 1 + CFG.calib.step * (e.slow - e.fast)));
-      out[g] = { f: Math.round(f * 100) / 100, n: e.n, used: true }; });
+    raw.forEach(o => { if(!o.kind) return; let w = 1;
+      if(o.kind === 'slow'){ const c = compared[o.sid]; if(c && c.n >= L.globalDipMin && c.dropped / c.n >= L.globalDip) w *= L.slowGlobalW; if(ctxFor && ctxFor(o.date) === 'poor') w *= L.slowCtxW; }
+      obs.push({ ...o, w }); });
+    // usual training rhythm per region (information only)
+    const gaps = {}; Object.entries(idx.byEx).forEach(([id, arr]) => { const mu = muOf(ex(id)); if(!mu) return; const [h, pc] = Object.entries(mu).sort((a, b) => b[1] - a[1])[0]; if(pc < L.primary) return;
+      for(let i = 1; i < arr.length; i++){ const g = (arr[i].end - arr[i - 1].end) / 36e5; if(g > 0 && g <= 168) (gaps[GROUP[h]] = gaps[GROUP[h]] || []).push(g); } });
+    new Set([...obs.map(o => o.g), ...Object.keys(gaps), ...raw.map(o => o.g)]).forEach(g => {
+      const mine = obs.filter(o => o.g === g && o.t >= from), fast = mine.filter(o => o.kind === 'fast').reduce((a, o) => a + o.w, 0), slow = mine.filter(o => o.kind === 'slow').reduce((a, o) => a + o.w, 0);
+      const last = obs.filter(o => o.g === g).reduce((a, o) => Math.max(a, o.t), 0), gs = (gaps[g] || []).slice().sort((a, b) => a - b), usual = gs.length >= 3 ? Math.round(gs[Math.floor(gs.length / 2)]) : null;
+      const n = mine.length, used = fast + slow >= CFG.calib.needN, f = used ? Math.max(CFG.calib.min, Math.min(CFG.calib.max, 1 + CFG.calib.step * (slow - fast))) : 1;
+      out[g] = { f: Math.round(f * 100) / 100, n: raw.filter(o => o.g === g).length, informative: n, fast: Math.round(fast * 100) / 100, slow: Math.round(slow * 100) / 100, used,
+        reset: last > 0 && now - last > L.staleDays * 864e5, last: last || null, usualGapH: usual, obs: mine.slice(-L.keepObs).map(o => ({ date: o.date, ex: o.ex, kind: o.kind, gapH: o.gapH, T: o.T, ratio: o.ratio, w: o.w })) }; });
     return out;
+  }
+
+  // ---------------------------------------------------------------- forecast journal and its evaluation (chronological, as-issued, against a training-only comparator)
+  // An entry is saved when a forecast is issued: { v: 1, at, hs (fingerprint of the workouts that existed then), cx (context sources that were allowed), w: { head: [from, by, tFrom, tBy] } }
+  // where [from, by] is the window as the app issued it and [tFrom, tBy] the window the TRAINING-ONLY model (no personal memory) gave at the same moment. Never rewritten.
+  const histHash = (sessions, t) => fingerprint((Array.isArray(sessions) ? sessions : []).filter(s => s && isFinite(sesEnd(s)) && sesEnd(s) <= t).map(s => s.id + ':' + Math.round(sesEnd(s) / 6e4)).sort().join('|'));
+  function journalEntry(o){
+    const w = {}; HEADS21.forEach(h => { const v = o.tr.heads[h], c = o.comparator && o.comparator.heads[h]; if(!v || v.state === 'unknown' || v.state === 'ready' || !isFinite(v.readyBy)) return;
+      w[h] = [Math.round(v.readyFrom), Math.round(v.readyBy), c && isFinite(c.readyBy) ? Math.round(c.readyFrom) : Math.round(v.readyFrom), c && isFinite(c.readyBy) ? Math.round(c.readyBy) : Math.round(v.readyBy)]; });
+    return { v: 1, at: o.now, hs: histHash(o.sessions, o.now), cx: (o.cx || []).slice().sort(), w };
+  }
+  // enabled: the context sources allowed NOW (an entry issued with a source that has since been switched off is left out of every future evaluation)
+  function evaluateJournal(o){
+    const ex = o.ex, now = isNum(o.now) ? o.now : Date.now(), L = CFG.learn, en = new Set(o.enabled || []), idx = o.idx || indexHistory(o.sessions, ex, o.loadOf, o.setsOf);
+    const ineligible = { obsolete: 0, sourceOff: 0, untested: 0 }, rows = [], tally = () => ({ tooEarly: 0, delay: 0, inside: 0, right: 0, width: 0, n: 0 }), P = tally(), T = tally();
+    (o.entries || []).forEach(e => {
+      if(!e || e.v !== 1 || !e.w) return;
+      if((e.cx || []).some(c => !en.has(c))){ ineligible.sourceOff++; return; }
+      if(e.hs !== histHash(idx.list, e.at)){ ineligible.obsolete++; return; }   // a workout before it was edited / deleted / added: the forecast was made from another history
+      Object.entries(e.w).forEach(([h, win]) => {
+        let test = null;   // the first later session that genuinely tested this muscle: a primary exercise with a baseline, held or clearly dropped
+        for(const [id, arr] of Object.entries(idx.byEx)){ const mu = muOf(ex(id)); if(!mu || (mu[h] || 0) < L.primary) continue;
+          const i = arr.findIndex(q => q.end > e.at && q.end - e.at <= CFG.evalWithinDays * 864e5); if(i < 1) continue;
+          const pri = arr.slice(Math.max(0, i - 8), i).map(q => q.best).filter(v => v > 0), B = arr[i]; if(pri.length < L.baseN || !(B.best > 0) || B.easy || arr[i - 1].sig !== B.sig) continue;
+          const m = pri.reduce((a, b) => a + b, 0) / pri.length, sd = Math.sqrt(pri.reduce((a, b) => a + (b - m) * (b - m), 0) / pri.length) / m, ratio = B.best / m, noise = Math.max(L.noise, sd);
+          const sess = idx.sessById && idx.sessById[B.sid], t = sess && isFinite(ts(sess.start)) ? ts(sess.start) : B.end, held = ratio >= 1 - noise, dropped = ratio < 1 - Math.max(L.drop, L.dropSigma * sd);
+          if((held || dropped) && (!test || t < test.t)) test = { t, held, ex: id, ratio: Math.round(ratio * 100) / 100 }; }
+        if(!test){ ineligible.untested++; return; }
+        const score = (T0, a, b) => { T0.n++; T0.width += (b - a) / 36e5; if(test.t < a){ if(test.held) T0.delay++; else T0.right++; } else if(test.t >= b){ if(!test.held) T0.tooEarly++; else T0.right++; } else T0.inside++; };
+        score(P, win[0], win[1]); score(T, win[2], win[3]);
+        rows.push({ at: e.at, head: h, tested: test.t, ex: test.ex, ratio: test.ratio, held: test.held, personal: [win[0], win[1]], comparator: [win[2], win[3]] }); }); });
+    const sc = M => M.tooEarly + M.delay + .5 * M.inside, fin = M => ({ tooEarly: M.tooEarly, unnecessaryDelay: M.delay, inside: M.inside, right: M.right, n: M.n, meanWidthH: M.n ? Math.round(M.width / M.n * 10) / 10 : null, score: M.n ? Math.round(sc(M) * 100) / 100 : null });
+    let verdict = 'not_enough_evidence';
+    if(P.n >= CFG.evalMin){ const d = sc(P) - sc(T);   // errors count fully, an ambiguous result (inside the window) half: a wide range alone cannot win
+      verdict = d < -CFG.evalMargin ? 'better' : d > CFG.evalMargin ? 'worse' : 'no_difference'; }
+    return { n: P.n, personal: fin(P), comparator: fin(T), verdict, ineligible, rows: rows.slice(-40), note: 'Genuine tests only: a later set of a primary exercise that held its own usual level or clearly dropped. Simulated tests check behaviour; predictive accuracy needs real prospective use.' };
   }
 
   // ---------------------------------------------------------------- the ready window (earliest / latest ready time) and how it is said
@@ -177,7 +244,7 @@ const RecoveryCore = (() => {
   // o: { sessions, ex, loadOf, now, calib? } → { heads, groups, evidence, unknownExercises, contrib }
   function trainingRecovery(o){
     const now = isNum(o.now) ? o.now : Date.now(), ex = o.ex, loadOf = o.loadOf;
-    const idx = o.idx || indexHistory(o.sessions, ex, loadOf, o.setsOf), cal = o.calib || calibrate(idx, ex, now);
+    const idx = o.idx || indexHistory(o.sessions, ex, loadOf, o.setsOf), cal = o.calib || calibrate(idx, ex, now, { ctxFor: o.ctxFor, loadOf });
     const past = idx.list.filter(s => sesEnd(s) <= now + 6e4);
     const evidence = { sessionsTotal: past.length, recent14: past.filter(s => now - sesEnd(s) <= 14 * 864e5).length,
       lastAt: past.length ? sesEnd(past[past.length - 1]) : null };
@@ -224,7 +291,7 @@ const RecoveryCore = (() => {
       // the window and the state that follows it
       const lastEnd = cs.length ? Math.max(...cs.map(c => c.end)) : null, firstWorkout = evidence.sessionsTotal < 2;
       const centre = hi;   // when the central estimate crosses "ready" (already in the past for a muscle whose central time has gone by)
-      const W = lastEnd == null ? 0 : Math.max(36e5, centre - lastEnd), sp = firstWorkout ? CFG.spread.first : CFG.spread[conf] || CFG.spread.low;
+      const W = lastEnd == null ? 0 : Math.max(36e5, centre - lastEnd), sp = (firstWorkout ? CFG.spread.first : CFG.spread[conf] || CFG.spread.low) * (cal[GROUP[h]] && cal[GROUP[h]].reset ? CFG.learn.widen : 1);   // no recent evidence: wider again
       const readyFrom = lastEnd == null ? now : centre - sp * W, readyBy = lastEnd == null ? now : centre + sp * W;
       const st = windowState(stC, now, readyFrom, readyBy, cs.length > 0);
       if(st === 'recovering' && stC === 'ready') reasons.push('inside_ready_window');
@@ -432,7 +499,7 @@ const RecoveryCore = (() => {
     s.snapshotId = 'r1-' + fingerprint(JSON.stringify([groups, Object.entries(head).map(([h, v]) => h + v.state), s.readiness.level, s.nextWorkout || null, s.support.nutrition ? s.support.nutrition.status : '', s.support.sleep ? s.support.sleep.status : '']));
     return s;
   }
-  return { ENGINE, CFG, HEADS21, GROUP, GROUPS10, muOf, windowState, windowHours, countdown, windowText, setEffort, indexHistory, sessionHeadLoads, calibrate, trainingRecovery, stateAt, acuteFatigue,
+  return { ENGINE, CFG, HEADS21, GROUP, GROUPS10, muOf, windowState, windowHours, countdown, windowText, histHash, journalEntry, evaluateJournal, setEffort, indexHistory, sessionHeadLoads, calibrate, trainingRecovery, stateAt, acuteFatigue,
     evaluateSleepSupport, evaluateNutritionSupport, assessWorkout, buildOverallReadiness, buildDecisionInsight, snapshot, legacySt, headHours };
 })();
 
@@ -449,6 +516,28 @@ const RecoveryPlus = (() => {
   // opt-outs (device setting, Settings › AI › RECOVERY+ data; default on): no read, no publish when off
   const useFood = () => !(typeof settings !== 'undefined' && settings && settings.recNoFood);
   const useSleep = () => !(typeof settings !== 'undefined' && settings && settings.recNoSleep);
+  // context the person allowed, per day, used ONLY to qualify how much one observation says about recovery (a drop after a known poor day counts for less). Unknown stays unknown:
+  // nothing is manufactured. No sleep source exists in the app today, so this is null until Athlete OS hands sleep records over.
+  function ctxFor(date){
+    if(!useSleep()) return null;
+    try{ const recs = sleepRecords(); if(!recs.length) return null; const d0 = new Date(date + 'T12:00:00').getTime();
+      const r = recs.filter(x => x && (x.kind || 'asleep') === 'asleep' && Date.parse(x.end) <= d0 + 12 * 36e5 && Date.parse(x.end) >= d0 - 14 * 36e5)[0];
+      return r && (Date.parse(r.end) - Date.parse(r.start)) / 36e5 < 5.5 ? 'poor' : null; }catch(e){ return null; } }
+  const enabledCx = () => [...(useFood() ? ['food'] : []), ...(useSleep() ? ['sleep'] : [])];
+  // ---- forecast journal (Store 'recJournal', device only, never in backups): minimal, versioned, bounded; old entries are never rewritten
+  const JKEEP = 120, jload = () => { try{ const j = Store.load('recJournal', null); return j && j.v === 1 && Array.isArray(j.e) ? j : { v: 1, e: [] }; }catch(e){ return { v: 1, e: [] }; } };
+  function journal(why){
+    try{ if(typeof Store === 'undefined' || (typeof settings !== 'undefined' && settings && settings.recNoJournal)) return false;
+      const d = compute(), b = cache.base, S = typeof sessions !== 'undefined' ? sessions : [], now = Date.now();
+      const cmp = C.trainingRecovery({ idx: b.idx, calib: {}, ex: exFn, loadOf: loadFn, setsOf: setsFn, now });   // the comparator: the same history, no personal memory
+      const e = C.journalEntry({ tr: d.tr, comparator: cmp, sessions: S, now, cx: enabledCx() });
+      if(!Object.keys(e.w).length) return false;
+      const j = jload(), last = j.e[j.e.length - 1];
+      if(last && last.hs === e.hs && now - last.at < 6 * 36e5 && why !== 'workout') return false;
+      j.e.push(e); j.e = j.e.slice(-JKEEP); Store.save('recJournal', j); return true; }catch(err){ return false; } }
+  function evaluation(S, idx, now){ try{ return C.evaluateJournal({ entries: jload().e, sessions: S, idx, ex: exFn, loadOf: loadFn, setsOf: setsFn, now, enabled: enabledCx() }); }catch(e){ return { n: 0, verdict: 'not_enough_evidence', personal: {}, comparator: {}, ineligible: {}, rows: [] }; } }
+  // what Advanced shows: the learned memory per region, whether it is trusted, the journal and how the forecasts did
+  function memory(){ compute(); const b = cache.base; return { groups: b.calib, raw: b.calib0, trusted: b.trusted, evaluation: b.ev, journalEntries: jload().e.length, sources: enabledCx() }; }
   // next scheduled workout from the planner (never invented): today if its time has not passed and no workout is logged today, else the next 7 days
   function nextPlan(now){
     if(typeof planFor !== 'function' || typeof todayKey !== 'function') return null;
@@ -477,18 +566,20 @@ const RecoveryPlus = (() => {
     now = now || Date.now();
     if(cache && !dirty && now - cache.base.at < 10 * 6e4 && cache.base.day === todayKey()) return derive(cache.base, now);
     const S = typeof sessions !== 'undefined' ? sessions : [];
-    const idx = C.indexHistory(S, exFn, loadFn, setsFn), calib = C.calibrate(idx, exFn, now);
+    const idx = C.indexHistory(S, exFn, loadFn, setsFn), calib0 = C.calibrate(idx, exFn, now, { loadOf: loadFn, ctxFor });
+    const ev = evaluation(S, idx, now), trusted = !(ev.n >= C.CFG.evalMin && ev.verdict === 'worse');   // personal memory that predicted worse than the training-only model is switched off (shrunk to neutral)
+    const calib = trusted ? calib0 : Object.fromEntries(Object.entries(calib0).map(([k, v]) => [k, { ...v, used: false, f: 1, shrunk: true }]));
     const tk = todayKey(), tg = typeof targets !== 'undefined' ? targets : null;
     const next = nextPlan(now);
     const sleep = C.evaluateSleepSupport({ records: useSleep() ? sleepRecords() : [], optOut: !useSleep(), now });
     const nutr = C.evaluateNutritionSupport({ optOut: !useFood(), days: useFood() ? foodDays(tk) : {}, today: tk, targetFor: d => { try{ const x = targetFor(d); return x ? { k: +x.k, p: +x.p, c: +x.c } : null; }catch(e){ return null; } },
       goal: tg && tg.goal, goalSince: tg && tg.goalAt, bodyKg: typeof bodyW === 'function' ? bodyW() : null, weights: typeof weights !== 'undefined' ? weights : {}, demand: demand(now, next), now });
-    cache = { base: { at: now, day: tk, idx, calib, next, sleep, nutr } }; dirty = false;
+    cache = { base: { at: now, day: tk, idx, calib, calib0, ev, trusted, next, sleep, nutr } }; dirty = false;
     return derive(cache.base, now);
   }
   // time-dependent part: cheap, recomputed on every read
   function derive(b, now){
-    const tr = C.trainingRecovery({ idx: b.idx, calib: b.calib, ex: exFn, loadOf: loadFn, setsOf: setsFn, now });
+    const tr = C.trainingRecovery({ idx: b.idx, calib: b.calib, ex: exFn, loadOf: loadFn, setsOf: setsFn, now });   // derive(): same memory, new clock
     const nextA = b.next ? C.assessWorkout(tr, b.next, exFn) : null;
     const readiness = C.buildOverallReadiness(tr, b.sleep, b.nutr, nextA);
     const act = typeof active !== 'undefined' && active ? C.acuteFatigue({ active, ex: exFn, setsOf: setsFn, now }) : {};
@@ -505,5 +596,5 @@ const RecoveryPlus = (() => {
     C.GROUPS10.forEach(gr => { const v = r.tr.groups[gr]; const st = C.legacySt(v.state), h = v.hours || 0;
       out[gr] = { h, st, col: st === 'unk' ? null : recColor(h), p: v.state === 'unknown' ? null : Math.min(...v.all.map(x => r.tr.heads[x].p)), heads: v.heads.slice(), conf: v.conf }; });
     return out; }
-  return { compute, snapshot, legacyMap, invalidate, nextPlan };
+  return { compute, snapshot, legacyMap, invalidate, nextPlan, journal, memory };
 })();

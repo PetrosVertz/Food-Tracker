@@ -253,6 +253,76 @@ const freeze = o => { if(o && typeof o === 'object'){ Object.freeze(o); Object.v
   const many = C.calibrate(C.indexHistory(mk(6, 30, 100), ex, loadOf), ex, NOW);
   ok(many.chest && many.chest.used && many.chest.f < 1 && many.chest.f >= C.CFG.calib.min, 'repeated strong performance while "recovering": a bit faster, within bounds'); }
 
+// 14b. Personal memory (Prompt 3, stage 3): informative evidence only, bounded, per region, deterministic
+{ const perfSet = (w, extra) => [set({ w, r: 5, ...(extra || {}) }), set({ w, r: 5, ...(extra || {}) }), set({ w, r: 5, ...(extra || {}) })];
+  // exs(i) → the exercises of session i as [[exId, sets]]; gaps in hours; the last session ends `endAgo` hours before NOW
+  const series = (n, gapH, exs, endAgo = 0, tag = 's') => Array.from({ length: n }, (_, i) => ses(tag + i, endAgo + (n - 1 - i) * gapH, exs(i)));
+  const CAL = (list, o) => C.calibrate(C.indexHistory(list, ex, loadOf), ex, NOW, o);
+  // two users, identical workouts and doses, different later performance
+  const fastU = series(10, 30, () => [['bench', perfSet(100)]], 24, 'f');                              // trains again after 30 h and holds 100 every time
+  const slowU = series(14, 72, i => [['bench', perfSet(i % 4 === 3 ? 86 : 100)]], 24, 'w');            // waits 72 h and still dips on every 4th session
+  const cf = CAL(fastU), cs = CAL(slowU);
+  ok(cf.chest.used && cf.chest.f < 1 && cs.chest.used && cs.chest.f > 1, 'two users, identical workouts: the one who holds performance early is learned faster, the one who dips late slower (' + cf.chest.f + ' vs ' + cs.chest.f + ')');
+  const final = [ses('x', 0, [['bench', sets(6, { w: 100, r: 5 })]])], hrs = u => TR([...u, ...final]).heads.chest_mid.hours;
+  ok(hrs(fastU) < hrs(slowU), 'the same new workout gets a shorter forecast for the faster person (' + hrs(fastU) + ' h vs ' + hrs(slowU) + ' h)');
+  ok(cf.chest.f >= C.CFG.calib.min && cs.chest.f <= C.CFG.calib.max, 'the personal change stays inside its bounds');
+  // regular attendance with no informative early retest
+  const reg = CAL(series(12, 72, () => [['bench', perfSet(100)]], 24));
+  ok(!reg.chest.used && reg.chest.f === 1, 'regular attendance and good sets 72 h later tell nothing about a ~48 h window: no change (' + reg.chest.informative + ' informative)');
+  { const sp = CAL(series(2, 30, () => [['bench', perfSet(100)]])); ok(!sp.chest || (!sp.chest.used && sp.chest.informative === 0), 'sparse history: nothing is learned'); }
+  // a single poor session never decides
+  const one = CAL(series(9, 72, i => [['bench', perfSet(i === 7 ? 80 : 100)]], 24)); ok(!one.chest.used, 'one poor session is not enough to change anything');
+  // a broad dip across the whole session counts for much less on any one muscle
+  const g4 = i => [['bench', perfSet(i % 4 === 3 ? 85 : 100)], ['squat', perfSet(i % 4 === 3 ? 85 : 100)], ['curl', perfSet(i % 4 === 3 ? 85 : 100)], ['pushdown', perfSet(i % 4 === 3 ? 85 : 100)]];
+  const glob = CAL(series(14, 72, g4, 24)), solo = CAL(series(14, 72, i => [['bench', perfSet(i % 4 === 3 ? 85 : 100)]], 24));
+  ok(solo.chest.slow > glob.chest.slow && glob.chest.slow <= solo.chest.slow * .3, 'the same dips across most exercises of one session (a bad day) count far less than a dip on one lift (' + glob.chest.slow + ' vs ' + solo.chest.slow + ')');
+  // different setup / deliberately easy sets are not comparable
+  const sigs = series(10, 30, i => [['bench', perfSet(100)]], 24); sigs.forEach((s, i) => { s.exercises[0].cv = { l: 'hand', n: i % 2 ? 1 : 2, rp: 'both' }; });
+  ok(!CAL(sigs).chest || !CAL(sigs).chest.used, 'a changed setup / convention between sessions is not comparable evidence');
+  const easy = series(10, 30, () => [['bench', perfSet(100, { rir: 4 })]], 24); ok(!CAL(easy).chest || !CAL(easy).chest.used, 'deliberately easy sets (RIR 4+) are not evidence');
+  // compound lifts are not blamed on every contributor; muscles learn separately
+  const comp = CAL(series(10, 24, () => [['row', perfSet(100)]], 24)); ok(!comp.back || !comp.back.used, 'a compound lift whose main muscle does under half of the work attributes to nobody');
+  const arms = CAL(series(10, 24, () => [['curl', perfSet(100)]], 24)); ok(arms.arms && arms.arms.used && (!arms.chest || !arms.chest.used), 'biceps work teaches the arm region only (nothing drifts into chest)');
+  // a long layoff / stale evidence
+  const stale = CAL(series(10, 30, () => [['bench', perfSet(100)]], 24 * 130)); ok(stale.chest.reset && !stale.chest.used, 'evidence older than 90 days is not used and the window widens again');
+  const wide = (cal) => { const t = C.trainingRecovery({ sessions: [...series(10, 30, () => [['bench', perfSet(100)]], 24 * 130), ses('y', 0, [['bench', sets(6)]])], ex, loadOf, now: NOW, calib: cal }).heads.chest_mid; return t.readyBy - t.readyFrom; };
+  ok(wide(stale) > wide({}), 'after a long break the forecast window is wider (restored uncertainty)');
+  // context sources: weights only qualify evidence; switching one off removes its influence exactly and deterministically
+  const base = series(14, 72, i => [['bench', perfSet(i % 4 === 3 ? 86 : 100)]], 24);
+  const poorDays = CAL(base, { ctxFor: () => 'poor' }), noCtx = CAL(base), off = CAL(base, { ctxFor: () => null });
+  ok(poorDays.chest.slow < noCtx.chest.slow && JSON.stringify(off) === JSON.stringify(noCtx), 'a drop on a known poor-context day counts for less; opting the source out gives exactly the memory without it');
+  ok(JSON.stringify(CAL(base)) === JSON.stringify(CAL(base)), 'the same history always gives the same memory');
+  // corrections / duplicates / import replay
+  const dup = [...base, ...base.map(s => ({ ...s }))]; ok(JSON.stringify(CAL(dup)) === JSON.stringify(CAL(base)), 'a duplicated session (restore / import twice) does not add observations');
+  const edited = base.map((s, i) => i === 3 ? ses('s3', (14 - 1 - 3) * 72 + 24, [['bench', perfSet(100)]]) : s); ok(CAL(edited).chest.slow < CAL(base).chest.slow, 'editing a workout changes what is learned, deterministically');
+  ok(CAL(base.filter((_, i) => i !== 3)).chest.informative <= CAL(base).chest.informative, 'deleting a workout never creates evidence');
+  // usual timing is learned separately and never moves the forecast
+  ok(cs.chest.usualGapH === 72 && cf.chest.usualGapH === 30, 'usual gym timing (median gap) is kept separately from recovery speed (' + cs.chest.usualGapH + ' h and ' + cf.chest.usualGapH + ' h)');
+  // a next-day workout 23 h later counts when comparable
+  const nd = CAL(series(12, 23, () => [['bench', perfSet(100)]], 24)); ok(nd.chest && nd.chest.informative >= 3, 'a next-day workout 23 h later is informative evidence when comparable');
+  // bounded, inspectable
+  ok(cf.chest.obs.length <= C.CFG.learn.keepObs && cf.chest.obs.every(o => o.kind && o.gapH > 0 && o.T > 0 && o.date), 'the memory keeps a few inspectable observations: date, exercise, kind, gap, dose-implied time');
+}
+// 14c. Forecast journal and evaluation: chronological, as issued, against a training-only comparator
+{ const H2 = H, mkSes = (n, gapH) => Array.from({ length: n }, (_, i) => ses('j' + i, (n - 1 - i) * gapH + 24, [['bench', [set({ w: 100, r: 5 }), set({ w: 100, r: 5 }), set({ w: 100, r: 5 })]]]));
+  const S = mkSes(14, 72), end = i => Date.parse(S[i].end);
+  const entry = (i, pw, cw, extra) => ({ v: 1, at: end(i), hs: C.histHash(S, end(i)), cx: [], w: { chest_mid: [end(i) + pw[0] * H2, end(i) + pw[1] * H2, end(i) + cw[0] * H2, end(i) + cw[1] * H2] }, ...(extra || {}) });
+  const EV = (entries, enabled = []) => C.evaluateJournal({ entries, sessions: S, ex, loadOf, now: NOW, enabled });
+  const good = [5, 6, 7, 8, 9, 10].map(i => entry(i, [40, 60], [80, 90]));   // the next set came 72 h later and held: personal says ready by 60 h (right), comparator says not before 80 h (unnecessary delay)
+  const r1 = EV(good); ok(r1.n === 6 && r1.personal.unnecessaryDelay === 0 && r1.comparator.unnecessaryDelay === 6 && r1.verdict === 'better', 'personal forecasts that were right while the comparator delayed: verdict better (' + r1.personal.score + ' vs ' + r1.comparator.score + ')');
+  const wideP = [5, 6, 7, 8, 9, 10].map(i => entry(i, [10, 200], [40, 60]));
+  const r2 = EV(wideP); ok(r2.verdict !== 'better' && r2.personal.meanWidthH > r2.comparator.meanWidthH, 'a wider range alone cannot win: inside the window counts against it (' + r2.verdict + ')');
+  const early = [5, 6, 7, 8, 9, 10].map(i => entry(i, [10, 20], [40, 60])); S.forEach(() => 0);
+  ok(EV(early).personal.tooEarly === 0, 'a muscle that held when the window said ready is not an error');
+  ok(EV(good.slice(0, 2)).verdict === 'not_enough_evidence', 'a handful of forecasts is not enough to say anything');
+  ok(EV([entry(5, [40, 60], [80, 90], { cx: ['sleep'] })]).ineligible.sourceOff === 1, 'a forecast issued with a context source that is now switched off is left out of future evaluation');
+  const edited = S.slice(); edited[2] = { ...S[2], end: new Date(Date.parse(S[2].end) + 5 * H2).toISOString() };
+  const r3 = C.evaluateJournal({ entries: good, sessions: edited, ex, loadOf, now: NOW, enabled: [] }); ok(r3.ineligible.obsolete === 6 && r3.n === 0, 'editing a workout before a forecast makes that forecast ineligible (obsolete); the saved prediction itself is untouched');
+  const frozenEntry = JSON.stringify(good); EV(good); C.evaluateJournal({ entries: good, sessions: edited, ex, loadOf, now: NOW, enabled: [] }); ok(JSON.stringify(good) === frozenEntry, 'evaluation never rewrites an issued forecast');
+  const untested = [entry(13, [40, 60], [40, 60])]; ok(EV(untested).ineligible.untested === 1 && EV(untested).n === 0, 'a forecast that no later informative set tested is not counted');
+  const hist = C.journalEntry({ tr: TR(S), comparator: TR(S), sessions: S, now: NOW, cx: ['food'] }); ok(hist.v === 1 && hist.hs === C.histHash(S, NOW) && hist.cx.join() === 'food', 'a journal entry is minimal and versioned');
+}
+
 // 15. Nothing is changed: frozen inputs go through every function
 { const list = freeze([ses('a', 6, [['bench', sets(5)]])]), snapBefore = JSON.stringify(list);
   let threw = false; try{ const t = TR(list); C.assessWorkout(t, freeze({ at: NOW + H, exercises: ['bench'] }), ex); C.acuteFatigue({ active: freeze({ exercises: [{ exId: 'bench', sets: sets(2) }] }), ex, now: NOW }); }catch(e){ threw = e.message; }

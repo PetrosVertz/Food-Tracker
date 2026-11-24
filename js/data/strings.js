@@ -1210,3 +1210,21 @@ Object.assign(S, {   // RECOVERY+ ready countdown (js/gym.js › recCd; one word
   recCdRange: ['{a}–{b} h', '{a}–{b} ώρ.'], recCdWithin: ['Likely ready within {n} h', 'Πιθανώς έτοιμο σε {n} ώρ.'], recCdReady: ['Likely ready', 'Πιθανώς έτοιμο'],
   recCdDays: ['About {a}–{b} days', 'Περίπου {a}–{b} ημέρες'], recCdDay1: ['About 1 day', 'Περίπου 1 ημέρα'], recCdDayN: ['About {a} days', 'Περίπου {a} ημέρες'],
 });
+
+Object.assign(S, {   // RECOVERY+ Advanced: what it learned about this person, and how its forecasts did
+  recMemT: ['What It Has Learned About You', 'Τι Έχει Μάθει Για Εσένα'],
+  recMemEmpty: ['Nothing yet: it needs repeated, comparable sets for the same lift to learn anything. Until then it uses the standard model.', 'Τίποτα ακόμα: χρειάζονται επαναλαμβανόμενα, συγκρίσιμα σετ στην ίδια άσκηση. Μέχρι τότε χρησιμοποιεί το βασικό μοντέλο.'],
+  recMemFast: ['You seem to recover about {p}% faster than the standard model', 'Φαίνεται να αναρρώνεις περίπου {p}% πιο γρήγορα από το βασικό μοντέλο'],
+  recMemSlow: ['You seem to recover about {p}% slower than the standard model', 'Φαίνεται να αναρρώνεις περίπου {p}% πιο αργά από το βασικό μοντέλο'],
+  recMemSame: ['Your recovery matches the standard model', 'Η ανάρρωσή σου ταιριάζει με το βασικό μοντέλο'],
+  recMemNone: ['Not enough informative sets yet ({n}); the standard model is used', 'Όχι αρκετά κατατοπιστικά σετ ακόμα ({n}). Χρησιμοποιείται το βασικό μοντέλο'],
+  recMemStale: ['No recent evidence: the standard model is used with a wider range', 'Καμία πρόσφατη ένδειξη: χρησιμοποιείται το βασικό μοντέλο με ευρύτερο εύρος'],
+  recMemShrunk: ['Its forecasts did worse than the standard model, so personal learning is switched off', 'Οι προβλέψεις του ήταν χειρότερες από το βασικό μοντέλο, οπότε η προσωπική μάθηση είναι ανενεργή'],
+  recMemObs: ['{a} informative sets (of {b} comparable)', '{a} κατατοπιστικά σετ (από {b} συγκρίσιμα)'], recMemGap: ['You usually train this region every ~{h} h (kept apart from recovery speed)', 'Συνήθως προπονείς αυτή την περιοχή κάθε ~{h} ώρες (ξεχωριστά από την ταχύτητα ανάρρωσης)'],
+  recEvalT: ['How Its Forecasts Did', 'Πώς Τα Πήγαν Οι Προβλέψεις'],
+  recEvalN: ['{n} forecasts were genuinely tested by a later set. Mistakes: {a} for the personal forecast, {b} for the standard model. {v}.', '{n} προβλέψεις δοκιμάστηκαν πραγματικά από ένα μεταγενέστερο σετ. Λάθη: {a} για την προσωπική πρόβλεψη, {b} για το βασικό μοντέλο. {v}.'],
+  recEvalFew: ['Too early to say: {n} forecasts tested so far ({k} saved).', 'Νωρίς για συμπέρασμα: {n} προβλέψεις δοκιμάστηκαν ({k} αποθηκευμένες).'],
+  recEv_better: ['The personal forecast is doing better', 'Η προσωπική πρόβλεψη τα πηγαίνει καλύτερα'], recEv_worse: ['The personal forecast is doing worse', 'Η προσωπική πρόβλεψη τα πηγαίνει χειρότερα'],
+  recEv_no_difference: ['No clear difference', 'Καμία σαφής διαφορά'], recEv_not_enough_evidence: ['Not enough evidence', 'Όχι αρκετές ενδείξεις'],
+  recEvalNote: ['A wide range alone does not count as better. These are checks on past forecasts, not proof of accuracy.', 'Ένα ευρύ εύρος από μόνο του δεν μετράει ως καλύτερο. Είναι έλεγχοι σε παλιές προβλέψεις, όχι απόδειξη ακρίβειας.'],
+});

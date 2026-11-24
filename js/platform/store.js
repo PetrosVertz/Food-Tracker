@@ -30,6 +30,7 @@ const Store = (() => {
     athleteMem: ['ft.athletemem.v1', 'one', 0],   // Athlete OS: notes the user told a coach + the decision ledger (js/athlete/memory.js); this device only, never in backups
     gymCoach: ['ft.gymcoach.v1', 'one', 0],   // Gym Coach: recent chat lines, hints already shown, past proposals and what you did with them (js/gym-intel.js); this device only, never in backups
     coachChat: ['ft.coachchat.v1', 'one', 0],   // Food Coach 2.0: the Food Coach chat kept 2 days + answer times (js/food-coach.js); this device only, never in backups
+    recJournal: ['ft.recjournal.v1', 'one', 0],   // RECOVERY+ forecast journal: forecasts as issued + the training-only comparator (js/recovery-plus.js › journal); this device only, never in backups
     profiler: ['ft.profiler.v1', 'one', 0],   // beta profiler: opens, saved RECOVERY+ forecasts, caught errors (js/profiler.js); this device only, never in backups
     aiUsage: ['ft.aiusage.v1', 'one', 0],   // Athlete OS step 1: AI request counts, tokens and timings (js/platform/ai-usage.js); this device only, no message text
     settings: ['ft.settings.v1', 'one', 0], ui: ['ft.ui.v1', 'one', 0], models: ['ft.models.v1', 'one', 0], account: ['ft.account.v1', 'one', 0],

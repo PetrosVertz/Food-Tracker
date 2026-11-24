@@ -640,6 +640,9 @@ function pickerE2E() {
   try { const out = execFileSync(process.execPath, [path.join(root, 'tools/rank-pair-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
     ok('rank pairs e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/rank-pair-e2e.js)'); }
   catch (e) { fail('rank pairs e2e: tools/rank-pair-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/recovery-memory-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
+    ok('recovery memory e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/recovery-memory-e2e.js)'); }
+  catch (e) { fail('recovery memory e2e: tools/recovery-memory-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
   try { const out = execFileSync(process.execPath, [path.join(root, 'tools/lateral-e2e.js')], { stdio: 'pipe', timeout: 300000 }).toString();
     ok('left / right e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/lateral-e2e.js)'); }
   catch (e) { fail('left / right e2e: tools/lateral-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
