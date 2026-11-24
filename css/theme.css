@@ -1247,3 +1247,10 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* Social Hub: the Friends spot (dashed, coming with accounts) */
 .pffr{padding-top:var(--s3)}
 .pffr .pfav{width:60px;height:60px;color:var(--t-muted);border:1.5px dashed var(--t-line);background:none}
+
+/* Gym Coach chats from a header robot (live workout, Start Workout): the window fills the screen; his face is in the top right corner of the title row */
+#ovCoach .coachwin.full{border-radius:0!important;box-shadow:none!important}
+#ovCoach .coachwin.full .chead{padding-top:var(--sat,12px);padding-right:var(--s3);padding-left:var(--s1);min-height:calc(56px + var(--sat,12px))}
+#ovCoach .coachwin.full .chead h2{flex:1 1 auto;min-width:0}
+#ovCoach .chrobot{flex:0 0 auto;width:46px;height:46px;display:grid;place-items:center;pointer-events:none}
+#ovCoach .coachwin.full .cbar{padding-bottom:calc(12px + var(--sab,0px))}
