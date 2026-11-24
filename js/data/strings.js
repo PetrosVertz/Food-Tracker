@@ -151,7 +151,7 @@ const S = {
  tToday:['My Food Log','Ημερολόγιο Φαγητού'], remaining:['{n} kcal left','απομένουν {n} kcal'], over:['{n} kcal over','{n} kcal πάνω'],
  gymDay:['Gym Day','Μέρα Γυμναστηρίου'], restDay:['Rest Day','Μέρα Ξεκούρασης'],
  wLegs:['Legs','Πόδια'], wUpper:['Upper','Πάνω σώμα'], wFull:['Full body','Όλο το σώμα'], wCardio:['Cardio','Αερόβια'], workoutAt:['Workout at','Ώρα προπόνησης'],
- carbTiming:['Carb timing','Κατανομή υδατανθράκων'], eaten:['Eaten','Έφαγα'], copyYesterday:['Same as Yesterday','Όπως χθες'],
+ carbTiming:['Carb timing','Κατανομή υδατανθράκων'], eaten:['Logged Foods','Καταγεγραμμένα Φαγητά'], copyYesterday:['Same as Yesterday','Όπως χθες'],
  logFab:['Log Food','Καταγραφή'], logFood:['Log food','Καταγραφή φαγητού'], logSearchPh:['Search foods and meals…','Αναζήτηση τροφίμων και φαγητών…'],
  recent:['Recent','Πρόσφατα'], leftovers:['leftovers','περισσεύματα'],
  nothingLogged:['<b>Nothing logged yet</b>Tap Log Food after you eat. Search, then the plus button logs your usual amount in one tap.','<b>Δεν έχεις καταγράψει τίποτα</b>Πάτα Καταγραφή αφού φας. Ψάξε και το κουμπί συν καταγράφει τη συνηθισμένη ποσότητα με ένα πάτημα.'],

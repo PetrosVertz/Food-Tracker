@@ -1457,9 +1457,9 @@ html.appbg *,html.appbg *::before,html.appbg *::after,.offscr,.offscr *{animatio
 #pgToday #dEatenFold>summary{margin-top:0}
 #pgToday.pinned #dEatenWrap{margin-top:calc(var(--s2) * -1)}
 #pgToday.pinned #dScroll{top:var(--sumh,36px);padding-top:2px;-webkit-mask-image:linear-gradient(#0000 0,#000 6px);mask-image:linear-gradient(#0000 0,#000 6px)}
-/* the pills slide down the way they pop up: the same spring, fully visible on the way, fading only once they are tucked in */
-:is(#fab,#fab2,.coachpill){transition:translate .42s cubic-bezier(.34,1.56,.64,1),opacity .15s}
-body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 110px;opacity:0!important;pointer-events:none;transition:translate .38s cubic-bezier(.4,0,.2,1),opacity .14s .26s}
+/* the pills slide down INTO the navigation bar (they are layered behind it) and fade out as they reach it; coming back they rise out of the bar with the same spring */
+:is(#fab,#fab2,.coachpill){transition:translate .42s cubic-bezier(.34,1.56,.64,1),opacity .12s .05s}
+body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 62px;opacity:0;pointer-events:none;transition:translate .36s cubic-bezier(.4,0,.2,1),opacity .14s .18s}
 @media (prefers-reduced-motion: reduce){ :is(#fab,#fab2,.coachpill){transition:none!important} }
 
 /* the planned workout in the Start Workout list (Advanced Week Planner): a gold star on the right */
@@ -1468,5 +1468,10 @@ body.pillsunk :is(#fab,#fab2,.coachpill):not(.pillghost){translate:0 110px;opaci
 /* the navigation bar follows the pills: scrolling the foods down shrinks it a little and lowers it; it grows back with them at the top of the list.
    One transform (it keeps its own centring), same spring on the way back */
 .rail{transform-origin:50% 100%;transition:transform .42s cubic-bezier(.34,1.56,.64,1)}
-body.pillsunk .rail{transform:translateX(-50%) translateY(10px) scale(.84);transition:transform .38s cubic-bezier(.4,0,.2,1)}
+body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transition:transform .38s cubic-bezier(.4,0,.2,1)}
 @media (prefers-reduced-motion: reduce){ .rail,body.pillsunk .rail{transition:none!important} }
+
+/* Logged Foods title: starts where the hero card's corner curve ends (so the eye isn't caught under the curve), the arrow mirrors it on the right;
+   the foods scrolling up now disappear closer to the title */
+#pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{padding-left:20px;padding-right:20px}
+#pgToday.pinned #dScroll{top:calc(var(--sumh,36px) - 2px)}
