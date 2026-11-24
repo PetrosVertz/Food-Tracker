@@ -8,12 +8,23 @@ $('backBtn').addEventListener('click', () => goBack());
 $('backBtn2').addEventListener('click', () => goBack());
 
 
-// Refinements #4: the Food Library is a hub (like Gym Buddy). Its sections share the rotating pill carousel (pillCarousel in ui.js);
-// My Meals is not built yet, so it is a dimmed Coming Soon tile and pill that cannot be opened.
-document.querySelectorAll('#fHub [data-fic]').forEach(el => { el.innerHTML = svgIcon(el.dataset.fic, 26, 1.8); });
-$('fHub').addEventListener('click', e => { const b = e.target.closest('[data-fsec]');
-  if(!b){ if(e.target.closest('.fhsoon')) Phone.haptic(); return; }
+// 0.8: the Food Library home is a bento grid (renderFoodHub in food.js). A tile opens its page; an arc of the macro ring pops a small bubble instead.
+const FH_BUB = { k: null, tm: 0 };
+function fhBubble(k){ const box = $('fhFoods').querySelector('.fring'); if(!box) return; const bub = box.querySelector('.fbub'); clearTimeout(FH_BUB.tm);
+  box.querySelectorAll('[data-seg]').forEach(a => a.classList.toggle('dim', !!k && a.dataset.seg !== k));
+  if(!k){ FH_BUB.k = null; if(!bub.classList.contains('hide')){ const done = () => { bub.classList.add('hide'); };
+      if(bub.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) bub.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.9)' }], { duration: 140 }).onfinish = done; else done(); } return; }
+  const n = foods.filter(f => foodClass(f) === k).length; FH_BUB.k = k;
+  bub.className = 'fbub k-' + k; bub.textContent = t(n === 1 ? 'fhBub1' : 'fhBub', { n, k: t('fhRich1_' + k) });
+  if(bub.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) bub.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1.06)', offset: .6 }, { opacity: 1, transform: 'scale(1)' }], { duration: 320, easing: 'cubic-bezier(.3,1.3,.6,1)' });
+  FH_BUB.tm = setTimeout(() => fhBubble(null), 2000); }
+$('fHub').addEventListener('click', e => { const seg = e.target.closest('[data-seg]');
+  if(seg){ e.stopPropagation(); Phone.haptic(); fhBubble(seg.dataset.seg); return; }
+  if(FH_BUB.k){ fhBubble(null); if(e.target.closest('.fring')) return; }
+  const b = e.target.closest('[data-fsec]'); if(!b) return;
   if(b.classList.contains('off')){ Phone.haptic(); toast(t('invOffT')); return; } go(b.dataset.fsec); });
+$('fHub').addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-fsec]')){ e.preventDefault(); e.target.click(); } });
+document.addEventListener('pointerdown', e => { if(FH_BUB.k && !e.target.closest('#fhFoods .fring')) fhBubble(null); }, true);
 const FOOD_CAR = pillCarousel($('fTabs'), {
   items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
     { key: 'fridge', label: () => t('tFridge'), off: () => !kitchenOn() }, { key: 'groc', label: () => t('tGroc'), off: () => !kitchenOn() },   // Petros: Inventory + Groceries

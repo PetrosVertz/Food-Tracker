@@ -118,7 +118,7 @@ function applyTabOrder(){
   if($('sUse')) setSeg('#sUse', ui.gymFirst ? 'gym' : 'both');
   if($('sKitchen')) $('sKitchen').checked = kitchenOn();
   if(typeof FOOD_CAR === 'object' && FOOD_CAR.refresh) FOOD_CAR.refresh();
-  if(typeof renderFoodHub === 'function' && $('fhInvN')) renderFoodHub();
+  if(typeof renderFoodHub === 'function' && $('fhFoods')) renderFoodHub();
   if(typeof pillsAll === 'function') pillsAll();
 }
 const fabBtn = (icon, label) => `<span class="fabic">${svgIcon(icon, 18, 2.4)}</span>${esc(label)}`;   // main button: line icon before the text
@@ -324,6 +324,23 @@ function switchTab(dir, toTab, to){   // to: open this page of the tab instead o
   else { addEventListener('hashchange', run, { once: true }); location.replace('#' + target); }   // 0.6.5: replace, not push — the phone's back never jumps tabs; the page swaps on hashchange, then it moves
 }
 
+// 0.8: the hub home pages (Food Library, Gym Buddy) are bento grids that fill the screen between the header and the bottom bar.
+// The title is centred with today's date under it and the streak bubble on the left; inside a section the header is as before.
+const hubDate = () => new Date().toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+function hubHead(pg, dateId, on){ const p = $(pg); if(!p) return; p.classList.toggle('bentopg', on);
+  const d = $(dateId); if(d){ d.classList.toggle('hide', !on); if(on) d.textContent = hubDate(); }
+  const b = p.querySelector('header .stkbub'); if(b) b.classList.toggle('hide', !on);
+  const hd = p.querySelector('header'), h1 = hd && hd.querySelector('h1'); if(hd) hd.classList.toggle('longtitle', on && !!h1 && h1.textContent.length > 14); }
+// does it fit? The grid is measured once in its screen-filling form and once at its natural size; when the natural size is taller than the
+// space (iPhone SE, larger text) the page falls back to normal scrolling (.bentofree). Two layout reads per draw / resize, never while moving.
+function bentoFit(pg, grid){ pg = $(pg); grid = $(grid); if(!pg || !grid || pg.classList.contains('hide') || !pg.classList.contains('bentopg')) return;
+  pg.classList.remove('bentofree'); const avail = grid.clientHeight; pg.classList.add('bentofree'); const need = grid.offsetHeight;
+  pg.classList.toggle('bentofree', need > avail + 1); }
+addEventListener('resize', () => { clearTimeout(bentoFit.tm); bentoFit.tm = setTimeout(() => { bentoFit('pgFoods', 'fBento'); bentoFit('pgGym', 'gBento'); }, 150); });
+// tiles rise in one after another (opacity + a small lift, 60 ms apart); Reduce Motion: they are simply there
+function bentoRise(box){ if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  [...box.children].forEach((el, i) => { if(el.animate && !el.classList.contains('hide')) el.animate([{ opacity: 0, transform: 'translate3d(0,14px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 420, delay: i * 60, easing: 'cubic-bezier(.3,1.25,.5,1)', fill: 'backwards' }); }); }
+
 function route(){
   let h = location.hash.slice(1);
   if(!h || h === 'start' || h === 'home'){ history.replaceState(null, '', h === 'home' ? '#foods' : homeHash()); }
@@ -343,15 +360,16 @@ function route(){
   $('fridgeView').classList.toggle('hide', fhub || tab !== 'fridge'); $('pgGroc').classList.toggle('hide', fhub || tab !== 'groc');
   $('fHub').classList.toggle('hide', !fhub); $('fTabs').classList.toggle('hide', fhub); $('backBtn').classList.toggle('hide', fhub);
   $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', meals: 'tabMeals', supps: 'tabSupps', fridge: 'tFridge', groc: 'tGroc' }[tab]);
+  hubHead('pgFoods', 'fDate', fhub);   // 0.8: bento home = centred title, date under it, streak bubble on the left; no floating buttons
   $('fScanBtn').classList.toggle('hide', !!kv);   // the barcode button is for Store-Bought foods; Inventory has its own scan button
-  if(fhub) renderFoodHub(); else if(page === 'foods' && typeof FOOD_CAR === 'object') FOOD_CAR.set(h);
+  { const fresh = fhub && !route.fhub; route.fhub = fhub; if(fhub) renderFoodHub(fresh); else if(page === 'foods' && typeof FOOD_CAR === 'object') FOOD_CAR.set(h); }
   $('storeView').classList.toggle('hide', fhub || tab !== 'store');
   $('mealsView').classList.toggle('hide', fhub || tab !== 'meals');
   $('foodSupps').classList.toggle('hide', fhub || tab !== 'supps');
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', (page === 'foods' && (tab === 'meals' || tab === 'groc') && !fhub) || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.classList.toggle('hide', (page === 'foods' && (fhub || tab === 'meals' || tab === 'groc')) || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
   { const fl = page === 'today' ? t('logFab') : tab === 'fridge' && !fhub ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   fab.dataset.action = ['today','gym'].includes(page) ? page : fhub ? 'store' : tab;

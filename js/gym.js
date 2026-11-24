@@ -1177,6 +1177,93 @@ function exInfoCustom(x, addCb, keep){
   open('ovExInfo');
 }
 
+// ---------- 0.8 (24 Nov): the Gym Buddy home is a bento grid ----------
+// Workouts (left, top) · Progress (left, below) · RECOVERY+ (right, tall) · Week Planner (full width). Start Workout is the floating pill.
+// Read-only over tpls, sessions, gymPlan; the rotating Progress stat is picked once per visit (never the same as last time: ui.gpStat).
+const GH_MAIN = ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes', 'biceps', 'triceps'];
+const ghKey = h => { const g = HEADS[h] && HEADS[h][2]; return !g || g === 'cardio' || g === 'other' ? null : g === 'arms' || g === 'core' ? h : g; };
+// sets × each muscle's share of the exercise, over every exercise of every saved workout
+function ghMuscleSets(){ const tot = {};
+  (tpls || []).forEach(tp => (tp.exercises || []).forEach(x => { const n = +x.sets || 0; if(!n || isCardio(x.exId)) return; const mu = exById(x.exId).mu || {};
+    const sum = Object.values(mu).reduce((a, b) => a + (+b || 0), 0); if(!sum) return;
+    Object.keys(mu).forEach(h => { const k = ghKey(h); if(k) tot[k] = (tot[k] || 0) + n * (+mu[h] || 0) / sum; }); }));
+  return tot; }
+// weekly training volume (kg) of the last 8 weeks, Monday to Sunday, oldest first
+function ghWeekVol(){ const w0 = Streak.monday(todayKey()), out = Array(8).fill(0);
+  sessions.forEach(s => { const d = s.date || String(s.start || '').slice(0, 10); if(!d) return;
+    const k = 7 + Math.round((new Date(Streak.monday(d) + 'T12:00:00') - new Date(w0 + 'T12:00:00')) / 6048e5); if(k >= 0 && k < 8) out[k] += +s.vol || 0; });
+  return out; }
+function ghStats(){ const out = [], wv = ghWeekVol(), a = wv.slice(0, 4).reduce((x, y) => x + y, 0), b = wv.slice(4).reduce((x, y) => x + y, 0);
+  if(a > 0 && b > 0) out.push({ key: 'vol', num: sbmPct((b / a - 1) * 100), sub: t('ghVol') });
+  const done = sessions.slice().sort((x, y) => String(y.start).localeCompare(String(x.start)));
+  for(const s of done){ const pr = (s.prs || []).filter(p => p.kind === 'w' && +p.w > 0).pop(); if(pr){ out.push({ key: 'pr', num: `${fmt(bwOut(pr.w))} ${bwU()}`, sub: t('ghPr', { n: exName(pr.exId), r: pr.r }) }); break; } }
+  let best = null; sessions.forEach(s => (s.exercises || []).forEach(x => { if(isCardio(x.exId) || exById(x.exId).e === 'bodyweight') return;
+    (x.sets || []).forEach(st => { if(st.done === false || st.warm) return; const w = +st.w || 0; if(w > 0 && (!best || w > best.w)) best = { w, r: +st.r || 0, id: x.exId }; }); }));
+  if(best) out.push({ key: 'best', num: `${fmt(bwOut(best.w))} ${bwU()}`, sub: t('ghBest', { n: exName(best.id), r: best.r }) });
+  if(sessions.length >= 10){ const m = sbmMuscles().map(sbmStat).filter(x => x && x.pct !== undefined && x.pct > 0).sort((x, y) => y.pct - x.pct)[0];
+    if(m) out.push({ key: 'mus', num: sbmPct(m.pct), sub: t('ghMus', { n: m.name }) }); }
+  return { out, wv }; }
+let GH_STAT = null;
+function ghPick(list, fresh){
+  if(!fresh && GH_STAT && list.some(x => x.key === GH_STAT)) return list.find(x => x.key === GH_STAT);
+  const pool = list.length > 1 ? list.filter(x => x.key !== ui.gpStat) : list, pick = pool[Math.floor(Math.random() * pool.length)];
+  GH_STAT = pick ? pick.key : null; if(pick && ui.gpStat !== pick.key){ ui.gpStat = pick.key; saveUI(); } return pick; }
+function ghLine(wv){ const W = 142, H = 44, mx = Math.max(...wv), lo = Math.min(...wv), rng = mx - lo || 1;
+  const P = wv.map((v, i) => [(W * i / 7).toFixed(1), (mx ? 4 + (H - 8) * (1 - (v - lo) / rng) : H - 4).toFixed(1)]);
+  return `<svg class="ghline" viewBox="-5 0 ${W + 10} ${H}" aria-hidden="true"><line x1="0" x2="${W}" y1="${H - 0.5}" y2="${H - 0.5}" class="base"/><polyline points="${P.map(p => p.join(',')).join(' ')}" class="ln"/><circle cx="${P[7][0]}" cy="${P[7][1]}" r="4" class="dot"/></svg>`; }
+const ghHead = (ic, key, right) => `<div class="bth">${ic ? `<span class="btic">${svgIcon(ic, 18, 2)}</span>` : ''}<b>${esc(t(key))}</b>${right ? `<span class="btr">${right}</span>` : ''}</div>`;
+function renderGymHub(fresh){
+  if(!$('ghLib')) return;
+  // Workouts: which muscles your saved workouts train most
+  { const tot = ghMuscleSets(), keys = Object.keys(tot).sort((a, b) => tot[b] - tot[a]), top = keys.slice(0, 4), mx = top.length ? tot[top[0]] : 1;
+    const low = GH_MAIN.filter(k => !top.includes(k)).sort((a, b) => (tot[a] || 0) - (tot[b] || 0))[0];
+    $('ghLib').innerHTML = ghHead('workouts', 'hubLib') + (top.length ? `<small class="btsub">${esc(t('ghMost'))}</small><div class="btbars">${top.map((k, i) => `<div class="btbar${i ? '' : ' acc'}"><span><em>${esc(ML(k))}</em><b>${Math.round(tot[k])}</b></span><i><u style="transform:scaleX(${(tot[k] / mx).toFixed(3)})"></u></i></div>`).join('')}</div>
+      ${low && top.length >= 2 ? `<em class="btlow">${esc(t('ghLow', { n: ML(low), v: Math.round(tot[low] || 0) }))}</em>` : ''}` : `<p class="btempty">${esc(t('ghNoTpl'))}</p>`); }
+  // Progress: one rotating stat + the 8-week volume line
+  { const st = ghStats(), s = ghPick(st.out, fresh);
+    $('ghProg').innerHTML = ghHead('progress', 'hubProg') + (s ? `<div class="btstat big"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : `<p class="btempty">${esc(t('ghNoSes'))}</p>`) +
+      (sessions.length ? `<div class="ghvol">${ghLine(st.wv)}<small class="btsub">${esc(t('ghVol8'))}</small></div>` : ''); }
+  // RECOVERY+: only the body, front and back, sliding every 5 s
+  { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 150 });
+    const side = GH_REC.side;
+    $('ghRec').innerHTML = ghHead('', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`;
+    $('ghRec').setAttribute('aria-label', t('hubRec')); ghRecArm(); }
+  renderGymWeek();
+  // the grid ends just above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
+  { const fab = $('fab'), pg = $('pgGym'); if(fab && !fab.classList.contains('hide')){ const top = fab.getBoundingClientRect().top; if(top > 0) pg.style.setProperty('--fabclear', Math.round(pg.clientHeight - top + 10) + 'px'); } }
+  [['ghLib', 'hubLib'], ['ghProg', 'hubProg'], ['ghWeek', 'hubWeek']].forEach(([id, k]) => $(id).setAttribute('aria-label', t(k)));
+  bentoFit('pgGym', 'gBento');
+  if(fresh) bentoRise($('gBento'));
+}
+// Week Planner: Mon … Sun pills (done = green tick, today = accent ring, gym day = raised grey with the gym icon, rest = dark with a dash)
+function renderGymWeek(){
+  const tk = todayKey(), twd = new Date(tk + 'T12:00:00').getDay(), monday = addDays(tk, -((twd + 6) % 7)), adv = !!ui.wpAdv, wd = t('wdShort').split(' ');
+  let n = 0;
+  const pills = [1, 2, 3, 4, 5, 6, 0].map((d, i) => { const p = gymPlan[d] || {}, date = addDays(monday, i), done = sessions.some(s => s.date === date), gym = !!p.tpl && p.tpl !== 'rest', today = d === twd;
+    if(gym || done) n++;
+    const tp = gym && p.tpl !== 'gym' ? tpls.find(x => x.id === p.tpl) : null, lab = !gym && !done ? t('restDayS') : adv ? (tp ? tp.name : t('gymL')) : t('gymL');
+    const ic = done ? svgIcon('check', 18, 3) : gym ? svgIcon('workouts', 18, 2) : '<u></u>';
+    return `<span class="wpd ${done ? 'done' : gym ? 'gym' : 'rest'}${today ? ' today' : ''}"><small>${esc((wd[d] || '').charAt(0))}</small><i>${ic}</i><em><span>${esc(lab)}</span></em></span>`; }).join('');
+  $('ghWeek').innerHTML = ghHead('calendar', 'hubWeek', `${esc(t('ghTotal'))} <b>${n}</b>`) + `<div class="wpdays">${pills}</div>`;
+  requestAnimationFrame(() => $('ghWeek').querySelectorAll('.wpd em').forEach(em => { const sp = em.firstChild, over = sp.scrollWidth - em.clientWidth;
+    em.classList.toggle('cut', over > 1 && !em.parentNode.classList.contains('today'));
+    em.classList.toggle('marq', over > 1 && em.parentNode.classList.contains('today') && !matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if(over > 1) em.style.setProperty('--mq', `-${over + 4}px`); }));
+}
+// the RECOVERY+ tile switches sides every 5 s with a slide (out to one side and fading, the other in from the other side with a slight spring).
+// Only while the Gym home shows and the app is visible; Reduce Motion = no automatic switch.
+const GH_REC = { side: 0, tm: 0 };
+function ghRecStop(){ clearTimeout(GH_REC.tm); GH_REC.tm = 0; }
+function ghRecArm(){ ghRecStop(); if(matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden) return; GH_REC.tm = setTimeout(ghRecFlip, 5000); }
+function ghRecFlip(){ GH_REC.tm = 0; const box = $('ghRec'); if(!box || document.hidden || box.offsetParent === null || $('gHub').classList.contains('hide')) return;
+  const figs = box.querySelectorAll('.ghfig'); if(figs.length < 2) return; const from = figs[GH_REC.side], to = figs[1 - GH_REC.side], dir = GH_REC.side ? -1 : 1;
+  GH_REC.side = 1 - GH_REC.side; box.querySelectorAll('.ghdots i').forEach((d, i) => d.classList.toggle('on', i === GH_REC.side));
+  to.classList.remove('off');
+  from.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: `translate3d(${-dir * 70}%,0,0)`, opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.45,0,.2,1)' }).onfinish = () => from.classList.add('off');
+  to.animate([{ transform: `translate3d(${dir * 70}%,0,0)`, opacity: 0 }, { transform: `translate3d(${-dir * 3}%,0,0)`, opacity: 1, offset: .75 }, { transform: 'translate3d(0,0,0)', opacity: 1 }], { duration: 560, easing: 'cubic-bezier(.3,1.1,.5,1)' });
+  ghRecArm(); }
+document.addEventListener('visibilitychange', () => { if(document.hidden) ghRecStop(); else if($('ghRec') && !$('gHub').classList.contains('hide') && !$('pgGym').classList.contains('hide')) ghRecArm(); });
+
 function renderGym(){
   const h = location.hash.slice(1), sec = GSEC[h] || null;
   $('gHub').classList.toggle('hide', !!sec);
@@ -1193,14 +1280,11 @@ function renderGym(){
   const gap = gapDays(), cb = comebackFactor();
   $('gBanner').innerHTML = sec ? '' : cb < 1 ? `<div class="alert" style="cursor:default">${t('cbActive', { k: sessions.filter(s => s.start > comeback.at).length + 1, p: Math.round(cb * 100) })}</div>`
     : gap !== null && gap >= 14 && !active ? `<div class="alert" style="display:block;cursor:default"><b>${t('breakT', { n: gap })}</b><br><small>${t('breakTxt', { p: Math.round(cbBase(gap) * 100), s: Math.ceil((1 - cbBase(gap)) / .05) + 1 })}</small></div>` : '';
-  if(!sec){
-    const rr = RecoveryPlus.compute(), low = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(rr.tr.groups[g].state)).length;
-    $('gMiniRec').innerHTML = `<div class="rbhead"><b><span class="ric">${svgIcon('bolt', 16, 2)}</span>${t('hubRec')}</b><span>›</span></div>` + recoveryAnatomySVG({ sex: recSex(), view: 'both', colorsByHead: recHeadColors(rr.tr), idPrefix: 'mini', maxWidth: 230 }) +
-      `<small>${!rr.tr.evidence.sessionsTotal ? t('recUnknown') : low ? t('recMid') + ' · ' + low : t('recReady')}</small>`;
-    $('hubLibSub').textContent = tpls.length === 1 ? t('hubLibSub1') : t('hubLibSub', { n: tpls.length });
-  }
+  hubHead('pgGym', 'gDate', !sec);   // 0.8: bento home header (ui.js)
+  { const shown = !$('pgGym').classList.contains('hide'), st = !sec && shown ? 'hub' : 'away', fresh = st === 'hub' && renderGym.st !== 'hub'; renderGym.st = st;
+    if(st === 'hub') renderGymHub(fresh); else ghRecStop(); }   // drawn only while it shows (renderAll runs on every page)
   renderGymPlan(); renderTpls(); renderProgress(); if(sec === 'rec') renderRecovery();
-  $('gOther').classList.toggle('hide', !!active || !tp || $('gStart').classList.contains('hide'));
+  $('gOther').classList.toggle('hide', !sec || !!active || !tp || $('gStart').classList.contains('hide'));   // 0.8: the home has only the Start Workout pill
 }
 
 // ---------- Workout Done ----------

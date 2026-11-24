@@ -13,7 +13,7 @@ function portion(f){
   return { mode, amt: 100, label: t('per100Label', { u: f.unit }), size: '' };
 }
 
-function renderAll(){ render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec();
+function renderAll(){ render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec(); drawStkBubs();
   const fab = $('fab'); if(fab.dataset.action === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   syncFab2(); }
 
@@ -23,16 +23,88 @@ function syncFab2(){ const a = $('fab').dataset.action, hid = $('fab').classList
   const scan = l => `<span class="fabic">${svgIcon('scan', 18)}</span>${esc(l)}`;
   if(on && a === 'fridge'){ $('fab2').innerHTML = scan(t('scanReceipt')); $('fab').textContent = t('addFridgeFab'); } else $('fab2').innerHTML = scan(t('scanFoodFab')); }
 
-// Refinements #4: the counts under the Food Library hub tiles
-function renderFoodHub(){
-  $('fhStoreN').textContent = foods.length === 1 ? t('nFood') : t('nFoods', { n: foods.length });
-  $('fhRecN').textContent = meals.length === 1 ? t('nRecipe1') : t('nRecipes', { n: meals.length });
-  $('fhSuppN').textContent = supps.length === 1 ? t('nSupp1') : t('nSupps', { n: supps.length });
-  // Petros: Inventory and Groceries tiles (greyed out while Settings › Tabs › Inventory is off)
-  const on = kitchenOn(), inv = on ? liveItems().length : 0, gr = on ? groc.filter(g => !g.done).length : 0;
-  $('fhInvN').textContent = !on ? t('invOff') : inv ? t('fridgeSubOk', { n: inv }) : t('fridgeSubEmpty');
-  $('fhGrocN').textContent = !on ? t('invOff') : gr ? t('grocSub', { n: gr }) : t('grocSubEmpty');
+// 0.8 (24 Nov): the Food Library home is a bento grid. Six tiles, each a live preview of its own page (tap = that page).
+// Everything here only READS saved data. The rotating Foods stat is picked once per visit (never the same as last time: ui.fhStat).
+const FH_KIT = { p: ['meat', 'fish', 'eggs', 'legumes'], d: ['dairy'], c: ['rice', 'pasta', 'bread'], v: ['veg', 'fruit'] };
+// where most of a food's calories come from: protein ×4, carbs ×4, fat ×9 (null: no macros, e.g. water)
+function foodClass(f){ const p = (+f.protein || 0) * 4, c = (+f.carbs || 0) * 4, fa = (+f.fat || 0) * 9;
+  if(p + c + fa <= 0) return null; return p >= c && p >= fa ? 'p' : c >= fa ? 'c' : 'f'; }
+const fhMonth = () => todayKey().slice(0, 7);
+// times each saved thing was logged this month: { refId: n } for one kind ('food' / 'meal')
+function fhLogged(kind){ const m = fhMonth(), n = {};
+  Object.keys(dayLog).forEach(d => { if(d.slice(0, 7) !== m) return; (dayLog[d] || []).forEach(e => { if(e.kind === kind && e.refId) n[e.refId] = (n[e.refId] || 0) + 1; }); });
+  return n; }
+const fhIco = k => `<span class="btic">${svgIcon(k, 18, 2)}</span>`;
+const fhHead = (ic, key, right) => `<div class="bth">${fhIco(ic)}<b>${esc(t(key))}</b>${right ? `<span class="btr">${right}</span>` : ''}</div>`;
+// a small progress ring (Recipes, Shopping List): a of b, coloured stroke on the inner track
+function fhMiniRing(a, b, cls){ const R = 18, C = 2 * Math.PI * R, f = b ? Math.min(1, a / b) : 0;
+  return `<span class="btring ${cls || ''}"><svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="${R}" class="trk"/>${f ? `<circle cx="22" cy="22" r="${R}" class="val" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 22 22)"/>` : ''}</svg><b>${a}/${b}</b></span>`; }
+// the rotating Foods stat: every one that has something to say; then one at random, never the last one shown
+function fhStats(){
+  const out = [], cls = { p: 0, c: 0, f: 0 }; foods.forEach(f => { const k = foodClass(f); if(k) cls[k]++; });
+  ['p', 'c', 'f'].forEach(k => { if(cls[k]) out.push({ key: 'n' + k, num: String(cls[k]), sub: t('fhRich_' + k) }); });
+  const best = foods.filter(f => +f.kcal >= 20 && +f.protein > 0).map(f => ({ f, v: +f.protein / +f.kcal * 100 })).sort((a, b) => b.v - a.v)[0];
+  if(best) out.push({ key: 'ppc', num: `${fmt(Math.round(best.v * 10) / 10)} g`, sub: t('fhPerKcal', { n: foodName(best.f) }) });
+  const ok = foods.filter(f => f.checked).length; if(foods.length) out.push({ key: 'chk', num: String(ok), sub: t('fhChecked', { n: foods.length - ok }) });
+  const lg = fhLogged('food'), top = Object.keys(lg).map(id => [foods.find(f => f.id === id), lg[id]]).filter(x => x[0]).sort((a, b) => b[1] - a[1])[0];
+  if(top) out.push({ key: 'top', num: `${top[1]}×`, sub: foodName(top[0]), big: true });
+  const nw = foods.filter(f => f.createdAt).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  if(nw) out.push({ key: 'new', num: fmtDate(nw.createdAt), sub: t('fhNewest', { n: foodName(nw) }) });
+  return { out, cls };
+}
+let FH_STAT = null;
+function fhPick(list, fresh){
+  if(!fresh && FH_STAT && list.some(x => x.key === FH_STAT)) return list.find(x => x.key === FH_STAT);
+  const pool = list.length > 1 ? list.filter(x => x.key !== ui.fhStat) : list, pick = pool[Math.floor(Math.random() * pool.length)];
+  FH_STAT = pick ? pick.key : null; if(pick && ui.fhStat !== pick.key){ ui.fhStat = pick.key; saveUI(); } return pick; }
+// the macro ring: one arc per class (protein / carbs / fat), a small gap between them; tap an arc = a bubble (wire/02)
+function fhRing(cls){ const tot = cls.p + cls.c + cls.f, R = 46, C = 2 * Math.PI * R, gap = tot && [cls.p, cls.c, cls.f].filter(Boolean).length > 1 ? 7 : 0;
+  let off = 0; const arcs = tot ? ['p', 'c', 'f'].filter(k => cls[k]).map(k => { const len = C * cls[k] / tot, d = Math.max(.5, len - gap);
+    const a = `<circle cx="60" cy="60" r="${R}" class="seg s-${k}" data-seg="${k}" stroke-dasharray="${d.toFixed(1)} ${C.toFixed(1)}" stroke-dashoffset="${(-off - gap / 2).toFixed(1)}"/>`; off += len; return a; }).join('') : '';
+  return `<div class="fring" aria-label="${esc(t('fhRingA', { p: cls.p, c: cls.c, f: cls.f }))}"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" class="trk"/><g transform="rotate(-90 60 60)">${arcs}</g></svg>
+    <span class="fringt"><b>${esc(t('fhSplit'))}</b><small>${esc(t('fhSplit2'))}</small></span><span class="fbub hide" aria-live="polite"></span></div>`; }
+// Supps: a day counts when every daily supplement was taken (training-day / when-needed ones never break it)
+function suppDayState(d){ const need = supps.filter(s => s.often !== 'training' && s.often !== 'needed'), L = need.length ? need : supps;
+  if(!L.length) return 'none'; const n = L.filter(s => takesOf(d, s.id).length).length; return n === L.length ? 'done' : n ? 'part' : 'miss'; }
+function suppStreak(){ let d = todayKey(), n = 0; if(suppDayState(d) !== 'done') d = addDays(d, -1);
+  for(let i = 0; i < 3650 && suppDayState(d) === 'done'; i++){ n++; d = addDays(d, -1); } return n; }
+// Recipes: the saved recipe you can cook now with the most of its ingredients in My Fridge
+function fhCookable(){ const ids = r => r && r.type === 'my' ? r.id : r && r.type === 'gen' ? ((foods.find(f => f.gid === r.id) || {}).id || null) : null;
+  return meals.filter(m => (m.ingredients || []).some(i => i.ref)).map(m => { const ing = m.ingredients.filter(i => i.ref), miss = ing.filter(i => { const id = ids(i.ref); return !id || stockOf(id) <= 0; });
+    return { m, have: ing.length - miss.length, of: ing.length, miss }; }).sort((a, b) => (b.have / b.of) - (a.have / a.of) || (b.m.timesCooked || 0) - (a.m.timesCooked || 0))[0] || null; }
+
+function renderFoodHub(fresh){
+  if(!$('fhFoods')) return;
+  const on = kitchenOn(), empty = (k, ic) => `<p class="btempty">${esc(t(k))}</p>`;
+  // Foods
+  { const st = fhStats(), s = fhPick(st.out, fresh);
+    $('fhFoods').innerHTML = `<div class="btcol">${fhHead('bag', 'tabStore')}${foods.length ? `<div class="bthero"><b class="btnum">${foods.length}</b><span>${esc(t(foods.length === 1 ? 'fhSaved1' : 'fhSaved'))}</span></div>
+      ${s ? `<div class="btstat${s.big ? ' big' : ''}"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : ''}` : empty('fhNoFoods')}</div>${foods.length ? fhRing(st.cls) : ''}`;
+    $('fhFoods').setAttribute('aria-label', t('tabStore')); }
+  // Meals: top 3 by times logged this month
+  { const lg = fhLogged('meal'), top = Object.keys(lg).map(id => [meals.find(m => m.id === id), lg[id]]).filter(x => x[0]).sort((a, b) => b[1] - a[1]).slice(0, 3), mx = top.length ? top[0][1] : 1;
+    $('fhMeals').innerHTML = fhHead('bowl', 'tabMyMeals', top.length ? esc(t('fhMonthL')) : '') + (top.length ? `<div class="btbars">${top.map(([m, n], i) => `<div class="btbar"><span><em>${esc(m.name)}</em><b>${n}×</b></span><i><u style="transform:scaleX(${(n / mx).toFixed(3)})"></u></i></div>`).join('')}</div>` : empty(meals.length ? 'fhNoMealsMonth' : 'fhNoMeals')); }
+  // Supps: streak, last 7 days, left today
+  { const d0 = todayKey(), tp = todayProgress(), left = Math.max(0, supps.filter(s => s.often !== 'training' && s.often !== 'needed').filter(s => !takesOf(d0, s.id).length).length);
+    const wd = t('wdShort').split(' '), dots = Array.from({ length: 7 }, (_, i) => { const d = addDays(d0, i - 6), st = suppDayState(d), dw = new Date(d + 'T12:00:00').getDay();
+      return `<span class="sdot ${st}${i === 6 ? ' today' : ''}"><i></i><small>${esc((wd[dw] || '').charAt(0))}</small></span>`; }).join('');
+    $('fhSupps').innerHTML = fhHead('capsule', 'tabSupps', supps.length && tp.total ? esc(left ? t('fhLeft', { n: left }) : t('fhAllTaken')) : '') + (supps.length ? `<div class="bthero"><b class="btnum">${suppStreak()}</b><span>${esc(t('fhDayStreak'))}</span></div><div class="sdots">${dots}</div>` : empty('fhNoSupps')); }
+  // Recipes: one you can cook now
+  { const r = fhCookable();
+    $('fhRecipes').innerHTML = fhHead('pot', 'tabMeals') + (r ? `<div class="btringrow">${fhMiniRing(r.have, r.of, 'acc')}<span class="btsub">${esc(t('fhInFridge'))}</span></div><b class="btname">${esc(r.m.name)}</b><span class="btsub">${esc(r.miss.length ? t('fhMissing', { x: r.miss.map(i => i.ref.name).slice(0, 2).join(', ') }) : t('fhReady'))}</span>`
+      : empty(meals.length ? 'fhNoIng' : 'fhNoRecipes')); }
+  // Shopping List
+  { const tot = groc.length, done = groc.filter(g => g.done).length, next = groc.filter(g => !g.done).slice(0, 2);
+    $('fhGroc').innerHTML = fhHead('cart', 'tGroc') + (!on ? empty('invOff') : tot ? `<div class="btringrow">${fhMiniRing(done, tot, 'ok')}<span class="btsub">${esc(tot - done ? t('fhToBuy', { n: tot - done }) : t('fhAllBought'))}</span></div><div class="btlist">${next.map(g => `<span>${esc(g.name)}${g.size ? ' ' + esc(fmtSize(g.size, g.unit || 'g')) : ''}${g.count > 1 ? ' ×' + g.count : ''}</span>`).join('')}</div>` : empty('fhNoGroc')); }
+  // My Fridge: count, stacked bar by kind, low items in amber
+  { const L = on ? liveItems() : [], cnt = { p: 0, d: 0, c: 0, v: 0 }; L.forEach(x => { const c = x.info.food && x.info.food.cat; Object.keys(FH_KIT).forEach(k => { if(FH_KIT[k].includes(c)) cnt[k]++; }); });
+    const sum = cnt.p + cnt.d + cnt.c + cnt.v, low = [...new Set(L.filter(x => x.info.food && +x.info.food.minStock > 0 && stockOf(x.info.food.id) < +x.info.food.minStock).map(x => x.info.name))];
+    $('fhInv').innerHTML = fhHead('fridge', 'tFridge', low.length ? `<em class="btlow">${esc(t('fhLow', { x: low.slice(0, 2).join(', ') }))}</em>` : '') + (!on ? empty('invOff') : L.length ? `<div class="bthero"><b class="btnum">${L.length}</b><span>${esc(t(L.length === 1 ? 'fhItem1' : 'fhItems'))}</span></div>
+      ${sum ? `<div class="fstack">${['p', 'd', 'c', 'v'].filter(k => cnt[k]).map(k => `<i class="k-${k}" style="flex:${cnt[k]}"></i>`).join('')}</div><div class="flegend">${['p', 'd', 'c', 'v'].filter(k => cnt[k]).map(k => `<span><i class="k-${k}"></i>${esc(t('fhKind_' + k))} ${cnt[k]}</span>`).join('')}</div>` : ''}` : empty('fhNoFridge')); }
   ['fhInv', 'fhGroc'].forEach(id => { $(id).classList.toggle('off', !on); $(id).setAttribute('aria-disabled', String(!on)); });
+  [['fhMeals', 'tabMyMeals'], ['fhSupps', 'tabSupps'], ['fhRecipes', 'tabMeals'], ['fhGroc', 'tGroc'], ['fhInv', 'tFridge']].forEach(([id, k]) => $(id).setAttribute('aria-label', t(k)));
+  bentoFit('pgFoods', 'fBento');
+  if(fresh) bentoRise($('fBento'));
 }
 
 // ======================= store-bought list =======================

@@ -223,6 +223,11 @@ function streakLine(v, card){
   if(k === 'last') return t('stkLastNew');
   return t(w.need === 1 ? 'stkOneNew' : 'stkOn', { n: w.need, d: w.open });
 }
+// 0.8: the streak bubble in the top left of My Food Log, Food Library and Gym Buddy: the shield with the flame inside, and the number
+const STK_BUB_ICON = () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${STK_SHIELD}<g transform="translate(7.4 7.6) scale(.38)" fill="currentColor" stroke="none">${ICON.flame}</g></svg>`;
+function drawStkBubs(){ const bs = document.querySelectorAll('.stkbub'); if(!bs.length) return; let v; try{ v = Streak.view(); }catch(e){ return; }
+  const html = `<span class="stkbi">${STK_BUB_ICON()}</span><b>${v.total}</b>`, lab = streakLabel(v);
+  bs.forEach(b => { if(b.innerHTML !== html) b.innerHTML = html; b.setAttribute('aria-label', lab); }); }
 function openStreak(intro){ drawStreak(intro); $('toast').classList.remove('show'); open('ovStreak');
   if(!(ui.stk && ui.stk.intro)){ ui.stk = Object.assign({}, ui.stk, { intro: 1 }); saveUI(); } }
 function drawStreak(intro){
