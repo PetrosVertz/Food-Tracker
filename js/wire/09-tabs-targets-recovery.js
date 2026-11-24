@@ -12,6 +12,7 @@ addEventListener('resize', () => markRail(tabOf(location.hash.slice(1))));
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') hubLeave(); else hubReturn(); });
 addEventListener('pagehide', hubLeave);
 $('fScanBtn').addEventListener('click', () => startScan());
+$('tScanBtn').addEventListener('click', () => startScan('log'));   // My Food Log: a scanned food opens the amount sheet to log it
 $('suppAddBtn').addEventListener('click', () => openSupp(null));
 
 // 0.7.2: no more pulling past the end of a page to change tabs; the bottom bar does it

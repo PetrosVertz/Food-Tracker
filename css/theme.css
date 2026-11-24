@@ -16,9 +16,9 @@
 
   /* elevation, dark (Phones.dc.html BASE.dark) */
   --t-bg:#000000; --t-card:#161718; --t-card2:#1d1e20; --t-sel:#26282b; --t-press:#2e3034;
-  --t-line:#2c2e31; --t-edge:rgba(255,255,255,.06); --t-track:#242628; --t-off:#27292c;
+  --t-line:#2c2e31; --t-edge:rgba(255,255,255,.04); --t-track:#242628; --t-off:#27292c;
   --t-text:#eef0f2; --t-muted:#8d9399; --t-clock:#ffffff;
-  --t-glass:rgba(26,27,29,.72); --t-glass-edge:rgba(255,255,255,.08); --t-scrim:rgba(0,0,0,.5);
+  --t-glass:rgba(26,27,29,.72); --t-glass-edge:rgba(255,255,255,.05); --t-scrim:rgba(0,0,0,.5);
   --t-glass-btn:rgba(255,255,255,.07); --t-glass-btn-edge:rgba(255,255,255,.10);
   --t-tick-idle:#6b7178; --t-tick-edge:#3a3d41; --t-shadow:none;
 
@@ -1277,8 +1277,8 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 .bt:active{transform:scale(.97)}
 .bt:focus-visible{outline:2px solid var(--t-accent);outline-offset:2px}
 .bt.off{opacity:.45}
-.bth{display:flex;align-items:center;gap:var(--s2);min-width:0;height:20px}
-.bth>b{font-size:var(--fs-body);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bth{display:flex;align-items:center;gap:var(--s2);min-width:0;height:22px}
+.bth>b{font-size:calc(var(--fs-body) + 1px);font-weight:var(--w-bold);color:var(--t-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .btic{display:flex;color:var(--t-muted);flex:0 0 auto}
 .btr{margin-left:auto;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);white-space:nowrap;flex:0 0 auto}
 .btr b{color:var(--t-text);font-weight:800;font-style:italic;margin-left:2px}
@@ -1386,7 +1386,16 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 section.page.bentopg>header{height:calc(var(--hpad) + 70px)}
 section.page.bentopg>header.longtitle .left h1{font-size:22px!important}
 section.page>header .hdate{position:absolute!important;left:0;right:0;top:calc(var(--hpad) + 42px);margin:0;text-align:center;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);pointer-events:none;white-space:nowrap}
-.bentopg #fScanBtn{width:48px;height:48px;flex-basis:48px;border-radius:50%;background:var(--t-card)!important;border:1px solid var(--t-glass-edge)!important}
+.scanpill{display:inline-flex;align-items:center;gap:6px;height:36px;width:60px;padding:0;justify-content:center;flex:0 0 60px;border-radius:var(--r-pill);background:var(--t-card)!important;border:1px solid var(--t-glass-edge)!important;color:var(--t-text);font-family:var(--font);font-size:var(--fs-body);font-weight:var(--w-bold);cursor:pointer;align-self:center}
+.scanpill svg{color:var(--t-accent-ink,var(--t-accent))}
+/* My Food Log: the title keeps clear of the streak bubble and the Scan pill (shrinks in Greek) */
+/* streak bubble and Scan pill are the same size (60 x 36) on the two pages that have both */
+#pgToday>header .stkbub,#pgFoods>header .stkbub{width:60px;height:36px;padding:0;justify-content:center;flex:0 0 60px}
+#pgToday>header .left h1,#pgFoods>header .left h1{padding:0 72px!important}
+#pgToday>header .left h1{font-size:22px!important}
+:lang(el) #pgToday>header .left h1{font-size:19px!important}
+@media (max-width:340px){#pgToday>header .left h1,#pgFoods>header .left h1{font-size:18px!important}}
+section.page>header .hbtns{align-items:center}
 .stkbub{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px 0 8px;border-radius:var(--r-pill);flex:0 0 auto;
   background:var(--t-card)!important;border:1px solid var(--t-glass-edge)!important;color:var(--t-text);cursor:pointer}
 .stkbub .stkbi{display:flex;color:var(--t-accent-ink,var(--t-accent))}
