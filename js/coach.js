@@ -112,7 +112,11 @@ Return ONLY JSON: {"reply": string}`, img);
   }
   function head(){ $('coachT').textContent = title(cur);   // 0.7.9.2: no robot face in the title (it is the bubble, and beside its answers)
     const f = cfg(cur), ph = val(f.placeholder) || t('coachPh'); $('coachIn').placeholder = ph; $('coachIn').setAttribute('aria-label', ph);
-    $('coachCam').classList.toggle('hide', !f.camera); $('coachForm').classList.toggle('cam', !!f.camera); }
+    $('coachCam').classList.toggle('hide', !f.camera); $('coachForm').classList.toggle('cam', !!f.camera);
+    // the Gym Coach chats opened from a header robot fill the screen; his face sits in the top right corner of the title row
+    const hd = document.querySelector('#ovCoach .chead'); let rb = hd.querySelector('.chrobot');
+    if(HEAD(cur)){ if(!rb){ rb = document.createElement('span'); rb.className = 'chrobot'; rb.setAttribute('aria-hidden', 'true'); hd.appendChild(rb); } if(!rb.firstChild) rb.innerHTML = AI.robot(kindOf(cur), 46); }
+    else if(rb) rb.remove(); }
 
   // ---- the box: grows with the text up to about 6 lines; send is dimmed until there is something to send ----
   function grow(){ const ta = $('coachIn'); ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 6 * 21 + 22) + 'px';
@@ -201,15 +205,17 @@ Return ONLY JSON: {"reply": string}`, img);
   const M = 12, WMAX = 560, HMIN = 320;
   function lay(){ const ov = $('ovCoach'), sh = ov && ov.querySelector('.sheet'); if(!sh || !cur) return;
     const W = ov.clientWidth, H = ov.clientHeight, sa = safe(), kb = ov.classList.contains('kb'), y0 = (kb ? 0 : sa.t) + M, y1 = H - (kb ? 0 : sa.b) - M, oy = ov.getBoundingClientRect().top;
-    const w = Math.min(W - 2 * M, WMAX), b = !HEAD(cur) && $('cb-' + cur); let x, top, side = 'r', ax = W - M - 34, ay = y0;
+    let w = Math.min(W - 2 * M, WMAX); const b = !HEAD(cur) && $('cb-' + cur); let x, top, side = 'r', ax = W - M - 34, ay = y0;
     if(b){ const bw = b.offsetWidth || 60; spot = { x: W - M - bw, y: oy + y0 }; ax = spot.x + bw / 2; ay = y0 + bw / 2;   // the fixed top right spot
       if(b._up && !b.getAnimations().length) b.style.transform = tr(spot.x - b.offsetLeft, spot.y - b.offsetTop); }   // the keyboard moved the corner: the bubble stays on it
     else if(anc && anc.isConnected && anc.getClientRects().length){ const r = anc.getBoundingClientRect(); ax = r.left + r.width / 2; ay = r.top + r.height / 2 - oy; side = ax < W / 2 ? 'l' : 'r'; }
     x = side === 'r' ? Math.min(W - M, ax + 34) - w : Math.max(M, ax - 34); x = Math.max(M, Math.min(W - M - w, x));
     top = Math.max(y0, Math.min(ay, y1 - HMIN));   // hang from the bubble (or the header robot), down to the bottom margin
-    sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (y1 - top) + 'px';
+    if(HEAD(cur)){ x = 0; top = 0; sh.style.left = '0px'; sh.style.top = '0px'; sh.style.width = W + 'px'; sh.style.height = H + 'px';   // full screen
+      sh.style.setProperty('--sat', (kb ? 0 : sa.t) + 'px'); sh.style.setProperty('--sab', (kb ? 0 : sa.b) + 'px'); w = W; }
+    else{ sh.style.left = x + 'px'; sh.style.top = top + 'px'; sh.style.width = w + 'px'; sh.style.height = (y1 - top) + 'px'; }
     sh.style.transformOrigin = `${(ax - x).toFixed(1)}px ${(ay - top).toFixed(1)}px`;   // grows from / shrinks into the bubble's centre
-    sh.classList.toggle('al', side === 'l'); sh.classList.toggle('nb', !b); }
+    sh.classList.toggle('al', side === 'l' && !HEAD(cur)); sh.classList.toggle('nb', !b); sh.classList.toggle('full', HEAD(cur)); }
   function bubble(id){
     let b = $('cb-' + id); if(b) return b; const k = kindOf(id);
     b = document.createElement('button'); b.type = 'button'; b.id = 'cb-' + id; b.className = 'aibub coachbub r' + k; b.dataset.coach = id;

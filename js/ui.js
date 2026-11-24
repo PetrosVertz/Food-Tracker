@@ -805,7 +805,7 @@ function tabIdx(tab){ return tab === 'profile' ? TABS3.length : TABS3.indexOf(ta
 // swipe right-to-left past 1/3 (or a quick flick) to delete: finger on a phone, mouse drag on a computer. 0.7.9.1: on the shared
 // drag helper: the row follows the finger 1:1, then carries on out with the finger's speed or springs back home
 function makeSwipeDelete(box, itemSel, onDelete, opts){
-  opts = opts || ({ '.exc': { skip: '.setrow,.rbwrap,.sethead,.newset,.endex2,.adddrop,.exdone,.wuhint,.expills' }, '.setrow': { buttons: true } })[itemSel] || {};
+  opts = opts || ({ '.exc': { skip: '.setrow,.rbwrap,.sethead,.newset,.endex2,.adddrop,.exdone,.expills' }, '.setrow': { buttons: true } })[itemSel] || {};
   const ok = t => !t.closest(opts.buttons ? 'input,textarea,select' : 'input,textarea,select,button,.stepper,.sbox') && !(opts.skip && t.closest(opts.skip));
   let w = 0;
   dragger(box, { axis: 'x', slop: 10,
