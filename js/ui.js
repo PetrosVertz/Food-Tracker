@@ -192,7 +192,7 @@ function toast(msg, actLabel, act){
   if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { $('toast').classList.remove('show'); act(); }; }
   else { b.classList.add('hide'); b.onclick = null; }
   $('toast').classList.add('show'); clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 5000 : 2200);
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 7000 : 4200);
 }
 
 // ---------- 0.7.4.3 no AI key: every AI control is greyed out; tapping one says a key is needed, with a button to Settings › AI ----------
