@@ -1514,3 +1514,9 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 
 /* the Workout / Resume pill on the Gym Day / Rest Day line: smaller, hugging its word */
 #dBlocks .gdline .gymstartbtn{height:28px;padding:0 12px;font-size:13px;line-height:1;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0}
+
+/* pop-up icon: a small round badge on the left saying where the message comes from (ui.js toastKind) */
+.toast .toastic{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--t-bg) 12%,transparent);color:var(--t-toast-act,#3d6b00)}
+.toast{justify-content:flex-start!important;gap:10px!important;padding-left:10px!important}
+.toast #toastMsg{flex:1;min-width:0}
+.toast:has(#toastAct.hide){text-align:left}
