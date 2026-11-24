@@ -105,7 +105,7 @@ function claudeText(){
 // Only when it overflows; off with Reduce Motion. The text is wrapped in <span class="tk"><span class="tki" data-tk="…">, the repeat is a CSS ::after (so textContent stays the same).
 (() => {
   const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button,section.page>header h1,.btstat.big span,.wpd em';
-  const GAP = 32, SPEED = 32, rm = matchMedia('(prefers-reduced-motion: reduce)');
+  const GAP = 32, SPEED = 32, SLOW = 18, rm = matchMedia('(prefers-reduced-motion: reduce)');
   const unwrap = el => { const i = el.querySelector(':scope>.tk>.tki'); if(!i) return; const k = i.parentNode; while(i.firstChild) el.insertBefore(i.firstChild, k); k.remove(); el.classList.remove('tkon'); };
   function tick(el){
     if(el.closest('.tk') || !el.isConnected) return;
@@ -119,9 +119,9 @@ function claudeText(){
     const w = i.scrollWidth; if(w <= k.clientWidth + 1){ unwrap(el); return; }
     i.dataset.w = w;
     if([...i.childNodes].some(n => n.nodeType === 1)){   // an icon or badge inside: glide to the end and back instead of looping
-      i.classList.add('tkalt'); i.style.setProperty('--tkd', -(w - k.clientWidth + 6) + 'px'); i.style.setProperty('--tkt', Math.max(2, (w - k.clientWidth) / SPEED * 1.6).toFixed(2) + 's'); return; }
+      i.classList.add('tkalt'); i.style.setProperty('--tkd', -(w - k.clientWidth + 6) + 'px'); i.style.setProperty('--tkt', Math.max(2, (w - k.clientWidth) / (el.matches('.wpd em') ? SLOW : SPEED) * 1.6).toFixed(2) + 's'); return; }
     i.dataset.tk = i.textContent.replace(/\s+/g, ' ').trim();
-    i.style.setProperty('--tkd', -(w + GAP) + 'px'); i.style.setProperty('--tkt', ((w + GAP) / SPEED).toFixed(2) + 's'); }
+    i.style.setProperty('--tkd', -(w + GAP) + 'px'); i.style.setProperty('--tkt', ((w + GAP) / (el.matches('.wpd em') ? SLOW : SPEED)).toFixed(2) + 's'); }
   // Changed elements are only collected here (a page change toggles classes on many big sections at once); once per frame each subtree is
   // scanned once (a root inside another collected root is skipped) and hidden subtrees are skipped (tick() is a no-op at 0 width; showing
   // them again is itself a class change, so they are scanned then). Measured: the old scan inside the observer was ~30 % of a Gym section change.

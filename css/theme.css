@@ -1153,6 +1153,8 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 :root{--lb-gold:var(--tier-gold-ink,#f2c14e);--lb-silver:var(--tier-silver-ink,#c4ccd6);--lb-bronze:var(--tier-bronze-ink,#d9a070)}
 /* Petros: the lift pills are the shared rotating carousel (.pcar), like Gym and Food Library */
 .lbcar.pcar{margin:0 0 var(--s3)}
+.lbcar .pcrow>button b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center;max-width:100%}
+.lbcar.meas .pcrow>button b{white-space:nowrap;display:block}
 .lblist{padding:4px var(--s3) var(--s3);transition:opacity .14s ease,transform .14s ease}
 .lblist.lbout{opacity:0;transform:translateY(4px)}
 .lblist.lbin{animation:lbIn .22s ease both}
@@ -1472,8 +1474,8 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 /* ======================= 0.8 (24 Nov): My Food Log top line ======================= */
 /* Same as Yesterday: a smaller round button right beside the Logged Foods title (it is only there while nothing is logged; once a food is logged the count takes its place) */
 #dEatenN{margin-right:0}
-#dEatenFold>summary .eyest{width:30px;height:30px;border-radius:50%;margin-left:var(--s2);flex:0 0 auto;position:relative;top:3px}
-#dEatenFold>summary .eyest svg{width:17px;height:17px}
+#dEatenFold>summary .eyest{width:26px;height:26px;border-radius:50%;margin-left:var(--s2);flex:0 0 auto;position:relative;top:0;align-self:center}
+#dEatenFold>summary .eyest svg{width:15px;height:15px}
 #dEatenFold>summary::after{margin-left:auto!important}
 /* the gym / rest day line: the label a little bigger and moved away from the dumbbell; Skip + a Workout bubble on the right */
 #dBlocks .gdline{gap:var(--s3)}
