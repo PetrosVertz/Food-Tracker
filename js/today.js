@@ -448,6 +448,10 @@ Return ONLY JSON: {"name":string (short name in ${lang === 'el' ? 'Greek' : 'Eng
 function delQuick(){ if(!QA) return; const l = dayLog[curDay] || [], i = l.indexOf(QA); if(i > -1){ l.splice(i, 1); saveLog(); } close('ovQuick'); renderAll(); }
 
 // ---------- Today: just gym or rest; a small reminder instead of time + type fields ----------
+// 0.8 (24 Nov): the top of My Food Log (gym-day line + hero card) stays put and only the Eaten list scrolls. When the top takes too much of
+// the screen (small phone, Advanced open, larger text) the whole page scrolls as before. One layout read per change (ResizeObserver), never while moving.
+function todayFit(){ const pg = $('pgToday'), w = $('dEatenWrap'); if(!pg || !w || pg.classList.contains('hide')) return;
+  const room = pg.clientHeight - w.offsetTop; pg.classList.toggle('pinned', room >= 240); }
 function renderToday(){
   const d = curDay, di = dayInfo(d), tg = targetFor(d), tot = dayTotals(d), entries = (dayLog[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   const diff = daysUntil(d);

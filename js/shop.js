@@ -29,6 +29,7 @@ function grocTick(g){
   if(f){ const known = g.size || f.usualPack, n = known ? Math.max(1, g.count || 1) : 1;
     g.fids = putPacks(f, known || guessPack(f), n, !known); if(known) learnPack(f.id, known, n);
     toast(t('tickedIn', { n: foodName(f) })); }
+  else if(!g.foodId && g.name){ const nm = g.name; setTimeout(() => toast(t('grocMakeFood', { n: nm }), t('grocMakeBtn'), () => openForm({ name: nm }, null, 'new')), 0); }   // 0.8: a plain text item can become a proper food
   saveGroc(); renderAll();
 }
 

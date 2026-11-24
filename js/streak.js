@@ -228,6 +228,12 @@ const STK_BUB_ICON = () => `<svg width="22" height="22" viewBox="0 0 24 24" fill
 function drawStkBubs(){ const bs = document.querySelectorAll('.stkbub'); if(!bs.length) return; let v; try{ v = Streak.view(); }catch(e){ return; }
   const html = `<span class="stkbi">${STK_BUB_ICON()}</span><b>${v.total}</b>`, lab = streakLabel(v);
   bs.forEach(b => { if(b.innerHTML !== html) b.innerHTML = html; b.setAttribute('aria-label', lab); }); }
+// 0.8: the streak history: the last six weeks, Monday to Sunday, every day you trained in green (today has a ring)
+function stkCalendar(){ const days = Streak.qualDays(sessions), tk = todayKey(), w0 = Streak.add(Streak.monday(tk), -35), wd = t('wdShort').split(' ');
+  const head = [1, 2, 3, 4, 5, 6, 0].map(d => `<small>${esc((wd[d] || '').charAt(0))}</small>`).join('');
+  const cells = Array.from({ length: 42 }, (_, i) => { const d = Streak.add(w0, i), on = days.has(d), fut = d > tk;
+    return `<i class="${on ? 'on' : ''}${d === tk ? ' today' : ''}${fut ? ' fut' : ''}">${+d.slice(8)}</i>`; }).join('');
+  return `<div class="stkcard stkcal"><div class="stkrowt"><b>${esc(t('stkCal'))}</b></div><div class="stkcalg">${head}${cells}</div><small>${esc(t('stkCalSub'))}</small></div>`; }
 function openStreak(intro){ drawStreak(intro); $('toast').classList.remove('show'); open('ovStreak');
   if(!(ui.stk && ui.stk.intro)){ ui.stk = Object.assign({}, ui.stk, { intro: 1 }); saveUI(); } }
 function drawStreak(intro){
@@ -247,6 +253,7 @@ function drawStreak(intro){
     <p class="stkline">${esc(streakLine(v, false))}</p>
     ${v.on ? `<div class="stkcard stkweek"><div class="stkrowt"><b>${esc(t('stkWeek'))}</b><span>${esc(t('stkWeekOf', { d: w.done, t: w.target }))}</span></div><div class="stkcells">${cells}</div>
       <small>${esc(w.need ? t(w.open === 1 ? 'stkWeekNeed1' : 'stkWeekNeed', { n: w.need, d: w.open }) : t('stkWeekDone'))}${w.next !== w.target ? ' · ' + esc(t('stkWeekNext', { n: w.next })) : ''}</small></div>` : ''}
+    ${stkCalendar()}
     ${savers}
     <div class="stkcard stkbest"><span>${esc(t('stkBest'))}</span><b>${v.best}</b></div>
     ${chal}${how}`;

@@ -773,24 +773,19 @@ const CARDIO_FIRST = ['treadmill', 'bike', 'rower', 'elliptical', 'stairs', 'wal
 // gym-day card on Today (0.6.9): can't be hidden (no ✎ / ✕); the pills sit on the right.
 // With no gym time set, tapping anywhere else on the card opens the time picker.
 // 0.7.2: the diagonal Workouts icon on the left; Start (today only) next to Skip opens today's planned workout in one tap; Resume while one is running.
+// 0.8 (24 Nov): the gym-day card on My Food Log is one slim line: the gym icon + "Gym Day" (or "Rest Day"), then a small accent Start and a
+// grey Skip text button. No time and no streak here (the streak is the bubble in the top left). A long press on the card also skips
+// (used when the phone is too narrow to show Skip). 0.6.9 named it Gym Day / Rest Day; the old "Gym Today" label is gone.
 function renderTodayRec(){
   const el = $('dRec'); if(el) el.innerHTML = '';
-  const isToday = daysUntil(curDay) === 0, di = dayInfo(curDay), pl = planFor(curDay);
-  const tp = pl && pl.tpl && tpls.find(x => x.id === pl.tpl), nm = tp ? tp.name : t('gymAny'), lines = [];
-  let skip = '', noTime = false;
-  if(di.type === 'gym'){ const tm = (pl && pl.type === 'gym' && pl.time) || (days[curDay] && days[curDay].time) || ''; noTime = !tm;
-    lines.push(`<b>${t('remGymNoT')}</b>` + (tm ? '' : `<small class="rmhint">${t('remSetT')}</small>`));
-    const live = active && active.date === curDay;
-    if(isToday && live) skip = `<button class="gymstartbtn" type="button" data-gymresume>${t('gymResumeP')}</button>`;
-    else if(!live) skip = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gymStartP')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
-  else if(days[curDay] && days[curDay].skipped){ lines.push(`<b>${t('gymSkipped')}</b>`); skip = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }   // rest-day calories and macros today
-  // Change #13: on today's gym card, the streak (tap → the streak window) and, when it matters, this week's one-line warning
-  const sv = di.type === 'gym' && isToday ? Streak.view() : null, sk = sv && sv.on ? sv.total : 0;
-  if(sv && sv.on && (sk || sv.week.done) && lines.length) lines[0] = `<span class="gymtitle">${lines[0].replace(/<small.*$/, '')}<button type="button" class="gymstreak stk-${sv.state}" data-streak aria-label="${esc(streakLabel(sv))}">${flameIcon(sk, 14)}<b>${sk}</b>${saverMini(sv)}</button></span>` + (lines[0].match(/<small.*$/) || [''])[0];
-  const sw = sv && streakLine(sv, true); if(sw) lines.push(`<span class="stkwarn">${esc(sw)}</span>`);
-  const ws = isToday ? recoveryWarnings() : [];
-  const ic = lines.length ? `<span class="gymdayic">${svgIcon('workouts', 22, 1.8)}</span>` : '';
-  $('dBlocks').innerHTML = lines.length || ws.length ? `<div class="remind ${noTime ? 'notime' : ''}">${noTime ? `<input type="time" class="remtime" id="dRemTime" aria-label="${t('remSetT')}">` : ''}${ic}<div class="rmtxt">${lines.map(l => `<div>${l}</div>`).join('')}${ws.map(w => `<div class="rmrec" data-gorec><span class="ric">${svgIcon('bolt', 14, 2)}</span>${w}</div>`).join('')}</div>${skip ? `<div class="gymdaybtns">${skip}</div>` : ''}</div>` : '';
+  const isToday = daysUntil(curDay) === 0, di = dayInfo(curDay), live = !!active && active.date === curDay, skipped = !!(days[curDay] && days[curDay].skipped);
+  let lab, btns = '', gym = false;
+  if(di.type === 'gym'){ gym = true; lab = t('gymDay');
+    if(isToday && live) btns = `<button class="gymstartbtn" type="button" data-gymresume>${t('gdResume')}</button>`;
+    else if(!live) btns = (isToday && !active ? `<button class="gymstartbtn" type="button" data-gymstart>${t('gdStart')}</button>` : '') + `<button class="skipbtn" type="button" data-skipday>${t('skipGym')}</button>`; }
+  else if(skipped){ lab = t('gymSkipped'); btns = `<button class="skipbtn" type="button" data-unskip>${t('undo')}</button>`; }
+  else lab = t('restDay');
+  $('dBlocks').innerHTML = `<div class="remind gdline${gym ? ' gym' : ' rest'}"${gym && !live ? ' data-gdhold' : ''}><span class="gymdayic">${svgIcon('workouts', 20, 1.9)}</span><b class="gdlab">${esc(lab)}</b>${btns ? `<div class="gymdaybtns">${btns}</div>` : ''}</div>`;
 }
 
 // Start on the gym-day card: today's planned workout straight away; no plan → the same Saved Workouts sheet as the Gym tab's Start
