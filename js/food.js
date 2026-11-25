@@ -66,8 +66,6 @@ function fhRing(cls){ const tot = cls.p + cls.c + cls.f, R = 46, C = 2 * Math.PI
 // Supps: a day counts when every daily supplement was taken (training-day / when-needed ones never break it)
 function suppDayState(d){ const need = supps.filter(s => s.often !== 'training' && s.often !== 'needed'), L = need.length ? need : supps;
   if(!L.length) return 'none'; const n = L.filter(s => takesOf(d, s.id).length).length; return n === L.length ? 'done' : n ? 'part' : 'miss'; }
-function suppStreak(){ let d = todayKey(), n = 0; if(suppDayState(d) !== 'done') d = addDays(d, -1);
-  for(let i = 0; i < 3650 && suppDayState(d) === 'done'; i++){ n++; d = addDays(d, -1); } return n; }
 // Recipes: the saved recipe you can cook now with the most of its ingredients in My Fridge
 function fhCookable(){ const ids = r => r && r.type === 'my' ? r.id : r && r.type === 'gen' ? ((foods.find(f => f.gid === r.id) || {}).id || null) : null;
   return meals.filter(m => (m.ingredients || []).some(i => i.ref)).map(m => { const ing = m.ingredients.filter(i => i.ref), miss = ing.filter(i => { const id = ids(i.ref); return !id || stockOf(id) <= 0; });
@@ -84,11 +82,11 @@ function renderFoodHub(fresh){
   // Meals: top 3 by times logged this month
   { const lg = fhLogged('meal'), top = Object.keys(lg).map(id => [meals.find(m => m.id === id), lg[id]]).filter(x => x[0]).sort((a, b) => b[1] - a[1]).slice(0, 3), mx = top.length ? top[0][1] : 1;
     setHTML($('fhMeals'), fhHead('bowl', 'tabMyMeals', top.length ? esc(t('fhMonthL')) : '') + (top.length ? `<div class="btbars">${top.map(([m, n], i) => `<div class="btbar"><span><em>${esc(m.name)}</em><b>${n}×</b></span><i><u style="transform:scaleX(${(n / mx).toFixed(3)})"></u></i></div>`).join('')}</div>` : empty(meals.length ? 'fhNoMealsMonth' : 'fhNoMeals'))); }
-  // Supps: streak, last 7 days, left today
+  // Supps: a question for today (scrolls sideways when it does not fit), last 7 days, left today
   { const d0 = todayKey(), tp = todayProgress(), left = Math.max(0, supps.filter(s => s.often !== 'training' && s.often !== 'needed').filter(s => !takesOf(d0, s.id).length).length);
     const wd = t('wdShort').split(' '), dots = Array.from({ length: 7 }, (_, i) => { const d = addDays(d0, i - 6), st = suppDayState(d), dw = new Date(d + 'T12:00:00').getDay();
       return `<span class="sdot ${st}${i === 6 ? ' today' : ''}"><i></i><small>${esc((wd[dw] || '').charAt(0))}</small></span>`; }).join('');
-    setHTML($('fhSupps'), fhHead('capsule', 'tabSupps', supps.length && tp.total ? esc(left ? t('fhLeft', { n: left }) : t('fhAllTaken')) : '') + (supps.length ? `<div class="bthero"><b class="btnum">${suppStreak()}</b><span>${esc(t('fhDayStreak'))}</span></div><div class="sdots">${dots}</div>` : empty('fhNoSupps'))); }
+    setHTML($('fhSupps'), fhHead('capsule', 'tabSupps', supps.length && tp.total ? esc(left ? t('fhLeft', { n: left }) : t('fhAllTaken')) : '') + (supps.length ? `<p class="btmsg${left || !tp.total ? '' : ' ok'}">${esc(t(left || !tp.total ? 'fhSuppAsk' : 'fhSuppDone'))}</p><div class="sdots">${dots}</div>` : empty('fhNoSupps'))); }
   // Recipes: one you can cook now
   { const r = fhCookable();
     setHTML($('fhRecipes'), fhHead('pot', 'tabMeals') + (r ? `<div class="btringrow">${fhMiniRing(r.have, r.of, 'acc')}<span class="btsub">${esc(t('fhInFridge'))}</span></div><b class="btname">${esc(r.m.name)}</b><span class="btsub">${esc(r.miss.length ? t('fhMissing', { x: r.miss.map(i => i.ref.name).slice(0, 2).join(', ') }) : t('fhReady'))}</span>`
