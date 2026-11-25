@@ -349,6 +349,9 @@ const GymIntel = (() => {
     else if(it === 'next'){ parts.push(recoveryPack()); if(mode !== 'live') parts.push(`Recent workouts (newest first):\n${historyPack(3)}`, weekPack()); }
     else if(!ids.length && mode !== 'live') parts.push(`Recent workouts (newest first):\n${historyPack(3)}`, recoveryPack());
     else if(mode === 'live') parts.push(recoveryPack());
+    // free access: whatever the question, the coach also has the week, recovery, recent and saved workouts, and everything food: logged foods with macros, usual day, supplements, fridge
+    if(mode !== 'live' && it !== 'workout'){ if(!parts.some(x => /^Hard sets per muscle/.test(String(x)))) parts.push(weekPack()); if(!ids.length && it !== 'next' && it !== 'volume' && it !== 'recovery') parts.push(`Saved workouts:\n${savedPack(10)}`); }
+    try{ const fd = typeof FoodCoach !== 'undefined' && FoodCoach.facts ? FoodCoach.facts() : ''; if(fd) parts.push(`Food and diet (read-only, from the food side of the app; only logged foods were eaten):\n${fd}`); }catch(e){}
     const past = pastPack(); if(past) parts.push(past);
     const txt = parts.filter(Boolean).join('\n');
     return { text: txt, intent: it, focus: ids, chars: txt.length };

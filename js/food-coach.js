@@ -213,7 +213,8 @@ const FoodCoach = (() => {
 
   // ---- 5. the short context the AI gets (read-only; the app's own numbers; nothing copied anywhere) ----
   // The day's logged totals are Food Coach's own part: Athlete OS skips 'nutrition' for this coach (supervisor.js) because this line has it.
-  function context(){
+  // facts(): the food side as plain lines (no rules): Food Coach's own briefing, and what the Gym Coach reads too
+  function facts(){
     const out = [];
     try{
       const d = curDay, tg = targetFor(d), tot = dayTotals(d), st = dayStatus(d), today = d === todayKey(), n = (dayLog[d] || []).length;
@@ -230,10 +231,20 @@ const FoodCoach = (() => {
       const prev = Object.keys(dayLog).filter(k => k < d && (dayLog[k] || []).length).sort().slice(-7);
       if(prev.length){ const sum = prev.reduce((a, k) => { const x = dayTotals(k); return { k: a.k + x.kcal, p: a.p + x.p, c: a.c + x.c, f: a.f + x.f }; }, { k: 0, p: 0, c: 0, f: 0 }), m = prev.length;
         out.push(`Usual logged day (average of ${m} earlier days with entries): ${Math.round(sum.k / m)} kcal, P ${Math.round(sum.p / m)} g, C ${Math.round(sum.c / m)} g, F ${Math.round(sum.f / m)} g.`); }
+      // micronutrients, the last 3 days' foods, supplements, saved meals and the fridge: all read-only, all in the app's own words
+      if(n && (tot.fib || tot.na || tot.k)) out.push(`Fiber ${Math.round(tot.fib || 0)} g, sodium ${Math.round(tot.na || 0)} mg, potassium ${Math.round(tot.k || 0)} mg so far.`);
+      const back = Object.keys(dayLog).filter(k => k < d && (dayLog[k] || []).length).sort().slice(-3);
+      back.forEach(k => { const x = dayTotals(k); out.push(`Earlier ${k}: ${Math.round(x.kcal)} kcal, P ${Math.round(x.p)}, C ${Math.round(x.c)}, F ${Math.round(x.f)} — ${(dayLog[k] || []).slice(0, 25).map(e => `${String(e.name || '?').slice(0, 30)} ${Math.round(e.kcal || 0)} kcal F${Math.round(e.f || 0)}`).join('; ')}.`); });
+      try{ if(typeof supps !== 'undefined' && supps.length){ const tk = typeof takesOf === 'function' ? supps.map(x => `${String(x.name || '?').slice(0, 30)}${x.dose ? ' ' + x.dose : ''} (${takesOf(d, x.id).length ? 'taken' : 'not taken'})`) : []; if(tk.length) out.push(`Supplements on ${d}: ${tk.slice(0, 15).join(', ')}.`); } }catch(e){}
+      try{ if(typeof meals !== 'undefined' && meals.length) out.push(`Saved meals: ${meals.slice(0, 20).map(m => String(m.name || '?').slice(0, 30)).join(', ')}.`); }catch(e){}
+      try{ const fr = typeof liveItems === 'function' ? liveItems() : []; if(fr.length) out.push(`In the fridge: ${fr.slice(0, 30).map(x => `${String(x.info.name).slice(0, 30)} ${Math.round(x.it.qty)}${x.info.unit === 'ml' ? ' ml' : ' g'}`).join(', ')}.`); }catch(e){}
       if(tg) out.push(`Targets: ${tg.k} kcal, P ${tg.p} g, C ${tg.c} g, F ${tg.f} g.`);
     }catch(e){}
+    return out.join(' ');
+  }
+  function context(){
     let rules = ''; try{ rules = AI.dietRules() + AI.knows('food'); }catch(e){}
-    return out.join(' ') + rules;
+    return facts() + rules;
   }
 
   // ---- 6. chat memory on this phone ----
@@ -253,5 +264,5 @@ const FoodCoach = (() => {
     const row = a => ({ n: a.ms.length, p50: pct(a.ms, 50), p95: pct(a.ms, 95), callsPerAnswer: a.ms.length ? Math.round(a.calls / a.ms.length * 100) / 100 : 0 });
     return { all: row({ ms: l.map(x => x[1]), calls: l.reduce((a, x) => a + x[2], 0) }), ...Object.fromEntries(Object.entries(by).map(([k, v]) => [k, row(v)])) }; }
 
-  return { parse, correction, quick, wantsIdeas, when, hasAmount, isFiller, alias, FILLER, check, usable, context, chatLoad, chatSave, chatClear, track, stats, pct };
+  return { parse, correction, quick, wantsIdeas, when, hasAmount, isFiller, alias, FILLER, check, usable, facts, context, chatLoad, chatSave, chatClear, track, stats, pct };
 })();
