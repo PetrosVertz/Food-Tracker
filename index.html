@@ -118,7 +118,7 @@
     </div>
   <div id="dRec"></div>
   
-  <div id="dEatenWrap"><details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small><button class="eyest" id="copyYesterday" type="button" data-tl="copyYesterday" data-ta="copyYesterday" aria-label="Same as yesterday"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3M19 4v5h-5M5 20v-5h5"/></svg></button></summary>
+  <div id="dEatenWrap"><details class="fold sectfold" id="dEatenFold" open><summary><span data-t="eaten"></span><small id="dEatenN"></small><button class="eyest" id="copyYesterday" type="button" data-tl="copyYesterday" data-ta="copyYesterday" aria-label="Same as yesterday"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3M19 4v5h-5M5 20v-5h5"/></svg></button><button class="fmpill" id="planBtn" type="button" data-ai data-ta="lwFill" aria-label="Fill My Macros"><span class="fmface" aria-hidden="true"></span><span class="fmt" data-t="lwFill"></span><span class="tdots" aria-hidden="true"><i></i><i></i><i></i></span></button></summary>
   <div id="dScroll"><div id="planShow"></div><div class="list" id="dLog"></div></div></details></div>
 </section>
 
@@ -779,7 +779,7 @@
   <div class="lwtop">
     <div class="lwrow"><div class="lwtl"><button class="sback lwback" type="button" data-ta="back" aria-label="Back" data-ta="back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-t="lwTitle"></h2></div><button class="lwdone" type="button" data-close data-t="done"></button></div>
     <div class="lwsearch"><input id="lSearch" type="search" data-tp="logSearchPh" autocomplete="off" data-ta="logQSwapPh" aria-label="Search foods"><button class="lwscan" id="lScanIn" type="button" data-ta="logAScan" aria-label="Scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M12 9v6M16 9v6"/></svg></button></div>
-    <div class="lwacts"><button type="button" id="planBtn" class="aiafter" data-t="lwFill"></button><button type="button" id="lTrack" class="lwico" data-ta="logATrack" aria-label="Food Library"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button></div>
+    <div class="lwacts"><button type="button" id="lTrack" class="lwico" data-ta="logATrack" aria-label="Food Library"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button></div>
     <div class="lwadded" id="lAdded"></div>
     <button class="hide" id="lYesterday" type="button"></button><button class="hide" id="lScan" type="button"></button>
   </div>
@@ -838,7 +838,7 @@
 </div></div>
 <!-- ==== end shell ==== -->
 
-<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
+<div class="toast" id="toast"><span class="toastic" id="toastIc" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastAct" class="hide"></button></div>
 
 <script>
 // preview fix: in sandboxed previews (about:srcdoc with a <base>), '#x' would resolve to another site and throw.

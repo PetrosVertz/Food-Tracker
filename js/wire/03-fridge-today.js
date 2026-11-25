@@ -236,25 +236,31 @@ $('tgSave').addEventListener('click', () => {
 });
 
 $('planShow').addEventListener('click', e => {
-  if(e.target.closest('#planCancel')){ if(planCtl){ planCtl.abort(); renderPlan(); } return; }
   const b = e.target.closest('[data-plog]'); if(!b) return;
-  planAdd(+b.dataset.plog);
+  planAddItem(+b.dataset.plog, +b.dataset.pj);
 });
 
+// Fill My Macros: the pill on the Logged Foods line. It shrinks to the chef's thinking face and three hopping dots; no pop-up robot (the AI call is quiet).
+// Only when the Food Coach is already out as a bubble does that bubble do the thinking. Press again while it thinks to cancel.
+function planBusy(on){
+  const btn = $('planBtn'), face = btn.querySelector('.fmface'); btn.classList.toggle('busy', on); btn.setAttribute('aria-busy', on ? 'true' : 'false');
+  face.innerHTML = AI.robot('chef', 24, on); if(Coach.has('chef')) Coach.think('chef', on);
+}
 $('planBtn').addEventListener('click', async () => {
   if(planCtl){ planCtl.abort(); return; }
   const tg = targetFor(curDay); if(!tg){ toast(t('planNeedTargets')); openTargets(); return; }
   if(!AI.hasKey()){ toast(t('needKey')); openSettings(); return; }
-  const btn = $('planBtn');
-  planCtl = new AbortController(); const ctl = planCtl; btn.innerHTML = AI.dots(t('planning')); if($('ovLog').classList.contains('open')) close('ovLog'); planStat(t('planning'));
+  Phone.haptic(); planCtl = new AbortController(); const ctl = planCtl; planBusy(true);
   try{
-    const r = await gemini(planPrompt(),
-      null, (i, n) => { if(planCtl === ctl){ btn.textContent = t('cancelRec', { i, n }); planStat(t('cancelRec', { i, n })); } }, ctl.signal);
+    const r = await gemini(planPrompt(), null, null, ctl.signal, { quiet: true });
     planKeep(r);
     setTimeout(() => $('planShow').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
-  finally{ planCtl = null; btn.textContent = t('lwFill'); }
+  finally{ planCtl = null; planBusy(false); }
 });
+$('planBtn').querySelector('.fmface').innerHTML = AI.robot('chef', 24);
+// Logged Foods stays open: the list is always there (the pill sits where the arrow was)
+$('dEatenFold').querySelector('summary').addEventListener('click', e => { if(!e.target.closest('#copyYesterday')) e.preventDefault(); });
 
 
 document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goBack()));
@@ -291,7 +297,7 @@ $('advSw').checked = false;
 $('advSw').addEventListener('change', () => { const b = $('advBody'); b.classList.toggle('hide', !$('advSw').checked); if($('advSw').checked) b.animate && b.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1)' }); });
 // Eaten: swipe to delete
 makeSwipeDelete($('dLog'), '.card[data-eid]', c => delEntry(c.dataset.eid));
-makeSwipeDelete($('planShow'), '.card[data-pi]', c => planDrop(+c.dataset.pi));   // 0.7.4.3: swipe a Fill My Macros suggestion away
+makeSwipeDelete($('planShow'), '.card[data-pi]', c => planDropItem(+c.dataset.pi, +c.dataset.pj));   // 0.7.4.3: swipe a Fill My Macros suggestion away
 // Daily Targets: padlocks
 $('tgBox').addEventListener('click', e => { const b = e.target.closest('[data-lock]'); if(!b) return; const P = b.dataset.p, k = b.dataset.lock;
   MXL[P] = MXL[P] === k ? null : k; MXLG[P] = +$('tg' + P + k).value || 0; drawLocks(); });

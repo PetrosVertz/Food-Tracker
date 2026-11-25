@@ -187,12 +187,20 @@ function applyLang(){
   setSeg('#sLang', lang);
 }
 
-function toast(msg, actLabel, act){
+// The small icon on the left says where the message comes from: the page you are on (Food Log, Meals, Supplements, Inventory, Groceries,
+// Gym, Progress, Settings, Profile). A caller can also name it: toast(msg, label, undo, 'capsule').
+function toastKind(){
+  const h = location.hash.replace('#', '');
+  return h === 'meals' ? 'pot' : h === 'supps' ? 'capsule' : h === 'fridge' ? 'fridge' : h === 'groc' ? 'cart' : h === 'gym-prog' ? 'trend' : h.startsWith('gym') ? 'gym'
+    : h === 'settings' ? 'settings' : h === 'profile' ? 'user' : 'bowl';
+}
+function toast(msg, actLabel, act, kind){
+  $('toastIc').innerHTML = svgIcon(ICON[kind] ? kind : toastKind(), 18, 2);
   $('toastMsg').textContent = msg; const b = $('toastAct');
   if(actLabel){ b.textContent = actLabel; b.classList.remove('hide'); b.onclick = () => { $('toast').classList.remove('show'); act(); }; }
   else { b.classList.add('hide'); b.onclick = null; }
   $('toast').classList.add('show'); clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 5000 : 2200);
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 7000 : 4200);
 }
 
 // ---------- 0.7.4.3 no AI key: every AI control is greyed out; tapping one says a key is needed, with a button to Settings › AI ----------
