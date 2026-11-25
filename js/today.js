@@ -1027,7 +1027,7 @@ async function logQAnswer(txt, ch, how){
     // the rest ("how are you", "a plate of … with some …" leftovers) is ignored. No food words and no amounts = just talking: no card.
     parts = parts.filter(p => p.qty != null || p.stated || logQMem(p) || logQLocal(p));
     if(!parts.length){ if(!FoodCoach.hasAmount(txt)){ how.path = 'local'; ch.say(logQTalk()); return; } ch.say(err ? AI.friendly(err) : reply || t('logQFail')); return; }
-    note = err || !ai ? (AI.hasKey() ? t('logQOffline') : t('logQLocalOnly')) : reply || t('logQGot');
+    note = err && (err.kind === 'auth' || err.kind === 'other' || err.nomodel || err.nokey) ? AI.friendly(err) + ' ' + t('logQLocalOnly') : err || !ai ? (AI.hasKey() ? t('logQOffline') : t('logQLocalOnly')) : reply || t('logQGot');   // a failed AI call says why (key / quota / busy / the provider's own reason), not only "can't reach"
   }
   logQShow(txt, ch, parts, note, parts && !how.path.startsWith('off') ? fix : null);
 }

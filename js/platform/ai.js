@@ -217,6 +217,8 @@ const AI = (() => {
     if(k === 'unsupported' && (err.nosearch || err.nophoto)) return err.message;   // already says what the picked provider can't do and where to change it
     if(err && err.nokey) return t('aiErrNoKey');
     if(err && err.nomodel) return t('aiErrModel');
+    // a request the provider turned down (HTTP 4xx other than key / quota / model) is something to fix in Settings, so its short reason is shown
+    if(k === 'other' && err.status >= 400 && err.status < 500 && err.message) return t('aiErrOther') + ' (' + String(err.message).slice(0, 90) + ')';
     return t(err && err.nokey ? 'aiErrKey' : k === 'auth' ? 'aiErrKey' : k === 'rate' ? 'aiErrLimit' : k === 'network' ? 'aiErrOffline' : k === 'timeout' || k === 'overloaded' ? 'aiErrBusy' : 'aiErrOther');
   }
   // can the picked provider do this kind of job? 'vision' (photos) · 'search' (web look-ups) · 'json'

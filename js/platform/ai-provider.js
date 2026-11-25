@@ -153,11 +153,12 @@ function openAICompat(id, name, base, models){
     timeoutFor: req => req.timeoutMs || (req.tier === 'advanced' ? 60000 : 30000),
     async generate(req, model, outer){
       if(req.search) throw aiError('unsupported', name + ': no web search', { fatal: true });
-      const content = [{ type: 'text', text: req.prompt }, ...[].concat(req.images || []).map(d => ({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + d } }))];
+      const prompt = req.json !== false && !/json/i.test(req.prompt) ? req.prompt + '\nAnswer with the JSON object only.' : req.prompt;   // JSON mode: OpenAI refuses a request that never says "JSON"
+      const content = [{ type: 'text', text: prompt }, ...[].concat(req.images || []).map(d => ({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + d } }))];
       // OpenAI's newer models (gpt-5…, o1/o3/o4…) refuse "max_tokens" (they want "max_completion_tokens"), accept only the default temperature, and spend
       // part of the cap on thinking, so a small cap would cut the answer: for those no temperature and no cap. Other services (OpenRouter, a server) keep the classic names.
       const think = id === 'openai' && /^(gpt-5|o\d)/i.test(model);
-      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? req.prompt : content }],
+      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? prompt : content }],
         ...(think ? {} : { temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6 }),
         ...(req.json === false ? {} : { response_format: { type: 'json_object' } }),
         ...(req.maxTokens && !think ? { [id === 'openai' ? 'max_completion_tokens' : 'max_tokens']: req.maxTokens } : {}) };
