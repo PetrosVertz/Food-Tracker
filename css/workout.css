@@ -1005,7 +1005,8 @@ button.cvchip{cursor:pointer;color:var(--t-accent-ink,var(--t-accent))}
 .stkbest{justify-content:center;gap:var(--s2);padding:var(--s2) var(--s3)}
 .stkcard.stkbest{flex-direction:row;align-items:baseline}
 .stkcalg{gap:4px;margin:var(--s1) 0}
-.stkcalg i{height:30px}
+.stkcalg i{height:30px;width:30px;justify-self:center}   /* always a round dot, however wide the window is */
+@media(min-width:700px){#ovStreak .sheet{max-width:480px}}   /* phone-width window on a big screen */
 .stkhow summary{display:flex;align-items:center;justify-content:center;gap:6px}
 .stkhow .stkchev{display:inline-flex;color:var(--t-muted);transition:transform .25s cubic-bezier(.2,.9,.25,1)}
 .stkhow[open] .stkchev{transform:rotate(180deg)}
