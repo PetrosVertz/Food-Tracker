@@ -1293,10 +1293,10 @@ function renderGymHub(fresh){
     if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('bolt', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
     $('ghRec').setAttribute('aria-label', t('hubRec')); pauseOffscreen($('ghRec')); if(!GH_REC.tm) ghRecArm(); }
   renderGymWeek();
-  // the grid ends 3 px above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
-  { const fab = $('fab'), pg = $('pgGym'); if(fab && !fab.classList.contains('hide')){ const top = fab.getBoundingClientRect().top; if(top > 0) pg.style.setProperty('--fabclear', Math.round(pg.clientHeight - top + 3) + 'px'); } }
+  // the grid ends 7 px above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
+  { const fab = $('fab'), pg = $('pgGym'); if(fab && !fab.classList.contains('hide')){ const top = fab.getBoundingClientRect().top; if(top > 0) pg.style.setProperty('--fabclear', Math.round(pg.clientHeight - top + 7) + 'px'); } }
   [['ghLib', 'hubLib'], ['ghProg', 'hubProg'], ['ghWeek', 'hubWeek']].forEach(([id, k]) => $(id).setAttribute('aria-label', t(k)));
-  bentoFit('pgGym', 'gBento');
+  { const p = $('pgGym'); if(p) p.classList.remove('bentofree'); }   // Gym Buddy home never scrolls (the cards shrink instead)
   if(fresh) bentoRise($('gBento'));
 }
 // Week Planner: Mon … Sun pills (done = green tick, today = accent ring, gym day = raised grey with the gym icon, rest = dark with a dash)

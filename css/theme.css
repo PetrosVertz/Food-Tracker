@@ -1271,7 +1271,7 @@ section.page.bentopg:not(.bentofree){overflow-y:hidden;overscroll-behavior:none}
 .bentopg #fHub.hide,.bentopg #gHub.hide{display:none}
 .bento{flex:1 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:2px}
 .fbento{grid-template-rows:minmax(min-content,196fr) minmax(min-content,140fr) minmax(min-content,140fr) minmax(min-content,118fr)}
-.gbento{grid-template-rows:minmax(min-content,189fr) minmax(min-content,189fr) minmax(min-content,162fr)}
+.gbento{grid-template-rows:minmax(0,189fr) minmax(0,189fr) minmax(0,162fr)}   /* Gym Buddy home never scrolls: cards shrink to fit */
 .bt-foods,.bt-wide{grid-column:1/-1}
 .bentofree #fHub,.bentofree #gHub,.bentofree .bento{flex:0 0 auto}
 .bentofree .bento{grid-template-rows:none}
@@ -1532,6 +1532,7 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 /* pop-up icon: a small round badge on the left saying where the message comes from (ui.js toastKind) */
 .toast .toastic{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--t-bg) 12%,transparent);color:var(--t-toast-act,#3d6b00)}
 .toast{justify-content:flex-start!important;gap:10px!important;padding-left:10px!important}
+.toast{touch-action:none}   /* swipe it up to dismiss (ui.js toastSwipe) */
 .toast #toastMsg{flex:1;min-width:0}
 .toast:has(#toastAct.hide){text-align:left}
 
