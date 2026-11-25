@@ -217,7 +217,7 @@ function drawOrmList(){
 function saveOrm(){
   const exId = $('ormEx').value, w = parseFloat(String($('ormW').value).replace(',', '.')), date = $('ormDate').value, bw = exById(exId).e === 'bodyweight';
   if(!isBoardLift(exId) || !(w > 0 || (bw && w === 0)) || w > 600 || !/^\d{4}-\d\d-\d\d$/.test(date) || date > todayKey()){ toast(t('ormBad')); return; }
-  profile.orm = [...ormList(), { id: uid(), exId, w, date }]; saveProfile(); Phone.haptic(); close('ovOrm'); renderProfile(); toast(t('ormSaved'));
+  profile.orm = [...ormList(), { id: uid(), exId, w, date }]; saveProfile(); Phone.haptic(); close('ovOrm'); renderProfile(); toast(t('ormSaved')); AchUI.afterBoard();
 }
 function delOrm(id){ profile.orm = ormList().filter(o => o.id !== id); if(!profile.orm.length) delete profile.orm; saveProfile(); drawOrmList(); renderProfile(); }
 
@@ -262,6 +262,7 @@ function lbPick(id){ if(!LB_LIFTS.includes(id) || id === lbLift()) return; ui.pf
 
 function renderProfile(){
   const box = $('pfBody'); if(!box) return;
+  if(typeof AchUI !== 'undefined' && AchUI.view() === 'ach'){ box.innerHTML = AchUI.collectionHtml(); return; }   // Achievements: the collection, inside the Hub
   const d = profileData();
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
   // Refinements #8: the workout streak is a small frosted pill with a flame on the bottom right of your picture (its box is gone)
@@ -279,7 +280,8 @@ function renderProfile(){
   const rk = `<div class="pfrkrow">${slots}</div>${picks.length < 3 ? `<span class="pfline pfrkhint">${esc(t(d.tierNeed ? 'tierNeedBody' : picks.length ? 'pfRankMore' : 'pfNoRank'))}</span>` : ''}`;
   const rkBtns = `<span class="pfrkb"><button class="pflink" type="button" data-rkcustom>${esc(t('rkCustomize'))}</button>${custom ? `<button class="pflink" type="button" data-rkreset>${esc(t('rkReset'))}</button>` : ''}</span>`;
   box.innerHTML = circles
-    + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
+    + `<div class="pfacts"><button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
+    + `<button class="btn pfshare pfach" type="button" id="pfAch" aria-label="${esc(t('achBtn'))}, ${esc(t('achOf', { a: Ach.count(), b: Ach.total() }))}">${svgIcon('medal', 18, 2.2)}<span>${esc(t('achBtn'))}</span><b class="pfachn">${Ach.count()}/${Ach.total()}</b></button></div>`
     + `<div class="pfcard pfpr pfrkfull${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div>`
     + lbHtml()
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`

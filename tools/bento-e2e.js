@@ -22,7 +22,7 @@ function seed(){ const dk = n => { const d = new Date(); d.setDate(d.getDate() +
   return { 'ft.foods.v1': F, 'ft.meals.v1': [{ id: 'm1', name: 'Chicken & rice', ingredients: [{ ref: ref(F[0]), grams: 200 }, { ref: ref(F[1]), grams: 100 }] }, { id: 'm2', name: 'Protein toast', quick: true, cookedWeight: 300, ingredients: [{ ref: ref(F[5]), grams: 300 }] }], 'ft.log.v1': log,
     'ft.supps.v1': [{ id: 's1', name: 'Creatine', dose: 5, unit: 'g', often: 'daily', times: ['any'] }], 'ft.supplog.v1': { [dk(-1)]: { takes: { s1: ['09:00'] } }, [dk(-2)]: { takes: { s1: ['09:00'] } } },
     'ft.fridge.v1': [{ id: 'i1', foodId: 'f1', qty: 500, loc: 'fridge' }, { id: 'i2', foodId: 'f2', qty: 1000, loc: 'fridge' }], 'ft.groc.v1': [{ id: 'g1', name: 'Eggs', foodId: 'f5', count: 1, done: false }, { id: 'g2', name: 'Milk', done: true }],
-    'ft.gym.tpl': [{ id: 't1', name: 'A Very Long Workout Name Here', type: 'push', exercises: [{ exId: 'bench', sets: 4 }, { exId: 'squat', sets: 3 }] }], 'ft.gym.plan': plan, 'ft.gym.sessions': ses }; }
+    'ft.gym.tpl': [{ id: 't1', name: 'A Very Long Workout Name Here', type: 'push', exercises: [{ exId: 'bench', sets: 4 }, { exId: 'squat', sets: 3 }] }], 'ft.gym.plan': plan, 'ft.gym.sessions': ses, 'ft.profile.v1': { ach: { v: 1, got: {}, seen: 0 } } }; }   // achievements already set up: no first-run catch-up pop-up over the tiles
 async function open(browser, port, o = {}){
   const p = await browser.newPage({ viewport: { width: o.w || 390, height: o.h || 844 }, reducedMotion: o.reduce ? 'reduce' : 'no-preference' });
   p.errs = []; p.on('pageerror', e => p.errs.push(e.message)); p.on('console', m => { if(m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) p.errs.push(m.text()); });

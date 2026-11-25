@@ -536,6 +536,9 @@ catch (e) { fail('beta profiler: tools/profiler-test.js\n' + String(e.stdout || 
 // Gym Coach intelligence (js/gym-intel.js + Gym Coach in gym.js): progression, evidence, live, hints, proposals + approval, memory, offline, Greek (tools/gym-coach-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/gym-coach-test.js')], { stdio: 'pipe' }).toString(); ok('gym coach: ' + (out.match(/^ok /gm) || []).length + ' progression / live / approval / memory / offline checks pass (tools/gym-coach-test.js)'); }
 catch (e) { fail('gym coach: tools/gym-coach-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
+// Achievements: the 44 unlock rules on fake histories (tools/ach-test.js)
+try { const out = execFileSync(process.execPath, [path.join(root, 'tools/ach-test.js')], { stdio: 'pipe' }).toString(); ok('achievements: ' + (out.match(/^ok /gm) || []).length + ' rule checks pass (tools/ach-test.js)'); }
+catch (e) { fail('achievements: tools/ach-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
 // Changes #12 / #13: weekly streak, Streak Savers, Consistency Challenge, Stats pins + 24 h rotation (tools/streak-test.js)
 try { const out = execFileSync(process.execPath, [path.join(root, 'tools/streak-test.js')], { stdio: 'pipe' }).toString(); ok('streak + stats: ' + (out.match(/^ok /gm) || []).length + ' weekly streak / saver / challenge / pin / rotation checks pass (tools/streak-test.js)'); }
 catch (e) { fail('streak + stats: tools/streak-test.js\n' + String(e.stdout || '').split('\n').filter(l => l.startsWith('FAIL')).join('\n')); }
@@ -640,6 +643,9 @@ function pickerE2E() {
 }
 // 0.8 bento homes + My Food Log (--boot only)
 function bentoE2E() {
+  try { const out = execFileSync(process.execPath, [path.join(root, 'tools/ach-e2e.js')], { stdio: 'pipe', timeout: 240000 }).toString();
+    ok('achievements e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/ach-e2e.js)'); }
+  catch (e) { fail('achievements e2e: tools/ach-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }
   try { const out = execFileSync(process.execPath, [path.join(root, 'tools/bento-e2e.js'), ...(STRICT ? ['--strict'] : [])], { stdio: 'pipe', timeout: 240000 }).toString();
     ok('bento homes e2e: ' + (out.match(/^ok /gm) || []).length + ' browser cases pass (tools/bento-e2e.js)'); }
   catch (e) { fail('bento homes e2e: tools/bento-e2e.js\n' + String(e.stdout || e.message).split('\n').filter(l => l.startsWith('FAIL') || /Error/.test(l)).join('\n')); }

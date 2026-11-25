@@ -231,12 +231,13 @@ async function finishWorkout(auto){
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
-  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
+  if(auto === true){ const achAuto = AchUI.afterWorkout(); if(achAuto.length) setTimeout(() => AchUI.announce(achAuto), 900); renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
   startRecLine(ses);   // the Gym Coach's recovery line: asked now, while the Rank Up screens play (it never waits for them)
   renderAll();
   // Refinements #8 change 23: a Rank Up screen per exercise first (Next is the only way on), then Workout Done; no rank up = straight to Workout Done
-  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); };
+  const achNew = AchUI.afterWorkout();   // achievements: worked out once, from the saved workout; the pop-up comes after Workout Done is on screen
+  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); if(achNew.length) setTimeout(() => AchUI.announce(achNew), 450); };
   if(ups.length) RankFx.ups(ups).then(done, done); else done();
   return true;
 }

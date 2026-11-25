@@ -100,7 +100,7 @@ $('importInput').addEventListener('change', async e => {
   const n = p.next;
   foods = n.foods; meals = n.meals; supps = n.supps; suppLog = n.suppLog; fridge = n.fridge; groc = n.groc; dayLog = n.dayLog; days = n.days; plans = n.plans; targets = n.targets;
   weights = n.weights; combos = n.combos; logPhr = n.logPhr; logFix = n.foodFix; profile = n.profile; sessions = n.sessions; tpls = n.tpls; exCustom = n.exCustom; gymPlan = n.gymPlan; active = n.active;
-  renderAll(); toast(t('imported', { a: p.added, u: p.updated }));
+  renderAll(); toast(t('imported', { a: p.added, u: p.updated })); AchUI.afterImport();   // achievements found in the restored history: one summary
   if(p.activeRestored) setTimeout(checkAbandoned, 1200);   // a restored live workout follows the same "left open" rule as at start-up
 });
 
@@ -115,7 +115,9 @@ route();
   if(msg) setTimeout(() => toast(t(msg)), 900); }
 
 if(!ui.setupDone) openSetup();
-else setTimeout(checkAbandoned, 1200);   // a workout left open for 20+ min ends by itself (4+ exercises) or asks
+else setTimeout(checkAbandoned, 1200);
+setTimeout(() => AchUI.afterBoot(), 800);   // achievements: the first time with old history, work out what it already earned (one summary)
+// (above) a workout left open for 20+ min ends by itself (4+ exercises) or asks
 
 if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 

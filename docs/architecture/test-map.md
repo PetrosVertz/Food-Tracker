@@ -7,6 +7,8 @@
 | `node tools/check.js --boot --strict` | ~15 s | same, but a missing browser is a FAIL. **This is the release / CI gate** (`.github/workflows/check.yml`) |
 | `node tools/store-test.js` | <1 s | Store + Backup only (fast loop while working on storage) |
 | `node tools/sw-test.js` | <1 s | sw.js offline/update rules |
+| `node tools/ach-test.js` | <1 s | the 44 achievement rules on fake histories (60 s vs 61 s, DST, exactly 42, missing L/R, unordered sets, comebacks, Perfect Attendance targets) |
+| `node tools/ach-e2e.js` | ~1 min | achievements in the real app: Finish Workout → Workout Done → one pop-up, tap / back, swipe, Dismiss, reduced motion, Greek, Hub button + collection + filters, hidden secrets with no text, catch-up, cold reload |
 | `node tools/streak-test.js` | <1 s | weekly streak (targets locked at Monday, all-rest weeks, one per day, extras, early reset, warnings), Streak Savers (monthly, bonus challenge, expiry, month and year boundaries, max 2, never twice), saved record (restart, restore, history edits, old streak carried over), Stats pins (max 2, replace) + 24 h rotation |
 | `node tools/exsearch-test.js` | <1 s | exercise search answers + speed |
 | `node tools/expick-e2e.js` | ~40 s | Exercise Picker V27 + creator in the browser (also in `check.js --boot`): filters, order by real sets, global search (search bar moves on top while typing), one tap adds and closes, long press Select mode + Add (N) + Cancel, Exercise Settings (first-time question, per-exercise vs shared, Back, Machine Coming Soon, switch back keeps choices), region drag, scroll fold, creator map/pill/long-press routes, no preselected equipment, Title Case, duplicates, QR, reload, 320 px Greek, reduced motion |

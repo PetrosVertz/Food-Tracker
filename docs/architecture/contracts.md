@@ -44,6 +44,8 @@ Sync = included in backups and future sync. "Main writers" is a starting point, 
 | coachChat | ft.coachchat.v1 | one | no (device) | food-coach.js (`chatSave`, `track`), today.js (`logQPersist`) | never | — |
 | (Store internal) | ft.schema, ft.sync.v1, ft.journal.v1, ft.corrupt.* | — | — | store.js | sync table yes; corrupt bytes as `recovery` | — |
 
+`profile.ach` (inside the profile record, so synced and in backups; no new Store name): `{ v: 1, got: { <achievement id>: { d: earning date, w: workout id | null, e: evidence data } }, seen }`. Written only by `Ach.record()` (js/achievements.js), only when something new is earned; never rewritten, so duplicate saves / imports / repaints change nothing. Evidence is data (exercise ids, kg, counts, dates), words and units are made at draw time. Order evidence = the per-set tick time `s.at`.
+
 Re-importing the same file adds nothing (by id; records without an id are matched by content). Bad records are skipped, not fatal.
 
 ## Weekly streak (`js/streak.js` › `Streak`) — Change #13; deterministic, no AI
