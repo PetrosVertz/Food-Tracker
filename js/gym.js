@@ -1288,9 +1288,9 @@ function renderGymHub(fresh){
     setHTML($('ghProg'), ghHead('progress', 'hubProg') + (s ? `<div class="btstat big ${s.dir || 'flat'}"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : `<p class="btempty">${esc(ok ? t('ghNoStat') : t('ghNoSes', { n: GH_MIN, d: Math.min(sessions.length, GH_MIN) }))}</p>`) +
       (ok ? `<div class="ghvol ${st.vdir}">${ghLine(st.wv)}<small class="btsub">${esc(t('ghVol8'))}</small></div>` : '')); }
   // RECOVERY+: only the body, front and back, sliding every 9 s
-  { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 150 });
+  { const rr = RecoveryPlus.compute(), col = recHeadColors(rr.tr), fig = v => recoveryAnatomySVG({ sex: recSex(), view: v, colorsByHead: col, idPrefix: 'gh' + v, maxWidth: 260 });
     const side = GH_REC.side, key = JSON.stringify(col) + recSex() + lang;
-    if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('bolt', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div><div class="ghdots" aria-hidden="true"><i class="${side ? '' : 'on'}"></i><i class="${side ? 'on' : ''}"></i></div>`; }
+    if($('ghRec')._k !== key){ $('ghRec')._k = key; $('ghRec').innerHTML = ghHead('bolt', 'hubRec') + `<div class="ghfigs"><div class="ghfig${side ? ' off' : ''}" data-v="front">${fig('front')}</div><div class="ghfig${side ? '' : ' off'}" data-v="back">${fig('back')}</div></div>`; }
     $('ghRec').setAttribute('aria-label', t('hubRec')); pauseOffscreen($('ghRec')); if(!GH_REC.tm) ghRecArm(); }
   renderGymWeek();
   // the grid ends 7 px above the Start Workout pill (its place depends on the phone's safe area, so it is measured, once per draw)
@@ -1319,7 +1319,7 @@ function ghRecArm(){ ghRecStop(); if(matchMedia('(prefers-reduced-motion: reduce
 function ghRecFlip(){ GH_REC.tm = 0; const box = $('ghRec'); if(!box || document.hidden || box.offsetParent === null || $('gHub').classList.contains('hide')) return;
   if(box.classList.contains('offscr')){ ghRecArm(); return; }   // scrolled out of view: wait, no slide
   const figs = box.querySelectorAll('.ghfig'); if(figs.length < 2) return; const from = figs[GH_REC.side], to = figs[1 - GH_REC.side], dir = GH_REC.side ? -1 : 1;
-  GH_REC.side = 1 - GH_REC.side; box.querySelectorAll('.ghdots i').forEach((d, i) => d.classList.toggle('on', i === GH_REC.side));
+  GH_REC.side = 1 - GH_REC.side;
   const OUT = 900, IN = 1000, GAP = OUT * .8;   // the new side starts when the old one is ~80 % gone
   from.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: `translate3d(${-dir * 60}%,0,0)`, opacity: 0 }], { duration: OUT, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = () => { from.classList.add('off'); from.getAnimations().forEach(a => a.cancel()); };
   to.style.opacity = '0'; to.classList.remove('off');
