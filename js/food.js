@@ -13,7 +13,7 @@ function portion(f){
   return { mode, amt: 100, label: t('per100Label', { u: f.unit }), size: '' };
 }
 
-function renderAll(){ render(); renderMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec(); drawStkBubs();
+function renderAll(){ render(); renderMeals(); renderQuickMeals(); renderSupps(); renderToday(); renderFridge(); renderGroc(); renderGym(); renderTodayRec(); drawStkBubs();
   const fab = $('fab'); if(fab.dataset.action === 'gym') { if(active) fab.textContent = t('resume', { m: Math.floor(sesMs() / 60000) }); else fab.innerHTML = fabBtn('play', t('startWk')); }
   syncFab2(); }
 
@@ -74,7 +74,7 @@ function suppDayState(d){ const need = supps.filter(s => s.often !== 'training' 
   if(!L.length) return 'none'; const n = L.filter(s => takesOf(d, s.id).length).length; return n === L.length ? 'done' : n ? 'part' : 'miss'; }
 // Recipes: the saved recipe you can cook now with the most of its ingredients in My Fridge
 function fhCookable(){ const ids = r => r && r.type === 'my' ? r.id : r && r.type === 'gen' ? ((foods.find(f => f.gid === r.id) || {}).id || null) : null;
-  return meals.filter(m => (m.ingredients || []).some(i => i.ref)).map(m => { const ing = m.ingredients.filter(i => i.ref), miss = ing.filter(i => { const id = ids(i.ref); return !id || stockOf(id) <= 0; });
+  return meals.filter(m => !m.quick && (m.ingredients || []).some(i => i.ref)).map(m => { const ing = m.ingredients.filter(i => i.ref), miss = ing.filter(i => { const id = ids(i.ref); return !id || stockOf(id) <= 0; });
     return { m, have: ing.length - miss.length, of: ing.length, miss }; }).sort((a, b) => (b.have / b.of) - (a.have / a.of) || (b.m.timesCooked || 0) - (a.m.timesCooked || 0))[0] || null; }
 
 function renderFoodHub(fresh){
@@ -86,8 +86,8 @@ function renderFoodHub(fresh){
       ${s ? `<div class="btstat${s.big ? ' big' : ''}"><b>${esc(s.num)}</b><span>${esc(s.sub)}</span></div>` : ''}` : empty('fhNoFoods')}</div>${foods.length ? fhRing(st.cls) : ''}`);
     $('fhFoods').setAttribute('aria-label', t('tabStore')); }
   // Meals: top 3 by times logged this month
-  { const lg = fhLogged('meal'), top = Object.keys(lg).map(id => [meals.find(m => m.id === id), lg[id]]).filter(x => x[0]).sort((a, b) => b[1] - a[1]).slice(0, 3), mx = top.length ? top[0][1] : 1;
-    setHTML($('fhMeals'), fhHead('bowl', 'tabMyMeals', top.length ? esc(t('fhMonthL')) : '') + (top.length ? `<div class="btbars">${top.map(([m, n], i) => `<div class="btbar"><span><em>${esc(m.name)}</em><b>${n}×</b></span><i><u style="transform:scaleX(${(n / mx).toFixed(3)})"></u></i></div>`).join('')}</div>` : empty(meals.length ? 'fhNoMealsMonth' : 'fhNoMeals'))); }
+  { const lg = fhLogged('meal'), top = Object.keys(lg).map(id => [meals.find(m => m.id === id), lg[id]]).filter(x => x[0] && x[0].quick).sort((a, b) => b[1] - a[1]).slice(0, 3), mx = top.length ? top[0][1] : 1;
+    setHTML($('fhMeals'), fhHead('bowl', 'tabMyMeals', top.length ? esc(t('fhMonthL')) : '') + (top.length ? `<div class="btbars">${top.map(([m, n], i) => `<div class="btbar"><span><em>${esc(m.name)}</em><b>${n}×</b></span><i><u style="transform:scaleX(${(n / mx).toFixed(3)})"></u></i></div>`).join('')}</div>` : empty(meals.some(m => m.quick) ? 'fhNoMealsMonth' : 'fhNoMeals'))); }
   // Supps: title only, a small question under it with a Yes button that logs today's supplements (wire/02), the last 7 days (a tick = all taken)
   { const d0 = todayKey(), left = fhSuppLeft().length;
     const wd = t('wdShort').split(' '), dots = Array.from({ length: 7 }, (_, i) => { const d = addDays(d0, i - 6), st = suppDayState(d), dw = new Date(d + 'T12:00:00').getDay();
@@ -96,7 +96,7 @@ function renderFoodHub(fresh){
   // Recipes: one you can cook now
   { const r = fhCookable();
     setHTML($('fhRecipes'), fhHead('pot', 'tabMeals') + (r ? `<div class="btringrow">${fhMiniRing(r.have, r.of, 'acc')}<span class="btsub">${esc(t('fhInFridge'))}</span></div><b class="btname">${esc(r.m.name)}</b><span class="btsub">${esc(r.miss.length ? t('fhMissing', { x: r.miss.map(i => i.ref.name).slice(0, 2).join(', ') }) : t('fhReady'))}</span>`
-      : empty(meals.length ? 'fhNoIng' : 'fhNoRecipes'))); }
+      : empty(meals.some(m => !m.quick) ? 'fhNoIng' : 'fhNoRecipes'))); }
   // Shopping List
   { const tot = groc.length, done = groc.filter(g => g.done).length, next = groc.filter(g => !g.done).slice(0, 2);
     setHTML($('fhGroc'), fhHead('cart', 'fhGrocT') + (!on ? empty('invOff') : tot ? `<div class="btringrow">${fhMiniRing(done, tot, 'ok')}<span class="btsub">${esc(tot - done ? t('fhToBuy', { n: tot - done }) : t('fhAllBought'))}</span></div><div class="btlist">${next.map(g => `<span>${esc(g.name)}${g.size ? ' ' + esc(fmtSize(g.size, g.unit || 'g')) : ''}${g.count > 1 ? ' ×' + g.count : ''}</span>`).join('')}</div>` : empty('fhNoGroc'))); }
@@ -555,7 +555,7 @@ function recipeHtml(r, compact){
 
 function calcMeal(){
   const tot = mealTotals(D.rows);
-  $('cTotals').innerHTML = `<span>${t('rawTotal')}: <b>${fmtSize(tot.raw, 'g')}</b></span><span><b>${Math.round(tot.kcal)}</b> kcal · P ${Math.round(tot.protein)} · C ${Math.round(tot.carbs)} · F ${Math.round(tot.fat)}</span>`;
+  $('cTotals').innerHTML = `<span>${t(D && D.quick ? 'qmTotal' : 'rawTotal')}: <b>${fmtSize(tot.raw, 'g')}</b></span><span><b>${Math.round(tot.kcal)}</b> kcal · P ${Math.round(tot.protein)} · C ${Math.round(tot.carbs)} · F ${Math.round(tot.fat)}</span>`;
   const w = num('cCooked'), el = $('cResult');
   if(!tot.raw){ el.innerHTML = ''; el.classList.remove('show'); return; }
   el.classList.add('show');
@@ -644,10 +644,11 @@ function mealIcon(m){ return ''; }   // food-type emojis are gone (0.7.4.0.5); k
 
 function renderMeals(){
   const q = norm($('mSearch').value), tokens = q.split(' ').filter(Boolean);
-  const items = meals.filter(m => !tokens.length || tokens.every(tk => norm(m.name + ' ' + m.ingredients.map(i => i.name).join(' ')).includes(tk)))
+  const recs = meals.filter(m => !m.quick);
+  const items = recs.filter(m => !tokens.length || tokens.every(tk => norm(m.name + ' ' + m.ingredients.map(i => i.name).join(' ')).includes(tk)))
     .sort((a,b) => (b.cookedAt||'').localeCompare(a.cookedAt||''));
-  $('mCount').textContent = meals.length ? (items.length === 1 ? t('nMeal') : t('nMeals', { n: items.length })) : '';
-  if(!meals.length){ $('mList').innerHTML = `<div class="empty">${t('noMeals')}</div>`; return; }
+  $('mCount').textContent = recs.length ? (items.length === 1 ? t('nMeal') : t('nMeals', { n: items.length })) : '';
+  if(!recs.length){ $('mList').innerHTML = `<div class="empty">${t('noMeals')}</div>`; return; }
   if(!items.length){ $('mList').innerHTML = `<div class="empty">${t('nothingMatches', { q: esc($('mSearch').value) })}</div>`; return; }
   $('mList').innerHTML = items.map(m => `<div class="card" data-mid="${m.id}">
       <div class="ficon">${svgIcon('pot', 22)}</div>
@@ -661,12 +662,52 @@ function renderMeals(){
       </div></div>`).join('');
 }
 
+// Meals tab: one-plate meals (meals[].quick). The numbers on the card are for the whole meal; one tap on Log adds it to today.
+function mealWhole(m){ const w = +m.cookedWeight || 0, x = w / 100, g = k => (+m[k] || 0) * x;
+  return { g: w, kcal: Math.round(g('kcal')), protein: r1(g('protein')), carbs: r1(g('carbs')), fat: r1(g('fat')) }; }
+function renderQuickMeals(){
+  const box = $('qmList'); if(!box) return;
+  const all = meals.filter(m => m.quick), tokens = norm($('qmSearch').value).split(' ').filter(Boolean);
+  const items = all.filter(m => !tokens.length || tokens.every(tk => norm(m.name + ' ' + (m.ingredients || []).map(i => (i.ref && i.ref.name) || i.name || '').join(' ')).includes(tk)))
+    .sort((a, b) => (b.updatedAt || b.cookedAt || '').localeCompare(a.updatedAt || a.cookedAt || ''));
+  $('qmCount').textContent = all.length ? (items.length === 1 ? t('nMeal') : t('nMeals', { n: items.length })) : '';
+  if(!all.length){ box.innerHTML = `<div class="empty">${t('noQMeals')}</div>`; return; }
+  if(!items.length){ box.innerHTML = `<div class="empty">${t('nothingMatches', { q: esc($('qmSearch').value) })}</div>`; return; }
+  box.innerHTML = items.map(m => { const w = mealWhole(m), ing = (m.ingredients || []).map(i => (i.ref && i.ref.name) || i.name || '').filter(Boolean).join(', ');
+    return `<div class="card qmcard" data-qid="${m.id}"><div class="ficon">${svgIcon('bowl', 22)}</div><div class="body">
+      <div class="row"><div class="name">${esc(m.name)}</div><div class="kcal">${w.kcal} <small>kcal</small></div></div>
+      <div class="row" style="margin-top:2px"><div class="macros"><span class="m p">P <b>${fmt(w.protein)}</b></span><span class="m c">C <b>${fmt(w.carbs)}</b></span><span class="m f">F <b>${fmt(w.fat)}</b></span></div><button class="btn small primary qmlog" type="button" data-qlog="${m.id}">${esc(t('mealLog'))}</button></div>
+      ${ing ? `<div class="qming">${esc(ing)}</div>` : ''}</div></div>`; }).join('');
+}
+function logQuickMeal(id){
+  const m = meals.find(x => x.id === id); if(!m || !(m.cookedWeight > 0)) return;
+  const d = todayKey(), n = (dayLog[d] || []).length;
+  logEntry(d, { name: m.name, icon: mealIcon(m), unit: 'g', per: m, meal: m, piece: null }, m.cookedWeight);
+  Phone.haptic(); renderAll();
+  toast(t('mealLogged', { n: m.name }), t('undo'), () => { if(dayLog[d] && dayLog[d].length > n){ dayLog[d].pop(); if(!dayLog[d].length) delete dayLog[d]; saveLog(); renderAll(); } });
+}
+// Move a saved meal between Recipes and Meals. A weighed batch becomes one plate: its numbers are scaled so the whole raw total is one meal. Undo restores the original.
+function moveMeal(id){
+  const i = meals.findIndex(x => x.id === id); if(i < 0) return; const before = JSON.parse(JSON.stringify(meals[i])), m = meals[i];
+  if(m.quick){ delete m.quick; }
+  else { const raw = +m.rawWeight || 0, cw = +m.cookedWeight || 0;
+    if(!m.cookedEstimated && raw > 0 && cw > 0 && Math.abs(raw - cw) > 0.5){ const k = cw / raw;
+      ['kcal', 'protein', 'carbs', 'fat', 'fiber', 'salt', 'potassium'].forEach(q => { if(typeof m[q] === 'number') m[q] = q === 'kcal' || q === 'potassium' ? Math.round(m[q] * k) : Math.round(m[q] * k * 100) / 100; });
+      m.cookedWeight = Math.round(raw); m.cookedEstimated = true; }
+    m.quick = true; }
+  m.updatedAt = new Date().toISOString();
+  if(!saveMeals()){ meals[i] = before; return; }
+  close('ovMeal'); renderAll(); go(m.quick ? 'mymeals' : 'meals');
+  toast(t(m.quick ? 'mealMoved' : 'mealMovedBack', { n: m.name }), t('undo'), () => { const j = meals.findIndex(x => x.id === id); if(j > -1){ meals[j] = before; saveMeals(); renderAll(); } });
+}
+
 function openMeal(id){
   const m = meals.find(x => x.id === id); if(!m) return; openMealId = id;
   $('mdName').textContent = m.name;
-  $('mdWhen').textContent = m.cookedEstimated ? t('estimated') : t('per100cooked');
+  const q = !!m.quick; $('mdWhen').textContent = q ? t('mealWhole') : m.cookedEstimated ? t('estimated') : t('per100cooked');
+  $('mdCookAgain').classList.toggle('hide', q); $('mdMove').textContent = t(q ? 'mealMoveBack' : 'mealMoveTo');
   $('mdMeta').textContent = t('mealMeta', { d: fmtDate(m.cookedAt), s: fmtSize(m.cookedWeight, 'g') }) + (m.timesCooked > 1 ? ' · ' + t('timesCooked', { n: m.timesCooked }) : '');
-  $('mdStats').innerHTML = `<div><b>${m.kcal}</b><small>kcal</small></div><div><b style="color:var(--p)">${fmt(m.protein)}</b><small>${t('protein')}</small></div><div><b style="color:var(--c)">${fmt(m.carbs)}</b><small>${t('carbs')}</small></div><div><b style="color:var(--f)">${fmt(m.fat)}</b><small>${t('fat')}</small></div>`;
+  { const w = q ? mealWhole(m) : m; $('mdStats').innerHTML = `<div><b>${w.kcal}</b><small>kcal</small></div><div><b style="color:var(--p)">${fmt(w.protein)}</b><small>${t('protein')}</small></div><div><b style="color:var(--c)">${fmt(w.carbs)}</b><small>${t('carbs')}</small></div><div><b style="color:var(--f)">${fmt(w.fat)}</b><small>${t('fat')}</small></div>`; }
   $('mdPlate').value = ''; $('mdPlateRes').classList.remove('show');
   $('mdIngs').innerHTML = `<ul style="color:var(--text)">${m.ingredients.map(i => `<li>${esc(i.ref.name)} — ${fmtSize(i.grams, i.ref.unit)}</li>`).join('')}</ul>`;
   $('mdRecipe').innerHTML = m.recipe ? `<h3>${t('recipeT')}</h3>` + recipeHtml(m.recipe, true) : `<p class="hint">${t('noRecipe')}</p>`;
@@ -748,14 +789,21 @@ function matchIng(names){
   return null;
 }
 
-function openCook(meal, mode){
-  D = { id: mode === 'edit' ? meal.id : (mode === 'again' ? meal.id : null), mode, recipe: meal && meal.recipe ? meal.recipe : null,
+function openCook(meal, mode, quick){
+  const qk = quick != null ? !!quick : !!(meal && meal.quick);
+  D = { quick: qk, id: mode === 'edit' ? meal.id : (mode === 'again' ? meal.id : null), mode, recipe: meal && meal.recipe ? meal.recipe : null,
         rows: meal ? meal.ingredients.map(r => ({ ...r, key: uid() })) : [], timesCooked: meal ? (meal.timesCooked || 1) : 0 };
-  $('cookTitle').textContent = mode === 'edit' ? t('editMeal') : mode === 'again' ? t('cookAgainT') : t('cookMeal');
+  $('cookTitle').textContent = qk ? t(mode === 'edit' ? 'editMealT' : 'newMealT') : mode === 'edit' ? t('editMeal') : mode === 'again' ? t('cookAgainT') : t('cookMeal');
   $('cName').value = meal ? meal.name : '';
   $('cPotFull').value = ''; $('cPotEmpty').value = ''; $('cCooked').value = mode === 'edit' && meal && !meal.cookedEstimated ? meal.cookedWeight : '';
   $('cDelete').classList.toggle('hide', mode !== 'edit');
-  renderUseUp(mode); drawRecipeBox(); drawRows(); cookStep(true); open('ovCook');
+  renderUseUp(mode); drawRecipeBox(); drawRows(); cookStep(true);
+  // a Meal (one plate) has no recipe steps and no pot weight: the whole of its ingredients is the meal
+  ['recipeBox', 'pasteBtn', 'cWeighLink'].forEach(id => $(id).classList.toggle('hide', qk)); if(qk) $('cWeighBox').classList.add('hide');
+  { const lb = document.querySelector('label[for="cName"]'), hint = $('ingHint') || document.querySelector('#cookMain .hint');
+    if(lb) lb.textContent = t(qk ? 'qmName' : 'mealName'); $('cName').placeholder = t(qk ? 'qmNamePh' : 'mealNamePh'); if(hint) hint.textContent = t(qk ? 'qmIngHint' : 'ingHint'); }
+  if(qk){ $('cLeft').checked = false; $('cLeftWrap').classList.add('hide'); }
+  open('ovCook');
 }
 
 function drawRows(){

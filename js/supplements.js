@@ -3,12 +3,33 @@
 
 // Supplements: name + dose; a Take button logs the time (change it if you took it earlier); take it again later the same day
 const takesOf = (d, id) => ((suppLog[d] || {}).takes || {})[id] || [];
-function setTakes(d, id, arr){ const day = suppLog[d] = suppLog[d] || {}; day.takes = day.takes || {}; if(arr.length) day.takes[id] = arr; else delete day.takes[id]; Store.save('suppLog', suppLog); }
+function setTakes(d, id, arr){ const day = suppLog[d] = suppLog[d] || {}; day.takes = day.takes || {}; if(arr.length){ day.takes[id] = arr; if(day.ans === 'no') delete day.ans; } else delete day.takes[id]; Store.save('suppLog', suppLog); }   // taking one after saying No takes the No back
 // supplements in day order: by Usual Time, those without a time at the end (stable)
 const suppsByTime = () => supps.map((s, i) => [s, i]).sort((a, b) => (a[0].usualTime || '99:99').localeCompare(b[0].usualTime || '99:99') || a[1] - b[1]).map(x => x[0]);
 function todayProgress(){ const d = todayKey(); return { total: supps.length, done: supps.filter(s => takesOf(d, s.id).length).length }; }
 
+// The daily question on the Supplements page: suppLog[day].ans = 'yes' | 'no' (optional; old days simply have none). Yes logs what is left today
+// (same as the Supplements tile); No only records the answer and never deletes a take. The week is Monday to Sunday: a tick = yes, an X = no.
+function suppMark(d){ const a = (suppLog[d] || {}).ans, st = suppDayState(d); return a === 'no' ? 'no' : st === 'done' || (a === 'yes' && st !== 'miss') ? 'yes' : ''; }
+function suppAnswer(a){
+  const d = todayKey(), day = suppLog[d] = suppLog[d] || {};
+  if(a === 'no'){ if(day.ans === 'no') delete day.ans; else day.ans = 'no'; }
+  else { const tm = nowHM(); fhSuppLeft().forEach(s => { day.takes = day.takes || {}; day.takes[s.id] = [...takesOf(d, s.id), tm].sort(); }); day.ans = 'yes'; }
+  Store.save('suppLog', suppLog); Phone.haptic();
+}
+function renderSuppQ(){
+  const box = $('suppQ'); if(!box) return;
+  const d0 = todayKey(), ans = (suppLog[d0] || {}).ans, mark = suppMark(d0), wd = t('wdShort').split(' ');
+  const dow = (new Date(d0 + 'T12:00:00').getDay() + 6) % 7;   // 0 = Monday
+  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(d0, i - dow), m = d <= d0 ? suppMark(d) : '', lbl = wd[(i + 1) % 7] || '';
+    return `<span class="sqd ${m}${i === dow ? ' today' : ''}${d > d0 ? ' future' : ''}"${m ? ` title="${esc(t(m === 'yes' ? 'suppDayYes' : 'suppDayNo'))}"` : ''}><i>${m === 'yes' ? svgIcon('check', 16, 2.6) : m === 'no' ? svgIcon('x', 16, 2.6) : ''}</i><small>${esc(lbl)}</small></span>`; }).join('');
+  setHTML(box, `${supps.length ? `<b class="sqq">${esc(t('fhSuppAsk'))}</b>
+    <div class="sqbtns"><button type="button" class="pillbtn danger${ans === 'no' ? ' on' : ''}" data-sq="no" aria-pressed="${ans === 'no'}">${esc(t('suppNo'))}</button><button type="button" class="pillbtn primary${mark === 'yes' ? ' on' : ''}" data-sq="yes" aria-pressed="${mark === 'yes'}">${esc(t('suppYesT'))}</button></div>` : ''}
+    <div class="sqweek">${week}</div>`);
+}
+
 function renderSupps(){
+  renderSuppQ();
   const tp = todayProgress(), d = todayKey();
   $('sToday').textContent = `${t('todayLabel')} · ${new Date().toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}`;
   $('sTodayN').textContent = tp.total ? t('todayTaken', { a: tp.done, b: tp.total }) : '';

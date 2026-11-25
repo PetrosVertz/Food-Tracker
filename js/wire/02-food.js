@@ -32,13 +32,12 @@ $('fHub').addEventListener('click', e => { const ring = e.target.closest('#fhFoo
 $('fHub').addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-fsec]')){ e.preventDefault(); e.target.click(); } });
 document.addEventListener('pointerdown', e => { if(FH_BUB.k && !e.target.closest('#fhFoods .fring')) fhBubble(null); }, true);
 const FOOD_CAR = pillCarousel($('fTabs'), {
-  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
-    { key: 'fridge', label: () => t('tFridge'), off: () => !kitchenOn() }, { key: 'groc', label: () => t('tGroc'), off: () => !kitchenOn() },   // Petros: Inventory + Groceries
-    { key: 'mymeals', label: () => t('tabMyMeals'), soon: true }],
+  items: [{ key: 'foods', label: () => t('tabStore') }, { key: 'mymeals', label: () => t('tabMyMeals') }, { key: 'meals', label: () => t('tabMeals') }, { key: 'supps', label: () => t('tabSupps') },
+    { key: 'fridge', label: () => t('tFridge'), off: () => !kitchenOn() }, { key: 'groc', label: () => t('tGroc'), off: () => !kitchenOn() }],   // Petros: Inventory + Groceries
   onPick: key => { if(location.hash.slice(1) === key) return; navKeepScroll = false; history.replaceState(null, '', '#' + key); route(); },
-  page: { area: $('pgFoods'), views: () => ['storeView', 'mealsView', 'foodSupps', 'fridgeView', 'pgGroc'].map($).filter(el => !el.classList.contains('hide')),
+  page: { area: $('pgFoods'), views: () => ['storeView', 'myMealsView', 'mealsView', 'foodSupps', 'fridgeView', 'pgGroc'].map($).filter(el => !el.classList.contains('hide')),
     // Petros: the section a swipe brings in is shown while the finger moves (ui.js swipePages)
-    viewsFor: key => ({ foods: ['storeView'], meals: ['mealsView'], supps: ['foodSupps'], fridge: ['fridgeView'], groc: ['pgGroc'] }[key] || []).map($),
+    viewsFor: key => ({ foods: ['storeView'], mymeals: ['myMealsView'], meals: ['mealsView'], supps: ['foodSupps'], fridge: ['fridgeView'], groc: ['pgGroc'] }[key] || []).map($),
     prep: key => { if(key === 'fridge') renderFridge(); else if(key === 'groc') renderGroc(); } }
 });
 
@@ -245,8 +244,8 @@ $('cSave').addEventListener('click', async () => {
   if(num('cPotFull') && num('cPotEmpty') !== null && num('cPotFull') <= num('cPotEmpty')){ toast(t('potNegative')); return; }
   const tot = mealTotals(rows), w = num('cCooked');
   // 0.6.1: no cooked weight = worked out from the ingredients, no question
-  const cooked = w > 0 ? w : tot.raw, m = 100 / cooked, now = new Date().toISOString();
-  const rec = { name, ingredients: rows.map(({ key, wanted, ...r }) => r), rawWeight: tot.raw, cookedWeight: cooked, cookedEstimated: !(w > 0),
+  const cooked = !D.quick && w > 0 ? w : tot.raw, m = 100 / cooked, now = new Date().toISOString();
+  const rec = { name, ingredients: rows.map(({ key, wanted, ...r }) => r), rawWeight: tot.raw, cookedWeight: cooked, cookedEstimated: D.quick || !(w > 0), ...(D.quick ? { quick: true } : {}),
     kcal: Math.round(tot.kcal*m), protein: r1(tot.protein*m), carbs: r1(tot.carbs*m), fat: r1(tot.fat*m), fiber: r1(tot.fib*m), salt: Math.round(tot.na*m/400*100)/100, potassium: Math.round(tot.k*m),
     total: { kcal: Math.round(tot.kcal), protein: r1(tot.protein), carbs: r1(tot.carbs), fat: r1(tot.fat) },
     recipe: D.recipe, updatedAt: now };
@@ -255,7 +254,7 @@ $('cSave').addEventListener('click', async () => {
   else meals.push({ id: uid(), createdAt: now, cookedAt: now, timesCooked: 1, ...rec });
   if(!saveMeals()) return;
   const extra = afterCook(D.id || meals[meals.length - 1].id, rows, cooked);
-  close('ovCook'); go('meals'); renderAll(); toast(t('mealSaved', { n: name }) + extra);
+  close('ovCook'); go(D.quick ? 'mymeals' : 'meals'); renderAll(); toast(t('mealSaved', { n: name }) + extra);
 });
 
 $('cDelete').addEventListener('click', async () => {
@@ -306,6 +305,14 @@ $('ownRead').addEventListener('click', readOwn);
 $('ownUse').addEventListener('click', () => { if(!OWN) readOwn(); if(OWN && (OWN.ingredients.length || OWN.steps.length)){ applyRecipe(OWN, true); close('ovOwn'); } });
 
 $('mSearch').addEventListener('input', renderMeals);
+
+// Meals tab
+$('qmSearch').addEventListener('input', renderQuickMeals);
+$('mealNewBtn').addEventListener('click', () => { openCook(null, 'new', true); setTimeout(() => $('cName').focus(), 150); });
+$('qmList').addEventListener('click', e => { const lg = e.target.closest('[data-qlog]'); if(lg){ logQuickMeal(lg.dataset.qlog); return; } const c = e.target.closest('[data-qid]'); if(c) openMeal(c.dataset.qid); });
+$('mdMove').addEventListener('click', () => moveMeal(openMealId));
+// Supplements: the daily Yes / No question
+$('suppQ').addEventListener('click', e => { const b = e.target.closest('[data-sq]'); if(!b) return; suppAnswer(b.dataset.sq); renderAll(); renderFoodHub(); });
 
 $('mList').addEventListener('click', e => { const c = e.target.closest('[data-mid]'); if(c) openMeal(c.dataset.mid); });
 

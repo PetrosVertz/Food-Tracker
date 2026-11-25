@@ -16,10 +16,10 @@ function seed(){ const dk = n => { const d = new Date(); d.setDate(d.getDate() +
     ['f5', 'Eggs', 'eggs', 143, 13, 1, 10], ['f6', 'Pasta', 'pasta', 360, 12, 72, 1.5], ['f7', 'Almonds', 'nuts', 579, 21, 22, 50], ['f8', 'Broccoli', 'veg', 34, 2.8, 7, .4]]
     .map(([id, name, cat, kcal, protein, carbs, fat], i) => ({ id, name, cat, kcal, protein, carbs, fat, unit: 'g', createdAt: dk(-20 + i) + 'T10:00:00Z', updatedAt: dk(-2) }));
   const ref = f => ({ type: 'my', id: f.id, name: f.name, unit: 'g', per: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat } });
-  const log = {}; for(let i = 0; i < 3; i++) log[dk(-i)] = [{ id: 'l' + i, time: '12:00', kind: 'meal', refId: 'm1', name: 'Chicken & rice', amt: 300, unit: 'g', kcal: 500, p: 40, c: 50, f: 10 }];
+  const log = {}; for(let i = 0; i < 3; i++) log[dk(-i)] = [{ id: 'l' + i, time: '12:00', kind: 'meal', refId: 'm2', name: 'Protein toast', amt: 300, unit: 'g', kcal: 500, p: 40, c: 50, f: 10 }];
   const ses = []; for(let i = 1; i < 56; i += 3){ const d = dk(-i); ses.push({ id: 's' + i, date: d, start: d + 'T18:00:00.000Z', vol: 4000 + i * 10, prs: [], exercises: [{ exId: 'bench', sets: [{ w: 80, r: 5, done: true }] }] }); }
   const plan = {}; [1, 2, 4, 5].forEach(d => { plan[d] = { tpl: 't1' }; }); [3, 6, 0].forEach(d => { plan[d] = { tpl: 'rest' }; });
-  return { 'ft.foods.v1': F, 'ft.meals.v1': [{ id: 'm1', name: 'Chicken & rice', ingredients: [{ ref: ref(F[0]), grams: 200 }, { ref: ref(F[1]), grams: 100 }] }], 'ft.log.v1': log,
+  return { 'ft.foods.v1': F, 'ft.meals.v1': [{ id: 'm1', name: 'Chicken & rice', ingredients: [{ ref: ref(F[0]), grams: 200 }, { ref: ref(F[1]), grams: 100 }] }, { id: 'm2', name: 'Protein toast', quick: true, cookedWeight: 300, ingredients: [{ ref: ref(F[5]), grams: 300 }] }], 'ft.log.v1': log,
     'ft.supps.v1': [{ id: 's1', name: 'Creatine', dose: 5, unit: 'g', often: 'daily', times: ['any'] }], 'ft.supplog.v1': { [dk(-1)]: { takes: { s1: ['09:00'] } }, [dk(-2)]: { takes: { s1: ['09:00'] } } },
     'ft.fridge.v1': [{ id: 'i1', foodId: 'f1', qty: 500, loc: 'fridge' }, { id: 'i2', foodId: 'f2', qty: 1000, loc: 'fridge' }], 'ft.groc.v1': [{ id: 'g1', name: 'Eggs', foodId: 'f5', count: 1, done: false }, { id: 'g2', name: 'Milk', done: true }],
     'ft.gym.tpl': [{ id: 't1', name: 'A Very Long Workout Name Here', type: 'push', exercises: [{ exId: 'bench', sets: 4 }, { exId: 'squat', sets: 3 }] }], 'ft.gym.plan': plan, 'ft.gym.sessions': ses }; }
@@ -66,7 +66,7 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     await segTap(p, 'c'); await p.waitForTimeout(200); await p.mouse.click(195, 30); await p.waitForTimeout(300);
     must(await p.evaluate(() => document.querySelector('#fhFoods .fbub').classList.contains('hide')), 'tapping anywhere else closes it');
     s = await p.evaluate(() => ({ yes: !!$('fhSupps').querySelector('[data-suppyes]'), meals: $('fhMeals').innerText, supps: $('fhSupps').innerText, dots: $('fhSupps').querySelectorAll('.sdot').length, rec: $('fhRecipes').innerText, groc: $('fhGroc').innerText, inv: $('fhInv').innerText }));
-    must(/Chicken & rice/.test(s.meals) && /3×/.test(s.meals), 'Meals: top meals with times logged this month');
+    must(/Protein toast/.test(s.meals) && /3×/.test(s.meals), 'Meals: top one-plate meals with times logged this month');
     must(s.dots === 7 && /Did you take your supplements\?/.test(s.supps) && !/streak|left/.test(s.supps) && s.yes, 'Supps: title only, question + Yes under it, 7 dots (no streak, no "left")');
     { await p.evaluate(() => $('fhSupps').querySelector('[data-suppyes]').click()); await p.waitForTimeout(300); const r = await p.evaluate(() => { const d = todayKey(); return { hash: location.hash, took: takesOf(d, 's1').length, txt: $('fhSupps').innerText, yes: !!$('fhSupps').querySelector('[data-suppyes]'), tick: !!$('fhSupps').querySelector('.sdot.today.done i svg') }; });
       must(r.hash === '#food' && r.took === 1 && /All taken today/.test(r.txt) && !r.yes && r.tick, 'Supps: Yes logs today, stays on the page, today gets a tick, the button goes ' + JSON.stringify(r)); }
