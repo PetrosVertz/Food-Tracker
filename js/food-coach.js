@@ -222,6 +222,14 @@ const FoodCoach = (() => {
       // or for another day you are logging, the plain Gym / Rest Day label is used.
       if(!(today && typeof AthleteContext !== 'undefined')) out.push(`${today ? 'Today' : 'Day being logged ' + d}: ${st.type === 'gym' ? 'training day' + (trained ? ' (workout done)' : st.time ? ` (gym at ${st.time})` : '') : 'rest day'}.`);
       out.push(n ? `Logged so far (${n} entries; may be incomplete — unlogged food is unknown, never a deficit): ${Math.round(tot.kcal)} kcal, P ${Math.round(tot.p)} g, C ${Math.round(tot.c)} g, F ${Math.round(tot.f)} g.` : 'Nothing logged yet for this day (unknown, not zero eaten).');
+      // every logged entry of the day, so the coach can say where the fat / protein / kcal came from; only what is in the diary counts as eaten
+      if(n){ const rows = (dayLog[d] || []).slice().sort((x, y) => String(x && x.time || '').localeCompare(String(y && y.time || ''))).slice(0, 40)
+          .map(e => `${e.time || '?'} ${String(e.name || '?').slice(0, 40)} ${e.amt != null ? Math.round(e.amt) + (e.unit === 'ml' ? ' ml' : ' g') : ''}: ${Math.round(e.kcal || 0)} kcal, P ${Math.round(e.p || 0)}, C ${Math.round(e.c || 0)}, F ${Math.round(e.f || 0)}`);
+        out.push(`Logged foods (the only foods eaten; foods you suggested or listed in the chat that are not here were NOT eaten):\n${rows.join('\n')}\n`); }
+      // the usual day: average of up to 7 earlier days that have entries, so "more than usual" can be answered
+      const prev = Object.keys(dayLog).filter(k => k < d && (dayLog[k] || []).length).sort().slice(-7);
+      if(prev.length){ const sum = prev.reduce((a, k) => { const x = dayTotals(k); return { k: a.k + x.kcal, p: a.p + x.p, c: a.c + x.c, f: a.f + x.f }; }, { k: 0, p: 0, c: 0, f: 0 }), m = prev.length;
+        out.push(`Usual logged day (average of ${m} earlier days with entries): ${Math.round(sum.k / m)} kcal, P ${Math.round(sum.p / m)} g, C ${Math.round(sum.c / m)} g, F ${Math.round(sum.f / m)} g.`); }
       if(tg) out.push(`Targets: ${tg.k} kcal, P ${tg.p} g, C ${tg.c} g, F ${tg.f} g.`);
     }catch(e){}
     let rules = ''; try{ rules = AI.dietRules() + AI.knows('food'); }catch(e){}

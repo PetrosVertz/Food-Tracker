@@ -226,12 +226,13 @@ Object.entries(REF).forEach(([gid, [k, p]]) => { const g = GEN[gid]; if (!g) ret
   (e <= .08 && Math.abs(g.protein - p) <= 1.5) ? ok() : fail(`reference ${gid}: ${g.kcal} kcal / ${g.protein} g protein, reference ${k} / ${p}`); });
 
 // ---- 7. context: what the AI is told (incomplete logs stay "unknown", not a deficit; missing context is safe) ----
-Object.assign(ctx, { curDay: '2026-11-22', todayKey: () => '2026-11-22', dayLog: { '2026-11-22': [{}, {}] }, sessions: [{ date: '2026-11-22', end: 1 }],
+Object.assign(ctx, { curDay: '2026-11-22', todayKey: () => '2026-11-22', dayLog: { '2026-11-22': [{ time: '08:00', name: 'Eggs', amt: 120, unit: 'g', kcal: 180, p: 15, c: 1, f: 12 }, { time: '13:00', name: 'Olive oil', amt: 30, unit: 'g', kcal: 270, p: 0, c: 0, f: 30 }], '2026-11-21': [{ time: '12:00', name: 'Rice', amt: 100, unit: 'g', kcal: 130, p: 3, c: 28, f: 1 }] }, sessions: [{ date: '2026-11-22', end: 1 }],
   targetFor: () => ({ k: 2800, p: 180, c: 320, f: 80 }), dayTotals: () => ({ kcal: 900.4, p: 70.2, c: 80, f: 30 }), dayStatus: () => ({ type: 'gym', time: '18:00' }),
   AI: { dietRules: () => '\nFood rules: allergic to peanuts.', knows: () => '' } });
 { const c = F.context();
   [/training day \(workout done\)/, /may be incomplete/, /unknown, never a deficit/, /900 kcal, P 70 g/, /Targets: 2800 kcal, P 180 g/, /allergic to peanuts/].forEach(re => (re.test(c) ? ok() : fail(`context should say ${re}: ${c}`)));
-  c.length < 500 ? ok() : fail(`context is ${c.length} characters (keep it short)`); }
+  /Eggs 120 g: 180 kcal/.test(c) && /Olive oil 30 g/.test(c) && /NOT eaten/.test(c) && /Usual logged day \(average of 1 earlier/.test(c) ? ok() : fail('context should list the logged foods and the usual day: ' + c);
+  c.length < 1500 ? ok() : fail(`context is ${c.length} characters (keep it short)`); }
 ctx.AthleteContext = {}; { const c = F.context(); (!/training day/.test(c) && /may be incomplete/.test(c)) ? ok() : fail('with Athlete OS the schedule comes from it, not repeated: ' + c); } delete ctx.AthleteContext;
 Object.assign(ctx, { dayLog: {}, targetFor: () => null, dayStatus: () => ({ type: 'rest', time: '' }) });
 { const c = F.context(); (/rest day/.test(c) && /Nothing logged yet .*unknown/.test(c) && !/Targets/.test(c)) ? ok() : fail('context without logs or targets: ' + c); }
