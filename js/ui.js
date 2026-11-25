@@ -12,7 +12,7 @@ const ICON = {
   dial: '<circle cx="12" cy="12" r="5.6"/><path d="M12 12l2.6-2.9"/><path d="M5.21 18.79h.01M2.40 12.00h.01M5.21 5.21h.01M12.00 2.40h.01M18.79 5.21h.01M21.60 12.00h.01M18.79 18.79h.01" stroke-width="2.6"/>',
   capsule: '<g transform="rotate(-45 12 12)"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></g>',
   cartridge: '<path d="M5 3.5A1.5 1.5 0 0 1 6.5 2h11A1.5 1.5 0 0 1 19 3.5V18l-2 2v2H7v-2l-2-2z"/><rect x="8" y="5.5" width="8" height="7" rx="1"/><path d="M9.5 18.5v1.5M12 18.5v1.5M14.5 18.5v1.5"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   podium: '<path d="M3 20h18M8.5 20v-8h7v8M3 20v-5h5.5M15.5 20v-3H21v3"/><path d="M12 4.2l.9 1.8 2 .3-1.4 1.4.3 2-1.8-1-1.8 1 .3-2L9.1 6.3l2-.3z"/>',
   trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',

@@ -203,7 +203,8 @@ function answer(prompt){
   { const s0 = await sugg(); r = await send("I'm starving, any thoughts?"); const s1 = await sugg();
     if(r.calls !== 1 || s1 - s0 < 1) fail(`AI-classified suggestion: ${r.calls} request(s), ${s1 - s0} card(s); want ideas in the same answer`); else ok('a suggestion the AI recognises: ideas come in the same answer (1 request)'); }
   { const n0 = await page.evaluate(() => (dayLog[curDay] || []).length); AI.mealPrompts = [];
-    r = await send('had a pork gyro pita'); const mm = await page.evaluate(() => logQPrev === null || !FC ? null : Object.values(FC).map(x => x.m).filter(m => m.meal).pop());
+    // a plain "pork gyro pita" opens the tick card (no AI); extra words go to the AI
+    r = await send('had a pork gyro pita from the new place near work'); const mm = await page.evaluate(() => logQPrev === null || !FC ? null : Object.values(FC).map(x => x.m).filter(m => m.meal).pop());
     const n1 = await page.evaluate(() => (dayLog[curDay] || []).length);
     if(r.calls !== 1 || !mm || n1 !== n0) fail(`recognised gyro: ${r.calls} request(s), meal card ${!!mm}, saved ${n1 - n0} (nothing may be saved before Add)`); else ok(`recognised gyro: one meal card from 1 request, nothing logged until Add`);
     await page.evaluate(() => { const m = Object.values(FC).map(x => x.m).filter(m => m.meal).pop(); mealLog(m); });
@@ -214,7 +215,7 @@ function answer(prompt){
   { AI.mealPrompts = []; const outs = [];
     for(const pref of [{ base: 'balanced', humor: 'low', len: 'concise' }, { base: 'motivator', humor: 'playful', len: 'detailed' }]){
       await page.evaluate(p => { Persona.set(p); Object.keys(FC).forEach(k => delete FC[k]); logQPrev = null; Object.keys(logPhr).filter(k => k.startsWith('meal:')).forEach(k => delete logPhr[k]); }, pref);
-      await send('had a chicken gyro pita'); outs.push(AI.mealPrompts.pop() || ''); }
+      await send('had a chicken gyro pita from the new place near work'); outs.push(AI.mealPrompts.pop() || ''); }
     const words = s => (s.match(/for "answer" at most (\d+) words/) || [])[1];
     if(!outs[0] || !outs[1] || outs[0] === outs[1] || words(outs[0]) === words(outs[1]) || !/no emoji/i.test(outs[1])) fail(`personality: the recognised-dish prompt must change with style / humour / length (answer words ${words(outs[0])} → ${words(outs[1])})`);
     else ok(`personality reaches the recognised-dish prompt: style, humour and length change it (answer limit ${words(outs[0])} → ${words(outs[1])} words); no-emoji rule kept`);

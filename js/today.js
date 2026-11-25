@@ -910,7 +910,7 @@ async function logQAIOk(maxModels){
 // with the total underneath, and ONE Add button that logs every food on the list. Food Coach 2.0: Add (and Add & Save) stay off until
 // every row has a food and an amount; a row marked Not Found is picked or removed first, so nothing is skipped without you knowing.
 const FC = {};   // answer id → { m, card, ch }
-const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${m.meal ? mealCardHtml(m) : logQCardHtml(m)}</div>`;   // m.meal: a complex meal (js/meal.js)
+const fcHtml = m => `<div class="fcwrap" data-mid="${m.id}">${m.meal ? mealCardHtml(m) : m.ask ? askCardHtml(m) : logQCardHtml(m)}</div>`;   // m.meal: a complex meal (js/meal.js)
 function logQRedraw(m){ const x = FC[m.id]; if(x) x.ch.update(x.card, { body: fcHtml(m) }); }
 function logQKeep(m){ const x = FC[m.id]; if(x) x.card.body = fcHtml(m); }   // after an in-place change: the next redraw shows the same thing
 function logQTot(m){ return m.items.filter(it => it.st && !it.busy).reduce((a, it) => { const r = lwCalc(it.st); return { kcal: a.kcal + r.kcal, p: a.p + r.p, c: a.c + r.c, f: a.f + r.f }; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
@@ -1008,6 +1008,8 @@ async function logQAnswer(txt, ch, how){
     return; }
   // 5. a known dish: one AI call, one meal card (js/meal.js); a dish you added before needs none.
   // The request budget is one per message: a dish answer that could not be used ({ spent }) or failed ({ err }) goes to the offline reading, never to a second request.
+  // 4c. a takeaway dish with no details (burger, pizza, crepe): one small card to tick what was in it; no AI (js/meal.js › askShow)
+  if(!fix){ const det = mealDetect(txt), ask = askMatch(txt, det); if(ask){ how.path = 'local'; await askShow(txt, ch, ask, det); return; } }
   if(!fix){ const det = mealDetect(txt); if(det.dish){ const r = await mealSend(txt, ch, det, ai); if(r === true) return; if(r && (r.err || r.spent)){ if(r.err) err = r.err; ai = false; } } }
   // 6. the one AI call: what the message is, the reply, and the foods with an estimate each
   if(ai){
@@ -1106,7 +1108,7 @@ function logQRebuild(list){
 function logQPersist(msgs){
   const out = [];
   (msgs || []).forEach(x => { if(x.work) return;
-    if(x.cards){ x.cards.forEach(c => { const f = Object.values(FC).find(z => z.card === c); if(f && !f.m.meal) out.push({ who: 'bot', fc: { mk: f.m.mk, at: f.m.at || todayKey(), state: f.m.state, items: logQSer(f.m), added: f.m.added || null }, done: c.done || '' }); }); return; }
+    if(x.cards){ x.cards.forEach(c => { const f = Object.values(FC).find(z => z.card === c); if(f && !f.m.meal && !f.m.ask) out.push({ who: 'bot', fc: { mk: f.m.mk, at: f.m.at || todayKey(), state: f.m.state, items: logQSer(f.m), added: f.m.added || null }, done: c.done || '' }); }); return; }
     if(x.text) out.push({ who: x.who, text: String(x.text).slice(0, 600), ...(x.first ? { first: true } : {}), ...(/^[a-z]{2,12}$/.test(x.by || '') ? { by: x.by } : {}) }); });   // by: a handed-over answer (Athlete OS)
   FoodCoach.chatSave(out);
 }
@@ -1242,6 +1244,7 @@ function logQWire(){
   list.addEventListener('click', e => {
     const m = msgOf(e.target); if(!m || m.state === 'logged') return;
     if(e.target.closest('[data-qnameok]')){ Phone.haptic(); logQNameOk(m); return; }
+    if(m.ask){ askClick(e, m); return; }
     if(m.meal){ mealClick(e, m); return; }
     const row = e.target.closest('[data-qi]'); if(!row) return; const i = +row.dataset.qi, it = m.items[i]; if(!it || it.busy) return;
     if(e.target.closest('[data-qrm]')){ m.items.splice(i, 1); logQRedraw(m); return; }
