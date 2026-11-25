@@ -387,14 +387,14 @@ makeSwipeDelete($('sesBody'), '.setrow', row => { const xi = +row.closest('[data
 // Gym Coach intelligence: a How Did It Go? chip for 3 days after a finished workout; the chats come back after a restart (GymIntel memory, this phone only;
 // the live workout's chat only while that same workout is running)
 const gcStarters = () => [t('gcAskW'), ...(tpls.length ? [t('gcAskImp')] : []), ...(sessions.some(s => s.date && -daysUntil(s.date) <= 3) ? [t('gcAskDeb')] : []), t('gcAskSets')];
-const gcScope = id => id === 'gymlive' ? (active && active.id) || 'none' : null;
-const gcPersist = { load: id => GymIntel.chatLoad(id, gcScope(id)), save: (id, msgs) => GymIntel.chatSave(id, msgs, gcScope(id)) };
-Coach.setup('gym', { kind: 'gym', send: gymCoachSend, starters: gcStarters, persist: gcPersist });
-// the live workout's own chat: the sweatband robot bubble, a big camera button for a photo of a machine
-// 0.7.8: the Start Workout window's own chat: opened from the robot in its title bar, no floating bubble
-Coach.setup('gymstart', { kind: 'gym', title: () => t('coachGym'), send: gymCoachSend, starters: gcStarters, persist: gcPersist });
+// one conversation for the three Gym Coach doors (share: 'gym'), kept 7 days; the live workout's door adds its live data to the answers (gym.js gcPrompt)
+const gcPersist = { load: () => GymIntel.chatLoad('gym', null), save: (id, msgs) => GymIntel.chatSave('gym', msgs, null) };
+Coach.setup('gym', { kind: 'gym', share: 'gym', camera: true, send: gymCoachSend, starters: gcStarters, persist: gcPersist });
+// 0.7.8: the Start Workout window's door: opened from the robot in its title bar, no floating bubble
+Coach.setup('gymstart', { kind: 'gym', share: 'gym', camera: true, title: () => t('coachGym'), send: gymCoachSend, starters: gcStarters, persist: gcPersist });
 $('stCoach').addEventListener('click', () => { Phone.haptic(); Coach.open('gymstart'); });
-Coach.setup('gymlive', { kind: 'gym', title: () => t('coachGym'), first: () => t('gcLiveHi'), camera: true, send: gymLiveSend, persist: gcPersist });
+// the live workout's door: the sweatband robot bubble, its own opening message
+Coach.setup('gymlive', { kind: 'gym', share: 'gym', camera: true, title: () => t('coachGym'), first: () => t('gcLiveHi'), send: gymCoachSend, persist: gcPersist });
 
 // Profile › Leaderboards: no body weight or sex yet → Settings › Body (tiers need both)
 // 0.7.9 leaderboards: Add a 1RM

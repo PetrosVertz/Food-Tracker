@@ -12,6 +12,7 @@
 //     camera   true → a big camera button inside the chat box; the photo comes to send() as img (base64 JPEG)
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
 //     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
+//     share      another id: this window is a second door into that id's conversation (same messages, memory and answers); first / starters / camera stay its own
 //     persist    { load(id, chat) → saved messages | null, save(id, messages | null) }: the chat survives a restart (the coach owns where it is kept;
 //                restored cards come back as plain text, without buttons). Without it the chat lives until the app closes, as before.
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
@@ -39,7 +40,9 @@ const Coach = (() => {
   const cfg = id => CFG[id] || {};
   const title = id => val(cfg(id).title) || t(kindOf(id) === 'gym' ? 'coachGym' : 'coachFood');
   const firstMsg = id => val(cfg(id).first) || t(kindOf(id) === 'gym' ? 'coachGymHi' : 'coachFoodHi');
-  const chat = id => CH[id] || (CH[id] = { id, msgs: [], ctl: null, draft: '', img: null });
+  // cfg.share: windows that are only different doors to ONE conversation (Gym Coach: Create a Workout, Start a Workout, the live workout): they get the same chat
+  // object (messages, memory, answers); each keeps its own opening message, chips and bubble
+  const chat = id => CH[id] || (CH[id] = cfg(id).share && cfg(id).share !== id ? chat(cfg(id).share) : { id, msgs: [], ctl: null, draft: '', img: null });
   const has = id => !!$('cb-' + id);
 
   // ---- the chat object handed to send() ----
@@ -102,7 +105,7 @@ Return ONLY JSON: {"reply": string}`, img);
     return `<div class="cmsg bot${by ? ' byother' : ''}">${lead}<div class="ctext">${from}${esc(m.text)}</div></div>${st}`;
   }
   // 0.7.9.6: the opening message's suggestion chips (cfg.starters), only while nothing has been written yet
-  function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs.length !== 1 || c.msgs[0] !== m) return '';
+  function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs[c.msgs.length - 1] !== m) return '';   // under the newest opening message, until something is written
     const l = val(cfg(cur).starters) || []; if(!l.length) return '';
     return `<div class="cstart">${l.map(s => `<button type="button" class="cschip" data-cst="${esc(s)}">${esc(s)}</button>`).join('')}</div>`; }
   function draw(){
@@ -163,6 +166,10 @@ Return ONLY JSON: {"reply": string}`, img);
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
     if(!c.msgs.length && cfg(id).persist){ try{ const m = cfg(id).persist.load(id, api(c)); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){ console.warn('coach persist', e); } }   // back after a restart (Food Coach 2.0: load gets the chat, for its cards)
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
+    else if(cfg(id).share){ const hi = first || firstMsg(id), last = c.msgs[c.msgs.length - 1];   // another door into the same conversation: its own opening message (and chips) comes in, the talk goes on
+      const was = c.entry && c.entry !== id ? (val(cfg(c.entry).first) || firstMsg(c.entry)) : null;   // the door you came from greets the same: nothing new to say
+      if(c.entry !== id && was !== hi && !(last && last.first && last.text === hi)) c.msgs.push({ who: 'bot', text: hi, first: true }); }
+    c.entry = id;
     if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob){ ob._home = false; glide(ob, false); } }   // the other coach's bubble goes back to its spot
     const b = HEAD(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
     anc = HEAD(id) ? [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null : null;
@@ -234,8 +241,9 @@ Return ONLY JSON: {"reply": string}`, img);
   function think(id, on){ const b = $('cb-' + id); if(!b) return;
     b.innerHTML = (on ? '<span class="rglow"></span>' : '') + `<span class="rcore">${AI.robot(kindOf(id), 40, !!on)}</span>`; }
   function dismiss(id){
-    const c = CH[id]; if(c && c.ctl) c.ctl.abort(); delete CH[id];
-    const p = cfg(id).persist; if(p) try{ p.save(id, null); }catch(e){}
+    const c = CH[id], shared = !!cfg(id).share;   // a shared conversation is not ended by closing one door (the live workout ending): only that door's bubble goes
+    if(!shared && c && c.ctl) c.ctl.abort(); delete CH[id];
+    const p = cfg(id).persist; if(p && !shared) try{ p.save(id, null); }catch(e){}
     const b = $('cb-' + id); if(b) b.remove();
     if(cur === id){ cur = null; close('ovCoach'); }
     pillSync();
