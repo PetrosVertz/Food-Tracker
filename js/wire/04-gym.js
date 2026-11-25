@@ -402,6 +402,7 @@ Coach.setup('gymlive', { kind: 'gym', share: 'gym', camera: true, title: () => t
 $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); return; }
   if(e.target.closest('[data-rkcustom]')){ Phone.haptic(); openRankPick(); return; }
   const pn = e.target.closest('[data-statpin]'); if(pn){ togglePin(pn.dataset.statpin); return; }
+  if(e.target.closest('[data-statall]')){ Phone.haptic(); openStatAll(); return; }
   if(e.target.closest('[data-statshuf]')){ Phone.haptic(); if(ui.statRot) ui.statRot = { ...ui.statRot, next: 0 }; delete ui.statShuf; saveUI(); renderProfile(); return; }   // your own early pick: a new set and a new 24 hours
   if(e.target.closest('[data-streak]')){ Phone.haptic(); openStreak(); return; }
   if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
@@ -415,7 +416,8 @@ function rkBubClose(){ clearTimeout(RKBUB_T); document.querySelectorAll('.pfrksl
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
 $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });
-$('rkSearch').addEventListener('input', drawRankPick); $('rkReset').addEventListener('click', resetRankPick);
+$('rkSearch').addEventListener('input', drawRankPick); $('stAllSearch').addEventListener('input', drawStatAll);
+$('stAllList').addEventListener('click', e => { const b = e.target.closest('[data-statpin2]'); if(b) togglePin(b.dataset.statpin2).then(drawStatAll); });   // View All: the same pin, same saved order $('rkReset').addEventListener('click', resetRankPick);
 $('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });
 

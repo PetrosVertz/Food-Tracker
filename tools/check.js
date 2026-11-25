@@ -434,7 +434,7 @@ try {
   const mk = (date, hh, sets, prs) => ({ date, start: `${date}T${hh}:00`, end: `${date}T${String(+hh.slice(0, 2) + 1).padStart(2, '0')}${hh.slice(2)}:00`, prs: prs || [], exercises: sets });
   const ex = (exId, ...rw) => ({ exId, sets: rw.map(([w, r]) => ({ w, r, done: true })) });
   const run = (sessions, extra) => {
-    const g = { sessions, lang: 'en', weights: {}, targets: { bw: 80 }, profile: {}, ui: {}, console: { log() {} } };
+    const g = { sessions, lang: 'en', weights: {}, targets: { bw: 80 }, profile: {}, ui: {}, console: { log() {} }, active: null, bwU: () => 'kg', fmt: x => String(x), LB: 2.20462, gymIsAssist: () => false };
     g.t = (k, p) => k === 'wdFull' ? 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday' : k + (p ? JSON.stringify(p) : '');
     g.exById = id => ({ m: 'chest' }); g.exName = id => id; g.isMainSet = st => st.type !== 'W' && st.side !== 'R' && !st.drop; g.loadOf = (id, w) => +w || 0;
     g.e1rm = (w, r) => r >= 1 && r <= 20 && +w > 0 ? +w * (1 + r / 30) : 0; g.bodyW = () => 80; g.latestWeight = () => 80; g.GROUPS = { chest: ['Chest', 'Στήθος'] };
@@ -463,14 +463,30 @@ try {
   eq('nextRank', r => r.v, '+2.5 kg'); eq('nextRank', r => r.p.n, 'bench');
   eq('ratio', r => r.v, '2.1x'); eq('ratio', r => r.p.n, 'deadlift');
   eq('repKing', r => r.v, '30 stUnitReps'); eq('repKing', r => r.p.n, 'bench');
-  eq('big3', r => r.v, '424.7 kg'); eq('big3', r => r.k, 'big3Bw');
+  // Big Three = the best REAL single on each lift (typed 1RMs / trophy singles), once all three exist; never estimated, no body-weight wording
+  const orm = (exId, w) => ({ id: exId, exId, w, date: '2026-02-01' }), b3 = run(hist, { profile: { orm: [orm('bench', 100), orm('squat', 130), orm('deadlift', 150)] } }).big3;
+  if (!b3 || b3.v !== '380 kg' || b3.k) bad.push('big3: expected 380 kg from three real singles, got ' + JSON.stringify(b3));
+  if (run(hist, { profile: { orm: [orm('bench', 100), orm('squat', 130)] } }).big3) bad.push('big3 should hide until all three lifts have a real single');
+  // the twelve newer stats: a baseline first, once per exercise/load per session, nothing guessed without tick times, suppressed without enough history
+  const m1 = (d, hh, exs, o) => ({ ...mk(d, hh, exs), ...(o || {}) }), withAt = (s, base) => { s.exercises.forEach(x => x.sets.forEach((st, i) => { st.at = base + i * 1000; })); return s; };
+  const n1 = run([m1('2026-01-05', '10:00', [ex('bench', [60, 8])]), m1('2026-01-12', '10:00', [ex('bench', [60, 9], [60, 9], [70, 5])]), m1('2026-01-19', '10:00', [ex('bench', [60, 9], [70, 6])])]);
+  if (!n1.extraReps || n1.extraReps.v !== '2') bad.push('extraReps: 60x9 beats 60x8 (once, two sets), 70 first seen is a baseline, 70x6 beats 70x5, 60x9 again is not new: expected 2, got ' + JSON.stringify(n1.extraReps));
+  if (!n1.allReps || n1.allReps.v !== '46') bad.push('allReps: expected 46, got ' + JSON.stringify(n1.allReps));
+  if (n1.opener) bad.push('opener must hide when the sets have no tick times');
+  const wa = [0, 1, 2].map(i => withAt(m1(`2026-01-${String(5 + i * 7).padStart(2, '0')}`, '10:00', [ex('squat', [100, 5]), ex('bench', [60, 8])]), 1e12 + i * 1e9)), n2 = run(wa);
+  if (!n2.opener || n2.opener.v !== 'squat' || n2.opener.p.n !== 3) bad.push('opener: expected squat 3 of 3 from real tick order, got ' + JSON.stringify(n2.opener));
+  if (!n2.pair || n2.pair.p.n !== 3) bad.push('pair: bench + squat together in 3 sessions, got ' + JSON.stringify(n2.pair));
+  if (n2.split || n2.newMgmt) bad.push('split / new management must hide without 8 / 8 weeks of history (they need more history than this)');
+  const longHist = Array.from({ length: 16 }, (_, i) => m1(new Date(Date.UTC(2026, 8, 7) + i * 7 * 864e5).toISOString().slice(0, 10), '10:00', [ex('bench', [60, 8])]));   // a workout every Monday from 2026-09-07
+  const n3 = run(longHist, { todayKey: () => '2026-12-28' }); if (!n3.split || n3.split.v !== '1 stUnitDay') bad.push('split: one day a week for 8 full weeks expected, got ' + JSON.stringify(n3.split));
+
   eq('explorer', r => r.v, '4'); eq('explorer', r => r.p.n, 'curl');
   eq('loyal', r => r.v, 'bench'); eq('loyal', r => r.p.n, 3);
   if (o.bestVol) bad.push('Best Session Volume should be gone');
   for (const id of ['proteinRun', 'kcalDays', 'meals', 'topFood', 'foodDays']) if (id in o) bad.push(`food stat ${id} is still in STATS`);
   // hiding rules
   const few = run([mk('2026-01-05', '18:00', [ex('bench', [100, 5])], [{ kind: 'w' }])]);
-  for (const id of ['luckyDay', 'night', 'dawn', 'couch', 'big3', 'loyal']) if (few[id]) bad.push(`${id} should hide (not enough data)`);
+  for (const id of ['luckyDay', 'night', 'dawn', 'couch', 'big3', 'loyal', 'opener', 'pair', 'split', 'newMgmt', 'flyer']) if (few[id]) bad.push(`${id} should hide (not enough data)`);
   if (run(hist, { latestWeight: () => 0, targets: {} }).ratio) bad.push('ratio should hide without body weight');
   if (bad.length) bad.forEach(b => fail('stats: ' + b)); else ok('stats: 12 new training stats right on a fake history, hide without data, empty history is safe');
 } catch (e) { fail('could not check the stats: ' + e.message); }

@@ -50,7 +50,7 @@ const set = (w, r, at) => ({ type: 'N', w: String(w), r: String(r), done: true, 
   // 2. the Hub
   await p.evaluate(() => { closeAll && closeAll(); }).catch(() => {}); await p.evaluate(() => { ['ovSummary', 'ovAch'].forEach(i => close(i)); location.hash = '#profile'; }); await sleep(700);
   const hub = await p.evaluate(() => { const a = document.getElementById('pfAch'), s = document.getElementById('pfShare'); return a && s && { same: a.parentElement === s.parentElement, ra: a.getBoundingClientRect().top, rs: s.getBoundingClientRect().top, txt: a.innerText.replace(/\s+/g, ' ') }; });
-  ok(hub && hub.same && Math.abs(hub.ra - hub.rs) < 2 && /Achievements 1\/44/.test(hub.txt), 'Social Hub: Achievements sits beside Share a Workout, "1/44"');
+  ok(hub && hub.same && Math.abs(hub.ra - hub.rs) < 2 && hub.txt === 'Achievements', 'Social Hub: Achievements (full name, no count) sits beside Share a Workout');
   await p.click('#pfAch'); await sleep(400);
   const col = await p.evaluate(() => { const c = [...document.querySelectorAll('#pfBody .achcard')], hid = c.filter(x => x.classList.contains('hid'));
     return { total: c.length, hid: hid.length, hidText: hid.map(x => x.innerText.trim()).join(''), hidAria: hid.every(x => x.getAttribute('aria-label') === 'Hidden achievement'), hidTitle: hid.some(x => x.hasAttribute('title') || x.querySelector('[title]')), earned: c.filter(x => x.classList.contains('earned')).length, tot: document.querySelector('.achtot').innerText }; });
@@ -83,6 +83,27 @@ const set = (w, r, at) => ({ type: 'N', w: String(w), r: String(r), done: true, 
   p = await open({ sessions: old }); await sleep(3600);
   const cu = await p.evaluate(() => ({ live: document.getElementById('achPop') && document.getElementById('achPop').classList.contains('live'), txt: document.getElementById('achPop') && document.getElementById('achPop').innerText, n: Object.keys(profile.ach.got).length }));
   ok(cu.live && /from your history/.test(cu.txt) && cu.n >= 2, `first run with 26 old workouts: one catch-up summary (${cu.n} found)`);
+  // 8. Stats: 37 eligible cards, the six-card grid, View All with pins that keep their saved order
+  const rich = Array.from({ length: 48 }, (_, k) => { const n = -118 + k * 2.5 | 0, t0 = now + n * 864e5, exs = [['bench', 60 + k % 5, 8 + k % 3], ['squat', 80 + k % 4, 6], ['curl', 12, 10 + k % 4]];
+    return { id: 'r' + k, date: day(n), start: new Date(t0).toISOString(), end: new Date(t0 + 36e5).toISOString(), name: 'W', mins: 60, vol: 4000 + k * 10, prs: k % 6 === 0 ? [{ kind: 'w', exId: 'bench', w: 62, r: 8 }, { kind: 'v', exId: 'squat' }] : [],
+      exercises: exs.map(([exId, w, r], j) => ({ exId, sets: [set(w, r, t0 + 1e4 + j * 1e5), set(w, r, t0 + 2e4 + j * 1e5)] })) }; });
+  p = await open({ sessions: rich, profile: { ach: { v: 1, got: {}, seen: 0 }, orm: [{ id: 'o1', exId: 'bench', w: 100, date: day(-40) }, { id: 'o2', exId: 'squat', w: 130, date: day(-40) }, { id: 'o3', exId: 'deadlift', w: 150, date: day(-40) }] } });
+  await p.evaluate(() => { location.hash = '#profile'; }); await sleep(900);
+  const sv = await p.evaluate(() => ({ eligible: STATS.filter(x => !STAT_HUB_HIDE.has(x.id)).length, hidden: [...STAT_HUB_HIDE], grid: document.querySelectorAll('#pfBody .pfstatgrid .pfstat').length,
+    all: statAllList().map(x => x.id), big3: (statAllList().find(x => x.id === 'big3') || {}).r, titles: ['bestDay', 'couch'].map(id => t('stt_' + id)) }));
+  ok(sv.eligible === 37 && sv.hidden.length === 1 && sv.hidden[0] === 'ratio', `Stats: 37 eligible cards, the body-weight ratio stays hidden (${sv.eligible})`);
+  ok(sv.grid === 6, 'Stats: the grid still shows six cards');
+  ok(sv.titles[0] === 'Heaviest Session' && sv.titles[1] === 'Between Chapters', 'Stats: the two renames (Heaviest Session, Between Chapters)');
+  ok(sv.big3 && sv.big3.v === '380 kg' && !/body/i.test(JSON.stringify(sv.big3)), 'Big Three Total: sum of the real singles, no body-weight wording');
+  await p.click('[data-statall]'); await sleep(500);
+  const va = await p.evaluate(() => ({ open: document.getElementById('ovStats').classList.contains('open'), n: document.querySelectorAll('#stAllList .pfstat').length }));
+  ok(va.open && va.n > 6, `View All opens a list of every card with data (${va.n})`);
+  await p.fill('#stAllSearch', 'Frequent'); await sleep(200); ok(await p.evaluate(() => [...document.querySelectorAll('#stAllList .pfstt')].every(e => /frequent/i.test(e.textContent)) && document.querySelectorAll('#stAllList .pfstat').length >= 1), 'View All: search finds cards by name');
+  await p.fill('#stAllSearch', ''); await sleep(150);
+  const pins = await p.evaluate(async () => { const b = document.querySelectorAll('#stAllList [data-statpin2]'); const ids = [b[2].dataset.statpin2, b[4].dataset.statpin2]; b[2].click(); await new Promise(r => setTimeout(r, 200)); document.querySelectorAll('#stAllList [data-statpin2]')[4].click(); await new Promise(r => setTimeout(r, 300)); return { ids, saved: statPins() }; });
+  ok(pins.saved.length === 2 && pins.saved[0] === pins.ids[0] && pins.saved[1] === pins.ids[1], 'View All: two pins saved in the order you chose');
+  await p.reload(); await sleep(1500); await p.evaluate(() => { location.hash = '#profile'; }); await sleep(800);
+  ok(await p.evaluate((ids) => JSON.stringify([...document.querySelectorAll('#pfBody .pfstat.pinned')].map(e => e.querySelector('[data-statpin]').dataset.statpin)) === JSON.stringify(ids), pins.ids), 'cold reload: the pins are still first, in the same order');
   ok(errs.length === 0, 'no script errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); srv.close(); console.log(fails ? `\n${fails} FAILED` : '\nall achievement app checks passed'); process.exit(fails ? 1 : 0);
 })();

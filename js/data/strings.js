@@ -789,16 +789,16 @@ Object.assign(S, {
   stt_weekday: ['Favourite Day', 'Αγαπημένη Μέρα'], sts_weekday: ['{n} workouts on it.', '{n} προπονήσεις.'],
   stt_hours: ['Time Training', 'Χρόνος Προπόνησης'], sts_hours: ['All your time training.', 'Συνολικός χρόνος.'],
   stt_prs: ['Records Set', 'Ρεκόρ'], sts_prs: ['From your workouts.', 'Από τις προπονήσεις.'],
-  stt_bestDay: ['Heaviest Day', 'Βαρύτερη Μέρα'], sts_bdBag: ['{n} cement bags, {d}.', '{n} σακιά, {d}.'], sts_bdCar: ['{n} cars, {d}.', '{n} αυτοκίνητα, {d}.'], sts_bdEl: ['{n} elephants, {d}.', '{n} ελέφαντες, {d}.'], sts_bdWhale: ['{n} blue whales, {d}.', '{n} φάλαινες, {d}.'],
+  stt_bestDay: ['Heaviest Session', 'Βαρύτερη Προπόνηση'], sts_bdBag: ['{n} cement bags, {d}.', '{n} σακιά, {d}.'], sts_bdCar: ['{n} cars, {d}.', '{n} αυτοκίνητα, {d}.'], sts_bdEl: ['{n} elephants, {d}.', '{n} ελέφαντες, {d}.'], sts_bdWhale: ['{n} blue whales, {d}.', '{n} φάλαινες, {d}.'],
   stt_mountain: ['Mountain Climbed', 'Βουνό που Ανέβηκες'], sts_mountain: ['Times up Everest.', 'Φορές το Έβερεστ.'],
   stt_luckyDay: ['Lucky Weekday', 'Τυχερή Μέρα'], sts_luckyDay: ['{n} records that day.', '{n} ρεκόρ σε αυτήν.'],
   stt_night: ['Midnight Iron', 'Σίδερα τα Μεσάνυχτα'], sts_night: ['Started after 9 pm.', 'Μετά τις 9 μ.μ.'],
   stt_dawn: ['Dawn Patrol', 'Πρωινή Περίπολος'], sts_dawn: ['Started before 7 am.', 'Πριν τις 7 π.μ.'],
-  stt_couch: ['Couch Potato', 'Καναπές'], sts_couch: ['{a} to {b}.', '{a} έως {b}.'], stUnitDay: ['day', 'μέρα'], stUnitDays: ['days', 'μέρες'], stUnitReps: ['reps', 'επαν.'],
+  stt_couch: ['Between Chapters', 'Ανάμεσα στα Κεφάλαια'], sts_couch: ['{a} to {b}.', '{a} έως {b}.'], stUnitDay: ['day', 'μέρα'], stUnitDays: ['days', 'μέρες'], stUnitReps: ['reps', 'επαν.'],
   stt_nextRank: ['Closest to Ranking Up', 'Κοντά σε Νέα Βαθμίδα'], sts_nextRank: ['{n}', '{n}'],
   stt_ratio: ['Strongest for Your Weight', 'Δύναμη για το Βάρος σου'], sts_ratio: ['Times your body weight, on {n}.', 'Φορές το σωματικό σου βάρος, στην άσκηση {n}.'],
   stt_repKing: ['Rep King', 'Βασιλιάς Επαναλήψεων'], sts_repKing: ['On {n}.', '{n}.'],
-  stt_big3: ['Big Three Total', 'Σύνολο Big Three'], sts_big3: ['Best estimated 1RMs.', 'Εκτιμώμενα 1RM.'], sts_big3Bw: ['{n} times your body weight.', '{n} φορές το σωματικό σου βάρος.'],
+  stt_big3: ['Big Three Total', 'Σύνολο Big Three'], sts_big3: ['Your best bench, squat and deadlift singles.', 'Τα καλύτερά σου μονά σε πάγκο, καθίσματα και άρση νεκρής.'],
   stt_explorer: ['Exercise Explorer', 'Εξερευνητής Ασκήσεων'], sts_explorer: ['Newest: {n}.', 'Νέα: {n}.'],
   stt_loyal: ['Loyalty', 'Πίστη'], sts_loyal: ['{n} months in a row.', '{n} μήνες στη σειρά.'],
   sts_kgEl: ['About {n} elephants.', 'Περίπου {n} ελέφαντες.'], sts_kgCar: ['About {n} cars.', 'Περίπου {n} αυτοκίνητα.'], sts_kgBag: ['{n} bags of cement.', '{n} σακιά τσιμέντο.'],
@@ -1337,4 +1337,22 @@ Object.assign(S, {
   achDid: ['What You Did', 'Τι Έκανες'], achOn: ['Earned {d}', 'Κερδήθηκε {d}'], achCatch: ['{n} from your history', '{n} από το ιστορικό σου'], achCatchSecret: ['Achievements found', 'Βρέθηκαν επιτεύγματα'],
   achOpen: ['Open Achievement Details', 'Άνοιγμα Λεπτομερειών Επιτεύγματος'], achEmpty: ['Nothing here yet.', 'Δεν υπάρχει τίποτα ακόμα.'], achSub: ['Earned from your own workouts. Nothing is ever taken away.', 'Κερδίζονται από τις δικές σου προπονήσεις. Τίποτα δεν αφαιρείται ποτέ.'],
   achLeft: ['left', 'αριστερά'], achRight: ['right', 'δεξιά']
+});
+
+Object.assign(S, {   // Social Hub: twelve more Stats (title stt_<id>, subtitle sts_<id>) and the View All picker
+  stt_extraReps: ['Extra Rep Club', 'Λέσχη Επιπλέον Επανάληψης'], sts_extraReps: ['Times you beat your earlier reps at the same weight.', 'Φορές που ξεπέρασες τις προηγούμενες επαναλήψεις με το ίδιο βάρος.'],
+  stt_opener: ['The Opening Act', 'Το Εναρκτήριο Νούμερο'], sts_opener: ['Opened {n} of your last {m} workouts.', 'Άνοιξε {n} από τις τελευταίες {m} προπονήσεις.'],
+  stt_pair: ['Partners in Iron', 'Συνεργάτες στο Σίδερο'], sts_pair: ['Together in {n} workouts.', 'Μαζί σε {n} προπονήσεις.'],
+  stt_podium: ['Crowded Podium', 'Κατάμεστο Βάθρο'], sts_podium: ['Exercises with a record in one workout, {d}.', 'Ασκήσεις με ρεκόρ σε μία προπόνηση, {d}.'],
+  stt_flyer: ['Frequent Flyer', 'Σταθερός Επιβάτης'], sts_flyer: ['In {n} of your last {m} workouts.', 'Σε {n} από τις τελευταίες {m} προπονήσεις.'],
+  stt_numbers: ['The Numbers Game', 'Το Παιχνίδι των Αριθμών'], sts_numbers: ['{n}% of your working sets in your last {m} workouts.', '{n}% των σετ σου στις τελευταίες {m} προπονήσεις.'],
+  stt_cue: ['Right on Cue', 'Ακριβώς στην Ώρα'], sts_cue: ['You started {n} of your last {m} workouts in this hour.', 'Ξεκίνησες {n} από τις τελευταίες {m} προπονήσεις σε αυτή την ώρα.'],
+  stt_newMgmt: ['Under New Management', 'Υπό Νέα Διεύθυνση'], sts_newMgmt: ['In {a} workouts in the last 30 days, up from {b}.', 'Σε {a} προπονήσεις τις τελευταίες 30 ημέρες, από {b}.'],
+  stt_prMiles: ['Frequent PR Miles', 'Μίλια Ρεκόρ'], sts_prMiles: ['Different exercises with a record in the last 30 days.', 'Διαφορετικές ασκήσεις με ρεκόρ τις τελευταίες 30 ημέρες.'],
+  stt_longGame: ['The Long Game', 'Η Μακριά Διαδρομή'], sts_longGame: ['From the first set to a new record on {n}.', 'Από το πρώτο σετ μέχρι νέο ρεκόρ στην άσκηση {n}.'],
+  stt_allReps: ['All Reps Accounted For', 'Όλες οι Επαναλήψεις Μετρημένες'], sts_allReps: ['Every full working rep, bodyweight included.', 'Κάθε πλήρης επανάληψη σετ, και με σωματικό βάρος.'],
+  stt_split: ['The Usual Split', 'Το Συνηθισμένο Πρόγραμμα'], sts_split: ['Your most common training days a week over the last 8 full weeks.', 'Οι πιο συνηθισμένες ημέρες προπόνησης την εβδομάδα στις τελευταίες 8 πλήρεις εβδομάδες.'],
+  stUnitYears: ['years', 'χρόνια'], stUnitMonths: ['months', 'μήνες'],
+  stViewAll: ['View All Stats', 'Προβολή Όλων των Στατιστικών'], stAllTitle: ['All Stats', 'Όλα τα Στατιστικά'], stAllSub: ['Pin up to {m} to keep them on your Hub ({n} pinned). The rest change every 24 hours.', 'Καρφίτσωσε έως {m} για να μένουν στο Hub ({n} καρφιτσωμένα). Τα υπόλοιπα αλλάζουν κάθε 24 ώρες.'],
+  stSearch: ['Search Stats', 'Αναζήτηση Στατιστικών'], stAllNone: ['No stats match.', 'Κανένα στατιστικό δεν ταιριάζει.']
 });
