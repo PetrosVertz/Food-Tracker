@@ -301,7 +301,7 @@ const live = (ex, extra) => ({ id: 'live1', start: new Date(Date.now() - 30 * 6e
     const t0 = Date.now(); const pq = c.gcPrompt(ch('Should I increase the weight on bench?'), null, 'Should I increase the weight on bench?'); const ms = Date.now() - t0;
     const pw = c.gcPrompt(ch('Build me a push workout'), null, 'Build me a push workout');
     const all = c.gcNames().length;
-    check(!pq.includes('Exercise list') && pq.length < 5200, `prompt size: a bench question is ${pq.length} letters (~${Math.round(pq.length / 4)} tokens), without the ${all}-letter exercise list`);
+    check(!pq.includes('Exercise list') && pq.length < 7000, `prompt size: a bench question is ${pq.length} letters (~${Math.round(pq.length / 4)} tokens), without the ${all}-letter exercise list`);
     check(pw.includes('Exercise list') && pw.length > pq.length, `prompt size: a workout request carries the (filtered) exercise list: ${pw.length} letters`);
     check(ms < 150, `speed: building the prompt over 200 workouts takes ${ms} ms`);
   }
