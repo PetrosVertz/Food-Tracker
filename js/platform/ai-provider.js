@@ -142,6 +142,24 @@ async function aiPost(url, headers, body, ms, outer){
     throw aiHttpError(r.status, j && j.error && (j.error.message || j.error.type), { retryAfterMs: ra > 0 ? ra * 1000 : null }); }
   return j || {};
 }
+// New models keep arriving and each family refuses different settings, so there is no list of model names to keep up to date. A model that refuses a setting
+// says which one (HTTP 400 "Unsupported parameter: 'temperature' …"): the request is changed that way (setting dropped, or max_tokens ↔ max_completion_tokens)
+// and sent again, and what each model needs is remembered while the app is open. Used for OpenAI, OpenRouter and Claude.
+const LEARNED = {};
+function learnFix(mods, msg){
+  const m = String(msg || ''), next = { ...mods, drop: { ...(mods.drop || {}) } };
+  const tok = m.match(/max_completion_tokens|max_tokens/); if(tok && next.tok) next.tok = tok[0] === 'max_tokens' ? 'max_completion_tokens' : 'max_tokens';   // the first one named is the one refused
+  ['temperature', 'top_p', 'response_format', 'reasoning_effort'].forEach(k => { if(m.includes(k)) next.drop[k] = true; });
+  return JSON.stringify(next) === JSON.stringify(mods) ? null : next;
+}
+async function sendAdaptive(lk, mods0, send){
+  let mods = LEARNED[lk] || mods0, last = null;
+  for(let i = 0; i < 4; i++){
+    try{ const r = await send(mods); LEARNED[lk] = mods; return r; }
+    catch(e){ last = e; if(!(e && (e.status === 400 || e.status === 422))) throw e; const next = learnFix(mods, e.message); if(!next) throw e; mods = next; }
+  }
+  throw last;
+}
 // OpenAI chat completions, and every service that speaks the same language (OpenRouter, a self-hosted server)
 function openAICompat(id, name, base, models){
   const key = () => aiCfg(id, 'aiKeys') || '', url = () => (aiCfg(id, 'aiBase') || base).replace(/\/$/, '');
@@ -155,14 +173,16 @@ function openAICompat(id, name, base, models){
       if(req.search) throw aiError('unsupported', name + ': no web search', { fatal: true });
       const prompt = req.json !== false && !/json/i.test(req.prompt) ? req.prompt + '\nAnswer with the JSON object only.' : req.prompt;   // JSON mode: OpenAI refuses a request that never says "JSON"
       const content = [{ type: 'text', text: prompt }, ...[].concat(req.images || []).map(d => ({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + d } }))];
-      // OpenAI's newer models (gpt-5…, o1/o3/o4…) refuse "max_tokens" (they want "max_completion_tokens"), accept only the default temperature, and spend
-      // part of the cap on thinking, so a small cap would cut the answer: for those no temperature and no cap. Other services (OpenRouter, a server) keep the classic names.
-      const think = id === 'openai' && /^(gpt-5|o\d)/i.test(model);
-      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? prompt : content }],
-        ...(think ? {} : { temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6 }),
-        ...(req.json === false ? {} : { response_format: { type: 'json_object' } }),
-        ...(req.maxTokens && !think ? { [id === 'openai' ? 'max_completion_tokens' : 'max_tokens']: req.maxTokens } : {}) };
-      const j = await aiPost(url() + '/chat/completions', key() ? { Authorization: 'Bearer ' + key() } : {}, body, req.timeoutMs, outer);
+      // OpenAI's thinking models (gpt-5…, o1/o3/o4…) are started with the settings they are known to want; any other model (Luna, Terra, whatever comes next) starts
+      // with the classic ones and is corrected by sendAdaptive from what it answers.
+      const think = id === 'openai' && /^(gpt-5(?!.*chat)|o\d)/i.test(model);
+      const mk = mods => ({ model, messages: [{ role: 'user', content: content.length === 1 ? prompt : content }],
+        ...(think || mods.drop.temperature ? {} : { temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6 }),
+        ...(think && !mods.drop.reasoning_effort ? { reasoning_effort: 'low' } : {}),   // a chat answer needs little thinking: faster, cheaper, not cut by the thinking
+        ...(req.json === false || mods.drop.response_format ? {} : { response_format: { type: 'json_object' } }),
+        ...(req.maxTokens && !think ? { [mods.tok]: req.maxTokens } : {}) });
+      const j = await sendAdaptive(id + '|' + model, { drop: {}, tok: id === 'openai' ? 'max_completion_tokens' : 'max_tokens' },
+        mods => aiPost(url() + '/chat/completions', key() ? { Authorization: 'Bearer ' + key() } : {}, mk(mods), req.timeoutMs, outer));
       const text = String((((j.choices || [])[0] || {}).message || {}).content || ''), u = j.usage;
       return { text, usage: u && u.total_tokens != null ? { input: u.prompt_tokens ?? null, output: u.completion_tokens ?? null, total: u.total_tokens } : null };
     },
@@ -197,8 +217,8 @@ const AnthropicProvider = (() => {
       if(req.search) throw aiError('unsupported', 'Claude: no web search here', { fatal: true });
       const content = [...[].concat(req.images || []).map(d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } })),
         { type: 'text', text: req.prompt + (req.json === false ? '' : '\nAnswer with the JSON object only.') }];
-      const j = await aiPost(base() + '/v1/messages', head(key()), { model, max_tokens: req.maxTokens || 1500, temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6,
-        messages: [{ role: 'user', content }] }, req.timeoutMs, outer);
+      const j = await sendAdaptive(id + '|' + model, { drop: {} }, mods => aiPost(base() + '/v1/messages', head(key()), { model, max_tokens: req.maxTokens || 1500,
+        ...(mods.drop.temperature ? {} : { temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6 }), messages: [{ role: 'user', content }] }, req.timeoutMs, outer));
       const text = (j.content || []).map(c => c.text || '').join(''), u = j.usage;
       return { text, usage: u && u.input_tokens != null ? { input: u.input_tokens, output: u.output_tokens ?? null, total: u.input_tokens + (u.output_tokens || 0) } : null };
     },
