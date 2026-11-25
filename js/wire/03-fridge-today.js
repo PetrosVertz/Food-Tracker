@@ -276,6 +276,16 @@ $('testKey').addEventListener('click', async () => {
   }catch(e){ el.style.color = ''; status(el, t('keyFail', { e: e.name === 'AbortError' ? t('timedOut') : e.message }), true); }
 });
 
+// Settings › AI › Test The AI: one real message through the same door every feature uses, with the saved key of the provider in use; says what came back or why not
+$('testAI').addEventListener('click', async () => {
+  const el = $('keyStatus'), p = AIProvider.active(), nm = p.name || p.id;
+  if(!AI.hasKey()){ status(el, t('aiTestNoKey', { p: nm }), true); return; }
+  status(el, t('aiTesting')); el.style.color = '';
+  try{ const r = await AIProvider.run({ prompt: 'Reply with this JSON only: {"ok":true,"say":"hello"}', json: true, tier: 'default', maxModels: 1, retries: 0, deadlineMs: 25000, timeoutMs: 20000, task: 'ai-test' });
+    status(el, t('aiTestOk', { p: nm, m: r.model, s: (r.ms / 1000).toFixed(1) })); el.style.color = 'var(--ok)'; }
+  catch(e){ el.style.color = ''; status(el, t('aiTestFail', { p: nm, e: (e && (e.status ? 'HTTP ' + e.status + ' · ' : '') + (e.why || e.message || e.kind)) || '?' }).slice(0, 300), true); }
+});
+
 // Carb Timing: the windows follow the real workout start (on) or the Week Planner time (off)
 $('realStart').addEventListener('change', () => { profile.realStart = $('realStart').checked; saveProfile();
   const tk = todayKey(), pl = planFor(tk), d = days[tk];

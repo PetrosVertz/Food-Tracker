@@ -287,7 +287,7 @@ const AIProvider = (() => {
         }
       }
       if(trace.deadline) throw aiError('timeout', t('allBusy', { e: last ? last.message : t('timedOut') }), { deadline: true });
-      throw aiError(last ? last.kind : 'other', t('allBusy', { e: last ? last.message : '?' }), last && last.nomodel ? { nomodel: true, status: last.status } : null);   // keep why (a model that does not exist) for the plain message
+      throw aiError(last ? last.kind : 'other', t('allBusy', { e: last ? last.message : '?' }), last ? { ...(last.nomodel ? { nomodel: true } : {}), status: last.status, why: last.message } : null);   // why = the provider's own short reason (Settings · Test The AI, and the chats when a request was turned down)   // keep why (a model that does not exist) for the plain message
     }catch(e){ if(!trace.ms) done(null, e); throw e; }
   }
 
