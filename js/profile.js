@@ -337,7 +337,8 @@ function lbPick(id){ if(!LB_LIFTS.includes(id) || id === lbLift()) return; ui.pf
 
 function renderProfile(){
   const box = $('pfBody'); if(!box) return;
-  if(typeof AchUI !== 'undefined' && AchUI.view() === 'ach'){ box.innerHTML = AchUI.collectionHtml(); return; }   // Achievements: the collection, inside the Hub
+  const achOn = typeof AchUI !== 'undefined' && AchUI.view() === 'ach'; if($('pgProfile')) $('pgProfile').classList.toggle('achview', achOn);
+  if(achOn){ box.innerHTML = AchUI.collectionHtml(); return; }   // Achievements: the collection, inside the Hub (only its list scrolls)
   const d = profileData();
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
   // Refinements #8: the workout streak is a small frosted pill with a flame on the bottom right of your picture (its box is gone)

@@ -83,19 +83,19 @@ const AchUI = (() => {
   function cardHtml(id, got){
     const a = got[id];
     if(a) return `<button type="button" class="achcard earned" data-achopen="${id}"><span class="achc">${TROPHY}</span><span class="achtx"><b>${esc(nameOf(id))}</b><p>${esc(didOf(id, a.e))}</p><span class="achdate">${esc(t('achOn', { d: day(a.d) }))}</span></span></button>`;
-    if(Ach.SECRET.has(id)) return `<div class="achcard hid" role="img" aria-label="${esc(t('achHidden'))}"><span class="achc" aria-hidden="true">${TROPHY}</span></div>`;   // no name, no hint, no number, no title attribute
+    if(Ach.SECRET.has(id)) return `<div class="achcard hid" role="img" aria-label="${esc(t('achHidden'))}"><span class="achc" aria-hidden="true">${TROPHY}</span><span class="achtx" aria-hidden="true"><b>${esc(t('achSecretCard'))}</b></span></div>`;   // a faint generic label only: no name, no hint, no number, no title attribute
     return `<div class="achcard lock"><span class="achc">${TROPHY}</span><span class="achtx"><b>${esc(nameOf(id))}</b><p>${esc(howOf(id))}</p></span></div>`;
   }
   function collectionHtml(){
     const got = Ach.earned(), n = Ach.count(), ids = Ach.IDS.filter(id => FILTER === 'all' || (FILTER === 'earned') === !!got[id]);
     ids.sort((a, b) => (!!got[b] - !!got[a]) || (got[a] && got[b] ? got[b].d.localeCompare(got[a].d) : 0) || Ach.IDS.indexOf(a) - Ach.IDS.indexOf(b));
     const flt = [['all', 'achAll'], ['earned', 'achEarned'], ['locked', 'achLocked']].map(([k, s]) => `<button type="button" data-achf="${k}" aria-pressed="${FILTER === k}">${esc(t(s))}</button>`).join('');
-    return `<div class="achhead"><button type="button" class="achback" data-achback aria-label="${esc(t('back'))}">${svgIcon('back', 22, 2.4)}</button><h3 class="pfh"><span>${esc(t('achBtn'))}</span></h3></div>
-      <p class="achtot">${esc(t('achOf', { a: n, b: Ach.total() }))}</p><div class="achflt" role="group" aria-label="${esc(t('achBtn'))}">${flt}</div>
-      ${ids.map(id => cardHtml(id, got)).join('') || `<p class="pfempty">${esc(t('achEmpty'))}</p>`}`;
+    return `<div class="achfix"><div class="achhead"><button type="button" class="achback" data-achback aria-label="${esc(t('back'))}">${svgIcon('back', 22, 2.4)}</button><h3 class="pfh"><span>${esc(t('achBtn'))}</span></h3></div>
+      <p class="achtot">${esc(t('achOf', { a: n, b: Ach.total() }))}</p><div class="achflt" role="group" aria-label="${esc(t('achBtn'))}">${flt}</div></div>
+      <div class="achlist" id="achList">${ids.map(id => cardHtml(id, got)).join('') || `<p class="pfempty">${esc(t('achEmpty'))}</p>`}</div>`;
   }
   const view = () => VIEW;
-  function show(v){ VIEW = v; if(typeof renderProfile === 'function') renderProfile(); if(v === 'ach') window.scrollTo && document.getElementById('pfBody') && document.getElementById('pfBody').scrollIntoView({ block: 'start' }); }
+  function show(v){ VIEW = v; window.scrollTo(0, 0); if(typeof renderProfile === 'function') renderProfile(); }
   document.addEventListener('click', e => {
     if(e.target.closest('#pfAch')){ Phone.haptic(); show('ach'); return; }
     if(e.target.closest('[data-achback]')){ Phone.haptic(); show('main'); return; }

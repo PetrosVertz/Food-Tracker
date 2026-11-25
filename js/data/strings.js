@@ -1335,7 +1335,7 @@ Object.assign(S, {
   achHidden: ['Hidden achievement', 'Κρυφό επίτευγμα'], achUnlocked: ['Achievement unlocked', 'Ξεκλειδώθηκε επίτευγμα'], achUnlockedSecret: ['Secret achievement unlocked', 'Ξεκλειδώθηκε μυστικό επίτευγμα'],
   achMore: ['+{n} more', '+{n} ακόμα'], achDismiss: ['Dismiss Achievement', 'Κλείσιμο Επιτεύγματος'], achDetailTitle: ['Achievements Earned', 'Επιτεύγματα που Κερδήθηκαν'], achHow: ['How You Earn It', 'Πώς Κερδίζεται'],
   achDid: ['What You Did', 'Τι Έκανες'], achOn: ['Earned {d}', 'Κερδήθηκε {d}'], achCatch: ['{n} from your history', '{n} από το ιστορικό σου'], achCatchSecret: ['Achievements found', 'Βρέθηκαν επιτεύγματα'],
-  achOpen: ['Open Achievement Details', 'Άνοιγμα Λεπτομερειών Επιτεύγματος'], achEmpty: ['Nothing here yet.', 'Δεν υπάρχει τίποτα ακόμα.'], achSub: ['Earned from your own workouts. Nothing is ever taken away.', 'Κερδίζονται από τις δικές σου προπονήσεις. Τίποτα δεν αφαιρείται ποτέ.'],
+  achOpen: ['Open Achievement Details', 'Άνοιγμα Λεπτομερειών Επιτεύγματος'], achSecretCard: ['Secret Achievement', 'Μυστικό Επίτευγμα'], achEmpty: ['Nothing here yet.', 'Δεν υπάρχει τίποτα ακόμα.'], achSub: ['Earned from your own workouts. Nothing is ever taken away.', 'Κερδίζονται από τις δικές σου προπονήσεις. Τίποτα δεν αφαιρείται ποτέ.'],
   achLeft: ['left', 'αριστερά'], achRight: ['right', 'δεξιά']
 });
 

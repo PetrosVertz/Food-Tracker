@@ -55,12 +55,16 @@ const set = (w, r, at) => ({ type: 'N', w: String(w), r: String(r), done: true, 
   const col = await p.evaluate(() => { const c = [...document.querySelectorAll('#pfBody .achcard')], hid = c.filter(x => x.classList.contains('hid'));
     return { total: c.length, hid: hid.length, hidText: hid.map(x => x.innerText.trim()).join(''), hidAria: hid.every(x => x.getAttribute('aria-label') === 'Hidden achievement'), hidTitle: hid.some(x => x.hasAttribute('title') || x.querySelector('[title]')), earned: c.filter(x => x.classList.contains('earned')).length, tot: document.querySelector('.achtot').innerText }; });
   ok(col.total === 44 && col.hid === 13 && col.earned === 1, `collection: 44 cards, 13 hidden, 1 earned (${col.total}/${col.hid}/${col.earned})`);
-  ok(col.hidText === '' && col.hidAria && !col.hidTitle, 'locked secrets: zero visible text, accessible name "Hidden achievement", no tooltip');
+  ok(col.hidText.replace(/Secret Achievement/g, '') === '' && col.hidAria && !col.hidTitle, 'locked secrets: only a faint generic "Secret Achievement" label, accessible name "Hidden achievement", no tooltip');
   ok(/1 of 44 earned/.test(col.tot), 'earned / total line');
   await p.click('[data-achf=earned]'); await sleep(150); ok(await p.evaluate(() => document.querySelectorAll('#pfBody .achcard').length) === 1, 'Earned filter: only what you earned');
   await p.click('[data-achf=locked]'); await sleep(150); ok(await p.evaluate(() => document.querySelectorAll('#pfBody .achcard').length) === 43, 'Locked filter: 43 cards, secrets as blank silhouettes');
   const leak = await p.evaluate(() => document.getElementById('pfBody').innerText + document.getElementById('pfBody').innerHTML.replace(/<[^>]+>/g, ' '));
   ok(!/Groundhog|Tenet|Somehow, You Returned|The Answer Is 42|Past Me Said No|Hey, I Know That Guy|Shift Change|What Is This|Called It a Comeback|Post-Credits|The Other Left|Band.s Back|Final Set/.test(leak), 'no secret name or condition appears anywhere in the locked list');
+  // only the list scrolls: title, gear, back, count and filters stay where they are
+  const sc = await p.evaluate(async () => { const q = s => Math.round(document.querySelector(s).getBoundingClientRect().top), pos = () => [q('#pgProfile header'), q('#pfGear'), q('.achhead'), q('.achflt')], l = document.getElementById('achList'), a = pos();
+    l.scrollTop = 400; await new Promise(r => setTimeout(r, 150)); window.scrollTo(0, 500); await new Promise(r => setTimeout(r, 150)); return { a, b: pos(), top: l.scrollTop, can: l.scrollHeight > l.clientHeight, y: window.scrollY }; });
+  ok(sc.can && sc.top > 0 && JSON.stringify(sc.a) === JSON.stringify(sc.b) && sc.y === 0, 'Achievements page: the list scrolls, the page, title, gear, back, count and filters do not move');
   if (shots) await p.screenshot({ path: path.join(shots, 'ach_collection.png') });
   await p.click('[data-achback]'); await sleep(300); ok(await p.evaluate(() => !!document.getElementById('pfShare')), 'back returns to the Hub');
   // 3. cold reload: nothing repeats
