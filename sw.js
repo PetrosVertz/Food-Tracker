@@ -2,6 +2,7 @@
 const CACHE = 'tracker-v0.8.1.1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-maskable-512.png',
   'css/base.css',
+  'css/achievements.css',
   'css/glass.css',
   'css/motion.css',
   'css/layout.css',
@@ -46,7 +47,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/profiler.js',
   'js/streak.js',
   'js/vendor/qrcode.js',
-  'js/gym-share.js', 'js/excustom.js', 'js/expick.js', 'js/excreate.js', 'js/progress.js', 'js/profile.js', 'js/rank-fx.js', 'js/rank-engine.js', 'js/rank-v04.js', 'js/know.js', 'js/athlete/events.js', 'js/athlete/memory.js', 'js/athlete/state.js', 'js/athlete/context.js', 'js/athlete/persona.js', 'js/athlete/supervisor.js',
+  'js/gym-share.js', 'js/excustom.js', 'js/expick.js', 'js/excreate.js', 'js/progress.js', 'js/profile.js', 'js/achievements.js', 'js/ach-ui.js', 'js/rank-fx.js', 'js/rank-engine.js', 'js/rank-v04.js', 'js/know.js', 'js/athlete/events.js', 'js/athlete/memory.js', 'js/athlete/state.js', 'js/athlete/context.js', 'js/athlete/persona.js', 'js/athlete/supervisor.js',
   'js/wire/01-core.js',
   'js/wire/02-food.js',
   'js/wire/03-fridge-today.js',

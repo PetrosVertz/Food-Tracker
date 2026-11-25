@@ -231,12 +231,13 @@ async function finishWorkout(auto){
   if(comeback && comebackFactor() >= 1){ comeback = null; saveG('cb'); }
   active = null; saveG('act'); REST = null; SSNEXT = null; _recMapV = null; $('restBar').classList.add('hide');
   close('ovSession');
-  if(auto === true){ renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
+  if(auto === true){ const achAuto = AchUI.afterWorkout(); if(achAuto.length) setTimeout(() => AchUI.announce(achAuto), 900); renderAll(); toast(t('autoEnded', { t: fmtClock(fromMin(end.getHours() * 60 + end.getMinutes())) })); RankFx.play(rk.slice(0, 3)); return true; }
   if(gOn('sound')) Phone.sound('done');
   startRecLine(ses);   // the Gym Coach's recovery line: asked now, while the Rank Up screens play (it never waits for them)
   renderAll();
   // Refinements #8 change 23: a Rank Up screen per exercise first (Next is the only way on), then Workout Done; no rank up = straight to Workout Done
-  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); };
+  const achNew = AchUI.afterWorkout();   // achievements: worked out once, from the saved workout; the pop-up comes after Workout Done is on screen
+  const done = () => { showSummary(ses); if(downs.length) RankFx.play(downs.slice(0, 3)); if(achNew.length) setTimeout(() => AchUI.announce(achNew), 450); };
   if(ups.length) RankFx.ups(ups).then(done, done); else done();
   return true;
 }
@@ -401,6 +402,7 @@ Coach.setup('gymlive', { kind: 'gym', share: 'gym', camera: true, title: () => t
 $('pfBody').addEventListener('click', e => { if(e.target.closest('[data-orm]')){ Phone.haptic(); openOrm(); return; }
   if(e.target.closest('[data-rkcustom]')){ Phone.haptic(); openRankPick(); return; }
   const pn = e.target.closest('[data-statpin]'); if(pn){ togglePin(pn.dataset.statpin); return; }
+  if(e.target.closest('[data-statall]')){ Phone.haptic(); openStatAll(); return; }
   if(e.target.closest('[data-statshuf]')){ Phone.haptic(); if(ui.statRot) ui.statRot = { ...ui.statRot, next: 0 }; delete ui.statShuf; saveUI(); renderProfile(); return; }   // your own early pick: a new set and a new 24 hours
   if(e.target.closest('[data-streak]')){ Phone.haptic(); openStreak(); return; }
   if(e.target.closest('[data-rkreset]')){ resetRankPick(); return; }
@@ -414,7 +416,8 @@ function rkBubClose(){ clearTimeout(RKBUB_T); document.querySelectorAll('.pfrksl
 $('ormEx').addEventListener('change', ormHint);
 $('ormSave').addEventListener('click', saveOrm);
 $('rkList').addEventListener('click', e => { const b = e.target.closest('[data-rkpick]'); if(b) togglePick(b.dataset.rkpick); });
-$('rkSearch').addEventListener('input', drawRankPick); $('rkReset').addEventListener('click', resetRankPick);
+$('rkSearch').addEventListener('input', drawRankPick); $('stAllSearch').addEventListener('input', drawStatAll);
+$('stAllList').addEventListener('click', e => { const b = e.target.closest('[data-statpin2]'); if(b) togglePin(b.dataset.statpin2).then(drawStatAll); });   // View All: the same pin, same saved order $('rkReset').addEventListener('click', resetRankPick);
 $('ormList').addEventListener('click', e => { const b = e.target.closest('[data-ormdel]'); if(b){ Phone.haptic(); delOrm(b.dataset.ormdel); } });
 $('pfBody').addEventListener('click', e => { if(!e.target.closest('[data-tierbody]')) return; Phone.haptic(); openSettings(); setTimeout(() => { fillSettings(); open('ovSBody'); }, 360); });
 

@@ -90,10 +90,23 @@ const STATS = [
   { id: 'nextRank',   calc: c => c.nextRank && { v: `+${c.num(c.nextRank.kg)} kg`, p: { n: c.nextRank.name, r: c.nextRank.label }, ico: rankMini(c.nextRank, 16) } },
   { id: 'ratio',      calc: c => c.ratio && { v: `${c.ratio.x.toFixed(1)}x`, p: { n: c.ratio.name } } },
   { id: 'repKing',    calc: c => c.repKing && { v: `${c.num(c.repKing.r)} ${t('stUnitReps')}`, p: { n: c.repKing.name } } },
-  { id: 'big3',       calc: c => c.big3 && { v: `${c.num(Math.round(c.big3 * 10) / 10)} kg`, k: c.bw ? 'big3Bw' : 'big3', p: { n: (c.big3 / c.bw).toFixed(1) } } },
+  { id: 'big3',       calc: c => c.big3 && { v: lbW(c.big3), p: {} } },   // the best REAL single on each of bench, squat and deadlift (the leaderboard routes), shown once all three exist; never estimated, no body-weight ratio
   { id: 'explorer',   calc: c => c.explorer && { v: c.num(c.explorer.n), p: { n: c.explorer.name } } },
   { id: 'loyal',      calc: c => c.loyal && { v: c.loyal.name, p: { n: c.loyal.n }, big: 1 } },
   { id: 'prs',        calc: c => c.prs && { v: c.num(c.prs), p: {} } },
+  // ---- 0.7.11 twelve more (all from statsMore(); each hides until there is meaningful evidence) ----
+  { id: 'extraReps',  calc: c => c.m.extra > 0 && { v: c.num(c.m.extra), p: {} } },
+  { id: 'opener',     calc: c => c.m.opener && { v: c.m.opener.name, p: { n: c.m.opener.n, m: c.m.opener.of }, big: 1 } },
+  { id: 'pair',       calc: c => c.m.pair && { v: `${c.m.pair.a} + ${c.m.pair.b}`, p: { n: c.m.pair.n }, big: 1 } },
+  { id: 'podium',     calc: c => c.m.podium && { v: c.num(c.m.podium.n), p: { d: fmtDate(c.m.podium.date + 'T12:00:00') } } },
+  { id: 'flyer',      calc: c => c.m.flyer && { v: c.m.flyer.name, p: { n: c.m.flyer.n, m: c.m.flyer.of }, big: 1 } },
+  { id: 'numbers',    calc: c => c.m.numbers && { v: c.m.numbers.band, p: { n: c.m.numbers.pct, m: c.m.numbers.of }, big: 1 } },
+  { id: 'cue',        calc: c => c.m.cue && { v: c.m.cue.win, p: { n: c.m.cue.n, m: c.m.cue.of }, big: 1 } },
+  { id: 'newMgmt',    calc: c => c.m.newMgmt && { v: c.m.newMgmt.name, p: { a: c.m.newMgmt.now, b: c.m.newMgmt.before }, big: 1 } },
+  { id: 'prMiles',    calc: c => c.m.prMiles > 0 && { v: c.num(c.m.prMiles), p: {} } },
+  { id: 'longGame',   calc: c => c.m.longGame && { v: c.m.longGame.days >= 365 ? `${c.num(Math.round(c.m.longGame.days / 36.5) / 10)} ${t('stUnitYears')}` : `${c.num(Math.round(c.m.longGame.days / 30.4))} ${t('stUnitMonths')}`, p: { n: c.m.longGame.name } } },
+  { id: 'allReps',    calc: c => c.m.reps > 0 && { v: c.num(c.m.reps), p: {} } },
+  { id: 'split',      calc: c => c.m.split != null && { v: `${c.num(c.m.split)} ${t(c.m.split === 1 ? 'stUnitDay' : 'stUnitDays')}`, p: {} } },
 ];
 // everything the table needs, worked out once per draw
 function statsCtx(){
@@ -135,15 +148,67 @@ function statsCtx(){
   c.nextRank = null; c.ratio = null;
   e1s.forEach((e, id) => { const tf = tierFor(id); if(tf && tf.next && tf.next.kg != null && (!c.nextRank || tf.next.kg < c.nextRank.kg)) c.nextRank = { kg: tf.next.kg, name: exName(id), tier: tf.next.tier, n: tf.next.n, label: tf.next.label };
     if(c.bw && tierStd(id) && (!c.ratio || e / c.bw > c.ratio.x)) c.ratio = { x: e / c.bw, name: exName(id) }; });
-  c.big3 = ['bench', 'squat', 'deadlift'].every(id => e1s.get(id) > 0) ? ['bench', 'squat', 'deadlift'].reduce((a, id) => a + e1s.get(id), 0) : 0;
+  { const b3 = typeof boardBest === 'function' ? ['bench', 'squat', 'deadlift'].map(id => boardBest(id)) : []; c.big3 = b3.length === 3 && b3.every(b => b && b.kg > 0) ? b3.reduce((a, b) => a + b.kg, 0) : 0; }   // real tested singles only (typed 1RMs and trophy singles), best of each lift
   let nw = null; firstSeen.forEach((st, id) => { if(!nw || st >= nw.st) nw = { st, id }; }); c.explorer = nw && { n: firstSeen.size, name: exName(nw.id) };
   c.loyal = null; months.forEach((set, id) => { const ms = [...set].map(m => +m.slice(0, 4) * 12 + +m.slice(5, 7)).sort((a, b) => a - b); let run = 1, best = 1, last = ms[0];
     ms.forEach((m, i) => { if(!i) return; run = m === ms[i - 1] + 1 ? run + 1 : 1; if(run >= best){ best = run; last = m; } });
     if(best >= 2 && (!c.loyal || best > c.loyal.n || (best === c.loyal.n && last > c.loyal.last))) c.loyal = { n: best, last, name: exName(id) }; });
+  c.m = statsMore(ses, c);
   c.hm = m => { const h = Math.floor(m / 60), mi = String(m % 60).padStart(2, '0'); return `${String(h).padStart(2, '0')}:${mi}`; };
   c.dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min` : `${Math.round(m)} min`;
   return c;
 }
+// ---------- the twelve newer stats: one pass over the history, deterministic (today comes from todayKey(), nothing reads the clock) ----------
+// Working set = finished, not a warm-up, not a drop row, not the right-hand row of a pair. Reps = the reps typed (full reps). "Opening exercise" needs the real
+// tick order (s.at on every working set): a workout without it is left out of that stat, never guessed from the plan or the exercise order.
+function statsMore(ses, c){
+  const m = {}, day = d => Math.round(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / 864e5), today = day(todayKey());
+  const W = ses.filter(s => s && s.start && Array.isArray(s.exercises)).slice().sort((a, b) => String(a.start).localeCompare(String(b.start)) || String(a.id).localeCompare(String(b.id)));
+  const work = x => x.sets.filter(st => st.done && isMainSet(st) && +st.r > 0), cardio = id => (exById(id) || {}).m === 'cardio';
+  const lk = (id, st) => Math.round(((gymIsAssistSafe(id) ? -(+st.w || 0) : (+st.w || 0))) * 100) / 100;
+  // Extra Rep Club: an exercise at a load beats its earlier best reps (the first time at a load is only the baseline); once per exercise/load per session
+  const best = new Map(); m.extra = 0;
+  W.forEach(s => { const top = new Map(); s.exercises.forEach(x => { if(cardio(x.exId)) return; work(x).forEach(st => { const k = x.exId + '|' + lk(x.exId, st); top.set(k, Math.max(top.get(k) || 0, Math.floor(+st.r))); }); });
+    top.forEach((r, k) => { if(best.has(k) && r > best.get(k)) m.extra++; best.set(k, Math.max(best.get(k) || 0, r)); }); });
+  // opening act (actual first working set, latest 30 workouts) and Frequent Flyer (appearances, latest 10)
+  const last = n => W.slice(-n), tally = (map, k, s) => { const o = map.get(k) || { n: 0, at: '' }; o.n++; if(String(s.start) > o.at) o.at = String(s.start); map.set(k, o); };
+  const top = (map, nameOf) => { let b = null; map.forEach((o, k) => { const nm = nameOf(k); if(!b || o.n > b.n || (o.n === b.n && (o.at > b.at || (o.at === b.at && nm.localeCompare(b.name) < 0)))) b = { k, n: o.n, at: o.at, name: nm }; }); return b; };
+  { const o = new Map(); let of = 0; last(30).forEach(s => { const sets = s.exercises.filter(x => !cardio(x.exId)).flatMap(x => work(x).map(st => ({ id: x.exId, at: +st.at || 0 }))); if(!sets.length || sets.some(z => !z.at)) return;
+      of++; tally(o, sets.slice().sort((a, b) => a.at - b.at)[0].id, s); });
+    const b = top(o, exName); m.opener = of >= 3 && b && b.n >= 2 ? { name: exName(b.k), n: b.n, of } : null; }
+  { const o = new Map(), L = last(10); L.forEach(s => { new Set(s.exercises.filter(x => !cardio(x.exId) && work(x).length).map(x => x.exId)).forEach(id => tally(o, id, s)); });
+    const b = top(o, exName); m.flyer = L.length >= 5 && b && b.n >= 3 ? { name: exName(b.k), n: b.n, of: L.length } : null; }
+  // Partners in Iron: the pair that shows up together in the most sessions, either order
+  { const o = new Map(); W.forEach(s => { const ids = [...new Set(s.exercises.filter(x => !cardio(x.exId) && work(x).length).map(x => x.exId))].sort();
+      for(let i = 0; i < ids.length; i++) for(let j = i + 1; j < ids.length; j++) tally(o, ids[i] + '|' + ids[j], s); });
+    const b = top(o, k => k.split('|').map(exName).join(' ')); if(b && b.n >= 2){ const [x, y] = b.k.split('|'); m.pair = { a: exName(x), b: exName(y), n: b.n }; } else m.pair = null; }
+  // Crowded Podium: most different exercises with a PR in one workout
+  m.podium = null; W.forEach(s => { const n = new Set((s.prs || []).filter(p => p && (p.kind === 'w' || p.kind === 'v') && p.exId && !cardio(p.exId)).map(p => p.exId)).size; if(n >= 2 && (!m.podium || n > m.podium.n)) m.podium = { n, date: s.date }; });
+  // The Numbers Game: the most common full-rep range in the latest 30 workouts (bands 1-5, 6-8, 9-12, 13-15, 16+)
+  { const BANDS = [[1, 5, '1\u20135'], [6, 8, '6\u20138'], [9, 12, '9\u201312'], [13, 15, '13\u201315'], [16, 9999, '16+']], cnt = BANDS.map(() => 0); let tot = 0;
+    last(30).forEach(s => s.exercises.forEach(x => { if(cardio(x.exId)) return; work(x).forEach(st => { const r = Math.floor(+st.r), i = BANDS.findIndex(b => r >= b[0] && r <= b[1]); if(i >= 0){ cnt[i]++; tot++; } }); }));
+    const mx = Math.max(...cnt), i = cnt.indexOf(mx); m.numbers = tot >= 20 ? { band: `${BANDS[i][2]} ${t('stUnitReps')}`, pct: Math.round(100 * mx / tot), of: Math.min(30, W.length) } : null; }
+  // Right on Cue: the one-hour local start window used most in the latest 20 workouts
+  { const h = new Array(24).fill(0), L = last(20); L.forEach(s => { const d = new Date(s.start); if(!isNaN(d)) h[d.getHours()]++; });
+    const mx = Math.max(...h), i = h.lastIndexOf(mx), p2 = n => String(n).padStart(2, '0'); m.cue = L.length >= 5 && mx >= 3 ? { win: `${p2(i)}:00\u2013${p2((i + 1) % 24)}:00`, n: mx, of: L.length } : null; }
+  // Under New Management: the exercise whose sessions rose most in the latest 30 days versus the 30 before (needs 60 days of history to compare)
+  m.newMgmt = null; if(W.length && today - day(W[0].date) >= 60){ const a = new Map(), b = new Map(); W.forEach(s => { const age = today - day(s.date); const tgt = age >= 0 && age < 30 ? a : age >= 30 && age < 60 ? b : null; if(!tgt) return;
+      new Set(s.exercises.filter(x => !cardio(x.exId) && work(x).length).map(x => x.exId)).forEach(id => tgt.set(id, (tgt.get(id) || 0) + 1)); });
+    let bst = null; a.forEach((n, id) => { const was = b.get(id) || 0, up = n - was; if(up >= 2 && (!bst || up > bst.up || (up === bst.up && exName(id).localeCompare(bst.name) < 0))) bst = { id, up, now: n, before: was, name: exName(id) }; }); m.newMgmt = bst; }
+  // Frequent PR Miles: different exercises with a PR in the last 30 days
+  { const set = new Set(); W.forEach(s => { const age = today - day(s.date); if(age >= 0 && age < 30) (s.prs || []).forEach(p => { if(p && (p.kind === 'w' || p.kind === 'v') && p.exId && !cardio(p.exId)) set.add(p.exId); }); }); m.prMiles = set.size; }
+  // The Long Game: the longest wait from the first working set on an exercise to a later PR on it
+  { const first = new Map(); W.forEach(s => s.exercises.forEach(x => { if(!cardio(x.exId) && work(x).length && !first.has(x.exId)) first.set(x.exId, s.date); }));
+    m.longGame = null; W.forEach(s => (s.prs || []).forEach(p => { if(!p || (p.kind !== 'w' && p.kind !== 'v') || !first.has(p.exId)) return; const d = day(s.date) - day(first.get(p.exId)); if(d >= 30 && (!m.longGame || d > m.longGame.days)) m.longGame = { days: d, name: exName(p.exId) }; })); }
+  // All Reps Accounted For: every full working rep, bodyweight work included
+  m.reps = 0; W.forEach(s => s.exercises.forEach(x => { if(!cardio(x.exId)) work(x).forEach(st => { m.reps += Math.floor(+st.r); }); }));
+  // The Usual Split: the most common number of training days in a week over the last eight finished Monday-Sunday weeks (empty weeks count, once the history reaches back that far)
+  m.split = null; if(W.length){ const monN = n => n - ((n + 3) % 7 + 7) % 7, thisMon = monN(today), start = thisMon - 56;
+    if(day(W[0].date) <= start){ const wk = new Array(8).fill(0), seen = new Set(); W.forEach(s => { const d = day(s.date), i = Math.floor((d - start) / 7), k = i + ':' + d; if(i >= 0 && i < 8 && !seen.has(k)){ seen.add(k); wk[i]++; } });
+      const cnt = new Map(); wk.forEach(n => cnt.set(n, (cnt.get(n) || 0) + 1)); let bn = -1, bc = 0; cnt.forEach((c2, n) => { if(c2 > bc || (c2 === bc && n > bn)){ bc = c2; bn = n; } }); m.split = bn > 0 ? bn : null; } }
+  return m;
+}
+const gymIsAssistSafe = id => typeof gymIsAssist === 'function' && gymIsAssist(id);
 // Change #12: six cards (two even columns of three rows; STAT_N is the one number to change): up to STAT_PIN_MAX pinned (yours, in your order, never rotated),
 // the other slots filled from a rotation that changes once every 24 hours. The rotation (ui.statRot, this phone only) is saved with its next change time,
 // so leaving the page, reloading or restarting never picks a new set early; the shuffle button is your own early pick (a new 24 hours start then).
@@ -191,6 +256,16 @@ function statCards(){
     return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}">${pfIcon(ICO_PIN, 16)}</button>
       <small class="pfstt">${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k === 'big3Bw' ? 'big3' : r.k || x.id), r.p))}</span></div>`; }).join('') : `<p class="pfempty">${esc(t('stEmpty'))}</p>`;
 }
+// View All: every card that has data, searchable, each with its pin. Pinning here uses the same togglePin() and saved order as the grid.
+const statAllList = () => { const c = statsCtx(); return STATS.filter(x => !STAT_HUB_HIDE.has(x.id)).map(x => ({ id: x.id, r: x.calc(c) })).filter(x => x.r); };
+function drawStatAll(){
+  const q = ($('stAllSearch').value || '').trim().toLowerCase(), pins = statPins(), all = statAllList().filter(x => !q || t('stt_' + x.id).toLowerCase().includes(q));
+  $('stAllSub').textContent = t('stAllSub', { m: STAT_PIN_MAX, n: pins.length });
+  $('stAllList').innerHTML = all.length ? `<div class="pfstatgrid">${all.map(x => { const on = pins.includes(x.id), r = x.r;
+    return `<div class="pfstat${on ? ' pinned' : ''}"><button class="pfpin" type="button" data-statpin2="${x.id}" aria-pressed="${on}" aria-label="${esc(t(on ? 'stUnpin' : 'stPin'))}: ${esc(t('stt_' + x.id))}">${pfIcon(ICO_PIN, 16)}</button>
+      <small class="pfstt">${esc(t('stt_' + x.id))}</small><b class="${r.big ? 'txt' : ''}">${esc(r.v)}</b><span>${r.ico || ''}${esc(t('sts_' + (r.k || x.id), r.p))}</span></div>`; }).join('')}</div>` : `<p class="pfempty">${esc(t('stAllNone'))}</p>`;
+}
+function openStatAll(){ $('stAllSearch').value = ''; drawStatAll(); open('ovStats'); }
 // a third pin: say the limit is reached and offer to replace the older pin (only on Replace; Cancel changes nothing)
 async function togglePin(id){
   let r = pinToggle(statPins(), id);
@@ -217,7 +292,7 @@ function drawOrmList(){
 function saveOrm(){
   const exId = $('ormEx').value, w = parseFloat(String($('ormW').value).replace(',', '.')), date = $('ormDate').value, bw = exById(exId).e === 'bodyweight';
   if(!isBoardLift(exId) || !(w > 0 || (bw && w === 0)) || w > 600 || !/^\d{4}-\d\d-\d\d$/.test(date) || date > todayKey()){ toast(t('ormBad')); return; }
-  profile.orm = [...ormList(), { id: uid(), exId, w, date }]; saveProfile(); Phone.haptic(); close('ovOrm'); renderProfile(); toast(t('ormSaved'));
+  profile.orm = [...ormList(), { id: uid(), exId, w, date }]; saveProfile(); Phone.haptic(); close('ovOrm'); renderProfile(); toast(t('ormSaved')); AchUI.afterBoard();
 }
 function delOrm(id){ profile.orm = ormList().filter(o => o.id !== id); if(!profile.orm.length) delete profile.orm; saveProfile(); drawOrmList(); renderProfile(); }
 
@@ -262,6 +337,7 @@ function lbPick(id){ if(!LB_LIFTS.includes(id) || id === lbLift()) return; ui.pf
 
 function renderProfile(){
   const box = $('pfBody'); if(!box) return;
+  if(typeof AchUI !== 'undefined' && AchUI.view() === 'ach'){ box.innerHTML = AchUI.collectionHtml(); return; }   // Achievements: the collection, inside the Hub
   const d = profileData();
   const ring = d.live ? 'live' : d.trainedToday ? 'today' : '';
   // Refinements #8: the workout streak is a small frosted pill with a flame on the bottom right of your picture (its box is gone)
@@ -279,11 +355,13 @@ function renderProfile(){
   const rk = `<div class="pfrkrow">${slots}</div>${picks.length < 3 ? `<span class="pfline pfrkhint">${esc(t(d.tierNeed ? 'tierNeedBody' : picks.length ? 'pfRankMore' : 'pfNoRank'))}</span>` : ''}`;
   const rkBtns = `<span class="pfrkb"><button class="pflink" type="button" data-rkcustom>${esc(t('rkCustomize'))}</button>${custom ? `<button class="pflink" type="button" data-rkreset>${esc(t('rkReset'))}</button>` : ''}</span>`;
   box.innerHTML = circles
-    + `<button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
+    + `<div class="pfacts"><button class="btn pfshare" type="button" id="pfShare">${svgIcon('share', 18, 2.2)}<span>${esc(t('pfShare'))}</span></button>`
+    + `<button class="btn pfshare pfach" type="button" id="pfAch" aria-label="${esc(t('achBtn'))}">${svgIcon('medal', 18, 2.2)}<span>${esc(t('achBtn'))}</span></button></div>`
     + `<div class="pfcard pfpr pfrkfull${picks.length ? ' tr-' + picks[0].tier : ''}"><small class="pflab">${svgIcon('medal', 16, 2)}${esc(t('pfHighRank'))}</small>${rk}${d.ranks.length ? rkBtns : ''}</div>`
     + lbHtml()
     + `<h3 class="pfh">${svgIcon('progress', 18, 2)}<span>${esc(t('pfStats'))}</span><button class="iconbtn pfshuf" type="button" data-statshuf aria-label="${esc(t('stShuffle'))}">${pfIcon(ICO_SHUF, 20)}</button></h3>`
     + `<p class="pfsub">${esc(t(statPins().length >= STAT_PIN_MAX ? 'stPinsFull' : 'stPinsSub', { n: statPins().length, m: STAT_PIN_MAX }))}</p>`
-    + `<div class="pfstatgrid">${statCards()}</div>`;
+    + `<div class="pfstatgrid">${statCards()}</div>`
+    + `<button class="btn pform" type="button" data-statall>${svgIcon('progress', 18, 2)}<span>${esc(t('stViewAll'))}</span></button>`;
   lbCarMount();
 }

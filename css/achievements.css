@@ -1,0 +1,47 @@
+/* Achievements (js/ach-ui.js): the unlock pop-up, the Hub collection, the detail window. Colours come from theme vars; the pop-up's coin / body shades are set on #achPop by ach-ui.js. */
+.achpop{--h:68px;--acc:var(--t-accent);--ontr:var(--t-on);--body:#4d6612;position:fixed;z-index:1100;left:0;right:0;margin:0 auto;width:min(380px,calc(100% - 24px));
+  top:calc(env(safe-area-inset-top) + 8px);min-height:var(--h);border-radius:calc(var(--h)/2);display:flex;align-items:stretch;background:var(--body);color:#fff;touch-action:none;
+  -webkit-user-select:none;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background-color .25s;transform:translateY(calc(-100% - env(safe-area-inset-top) - 24px));visibility:hidden;will-change:transform}
+.achpop.live{visibility:visible}
+.achpop.in{transform:none;transition:transform .3s cubic-bezier(.2,.8,.25,1),background-color .25s}
+.achpop.out{transform:translateY(calc(-100% - env(safe-area-inset-top) - 24px));transition:transform .28s cubic-bezier(.5,0,.9,.6),background-color .25s}
+.achpop.rm{transform:none;opacity:0}.achpop.rm.in{opacity:1;transition:opacity .25s,background-color .25s}.achpop.rm.out{opacity:0;transform:none;transition:opacity .25s,background-color .25s}
+.achpop .achcoin{flex:0 0 auto;align-self:center;width:var(--h);height:var(--h);border-radius:50%;background:var(--acc);color:var(--ontr);display:grid;place-items:center;transition:background-color .25s,color .25s}
+.achpop .achcoin svg{width:calc(var(--h)*.46);height:calc(var(--h)*.46)}
+.achpop .achbody{flex:1 1 auto;min-width:0;display:grid;padding:8px calc(var(--h)*.45) 8px 10px;overflow:hidden}
+.achpop .achfr{grid-area:1/1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-width:0;overflow-wrap:anywhere;
+  transition:transform .42s cubic-bezier(.3,.7,.2,1),opacity .32s}
+.achpop .achfr.two{opacity:0;transform:translateY(70%)}
+.achpop.second .achfr.one{opacity:0;transform:translateY(-70%)}.achpop.second .achfr.two{opacity:1;transform:none}
+.achpop.rm .achfr.two,.achpop.rm.second .achfr.one{transform:none;transition:opacity .28s}
+.achpop .achk{font-weight:500;font-size:var(--fs-body,15px);line-height:1.25}
+.achpop .achn{font-weight:700;font-size:calc(var(--fs-body,15px)*1.05);line-height:1.2}
+.achpop .achmore{margin-top:4px;font-size:var(--fs-label,12px);font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.2)}
+.achpop .achhit{position:absolute;inset:0;border-radius:inherit;background:none;border:0;padding:0;cursor:pointer;color:inherit}
+.achpop .achhit:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.achpop .achdis{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.achpop .achdis:focus{width:auto;height:auto;clip:auto;right:8px;top:100%;margin-top:6px;padding:8px 14px;border-radius:999px;border:0;background:#fff;color:#000;font:inherit;font-size:13px}
+.achsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Hub: Share Workout and Achievements side by side */
+.pfacts{display:flex;gap:var(--s2);margin:0 0 var(--s4)}
+.pfacts .pfshare{flex:1 1 0;min-width:0;width:auto;margin:0;min-height:56px;padding:8px 10px;gap:6px;line-height:1.15;text-align:center}
+.pfacts .pfshare svg{flex:0 0 auto}.pfacts .pfshare span{min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
+/* the collection */
+.achhead{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s2)}.achhead h3{margin:0;flex:1}
+.achback{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;background:none;border:0;color:var(--t-accent-ink,var(--t-accent));font:inherit;cursor:pointer;margin-left:-10px}
+.achtot{color:var(--t-muted);font-size:var(--fs-label,13px);margin:0 0 var(--s3)}
+.achflt{display:flex;gap:6px;margin:0 0 var(--s3)}
+.achflt button{flex:1;min-height:40px;border-radius:999px;border:1px solid var(--t-edge);background:transparent;color:var(--t-text);font:inherit;font-size:var(--fs-body,14px);cursor:pointer}
+.achflt button[aria-pressed=true]{background:var(--t-text);color:var(--t-bg);border-color:var(--t-text)}
+.achcard{display:flex;gap:12px;align-items:center;background:var(--t-card);border:1px solid var(--t-edge);border-radius:var(--r-card);padding:12px;margin:0 0 8px;min-height:68px}
+.achcard .achc{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--t-accent);color:var(--t-on)}
+.achcard .achc svg{width:22px;height:22px}
+.achcard .achtx{min-width:0;flex:1}.achcard b{display:block;font-size:var(--fs-body,15px);overflow-wrap:anywhere}
+.achcard p{margin:2px 0 0;font-size:var(--fs-label,13px);color:var(--t-muted);overflow-wrap:anywhere}.achcard .achdate{display:block;margin-top:3px;font-size:var(--fs-label,12px);color:var(--t-muted)}
+.achcard.lock{opacity:.75}.achcard.lock .achc{background:var(--t-edge);color:var(--t-muted)}
+.achcard.hid .achc{background:var(--t-edge);color:color-mix(in srgb,var(--t-muted) 50%,transparent)}
+.achcard.earned{cursor:pointer;font:inherit;text-align:left;color:inherit;width:100%}
+/* the detail window */
+.achdet .achcard{align-items:flex-start;cursor:default}.achdet .achtx em{display:block;font-size:var(--fs-label,13px);margin-top:2px}
+.achdet h4{margin:10px 0 2px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--t-muted);font-weight:700}
+.achdet .achtx p{color:var(--t-text)}
