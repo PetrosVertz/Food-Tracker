@@ -1538,18 +1538,25 @@ const GC_WORKOUT = '"workout": null, or (only when you suggest a full workout or
 // Gym Coach intelligence: a small, task-specific packet (GymIntel.brief) instead of everything every time. The exercise list goes in only
 // when the message asks for a workout, and then only the athlete's equipment; for other questions the app matches names itself (exByName).
 const GC_BUILD = 'Workouts: only when they ask for one (or for an improved one). Prefer adapting one of their saved workouts when it fits (set "based_on"); keep exercises that are progressing; no two exercises with the same movement for the same muscle unless asked; about 4 to 7 exercises for an hour (fewer if they want it shorter); fit the recovery notes (other muscles or lighter work for groups still recovering, unless they ask); use only equipment they use.';
+// ONE conversation for every Gym Coach window (Create a Workout, Start a Workout, the live workout): they differ only in their opening message and chips.
+// Whatever is asked is answered in whichever window it is asked: a workout to build, a plan, technique, progress, recovery, food for training; a workout that
+// is running right now only adds its live data (and lets the answer propose one change to it); a photo is read as gym equipment.
+const GC_PHOTO = 'They sent a photo, most likely of a gym machine they are not sure about. Name it only from what you can see; if you are not sure which machine it is, say so plainly. Do not invent settings or details that are not visible, and do not judge technique from a still photo of equipment. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.';
+const GC_LIVE = 'Within-session fatigue is normal (a few reps fewer each set at the same weight); do not treat it as a recovery problem. Respect their planned order unless there is a good reason.';
 function gcPrompt(ch, img, text){
-  const P = GymIntel.brief('plan', ch.id, text || (ch.history().filter(h => h.who === 'me').pop() || {}).text || ''), build = P.intent === 'workout';
+  const live = !!active, said = text || (ch.history().filter(h => h.who === 'me').pop() || {}).text || '';
+  const P = img ? null : GymIntel.brief(live ? 'live' : 'plan', ch.id, said), build = !!P && P.intent === 'workout';
   return `${GymIntel.voice()}
-Answer the athlete's last message in ${gcLang()}.
+${live ? 'The athlete is mid-workout (data below); any training question is fine.' : 'Any training question is fine.'} Answer their last message in ${gcLang()}.
 ${gcReply()}
 ${GC_BUILD}
+${img ? GC_PHOTO : live ? GC_LIVE : ''}
 ${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
-${P.text}
-${build ? `Exercise list (use these exact English names): ${GymIntel.names()}.` : 'Name exercises by their usual English names.'}
+${P ? P.text : (live ? gcActive() : '')}
+${img ? `Exercise list (use these exact English names): ${gcNames()}.` : build ? `Exercise list (use these exact English names): ${GymIntel.names()}.` : 'Name exercises by their usual English names.'}
 Conversation so far (latest last):
 ${ch.transcript()}
-${img ? 'The athlete also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string, ${GC_WORKOUT}, "style": null | "low" | "mid" | "high"}`;
+${img ? 'The athlete also sent the attached photo.\n' : ''}Return ONLY JSON: {"reply": string, ${GC_WORKOUT}${img ? ', ' + GC_MACHINE : live ? ', ' + GC_CHANGE : ''}, "style": null | "low" | "mid" | "high"}`;
 }
 // the AI's workout → a workout in the app's shape (exercises it named that we don't have are left out)
 function gcWorkout(w){
@@ -1606,16 +1613,19 @@ function gcWorkoutCards(tpl, base){
   return { W, list: [head, ...exs, foot] };
 }
 function gcShow(r, ch){
-  const reply = String((r && r.reply) || '').trim(), w = gcWorkout(r && r.workout);
-  if(reply || !w) ch.say(reply || t('coachFail', { e: '?' }));
+  const reply = String((r && r.reply) || '').trim(), w = gcWorkout(r && r.workout), m = r && r.machine && (r.machine.name || r.machine.exercise) ? r.machine : null,
+    op = active && r && r.change ? GymIntel.proposal(r.change, active) : null;   // checked; an invalid or unknown change is simply not shown
+  if(reply || (!w && !m && !op)) ch.say(reply || t('coachFail', { e: '?' }));
   if(w){ const { W, list } = gcWorkoutCards(w.tpl, w.base), cs = ch.cards(list);   // the chat keeps copies: edit those
     W.head = cs[0]; W.all = cs.slice(1, -1); W.foot = cs[cs.length - 1]; }
+  if(m) ch.cards([gcMachineCard(m)]);
+  if(op) ch.cards([gcChangeCard(op, op.why)]);
   gcStyleAfter(r, ch);
 }
 // the training style (Intensity) and Rep Range show with the chat's first answer; "style" in the answer = the user corrected it by text
 function gcStyleAfter(r, ch){ const k = r && r.style; if(['low', 'mid', 'high'].includes(k) && k !== gymStyle().k){ gymStyleSet(k, null, ch); return; }
   if(ch.history().filter(h => h.who === 'me').length === 1) ch.cards([gymStyleCard(), gymRepsCard()]); }
-async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : 'gcStLook')); gcShow(await gcAsk(ch, gcPrompt(ch, img, text), img, text, 'plan'), ch); }
+async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : active ? 'aiThinking' : 'gcStLook')); gcShow(await gcAsk(ch, gcPrompt(ch, img, text), img, text, active ? 'live' : 'plan'), ch); }
 // Gym Coach intelligence: the one AI request for this message. If it fails (offline, no key, every model busy), a question the app can answer
 // from your own log (next weight, what's next) still gets a plain answer; otherwise the usual "couldn't answer" line.
 async function gcAsk(ch, prompt, img, text, mode){
@@ -1633,19 +1643,6 @@ const GC_MACHINE = '"machine": null, or (only when the photo shows gym equipment
 // Gym Coach intelligence: a proposed change to the running workout is data, never an action. The app checks it (GymIntel.proposal: the exercise
 // must be in this workout, numbers in range, a swap must exist in the library) and shows it as a card; only Apply changes the workout (with Undo).
 const GC_CHANGE = '"change": null, or (only when you propose one concrete change to the running workout; if they agree to something you proposed earlier, propose it again here so they can apply it) {"type": "weight"|"reps"|"sets"|"swap"|"add", "exercise": the English name of an exercise in this workout (not for add), "w": kg for the sets still to do (weight), "r": reps for the sets still to do (reps), "n": total working sets (sets), "to": English name of the new exercise (swap, add), "why": a few words}';
-function gcLivePrompt(ch, img, text){
-  const P = img ? null : GymIntel.brief('live', ch.id, text || '');
-  return `${GymIntel.voice()}
-The athlete is in the middle of a workout. Answer their last message in ${gcLang()}.
-${gcReply()}
-${img ? 'They sent a photo, most likely of a gym machine they are not sure about. Name it only from what you can see; if you are not sure which machine it is, say so plainly. Do not invent settings or details that are not visible, and do not judge technique from a still photo of equipment. If the photo is not gym equipment, say so briefly in "reply" and set "machine" to null.' : 'Answer about this workout: weights, sets, what to do next, technique, rest. Within-session fatigue is normal (a few reps fewer each set at the same weight); do not treat it as a recovery problem. Respect their planned order unless there is a good reason.'}
-${gymStyleRule()} The athlete can correct their training style in the chat: if they say they train differently, set "style" to "low", "mid" or "high", else null.${AI.dietRules()}${AI.knows('gym')}
-${P ? P.text : gcActive()}
-${img ? `Exercise list (use these exact English names): ${gcNames()}.` : 'Name exercises by their usual English names.'}
-Conversation so far (latest last):
-${ch.transcript()}
-Return ONLY JSON: {"reply": string, ${img ? GC_MACHINE : GC_CHANGE}, "style": null | "low" | "mid" | "high"}`;
-}
 // the card for a checked change: what changes, why, Apply (with Undo) or Not Now. Both answers are remembered (GymIntel.said) so a declined idea is not pushed again.
 function gcChangeCard(op, why, key){
   const rec = GymIntel.said(key || `${active ? active.id : ''}:${op.type}:${op.exId}`, `${op.type} ${gcEx(op.exId)}${op.w != null ? ' ' + op.w + ' kg' : op.r != null ? ' ' + op.r + ' reps' : op.n != null ? ' ' + op.n + ' sets' : op.to ? ' to ' + gcEx(op.to) : ''}`), wid = active && active.id;
@@ -1682,15 +1679,6 @@ function gcMachineCard(m){
       ${errs.length ? `<div class="gcblk"><b class="fph warn">${svgIcon('warn', 16, 2.2)}${t('mistakesT')}</b><ul class="fpx">${errs.map(s => `<li><span class="xred">${svgIcon('x', 14, 2.6)}</span>${esc(s)}</li>`).join('')}</ul></div>` : ''}
       ${w ? `<div class="gcw"><small>${t('gcWFirst')}</small><b>${esc(w)}</b></div>` : ''}`,
     actions: acts };
-}
-async function gymLiveSend(text, ch, img){
-  ch.status(t(img ? 'coachStPhoto' : 'aiThinking'));
-  const r = await gcAsk(ch, gcLivePrompt(ch, img, text), img, text, 'live'), m = r && r.machine && (r.machine.name || r.machine.exercise) ? r.machine : null, reply = String((r && r.reply) || '').trim();
-  const op = !img && r && r.change ? GymIntel.proposal(r.change, active) : null;   // checked; an invalid or unknown one is simply not shown
-  if(reply || (!m && !op)) ch.say(reply || t('coachFail', { e: '?' }));
-  if(m) ch.cards([gcMachineCard(m)]);
-  if(op) ch.cards([gcChangeCard(op, op.why)]);
-  gcStyleAfter(r, ch);
 }
 // ---- quiet proactive coaching: after a set, plain rules (GymIntel.nudge, no AI) may find ONE useful thing. Then a small dot appears on the
 // header robot; nothing pops up. Opening the chat shows it, with a change card when there is something to apply. Each hint once per workout.

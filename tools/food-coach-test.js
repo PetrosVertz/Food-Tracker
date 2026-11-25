@@ -241,8 +241,9 @@ Object.assign(ctx, { dayStatus: () => { throw new Error('not ready'); }, AI: und
 // ---- 8. chat memory and the answer-time log (this phone only) ----
 F.chatSave([{ who: 'me', text: 'hi' }, { who: 'bot', text: 'Hey' }]);
 (eq((F.chatLoad() || {}).msgs, [{ who: 'me', text: 'hi' }, { who: 'bot', text: 'Hey' }]) ? ok() : fail('chat memory: saved messages not loaded'));
-F.chatSave(Array.from({ length: 120 }, (_, i) => ({ who: 'me', text: 'm' + i }))); (F.chatLoad().msgs.length === 80 && F.chatLoad().msgs[0].text === 'm40') ? ok() : fail('chat memory keeps the newest 80');
-mem.coachChat.at = Date.now() - 3 * 864e5; (F.chatLoad() === null) ? ok() : fail('chat memory older than 2 days must not come back');
+F.chatSave(Array.from({ length: 120 }, (_, i) => ({ who: 'me', text: 'm' + i }))); (F.chatLoad().msgs.length === 200 || F.chatLoad().msgs.length === 120) && F.chatLoad().msgs[F.chatLoad().msgs.length - 1].text === 'm119' ? ok() : fail('chat memory keeps the newest messages');
+F.chatSave(Array.from({ length: 260 }, (_, i) => ({ who: 'me', text: 'n' + i }))); (F.chatLoad().msgs.length === 200 && F.chatLoad().msgs[0].text === 'n60') ? ok() : fail('chat memory keeps the newest 200');
+mem.coachChat.at = Date.now() - 8 * 864e5; (F.chatLoad() === null) ? ok() : fail('chat memory older than 7 days must not come back');
 [['local', 20], ['local', 30], ['memory', 40], ['ai', 2500], ['ai', 3100], ['ai', 4200], ['offline', 300]].forEach(([p, ms]) => F.track(p, ms, p === 'ai' ? 1 : 0));
 { const s = F.stats(); (s.ai.n === 3 && s.ai.p50 === 3100 && s.ai.p95 === 4200 && s.local.callsPerAnswer === 0 && s.ai.callsPerAnswer === 1) ? ok() : fail('answer-time stats: ' + JSON.stringify(s)); }
 F.chatClear(); ((F.chatLoad() || { msgs: [] }).msgs.length === 0 && F.stats().all.n === 7) ? ok() : fail('clearing the chat keeps the speed log only');
