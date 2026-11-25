@@ -60,7 +60,7 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     must(await p.evaluate(() => document.querySelector('#fhFoods .fbub').classList.contains('hide')), 'tapping anywhere else closes it');
     s = await p.evaluate(() => ({ meals: $('fhMeals').innerText, supps: $('fhSupps').innerText, dots: $('fhSupps').querySelectorAll('.sdot').length, rec: $('fhRecipes').innerText, groc: $('fhGroc').innerText, inv: $('fhInv').innerText }));
     must(/Chicken & rice/.test(s.meals) && /3×/.test(s.meals), 'Meals: top meals with times logged this month');
-    must(s.dots === 7 && /day streak/.test(s.supps) && /1 left/.test(s.supps), 'Supps: streak, 7 dots, 1 left today');
+    must(s.dots === 7 && /Did you take your supplements today\?/.test(s.supps) && !/streak/.test(s.supps) && /1 left/.test(s.supps), 'Supps: today\'s question (no streak), 7 dots, 1 left today');
     must(/2\/2/.test(s.rec) && /Chicken & rice/.test(s.rec), 'Recipes: a recipe you can cook now, 2/2 in the fridge');
     must(/1\/2/.test(s.groc) && /1 left to buy/.test(s.groc) && /Eggs/.test(s.groc), 'Shopping List: ticked ring, left to buy, next item');
     must(/2/.test(s.inv) && /items/.test(s.inv) && /Protein 1/.test(s.inv), 'My Fridge: item count + legend');
@@ -80,7 +80,11 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
       bars: $('ghLib').querySelectorAll('.btbar').length, acc: $('ghLib').querySelectorAll('.btbar.acc').length, stat: ($('ghProg').querySelector('.btstat b') || {}).textContent, line: !!$('ghProg').querySelector('.ghline .dot'),
       text: $('ghRec').innerText.replace(/\s+/g, ' ').trim(), dots: $('ghRec').querySelectorAll('.ghdots i').length, label: [...document.querySelectorAll('#ghWeek .wpd em')].map(e => e.textContent) }; });
     must(Math.abs(s.rec.top - s.lib.top) < 2 && Math.abs(s.rec.bottom - s.prog.bottom) < 2 && s.rec.left > s.lib.right, 'Gym: RECOVERY+ is one tall tile beside Workouts + Progress');
-    must(s.week.bottom <= s.fab.top && s.fabOn && s.scroll <= 1, `Week Planner ends above the Start Workout pill (${Math.round(s.fab.top - s.week.bottom)} px), no scroll`);
+    must(s.week.bottom <= s.fab.top && s.fab.top - s.week.bottom <= 4 && s.fabOn && s.scroll <= 1, `Week Planner ends 2-4 px above the Start Workout pill (${Math.round(s.fab.top - s.week.bottom)} px), no scroll`);
+    must(await p.evaluate(() => getComputedStyle($('pgGym')).overflowY === 'hidden'), 'Gym Buddy cannot be dragged when they fit');
+    must(await p.evaluate(() => { const v = $('ghProg').querySelector('.ghvol'), s = $('ghProg').querySelector('.btstat'); return !!v.querySelector('.ar') && /\b(up|down|flat)\b/.test(v.className) && (!s || /\b(up|down|flat)\b/.test(s.className)); }), 'Progress: filled smooth curve, trend colour class on the stat and the curve');
+    const few = await p.evaluate(() => { const keep = sessions; sessions = keep.slice(0, 5); renderGymHub(); const r = { txt: $('ghProg').innerText, line: !!$('ghProg').querySelector('.ghline') }; sessions = keep; renderGymHub(); return r; });
+    must(/Finish 8 workouts/.test(few.txt) && /5\/8/.test(few.txt) && !few.line, `Progress: under 8 workouts only a message counts up ("${few.txt.replace(/\n/g, ' ')}")`);
     must(s.pills === 7 && s.total === '4', 'Week Planner: 7 pills, Total Gym Sessions 4');
     must(s.bars >= 2 && s.bars <= 4 && s.acc === 1, `Workouts: ${s.bars} muscle bars, the top one in the accent colour`);
     must(!!s.stat && s.line, `Progress: rotating stat "${s.stat}" + 8-week line with an end dot`);
