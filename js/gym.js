@@ -1607,7 +1607,7 @@ async function gymCoachSend(text, ch, img){ ch.status(t(img ? 'coachStPhoto' : '
 // from your own log (next weight, what's next) still gets a plain answer; otherwise the usual "couldn't answer" line.
 async function gcAsk(ch, prompt, img, text, mode){
   try{ return await ch.ask(prompt, img); }
-  catch(e){ if(e && e.cancelled) throw e; const loc = !img && GymIntel.offline(text, mode, ch.id); if(!loc) throw e; return { reply: `${t('gciOffline')} ${loc}`, local: true }; }
+  catch(e){ if(e && e.cancelled) throw e; const loc = !img && GymIntel.offline(text, mode, ch.id); if(!loc) throw e; return { reply: `${e && (e.kind === 'auth' || e.kind === 'other' || e.nomodel || e.nokey) ? AI.friendly(e) + ' ' : ''}${t('gciOffline')} ${loc}`, local: true }; }   // a bad key / model / rejected request is named, not hidden behind "can't reach"
 }
 
 // ---- live workout: the sweatband robot bubble ('gymlive'); a photo of a machine → what it is, how to use it, a first-time weight ----
