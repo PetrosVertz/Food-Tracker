@@ -10,16 +10,22 @@ $('backBtn2').addEventListener('click', () => goBack());
 
 // 0.8: the Food Library home is a bento grid (renderFoodHub in food.js). A tile opens its page; an arc of the macro ring pops a small bubble instead.
 const FH_BUB = { k: null, tm: 0 };
-function fhBubble(k){ const box = $('fhFoods').querySelector('.fring'); if(!box) return; const bub = box.querySelector('.fbub'); clearTimeout(FH_BUB.tm);
+function fhBubble(k){ const box = $('fhFoods').querySelector('.fring'), bub = $('fhFoods').querySelector('.fbub'); if(!box || !bub) return; clearTimeout(FH_BUB.tm);
   box.querySelectorAll('[data-seg]').forEach(a => a.classList.toggle('dim', !!k && a.dataset.seg !== k));
   if(!k){ FH_BUB.k = null; if(!bub.classList.contains('hide')){ const done = () => { bub.classList.add('hide'); };
       if(bub.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) bub.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.9)' }], { duration: 140 }).onfinish = done; else done(); } return; }
-  const n = foods.filter(f => foodClass(f) === k).length; FH_BUB.k = k;
+  const n = foods.filter(f => foodRich(f).includes(k)).length; FH_BUB.k = k;
   bub.className = 'fbub k-' + k; bub.textContent = t(n === 1 ? 'fhBub1' : 'fhBub', { n, k: t('fhRich1_' + k) });
   if(bub.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) bub.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1.06)', offset: .6 }, { opacity: 1, transform: 'scale(1)' }], { duration: 320, easing: 'cubic-bezier(.3,1.3,.6,1)' });
   FH_BUB.tm = setTimeout(() => fhBubble(null), 2000); }
-$('fHub').addEventListener('click', e => { const seg = e.target.closest('[data-seg]');
-  if(seg){ e.stopPropagation(); Phone.haptic(); fhBubble(seg.dataset.seg); return; }
+// the arc under a tap on the ring: by angle round the centre, so a tap a little off the thin arc (or in the middle) still counts
+function fhSegAt(ring, x, y){ const segs = [...ring.querySelectorAll('[data-seg]')]; if(!segs.length) return null; const r = ring.getBoundingClientRect();
+  const a = ((Math.atan2(x - (r.left + r.width / 2), -(y - (r.top + r.height / 2))) / (2 * Math.PI)) + 1) % 1;
+  const dist = s => a >= +s.dataset.a0 && a < +s.dataset.a1 ? 0 : Math.min(...[s.dataset.a0, s.dataset.a1].map(v => { const d = Math.abs(a - v); return Math.min(d, 1 - d); }));
+  return segs.sort((p, q) => dist(p) - dist(q))[0].dataset.seg; }
+$('fHub').addEventListener('click', e => { const ring = e.target.closest('#fhFoods .fring'), seg = ring && fhSegAt(ring, e.clientX, e.clientY);
+  if(ring){ e.stopPropagation(); if(!seg) return; Phone.haptic(); fhBubble(FH_BUB.k === seg ? null : seg); return; }   // the ring never opens the Foods page; the same arc again closes the bubble
+  if(e.target.closest('[data-suppyes]')){ e.stopPropagation(); const d = todayKey(), tm = nowHM(); fhSuppLeft().forEach(s => setTakes(d, s.id, [...takesOf(d, s.id), tm].sort())); Phone.haptic(); renderAll(); renderFoodHub(); return; }   // Supplements tile: Yes = took them today
   if(FH_BUB.k){ fhBubble(null); if(e.target.closest('.fring')) return; }
   const b = e.target.closest('[data-fsec]'); if(!b) return;
   if(b.classList.contains('off')){ Phone.haptic(); toast(t('invOffT')); return; } go(b.dataset.fsec); });

@@ -118,7 +118,7 @@ function claudeText(){
 // ---------- 0.7.2: text that doesn't fit in a pill or bubble scrolls sideways like a news ticker ----------
 // Only when it overflows; off with Reduce Motion. The text is wrapped in <span class="tk"><span class="tki" data-tk="…">, the repeat is a CSS ::after (so textContent stays the same).
 (() => {
-  const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button,section.page>header h1,.btstat.big>span,.wpd em,.btmsg';
+  const SEL = '.mpill>button,.seg>button,.chip,.chips>*,.tchips>*,.wrapchips>*,.daychips>*,.fchip,.hchip,.lchip,.eqchip,.restchip,.daypill,.tag,.stag,.sttag,.btn,.fab,.pillbtn,.lwacts button,section.page>header h1,.btstat.big>span,.wpd em,.btask';
   const GAP = 32, SPEED = 32, SLOW = 10, rm = matchMedia('(prefers-reduced-motion: reduce)');
   const unwrap = el => { const i = el.querySelector(':scope>.tk>.tki'); if(!i) return; const k = i.parentNode; while(i.firstChild) el.insertBefore(i.firstChild, k); k.remove(); el.classList.remove('tkon'); };
   function tick(el){
