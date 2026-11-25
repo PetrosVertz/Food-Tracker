@@ -1135,6 +1135,7 @@ Object.assign(S, {   // Settings › AI › AI Provider (wire/08 drawAiProv): ea
   aiErrNoSearch: ['{p} can’t look things up on the web here. Choose Gemini in Settings › AI for this.', 'Το {p} δεν μπορεί να ψάξει στο διαδίκτυο εδώ. Διάλεξε Gemini στις Ρυθμίσεις › AI για αυτό.'],
   aiErrNoPhoto: ['{p} can’t read photos here. Choose another provider in Settings › AI for this.', 'Το {p} δεν μπορεί να διαβάσει φωτογραφίες εδώ. Διάλεξε άλλον πάροχο στις Ρυθμίσεις › AI για αυτό.'],
   keyOk1: ['Key works.', 'Το κλειδί δουλεύει.'],
+  keyOkN: ['Key works: {n} models found. Pick one below.', 'Το κλειδί δουλεύει: βρέθηκαν {n} μοντέλα. Διάλεξε ένα παρακάτω.'], pickModel: ['Pick From Your Key’s Models', 'Διάλεξε από τα Μοντέλα του Κλειδιού'],
   aiErrNoKey: ['This needs an AI key. Add one in Settings › AI.', 'Χρειάζεται κλειδί AI. Πρόσθεσέ το στις Ρυθμίσεις › AI.'],
   aiErrModel: ['That AI model isn’t available for this key. Check the model name in Settings › AI, or leave it empty for the default.', 'Αυτό το μοντέλο AI δεν είναι διαθέσιμο για αυτό το κλειδί. Έλεγξε το όνομα στις Ρυθμίσεις › AI, ή άφησέ το κενό για το προεπιλεγμένο.'],
 });

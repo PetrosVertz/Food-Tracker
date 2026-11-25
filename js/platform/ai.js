@@ -241,7 +241,7 @@ const AI = (() => {
   return {
     dots, untail, wait,
     areaSync,
-    ask, dietRules, knows, friendly, voice, words, can, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
+    ask, dietRules, knows, friendly, voice, words, can, hasKey: () => { const p = AIProvider.active(); return p.ready ? p.ready() : !!key(); }, listModels: () => GeminiProvider.listModels(), modelsOf: async id => id === 'gemini' || !AIProvider.registry[id] ? GeminiProvider.listModels() : (AIProvider.registry[id].found || []), bestModels: n => GeminiProvider.bestModels(n), testKey, busy: () => B.jobs > 0, robot, badge, face, label, drag,
     // while an answer is landing, windows it opens wait behind the bubble (called by open/close)
     holdOpen(id){ if(!B.defer) return false; B.pending.push(id); return true; },
     noteClose(id){ if(B.defer) B.closed.push(id); },
