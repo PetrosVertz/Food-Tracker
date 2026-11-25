@@ -1569,3 +1569,21 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
 .fmpill{flex:0 0 auto;margin-left:auto;padding:0 var(--s4) 0 var(--s1);gap:6px}
 .fmpill .fmt{display:inline-block;line-height:1}
 #dEatenFold>summary>span[data-t="eaten"]{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* Supplements page: the daily question (No = same red as Discard), a Monday-to-Sunday strip with a tick (yes) or an X (no) */
+.suppq{display:flex;flex-direction:column;gap:var(--s3);padding:var(--s4);margin-bottom:var(--s4)}
+.suppq .sqq{font-size:var(--fs-title);font-weight:var(--w-bold)}
+.sqbtns{display:flex;gap:var(--s3)} .sqbtns .pillbtn{flex:1;height:48px}
+.sqbtns .pillbtn.on{box-shadow:inset 0 0 0 2px currentColor}
+.sqbtns .pillbtn.primary.on{box-shadow:none;filter:brightness(1.08)}
+.sqweek{display:flex;justify-content:space-between;gap:var(--s1)}
+.sqd{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;flex:1}
+.sqd i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--t-card2)}
+.sqd.yes i{background:transparent;box-shadow:inset 0 0 0 2px var(--t-done);color:var(--t-done)}
+.sqd.no i{background:transparent;box-shadow:inset 0 0 0 2px var(--t-danger);color:var(--t-danger)}
+.sqd.today:not(.yes):not(.no) i{background:transparent;box-shadow:inset 0 0 0 2px var(--t-accent)}
+.sqd.future i{opacity:.5}
+.sqd small{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)} .sqd.today small{color:var(--t-text);font-weight:var(--w-bold)}
+:root[data-theme="light"] .sqd.no i{color:#9e1f19;box-shadow:inset 0 0 0 2px #9e1f19}
+.qmcard .qmlog{margin-left:auto;flex:0 0 auto}
+.qmcard .qming{color:var(--t-muted);font-size:var(--fs-label);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

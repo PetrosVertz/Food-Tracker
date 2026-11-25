@@ -191,7 +191,7 @@ function applyLang(){
 // Gym, Progress, Settings, Profile). A caller can also name it: toast(msg, label, undo, 'capsule').
 function toastKind(){
   const h = location.hash.replace('#', '');
-  return h === 'meals' ? 'pot' : h === 'supps' ? 'capsule' : h === 'fridge' ? 'fridge' : h === 'groc' ? 'cart' : h === 'gym-prog' ? 'trend' : h.startsWith('gym') ? 'gym'
+  return h === 'meals' ? 'pot' : h === 'mymeals' ? 'bowl' : h === 'supps' ? 'capsule' : h === 'fridge' ? 'fridge' : h === 'groc' ? 'cart' : h === 'gym-prog' ? 'trend' : h.startsWith('gym') ? 'gym'
     : h === 'settings' ? 'settings' : h === 'profile' ? 'user' : 'bowl';
 }
 function toast(msg, actLabel, act, kind){
@@ -377,27 +377,28 @@ function route(){
   const kit = kitchenOn();
   if(!kit && (h === 'fridge' || h === 'groc')){ h = 'food'; history.replaceState(null, '', '#food'); }   // Inventory is off: nothing opens it (the Food Library hub)
   const kv = kit && ['fridge', 'groc'].includes(h) ? h : '';   // Petros: Inventory (#fridge) and Groceries (#groc) are Food Library sections
-  const page = kv ? 'foods' : h === 'foods' || h === 'meals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
+  const page = kv ? 'foods' : h === 'foods' || h === 'meals' || h === 'mymeals' || h === 'supps' ? 'foods' : h.startsWith('gym') ? 'gym' : ['today','settings','profile'].includes(h) ? h : 'foods';
   [['pgFoods','foods'],['pgSupps','supps'],['pgToday','today'],['pgGym','gym'],['pgSettings','settings'],['pgProfile','profile']].forEach(([id, p]) => $(id) && $(id).classList.toggle('hide', page !== p));
   { const shown = document.querySelector('section.page:not(.hide):not(.pghost)');   // 0.7.9.2: a page that newly appears fades in with a small rise (a tab switch runs its own cross-fade)
     if(shown && route.shown !== shown && !SWITCHING && shown.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) shown.animate([{ opacity: 0, transform: 'translate3d(0,6px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 300, easing: TAB_EASE });
     route.shown = shown; }
-  const tab = h === 'meals' ? 'meals' : h === 'supps' ? 'supps' : kv || 'store';   // five Food Library sections (Inventory, Groceries since Petros' change)
-  const fhub = page === 'foods' && !['foods', 'meals', 'supps'].includes(h) && !kv;   // Refinements #4: the Food Library opens on its hub
+  const tab = h === 'meals' ? 'meals' : h === 'mymeals' ? 'mymeals' : h === 'supps' ? 'supps' : kv || 'store';   // five Food Library sections (Inventory, Groceries since Petros' change)
+  const fhub = page === 'foods' && !['foods', 'meals', 'mymeals', 'supps'].includes(h) && !kv;   // Refinements #4: the Food Library opens on its hub
   $('fridgeView').classList.toggle('hide', fhub || tab !== 'fridge'); $('pgGroc').classList.toggle('hide', fhub || tab !== 'groc');
   $('fHub').classList.toggle('hide', !fhub); $('fTabs').classList.toggle('hide', fhub); $('backBtn').classList.toggle('hide', fhub);
-  $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', meals: 'tabMeals', supps: 'tabSupps', fridge: 'tFridge', groc: 'tGroc' }[tab]);
+  $('pgFoods').querySelector('header h1').textContent = t(fhub ? 'tabFood' : { store: 'tabStore', mymeals: 'tabMyMeals', meals: 'tabMeals', supps: 'tabSupps', fridge: 'tFridge', groc: 'tGroc' }[tab]);
   hubHead('pgFoods', 'fDate', fhub);   // 0.8: bento home = centred title, date under it, streak bubble on the left; no floating buttons
   $('fScanBtn').classList.toggle('hide', !!kv);   // the barcode button is for Store-Bought foods; Inventory has its own scan button
   { const fresh = fhub && !route.fhub; route.fhub = fhub; if(fhub) renderFoodHub(fresh); else if(page === 'foods' && typeof FOOD_CAR === 'object') FOOD_CAR.set(h); }
   $('storeView').classList.toggle('hide', fhub || tab !== 'store');
+  $('myMealsView').classList.toggle('hide', fhub || tab !== 'mymeals');
   $('mealsView').classList.toggle('hide', fhub || tab !== 'meals');
   $('foodSupps').classList.toggle('hide', fhub || tab !== 'supps');
   if(fhub) bentoFit('pgFoods', 'fBento');   // 0.8: measured once the other sections are hidden
   const ft = tabOf(h); markRail(ft);
   ui['lastIn_' + ft] = h; saveUI();
   const fab = $('fab');
-  fab.classList.toggle('hide', (page === 'foods' && (fhub || tab === 'meals' || tab === 'groc')) || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
+  fab.classList.toggle('hide', (page === 'foods' && (fhub || tab === 'meals' || tab === 'mymeals' || tab === 'groc')) || page === 'settings' || page === 'profile' || (page === 'gym' && !!GSEC[h] && GSEC[h] !== 'tpl'));
   { const fl = page === 'today' ? t('logFab') : tab === 'fridge' && !fhub ? t('fridgeFab') : tab === 'supps' ? t('addSuppFab') : t('addFoodFab');
     if(page === 'today') fab.textContent = fl; else fab.innerHTML = fabBtn('plus', fl); }
   fab.dataset.action = ['today','gym'].includes(page) ? page : fhub ? 'store' : tab;
@@ -407,7 +408,7 @@ function route(){
   // everything as before. Measured: renderAll() was ~19 ms of a ~25 ms section change at 4× CPU slowdown, the frame the swipe lands on.
   const same = route.page === page && !!route.page; route.page = page;
   if(same && page === 'gym'){ renderGym(); renderTodayRec(); syncFab2(); }
-  else if(same && page === 'foods'){ render(); renderMeals(); renderSupps(); if(kv === 'fridge') renderFridge(); else if(kv === 'groc') renderGroc(); syncFab2(); }
+  else if(same && page === 'foods'){ render(); renderMeals(); renderQuickMeals(); renderSupps(); if(kv === 'fridge') renderFridge(); else if(kv === 'groc') renderGroc(); syncFab2(); }
   else renderAll();
   if(page === 'profile' && typeof renderProfile === 'function') renderProfile();
   const pg = document.querySelector('section.page:not(.hide)'); if(pg && !navKeepScroll) pg.scrollTop = 0;
