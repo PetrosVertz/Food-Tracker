@@ -384,7 +384,7 @@ You advise; the athlete decides. Never say you changed, saved, added or applied 
   let M = null;
   function load(){ if(M) return M; const m = typeof Store !== 'undefined' ? Store.load(NAME, null) : null; M = m && m.v === 1 ? { ...EMPTY(), ...m, said: Array.isArray(m.said) ? m.said : [] } : EMPTY(); return M; }
   const save = () => { if(typeof Store !== 'undefined') Store.save(NAME, M); };
-  const KEEP = 24, CUT = 600, OLD = 14 * DAY;
+  const KEEP = 150, CUT = 600, OLD = 7 * DAY;   // the Gym Coach chat on this phone: the last 150 messages, kept 7 days
   // chats: what the coach window shows, as plain text (cards keep only their title and line; no photos, no buttons)
   function chatSave(id, msgs, scope){ const m = load();
     if(!msgs){ delete m.chats[id]; save(); return; }

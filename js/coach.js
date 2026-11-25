@@ -12,6 +12,7 @@
 //     camera   true → a big camera button inside the chat box; the photo comes to send() as img (base64 JPEG)
 //     send(text, chat, img)   answers one message; without it the coach just talks (a short AI conversation)
 //     starters   a list of short questions (or a function returning one) shown as chips under the opening message until you write; a tap sends it
+//     share      another id: this window is a second door into that id's conversation (same messages, memory and answers); first / starters / camera stay its own
 //     persist    { load(id, chat) → saved messages | null, save(id, messages | null) }: the chat survives a restart (the coach owns where it is kept;
 //                restored cards come back as plain text, without buttons). Without it the chat lives until the app closes, as before.
 //   Coach.open(id, first)     opens that chat, or reopens it where you left it; first = the opening message (optional)
@@ -31,7 +32,7 @@
 // A card: { title, sub, tag, tagKind, cls (extra class for its look), body (html), dim (greyed until added), actions: [{ label, primary, off(), run(card, chat) }], done (text once handled), undo() }
 //   off()  Food Coach 2.0: true → that button is shown disabled (e.g. Add while a row has no food)
 const Coach = (() => {
-  const CH = {}, CFG = {}, KEEP = 8, CUT = 280;   // the AI only ever sees the last KEEP messages, each cut to CUT letters
+  const CH = {}, CFG = {}, KEEP = 12, CUT = 280, VIS = 15;   // the AI sees the last KEEP messages in full, each cut to CUT letters; the window shows the last VIS ("Show Earlier Messages" shows the rest; everything kept stays in the chat)
   let cur = null, anc = null;   // anc: what the open window hangs from (its bubble, or the header robot that opened it)
   const val = v => typeof v === 'function' ? v() : v;
   const rmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -39,7 +40,9 @@ const Coach = (() => {
   const cfg = id => CFG[id] || {};
   const title = id => val(cfg(id).title) || t(kindOf(id) === 'gym' ? 'coachGym' : 'coachFood');
   const firstMsg = id => val(cfg(id).first) || t(kindOf(id) === 'gym' ? 'coachGymHi' : 'coachFoodHi');
-  const chat = id => CH[id] || (CH[id] = { id, msgs: [], ctl: null, draft: '', img: null });
+  // cfg.share: windows that are only different doors to ONE conversation (Gym Coach: Create a Workout, Start a Workout, the live workout): they get the same chat
+  // object (messages, memory, answers); each keeps its own opening message, chips and bubble
+  const chat = id => CH[id] || (CH[id] = cfg(id).share && cfg(id).share !== id ? chat(cfg(id).share) : { id, msgs: [], ctl: null, draft: '', img: null });
   const has = id => !!$('cb-' + id);
 
   // ---- the chat object handed to send() ----
@@ -57,11 +60,12 @@ const Coach = (() => {
       ask: (prompt, img, o) => { c.ctl = c.ctl || new AbortController();
         return typeof Supervisor !== 'undefined' ? Supervisor.ask(sid, prompt, img, { quiet: true, ...(o || {}), signal: c.ctl.signal }) : gemini(prompt, img, null, c.ctl.signal, { quiet: true, ...(o || {}) }); },
       history: () => hist(c),
+      earlier: () => older(c),   // the user's own older lines (before the last KEEP messages) as one short line, for a prompt
       transcript: () => older(c) + hist(c).map(h => `${h.who === 'me' ? 'User' : 'Coach'}: ${h.text}`).join('\n'),
     };
   }
   // Athlete OS continuity: messages older than the last KEEP are not sent in full; the user's last few older ones go as one short line
-  function older(c){ const ms = c.msgs.filter(m => !m.work), old = ms.slice(0, Math.max(0, ms.length - KEEP)).filter(m => m.who === 'me' && m.text).slice(-4);
+  function older(c){ const ms = c.msgs.filter(m => !m.work), old = ms.slice(0, Math.max(0, ms.length - KEEP)).filter(m => m.who === 'me' && m.text).slice(-6);
     return old.length ? `(Earlier in this chat the user said: ${old.map(m => '"' + m.text.replace(/\s+/g, ' ').slice(0, 70) + '"').join('; ')})\n` : ''; }
   // the coach's own persistence (cfg.persist), never for a chat that is still answering
   function keepMsgs(id){ const p = cfg(id).persist, c = CH[id]; if(!p || !c) return; try{ p.save(id, c.msgs.filter(m => !m.work)); }catch(e){ console.warn('coach persist', e); } }
@@ -101,13 +105,14 @@ Return ONLY JSON: {"reply": string}`, img);
     return `<div class="cmsg bot${by ? ' byother' : ''}">${lead}<div class="ctext">${from}${esc(m.text)}</div></div>${st}`;
   }
   // 0.7.9.6: the opening message's suggestion chips (cfg.starters), only while nothing has been written yet
-  function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs.length !== 1 || c.msgs[0] !== m) return '';
+  function starters(m){ const c = cur && CH[cur]; if(!c || c.msgs[c.msgs.length - 1] !== m) return '';   // under the newest opening message, until something is written
     const l = val(cfg(cur).starters) || []; if(!l.length) return '';
     return `<div class="cstart">${l.map(s => `<button type="button" class="cschip" data-cst="${esc(s)}">${esc(s)}</button>`).join('')}</div>`; }
   function draw(){
     if(!cur) return; const c = CH[cur], el = $('coachList'); if(!c || !el) return;
     const k = kindOf(cur), stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80 || !el.childElementCount;
-    el.innerHTML = c.msgs.map((m, i) => msgHtml(m, c.msgs[i - 1], k)).join('');
+    const from = c.showAll ? 0 : Math.max(0, c.msgs.length - VIS);   // older messages stay in the chat (and with the AI), they are just not drawn
+    el.innerHTML = (from ? `<button type="button" class="coachmore" data-more>${esc(t('coachMore', { n: from }))}</button>` : '') + c.msgs.slice(from).map((m, i) => msgHtml(m, c.msgs[from + i - 1], k)).join('');
     if(stick) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
   }
   function head(){ $('coachT').textContent = title(cur);   // 0.7.9.2: no robot face in the title (it is the bubble, and beside its answers)
@@ -161,6 +166,10 @@ Return ONLY JSON: {"reply": string}`, img);
     const c = chat(id), ov = $('ovCoach'), sh = ov.querySelector('.sheet'), again = ov.classList.contains('open');
     if(!c.msgs.length && cfg(id).persist){ try{ const m = cfg(id).persist.load(id, api(c)); if(Array.isArray(m) && m.length) c.msgs = m; }catch(e){ console.warn('coach persist', e); } }   // back after a restart (Food Coach 2.0: load gets the chat, for its cards)
     if(!c.msgs.length || (first && c.msgs.length === 1 && c.msgs[0].first)) c.msgs = [{ who: 'bot', text: first || firstMsg(id), first: true }];
+    else if(cfg(id).share){ const hi = first || firstMsg(id), last = c.msgs[c.msgs.length - 1];   // another door into the same conversation: its own opening message (and chips) comes in, the talk goes on
+      const was = c.entry && c.entry !== id ? (val(cfg(c.entry).first) || firstMsg(c.entry)) : null;   // the door you came from greets the same: nothing new to say
+      if(c.entry !== id && was !== hi && !(last && last.first && last.text === hi)) c.msgs.push({ who: 'bot', text: hi, first: true }); }
+    c.entry = id;
     if(cur && cur !== id){ keep(); const ob = $('cb-' + cur); if(ob){ ob._home = false; glide(ob, false); } }   // the other coach's bubble goes back to its spot
     const b = HEAD(id) ? null : bubble(id); if(b){ b._home = true; b.classList.remove('new'); }
     anc = HEAD(id) ? [...document.querySelectorAll('.sescoach')].find(e => e.getClientRects().length) || null : null;
@@ -232,8 +241,9 @@ Return ONLY JSON: {"reply": string}`, img);
   function think(id, on){ const b = $('cb-' + id); if(!b) return;
     b.innerHTML = (on ? '<span class="rglow"></span>' : '') + `<span class="rcore">${AI.robot(kindOf(id), 40, !!on)}</span>`; }
   function dismiss(id){
-    const c = CH[id]; if(c && c.ctl) c.ctl.abort(); delete CH[id];
-    const p = cfg(id).persist; if(p) try{ p.save(id, null); }catch(e){}
+    const c = CH[id], shared = !!cfg(id).share;   // a shared conversation is not ended by closing one door (the live workout ending): only that door's bubble goes
+    if(!shared && c && c.ctl) c.ctl.abort(); delete CH[id];
+    const p = cfg(id).persist; if(p && !shared) try{ p.save(id, null); }catch(e){}
     const b = $('cb-' + id); if(b) b.remove();
     if(cur === id){ cur = null; close('ovCoach'); }
     pillSync();
@@ -323,6 +333,7 @@ Return ONLY JSON: {"reply": string}`, img);
       try{ CH[cur].img = await shrink(f, 1600, .85); preview(); }catch(x){ toast(t('coachFail', { e: x.message })); } });
     $('coachPrev').addEventListener('click', e => { if(e.target.closest('[data-cpx]') && cur){ CH[cur].img = null; preview(); } });
     $('coachList').addEventListener('click', e => {
+      const more = e.target.closest('[data-more]'); if(more && cur){ Phone.haptic(); const l = $('coachList'), h0 = l.scrollHeight, y0 = l.scrollTop; CH[cur].showAll = true; draw(); l.scrollTop = y0 + (l.scrollHeight - h0); return; }   // earlier messages come in above, what you were reading stays where it is
       const sc = e.target.closest('[data-cst]'); if(sc && cur){ Phone.haptic(); $('coachIn').value = sc.dataset.cst; send(); return; }
       const el = e.target.closest('[data-cid]'); if(!el || !cur) return; const c = CH[cur];
       const card = c.msgs.flatMap(m => m.cards || []).find(x => x.cid === el.dataset.cid); if(!card) return;

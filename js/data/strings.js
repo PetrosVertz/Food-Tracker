@@ -1134,6 +1134,7 @@ Object.assign(S, {   // Settings › AI › AI Provider (wire/08 drawAiProv): ea
   aiErrNoSearch: ['{p} can’t look things up on the web here. Choose Gemini in Settings › AI for this.', 'Το {p} δεν μπορεί να ψάξει στο διαδίκτυο εδώ. Διάλεξε Gemini στις Ρυθμίσεις › AI για αυτό.'],
   aiErrNoPhoto: ['{p} can’t read photos here. Choose another provider in Settings › AI for this.', 'Το {p} δεν μπορεί να διαβάσει φωτογραφίες εδώ. Διάλεξε άλλον πάροχο στις Ρυθμίσεις › AI για αυτό.'],
   keyOk1: ['Key works.', 'Το κλειδί δουλεύει.'],
+  coachMore: ['Show Earlier Messages ({n})', 'Εμφάνιση Παλαιότερων Μηνυμάτων ({n})'],
   aiTestBtn: ['Test The AI', 'Δοκιμή του AI'], aiTesting: ['Sending a real message…', 'Στέλνω ένα πραγματικό μήνυμα…'],
   aiTestOk: ['{p} answered with {m} in {s} s. The AI works.', 'Το {p} απάντησε με {m} σε {s} δ. Το AI δουλεύει.'],
   aiTestFail: ['{p} did not answer: {e}', 'Το {p} δεν απάντησε: {e}'],

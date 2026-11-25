@@ -32,7 +32,7 @@ const Supervisor = (() => {
     schema: { reply: 'string?', intent: 'string?', items: 'array?' }, escalate: false });
   // Gym Coach chat (gym.js gcPrompt / gcLivePrompt with GymIntel.brief): recovery and the relevant workouts are in its packet already → skip them; food today is new to it
   const GYM = { topic: 'gym', scopes: [...BASE, 'nutrition', 'training', 'recovery', 'streak'], skip: ['training', 'recovery'], cross: [], budget: 1500,
-    schema: { reply: 'string', workout: 'object?', style: 'string?' }, escalate: true };
+    schema: { reply: 'string', workout: 'object?', machine: 'object?', change: 'object?', style: 'string?' }, escalate: true };
   register('gym', { ...GYM, task: 'coach-gym' }); register('gymstart', { ...GYM, task: 'coach-gym' });
   register('gymlive', { ...GYM, task: 'coach-gym-live', schema: { reply: 'string', machine: 'object?', change: 'object?', style: 'string?' } });   // change: checked again by GymIntel.proposal before any card
   // Fridge AI = the Kitchen cook ideas and recipes (wire/05 sgGo, wire/02 suggestBtn): fridge items are in their prompts; it gets the goal,
