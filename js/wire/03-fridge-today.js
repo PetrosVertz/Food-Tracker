@@ -277,7 +277,7 @@ $('testKey').addEventListener('click', async () => {
 });
 
 // Settings › AI › Test The AI: one real message through the same door every feature uses, with the saved key of the provider in use; says what came back or why not
-$('testAI').addEventListener('click', async () => {
+$('testAI') && $('testAI').addEventListener('click', async () => {
   const el = $('keyStatus'), p = AIProvider.active(), nm = p.name || p.id;
   if(!AI.hasKey()){ status(el, t('aiTestNoKey', { p: nm }), true); return; }
   status(el, t('aiTesting')); el.style.color = '';

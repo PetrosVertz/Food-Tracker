@@ -23,9 +23,9 @@ function drawAiProv(id, fresh){ if(fresh) PDRAFT = {}; const reg = AIProvider.re
   $('sProvNote').textContent = [SPROV === use.id ? t('aiProvInUse', { p: nm }) : t('aiProvSaveToUse', { p: nm, q: unm }), SPROV !== 'gemini' ? t('aiProvPaid', { p: nm }) : '', p.capabilities && !p.capabilities.search ? t('aiProvNoSearch') : ''].filter(Boolean).join(' ');
   fillModelPicks(null); status($('keyStatus'), ''); $('keyStatus').style.color = ''; }
 // after Test Key: the models this key can use, as a pick list under each model box (typing an ID stays possible). Cleared when the provider changes.
-function fillModelPicks(list){ ['sModelPick', 'sModelAdvPick'].forEach(id => { const sel = $(id), box = $(sel.dataset.pick); sel.classList.toggle('hide', !list || !list.length); if(!list || !list.length){ sel.innerHTML = ''; return; }
+function fillModelPicks(list){ ['sModelPick', 'sModelAdvPick'].forEach(id => { const sel = $(id), box = sel && $(sel.dataset.pick); if(!sel || !box) return; sel.classList.toggle('hide', !list || !list.length); if(!list || !list.length){ sel.innerHTML = ''; return; }
   sel.innerHTML = `<option value="">${esc(t('pickModel'))}</option>` + list.map(m => `<option value="${esc(m)}"${m === box.value ? ' selected' : ''}>${esc(m)}</option>`).join(''); }); }
-['sModelPick', 'sModelAdvPick'].forEach(id => $(id).addEventListener('change', e => { if(e.target.value){ Phone.haptic(); $(e.target.dataset.pick).value = e.target.value; } }));
+['sModelPick', 'sModelAdvPick'].forEach(id => $(id) && $(id).addEventListener('change', e => { if(e.target.value){ Phone.haptic(); $(e.target.dataset.pick).value = e.target.value; } }));
 $('sProv').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b || b.dataset.v === SPROV) return; Phone.haptic(); provKeep(); drawAiProv(b.dataset.v); });
 $('getKey').addEventListener('click', () => Phone.openUrl(PROV_URL[SPROV] || KEY_URL));
 
