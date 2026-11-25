@@ -78,7 +78,7 @@ function answer(prompt){
     await page.evaluate(x => { const ta = $('coachIn'); ta.value = x; ta.dispatchEvent(new Event('input')); $('coachForm').requestSubmit(); }, txt);
     await page.waitForFunction(() => !document.querySelector('#coachList .cwork'), null, { timeout: 30000 });
     const ms = Date.now() - t0;
-    const st = await page.evaluate(() => ({ cards: document.querySelectorAll('#coachList .lqcard').length, text: [...document.querySelectorAll('#coachList .cmsg.bot .ctext')].map(e => e.textContent).pop() || '' }));
+    const st = await page.evaluate(() => ({ cards: (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .lqcard').length), text: [...document.querySelectorAll('#coachList .cmsg.bot .ctext')].map(e => e.textContent).pop() || '' }));
     return { ms, calls: AI.calls - c0 - (AI.web - w0), ...st };   // blocking calls only (the label check runs in the background)
   }
   const last = () => page.evaluate(() => { const m = logQPrev; if (!m) return null;
@@ -101,7 +101,7 @@ function answer(prompt){
   if (await addBtn() !== false) fail('Add must be on when every row is valid');
 
   // 2. corrections on the phone, in place, no AI, no second card
-  const cards0 = await page.evaluate(() => document.querySelectorAll('#coachList .lqcard').length);
+  const cards0 = await page.evaluate(() => (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .lqcard').length));
   r = await send('actually make the chicken 200g'); L = await last(); rec('local', r.ms);
   if (L.rows[0].g !== 200 || r.calls || r.cards !== cards0) fail(`"actually make the chicken 200g": ${JSON.stringify(L.rows[0])}, ${r.calls} calls, cards ${cards0} → ${r.cards}`); else ok(`"actually make the chicken 200g": 200 g, same card, no AI (${r.ms} ms)`);
   r = await send('add another toast'); L = await last(); rec('local', r.ms);
@@ -174,7 +174,7 @@ function answer(prompt){
     else ok(`fillers + yesterday: ${L.rows.map(x => `${x.name} ${x.g} g`).join('; ')} → ${d.day}`); }
   await page.evaluate(() => { const m = logQPrev; m.items.slice().forEach(() => { const b = document.querySelector(`#coachList [data-mid="${m.id}"] [data-qrm]`); if(b) b.click(); }); });
   // just talking with the AI offline: an answer, no food card
-  { const c0 = (await page.evaluate(() => document.querySelectorAll('#coachList .lqcard').length)); r = await send('how are you doing today');
+  { const c0 = (await page.evaluate(() => (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .lqcard').length))); r = await send('how are you doing today');
     if(r.cards !== c0 || !r.text) fail(`just talking: ${r.cards - c0} new card(s), text "${r.text}"`); else ok(`just talking: no card, answer "${r.text.slice(0, 60)}…"`); }
   AI.mode = 'ok';
   AI.mode = 'slow'; await page.evaluate(() => AIProvider.coolReset()); r = await send('slow model test food');
@@ -182,11 +182,18 @@ function answer(prompt){
   AI.mode = 'ok';
 
   // 7. app restart: the chat and today's lists come back; an added list can still be undone
-  const beforeReload = await page.evaluate(() => document.querySelectorAll('#coachList .cmsg').length);
+  const beforeReload = await page.evaluate(() => (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .cmsg').length));
   await page.reload({ waitUntil: 'load' }); await page.evaluate(() => Coach.open('chef')); await page.waitForTimeout(400);
-  const back = await page.evaluate(() => ({ msgs: document.querySelectorAll('#coachList .cmsg').length, cards: document.querySelectorAll('#coachList .lqcard').length, undo: document.querySelectorAll('#coachList [data-cundo]').length }));
+  const back = await page.evaluate(() => ({ msgs: (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .cmsg').length), cards: (document.querySelector('#coachList [data-more]') && document.querySelector('#coachList [data-more]').click(), document.querySelectorAll('#coachList .lqcard').length), undo: document.querySelectorAll('#coachList [data-cundo]').length }));
   if (back.msgs < beforeReload - 2 || !back.cards) fail(`restart: chat not restored (${back.msgs}/${beforeReload} messages, ${back.cards} cards)`); else ok(`restart: ${back.msgs} messages and ${back.cards} cards back (${back.undo} with Undo)`);
   r = await send('how much protein today?'); if (r.calls || !/170 g/.test(r.text)) fail(`"how much protein today?" → "${r.text}"`); else ok(`after restart: "${r.text}"`);
+
+  // the window shows the last 15 messages; "Show Earlier Messages" brings the rest in above; nothing is deleted
+  { await page.reload({ waitUntil: 'load' }); await page.evaluate(() => Coach.open('chef')); await page.waitForTimeout(400);   // a fresh window: nothing expanded yet
+    const n = await page.evaluate(() => { for (let i = 0; i < 30; i++) Coach.post('chef', 'filler ' + i); return new Promise(res => setTimeout(() => res({ shown: document.querySelectorAll('#coachList .cmsg').length, btn: !!document.querySelector('#coachList [data-more]') }), 150)); });
+    if (n.shown > 15 || !n.btn) fail(`long chat: ${n.shown} messages shown, button ${n.btn} (want at most 15 and a Show Earlier Messages button)`);
+    else { const m = await page.evaluate(() => { document.querySelector('#coachList [data-more]').click(); return { shown: document.querySelectorAll('#coachList .cmsg').length, btn: !!document.querySelector('#coachList [data-more]') }; });
+      if (m.shown < 30 || m.btn) fail(`Show Earlier Messages: ${m.shown} shown, button still ${m.btn}`); else ok(`long chat: 15 shown, Show Earlier Messages brings back all ${m.shown}`); } }
 
   // 8. one AI request per message (brief: Food Coach request budget) and the shared personality in the recognised-dish prompt
   const sugg = () => page.evaluate(() => document.querySelectorAll('#coachList .eatrow.sugg').length);

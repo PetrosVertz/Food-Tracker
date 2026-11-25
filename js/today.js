@@ -710,7 +710,7 @@ Return ONLY JSON: {"intent":"log"|"suggest"|"answer"|"chat","reply":string,"comp
 }
 // the recent chat for the prompt: 4 lines, short; the list on screen as one line (cards have no text of their own)
 function logQConv(ch){
-  const h = ch && ch.history ? ch.history().filter(x => x.text).slice(-4) : [], out = h.map(x => `${x.who === 'me' ? 'User' : 'Coach'}: ${String(x.text).slice(0, 160)}`);
+  const h = ch && ch.history ? ch.history().filter(x => x.text).slice(-10) : [], out = (ch && ch.earlier ? [ch.earlier().trim()].filter(Boolean) : []).concat(h).map(x => typeof x === 'string' ? x : `${x.who === 'me' ? 'User' : 'Coach'}: ${String(x.text).slice(0, 160)}`);
   const p = logQPrev && FC[logQPrev.id] ? logQPrev : null;
   if(p && p.items.length) out.push(`List on screen (${p.state === 'logged' ? 'added' : 'not added yet'}): ` + p.items.map(it => { const r = it.st ? lwCalc(it.st) : null; return `${it.st ? it.st.info.name : it.name}${r ? ` ${Math.round(r.g)} g ${r.kcal} kcal` : ' (not found)'}`; }).join('; '));
   return out.join('\n');
@@ -1102,7 +1102,7 @@ function logQRebuild(list){
     if(j > -1 && p.n > 0){ it.st.u = j; it.st.n = p.n; } if(p.ck != null && it.st.cook) it.st.ck = p.ck;
     return it; });
 }
-// the chat on this phone (coach.js persist.load / persist.save): kept 2 days; lists from today come back as working cards, older ones are not offered again
+// the chat on this phone (coach.js persist.load / persist.save): kept 7 days; lists from today come back as working cards, older ones are not offered again
 function logQPersist(msgs){
   const out = [];
   (msgs || []).forEach(x => { if(x.work) return;

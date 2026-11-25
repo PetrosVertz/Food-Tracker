@@ -10,7 +10,7 @@
 //   FoodCoach.wantsIdeas(text)       → true for a clear "what should I eat?" (EN / GR / Greeklish): one suggestion request, no classification first
 //   FoodCoach.check(item)            → { item, doubt }   one food's values made consistent (no second AI call); unknown stays null
 //   FoodCoach.context()              → one short text: what is logged (marked incomplete), targets, rules + the Athlete OS context (AI.knows)
-//   FoodCoach.chatLoad() / chatSave(list)   the Food Coach chat on this phone (Store 'coachChat', never synced, kept 2 days)
+//   FoodCoach.chatLoad() / chatSave(list)   the Food Coach chat on this phone (Store 'coachChat', never synced, kept 7 days, last 200 messages)
 //   FoodCoach.track(path, ms, calls) / stats()   end-to-end answer times by path ('local' | 'memory' | 'ai' | 'offline'), p50 / p95
 
 const FoodCoach = (() => {
@@ -229,7 +229,7 @@ const FoodCoach = (() => {
   }
 
   // ---- 6. chat memory on this phone ----
-  const CHAT_MS = 2 * 864e5, CHAT_MAX = 80;
+  const CHAT_MS = 7 * 864e5, CHAT_MAX = 200;
   function chatLoad(){ const c = Store.load('coachChat', null); if(!c || !Array.isArray(c.msgs) || Date.now() - (c.at || 0) > CHAT_MS) return null; return c; }
   function chatSave(msgs, extra){ const c = Store.load('coachChat', null) || {};
     return Store.save('coachChat', { ...c, ...(extra || {}), at: Date.now(), msgs: (msgs || []).slice(-CHAT_MAX) }); }
