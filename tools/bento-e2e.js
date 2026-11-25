@@ -32,7 +32,8 @@ async function open(browser, port, o = {}){
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(500);
   if(o.hash){ await p.evaluate(h => { location.hash = h; }, o.hash); await p.waitForTimeout(900); }
   return p; }
-const segTap = (p, k) => p.$eval(`#fhFoods [data-seg="${k}"]`, e => { const o = { bubbles: true, cancelable: true }; e.dispatchEvent(new PointerEvent('pointerdown', o)); e.dispatchEvent(new MouseEvent('click', o)); });   // an arc's box is the whole ring: tap the arc itself
+const segTap = async (p, k) => { const pt = await p.$eval(`#fhFoods [data-seg="${k}"]`, e => { const r = e.closest('.fring').getBoundingClientRect(), a = (+e.dataset.a0 + +e.dataset.a1) / 2 * 2 * Math.PI, R = r.width * 46 / 120;
+  return { x: r.left + r.width / 2 + R * Math.sin(a), y: r.top + r.height / 2 - R * Math.cos(a) }; }); await p.mouse.click(pt.x, pt.y); };   // tap the middle of the arc itself
 const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }); await p.mouse.click(b.x, b.y); };
 (async () => {
   let chromium; try { ({ chromium } = require('playwright')); } catch(e) { console.log('skip: no Playwright'); process.exit(process.argv.includes('--strict') ? 1 : 0); }
@@ -49,21 +50,29 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     s = await p.evaluate(() => ({ n: $('fhFoods').querySelector('.btnum').textContent, segs: [...document.querySelectorAll('#fhFoods [data-seg]')].map(e => e.dataset.seg).join(), stat: $('fhFoods').querySelector('.btstat b').textContent,
       chev: !!$('fHub').querySelector('.chev,[class*="chevron"]'), chips: !!$('fhFoods').querySelector('.mchip'), names: [...document.querySelectorAll('#fBento .bth b')].map(e => e.textContent).join('|') }));
     must(s.n === '8' && s.segs === 'p,c,f' && !!s.stat && !s.chev, `Foods: 8 saved, rotating stat "${s.stat}", ring split p/c/f, no chevron`);
-    must(s.names === 'Foods|Meals|Supplements|Recipes|Shopping List|My Fridge', 'new section names: ' + s.names);
+    must(s.names === 'Foods|Meals|Supplements|Recipes|Shopping|My Fridge', 'new section names: ' + s.names);
     await segTap(p, 'f'); await p.waitForTimeout(400);
     s = await p.evaluate(() => { const b = document.querySelector('#fhFoods .fbub'); return { on: !b.classList.contains('hide'), txt: b.textContent, k: b.className, dim: [...document.querySelectorAll('#fhFoods [data-seg].dim')].map(e => e.dataset.seg).join(), hash: location.hash }; });
-    must(s.on && /3 fat-rich foods in total/.test(s.txt) && /k-f/.test(s.k) && s.dim === 'p,c' && s.hash === '#food', `ring tap: bubble "${s.txt}" in the segment colour, others dim, page stays`);
+    must(s.on && /4 fat-rich foods in total/.test(s.txt) && /k-f/.test(s.k) && s.dim === 'p,c' && s.hash === '#food', `ring tap: bubble "${s.txt}" in the segment colour, others dim, page stays`);
+    s = await p.evaluate(() => ({ cls: fhStats().cls, rich: foodRich({ protein: 30, carbs: 70, fat: 0 }).join(), carb: foodRich({ protein: 5, carbs: 80, fat: 0 }).join() }));
+    must(s.rich === 'p,c' && s.carb === 'c' && s.cls.p + s.cls.c + s.cls.f > 8, `ring: a food counts in every macro it is rich in (30 P + 70 C = ${s.rich}; 5 P + 80 C = ${s.carb}; arcs ${JSON.stringify(s.cls)})`);
     await segTap(p, 'p'); await p.waitForTimeout(200);
     must(await p.evaluate(() => /protein-rich/.test(document.querySelector('#fhFoods .fbub').textContent)), 'another segment switches the bubble at once');
+    await p.evaluate(() => fhBubble(null)); await p.waitForTimeout(250);
+    { const r = await p.$eval('#fhFoods .fring', e => { const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }); await p.mouse.click(r.x, r.y); await p.waitForTimeout(250);
+      const v = await p.evaluate(() => { const b = document.querySelector('#fhFoods .fbub').getBoundingClientRect(), tile = $('fhFoods').getBoundingClientRect(); return { hash: location.hash, on: !document.querySelector('#fhFoods .fbub').classList.contains('hide'), top: document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) === document.querySelector('#fhFoods .fbub'), inside: b.top >= tile.top && b.bottom <= tile.bottom }; });
+      must(v.hash === '#food' && v.on && v.inside, `a tap in the middle of the ring picks an arc, never opens Foods; the bubble sits inside the tile, nothing on top (${JSON.stringify(v)})`); }
     await p.waitForTimeout(2300); must(await p.evaluate(() => document.querySelector('#fhFoods .fbub').classList.contains('hide') && !document.querySelector('#fhFoods .dim')), 'the bubble hides itself after 2 s');
     await segTap(p, 'c'); await p.waitForTimeout(200); await p.mouse.click(195, 30); await p.waitForTimeout(300);
     must(await p.evaluate(() => document.querySelector('#fhFoods .fbub').classList.contains('hide')), 'tapping anywhere else closes it');
-    s = await p.evaluate(() => ({ meals: $('fhMeals').innerText, supps: $('fhSupps').innerText, dots: $('fhSupps').querySelectorAll('.sdot').length, rec: $('fhRecipes').innerText, groc: $('fhGroc').innerText, inv: $('fhInv').innerText }));
+    s = await p.evaluate(() => ({ yes: !!$('fhSupps').querySelector('[data-suppyes]'), meals: $('fhMeals').innerText, supps: $('fhSupps').innerText, dots: $('fhSupps').querySelectorAll('.sdot').length, rec: $('fhRecipes').innerText, groc: $('fhGroc').innerText, inv: $('fhInv').innerText }));
     must(/Chicken & rice/.test(s.meals) && /3×/.test(s.meals), 'Meals: top meals with times logged this month');
-    must(s.dots === 7 && /day streak/.test(s.supps) && /1 left/.test(s.supps), 'Supps: streak, 7 dots, 1 left today');
+    must(s.dots === 7 && /Did you take your supplements\?/.test(s.supps) && !/streak|left/.test(s.supps) && s.yes, 'Supps: title only, question + Yes under it, 7 dots (no streak, no "left")');
+    { await p.evaluate(() => $('fhSupps').querySelector('[data-suppyes]').click()); await p.waitForTimeout(300); const r = await p.evaluate(() => { const d = todayKey(); return { hash: location.hash, took: takesOf(d, 's1').length, txt: $('fhSupps').innerText, yes: !!$('fhSupps').querySelector('[data-suppyes]'), tick: !!$('fhSupps').querySelector('.sdot.today.done i svg') }; });
+      must(r.hash === '#food' && r.took === 1 && /All taken today/.test(r.txt) && !r.yes && r.tick, 'Supps: Yes logs today, stays on the page, today gets a tick, the button goes ' + JSON.stringify(r)); }
     must(/2\/2/.test(s.rec) && /Chicken & rice/.test(s.rec), 'Recipes: a recipe you can cook now, 2/2 in the fridge');
     must(/1\/2/.test(s.groc) && /1 left to buy/.test(s.groc) && /Eggs/.test(s.groc), 'Shopping List: ticked ring, left to buy, next item');
-    must(/2/.test(s.inv) && /items/.test(s.inv) && /Protein 1/.test(s.inv), 'My Fridge: item count + legend');
+    must(/2/.test(s.inv) && /items/.test(s.inv) && /Meat 1/.test(s.inv) && /Rice 1/.test(s.inv) && !/Protein/.test(s.inv), 'My Fridge: item count + bar and legend by Food Library category');
     await tap(p, '#fhGroc'); await p.waitForTimeout(500); must(await p.evaluate(() => location.hash === '#groc' && !$('pgGroc').classList.contains('hide')), 'a tile opens its page (Shopping List)');
     must(!p.errs.length, 'no page errors (Food Library) ' + p.errs.slice(0, 2).join(' | ')); await p.close();
     // small screen: falls back to normal scrolling; brand-new user: six empty states
@@ -80,7 +89,11 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
       bars: $('ghLib').querySelectorAll('.btbar').length, acc: $('ghLib').querySelectorAll('.btbar.acc').length, stat: ($('ghProg').querySelector('.btstat b') || {}).textContent, line: !!$('ghProg').querySelector('.ghline .dot'),
       text: $('ghRec').innerText.replace(/\s+/g, ' ').trim(), dots: $('ghRec').querySelectorAll('.ghdots i').length, label: [...document.querySelectorAll('#ghWeek .wpd em')].map(e => e.textContent) }; });
     must(Math.abs(s.rec.top - s.lib.top) < 2 && Math.abs(s.rec.bottom - s.prog.bottom) < 2 && s.rec.left > s.lib.right, 'Gym: RECOVERY+ is one tall tile beside Workouts + Progress');
-    must(s.week.bottom <= s.fab.top && s.fabOn && s.scroll <= 1, `Week Planner ends above the Start Workout pill (${Math.round(s.fab.top - s.week.bottom)} px), no scroll`);
+    must(s.week.bottom <= s.fab.top && s.fab.top - s.week.bottom <= 4 && s.fabOn && s.scroll <= 1, `Week Planner ends 2-4 px above the Start Workout pill (${Math.round(s.fab.top - s.week.bottom)} px), no scroll`);
+    must(await p.evaluate(() => getComputedStyle($('pgGym')).overflowY === 'hidden'), 'Gym Buddy cannot be dragged when they fit');
+    must(await p.evaluate(() => { const v = $('ghProg').querySelector('.ghvol'), s = $('ghProg').querySelector('.btstat'); return !!v.querySelector('.ar') && /\b(up|down|flat)\b/.test(v.className) && (!s || /\b(up|down|flat)\b/.test(s.className)); }), 'Progress: filled smooth curve, trend colour class on the stat and the curve');
+    const few = await p.evaluate(() => { const keep = sessions; sessions = keep.slice(0, 5); renderGymHub(); const r = { txt: $('ghProg').innerText, line: !!$('ghProg').querySelector('.ghline') }; sessions = keep; renderGymHub(); return r; });
+    must(/Finish 8 workouts/.test(few.txt) && /5\/8/.test(few.txt) && !few.line, `Progress: under 8 workouts only a message counts up ("${few.txt.replace(/\n/g, ' ')}")`);
     must(s.pills === 7 && s.total === '4', 'Week Planner: 7 pills, Total Gym Sessions 4');
     must(s.bars >= 2 && s.bars <= 4 && s.acc === 1, `Workouts: ${s.bars} muscle bars, the top one in the accent colour`);
     must(!!s.stat && s.line, `Progress: rotating stat "${s.stat}" + 8-week line with an end dot`);

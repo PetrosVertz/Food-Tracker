@@ -1264,6 +1264,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;padding-bottom:calc(64px + max(24px, env(safe-area-inset-bottom) - 10px) + 10px)!important}
 #pgGym.bentopg{padding-bottom:var(--fabclear,calc(64px + max(24px, env(safe-area-inset-bottom) - 10px) + 86px))!important}
 .bentopg>*{flex:0 0 auto}
+section.page.bentopg:not(.bentofree){overflow-y:hidden;overscroll-behavior:none}   /* fits the screen: nothing to scroll, so the page never moves */
 .bentopg #fHub,.bentopg #gHub{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
 .bentopg #fHub.hide,.bentopg #gHub.hide{display:none}
 .bento{flex:1 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:2px}
@@ -1289,10 +1290,10 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 .bthero>span,.btsub{line-height:1.2;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted)}
 .btstat{display:flex;align-items:baseline;gap:6px;min-width:0}
 .btstat b{color:var(--t-accent-ink,var(--t-accent));font-size:var(--fs-title);font-weight:var(--w-bold);font-style:italic;white-space:nowrap}
-.btstat span{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btstat>span{font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btstat.big{flex-direction:column;align-items:flex-start;gap:2px}
 .btstat.big b{font-size:var(--fs-clock);font-weight:800;letter-spacing:-.5px;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.btstat.big span{max-width:100%}
+.btstat.big>span{max-width:100%}
 .btempty{margin:auto 0;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-muted);line-height:1.35}
 .btname{font-size:var(--fs-body);font-weight:var(--w-bold);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto}
 .btlow{line-height:1.2;font-style:normal;font-size:var(--fs-label);font-weight:var(--w-med);color:var(--t-warm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1318,7 +1319,7 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 #fhFoods .bthero{margin-top:auto}
 #fhFoods .btstat:last-child{margin-bottom:auto}
 #fhFoods .btstat{flex-direction:column;align-items:flex-start;gap:2px;margin-bottom:2px}
-#fhFoods .btstat span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#fhFoods .btstat>span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .fring{position:relative;width:116px;height:116px;flex:0 0 116px}
 .fring svg{display:block;width:100%;height:100%;overflow:visible}
 .fring circle{fill:none;stroke-width:12}
@@ -1328,24 +1329,32 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 .s-p{stroke:var(--t-p)} .s-c{stroke:var(--t-c)} .s-f{stroke:var(--t-f)}
 .fringt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1.25}
 .fringt b{font-size:11px;font-weight:var(--w-bold)} .fringt small{font-size:11px;font-weight:var(--w-med);color:var(--t-muted)}
-.fbub{position:absolute;right:-2px;bottom:calc(100% - 4px);z-index:2;white-space:nowrap;padding:6px 11px;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:var(--w-bold);
-  color:var(--k);background:color-mix(in srgb,var(--k) 18%,var(--t-sel));box-shadow:0 0 0 1px color-mix(in srgb,var(--k) 35%,transparent),0 6px 16px rgba(0,0,0,.35);transform-origin:85% 100%;pointer-events:none}
+.fring{cursor:pointer}   /* the whole ring is the tap area (wire/02 fhSegAt picks the arc by angle) */
+/* the bubble sits along the foot of the Foods tile, full width, so nothing (the title, the tile edge) can cover it */
+.fbub{position:absolute;left:10px;right:10px;bottom:10px;z-index:3;padding:9px 12px;border-radius:var(--r-pill);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-body);font-weight:var(--w-bold);
+  color:var(--t-text);background:color-mix(in srgb,var(--k) 28%,var(--t-card));box-shadow:inset 0 0 0 1.5px var(--k),0 8px 20px rgba(0,0,0,.35);transform-origin:50% 100%;pointer-events:none}
 .fbub.k-p{--k:var(--t-p)} .fbub.k-c{--k:var(--t-c)} .fbub.k-f{--k:var(--t-f)}
 /* Supps: 7 day dots (done green, missed dark, today an accent ring, half filled when partly done) */
+/* Supplements tile: a small question under the title (scrolls sideways when too long), a Yes pill that logs today, days with a tick */
+.btask{display:block;margin-top:-4px;white-space:nowrap;overflow:hidden}
+.btyes{align-self:flex-start;min-height:0!important;height:30px;padding:0 18px!important;margin:2px 0 0;border-radius:999px;font-size:var(--fs-label)!important;font-weight:var(--w-bold)}
 .sdots{display:flex;justify-content:space-between;margin-top:auto}
 .sdot{display:flex;flex-direction:column;align-items:center;gap:6px}
-.sdot i{display:block;width:14px;height:14px;border-radius:50%;background:var(--t-card2)}
-.sdot.done i{background:var(--t-done)}
+.sdot i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--t-card2)}
+.sdot.done i{background:transparent;box-shadow:inset 0 0 0 2px var(--t-done);color:var(--t-done)}   /* a tick in a ring, not a filled dot */
 .sdot.part i{background:linear-gradient(90deg,var(--t-done) 50%,var(--t-card2) 50%)}
 .sdot.today i{box-shadow:inset 0 0 0 2px var(--t-accent);background:transparent}
 .sdot.today.part i{background:linear-gradient(90deg,var(--t-accent) 50%,transparent 50%)}
-.sdot.today.done i{background:var(--t-done)}
+.sdot.today.done i{background:transparent;box-shadow:inset 0 0 0 2px var(--t-done)}
 .sdot small{font-size:10px;font-weight:var(--w-med);color:var(--t-muted)} .sdot.today small{color:var(--t-text)}
 /* My Fridge: stacked bar by kind + legend */
 .fstack{display:flex;gap:3px;height:10px;margin-top:auto}
 .fstack i,.flegend i{background:var(--t-p)}
 .fstack i{border-radius:5px}
-.k-p{--kc:var(--t-p)} .k-d{--kc:var(--t-dairy)} .k-c{--kc:var(--t-c)} .k-v{--kc:var(--t-done)}
+/* My Fridge bar: one colour per Food Library category */
+.kc-dairy{--kc:var(--t-dairy)} .kc-eggs{--kc:#f2cf5b} .kc-meat{--kc:#e0705f} .kc-fish{--kc:#4fb3d9} .kc-rice{--kc:#d6b679} .kc-pasta{--kc:#eb9a4a}
+.kc-bread{--kc:#b8875a} .kc-veg{--kc:var(--t-done)} .kc-fruit{--kc:#ef7fa8} .kc-legumes{--kc:#a48ce0} .kc-nuts{--kc:#9a7b5c} .kc-oils{--kc:#c9c04a}
+.kc-snacks{--kc:#d46fc2} .kc-drinks{--kc:#5cc9bf} .kc-supps{--kc:#8aa3bd} .kc-ready{--kc:#c49a6c} .kc-other{--kc:var(--t-muted)}
 .fstack i[class],.flegend i[class]{background:var(--kc)}
 .flegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-label);font-weight:var(--w-med);color:color-mix(in srgb,var(--t-text) 80%,var(--t-muted))}
 .flegend span{display:inline-flex;align-items:center;gap:6px}
@@ -1363,8 +1372,13 @@ section.page.wrap.bentopg,#pgFoods.bentopg{display:flex;flex-direction:column;pa
 .ghvol{margin-top:auto;display:flex;flex-direction:column;gap:6px}
 .ghline{display:block;width:100%;height:auto;overflow:visible}
 .ghline .base{stroke:var(--t-line);stroke-width:1}
-.ghline .ln{fill:none;stroke:var(--t-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.ghline .dot{fill:var(--t-accent)}
+/* Progress tile trend colours: up = green, flat = grey, down = red (the stat and the 8-week volume curve) */
+.ghvol{--tr:var(--t-muted)} .ghvol.up{--tr:var(--t-done)} .ghvol.down{--tr:var(--t-sore)}
+.btstat.big.up b{color:var(--t-done)} .btstat.big.flat b{color:var(--t-muted)} .btstat.big.down b{color:var(--t-sore)}
+:root[data-theme="light"] .btstat.big.down b{color:var(--t-fail)} :root[data-theme="light"] .ghvol.down{--tr:var(--t-fail)}
+.ghline .ar{fill:var(--tr,var(--t-accent));fill-opacity:.16;stroke:none}
+.ghline .ln{fill:none;stroke:var(--tr,var(--t-accent));stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ghline .dot{fill:var(--tr,var(--t-accent))}
 /* Week Planner: seven day pills */
 .wpdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:auto}
 .wpd{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
@@ -1388,8 +1402,6 @@ section.page>header .hdate{position:absolute!important;left:0;right:0;top:calc(v
 /* streak bubble and Scan pill are the same size (60 x 36) on the two pages that have both */
 #pgToday>header .stkbub,#pgFoods>header .stkbub{width:60px;height:36px;padding:0;justify-content:center;flex:0 0 60px}
 #pgToday>header .left h1,#pgFoods>header .left h1{padding:0 72px!important}
-#pgToday>header .left h1{font-size:22px!important}
-:lang(el) #pgToday>header .left h1{font-size:19px!important}
 @media (max-width:340px){#pgToday>header .left h1,#pgFoods>header .left h1{font-size:18px!important}}
 section.page>header .hbtns{align-items:center}
 .stkbub{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px 0 8px;border-radius:var(--r-pill);flex:0 0 auto;
