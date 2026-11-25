@@ -41,6 +41,14 @@
 .achcard.lock{opacity:.75}.achcard.lock .achc{background:var(--t-edge);color:var(--t-muted)}
 .achcard.hid .achc{background:var(--t-edge);color:color-mix(in srgb,var(--t-muted) 50%,transparent)}
 .achcard.earned{cursor:pointer;font:inherit;text-align:left;color:inherit;width:100%}
+/* the Achievements page: the page itself does not scroll (Social Hub title, gear, back, count and filters stay put); only the list does */
+html:has(#pgProfile.achview:not(.hide)),html:has(#pgProfile.achview:not(.hide)) body{overflow:hidden;overscroll-behavior:none}
+#pgProfile.achview{height:var(--appH,100dvh);max-height:var(--appH,100dvh);display:flex;flex-direction:column;overflow:hidden;padding-bottom:0!important}
+#pgProfile.achview>header{flex:0 0 auto}
+#pgProfile.achview #pfBody{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding-bottom:0}
+.achfix{flex:0 0 auto}
+.achlist{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+.achcard.hid .achtx b{color:var(--t-muted);opacity:.55;font-weight:600}
 /* the detail window */
 .achdet .achcard{align-items:flex-start;cursor:default}.achdet .achtx em{display:block;font-size:var(--fs-label,13px);margin-top:2px}
 .achdet h4{margin:10px 0 2px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--t-muted);font-weight:700}
