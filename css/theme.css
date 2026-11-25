@@ -1572,3 +1572,9 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
 #dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(12px,4.8cqw,19px)}
 html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(11px,4.3cqw,17px)}
 #dEatenFold>summary #dEatenN{font-size:clamp(11px,3.7cqw,15px)}
+
+/* ======================= 0.8 (25 Nov): Fill My Macros pill — words only; the chef shows up only while it thinks ======================= */
+/* idle: just the words, evenly padded (the Food Coach robot already sits nearby, so no second face). Pressed: the words slide away, the pill shrinks sideways and shows the
+   chef's thinking face with the three hopping dots. */
+.fmpill:not(.busy){padding:0 var(--s4);gap:0}
+.fmpill:not(.busy) .fmface{display:none}
