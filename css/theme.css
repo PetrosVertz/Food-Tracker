@@ -1547,3 +1547,14 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
 @container (max-width:390px){ html[lang="el"] .fmpill:not(.busy) .fmt{display:none} html[lang="el"] .fmpill{padding:0 var(--s1)} }
 @container (max-width:270px){ html[lang] #dEatenFold>summary>span[data-t="eaten"]{font-size:14px} #dEatenFold>summary #dEatenN{font-size:13px} }
+
+/* ======================= 0.8 (25 Nov): Logged Foods line tucked up under the hero card ======================= */
+/* the row is only as tall as the Fill My Macros pill (+4 px each side) instead of 56 px, so Logged Foods, the round Same-as-Yesterday button and the pill sit close under the hero card;
+   the foods follow right under the title (todayFit now measures this row's real height). The blur band is unchanged, it just starts at the bottom of the title's g's
+   (the pill and the round button sit in front of it, so it never blurs them). */
+#pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{min-height:0;padding-top:4px;padding-bottom:4px}
+#dEatenFold>summary>:is(.fmpill,.eyest){position:relative;z-index:1}
+#pgToday.pinned #dEatenWrap{margin-top:4px}
+#pgToday.pinned #dEatenFold>summary::before{top:calc(100% - 9px)}
+/* the round Same-as-Yesterday button had an old 8 px bottom margin (layout.css) that lifted it above the title and the pill; now centred on the same line */
+#dEatenFold>summary #copyYesterday{margin-bottom:0}
