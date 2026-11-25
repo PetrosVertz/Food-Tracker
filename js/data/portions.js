@@ -97,3 +97,51 @@ const PORTIONS = {
     ],
   },
 };
+
+// ---------- Ask first (Food Coach), table ASK_DISHES: a takeaway dish with no details gets one small card ----------
+// Burger / crepe: "tick" cards: the base is always counted, each item is a tick (on = the usual one, so the card starts as a typical dish).
+// Pizza: a "pick" card: one type (values per 100 g from the built-in foods) and a number of slices; "None of the above" = a general estimate.
+// re / skip: what the user typed (normalized text, like PORTIONS); a message that also says chicken, veggie, fish… goes the normal way (the AI).
+// gid = the built-in food for the values per 100 g; g = grams of one normal portion; en / el = the name shown on the card.
+// The app does all the maths from these (no AI), so it also works offline. Numbers are typical, never a brand's menu: the coach says so on the card.
+// Branded takeaway places and menu items: the user may name them ("McDonald's burger", "Big Mac", "Domino's pepperoni"). The app has no brand's official numbers,
+// so it still gives the estimate from typical ingredients and says so on the card (never a brand's figure as if it were real).
+const ASK_BRANDS = [
+  { name: "McDonald's", re: '(mcdonald\\w*|mc donald\\w*|μακντοναλντ\\w*|μακ ντοναλντ\\w*)' }, { name: 'Burger King', re: '(burger king|μπεργκερ κινγκ)' },
+  { name: "Goody's", re: '(goody\\w*|γκουντι\\w*)' }, { name: 'Everest', re: '(everest|εβερεστ)' }, { name: "Domino's", re: '(domino\\w*|ντομινο\\w*)' },
+  { name: 'Pizza Hut', re: '(pizza hut|πιτσα χατ)' }, { name: "Papa John's", re: '(papa john\\w*|παπα τζον\\w*)' }, { name: 'KFC', re: '(kfc)' }
+];
+const ASK_DISHES = [
+  { id: 'burger', kind: 'tick', en: 'Burger', el: 'Μπέργκερ', re: '\\b(burger|burgers|μπεργκερ|χαμπουργκερ|hamburger|cheeseburger|big mac|whopper)\\b',
+    skip: '\\b(chicken|kotopoul\\w*|κοτοπουλ\\w*|veggie|vegan|vegetarian|fish|psari\\w*|ψαρ\\w*|bifteki|μπιφτεκ\\w*|sandwich|σαντουιτσ\\w*)\\b',
+    named: [{ re: '(big mac|μπιγκ μακ)', name: 'Big Mac', brand: "McDonald's", on: ['Cheddar', 'Lettuce', 'Onion', 'Pickles', 'Mayo'] },   // two thin patties weigh about one normal patty
+      { re: '(whopper|γουοπερ)', name: 'Whopper', brand: 'Burger King', on: ['Lettuce', 'Tomato', 'Onion', 'Pickles', 'Ketchup', 'Mayo'] },
+      { re: '(cheeseburger|τσιζμπεργκερ)', name: 'Cheeseburger', brand: '', on: ['Cheddar', 'Onion', 'Pickles', 'Ketchup', 'Mustard'] }],
+    base: [{ gid: 'bread_roll', g: 60, role: 'bread', en: 'Bun', el: 'Ψωμάκι' }, { gid: 'beef_burger_c', g: 90, role: 'meat', en: 'Beef Patty', el: 'Μπιφτέκι Μοσχαρίσιο' }],
+    groups: [{ k: 'a', en: 'Toppings', el: 'Υλικά', items: [
+      { gid: 'cheddar', g: 20, on: 1, role: 'cheese', en: 'Cheddar', el: 'Τσένταρ', kw: 'cheddar|cheese|tyri|τυρι|τσενταρ' }, { gid: 'lettuce', g: 10, on: 1, role: 'veg', en: 'Lettuce', el: 'Μαρούλι' },
+      { gid: 'tomato', g: 20, on: 1, role: 'veg', en: 'Tomato', el: 'Ντομάτα' }, { gid: 'onion', g: 15, role: 'veg', en: 'Onion', el: 'Κρεμμύδι' },
+      { gid: 'sr_168558', g: 10, role: 'veg', en: 'Pickles', el: 'Αγγουράκια τουρσί' }, { gid: 'bacon_c', g: 16, role: 'meat', en: 'Bacon', el: 'Μπέικον' },
+      { gid: 'beef_burger_c', g: 90, role: 'meat', en: 'Double Patty', el: 'Διπλό Μπιφτέκι' }] },
+      { k: 'b', en: 'Sauces', el: 'Σάλτσες', items: [
+      { gid: 'ketchup', g: 15, on: 1, role: 'sauce', en: 'Ketchup', el: 'Κέτσαπ' }, { gid: 'mayo', g: 15, role: 'sauce', en: 'Mayo', el: 'Μαγιονέζα' }, { gid: 'mustard', g: 5, role: 'sauce', en: 'Mustard', el: 'Μουστάρδα' }] }] },
+  { id: 'pizza', kind: 'pick', en: 'Pizza', el: 'Πίτσα', re: '\\b(pizza|pizzas|pitsa|pitses|πιτσα|πιτσεσ)\\b', per: 'slice', slices: 3,
+    options: [{ gid: 'pizza', g: 110, en: 'Margherita', el: 'Μαργαρίτα' }, { gid: 'pizza_pepperoni', g: 110, en: 'Pepperoni', el: 'Πεπερόνι' }, { gid: 'pizza_special', g: 120, en: 'Special', el: 'Σπέσιαλ' },
+      { gid: 'pizza_chicken', g: 120, en: 'Chicken', el: 'Κοτόπουλο' }, { gid: 'pizza_veg', g: 120, en: 'Vegetarian', el: 'Λαχανικά' }],
+    general: { gid: 'pizza_special', g: 115 } },
+  { id: 'crepe', kind: 'tick', en: 'Crepe', el: 'Κρέπα', re: '\\b(crepe|crepes|krepa|krepes|κρεπα|κρεπεσ)\\b', modes: ['savory', 'sweet'],
+    base: [{ gid: 'pancakes', g: 90, role: 'bread', en: 'Crepe', el: 'Κρέπα' }],
+    savory: [{ k: 'a', en: 'Meat', el: 'Κρέας', items: [{ gid: 'ham', g: 30, on: 1, role: 'meat', en: 'Ham', el: 'Ζαμπόν' }, { gid: 'chicken_breast_c', g: 60, role: 'meat', en: 'Chicken', el: 'Κοτόπουλο' },
+        { gid: 'chicken_nuggets', g: 60, role: 'meat', en: 'Chicken Nuggets', el: 'Κοτομπουκιές' }, { gid: 'bacon_c', g: 16, role: 'meat', en: 'Bacon', el: 'Μπέικον' }, { gid: 'sausage_c', g: 60, role: 'meat', en: 'Sausage', el: 'Λουκάνικο' }] },
+      { k: 'b', en: 'Cheese', el: 'Τυρί', items: [{ gid: 'gouda', g: 30, on: 1, role: 'cheese', en: 'Gouda', el: 'Γκούντα', kw: 'gouda|cheese|tyri|τυρι|γκουντα' }, { gid: 'mozzarella', g: 30, role: 'cheese', en: 'Mozzarella', el: 'Μοτσαρέλα' },
+        { gid: 'feta', g: 30, role: 'cheese', en: 'Feta', el: 'Φέτα' }, { gid: 'cheddar', g: 20, role: 'cheese', en: 'Cheddar', el: 'Τσένταρ' }, { gid: 'cream_cheese', g: 20, role: 'cheese', en: 'Cream Cheese', el: 'Κρέμα τυριού' }] },
+      { k: 'c', en: 'Extras', el: 'Επιπλέον', items: [{ gid: 'fries', g: 60, role: 'fries', en: 'Fries', el: 'Πατάτες τηγανητές' }, { gid: 'egg_c', g: 50, role: 'other', en: 'Egg', el: 'Αυγό' },
+        { gid: 'mushrooms_c', g: 30, role: 'veg', en: 'Mushrooms', el: 'Μανιτάρια' }, { gid: 'corn', g: 25, role: 'veg', en: 'Corn', el: 'Καλαμπόκι' }, { gid: 'tomato', g: 20, role: 'veg', en: 'Tomato', el: 'Ντομάτα' },
+        { gid: 'mayo', g: 15, role: 'sauce', en: 'Mayo', el: 'Μαγιονέζα' }] }],
+    sweet: [{ k: 'a', en: 'Spreads', el: 'Αλείμματα', items: [{ gid: 'nutella', g: 30, on: 1, role: 'sauce', en: 'Nutella', el: 'Nutella' }, { gid: 'honey', g: 15, role: 'sauce', en: 'Honey', el: 'Μέλι' },
+        { gid: 'dark_choc', g: 15, role: 'sauce', en: 'Chocolate', el: 'Σοκολάτα' }] },
+      { k: 'b', en: 'Fruit', el: 'Φρούτα', items: [{ gid: 'banana', g: 60, on: 1, role: 'veg', en: 'Banana', el: 'Μπανάνα' }, { gid: 'strawberry', g: 40, role: 'veg', en: 'Strawberries', el: 'Φράουλες' },
+        { gid: 'pineapple', g: 40, role: 'veg', en: 'Pineapple', el: 'Ανανάς' }] },
+      { k: 'c', en: 'Extras', el: 'Επιπλέον', items: [{ gid: 'whipped_cream', g: 20, role: 'other', en: 'Whipped Cream', el: 'Σαντιγί' }, { gid: 'ice_cream', g: 60, role: 'other', en: 'Ice Cream', el: 'Παγωτό' },
+        { gid: 'hazelnuts', g: 15, role: 'other', en: 'Hazelnuts', el: 'Φουντούκια' }] }] }
+];

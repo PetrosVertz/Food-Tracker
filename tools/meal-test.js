@@ -21,8 +21,8 @@ function load(){
     const GENBY = {};
     GEN_RAW.forEach(([gid,en,el,alias,cat,sub,unit,state,kcal,protein,carbs,fat,pieces,piece]) => { GENBY[gid] = { gid, en, el, cat, unit, kcal, protein, carbs, fat }; });
     [...GEN_MORE, ...(typeof GEN_067 !== 'undefined' ? GEN_067 : [])].forEach(([gid,en,el,alias,cat,sub,unit,state,kcal,protein,carbs,fat,fiber]) => { GENBY[gid] = { gid, en, el, cat, unit, kcal, protein, carbs, fat, fiber }; });
-    const t = k => ({ mealOil: 'Cooking oil' })[k] || k;
-  ` + read('js/meal.js') + '\n;this.E = { mealDetect, mealParts, mealBuild, mealTotal, mealApply, mealPart, mealFromItems, mealPrompt, GENBY };', ctx);
+    const t = (k, v) => ({ mealOil: 'Cooking oil' })[k] || (v ? k + JSON.stringify(v) : k);
+  ` + read('js/meal.js') + '\n;this.E = { COOKED, askMatch, askParts, askBuild, askItems, mealDetect, mealParts, mealBuild, mealTotal, mealApply, mealPart, mealFromItems, mealPrompt, GENBY };', ctx);
   return ctx.E;
 }
 
@@ -160,4 +160,29 @@ const part = (name, role, grams, kcal, protein, carbs, fat, extra) => ({ name, r
 }
 
 console.log(fails ? `\n${fails} meal case(s) failed.` : '\nAll meal cases pass.');
+
+// 11. Ask first (burger / pizza / crepe): which messages get the small card, and the maths on it (no AI)
+{
+  const ask = txt => { const a = E.askMatch(txt, E.mealDetect(txt)); return a ? a.id : null; };
+  const want = [['I had a burger', 'burger'], ['had pizza last night', 'pizza'], ['I got a crepe', 'crepe'], ['crepe with nutella', 'crepe'], ['ham and cheese crepe', 'crepe'],
+    ['2 burgers', 'burger'], ['burger me tyri', 'burger'], ['έφαγα πίτσα', 'pizza'], ['κρέπα με σοκολάτα', 'crepe'], ["McDonald's burger", 'burger'], ['Big Mac', 'burger'], ['Domino\'s pizza', 'pizza'], ['Burger King', null], ["McDonald's", null], ['Whopper', 'burger']];
+  const bad = want.filter(([txt, id]) => ask(txt) !== id).map(([txt, id]) => `${txt} → ${ask(txt)} (want ${id})`);
+  // more than the dish: other foods, grams, chicken / veggie burgers go the normal way
+  const no = ['I had a burger with fries', 'burger 200g', 'chicken burger', 'veggie burger', 'pizza and a coke and fries', 'rice and chicken'].filter(txt => ask(txt));
+  if(bad.length) fail('ask card: wrong match: ' + bad.join('; ')); else ok('ask card: burger, pizza, crepe (also "crepe with nutella", Greek pizza) get the card');
+  if(no.length) fail('ask card: should not appear for: ' + no.join('; ')); else ok('ask card: a message with other foods, grams or chicken / veggie goes the normal way');
+  const burger = E.askMatch('I had a burger', E.mealDetect('I had a burger')), A = { a: burger, n: 1, mode: null, on: {}, pick: 0, slices: 0 };
+  E.askItems(A).forEach(({ key, it }) => { A.on[key] = !!it.on; });
+  const kc = parts => { E.mealApply({ parts, size: 'normal', roles: {}, grams: false }); return parts.reduce((a, p) => a + E.mealPart(p).kcal, 0); };
+  const usual = kc(E.askParts(A, false));
+  const none = kc(E.askParts({ ...A, on: {} }, false)), est = kc(E.askParts({ ...A, on: {} }, true));
+  if(!(none > 300 && none < 450 && usual > none && usual < 700)) fail(`ask burger: bun + patty ${none} kcal, usual ticks ${usual} kcal`); else ok(`ask burger: bun + patty ${none} kcal, usual ticks ${usual} kcal (a normal burger)`);
+  if(est !== usual) fail(`ask burger: the general estimate (${est}) is not the usual ticks (${usual})`); else ok('ask burger: "Just Estimate" = the usual ticks');
+  const pz = E.askMatch('pizza', E.mealDetect('pizza')), P = { a: pz, n: 1, pick: 1, slices: 3 }, pep = E.askParts(P, false)[0], gen = E.askParts({ ...P, pick: -1 }, false)[0];
+  if(!(pep && gen && pep.g0 === 330 && gen.g0 === 345)) fail('ask pizza: slices × grams wrong'); else ok('ask pizza: a type and slices, or "None Of The Above" = the general pizza');
+  const cr = E.askMatch('crepe', E.mealDetect('crepe')); let missing = [];
+  [burger, pz, cr].forEach(a => [].concat(a.base || [], a.options || [], a.general ? [a.general] : [], ...[a.groups, a.savory, a.sweet].filter(Boolean).map(g => g.flatMap(x => x.items))).forEach(x => { if(!E.GENBY[x.gid] && !/^sr_/.test(x.gid) && !E.COOKED.some(c => c[0] === x.gid)) missing.push(x.gid); }));
+  if(missing.length) fail('ask dishes: not in the built-in foods: ' + missing.join(', ')); else ok('ask dishes: every ingredient is a built-in food');
+}
+
 process.exit(fails ? 1 : 0);

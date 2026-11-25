@@ -203,6 +203,108 @@ function mealShow(txt, ch, det, r){
   return true;
 }
 
+// ---- 6. Ask first: a takeaway dish with no details (burger, pizza, crepe) gets one small card, no AI ----
+// The dish table is ASK_DISHES in js/data/portions.js. The card asks for what is usually different (toppings / the pizza type / sweet or savoury), the app adds
+// up the built-in foods. "Just Estimate" / "None Of The Above" give a typical version and the coach says plainly that it is a general estimate.
+const askName = x => (typeof lang !== 'undefined' && lang === 'el' ? x.el : x.en) || x.en;
+// only a short message about one dish: grams, a list of foods or words like chicken / veggie go the normal way
+// "crepe with nutella" is still one dish: every other piece of the message must be one of that dish's own ticks (it comes ticked on the card)
+const askEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const askSays = (s, it) => mealRx('\\b(?:' + (it.kw || askEsc(norm(it.en)) + '|' + askEsc(norm(it.el))) + ')\\b').test(s);
+const askAllItems = a => [].concat(a.groups || [], a.savory || [], a.sweet || []).reduce((l, gr) => l.concat(gr.items), []);
+const askBrandOf = s => (typeof ASK_BRANDS !== 'undefined' ? ASK_BRANDS : []).find(b => mealRx(b.re).test(s)) || null;
+const askNamedOf = (a, s) => (a.named || []).find(n => mealRx(n.re).test(s)) || null;
+function askMatch(txt, det){
+  if(typeof ASK_DISHES === 'undefined' || !det || det.grams) return null;
+  const br = askBrandOf(det.s), s = br ? det.s.replace(mealRx(br.re), ' ').replace(/\s+/g, ' ').trim() : det.s;   // the place's name is not a food
+  const a = ASK_DISHES.find(x => mealRx(x.re).test(s) && !(x.skip && mealRx(x.skip).test(s)));
+  if(!a) return null;
+  const rest = s.split(MEAL_SPLIT).filter(x => x && x.trim().length > 1 && !mealRx(a.re).test(x)), its = askAllItems(a);
+  return rest.every(seg => its.some(it => askSays(seg, it))) && rest.length <= 4 ? a : null;
+}
+const askGroups = (a, mode) => a.groups || (mode && a[mode]) || [];
+function askItems(A){   // every tick of the card now showing: { key, it }
+  const out = []; askGroups(A.a, A.mode).forEach(gr => gr.items.forEach((it, i) => out.push({ key: (A.mode ? A.mode + '.' : '') + gr.k + i, it, gr }))); return out;
+}
+const askPart = (it, g, role) => { const f = mealGen(it.gid); return f ? { name: askName(it), role: role || it.role || 'other', cook: 'raw', opt: false, on: true, g0: g, gid: it.gid, src: 'std', fixed: false, per: mealGenPer(f) } : null; };
+const askKcal = (it, n) => { const f = mealGen(it.gid); return f ? Math.round((+f.kcal || 0) * it.g * (n || 1) / 100) : 0; };
+// the parts of the dish as it stands (est = the typical version: the usual ticks, the general pizza)
+function askParts(A, est){
+  const a = A.a, n = A.n || 1, parts = [];
+  if(a.kind === 'pick'){ const o = !est && A.pick >= 0 ? a.options[A.pick] : null, it = o || a.general, f = it && mealGen(it.gid); if(!f) return [];
+    parts.push({ name: o ? askName(o) : askName(a), role: 'other', cook: 'raw', opt: false, on: true, g0: it.g * A.slices, gid: it.gid, src: 'std', fixed: false, per: mealGenPer(f) }); return parts; }
+  (a.base || []).forEach(b => { const p = askPart(b, b.g * n); if(p) parts.push(p); });
+  askItems(A).forEach(({ key, it }) => { if(est ? it.on : A.on[key]){ const p = askPart(it, it.g * n); if(p) parts.push(p); } });
+  return parts;
+}
+function askBuild(m, est, brandy){
+  const A = m.ask, a = A.a, det = m.det || {}, parts = askParts(A, est), el = typeof lang !== 'undefined' && lang === 'el';
+  const o = a.kind === 'pick' && !est && A.pick >= 0 ? a.options[A.pick] : null;
+  const title = A.label && a.kind !== 'pick' ? A.label : A.label ? (o ? (el ? 'Πίτσα ' + o.el + ' ' + A.place : A.place + ' ' + o.en + ' Pizza') : A.label) : a.kind === 'pick' ? (o ? (el ? 'Πίτσα ' + o.el : o.en + ' Pizza') : askName(a)) : a.modes ? t('askMode_' + A.mode) + ' ' + askName(a) : askName(a);
+  const ticked = a.kind === 'tick' && !est ? askItems(A).filter(x => A.on[x.key]).map(x => askName(x.it).toLowerCase()) : [];
+  const assumed = est || brandy ? t('askAssumedEst') : a.kind === 'pick' ? t('askSlices', { n: A.slices }) : ticked.length ? t('askWith', { l: ticked.slice(0, 5).join(', ') + (ticked.length > 5 ? '…' : '') }) : '';
+  const M = { title: mealTitle(title), assumed: assumed.slice(0, 80), parts, size: A.size || det.size || 'normal', roles: det.roles || {}, grams: false, dish: a.id, raised: false, range: false, open: false,
+    conf: est || brandy ? 'low' : 'medium', why: ['portion'], est: !!est || !!brandy, local: true };
+  return mealApply(M);
+}
+async function askShow(txt, ch, a, det){
+  const named = md => askGroups(a, md).reduce((l, gr) => l.concat(gr.items.filter(it => askSays(det.s, it))), []);
+  const first = a.modes ? (/(sweet|gliko|γλυκ)/.test(det.s) || (named('sweet').length > named('savory').length) ? 'sweet' : a.modes[0]) : null;
+  const br = askBrandOf(det.s), nmd = askNamedOf(a, det.s), place = (nmd && nmd.brand) || (br && br.name) || '';
+  // a place or a menu item named: still an estimate from typical ingredients (no brand's official numbers), and the card says so
+  const A = { a, n: a.kind === 'pick' ? 1 : (det.n || 1), mode: first, on: {}, pick: 0, slices: a.kind === 'pick' ? (det.n > 1 ? det.n : a.slices) : 0,
+    place, label: nmd ? nmd.name : place ? place + ' ' + askName(a) : '' };
+  // size words are read without the place's name or the menu item ("Big Mac" is not a big portion)
+  { const s2 = det.s.replace(mealRx(br ? br.re : '$^'), ' ').replace(mealRx(nmd ? nmd.re : '$^'), ' '); A.size = (PORTION_WORDS.find(w => mealRx(w.re).test(s2)) || { k: 'normal' }).k; }
+  const m = { id: uid(), items: [], ask: A, det, txt, mk: 'ask:' + norm(txt), state: 'ready' };
+  askItems(A).forEach(({ key, it }) => { A.on[key] = !!it.on; });
+  if(a.modes) a.modes.forEach(md => askGroups(a, md).forEach(gr => gr.items.forEach((it, i) => { A.on[md + '.' + gr.k + i] = !!it.on; })));
+  // what the message already named is ticked; the usual extras stay ticked only when nothing was named for that dish (so "crepe with ham" is a ham crepe)
+  const nm = Object.keys(A.on).filter(k => { const p = k.split('.'), md = p.length > 2 ? p[0] : null, gk = p[p.length - 1][0], i = +p[p.length - 1].slice(1), gr = askGroups(a, md).find(g => g.k === gk); return gr && askSays(det.s, gr.items[i]); });
+  if(nmd) askItems(A).forEach(({ key, it }) => { A.on[key] = nmd.on.includes(it.en); });   // Big Mac, Whopper…: their usual ticks
+  else if(nm.length){ Object.keys(A.on).forEach(k => { if(!k.startsWith(first + '.') && a.modes) return; A.on[k] = nm.includes(k); }); }
+  ch.say(A.label ? t('askSayBrand', { b: place || A.label, d: askName(a).toLowerCase() }) : t('askSay_' + a.id));
+  const go = est => () => askGo(m, est);
+  const [card] = ch.cards([{ body: '', actions: a.kind === 'pick' ? [{ label: t('askLog'), primary: true, run: go(false) }] : [{ label: t('askJust'), run: go(true) }, { label: t('askLogThese'), primary: true, run: go(false) }] }]);
+  FC[m.id] = { m, card, ch }; logQRedraw(m);
+}
+// the card becomes the normal meal card (sizes, parts, Add). An estimate stays on the card for you to look at; ticked foods are logged at once (with Undo).
+function askGo(m, forceEst){
+  const x = FC[m.id], A = m.ask; if(!x || !A || m.state === 'logged') return;
+  const brandy = !!A.label, est = !!forceEst || (A.a.kind === 'pick' && A.pick < 0) || brandy, M = askBuild(m, !!forceEst || (A.a.kind === 'pick' && A.pick < 0), brandy);
+  if(!M.parts.some(p => p.on)){ toast(t('logQNothing')); return; }
+  m.meal = M; m.ask = null; m.mk = 'meal:' + norm(m.txt);
+  x.ch.update(x.card, { actions: [{ label: t('add'), primary: true, run: () => mealLog(m) }, { label: t('logQAddSave'), run: () => logQNameAsk(m) }], body: fcHtml(m) });
+  if(brandy) x.ch.say(t('askBrandSay', { b: A.place || A.label, d: askName(A.a).toLowerCase() }));
+  else if(est) x.ch.say(t('askEstSay', { d: askName(A.a).toLowerCase() })); else mealLog(m);
+}
+function askCardHtml(m){
+  const A = m.ask, a = A.a, ck = (on, label, k) => `<button type="button" class="askchip ${on ? 'on' : ''}" data-ak="${k}" aria-pressed="${on ? 'true' : 'false'}"><i>${svgIcon('check', 12, 3.2)}</i>${esc(label)}</button>`;
+  if(a.kind === 'pick'){
+    const o = A.pick >= 0 ? a.options[A.pick] : null, per = mealGen((o || a.general).gid), k = per ? Math.round((+per.kcal || 0) * (o || a.general).g * A.slices / 100) : 0;
+    return `<div class="lqcard askcard"><b class="askh">${esc(t('askWhich', { d: A.label || askName(a) }))}</b>
+      <div class="askopts">${a.options.map((x, i) => `<button type="button" class="askopt ${A.pick === i ? 'on' : ''}" data-apick="${i}"><span>${esc(askName(x))}</span><small>${askKcal(x, 1)} kcal ${esc(t('askPerSlice'))}</small></button>`).join('')}
+      <button type="button" class="askopt none ${A.pick === -1 ? 'on' : ''}" data-apick="-1"><span>${esc(t('askNone'))}</span><small>${esc(t('askGeneral'))}</small></button></div>
+      <div class="askstep"><span>${esc(t('askSliceL'))}</span><div><button type="button" data-astep="-1" aria-label="${esc(t('askFewer'))}">${svgIcon('minus', 16, 2.6)}</button><b>${A.slices}</b><button type="button" data-astep="1" aria-label="${esc(t('askMore'))}">${svgIcon('plus', 16, 2.6)}</button></div></div>
+      <div class="asktot"><span><b>${k}</b> <small>kcal</small></span><small>${esc(A.pick === -1 ? t('askGeneral') : askName(o) + ' × ' + A.slices)}</small></div></div>`;
+  }
+  const seg = a.modes ? `<div class="seg askseg" role="group" aria-label="${esc(askName(a))}">${a.modes.map(md => `<button type="button" data-v="${md}" data-amode="${md}" class="${A.mode === md ? 'on' : ''}">${esc(t('askMode_' + md))}</button>`).join('')}</div>` : '';
+  const base = (a.base || []).map(b => askName(b));
+  const kc = (a.base || []).reduce((s, b) => s + askKcal(b, A.n), 0) + askItems(A).reduce((s, x) => s + (A.on[x.key] ? askKcal(x.it, A.n) : 0), 0);
+  const on = askItems(A).filter(x => A.on[x.key]).length;
+  return `<div class="lqcard askcard"><b class="askh">${esc(t('askYour', { d: A.label || askName(a) }))}</b>${seg}
+    <small class="ls">${esc(t('askBase', { b: mealList(base) }))}</small>
+    ${askGroups(a, A.mode).map(gr => `<div class="askgrp">${esc(askName(gr))}</div><div class="askchips">${gr.items.map((it, i) => { const key = (A.mode ? A.mode + '.' : '') + gr.k + i; return ck(!!A.on[key], askName(it) + (askKcal(it, A.n) ? ' · +' + askKcal(it, A.n) : ''), key); }).join('')}</div>`).join('')}
+    <div class="asktot"><span><b>${kc}</b> <small>kcal</small></span><small>${esc(t('askTicked', { n: on }))}</small></div></div>`;
+}
+function askClick(e, m){
+  const A = m.ask; if(!A) return;
+  const ak = e.target.closest('[data-ak]'); if(ak){ Phone.haptic(); A.on[ak.dataset.ak] = !A.on[ak.dataset.ak]; logQRedraw(m); return; }
+  const md = e.target.closest('[data-amode]'); if(md){ if(A.mode !== md.dataset.amode){ Phone.haptic(); A.mode = md.dataset.amode; logQRedraw(m); } return; }
+  const pk = e.target.closest('[data-apick]'); if(pk){ Phone.haptic(); A.pick = +pk.dataset.apick; logQRedraw(m); return; }
+  const st = e.target.closest('[data-astep]'); if(st){ Phone.haptic(); A.slices = Math.max(1, Math.min(16, A.slices + +st.dataset.astep)); logQRedraw(m); }
+}
+
 const mealList = l => l.length > 1 ? l.slice(0, -1).join(', ') + t('mealAnd') + l[l.length - 1] : l.join('');
 const mealMac = q => `<b class="p">P ${fmt(q.p)}</b> · <b class="c">C ${fmt(q.c)}</b> · <b class="f">F ${fmt(q.f)}</b>`;
 function mealCardHtml(m){
@@ -216,7 +318,7 @@ function mealCardHtml(m){
   const nm = m.naming && !done ? `<div class="lqname"><small class="ls">${esc(t('logQNameSub', { n: M.title }))}</small>
     <div class="lqnrow"><input class="lqsq" type="text" data-qname value="${esc(m.mname || '')}" placeholder="${t('logQNamePh')}" autocomplete="off" enterkeyhint="done" aria-label="${t('logQNamePh')}" maxlength="60">
     <button class="lqswapbtn" type="button" data-qnameok>${t('save')}</button></div></div>` : '';
-  return `<div class="lqcard mlcard ${done ? 'logged' : ''}">
+  return `<div class="lqcard mlcard ${done ? 'logged' : ''}">${M.est ? `<small class="askest">${esc(t('askEstTag'))}</small>` : ''}
     <button class="mlhead" type="button" data-mlopen aria-expanded="${open ? 'true' : 'false'}" ${done ? 'disabled' : ''}>
       <span class="mlt"><b class="mlname">${esc(M.title)}</b><small class="lm mlmac">${mealMac(tot)}</small></span>
       <span class="mlk"><span class="mlkn">${tot.kcal}</span><small>kcal</small></span>${done ? '' : `<span class="mlchev">${svgIcon('down', 16, 2.4)}</span>`}</button>
@@ -275,7 +377,7 @@ function mealLog(m, keep){
   const ex = on.reduce((a, p) => { const q = macrosFor(p.per, p.g); return { na: a.na + q.na, k: a.k + q.k }; }, { na: 0, k: 0 });
   const saved = keep ? mealSaveLib(M, keep) : null;
   const e = { id: uid(), time: tm, kind: 'meal', refId: saved ? saved.id : null, name: M.title, icon: '', amt: tot.g, unit: 'g',
-    kcal: tot.kcal, p: tot.p, c: tot.c, f: tot.f, fib: tot.fib, na: Math.round(ex.na), k: Math.round(ex.k), ai: true,
+    kcal: tot.kcal, p: tot.p, c: tot.c, f: tot.f, fib: tot.fib, na: Math.round(ex.na), k: Math.round(ex.k), ai: !M.local,
     parts: on.map(p => ({ n: p.name, g: p.g, kcal: mealPart(p).kcal })) };
   (dayLog[day] = dayLog[day] || []).push(e); saveLog();
   if(m.raw && m.mk){ logPhr[m.mk] = m.raw; logQTrim(); logQSavePhr(); }   // the same words next time: no AI call

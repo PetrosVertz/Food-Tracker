@@ -1598,3 +1598,24 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(11px,4.
 :root[data-theme="light"] .sqd.no i{color:#9e1f19;box-shadow:inset 0 0 0 2px #9e1f19}
 .qmcard .qmlog{margin-left:auto;flex:0 0 auto}
 .qmcard .qming{color:var(--t-muted);font-size:var(--fs-label);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Food Coach ask card (burger toppings, pizza type, crepe fillings): ticks and options; General Estimate tag on the meal card */
+.askcard{display:flex;flex-direction:column;gap:var(--s2)}
+.askh{font-size:var(--fs-body);font-weight:var(--w-bold)}
+.askgrp{margin-top:var(--s1);font-size:var(--fs-label);font-weight:var(--w-bold);color:var(--t-muted);letter-spacing:.04em;text-transform:uppercase}
+.askchips{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.askchip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px 0 8px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font:inherit;font-size:var(--fs-label);cursor:pointer}
+.askchip i{display:grid;place-items:center;width:18px;height:18px;flex:0 0 18px;border-radius:50%;border:1.5px solid var(--t-muted);color:transparent}
+.askchip.on{border-color:var(--t-accent);background:color-mix(in srgb,var(--t-accent) 16%,var(--t-card2))}
+.askchip.on i{background:var(--t-accent);border-color:var(--t-accent);color:#0f1113}
+.askopts{display:flex;flex-direction:column;gap:var(--s2)}
+.askopt{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);min-height:46px;padding:0 var(--s3);border-radius:14px;border:1px solid var(--t-line);background:var(--t-card2);color:var(--t-text);font:inherit;text-align:left;cursor:pointer}
+.askopt small{color:var(--t-muted);white-space:nowrap}
+.askopt.on{border-color:var(--t-accent);background:color-mix(in srgb,var(--t-accent) 16%,var(--t-card2))}
+.askopt.none{border-style:dashed}
+.askstep,.asktot{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.askstep>div{display:flex;align-items:center;gap:var(--s3)}
+.askstep button{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:0;background:var(--t-card2);color:var(--t-text);cursor:pointer}
+.asktot{border-top:1px solid var(--t-line);padding-top:var(--s2)} .asktot b{font-size:20px} .asktot small{color:var(--t-muted)}
+.askseg{margin:0}
+.askest{align-self:flex-start;display:inline-block;margin-bottom:var(--s1);padding:3px 10px;border-radius:999px;border:1px solid var(--t-mid);color:var(--t-text);font-size:var(--fs-label);font-weight:var(--w-bold)}
