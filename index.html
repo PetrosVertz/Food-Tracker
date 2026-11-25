@@ -27,6 +27,7 @@
   // height, or the bottom bar and main button float ~60 px too high.
   var probe; function underBar(){ try{ if(!probe){ probe = document.createElement('div'); probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none'; de.appendChild(probe); } return probe.offsetHeight > 0; }catch(e){ return true; } }
   function fit(){ var portrait = innerHeight >= innerWidth, full = !de.classList.contains('sbsolid') || underBar(), h = portrait && full ? Math.max(innerHeight, screen.height || 0) : innerHeight; de.style.setProperty('--appH', h + 'px'); }
+  try{ screen.orientation.lock('portrait').catch(function(){}); }catch(e){}   /* stays upright where the phone allows it (Android app); the manifest asks the same */
   fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

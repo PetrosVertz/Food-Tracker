@@ -203,6 +203,27 @@ function toast(msg, actLabel, act, kind){
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), actLabel ? 7000 : 4200);
 }
 
+// Swipe the pop-up up (towards the top edge) to send it away at once. Uses the shared drag helper: follows the finger 1:1 with transform only, springs on release.
+function toastSwipe(){
+  const el = document.getElementById('toast'); if(!el) return; const imp = (p, v) => el.style.setProperty(p, v, 'important');
+  const clear = () => { el.style.removeProperty('transform'); el.style.removeProperty('transition'); el.style.removeProperty('opacity'); };
+  const pos = y => `translateX(-50%) translateY(${y.toFixed(1)}px)`;
+  let h = 80;
+  dragger(el, {
+    axis: 'y', slop: 6,
+    claim: (dx, dy) => dy < 0 && el.classList.contains('show'),
+    start: () => { h = el.offsetHeight + 24; clearTimeout(toastTimer); imp('transition', 'none'); el.style.willChange = 'transform'; },
+    move: s => imp('transform', pos(s.dy <= 0 ? s.dy : rubber(s.dy, 60))),
+    end: (s, ok) => { el.style.willChange = ''; const dy = Math.min(0, s.dy);
+      if(ok && (-dy > h * .4 || (s.vy < -.4 && -dy > 12))){
+        el.classList.remove('show'); imp('opacity', '0');
+        const ms = Math.max(110, Math.min(220, (h + 60 + dy) / Math.max(.8, -s.vy) ));   // a quick flick leaves quicker
+        el.animate([{ transform: pos(dy) }, { transform: pos(-(h + 60)) }], { duration: ms, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished.then(clear, clear); return; }
+      const a = el.animate([{ transform: pos(dy) }, { transform: pos(0) }], { duration: 340, easing: 'cubic-bezier(.22,1.2,.36,1)' });   // springs back
+      clear(); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); } });
+}
+toastSwipe();
+
 // ---------- 0.7.4.3 no AI key: every AI control is greyed out; tapping one says a key is needed, with a button to Settings › AI ----------
 // An AI control = a button / label / link that carries the AI badge (class="aiafter", AI.badge(), .aib) or is a coach pill / bubble (a robot face).
 // Every one of them has a way to do the job without AI, so nothing else changes (see docs/ai-optional-0.7.4.3.md).
@@ -353,7 +374,7 @@ function hubHead(pg, dateId, on){ const p = $(pg); if(!p) return; p.classList.to
   const hd = p.querySelector('header'), h1 = hd && hd.querySelector('h1'); if(hd) hd.classList.toggle('longtitle', on && !!h1 && h1.textContent.length > 14); }
 // does it fit? The grid is measured once in its screen-filling form and once at its natural size; when the natural size is taller than the
 // space (iPhone SE, larger text) the page falls back to normal scrolling (.bentofree). Two layout reads per draw / resize, never while moving.
-function bentoFit(pg, grid){ pg = $(pg); grid = $(grid); if(!pg || !grid || pg.classList.contains('hide') || !pg.classList.contains('bentopg')) return;
+function bentoFit(pg, grid){ pg = $(pg); grid = $(grid); if(!pg || !grid || pg.id === 'pgGym' || pg.classList.contains('hide') || !pg.classList.contains('bentopg')) return;
   pg.classList.remove('bentofree'); const avail = grid.clientHeight; pg.classList.add('bentofree'); const need = grid.offsetHeight;
   pg.classList.toggle('bentofree', need > avail + 1); }
 addEventListener('resize', () => { clearTimeout(bentoFit.tm); bentoFit.tm = setTimeout(() => { bentoFit('pgFoods', 'fBento'); bentoFit('pgGym', 'gBento'); }, 150); });
