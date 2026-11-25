@@ -700,6 +700,7 @@ function logQPrompt(txt, ch, fix){
   return `${AI.voice('chef')}Here you are Food Coach, the chef robot in the food tracker, for someone who lifts weights. No lectures, no talk about how you calculate. If something is unknown, say so.
 Context: ${FoodCoach.context()}
 ${conv ? `Recent chat:\n${conv}\n` : ''}User: """${txt}"""
+Talk like a normal conversation. If they repeat or re-ask something already in the chat or on the list on screen, answer it again in full: you may say you had it before ("like I said, …"), then give the whole answer and the full list again. Never refuse, never point them back to an earlier message. Stay on food, nutrition, supplements, drinks, cooking and how eating affects their training and body goals; for anything else say in one friendly line that you are the food coach and leave it.
 intent: "log" = they say what they ate or drank (even if they also ask something), or correct the list; "suggest" = they ask what to eat to fit their targets; "answer" = a food or nutrition question; "chat" = anything else.
 reply: ${ln}, plain text, at most ${AI.words(60)} words, no markdown. For "log": a short natural acknowledgement, plus a real answer if they also asked something (e.g. whether it suits their training day, using the context). Don't repeat the card's numbers. Nothing is logged until they tap Add: never say you added, logged or saved anything.
 items (only for "log"; one per food; never merge or drop a food): text = their words for it without the amount; name = short food name in ${ln} (with how it was cooked if said), no brand; name_en = English name; brand = brand or restaurant, "" if none; qty + unit = the amount as written (unit g, ml, piece, slice, cup, tbsp, tsp or serving; null when not written); grams = the whole amount eaten (when not written, a real serving: restaurant and takeaway food is bigger and richer; count oil, sauce, cheese); ml = true for drinks; kcal, protein, carbs, fat = per 100 g (100 ml) as eaten, ALWAYS numbers: your best estimate for any real food, also an unusual or foreign one, never null and never left out; stated = nutrients the user stated for the whole item, e.g. "a bar with 20g protein" gives {"protein":20} (that is NOT its weight), else null.
@@ -994,8 +995,7 @@ async function logQAnswer(txt, ch, how){
   // 2. a small change to the list on screen: "make it 200g", "add another toast", "remove the bar", "I meant cooked"
   if(prev && prev.items.length){ const cmd = FoodCoach.correction(txt, logQRows(prev)); if(cmd && logQApplyCmd(prev, cmd, ch)){ how.path = 'local'; return; } }
   const mk = 'm:' + norm(txt);
-  // 3. the same message again while its list is still open: no second card
-  if(Object.values(FC).some(x => x.m.mk === mk && x.m.state !== 'logged' && !x.m.meal)){ how.path = 'local'; ch.say(t('logQSame')); return; }
+  // 3. (removed) the same message again is answered again, like in a normal conversation: the AI may say it had it before, and the card comes back
   const fix = prev && prev.items.length && logQIsFix(txt) ? prev : null;
   // 4. a message you added before: the same foods and amounts, no AI
   const mem = !fix && Array.isArray(logPhr[mk]) ? logPhr[mk] : null;

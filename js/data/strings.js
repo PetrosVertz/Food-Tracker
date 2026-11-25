@@ -928,7 +928,6 @@ Object.assign(S, {   // Food Coach 2.0: plain-words AI errors (every coach), off
   aiErrOther: ['Something went wrong on the AI side. Try again in a moment.', 'Κάτι πήγε στραβά με το AI. Δοκίμασε ξανά σε λίγο.'],
   logQOffline: ['I can’t reach the AI right now, so I matched what I could from your foods and the built-in list. Check the rows before adding.', 'Δεν μπορώ να φτάσω το AI τώρα, οπότε ταίριαξα ό,τι μπόρεσα από τα τρόφιμά σου και τη λίστα της εφαρμογής. Έλεγξε τις γραμμές πριν τις προσθέσεις.'],
   logQLocalOnly: ['Here’s what I matched from your foods and the built-in list. Check the rows before adding.', 'Να τι ταίριαξα από τα τρόφιμά σου και τη λίστα της εφαρμογής. Έλεγξε τις γραμμές πριν τις προσθέσεις.'],
-  logQSame: ['That list is already up there. Change it there, or tap Add.', 'Αυτή η λίστα είναι ήδη πιο πάνω. Άλλαξέ την εκεί ή πάτα Προσθήκη.'],
   logQFixed: ['Done, I changed the list above.', 'Έγινε, άλλαξα τη λίστα πιο πάνω.'],
   logQFixedNew: ['Here’s the corrected list. Add replaces the one you added before.', 'Να η διορθωμένη λίστα. Η Προσθήκη αντικαθιστά αυτήν που πρόσθεσες πριν.'],
   logQPickRows: ['Pick a food for the rows marked Not Found, or remove them, to add the list.', 'Διάλεξε τρόφιμο για τις γραμμές που λένε Δεν βρέθηκε, ή αφαίρεσέ τες, για να προσθέσεις τη λίστα.'],
