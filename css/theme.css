@@ -1520,3 +1520,18 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 .toast{justify-content:flex-start!important;gap:10px!important;padding-left:10px!important}
 .toast #toastMsg{flex:1;min-width:0}
 .toast:has(#toastAct.hide){text-align:left}
+
+/* Logged Foods line: the title and its count always stay on ONE line, side by side, centred with the Fill My Macros pill (which never squeezes them) */
+#pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{flex-wrap:nowrap;align-items:center;gap:6px}
+#dEatenFold>summary>span[data-t="eaten"]{flex:0 0 auto;white-space:nowrap;font-size:19px;line-height:1.1}
+#dEatenFold>summary #dEatenN{flex:0 0 auto;white-space:nowrap;margin:0!important;font-size:15px;line-height:1.1}
+#dEatenFold>summary .eyest{flex:0 0 auto}
+.fmpill{height:36px;padding:0 var(--s3) 0 var(--s1);font-size:13px;min-width:0;flex:0 1 auto}
+.fmpill .fmt{overflow:hidden;text-overflow:clip}
+/* the full "Fill My Macros" shows when it fits next to the title; on a narrow phone or in Greek (a longer title) the pill becomes just the chef's face */
+#dEatenFold>summary{container-type:inline-size}
+.fmpill .fmt{flex:0 0 auto}
+@container (max-width:296px){ .fmpill:not(.busy) .fmt{display:none} .fmpill{padding:0 var(--s1)} }
+html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
+@container (max-width:390px){ html[lang="el"] .fmpill:not(.busy) .fmt{display:none} html[lang="el"] .fmpill{padding:0 var(--s1)} }
+@container (max-width:270px){ html[lang] #dEatenFold>summary>span[data-t="eaten"]{font-size:14px} #dEatenFold>summary #dEatenN{font-size:13px} }
