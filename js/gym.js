@@ -557,22 +557,35 @@ function recFoodLine(){ return ''; }   // replaced by the one RECOVERY+ insight 
 const REC_CONF = c => t({ low: 'recCLow', moderate: 'recCMod', high: 'recCHigh' }[c] || 'recUnknown');
 const recName = (g, v) => { const all = RecoveryCore.HEADS21.filter(h => RecoveryCore.GROUP[h] === g); return v.heads.length && v.heads.length < all.length ? `${ML(g)} · ${v.heads.map(h => ML(h)).join(', ')}` : ML(g); };
 const recWhen = (d, tm) => { const n = daysUntil(d); return t('recNextWhen', { d: n === 0 ? t('recDayToday') : n === 1 ? t('recDayTomorrow') : t('wdFull').split(' ')[new Date(d + 'T12:00:00').getDay()], t: fmtClock(tm) }); };
+// Muscle groups as they will be at the planned time: the worst state of a group's heads (needs_rest = red, recovering = close to ready)
+function recGroupsAt(tr, at){ const R = RecoveryCore, rank = { unknown: 0, ready: 1, recovering: 2, needs_rest: 3 }, out = {};
+  R.GROUPS10.forEach(g => { out[g] = 'unknown'; });
+  R.HEADS21.forEach(h => { const s = R.stateAt(tr, h, at).state, g = R.GROUP[h]; if(g && rank[s] > rank[out[g]]) out[g] = s; });
+  return out; }
+// The slim "next workout" card, only with the Advanced Week Planner on: [icon] Template Name · Tomorrow at 18:00, then one line of advice.
+// Tick = ready, amber = close to ready (go lighter, no PRs), red X = not recovered (skip or pick other muscles). Suggestions only, nothing in the plan changes.
 function recNextCard(r){
   const tr = r.tr, nx = r.next, a = r.nextA, hist = tr.evidence.sessionsTotal;
-  if(!ui.wpAdv || !nx) return '';   // the next workout shows only when the Week Planner is in Advanced mode and a workout is planned; otherwise nothing
-  const notGroups = RecoveryCore.GROUPS10.filter(g => ['recovering', 'needs_rest'].includes(tr.groups[g].state));
-  let title = t('recNextT'), sub = '', msg = '';
-  if(!hist) msg = t('recAsNoHistory');
-  if(nx){ sub = `${esc(nx.name || t('gymAny'))} · ${esc(recWhen(nx.date, nx.time))}`;
-    if(hist && a){ const lim = a.limiting.slice(0, 2).map(h => ML(h)).join(', '), code = a.suggestionCodes[0];
-      msg = { train_as_planned: t('recAsProceed'), monitor_performance: t('recAsMonitor', { m: lim }), reduce_volume_optional: t('recAsReduce', { m: lim }),
-        consider_alternative: t('recAsAlt', { m: lim }), extra_rest_optional: t('recAsRest', { m: lim }),
-        check_fatigued_muscles: t('recAsListFat', { m: a.limiting.slice(0, 3).map(h => ML(h)).join(', ') }), no_exercise_list: t('recAsListOk') }[code] || ''; } }
-  else if(hist){ title = t('recNoPlanT'); msg = notGroups.length ? t('recSumRec', { m: notGroups.map(g => ML(g)).join(', ') }) : tr.evidence.lastAt && Date.now() - tr.evidence.lastAt > 21 * 864e5 ? t('recStale') : t('recSumReady'); }
-  const lowHist = hist > 0 && (hist < 3 || tr.evidence.recent14 === 0) ? `<small class="recmeta">${t('recLimited')}</small>` : '';
-  const ico = !hist ? 'info' : a && a.assessment === 'consider_adjustment' ? 'warn' : 'check';
-  return `<div class="recnext card"><div class="rnh"><span class="rnic ${ico}">${svgIcon(ico === 'info' ? 'bolt' : ico, 18, 2.2)}</span><b>${title}</b></div>${sub ? `<div class="rnsub">${sub}</div>` : ''}
-    <p class="rnmsg">${esc(msg)}</p>${lowHist}${hist && (nx || notGroups.length) ? `<small class="recmeta">${t('recAdvice')}</small>` : ''}</div>`;
+  if(!ui.wpAdv || !nx) return '';   // tied to the Advanced Week Planner switch (ui.wpAdv), not the Recovery page's own Advanced switch; no planned gym day = nothing
+  const names = hs => hs.map(h => ML(h)).join(', '), top = (arr, n) => arr.slice(0, n).map(g => ML(g)).join(', ');
+  let ico = 'info', msg = t('recAsNoHistory');
+  if(hist){
+    const hasList = a && a.perExercise && a.perExercise.length, det = hasList ? (a.limitingDetail || []) : [];
+    if(hasList){   // a saved template: its own muscles are checked
+      const red = det.filter(x => x.state === 'needs_rest').map(x => x.h), amber = det.filter(x => x.state === 'recovering').map(x => x.h);
+      if(red.length){ ico = 'bad'; msg = t('recAsRed', { m: names(red.slice(0, 3)) }); }
+      else if(amber.length || (a.limiting || []).length){ ico = 'warn'; msg = t('recAsAmber', { m: names((amber.length ? amber : a.limiting).slice(0, 3)) }); }
+      else { ico = 'check'; msg = t('recAsProceed'); }
+    } else {   // only "gym day" planned: suggest from the muscle groups as they will be then
+      const gs = recGroupsAt(tr, nx.at), G = RecoveryCore.GROUPS10, red = G.filter(g => gs[g] === 'needs_rest'), amber = G.filter(g => gs[g] === 'recovering'), ready = G.filter(g => gs[g] === 'ready');
+      if(red.length){ ico = 'bad'; msg = ready.length ? t('recAsFreeRed', { m: top(red, 3), r: top(ready, 4) }) : t('recAsRed', { m: top(red, 3) }); }
+      else if(amber.length){ ico = 'warn'; msg = ready.length ? t('recAsFreeAmber', { m: top(amber, 3), r: top(ready, 4) }) : t('recAsAmber', { m: top(amber, 3) }); }
+      else if(ready.length){ ico = 'check'; msg = ready.length === G.length ? t('recAsFreeAll') : t('recAsFreeOk', { r: top(ready, 4) }); }
+      else { ico = 'info'; msg = t('recAsNoHistory'); } }
+  }
+  const lowHist = hist > 0 && (hist < 3 || tr.evidence.recent14 === 0) ? ` ${t('recLimited')}` : '';
+  return `<div class="recnext card"><div class="rnh"><span class="rnic ${ico}">${svgIcon(ico === 'info' ? 'bolt' : ico === 'bad' ? 'x' : ico === 'warn' ? 'warn' : 'check', 16, 2.4)}</span><b>${esc(nx.name || t('recGymDay'))}</b><span class="rnwhen">${esc(recWhen(nx.date, nx.time))}</span></div>
+    <p class="rnmsg">${esc(msg + lowHist)}</p></div>`;
 }
 let REC_T = 0;
 function renderRecovery(){
