@@ -244,7 +244,7 @@ $('planShow').addEventListener('click', e => {
 // Only when the Food Coach is already out as a bubble does that bubble do the thinking. Press again while it thinks to cancel.
 function planBusy(on){
   const btn = $('planBtn'), face = btn.querySelector('.fmface'); btn.classList.toggle('busy', on); btn.setAttribute('aria-busy', on ? 'true' : 'false');
-  face.innerHTML = AI.robot('chef', 24, on); if(Coach.has('chef')) Coach.think('chef', on);
+  face.innerHTML = on ? AI.robot('chef', 24, true) : ''; if(Coach.has('chef')) Coach.think('chef', on);
 }
 $('planBtn').addEventListener('click', async () => {
   if(planCtl){ planCtl.abort(); return; }
@@ -258,7 +258,7 @@ $('planBtn').addEventListener('click', async () => {
   }catch(err){ if(!err.cancelled) toast(t('planFail', { e: err.message })); renderPlan(); }
   finally{ planCtl = null; planBusy(false); }
 });
-$('planBtn').querySelector('.fmface').innerHTML = AI.robot('chef', 24);
+// the chef face inside the pill is drawn by planBusy() only while it thinks
 // Logged Foods stays open: the list is always there (the pill sits where the arrow was)
 $('dEatenFold').querySelector('summary').addEventListener('click', e => { if(!e.target.closest('#copyYesterday')) e.preventDefault(); });
 

@@ -106,8 +106,11 @@ function answer(prompt){
   if (L.rows[0].g !== 200 || r.calls || r.cards !== cards0) fail(`"actually make the chicken 200g": ${JSON.stringify(L.rows[0])}, ${r.calls} calls, cards ${cards0} → ${r.cards}`); else ok(`"actually make the chicken 200g": 200 g, same card, no AI (${r.ms} ms)`);
   r = await send('add another toast'); L = await last(); rec('local', r.ms);
   if (L.rows[3].g !== 120 || r.calls) fail('"add another toast" should double the toast: ' + JSON.stringify(L.rows[3])); else ok('"add another toast": 2 toasts, same card');
+  // the same message again is a normal conversation: answered again by the AI, a new card (no "already up there"); the first card is put back as the current one for the steps below
+  const keepId = await page.evaluate(() => { globalThis.__keepPrev = logQPrev; return logQPrev.id; });
   r = await send('Had 250g chicken breast in tomato sauce, a white chocolate Snickers protein bar with 20g protein, and one protein toast.');
-  if (r.calls !== 0 || !/already/i.test(r.text) || r.cards !== cards0) fail(`duplicate message must not make a second card (calls ${r.calls}, "${r.text}")`); else ok('same message while its card is open: no second card, no AI');
+  if (r.calls !== 1 || /already/i.test(r.text) || r.cards !== cards0 + 1) fail(`same message again must be answered again with a card (calls ${r.calls}, cards ${cards0} → ${r.cards}, "${r.text}")`); else ok('same message again: answered again by the AI, a new card');
+  await page.evaluate(k => { const cur = logQPrev && logQPrev.id; if (cur && cur !== k) delete FC[cur]; logQPrev = globalThis.__keepPrev; }, keepId);
   r = await send('how much protein was that?'); rec('local', r.ms);
   const pSum = Math.round(L.rows.reduce((a, x) => a + x.p, 0));
   if (r.calls || !new RegExp(`\\b${pSum}\\b`).test(r.text)) fail(`"how much protein was that?" → "${r.text}" (want ${pSum} g, no AI)`); else ok(`"how much protein was that?" answered on the phone: "${r.text}"`);

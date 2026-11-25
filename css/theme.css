@@ -1544,7 +1544,6 @@ body.pillsunk .rail{transform:translateX(-50%) translateY(8px) scale(.78);transi
 #dEatenFold>summary{container-type:inline-size}
 .fmpill .fmt{flex:0 0 auto}
 html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
-@container (max-width:270px){ html[lang] #dEatenFold>summary>span[data-t="eaten"]{font-size:14px} #dEatenFold>summary #dEatenN{font-size:13px} }
 
 /* ======================= 0.8 (25 Nov): Logged Foods line tucked up under the hero card ======================= */
 /* the row is only as tall as the Fill My Macros pill (+4 px each side) instead of 56 px, so Logged Foods, the round Same-as-Yesterday button and the pill sit close under the hero card;
@@ -1568,7 +1567,17 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
    Logged Foods title shrinks with a soft ellipsis, never the pill. */
 .fmpill{flex:0 0 auto;margin-left:auto;padding:0 var(--s4) 0 var(--s1);gap:6px}
 .fmpill .fmt{display:inline-block;line-height:1}
-#dEatenFold>summary>span[data-t="eaten"]{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#dEatenFold>summary>span[data-t="eaten"]{flex:0 1 auto;min-width:0;overflow:visible;text-overflow:clip}
+/* 0.8 (25 Nov): the Logged Foods title scales a touch with the row so it always shows in full, never cut with "…" (the pill stays the same) */
+#dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(12px,4.8cqw,19px)}
+html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(11px,4.3cqw,17px)}
+#dEatenFold>summary #dEatenN{font-size:clamp(11px,3.7cqw,15px)}
+
+/* ======================= 0.8 (25 Nov): Fill My Macros pill — words only; the chef shows up only while it thinks ======================= */
+/* idle: just the words, evenly padded (the Food Coach robot already sits nearby, so no second face). Pressed: the words slide away, the pill shrinks sideways and shows the
+   chef's thinking face with the three hopping dots. */
+.fmpill:not(.busy){padding:0 var(--s4);gap:0}
+.fmpill:not(.busy) .fmface{display:none}
 
 /* Supplements page: the daily question (No = same red as Discard), a Monday-to-Sunday strip with a tick (yes) or an X (no) */
 .suppq{display:flex;flex-direction:column;gap:var(--s3);padding:var(--s4);margin-bottom:var(--s4)}
