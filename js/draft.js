@@ -20,7 +20,7 @@ const Draft = (() => {
   // never remembered: live or dangerous after 3 minutes (live workout, timers, camera and barcode scans, scan results, AI chat),
   // windows with nothing typed in them, and settings that apply the moment you tap them (nothing to lose)
   const SKIP = new Set(['ovSession', 'ovSx', 'ovExSet', 'ovExSetAsk', 'ovNext', 'ovSummary', 'ovRankFx', 'ovStart', 'ovScan', 'ovShop', 'ovShopRev', 'ovRcpt', 'ovTable', 'ovWkScan', 'ovWkQR',
-    'ovCoach', 'ovAsk', 'ovSetup', 'ovLang', 'ovPick', 'ovBulb', 'ovSLang', 'ovSUnits', 'ovTheme', 'ovSTabs', 'ovSData', 'ovSAbout', 'ovSCustom', 'ovAdd']);
+    'ovCoach', 'ovAsk', 'ovSetup', 'ovLang', 'ovPick', 'ovBulb', 'ovSLang', 'ovSUnits', 'ovTheme', 'ovSTabs', 'ovSData', 'ovSAbout', 'ovSCustom', 'ovSNearby', 'ovAdd']);
   // windows that only remember their search box (the exercise picker menu itself stays exactly as it is)
   const SEARCH_ONLY = new Set(['ovExPick']);
   // which item a window is open for, so editing food A never gets food B's draft (new items: '')

@@ -194,7 +194,7 @@ $('thBar').addEventListener('click', e => { const b = e.target.closest('[data-v]
 $('thSw').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if(b) setTheme({ preset: b.dataset.preset }); });
 
 // ---------- 0.6.9: Settings in groups — each row opens its own page ----------
-document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSTime') drawTimeFmt(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSBeta'){ $('betaTxt').textContent = Profiler.text(); $('betaMsg').textContent = ''; } if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
+document.addEventListener('click', e => { const r = e.target.closest('[data-sp]'); if(!r) return; if(r.dataset.sp === 'ovSNearby') drawNearby(); if(r.dataset.sp === 'ovSUnits') drawUnits(); if(r.dataset.sp === 'ovSTime') drawTimeFmt(); if(r.dataset.sp === 'ovSFood') $('sFoodBody').innerHTML = foodPrefsHtml(profile.foodPrefs); if(r.dataset.sp === 'ovSBeta'){ $('betaTxt').textContent = Profiler.text(); $('betaMsg').textContent = ''; } if(r.dataset.sp === 'ovSAbout') $('sAboutVer').textContent = 'Food Tracker · Gym Buddy · v' + VERSION; if(r.dataset.sp === 'ovSBody' || r.dataset.sp === 'ovSAI') fillSettings(); open(r.dataset.sp); });
 function drawUnits(){ const u = UN(); setSeg('#unW', u.w); setSeg('#unH', u.h); setSeg('#unF', u.f);
   document.querySelectorAll('[data-sp="ovSUnits"] .sv').forEach(s => s.textContent = `${u.w} · ${u.h === 'ft' ? 'ft' : 'cm'} · ${u.f}`); }
 [['unW', 'w'], ['unH', 'h'], ['unF', 'f']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(!b) return;
@@ -223,3 +223,16 @@ Coach.init(); aiGate(); pillsBoot();   // and greys out the AI controls when the
 // beta profiler: Settings › User Profile (Beta) › Export (js/profiler.js); it records on its own, the person only exports
 $('betaExport').addEventListener('click', async () => { const r = await Profiler.exportFile(); if(r !== 'cancelled') $('betaMsg').textContent = t('betaDone'); });
 if(typeof Profiler !== 'undefined') setTimeout(() => Profiler.tickIdle('open'), 8000);   // well after start-up, and only when the phone is idle
+
+// Settings › Nearby Takeaway (js/nearby.js): off until switched on; the position is asked for only when you switch it on or tap Check Again
+function drawNearby(busy){
+  const s = Nearby.state() || {}, on = !!s.on, box = $('nbList'), st = $('nbStatus'); $('sNearby').checked = on;
+  const names = Object.keys(s.brands || {});
+  st.textContent = !on ? '' : busy ? t('nbLooking') : s.err === 'denied' ? t('nbDenied') : s.err === 'unavailable' || s.err === 'timeout' ? t('nbNoPos') : s.err === 'network' && !s.at ? t('nbNet') : !s.at ? t('nbWaiting')
+    : t(names.length ? 'nbFound' : 'nbNone', { km: Nearby.KM, d: new Date(s.at).toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }) }) + (s.err === 'network' ? ' ' + t('nbNetOld') : '');
+  box.innerHTML = on && names.length ? names.map(n => `<div class="prow"><span>${esc(n)}</span><span class="sv">${esc(t('nbShops', { n: s.brands[n].n, km: s.brands[n].km == null ? '' : fmt(s.brands[n].km) }))}</span></div>`).join('') : '';
+  $('nbAgain').classList.toggle('hide', !on);
+}
+$('sNearby').addEventListener('change', async e => { Nearby.set(e.target.checked); drawNearby(e.target.checked); if(e.target.checked){ await Nearby.refresh({ force: true }); } drawNearby(); });
+$('nbAgain').addEventListener('click', async () => { drawNearby(true); await Nearby.refresh({ force: true }); drawNearby(); });
+setTimeout(() => { try{ Nearby.refresh().catch(() => {}); }catch(e){} }, 5000);   // quietly renewed (about weekly) when the position is already allowed

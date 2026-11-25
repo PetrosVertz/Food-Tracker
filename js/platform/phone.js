@@ -81,6 +81,15 @@ const Phone = (() => {
       i.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0'; document.body.appendChild(i);
       const done = f => { i.remove(); res(f || null); };
       i.addEventListener('change', () => done(i.files && i.files[0]), { once: true }); i.addEventListener('cancel', () => done(null), { once: true }); i.click(); }); },
+    // the phone's position, once. Rounded to 2 decimals (about 1 km): enough to find shops, not enough to find a door.
+    // { lat, lon } or { err: 'denied' | 'unavailable' | 'timeout' | 'ask' }. quiet: never opens the permission question ('ask' = not allowed yet).
+    async locate(o){
+      if(!navigator.geolocation) return { err: 'unavailable' };
+      if(o && o.quiet){ try{ const st = await navigator.permissions.query({ name: 'geolocation' }); if(st.state === 'denied') return { err: 'denied' }; if(st.state !== 'granted') return { err: 'ask' }; }catch(e){ return { err: 'ask' }; } }
+      const r2 = v => Math.round(v * 100) / 100;
+      return new Promise(res => navigator.geolocation.getCurrentPosition(p => res({ lat: r2(p.coords.latitude), lon: r2(p.coords.longitude) }),
+        e => res({ err: e && e.code === 1 ? 'denied' : e && e.code === 3 ? 'timeout' : 'unavailable' }), { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }));
+    },
     openUrl(url){ if(/^https?:/.test(url)) window.open(url, '_blank', 'noopener'); else location.href = url; },
   };
 })();

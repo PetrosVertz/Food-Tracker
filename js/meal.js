@@ -215,8 +215,10 @@ const askKw = it => Array.isArray(it.kw) ? it.kw : [it.kw || askEsc(norm(it.en))
 const askScore = (s, it) => askKw(it).filter(k => askRx('\\b(?:' + k + ')\\b').test(s)).length;
 const askSays = (s, it) => askScore(s, it) > 0;
 const askAllItems = a => [].concat(a.options || [], ...[a.groups, a.savory, a.sweet].filter(Boolean).map(g => g.flatMap(x => x.items)));
-const askBrandOf = s => (typeof ASK_BRANDS !== 'undefined' ? ASK_BRANDS : []).find(b => mealRx(b.re).test(s)) || null;
-const askNamedOf = (a, s) => (a.named || []).find(n => mealRx(n.re).test(s)) || null;
+// a place with no shop within 20 km of you (js/nearby.js, only when the person switched it on and the phone gave a position) is never offered; unknown = offered as before
+const askAway = name => typeof Nearby !== 'undefined' && !!name && Nearby.has(name) === false;
+const askBrandOf = s => (typeof ASK_BRANDS !== 'undefined' ? ASK_BRANDS : []).find(b => mealRx(b.re).test(s) && !askAway(b.name)) || null;
+const askNamedOf = (a, s) => (a.named || []).find(n => mealRx(n.re).test(s) && !askAway(n.brand)) || null;
 // filler that may stand around the dish name (had, a, my, lunch…, English and Greek) and size words
 const ASK_NOISE = '\\b(?:s|i|me|my|we|a|an|the|had|have|has|got|get|ate|eat|eaten|just|some|for|at|on|in|from|of|with|and|plus|kai|ke|me|ordered|order|bought|today|yesterday|tonight|last|night|this|morning|lunch|dinner|breakfast|snack|late|then|also|too|' +
   'εφαγα|ειχα|πηρα|μια|ενα|ενασ|το|τον|την|τα|με|και|κ|απο|για|σημερα|χθεσ|βραδυ|μεσημερι|πρωι|παρηγγειλα|ηθελα|ειχε)\\b';

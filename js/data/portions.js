@@ -109,11 +109,12 @@ const PORTIONS = {
 // Branded takeaway places and menu items: the user may name them ("McDonald's burger", "Big Mac", "Pizza Fan pepperoni"). The app has no brand's official numbers,
 // so it still gives the estimate from typical ingredients and says so on the card (never a brand's figure as if it were real). dish: what the place is known for,
 // so its name alone ("Everest", "Pizza Fan") opens that card.
+// osm: how the place is named on OpenStreetMap (Latin and Greek), used by js/nearby.js to see whether one is within 20 km
 const ASK_BRANDS = [
-  { name: "McDonald's", re: '(mcdonald\\w*|mc donald\\w*|μακντοναλντ\\w*|μακ ντοναλντ\\w*)' }, { name: 'Burger King', dish: 'burger', re: '(burger king|μπεργκερ κινγκ)' },
-  { name: "Goody's", re: '(goody\\w*|γκουντι\\w*)' }, { name: 'Everest', dish: 'sandwich', re: '(everest|εβερεστ)' }, { name: "Domino's", dish: 'pizza', re: '(domino\\w*|ντομινο\\w*)' },
-  { name: 'Pizza Hut', dish: 'pizza', re: '(pizza hut|πιτσα χατ)' }, { name: 'Pizza Fan', dish: 'pizza', re: '(pizza fan|πιτσα φαν)' }, { name: 'Telepizza', dish: 'pizza', re: '(telepizza|τελεπιτσα)' },
-  { name: "Papa John's", dish: 'pizza', re: '(papa john\\w*|παπα τζον\\w*)' }, { name: 'KFC', re: '(kfc)' }, { name: 'Crepaffair', dish: 'crepe', re: '(crepaffair|κρεπαφερ)' }
+  { osm: 'McDonald|Μακντόναλντ|ΜακΝτόναλντ', name: "McDonald's", re: '(mcdonald\\w*|mc donald\\w*|μακντοναλντ\\w*|μακ ντοναλντ\\w*)' }, { osm: 'Burger King|Μπέργκερ Κινγκ', name: 'Burger King', dish: 'burger', re: '(burger king|μπεργκερ κινγκ)' },
+  { osm: 'Goody|Γκούντι', name: "Goody's", re: '(goody\\w*|γκουντι\\w*)' }, { osm: 'Everest|Έβερεστ', name: 'Everest', dish: 'sandwich', re: '(everest|εβερεστ)' }, { osm: 'Domino|Ντόμινο', name: "Domino's", dish: 'pizza', re: '(domino\\w*|ντομινο\\w*)' },
+  { osm: 'Pizza Hut|Πίτσα Χατ', name: 'Pizza Hut', dish: 'pizza', re: '(pizza hut|πιτσα χατ)' }, { osm: 'Pizza Fan|Πίτσα Φαν', name: 'Pizza Fan', dish: 'pizza', re: '(pizza fan|πιτσα φαν)' }, { osm: 'Telepizza|Τελεπίτσα', name: 'Telepizza', dish: 'pizza', re: '(telepizza|τελεπιτσα)' },
+  { osm: 'Papa John|Παπα Τζον', name: "Papa John's", dish: 'pizza', re: '(papa john\\w*|παπα τζον\\w*)' }, { osm: 'KFC|Kentucky', name: 'KFC', re: '(kfc)' }, { osm: 'Crepaffair|Κρεπαφέρ', name: 'Crepaffair', dish: 'crepe', re: '(crepaffair|κρεπαφερ)' }
 ];
 const ASK_DISHES = [
   { id: 'burger', kind: 'tick', en: 'Burger', el: 'Μπέργκερ', re: '\\b(burger|burgers|μπεργκερ|χαμπουργκερ|hamburger|cheeseburger|big mac|whopper)\\b',

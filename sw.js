@@ -34,7 +34,7 @@ const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon
   'js/supplements.js',
   'js/food-coach.js',
   'js/today.js',
-  'js/meal.js',
+  'js/meal.js', 'js/nearby.js',
   'js/fridge.js',
   'js/shop.js',
   'js/receipt.js',
