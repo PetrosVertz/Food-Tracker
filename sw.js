@@ -88,7 +88,7 @@ self.addEventListener('fetch', e => {
   if (url.origin !== location.origin) return; // never touch API calls
   const key = url.origin + url.pathname, shell = SHELL_URLS.has(key);
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(e.request, { cache: 'no-cache' }).then(r => {   // always ask GitHub whether the file changed (a cheap 304 when not): the page and its scripts can never come from different versions
       if (shell && r.ok && r.type === 'basic') { const copy = r.clone(); e.waitUntil(caches.open(CACHE).then(c => c.put(key, copy))); }
       return r;
     }).catch(() => caches.match(shell ? key : e.request, { ignoreSearch: true }).then(hit => hit || (e.request.mode === 'navigate' ? caches.match(BASE) : hit)))
