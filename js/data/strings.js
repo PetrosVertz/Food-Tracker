@@ -1246,3 +1246,17 @@ Object.assign(S, {
   foodTbsp: ['Tbsp','Κ. σούπας'], foodTsp: ['Tsp','Κ. γλυκού'],
   smallEgg: ['Small egg','Μικρό αυγό'], mediumEgg: ['Medium egg','Μεσαίο αυγό'], largeEgg: ['Large egg','Μεγάλο αυγό']
 });
+// Meals tab (one plate = one card, e.g. Chicken and Rice, Protein Toast) + the Yes / No Supplements question
+Object.assign(S, {
+  suppMine: ['My Supplements', 'Τα Συμπληρώματά Μου'], suppNo: ['No', 'Όχι'], suppYesT: ['Yes', 'Ναι'],
+  suppDayYes: ['Took them', 'Τα πήρες'], suppDayNo: ['Did not take them', 'Δεν τα πήρες'],
+  mealNewOpt: ['Create a Meal', 'Δημιούργησε Γεύμα'], mealNewOptSub: ['Put the foods you eat together on one card, then log it in one tap.', 'Βάλε τα φαγητά που τρως μαζί σε μία κάρτα και κατέγραψέ το με ένα πάτημα.'],
+  searchMyMeals: ['Search your meals…', 'Αναζήτηση γευμάτων…'],
+  noQMeals: ['<b>No meals yet</b>Tap “Create a Meal” to save foods you eat together, like Chicken and Rice.', '<b>Δεν έχεις γεύματα ακόμα</b>Πάτα «Δημιούργησε Γεύμα» για να αποθηκεύσεις φαγητά που τρως μαζί, όπως Κοτόπουλο με Ρύζι.'],
+  newMealT: ['New Meal', 'Νέο Γεύμα'], editMealT: ['Edit Meal', 'Επεξεργασία Γεύματος'],
+  mealWhole: ['Whole Meal', 'Ολόκληρο Γεύμα'], mealLog: ['Log', 'Καταγραφή'], mealLogged: ['{n} logged', 'Καταγράφηκε: {n}'],
+  qmName: ['Meal Name', 'Όνομα Γεύματος'], qmNamePh: ['e.g. Chicken and Rice, Protein Toast', 'π.χ. Κοτόπουλο με Ρύζι, Τοστ Πρωτεΐνης'], qmTotal: ['Whole meal', 'Ολόκληρο γεύμα'],
+  qmIngHint: ['Add each food and how much of it is in this meal.', 'Πρόσθεσε κάθε φαγητό και πόσο από αυτό έχει το γεύμα.'],
+  mealMoveTo: ['Move to Meals', 'Μετακίνηση στα Γεύματα'], mealMoveBack: ['Move to Recipes', 'Μετακίνηση στις Συνταγές'],
+  mealMoved: ['{n} is in Meals now', 'Το «{n}» είναι πλέον στα Γεύματα'], mealMovedBack: ['{n} is in Recipes now', 'Το «{n}» είναι πλέον στις Συνταγές']
+});

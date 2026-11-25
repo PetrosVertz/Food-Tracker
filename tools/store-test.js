@@ -205,13 +205,17 @@ if (typeof boot({ 'ft.schema': '2' }).Store.saveMany === 'function') {
     gym: { sessions: [{ id: 's1', start: '2026-11-01T10:00:00Z', exercises: [] }, { start: '2026-10-01T10:00:00Z', exercises: [] }, { id: 's3', exercises: [] }],
       active: { id: 'w9', start: '2026-11-21T10:00:00Z', exercises: [{ exId: 'bench', sets: [] }] } },
     logPhr: { 'm:eggs': 1 }, foodFix: { eggs: { g: 120 } },
+    suppLog: { '2026-11-02': { ans: 'no' }, '2026-11-03': { takes: { s1: ['08:00'] }, ans: 'yes' } },
+    meals: [{ id: 'q1', name: 'Protein Toast', quick: true, ingredients: [], cookedWeight: 200, kcal: 150 }],
   };
   const cur = empty(); const before = J(cur);
   const p1 = B.plan(cur, JSON.parse(J(file)));
   check(J(cur) === before, 'import plan: the live data passed in is not changed');
-  check(p1.ok && p1.next.foods.length === 3 && p1.added === 3, 'import plan: good foods added, non-objects and nameless foods skipped (' + p1.next.foods.length + ')');
+  check(p1.ok && p1.next.foods.length === 3 && p1.added === 4, 'import plan: good foods added, non-objects and nameless foods skipped, plus the one Meal (' + p1.next.foods.length + ')');
   check(p1.next.foods.some(f => f.name === '<img src=x onerror=alert(1)>'), 'import plan: odd text is kept as plain text (the screen escapes it)');
   check(p1.next.dayLog['2026-11-01'].length === 2 && !p1.next.dayLog['not-a-date'], 'import plan: diary entries added, non-date days skipped');
+  check(p1.next.suppLog['2026-11-02'].ans === 'no' && p1.next.suppLog['2026-11-03'].ans === 'yes' && p1.next.suppLog['2026-11-03'].takes.s1[0] === '08:00', 'import plan: the Supplements Yes / No answer of a day is kept with its takes');
+  check(p1.next.meals.length === 1 && p1.next.meals[0].quick === true, 'import plan: a one-plate Meal keeps its quick mark');
   check(!('bad' in p1.next.weights), 'import plan: weigh-ins on non-dates skipped');
   check(p1.next.sessions.length === 2 && p1.next.sessions[0].start < p1.next.sessions[1].start, 'import plan: sessions without a start time skipped (no crash), rest sorted');
   check(p1.activeRestored && p1.next.active.id === 'w9', 'import plan: live workout restored when this phone has none');
