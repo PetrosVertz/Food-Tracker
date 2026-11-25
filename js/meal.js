@@ -268,7 +268,7 @@ async function askShow(txt, ch, a, det){
   const first = a.modes ? (/(sweet|gliko|γλυκ)/.test(det.s) || (named('sweet').length > named('savory').length) ? 'sweet' : a.modes[0]) : null;
   const br = askBrandOf(det.s), nmd = askNamedOf(a, det.s), place = (nmd && nmd.brand) || (br && br.name) || '';
   // a place or a menu item named: still an estimate from typical ingredients (no brand's official numbers), and the card says so
-  const A = { a, n: a.kind === 'pick' ? 1 : (det.n || 1), mode: first, on: {}, pick: 0, slices: a.kind === 'pick' ? (det.n > 1 ? det.n : a.slices) : 0,
+  const A = { a, n: a.kind === 'pick' ? 1 : (det.n || 1), mode: first, on: {}, pick: 0, slices: a.kind === 'pick' ? (/\b(whole|entire|ολοκληρ\w*)\b/.test(det.s) ? a.whole : det.n > 1 ? det.n : a.slices) : 0,
     place, label: nmd ? nmd.name : place ? place + ' ' + askName(a) : '' };
   // size words are read without the place's name or the menu item ("Big Mac" is not a big portion)
   { const s2 = det.s.replace(askRx(br ? br.re : '$^', true), ' ').replace(askRx(nmd ? nmd.re : '$^', true), ' '); A.size = (PORTION_WORDS.find(w => askRx(w.re).test(s2)) || { k: 'normal' }).k; }
@@ -306,7 +306,8 @@ function askCardHtml(m){
     return `<div class="lqcard askcard"><b class="askh">${esc(t('askWhich', { d: A.label || askName(a) }))}</b>
       <div class="askopts">${a.options.map((x, i) => `<button type="button" class="askopt ${A.pick === i ? 'on' : ''}" data-apick="${i}"><span>${esc(askName(x))}</span><small>${askKcal(x, 1)} kcal ${esc(t('askPerSlice'))}</small></button>`).join('')}
       <button type="button" class="askopt none ${A.pick === -1 ? 'on' : ''}" data-apick="-1"><span>${esc(t('askNone'))}</span><small>${esc(t('askGeneral'))}</small></button></div>
-      <div class="askstep"><span>${esc(t('askSliceL'))}</span><div><button type="button" data-astep="-1" aria-label="${esc(t('askFewer'))}">${svgIcon('minus', 16, 2.6)}</button><b>${A.slices}</b><button type="button" data-astep="1" aria-label="${esc(t('askMore'))}">${svgIcon('plus', 16, 2.6)}</button></div></div>
+      <div class="askstep"><span>${esc(t('askSliceL', { cm: a.cm, n: a.whole }))}</span><div><button type="button" data-astep="-1" aria-label="${esc(t('askFewer'))}">${svgIcon('minus', 16, 2.6)}</button><b>${A.slices}</b><button type="button" data-astep="1" aria-label="${esc(t('askMore'))}">${svgIcon('plus', 16, 2.6)}</button></div></div>
+      <button type="button" class="askwhole ${A.slices === a.whole ? 'on' : ''}" data-awhole>${esc(t('askWhole', { n: a.whole, cm: a.cm }))}</button>
       <div class="asktot"><span><b>${k}</b> <small>kcal</small></span><small>${esc(A.pick === -1 ? t('askGeneral') : askName(o) + ' × ' + A.slices)}</small></div></div>`;
   }
   const seg = a.modes ? `<div class="seg askseg" role="group" aria-label="${esc(askName(a))}">${a.modes.map(md => `<button type="button" data-v="${md}" data-amode="${md}" class="${A.mode === md ? 'on' : ''}">${esc(t('askMode_' + md))}</button>`).join('')}</div>` : '';
@@ -326,6 +327,7 @@ function askClick(e, m){
     logQRedraw(m); return; }
   const md = e.target.closest('[data-amode]'); if(md){ if(A.mode !== md.dataset.amode){ Phone.haptic(); A.mode = md.dataset.amode; logQRedraw(m); } return; }
   const pk = e.target.closest('[data-apick]'); if(pk){ Phone.haptic(); A.pick = +pk.dataset.apick; logQRedraw(m); return; }
+  if(e.target.closest('[data-awhole]')){ Phone.haptic(); A.slices = A.a.whole; logQRedraw(m); return; }
   const st = e.target.closest('[data-astep]'); if(st){ Phone.haptic(); A.slices = Math.max(1, Math.min(16, A.slices + +st.dataset.astep)); logQRedraw(m); }
 }
 

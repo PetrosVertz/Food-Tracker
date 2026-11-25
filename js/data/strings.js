@@ -1266,7 +1266,7 @@ Object.assign(S, {
   askQ_pita: ['Which meat, and what was inside?', 'Τι κρέας είχε και τι έβαλες μέσα;'], askQ_sandwich: ['Which bread, and what was inside?', 'Τι ψωμί ήταν και τι είχε μέσα;'],
   askQLabel: ['What was in your {d}?', 'Τι είχε το {d} σου;'], askNoOfficial: ['No official numbers for {b}: this will be an estimate from typical ingredients.', 'Δεν έχω επίσημα νούμερα για {b}: θα είναι εκτίμηση από τυπικά υλικά.'],
   askWhich: ['Which {d} was it?', 'Ποια {d} ήταν;'], askBase: ['{b}: always counted.', '{b}: μετράνε πάντα.'],
-  askTicked: ['{n} ticked', '{n} επιλεγμένα'], askPerSlice: ['per slice', 'ανά κομμάτι'], askSliceL: ['Slices', 'Κομμάτια'],
+  askTicked: ['{n} ticked', '{n} επιλεγμένα'], askPerSlice: ['per slice', 'ανά κομμάτι'], askSliceL: ['Slices', 'Κομμάτια'], askWhole: ['Whole Pizza · {n} slices · {cm} cm', 'Ολόκληρη Πίτσα · {n} κομμάτια · {cm} εκ.'],
   askNone: ['None Of The Above', 'Τίποτα Από Αυτά'], askGeneral: ['general estimate', 'γενική εκτίμηση'],
   askJust: ['Just Estimate', 'Απλή Εκτίμηση'], askLogThese: ['Log These', 'Κατέγραψέ Τα'], askLog: ['Log It', 'Κατέγραψέ Το'],
   askFewer: ['Fewer slices', 'Λιγότερα κομμάτια'], askMore: ['More slices', 'Περισσότερα κομμάτια'],

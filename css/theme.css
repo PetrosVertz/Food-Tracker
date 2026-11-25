@@ -1618,4 +1618,6 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:clamp(11px,4.
 .askstep button{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:0;background:var(--t-card2);color:var(--t-text);cursor:pointer}
 .asktot{border-top:1px solid var(--t-line);padding-top:var(--s2)} .asktot b{font-size:20px} .asktot small{color:var(--t-muted)}
 .askseg{margin:0}
+.askwhole{min-height:40px;border-radius:999px;border:1px dashed var(--t-line);background:transparent;color:var(--t-text);font:inherit;font-size:var(--fs-label);cursor:pointer}
+.askwhole.on{border-style:solid;border-color:var(--t-accent);background:color-mix(in srgb,var(--t-accent) 16%,var(--t-card2))}
 .askest{align-self:flex-start;display:inline-block;margin-bottom:var(--s1);padding:3px 10px;border-radius:999px;border:1px solid var(--t-mid);color:var(--t-text);font-size:var(--fs-label);font-weight:var(--w-bold)}

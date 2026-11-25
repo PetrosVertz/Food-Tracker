@@ -181,7 +181,7 @@ console.log(fails ? `\n${fails} meal case(s) failed.` : '\nAll meal cases pass.'
   if(!(none > 300 && none < 450 && usual > none && usual < 700)) fail(`ask burger: bun + patty ${none} kcal, usual ticks ${usual} kcal`); else ok(`ask burger: bun + patty ${none} kcal, usual ticks ${usual} kcal (a normal burger)`);
   if(est !== usual) fail(`ask burger: the general estimate (${est}) is not the usual ticks (${usual})`); else ok('ask burger: "Just Estimate" = the usual ticks');
   const pz = E.askMatch('pizza', E.mealDetect('pizza')), P = { a: pz, n: 1, pick: 1, slices: 3 }, pep = E.askParts(P, false)[0], gen = E.askParts({ ...P, pick: -1 }, false)[0];
-  if(!(pep && gen && pep.g0 === 330 && gen.g0 === 345)) fail('ask pizza: slices × grams wrong'); else ok('ask pizza: a type and slices, or "None Of The Above" = the general pizza');
+  if(!(pep && gen && pep.g0 === 3 * pz.options[1].g && gen.g0 === 3 * pz.general.g)) fail('ask pizza: slices × grams wrong'); else ok('ask pizza: a type and slices, or "None Of The Above" = the general pizza');
   // single-choice groups: the best match wins (a list of patterns counts one point each)
   const pita = E.askMatch('pita', E.mealDetect('pita')), meat = pita.groups[0].items, pick = s => { const sc = meat.map(it => E.askScore(E.mealDetect(s).s, it)), b = Math.max(0, ...sc); return b ? meat[sc.indexOf(b)].en : null; };
   const wantMeat = [['chicken souvlaki pita', 'Chicken Souvlaki'], ['pork gyro', 'Pork Gyro'], ['chicken gyros pita', 'Chicken Gyro'], ['kebab', 'Kebab'], ['bifteki pita', 'Bifteki'], ['pita', null]].filter(([s, w]) => pick(s) !== w);
