@@ -97,14 +97,14 @@ const tap = async (p, sel) => { const b = await p.$eval(sel, e => { const r = e.
     must(s.pills === 7 && s.total === '4', 'Week Planner: 7 pills, Total Gym Sessions 4');
     must(s.bars >= 2 && s.bars <= 4 && s.acc === 1, `Workouts: ${s.bars} muscle bars, the top one in the accent colour`);
     must(!!s.stat && s.line, `Progress: rotating stat "${s.stat}" + 8-week line with an end dot`);
-    must(s.text === 'RECOVERY+' && s.dots === 2, 'RECOVERY+: only the body + two dots, no numbers');
+    must(s.text === 'RECOVERY+' && s.dots === 0, 'RECOVERY+: only the body, no dots, no numbers');
     must(s.label.some(x => /Long Workout/.test(x)) && s.label.includes('Rest'), 'advanced mode: workout names under the pills');
     must(await p.evaluate(() => [...document.querySelectorAll('#ghWeek .wpd em')].filter(e => e.firstChild && e.firstChild.className === 'tk' || e.scrollWidth <= e.clientWidth + 1).length === 7), 'long names: any day whose name does not fit scrolls like a news ticker (js/core.js), the rest sit still');
     must(await p.evaluate(async () => { const sp = $('ghProg').querySelector('.btstat.big span'); if(!sp) return true; sp.textContent = 'Best lift · Smith Incline Bench Press Machine Heavy'; await new Promise(r => setTimeout(r, 400));
       const i = sp.querySelector('.tk>.tki'); return !!i && getComputedStyle(i).animationName === 'tkRun'; }), 'Progress: a too-long line scrolls like a news ticker');
     const side0 = await p.evaluate(() => GH_REC.side); await p.waitForTimeout(9700);
-    s = await p.evaluate(() => ({ side: GH_REC.side, on: [...document.querySelectorAll('#ghRec .ghdots i')].findIndex(e => e.classList.contains('on')) }));
-    must(s.side !== side0 && s.on === s.side, 'RECOVERY+ switches sides after 9 s, dots follow');
+    s = await p.evaluate(() => ({ side: GH_REC.side}));
+    must(s.side !== side0, 'RECOVERY+ switches sides after 9 s');
     await p.evaluate(() => { location.hash = '#gym-prog'; }); await p.waitForTimeout(400); must(await p.evaluate(() => !GH_REC.tm), 'the slide stops when the Gym home is not showing');
     await p.evaluate(() => { location.hash = '#gym'; }); await p.waitForTimeout(500);
     await tap(p, '#ghWeek'); await p.waitForTimeout(400); must(await p.evaluate(() => location.hash === '#gym-week'), 'Week Planner tile opens the planner');
