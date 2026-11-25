@@ -154,15 +154,32 @@ function openAICompat(id, name, base, models){
     async generate(req, model, outer){
       if(req.search) throw aiError('unsupported', name + ': no web search', { fatal: true });
       const content = [{ type: 'text', text: req.prompt }, ...[].concat(req.images || []).map(d => ({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + d } }))];
-      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? req.prompt : content }], temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6,
-        ...(req.json === false ? {} : { response_format: { type: 'json_object' } }), ...(req.maxTokens ? { max_tokens: req.maxTokens } : {}) };
+      // OpenAI's newer models (gpt-5…, o1/o3/o4…) refuse "max_tokens" (they want "max_completion_tokens"), accept only the default temperature, and spend
+      // part of the cap on thinking, so a small cap would cut the answer: for those no temperature and no cap. Other services (OpenRouter, a server) keep the classic names.
+      const think = id === 'openai' && /^(gpt-5|o\d)/i.test(model);
+      const body = { model, messages: [{ role: 'user', content: content.length === 1 ? req.prompt : content }],
+        ...(think ? {} : { temperature: req.images && req.images.length || req.tier === 'advanced' ? 0 : 0.6 }),
+        ...(req.json === false ? {} : { response_format: { type: 'json_object' } }),
+        ...(req.maxTokens && !think ? { [id === 'openai' ? 'max_completion_tokens' : 'max_tokens']: req.maxTokens } : {}) };
       const j = await aiPost(url() + '/chat/completions', key() ? { Authorization: 'Bearer ' + key() } : {}, body, req.timeoutMs, outer);
       const text = String((((j.choices || [])[0] || {}).message || {}).content || ''), u = j.usage;
       return { text, usage: u && u.total_tokens != null ? { input: u.prompt_tokens ?? null, output: u.completion_tokens ?? null, total: u.total_tokens } : null };
     },
-    async testKey(k){ const j = await aiPost(url() + '/chat/completions', { Authorization: 'Bearer ' + k }, { model: pick('default'), messages: [{ role: 'user', content: 'ok' }], max_tokens: 1 }, 12000); return j ? 1 : 0; },
+    // the models this key can use (GET /models: also proves the key, with no model guessed). Chat models only, newest-looking first.
+    async listModels(k){ const r = await aiGet(url() + '/models', k ? { Authorization: 'Bearer ' + k } : {}); return chatModels(r.data); },
+    async testKey(k){ const l = await this.listModels(k); this.found = l; return l.length; },
   };
 }
+// the list of models a key can use, for Settings › AI (pick instead of typing an ID)
+async function aiGet(url, headers){
+  let r, j = null;
+  try{ r = await fetchT(url, { headers }, 12000); try{ j = await r.json(); }catch(e){} }
+  catch(e){ throw aiError(e && e.name === 'AbortError' ? 'timeout' : 'network', (e && e.name === 'AbortError') ? t('timedOut') : (e && e.message) || 'network'); }
+  if(!r.ok) throw aiHttpError(r.status, j && j.error && (j.error.message || j.error.type));
+  return j || {};
+}
+const NOT_CHAT = /(embed|tts|whisper|audio|realtime|image|transcribe|moderation|dall-e|davinci|babbage|instruct|computer-use|search-preview|sora|omni-moderation|guard)/i;
+function chatModels(rows){ return [...new Set((rows || []).map(m => m && m.id).filter(id => id && !NOT_CHAT.test(id)))].sort().reverse(); }
 const OpenAIProvider = openAICompat('openai', 'OpenAI', 'https://api.openai.com/v1', { default: 'gpt-4o-mini', advanced: 'gpt-4o' });
 const OpenRouterProvider = openAICompat('openrouter', 'OpenRouter', 'https://openrouter.ai/api/v1', { default: 'openai/gpt-4o-mini', advanced: 'anthropic/claude-sonnet-5-5' });
 // Anthropic (Claude) Messages API. Straight from a browser it needs the "direct browser access" header; through the app's server (aiBase) it does not.
@@ -184,7 +201,8 @@ const AnthropicProvider = (() => {
       const text = (j.content || []).map(c => c.text || '').join(''), u = j.usage;
       return { text, usage: u && u.input_tokens != null ? { input: u.input_tokens, output: u.output_tokens ?? null, total: u.input_tokens + (u.output_tokens || 0) } : null };
     },
-    async testKey(k){ await aiPost(base() + '/v1/messages', head(k), { model: pick('default'), max_tokens: 1, messages: [{ role: 'user', content: 'ok' }] }, 12000); return 1; },
+    async listModels(k){ const r = await aiGet(base() + '/v1/models?limit=100', head(k)); return chatModels(r.data); },
+    async testKey(k){ const l = await this.listModels(k); this.found = l; return l.length; },
   };
 })();
 

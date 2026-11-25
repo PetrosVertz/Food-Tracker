@@ -271,7 +271,8 @@ $('testKey').addEventListener('click', async () => {
   status(el, t('keyTesting'));
   try{
     const id = typeof SPROV === 'string' ? SPROV : 'gemini', n = await AI.testKey(key, id);   // the provider shown in Settings › AI, saved in its own slot
-    status(el, id === 'gemini' ? t('keyOk', { n }) : t('keyOk1')); el.style.color = 'var(--ok)';
+    const list = await AI.modelsOf(id); fillModelPicks(list);
+    status(el, list.length ? t('keyOkN', { n: list.length }) : id === 'gemini' ? t('keyOk', { n }) : t('keyOk1')); el.style.color = 'var(--ok)';
   }catch(e){ el.style.color = ''; status(el, t('keyFail', { e: e.name === 'AbortError' ? t('timedOut') : e.message }), true); }
 });
 
