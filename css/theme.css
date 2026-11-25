@@ -1558,3 +1558,13 @@ html[lang="el"] #dEatenFold>summary>span[data-t="eaten"]{font-size:17px}
 #pgToday.pinned #dEatenFold>summary::before{top:calc(100% - 9px)}
 /* the round Same-as-Yesterday button had an old 8 px bottom margin (layout.css) that lifted it above the title and the pill; now centred on the same line */
 #dEatenFold>summary #copyYesterday{margin-bottom:0}
+
+/* ======================= 0.8 (25 Nov): Fill My Macros pill — a little to the right, a little longer, robot always inside ======================= */
+/* with the round Same-as-Yesterday button showing, the row was too narrow and the pill got squeezed, so the robot poked out of its left edge. Now: the row's right padding is
+   12 px (pill sits a bit further right), the pill is longer (more room on the right of the words) and never shrinks; when the words do not fit it becomes just the chef's face */
+#pgToday #dEatenFold>summary,#pgToday.pinned #dEatenFold>summary{padding-right:12px}
+.fmpill{flex:0 0 auto;padding:0 var(--s4) 0 var(--s1)}
+@container (max-width:306px){ .fmpill:not(.busy) .fmt{display:none} .fmpill{padding:0 var(--s1)} }
+@container (max-width:318px){
+  #dEatenFold>summary:has(.eyest:not(.hide)) .fmpill:not(.busy) .fmt{display:none}
+  #dEatenFold>summary:has(.eyest:not(.hide)) .fmpill:not(.busy){padding:0 var(--s1)} }
